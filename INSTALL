@@ -1,0 +1,9 @@
+Building VERGE QT GUI Wallet
+
+See doc/readme-qt.rst for instructions on building VERGE QT,
+the intended-for-end-users, nice-graphical-interface, reference
+implementation of VERGE.
+
+See doc/build-*.txt for instructions on building VERGEd,
+the intended-for-services, no-graphical-interface, reference
+implementation of VERGE.
