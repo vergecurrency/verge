@@ -1,10 +1,8 @@
 VERGE [XVG] Source Code
 ================================
 
-![Electrum-XVG](http://verge.net/img/logo-dark@2x.png)
-
-Specification
--------------
+Specifications:
+--------------
 
 * Algorithm: scrypt
 * PoW (proof of work)
@@ -37,11 +35,11 @@ if you have never compiled a wallet in linux before, here are the dependencies y
 
 to clone and compile:
 
-    git clone https://github.com/xvg/xvgsource && cd xvgsource/src && make -f makefile.unix
+    git clone https://github.com/vergecurrency/verge && cd verge/src && make -f makefile.unix
 
 to make the qt gui wallet:
 
-    git clone https://github.com/xvg/xvgsource && cd xvgsource && qmake && make
+    git clone https://github.com/vergecurrency/verge && cd verge && qmake && make
 
 then
 
@@ -64,9 +62,9 @@ sudo nano VERGE.conf
     rpcport=20102
     port=21102
 
-then go back into the /xvgsource/src folder and `./verged -daemon` again
+then go back into the /verge/src folder and `./verged -daemon` again
 
-now just wait for the blockchain to download. you can check status by typing `./verged getinfo` in the xvgsource/src/ directory
+now just wait for the blockchain to download. you can check status by typing `./verged getinfo` in the ~/verge/src/ directory
 
 Live Chat
 ---------
