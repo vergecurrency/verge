@@ -1,10 +1,10 @@
 
-Copyright (c) 2013-2014 VERGE Developers
+Copyright (c) 2014-2016 VERGE Developers
 
 
 VERGE 0.3.0 BETA
 
-Copyright (c) 2013-2014 VERGE Developers
+Copyright (c) 2014-2016 VERGE Developers
 Copyright (c) 2013 NovaCoin Developers
 Copyright (c) 2011-2012 Bitcoin Developers
 Distributed under the MIT/X11 software license, see the accompanying
@@ -29,7 +29,7 @@ Unpack the files into a directory and run:
 
 The software automatically finds other nodes to connect to.  You can
 enable Universal Plug and Play (UPnP) with your router/firewall
-or forward port 12788 (TCP) to your computer so you can receive
+or forward port 20102 (TCP) to your computer so you can receive
 incoming connections.  VERGE works without incoming connections,
 but allowing incoming connections helps the VERGE network.
 
@@ -45,6 +45,6 @@ Start up the new verged.
 
 
 See the documentation/wiki at the VERGE site:
-  http://verge.cc/
+  http://vergecurrency.com/
 for help and more information.
 
