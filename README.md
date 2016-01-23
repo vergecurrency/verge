@@ -56,11 +56,11 @@ then
 (youll get a message telling you to make a VERGE.conf file)
 
 then make a VERGE.conf file in the newly created `~/.VERGE` folder:
-
+```
 cd ~/.VERGE
 sudo nano VERGE.conf
 (then add text below)
-
+```
 
 (its hidden, so use la instead of ls to see it)
 
