@@ -71,3 +71,11 @@ Live Chat
 
 come check out our live chat:
 [![Visit our IRC Chat!](https://kiwiirc.com/buttons/chat.freenode.net/verge.png)](https://kiwiirc.com/client/chat.freenode.net/?nick=xvg|?&theme=cli#verge)
+
+
+____   _________________________   ________ ___________
+\   \ /   /\_   _____/\______   \ /  _____/ \_   _____/
+ \   Y   /  |    __)_  |       _//   \  ___  |    __)_ 
+  \     /   |        \ |    |   \\    \_\  \ |        \ 2016 VERGE.
+   \___/   /_______  / |____|_  / \______  //_______  /
+                   \/         \/         \/         \/ 
