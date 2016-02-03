@@ -59,10 +59,10 @@ then make a VERGE.conf file in the newly created `~/.VERGE` folder:
 ```
 cd ~/.VERGE
 sudo nano VERGE.conf
-(then add text below)
+(then add the text seen below)
 ```
 
-(its hidden, so use la instead of ls to see it)
+(the .VERGE directory is hidden, so use la instead of ls to see it in linux)
 
     example VERGE.conf:
     rpcuser=whateverusername
