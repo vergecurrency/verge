@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/vergecurrency/verge.svg?branch=master)](https://travis-ci.org/vergecurrency/VERGE)
 ```
 ____   _________________________   ________ ___________
 \   \ /   /\_   _____/\______   \ /  _____/ \_   _____/
