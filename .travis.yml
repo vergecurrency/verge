@@ -3,7 +3,7 @@ compiler:
 - gcc
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install build-essential pkg-config libtool autotools-dev autoconf automake libssl-dev libboost-all-dev  libminiupnpc-dev libdb++-dev libdb-dev qt4-qmake libqt4-dev libboost-all-dev libssl-dev git
+- sudo apt-get install build-essential libboost1.48-all-dev pkg-config libtool autotools-dev autoconf automake libssl-dev libboost-all-dev  libminiupnpc-dev libdb++-dev libdb-dev qt4-qmake libqt4-dev libboost-all-dev libssl-dev git
 install:
 - cd src
 script:
