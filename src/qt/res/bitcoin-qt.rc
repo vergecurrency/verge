@@ -19,10 +19,10 @@ BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
             VALUE "CompanyName",        "VERGE"
-            VALUE "FileDescription",    "VERGE-Qt (OSS GUI client for VERGE)"
+            VALUE "FileDescription",    "VERGE-Qt (GUI client for VERGE)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "VERGE-qt"
-            VALUE "LegalCopyright",     "2009-2012 The Bitcoin developers, 2012-2013 The VERGE & PPCoin developers"
+            VALUE "LegalCopyright",     "2016 The VERGE developers"
             VALUE "LegalTrademarks1",   "Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
             VALUE "OriginalFilename",   "VERGE-qt.exe"
             VALUE "ProductName",        "VERGE-Qt"
