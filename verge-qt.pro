@@ -21,11 +21,6 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 # Change paths if needed, these use the foocoin/deps.git repository locations
 
 win32 {
-windows:LIBS += -lshlwapi
-LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
-LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
-windows:LIBS += -lws2_32 -lole32 -loleaut32 -luuid -lgdi32
-LIBS += -lboost_system-mgw49-mt-s-1_55 -lboost_filesystem-mgw49-mt-s-1_55 -lboost_program_options-mgw49-mt-s-1_55 -lboost_thread-mgw49-mt-s-1_55
 BOOST_LIB_SUFFIX=-mgw49-mt-s-1_55
 BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
 BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
@@ -35,6 +30,7 @@ OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.1i/include
 OPENSSL_LIB_PATH=C:/deps/openssl-1.0.1i
 MINIUPNPC_INCLUDE_PATH=C:/deps/
 MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
+MINIUPNPC_LIB_SUFFIX=-miniupnpc
 LIBPNG_INCLUDE_PATH=d:/deps/libpng-1.6.12
 LIBPNG_LIB_PATH=d:/deps/libpng-1.6.12/.libs
 QRENCODE_INCLUDE_PATH=C:/deps/qrencode-3.4.4
