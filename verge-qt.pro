@@ -6,7 +6,7 @@ DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE BOOST_THREAD_PROV
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
-QT += core gui network
+QT += core gui network widgets
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
