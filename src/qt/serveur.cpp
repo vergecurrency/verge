@@ -60,7 +60,7 @@ void Serveur::connected()
 
 void Serveur::joins()
 {
-    join("#rootcoin");
+    join("#verge");
 }
 
 void Serveur::readServeur()
