@@ -53,8 +53,14 @@ to make the qt gui wallet:
 then
 
 type `sudo cp ~/verge/src/verged /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide.
+
 after that has been done, type cd ~/ to get back to the home folder and type `verged` this will tell you that you need to make a VERGE.conf with it supplying you an output
-that you can choose or not choose to use. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the
+
+that you can choose or not choose to use. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
+`rpcuser=bitcoinrpc
+rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES`, once that has been completed proceed to add `rpcport=20102
+port=21102 and daemon=1` below the rpcpassword. 
+
 
 
 now just wait for the blockchain to download. you can check status by typing `./verged getinfo` in the ~/verge/src/ directory
