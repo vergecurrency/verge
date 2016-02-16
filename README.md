@@ -60,12 +60,13 @@ that you can choose or not choose to use. So once you've ran that, then type `cd
 `rpcuser=bitcoinrpc
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES`, once that has been completed proceed to add `rpcport=20102
 port=21102 and daemon=1` below the rpcpassword. your config should look something like this
-`rpcuser=bitcoinrpc
+...
+rpcuser=bitcoinrpc
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
 rpcport=20102
 port=21102
-daemon=`
-
+daemon=1
+...
 
 
 now just wait for the blockchain to download. you can check status by typing `./verged getinfo` in the ~/verge/src/ directory
