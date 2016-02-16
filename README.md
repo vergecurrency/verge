@@ -52,28 +52,26 @@ to make the qt gui wallet:
 
 then
 
-    ./verged -daemon
+type `sudo cp ~/verge/src/verged /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide.
 
-(youll get a message telling you to make a VERGE.conf file)
+after that has been done, type cd ~/ to get back to the home folder and type `verged` this will tell you that you need to make a VERGE.conf with it supplying you an output
 
-then make a VERGE.conf file in the newly created `~/.VERGE` folder:
+that you can choose or not choose to use. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
 ```
-cd ~/.VERGE
-sudo nano VERGE.conf
-(then add the text seen below)
+rpcuser=bitcoinrpc
+rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES
 ```
-
-(the .VERGE directory is hidden, so use la instead of ls to see it in linux)
-
-    example VERGE.conf:
-    rpcuser=whateverusername
-    rpcpassword=whateverpassword
-    rpcport=20102
-    port=21102
-
-then go back into the /verge/src folder and `./verged -daemon` again
-
-now just wait for the blockchain to download. you can check status by typing `./verged getinfo` in the ~/verge/src/ directory
+Once that has been completed proceed to add `rpcport=20102 port=21102 and daemon=1` below the rpcpassword. your config should look something like this
+```
+rpcuser=bitcoinrpc
+rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
+rpcport=20102
+port=21102
+daemon=1
+```
+now exit the VERGE.conf by pressing ctrl + x on your keyboard then pressing `y` and hitting enter. this should have made your .conf save with all the stuff you just added,
+if you wish you can check again by typing sudo nano VERGE.conf. After you've checked then exit the file the exact same way, then type `cd ~/` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should boot.
+To check the status of how much is synced type `verged getinfo`
 
 Live Chat
 ---------
