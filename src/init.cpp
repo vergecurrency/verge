@@ -786,6 +786,8 @@ bool AppInit2()
         CBlockLocator locator;
         if (walletdb.ReadBestBlock(locator))
             pindexRescan = locator.GetBlockIndex();
+		else
+			pindexRescan = pindexGenesisBlock;
     }
     if (pindexBest != pindexRescan && pindexBest && pindexRescan && pindexBest->nHeight > pindexRescan->nHeight)
     {
@@ -794,6 +796,8 @@ bool AppInit2()
         nStart = GetTimeMillis();
         pwalletMain->ScanForWalletTransactions(pindexRescan, true);
         printf(" rescan      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+		pwalletMain->SetBestChain(CBlockLocator(pindexBest));
+		nWalletDBUpdated++;
     }
 
     // ********************************************************* Step 9: import blocks
