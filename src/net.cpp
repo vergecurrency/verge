@@ -1535,12 +1535,12 @@ void ThreadOpenAddedConnections2(void* parg)
                     BOOST_FOREACH(CService& addrNode, *(it))
                         if (pnode->addr == addrNode)
                         {
-                            it = vservConnectAddresses.erase(it);
+                            it = lservAddressesToAdd.erase(it);
                             it--;
                             break;
                         }
         }
-        it = lservAddressesToAdd.erase(it);
+        BOOST_FOREACH(vector<CService>& vserv, lservAddressesToAdd)
         {
             CSemaphoreGrant grant(*semOutbound);
             OpenNetworkConnection(CAddress(vserv[i % vserv.size()]), &grant);
