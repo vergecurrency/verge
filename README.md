@@ -54,9 +54,7 @@ then
 
 type `sudo cp ~/verge/src/verged /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide.
 
-after that has been done, type cd ~/ to get back to the home folder and type `verged` this will tell you that you need to make a VERGE.conf with it supplying you an output
-
-that you can choose or not choose to use. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
+after that has been done, type cd ~/ to get back to the home folder and type `verged` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
 ```
 rpcuser=bitcoinrpc
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES
@@ -72,6 +70,10 @@ daemon=1
 now exit the VERGE.conf by pressing ctrl + x on your keyboard then pressing `y` and hitting enter. this should have made your .conf save with all the stuff you just added,
 if you wish you can check again by typing sudo nano VERGE.conf. After you've checked then exit the file the exact same way, then type `cd ~/` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should boot.
 To check the status of how much is synced type `verged getinfo`
+
+Linux Wallet Video Tutorial
+-------
+https://www.youtube.com/watch?v=WYe75b6RWes
 
 Live Chat
 ---------
