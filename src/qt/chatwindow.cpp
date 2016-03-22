@@ -21,7 +21,7 @@ ChatWindow::ChatWindow(QWidget *parent)
     : QWidget(parent), ui(new Ui::ChatWindowClass)
 {
     ui->setupUi(this);
-    setFixedSize(750,514);
+    setFixedSize(750,575);
     ui->splitter->hide();
 
 	connect(ui->buttonConnect, SIGNAL(clicked()), this, SLOT(connecte()));
