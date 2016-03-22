@@ -259,10 +259,8 @@ QString Serveur::parseCommande(QString comm,bool serveur)
                     comm=comm.remove(QRegExp("<br />$"));
                 ecrire("<b>&lt;"+pseudo+"&gt;</b> "+comm,destChan);
 
-        if(comm.startsWith(":"))
-            comm.insert(0,":");
-
-        return "PRIVMSG "+destChan+" "+comm.replace(" ",".")+"";
+        comm.insert(0,":");
+        return "PRIVMSG "+destChan+" "+comm;
     }
 	else
 	{
