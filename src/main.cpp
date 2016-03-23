@@ -1043,6 +1043,11 @@ int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTi
     return nSubsidy;
 }
 
+double GetBlockValueHR(int nHeight)
+{
+   return (GetBlockValue(nHeight, (int64)0) / COIN);
+}
+
 static const int64 nTargetTimespan = 1 * 60 ;  
 static const int64 nTargetSpacingWorkMax = 2 * nStakeTargetSpacing; 
 
