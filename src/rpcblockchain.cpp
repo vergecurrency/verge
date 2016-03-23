@@ -234,6 +234,15 @@ Value getblockbynumber(const Array& params, bool fHelp)
     return blockToJSON(block, pblockindex, params.size() > 1 ? params[1].get_bool() : false);
 }
 
+Value getblockvalue(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 1)
+        throw runtime_error(
+            "getblockvalue [height] \n"
+            "Returns the value (subsidy) of the block speficied by [height] parameter.");
+
+    return  GetBlockValueHR(params[0].get_int());
+}
 // ppcoin: get information of sync-checkpoint
 Value getcheckpoint(const Array& params, bool fHelp)
 {
