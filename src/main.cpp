@@ -1029,11 +1029,6 @@ if (nHeight<4248001 && nHeight>2124000)
     return nSubsidy + nFees;
 }
 
-double GetBlockValueHR(int nHeight)
-{
-   return (GetBlockValue(nHeight, (int64)0) / COIN);
-}
-
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
 // simple algorithm, not depend on the diff
 const int YEARLY_BLOCKCOUNT = 1051200;	// 365 * 24 * 60 * 2 ( 2 blocks every 1 min)
@@ -1048,6 +1043,10 @@ int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTi
     return nSubsidy;
 }
 
+double GetBlockValueHR(int nHeight)
+{
+   return (GetBlockValue(nHeight, (int64)0) / COIN);
+}
 
 static const int64 nTargetTimespan = 1 * 60 ;  
 static const int64 nTargetSpacingWorkMax = 2 * nStakeTargetSpacing; 
