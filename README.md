@@ -40,28 +40,31 @@ Compiling Linux Wallet
 
 if you have never compiled a wallet in linux before, here are the dependencies you will need:
 
-    sudo apt-get update && sudo apt-get install build-essential pkg-config libtool autotools-dev autoconf automake libssl-dev libboost-all-dev  libminiupnpc-dev libdb++-dev libdb-dev qt4-qmake libqt4-dev libqrencode-dev libssl-dev git
+    sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+ '''  
+ then:
+ 
+ sudo add-apt-repository ppa:bitcoin/bitcoin
+ sudo apt-get update
+ sudo apt-get install libdb4.8-dev libdb4.8++-dev
+'''
 
-to clone and compile:
+to clone and compile a daemon and gui wallet:
 
-    git clone https://github.com/vergecurrency/verge && cd verge/src && make -f makefile.unix
-
-to make the qt gui wallet:
-
-    git clone https://github.com/vergecurrency/verge && cd verge && qmake && make
+    git clone https://github.com/vergecurrency/verge && cd verge/src && autogen.sh && ./configure && make
 
 then
 
-type `sudo cp ~/verge/src/verged /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide.
+type `sudo cp ~/verge/src/VERGEd /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide.
 
-after that has been done, type cd ~/ to get back to the home folder and type `verged` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
+after that has been done, type cd ~/ to get back to the home folder and type `VERGEd` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
 ```
-rpcuser=bitcoinrpc
+rpcuser=vergerpcusername
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES
 ```
 Once that has been completed proceed to add `rpcport=20102 port=21102 and daemon=1` below the rpcpassword. your config should look something like this
 ```
-rpcuser=bitcoinrpc
+rpcuser=vergerpcusername
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
 rpcport=20102
 port=21102
