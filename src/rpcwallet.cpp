@@ -83,7 +83,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("pow_algo_id",   miningAlgo));
     obj.push_back(Pair("pow_algo",      GetAlgoName(miningAlgo)));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
     obj.push_back(Pair("testnet",       fTestNet));
     obj.push_back(Pair("keypoololdest", (boost::int64_t)pwalletMain->GetOldestKeyPoolTime()));
     obj.push_back(Pair("keypoolsize",   pwalletMain->GetKeyPoolSize()));
