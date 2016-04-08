@@ -4506,7 +4506,7 @@ void VERGEMiner(CWallet *pwallet, bool fProofOfStake)
             unsigned int nHashesDone = 0;
 
             uint256 thash;
-            loop
+            while (true)
             {
                 thash = pblock->GetPoWHash(miningAlgo);
                 if (thash <= hashTarget)
