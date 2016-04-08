@@ -19,7 +19,8 @@ QT_FORMS_UI = \
   qt/forms/sendcoinsentry.ui \
   qt/forms/signverifymessagedialog.ui \
   qt/forms/chatwindow.ui \
-  qt/forms/transactiondescdialog.ui
+  qt/forms/transactiondescdialog.ui \
+  qt/forms/blockbrowser.ui \
 
 QT_MOC_CPP = \
   qt/moc_aboutdialog.cpp \
@@ -30,6 +31,7 @@ QT_MOC_CPP = \
   qt/moc_bitcoinamountfield.cpp \
   qt/moc_bitcoingui.cpp \
   qt/moc_bitcoinunits.cpp \
+  qt/moc_blockbrowser.cpp \
   qt/moc_clientmodel.cpp \
   qt/moc_csvmodelwriter.cpp \
   qt/moc_chatwindow.cpp \
@@ -79,6 +81,7 @@ BITCOIN_QT_H = \
   qt/bitcoinamountfield.h \
   qt/bitcoingui.h \
   qt/bitcoinunits.h \
+  qt/blockbrowser.h \
   qt/clientmodel.h \
   qt/csvmodelwriter.h \
   qt/editaddressdialog.h \
@@ -112,6 +115,8 @@ BITCOIN_QT_H = \
 RES_ICONS = \
   qt/res/icons/add.png \
   qt/res/icons/chat.png \
+  qt/res/icons/social.png \
+  qt/res/icons/block.png \
   qt/res/icons/address-book.png \
   qt/res/icons/verge.ico \
   qt/res/icons/verge.png \
@@ -162,6 +167,7 @@ BITCOIN_QT_CPP = \
   qt/bitcoinamountfield.cpp \
   qt/bitcoingui.cpp \
   qt/bitcoinunits.cpp \
+  qt/blockbrowser.cpp \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
   qt/chatwindow.cpp \
@@ -181,6 +187,7 @@ BITCOIN_QT_CPP += \
   qt/addressbookpage.cpp \
   qt/addresstablemodel.cpp \
   qt/askpassphrasedialog.cpp \
+  qt/blockbrowser.cpp \
   qt/editaddressdialog.cpp \
   qt/overviewpage.cpp \
   qt/chatwindow.cpp \

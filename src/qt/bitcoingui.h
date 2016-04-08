@@ -9,6 +9,7 @@ class ClientModel;
 class WalletModel;
 class TransactionView;
 class OverviewPage;
+class BlockBrowser;
 class ChatWindow;
 class AddressBookPage;
 class SendCoinsDialog;
@@ -61,6 +62,7 @@ private:
     QStackedWidget *centralWidget;
 
     OverviewPage *overviewPage;
+	BlockBrowser *blockBrowser;
     ChatWindow *chatWindow;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;
@@ -140,6 +142,8 @@ public slots:
 private slots:
     /** Switch to overview (home) page */
     void gotoOverviewPage();
+	/** Switch to block explorer*/
+    void gotoBlockBrowser();
     /** Switch to chat page */
     void gotoChatPage();
     /** Switch to history (transactions) page */
