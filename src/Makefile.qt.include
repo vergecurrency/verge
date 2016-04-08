@@ -32,6 +32,8 @@ QT_MOC_CPP = \
   qt/moc_bitcoinunits.cpp \
   qt/moc_clientmodel.cpp \
   qt/moc_csvmodelwriter.cpp \
+  qt/moc_chatwindow.cpp \
+  qt/moc_serveur.cpp \
   qt/moc_editaddressdialog.cpp \
   qt/moc_guiutil.cpp \
   qt/moc_macdockiconhandler.cpp \
