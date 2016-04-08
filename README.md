@@ -13,9 +13,9 @@ VERGE [XVG] Source Code
 Specifications:
 --------------
 
-* Algorithm: scrypt
+* Algorithms: scrypt, x17, Lyra2rev, myr-groestl, & blake2s
 * PoW (proof of work)
-* Blocktime: ~5 minutes
+* Blocktime: 30 seconds
 * RPC port: 20102
 * P2P port: 21102
 * Blockreward: 
