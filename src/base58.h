@@ -276,10 +276,10 @@ class CBitcoinAddress : public CBase58Data
 public:
     enum
     {
-        PUBKEY_ADDRESS = 95,  // VERGE: address begin with 'f'
-        SCRIPT_ADDRESS = 8, 
-        PUBKEY_ADDRESS_TEST = 111,
-        SCRIPT_ADDRESS_TEST = 196,
+        PUBKEY_ADDRESS = 30,  // VERGE: address begin with 'f'
+        SCRIPT_ADDRESS = 33, 
+        PUBKEY_ADDRESS_TEST = 115,
+        SCRIPT_ADDRESS_TEST = 198,
     };
 
     bool Set(const CKeyID &id) {
