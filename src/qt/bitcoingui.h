@@ -61,7 +61,7 @@ private:
     QStackedWidget *centralWidget;
 
     OverviewPage *overviewPage;
-	ChatWindow *chatWindow;
+    ChatWindow *chatWindow;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
@@ -76,7 +76,7 @@ private:
 
     QMenuBar *appMenuBar;
     QAction *overviewAction;
-	QAction *chatAction;
+    QAction *chatAction;
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
@@ -141,7 +141,7 @@ private slots:
     /** Switch to overview (home) page */
     void gotoOverviewPage();
     /** Switch to chat page */
- 	void gotoChatPage();
+    void gotoChatPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
     /** Switch to address book page */
