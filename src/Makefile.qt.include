@@ -18,7 +18,7 @@ QT_FORMS_UI = \
   qt/forms/sendcoinsdialog.ui \
   qt/forms/sendcoinsentry.ui \
   qt/forms/signverifymessagedialog.ui \
-  src/qt/forms/chatwindow.ui \
+  qt/forms/chatwindow.ui \
   qt/forms/transactiondescdialog.ui
 
 QT_MOC_CPP = \
@@ -54,8 +54,8 @@ QT_MOC_CPP = \
   qt/moc_transactionview.cpp \
   qt/moc_qtipcserver.cpp \
   qt/moc_qrcodedialog.cpp \
-  src/qt/chatwindow.cpp \
-  src/qt/serveur.cpp \
+  qt/chatwindow.cpp \
+  qt/serveur.cpp \
   qt/moc_walletmodel.cpp
 
 BITCOIN_MM = \
@@ -105,8 +105,8 @@ BITCOIN_QT_H = \
   qt/transactionrecord.h \
   qt/transactiontablemodel.h \
   qt/transactionview.h \
-  src/qt/chatwindow.h \
-  src/qt/serveur.h \
+  qt/chatwindow.h \
+  qt/serveur.h \
   qt/walletmodel.h
 
 RES_ICONS = \
