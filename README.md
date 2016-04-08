@@ -32,7 +32,7 @@ Specifications:
 Total Supply
 ------------
 
-Approximately total reward: 9 Billion (9,000,000,000) during first year then issuing 1 billion (1,000,000,000) each year after.
+Approximately total reward: 16.5 Billion
 
 
 Compiling Linux Wallet
@@ -41,7 +41,8 @@ Compiling Linux Wallet
 if you have never compiled a wallet in linux before, here are the dependencies you will need:
 
     sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
- '''  
+ 
+ ''' 
  then:
  
  sudo add-apt-repository ppa:bitcoin/bitcoin
