@@ -7,7 +7,7 @@
 
 #include "base58.h"
 #include "bitcoinrpc.h"
-#include "db.h"
+#include "dbx.h"
 #include "init.h"
 #include "main.h"
 #include "net.h"
@@ -152,7 +152,7 @@ Value listunspent(const Array& params, bool fHelp)
     if (params.size() > 0)
         nMinDepth = params[0].get_int();
 
-    int nMaxDepth = 99999999;
+    int nMaxDepth = 9999999;
     if (params.size() > 1)
         nMaxDepth = params[1].get_int();
 

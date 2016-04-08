@@ -8,7 +8,6 @@
 #include <QPushButton>
 #include <QKeyEvent>
 
-
 AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AskPassphraseDialog),
@@ -34,8 +33,8 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
             ui->warningLabel->setText(tr("Enter the new passphrase to the wallet.<br/>Please use a passphrase of <b>10 or more random characters</b>, or <b>eight or more words</b>."));
             setWindowTitle(tr("Encrypt wallet"));
             break;
-            // fallthru
         case Unlock: // Ask passphrase
+        case UnlockMinting:
             ui->warningLabel->setText(tr("This operation needs your wallet passphrase to unlock the wallet."));
             ui->passLabel2->hide();
             ui->passEdit2->hide();
@@ -141,12 +140,13 @@ void AskPassphraseDialog::accept()
         }
         } break;
     case Unlock:
-        if(!model->setWalletLocked(false, oldpass))
+    case UnlockMinting:
+        if(!model->setWalletLocked(false, oldpass, (mode == UnlockMinting)))
         {
             QMessageBox::critical(this, tr("Wallet unlock failed"),
                                   tr("The passphrase entered for the wallet decryption was incorrect."));
         }
-		        else
+        else
         {
             QDialog::accept(); // Success
         }
@@ -196,6 +196,7 @@ void AskPassphraseDialog::textChanged()
         acceptable = !ui->passEdit2->text().isEmpty() && !ui->passEdit3->text().isEmpty();
         break;
     case Unlock: // Old passphrase x1
+    case UnlockMinting:
     case Decrypt:
         acceptable = !ui->passEdit1->text().isEmpty();
         break;

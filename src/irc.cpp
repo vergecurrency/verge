@@ -3,10 +3,17 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifdef WIN32
+#include <winsock2.h>
+#endif
 #include "irc.h"
 #include "net.h"
 #include "strlcpy.h"
 #include "base58.h"
+
+#if !defined(HAVE_MSG_NOSIGNAL) && !defined(MSG_NOSIGNAL)
+#define MSG_NOSIGNAL 0
+#endif
 
 using namespace std;
 using namespace boost;
@@ -77,7 +84,7 @@ static bool Send(SOCKET hSocket, const char* pszSend)
 
 bool RecvLineIRC(SOCKET hSocket, string& strLine)
 {
-    while (true)
+    loop
     {
         bool fRet = RecvLine(hSocket, strLine);
         if (fRet)
@@ -100,7 +107,7 @@ bool RecvLineIRC(SOCKET hSocket, string& strLine)
 
 int RecvUntil(SOCKET hSocket, const char* psz1, const char* psz2=NULL, const char* psz3=NULL, const char* psz4=NULL)
 {
-    while (true)
+    loop
     {
         string strLine;
         strLine.reserve(10000);
@@ -135,7 +142,7 @@ bool Wait(int nSeconds)
 bool RecvCodeLine(SOCKET hSocket, const char* psz1, string& strRet)
 {
     strRet.clear();
-    while (true)
+    loop
     {
         string strLine;
         if (!RecvLineIRC(hSocket, strLine))
@@ -224,9 +231,9 @@ void ThreadIRCSeed2(void* parg)
 
     while (!fShutdown)
     {
-        CService addrConnect("92.243.23.21", 6667); // irc.lfnet.org
+        CService addrConnect("173.246.103.92", 6667); // eu.undernet.org
 
-        CService addrIRC("irc.lfnet.org", 6667, true);
+        CService addrIRC("pelican.heliacal.net", 6667, true);
         if (addrIRC.IsValid())
             addrConnect = addrIRC;
 
@@ -302,8 +309,8 @@ void ThreadIRCSeed2(void* parg)
         }
 
         if (fTestNet) {
-            Send(hSocket, "JOIN #VERGE\r");
-            Send(hSocket, "WHO #VERGE\r");
+            Send(hSocket, "JOIN #VERGETEST2\r");
+            Send(hSocket, "WHO #VERGETEST2\r");
         } else {
             // randomly join #VERGE00-#VERGE05
             // int channel_number = GetRandInt(5);

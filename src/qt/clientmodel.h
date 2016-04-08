@@ -42,7 +42,6 @@ public:
     QString formatBuildDate() const;
     QString clientName() const;
     QString formatClientStartupTime() const;
-	double GetDifficulty() const;
 
 private:
     OptionsModel *optionsModel;

@@ -1,0 +1,2 @@
+debian/bin/verged usr/bin
+src/verged usr/lib/verge

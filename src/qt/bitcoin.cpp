@@ -8,8 +8,6 @@
 #include "guiutil.h"
 #include "guiconstants.h"
 
-#include "init.h"
-#include "ui_interface.h"
 #include "qtipcserver.h"
 
 #include <QApplication>
@@ -20,15 +18,21 @@
 #include <QSplashScreen>
 #include <QLibraryInfo>
 
-#if defined(BITCOIN_NEED_QT_PLUGINS) && !defined(_BITCOIN_QT_PLUGINS_INCLUDED)
-#define _BITCOIN_QT_PLUGINS_INCLUDED
-#define __INSURE__
+#include "init.h"
+#include "ui_interface.h"
+
+#if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
+#if QT_VERSION < 0x050000
 Q_IMPORT_PLUGIN(qcncodecs)
 Q_IMPORT_PLUGIN(qjpcodecs)
 Q_IMPORT_PLUGIN(qtwcodecs)
 Q_IMPORT_PLUGIN(qkrcodecs)
 Q_IMPORT_PLUGIN(qtaccessiblewidgets)
+#else
+Q_IMPORT_PLUGIN(AccessibleFactory)
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
+#endif
 #endif
 
 // Need a global reference for the notifications to find the GUI
@@ -83,7 +87,7 @@ static void InitMessage(const std::string &message)
 {
     if(splashref)
     {
-        splashref->showMessage(QString::fromStdString(message), Qt::AlignBottom|Qt::AlignHCenter, QColor(255,255,200));
+        splashref->showMessage(QString::fromStdString(message), Qt::AlignVCenter|Qt::AlignHCenter, QColor(255,255,200));
         QApplication::instance()->processEvents();
     }
 }
@@ -116,6 +120,12 @@ int main(int argc, char *argv[])
     // Do this early as we don't want to bother initializing if we are just calling IPC
     ipcScanRelay(argc, argv);
 
+#if QT_VERSION < 0x050000
+    // Internal string conversion is all UTF-8
+    QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForTr());
+#endif
+
     Q_INIT_RESOURCE(bitcoin);
     QApplication app(argc, argv);
 
@@ -138,12 +148,12 @@ int main(int argc, char *argv[])
 
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)
-    app.setOrganizationName("VERGE");
-    app.setOrganizationDomain("VERGE.su");
+    app.setOrganizationName(QAPP_ORG_NAME);
+    app.setOrganizationDomain(QAPP_ORG_DOMAIN);
     if(GetBoolArg("-testnet")) // Separate UI settings for testnet
-        app.setApplicationName("VERGE-Qt-testnet");
+        app.setApplicationName(QAPP_APP_NAME_TESTNET);
     else
-        app.setApplicationName("VERGE-Qt");
+        app.setApplicationName(QAPP_APP_NAME_DEFAULT);
 
     // ... then GUI settings:
     OptionsModel optionsModel;
@@ -192,7 +202,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QSplashScreen splash(QPixmap(":/images/splash"), 0);
+    QSplashScreen splash(QPixmap(GetBoolArg("-testnet") ? ":/images/splash_testnet" : ":/images/splash"), 0);
     if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
     {
         splash.show();

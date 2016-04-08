@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>593</width>
-    <height>331</height>
+    <height>319</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,11 +91,7 @@
         <cursorShape>IBeamCursor</cursorShape>
        </property>
        <property name="text">
-        <string>
-Copyright © 2009-2012 Bitcoin Developers
-Copyright © 2012 PPCoin Developers
-Copyright © 2014 VERGE Developers
-</string>
+        <string>Copyright © 2016 The Verge Developers</string>
        </property>
        <property name="textInteractionFlags">
         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -113,7 +109,9 @@ This is experimental software. If you don't treat it as such, you're likely to p
 
 Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</string>
+This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.
+
+Offical forum: http://forum.VERGEcurrency.com/</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>

@@ -7,7 +7,7 @@
 
 #include "checkpoints.h"
 
-#include "db.h"
+#include "dbx.h"
 #include "main.h"
 #include "uint256.h"
 
@@ -24,7 +24,7 @@ namespace Checkpoints
     //
     static MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
-        (     0, hashGenesisBlockOfficial )
+        (     0,  hashGenesisBlockOfficial)
         (  15000, uint256("0x000000000265c5f4683b169a68cb3cac89287c8b5df94e17b09ef19ac718026b"))
         (  30000, uint256("0x0000000003dddf9e84b1246e9a0bd7ceb2672998294e8c823d5ef288fa3781f4"))
 	(  45000, uint256("0x000000000321d6be8ffe446a9183f7605e40f523436479b713762346ae65a3bd"))
@@ -37,13 +37,24 @@ namespace Checkpoints
 	(  219912, uint256("0x00000000010751365b77b28dc6af3c33e6c620e45a166c659a2056dc7cb3af0a"))
 	(  222222, uint256("0x00000000003c92cf2938d35cf4006fc21a251d82456780cafb43ab908eef9aff"))
 	(  244219, uint256("0x000000000139613d26f7436ecc568feb566c22d9a664359e53f0d0a542d5bdba"))
-	(  320269, uint256("0x0000000000586fa06362d42746e44319854ee17bf05c49c875f99014c61775b1"))
-	;
+        ;
 
     static MapCheckpoints mapCheckpointsTestnet =
         boost::assign::map_list_of
         ( 0, hashGenesisBlockTestNet )
         ;
+
+    static bool HACK_RELOAD = false;
+
+    void SetHackReload(bool val)
+    {
+        HACK_RELOAD = val;
+    }
+
+    bool GetHackReload()
+    {
+        return HACK_RELOAD;
+    }
 
     bool CheckHardened(int nHeight, const uint256& hash)
     {
@@ -198,11 +209,11 @@ namespace Checkpoints
         return false;
     }
 
-    // Automatically select a suitable sync-checkpoint 
+    // Automatically select a suitable sync-checkpoint
     uint256 AutoSelectSyncCheckpoint()
     {
         // Proof-of-work blocks are immediately checkpointed
-        // to defend against 51% attack which rejects other miners block 
+        // to defend against 51% attack which rejects other miners block
 
         // Select the last proof-of-work block
         const CBlockIndex *pindex = GetLastBlockIndex(pindexBest, false);
@@ -247,7 +258,7 @@ namespace Checkpoints
             return false;
         if (hashBlock == hashPendingCheckpoint)
             return true;
-        if (mapOrphanBlocks.count(hashPendingCheckpoint) 
+        if (mapOrphanBlocks.count(hashPendingCheckpoint)
             && hashBlock == WantedByOrphan(mapOrphanBlocks[hashPendingCheckpoint]))
             return true;
         return false;
@@ -364,10 +375,20 @@ namespace Checkpoints
                 pindexSync->GetBlockTime() + nStakeMinAge < GetAdjustedTime());
     }
 
+    // Is the sync-checkpoint too old?
+    bool IsSyncCheckpointTooOld(unsigned int nSeconds)
+    {
+        LOCK(cs_hashSyncCheckpoint);
+        // sync-checkpoint should always be accepted block
+        assert(mapBlockIndex.count(hashSyncCheckpoint));
+        const CBlockIndex* pindexSync = mapBlockIndex[hashSyncCheckpoint];
+        return (pindexSync->GetBlockTime() + nSeconds < GetAdjustedTime());
+    }
 }
 
-// ppcoin: sync-checkpoint master key
-const std::string CSyncCheckpoint::strMasterPubKey = "040163c04b967fdaa1e378db7b8a83bf819ba0991af93e1a637c7e3db936ca67bf7ce1c799d3d80fbcc3e98ab186ca8e6e323d7f0d84e03010fc9d9717edae180c";
+// ppcoin: sync-checkpoint master keys
+const std::string CSyncCheckpoint::strMainMasterPubKey = "04360e193d8f9b79971f88de70063612f22eecf8fb55355e6ee49d9a2a14b5c3f77e0ce6c0617a3e65dac75ee1adaeeda93f6aecd60f4a8b4a096cb8e25cfdde26";
+const std::string CSyncCheckpoint::strTestMasterPubKey = "04d83bbaa800e9adda6f3b4b27f6fbc4c023399cff1e2839ccfe7d60a9676be6086a774fdbe1c19581036aaf5ff56f820e54419b205cc363593367deab2c214588";
 
 std::string CSyncCheckpoint::strMasterPrivKey = "";
 
@@ -375,7 +396,7 @@ std::string CSyncCheckpoint::strMasterPrivKey = "";
 bool CSyncCheckpoint::CheckSignature()
 {
     CKey key;
-    if (!key.SetPubKey(ParseHex(CSyncCheckpoint::strMasterPubKey)))
+    if (!key.SetPubKey(ParseHex(fTestNet ? CSyncCheckpoint::strTestMasterPubKey : CSyncCheckpoint::strMainMasterPubKey)))
         return error("CSyncCheckpoint::CheckSignature() : SetPubKey failed");
     if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
         return error("CSyncCheckpoint::CheckSignature() : verify signature failed");

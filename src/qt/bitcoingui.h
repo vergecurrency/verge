@@ -9,8 +9,6 @@ class ClientModel;
 class WalletModel;
 class TransactionView;
 class OverviewPage;
-class BlockBrowser;
-class ChatWindow;
 class AddressBookPage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
@@ -62,8 +60,6 @@ private:
     QStackedWidget *centralWidget;
 
     OverviewPage *overviewPage;
-	BlockBrowser *blockBrowser;
-	ChatWindow *chatWindow;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
@@ -78,8 +74,6 @@ private:
 
     QMenuBar *appMenuBar;
     QAction *overviewAction;
-	QAction *blockAction;
-	QAction *chatAction;
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
@@ -92,10 +86,9 @@ private:
     QAction *toggleHideAction;
     QAction *exportAction;
     QAction *encryptWalletAction;
+    QAction *unlockWalletAction;
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
-    QAction *unlockWalletAction;
-    QAction *lockWalletAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
 
@@ -114,6 +107,8 @@ private:
     void createToolBars();
     /** Create system tray (notification) icon */
     void createTrayIcon();
+    /** set the wallet lock status */
+    void setWalletLock(bool fLockForMintingOnly = false);
 
 public slots:
     /** Set number of connections shown in the UI */
@@ -142,10 +137,6 @@ public slots:
 private slots:
     /** Switch to overview (home) page */
     void gotoOverviewPage();
-	/** Switch to block explorer*/
-    void gotoBlockBrowser();
-	/** Switch to chat page */
-	void gotoChatPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
     /** Switch to address book page */
@@ -162,7 +153,6 @@ private slots:
 
     /** Show configuration dialog */
     void optionsClicked();
- 
     /** Show about dialog */
     void aboutClicked();
 #ifndef Q_OS_MAC
@@ -182,14 +172,12 @@ private slots:
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
     void unlockWallet();
-
-    void lockWallet();
-
+    /** Ask for passphrase to unlock the wallet for minting */
+    void unlockWalletForMinting();
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);
     /** simply calls showNormalIfMinimized(true) for use in SLOT() macro */
     void toggleHidden();
-
 };
 
 #endif

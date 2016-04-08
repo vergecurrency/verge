@@ -18,6 +18,7 @@ public:
     ~AboutDialog();
 
     void setModel(ClientModel *model);
+    void setTestnetLogo();
 private:
     Ui::AboutDialog *ui;
 

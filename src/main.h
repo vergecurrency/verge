@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c)      2014 The XVG-developers
+// Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef BITCOIN_MAIN_H
@@ -10,8 +9,11 @@
 #include "sync.h"
 #include "net.h"
 #include "script.h"
-#include "scrypt_mine.h"
-
+#include "scrypt.h"
+#include "hashgroestl.h"
+#include "hashblake.h"
+#include "hashx17.h"
+#include "Lyra2RE.h"
 #include <list>
 
 class CWallet;
@@ -26,20 +28,16 @@ class CInv;
 class CRequestTracker;
 class CNode;
 
+static const int MULTI_ALGO_SWITCH_BLOCK = 335000;
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
-static const int64 MIN_TX_FEE = 10 * CENT;
-static const int64 MIN_RELAY_TX_FEE = 10 * CENT;
-static const int64 MAX_MONEY = 16555000000 * COIN;	    // total XVG
-static const int64 CIRCULATION_MONEY = MAX_MONEY;
-static const double TAX_PERCENTAGE = 0.01;
-static const int64 MAX_RC_PROOF_OF_STAKE = 0.00 * COIN;	// 0% stake interest disabled
-static const int CUTOFF_POW_BLOCK = 4248000;              // POW end of block 4,248,000
-static const int DISABLE_POS_BLOCK = 1; 			  // DISABLE POS BLOCKS AT START for second reject pos
-static const int MODIFIER_SWITCH_BLOCK = 6000000;          // disabled first reject blocks
+static const int64 MIN_TX_FEE = 0.1 * CENT;
+static const int64 MIN_RELAY_TX_FEE = 0.1 * CENT;
+static const int64 MAX_MONEY = 10000000000 * COIN; // 50,000,000 initial coins, no effecive limit
+
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
@@ -55,7 +53,7 @@ static const int fHaveUPnP = false;
 static const uint256 hashGenesisBlockOfficial("0x00000fc63692467faeb20cdb3b53200dc601d75bdfa1001463304cc790d77278");
 static const uint256 hashGenesisBlockTestNet("0xd29db84baabb156dce853742ee1e6edf8b9a61049571d81907cab72bc4964f09");
 
-static const int64 nMaxClockDrift = 1 * 60 * 60;        // one hour
+static const int64 nMaxClockDrift = 2 * 60 * 60;        // two hours
 
 extern CScript COINBASE_FLAGS;
 
@@ -88,6 +86,8 @@ extern std::map<uint256, CBlock*> mapOrphanBlocks;
 // Settings
 extern int64 nTransactionFee;
 
+extern int miningAlgo;
+
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64 nMinDiskSpace = 52428800;
 
@@ -110,25 +110,85 @@ bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 bool LoadExternalBlockFile(FILE* fileIn);
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet);
-CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake=false);
+CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int algo);
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
-bool CheckProofOfWork(uint256 hash, unsigned int nBits);
-int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash);
-int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight);
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, int algo);
+int64 GetProofOfWorkReward(int nHeight, int64 nFees);
+int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTime);
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
-unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 int GetNumBlocksOfPeers();
 bool IsInitialBlockDownload();
 std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
 uint256 WantedByOrphan(const CBlock* pblockOrphan);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
-void BitcoinMiner(CWallet *pwallet, bool fProofOfStake);
-void ResendWalletTransactions(bool fForce = false);
+void VERGEMiner(CWallet *pwallet, bool fProofOfStake);
+void ResendWalletTransactions();
 
+enum
+{
+    ALGO_SCRYPT  = 0,
+    ALGO_X17	 = 1,
+    ALGO_LYRA2RE = 2,
+    ALGO_BLAKE   = 3,
+    ALGO_GROESTL = 4,
+    NUM_ALGOS
+};
 
+extern CBigNum bnProofOfWorkLimit[NUM_ALGOS];
+
+enum
+{
+    // primary version
+    BLOCK_VERSION_DEFAULT        = 2,
+
+    // algo
+    BLOCK_VERSION_ALGO           = (10 << 11),
+    BLOCK_VERSION_SCRYPT         = (1  << 11),
+    BLOCK_VERSION_GROESTL        = (2  << 11),
+    BLOCK_VERSION_X17		 = (3  << 11),
+    BLOCK_VERSION_BLAKE 	 = (4  << 11),
+    BLOCK_VERSION_LYRA2RE	 = (10 << 11),
+};
+
+inline int GetAlgo(int nVersion)
+{
+    switch (nVersion & BLOCK_VERSION_ALGO)
+    {
+        case BLOCK_VERSION_SCRYPT:
+            return ALGO_SCRYPT;
+        case BLOCK_VERSION_GROESTL:
+            return ALGO_GROESTL;
+        case BLOCK_VERSION_LYRA2RE:
+            return ALGO_LYRA2RE;
+	case BLOCK_VERSION_X17:
+	    return ALGO_X17;
+	case BLOCK_VERSION_BLAKE:
+	    return ALGO_BLAKE;
+    }
+    return ALGO_SCRYPT;
+}
+
+inline std::string GetAlgoName(int Algo)
+{
+    switch (Algo)
+    {
+        case ALGO_SCRYPT:
+            return std::string("scrypt");
+        case ALGO_GROESTL:
+            return std::string("groestl");
+        case ALGO_LYRA2RE:
+            return std::string("lyra2re");
+	case ALGO_BLAKE:
+	    return std::string("blake");
+	case ALGO_X17:
+	    return std::string("x17");
+
+    }
+    return std::string("unknown");
+}
 
 
 
@@ -234,6 +294,7 @@ public:
     {
         return !(a == b);
     }
+
     std::string ToString() const
     {
         return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10).c_str(), n);
@@ -433,7 +494,6 @@ class CTransaction
 {
 public:
     static const int CURRENT_VERSION=1;
-
     int nVersion;
     unsigned int nTime;
     std::vector<CTxIn> vin;
@@ -457,7 +517,7 @@ public:
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
-	)
+    )
 
     void SetNull()
     {
@@ -536,12 +596,6 @@ public:
         return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
     }
 
-	bool IsCoinBaseOrStake() const
-    {
-        return (IsCoinBase() || IsCoinStake());
-    }
-
-
     /** Check for standard transaction types
         @return True if all outputs (scriptPubKeys) use only standard transaction forms
     */
@@ -597,10 +651,10 @@ public:
     {
         // Large (in bytes) low-priority (new, small-coin) transactions
         // need a fee.
-        return dPriority > COIN * 2880 / 250;
+        return dPriority > COIN * 144 / 250;
     }
 
-    int64 GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=false, enum GetMinFee_mode mode=GMF_BLOCK, unsigned int nBytes = 0) const;
+    int64 GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=false, enum GetMinFee_mode mode=GMF_BLOCK) const;
 
     bool ReadFromDisk(CDiskTxPos pos, FILE** pfileRet=NULL)
     {
@@ -660,9 +714,7 @@ public:
             nVersion,
             vin.size(),
             vout.size(),
-            nLockTime
-			);
-
+            nLockTime);
         for (unsigned int i = 0; i < vin.size(); i++)
             str += "    " + vin[i].ToString() + "\n";
         for (unsigned int i = 0; i < vout.size(); i++)
@@ -676,7 +728,6 @@ public:
     }
 
 
-    bool ReadFromDisk(CTxDB& txdb, const uint256& hash, CTxIndex& txindexRet);
     bool ReadFromDisk(CTxDB& txdb, COutPoint prevout, CTxIndex& txindexRet);
     bool ReadFromDisk(CTxDB& txdb, COutPoint prevout);
     bool ReadFromDisk(COutPoint prevout);
@@ -847,7 +898,7 @@ class CBlock
 {
 public:
     // header
-    static const int CURRENT_VERSION=4;
+    static const int CURRENT_VERSION = BLOCK_VERSION_DEFAULT;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -872,6 +923,8 @@ public:
     {
         SetNull();
     }
+
+    int GetAlgo() const { return ::GetAlgo(nVersion); }
 
     IMPLEMENT_SERIALIZE
     (
@@ -917,14 +970,36 @@ public:
 
     uint256 GetHash() const
     {
+	return GetScryptHash();
+    }
+    uint256 GetScryptHash() const
+    {
         uint256 thash;
-        void * scratchbuff = scrypt_buffer_alloc();
-
-        scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
-
-        scrypt_buffer_free(scratchbuff);
-
+        scrypt_1024_1_1_256(BEGIN(nVersion), BEGIN(thash));
         return thash;
+    }
+    uint256 GetLyraHash() const
+    {
+	uint256 thash;
+	lyra2re2_hash(BEGIN(nVersion), BEGIN(thash));
+	return thash;
+    }
+    uint256 GetPoWHash(int algo) const
+    {
+        switch (algo)
+        {
+            case ALGO_SCRYPT:
+                return GetScryptHash();
+            case ALGO_GROESTL:
+                return HashGroestl(BEGIN(nVersion), END(nNonce));
+            case ALGO_BLAKE:
+                return HashBlake(BEGIN(nVersion), END(nNonce));
+            case ALGO_X17:
+                return HashX17(BEGIN(nVersion), END(nNonce));
+	    case ALGO_LYRA2RE:
+		return GetLyraHash();
+        }
+        return GetScryptHash();
     }
 
     int64 GetBlockTime() const
@@ -937,11 +1012,23 @@ public:
     // ppcoin: entropy bit for stake modifier if chosen by modifier
     unsigned int GetStakeEntropyBit(unsigned int nHeight) const
     {
-        // Take last bit of block hash as entropy bit
-        unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
+        // Protocol switch to support p2pool at VERGE block #9689
+        if (nHeight >= 9689 || fTestNet)
+        {
+            // Take last bit of block hash as entropy bit
+            unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
+            if (fDebug && GetBoolArg("-printstakemodifier"))
+                printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash().ToString().c_str(), nEntropyBit);
+            return nEntropyBit;
+        }
+        // Before VERGE block #9689 - old protocol
+        uint160 hashSig = Hash160(vchBlockSig);
         if (fDebug && GetBoolArg("-printstakemodifier"))
-            printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash().ToString().c_str(), nEntropyBit);
-        return nEntropyBit;
+            printf("GetStakeEntropyBit: hashSig=%s", hashSig.ToString().c_str());
+        hashSig >>= 159; // take the first bit of the hash
+        if (fDebug && GetBoolArg("-printstakemodifier"))
+            printf(" entropybit=%"PRI64d"\n", hashSig.Get64());
+        return hashSig.Get64();
     }
 
     // ppcoin: two types of block: proof-of-work or proof-of-stake
@@ -1066,19 +1153,18 @@ public:
         }
 
         // Check the header
-        if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
+        if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetPoWHash(GetAlgo()), nBits, GetAlgo()))
             return error("CBlock::ReadFromDisk() : errors in block header");
 
         return true;
     }
 
-
-
     void print() const
     {
-        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
+        printf("CBlock(hash=%s, ver=%d, algo=%d, mined_hash=%s, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
             GetHash().ToString().c_str(),
-            nVersion,
+            nVersion, GetAlgo(),
+            GetPoWHash(GetAlgo()).ToString().c_str(),
             hashPrevBlock.ToString().c_str(),
             hashMerkleRoot.ToString().c_str(),
             nTime, nBits, nNonce,
@@ -1117,7 +1203,7 @@ private:
 
 
 /** The block chain is a tree shaped structure starting with the
- * genesis block at the xvg, with each block potentially having multiple
+ * genesis block at the root, with each block potentially having multiple
  * candidates to be the next block.  pprev and pnext link a path through the
  * main/longest chain.  A blockindex may have multiple pprev pointing back
  * to it, but pnext will only point forward to the longest branch, or will
@@ -1138,7 +1224,7 @@ public:
     int64 nMoneySupply;
 
     unsigned int nFlags;  // ppcoin: block index flags
-    enum  
+    enum
     {
         BLOCK_PROOF_OF_STAKE = (1 << 0), // is proof-of-stake block
         BLOCK_STAKE_ENTROPY  = (1 << 1), // entropy bit for stake modifier
@@ -1242,7 +1328,14 @@ public:
         return (int64)nTime;
     }
 
-    CBigNum GetBlockTrust() const;
+    CBigNum GetBlockTrust() const
+    {
+        CBigNum bnTarget;
+        bnTarget.SetCompact(nBits);
+        if (bnTarget <= 0)
+            return 0;
+        return (IsProofOfStake() ? (CBigNum(1)<<256) / (bnTarget+1) : 1);
+    }
 
     bool IsInMainChain() const
     {
@@ -1336,7 +1429,7 @@ public:
             pprev, pnext, nFile, nBlockPos, nHeight,
             FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
             GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-            nStakeModifier, nStakeModifierChecksum, 
+            nStakeModifier, nStakeModifierChecksum,
             hashProofOfStake.ToString().c_str(),
             prevoutStake.ToString().c_str(), nStakeTime,
             hashMerkleRoot.ToString().c_str(),
@@ -1586,8 +1679,7 @@ public:
     bool accept(CTxDB& txdb, CTransaction &tx,
                 bool fCheckInputs, bool* pfMissingInputs);
     bool addUnchecked(const uint256& hash, CTransaction &tx);
-    bool remove(const CTransaction &tx, bool fRecursive = false);
-	bool removeConflicts(const CTransaction &tx);
+    bool remove(CTransaction &tx);
     void clear();
     void queryHashes(std::vector<uint256>& vtxid);
 

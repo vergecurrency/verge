@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE Bitcoin Test Suite
 #include <boost/test/unit_test.hpp>
 
-#include "db.h"
+#include "dbx.h"
 #include "main.h"
 #include "wallet.h"
 

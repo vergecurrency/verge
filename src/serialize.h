@@ -38,6 +38,34 @@ inline T& REF(const T& val)
     return const_cast<T&>(val);
 }
 
+/** Get begin pointer of vector (non-const version).
+ * @note These functions avoid the undefined case of indexing into an empty
+ * vector, as well as that of indexing after the end of the vector.
+ */
+template <class T, class TAl>
+inline T* begin_ptr(std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : &v[0];
+}
+/** Get begin pointer of vector (const version) */
+template <class T, class TAl>
+inline const T* begin_ptr(const std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : &v[0];
+}
+/** Get end pointer of vector (non-const version) */
+template <class T, class TAl>
+inline T* end_ptr(std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : (&v[0] + v.size());
+}
+/** Get end pointer of vector (const version) */
+template <class T, class TAl>
+inline const T* end_ptr(const std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : (&v[0] + v.size());
+}
+
 /////////////////////////////////////////////////////////////////
 //
 // Templates for serializing to anything that looks like a stream,
@@ -811,6 +839,18 @@ public:
     iterator insert(iterator it, const char& x=char()) { return vch.insert(it, x); }
     void insert(iterator it, size_type n, const char& x) { vch.insert(it, n, x); }
 
+    void insert(iterator it, const_iterator first, const_iterator last)
+    {
+        assert(last - first >= 0);
+        if (it == vch.begin() + nReadPos && (unsigned int)(last - first) <= nReadPos)
+        {
+            // special case for inserting at the front when there's room
+            nReadPos -= (last - first);
+            memcpy(&vch[nReadPos], &first[0], last - first);
+        }
+        else
+            vch.insert(it, first, last);
+    }
 
     void insert(iterator it, std::vector<char>::const_iterator first, std::vector<char>::const_iterator last)
     {

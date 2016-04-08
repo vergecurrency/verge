@@ -21,6 +21,7 @@ namespace boost {
 }
 
 #include <boost/program_options/detail/config_file.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -59,6 +60,18 @@ namespace boost {
 #include <execinfo.h>
 #endif
 
+// Work around clang compilation problem in Boost 1.46:
+// /usr/include/boost/program_options/detail/config_file.hpp:163:17: error: call to function 'to_internal' that is neither visible in the template definition nor found by argument-dependent lookup
+// See also: http://stackoverflow.com/questions/10020179/compilation-fail-in-boost-librairies-program-options
+//           http://clang.debian.net/status.php?version=3.0&key=CANNOT_FIND_FUNCTION
+namespace boost {
+
+    namespace program_options {
+        std::string to_internal(const std::string&);
+    }
+
+} // namespace boost
+
 
 using namespace std;
 
@@ -72,6 +85,7 @@ bool fRequestShutdown = false;
 bool fShutdown = false;
 bool fDaemon = false;
 bool fServer = false;
+bool fHeadless = false;
 bool fCommandLine = false;
 string strMiscWarning;
 bool fTestNet = false;
@@ -290,7 +304,7 @@ string vstrprintf(const char *format, va_list ap)
     char* p = buffer;
     int limit = sizeof(buffer);
     int ret;
-    while (true)
+    loop
     {
         va_list arg_ptr;
         va_copy(arg_ptr, ap);
@@ -350,7 +364,7 @@ void ParseString(const string& str, char c, vector<string>& v)
         return;
     string::size_type i1 = 0;
     string::size_type i2;
-    while (true)
+    loop
     {
         i2 = str.find(c, i1);
         if (i2 == str.npos)
@@ -452,52 +466,6 @@ static const signed char phexdigit[256] =
   -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
   -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, };
 
-
-static const long hextable[] = 
-{
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 10-19
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 30-39
-	-1, -1, -1, -1, -1, -1, -1, -1,  0,  1,
-	 2,  3,  4,  5,  6,  7,  8,  9, -1, -1,		// 50-59
-	-1, -1, -1, -1, -1, 10, 11, 12, 13, 14,
-	15, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 70-79
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, 10, 11, 12,		// 90-99
-	13, 14, 15, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 110-109
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 130-139
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 150-159
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 170-179
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 190-199
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 210-219
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,		// 230-239
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1
-};
-
-
-long hex2long(const char* hexString)
-{
-	long ret = 0; 
-
-	while (*hexString && ret >= 0) 
-	{
-		ret = (ret << 4) | hextable[*hexString++];
-	}
-
-	return ret; 
-}
-
-
-
 bool IsHex(const string& str)
 {
     BOOST_FOREACH(unsigned char c, str)
@@ -512,7 +480,7 @@ vector<unsigned char> ParseHex(const char* psz)
 {
     // convert hex dump to vector
     vector<unsigned char> vch;
-    while (true)
+    loop
     {
         while (isspace(*psz))
             psz++;
@@ -966,7 +934,7 @@ string DecodeBase32(const string& str)
 
 bool WildcardMatch(const char* psz, const char* mask)
 {
-    while (true)
+    loop
     {
         switch (*mask)
         {
@@ -1036,12 +1004,10 @@ void LogStackTrace() {
     if (fileout)
     {
 #ifndef WIN32
-#ifndef __FreeBSD__
         void* pszBuffer[32];
         size_t size;
         size = backtrace(pszBuffer, 32);
         backtrace_symbols_fd(pszBuffer, size, fileno(fileout));
-#endif
 #endif
     }
 }
@@ -1120,8 +1086,16 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "VERGE.conf"));
-    if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
+    boost::filesystem::path pathConfigFile, path(GetArg("-conf", "VERGE.conf"));
+    if (path.is_complete())
+    	return path;
+
+    pathConfigFile = GetDataDir(false);
+	if (GetBoolArg("-testnet", false))
+		pathConfigFile /= "testnet2";
+
+    pathConfigFile /= path;
+
     return pathConfigFile;
 }
 
@@ -1156,6 +1130,7 @@ boost::filesystem::path GetPidFile()
     return pathPidFile;
 }
 
+#ifndef WIN32
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid)
 {
     FILE* file = fopen(path.string().c_str(), "w");
@@ -1165,6 +1140,7 @@ void CreatePidFile(const boost::filesystem::path &path, pid_t pid)
         fclose(file);
     }
 }
+#endif
 
 bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest)
 {
@@ -1202,21 +1178,23 @@ void ShrinkDebugFile()
     // Scroll debug.log if it's getting too big
     boost::filesystem::path pathLog = GetDataDir() / "debug.log";
     FILE* file = fopen(pathLog.string().c_str(), "r");
-    if (file && GetFilesize(file) > 10 * 1000000)
+    if (file && boost::filesystem::file_size(pathLog) > 10 * 1000000)
     {
         // Restart the file with some of the end
-        char pch[200000];
-        fseek(file, -sizeof(pch), SEEK_END);
-        int nBytes = fread(pch, 1, sizeof(pch), file);
+        std::vector <char> vch(200000,0);
+        fseek(file, -vch.size(), SEEK_END);
+        int nBytes = fread(begin_ptr(vch), 1, vch.size(), file);
         fclose(file);
 
         file = fopen(pathLog.string().c_str(), "w");
         if (file)
         {
-            fwrite(pch, 1, nBytes, file);
+            fwrite(begin_ptr(vch), 1, nBytes, file);
             fclose(file);
         }
     }
+    else if (file != NULL)
+        fclose(file);
 }
 
 
@@ -1249,14 +1227,9 @@ void SetMockTime(int64 nMockTimeIn)
 
 static int64 nTimeOffset = 0;
 
-int64 GetTimeOffset()
-{
-    return nTimeOffset;
-}
-
 int64 GetAdjustedTime()
 {
-    return GetTime() + GetTimeOffset();
+    return GetTime() + nTimeOffset;
 }
 
 void AddTimeData(const CNetAddr& ip, int64 nTime)

@@ -1,3 +1,7 @@
+// Copyright (c) 2011-2013 The Bitcoin Core developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "macdockiconhandler.h"
 
 #include <QImageWriter>
@@ -58,6 +62,8 @@ MacDockIconHandler::MacDockIconHandler() : QObject()
     this->setMainWindow(NULL);
 #if QT_VERSION < 0x050000
     qt_mac_set_dock_menu(this->m_dockMenu);
+#elif QT_VERSION >= 0x050200
+    this->m_dockMenu->setAsDockMenu();
 #endif
     [pool release];
 }
@@ -89,7 +95,7 @@ void MacDockIconHandler::setIcon(const QIcon &icon)
         QSize size = icon.actualSize(QSize(128, 128));
         QPixmap pixmap = icon.pixmap(size);
 
-        // write temp file VERGE (could also be done through QIODevice [memory])
+        // write temp file hack (could also be done through QIODevice [memory])
         QTemporaryFile notificationIconFile;
         if (!pixmap.isNull() && notificationIconFile.open()) {
             QImageWriter writer(&notificationIconFile, "PNG");

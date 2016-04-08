@@ -11,6 +11,27 @@ using namespace std;
 
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, json_spirit::Object& entry);
 
+double GetDifficultyFromBits(unsigned int nBits)
+{
+    int nShift = (nBits >> 24) & 0xff;
+
+    double dDiff =
+        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+
+    while (nShift < 29)
+    {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 29)
+    {
+        dDiff /= 256.0;
+        nShift--;
+    }
+
+    return dDiff;
+}
+
 double GetDifficulty(const CBlockIndex* blockindex)
 {
     // Floating point number that is a multiple of the minimum difficulty,
@@ -42,30 +63,6 @@ double GetDifficulty(const CBlockIndex* blockindex)
     return dDiff;
 }
 
-double GetPoSKernelPS()
-{
-    int nPoSInterval = 72;
-    double dStakeKernelsTriedAvg = 0;
-    int nStakesHandled = 0, nStakesTime = 0;
-
-    CBlockIndex* pindex = pindexBest;;
-    CBlockIndex* pindexPrevStake = NULL;
-
-    while (pindex && nStakesHandled < nPoSInterval)
-    {
-        if (pindex->IsProofOfStake())
-        {
-            dStakeKernelsTriedAvg += GetDifficulty(pindex) * 4294967296.0;
-            nStakesTime += pindexPrevStake ? (pindexPrevStake->nTime - pindex->nTime) : 0;
-            pindexPrevStake = pindex;
-            nStakesHandled++;
-        }
-
-        pindex = pindex->pprev;
-    }
-
-    return nStakesTime ? dStakeKernelsTriedAvg / nStakesTime : 0;
-}
 
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPrintTransactionDetail)
 {
@@ -77,6 +74,10 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.nVersion));
+    int algo = block.GetAlgo();
+    result.push_back(Pair("algo_id", algo));
+    result.push_back(Pair("algo", GetAlgoName(algo)));
+    result.push_back(Pair("mined_hash", block.GetPoWHash(algo).GetHex()));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
     result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
     result.push_back(Pair("time", (boost::int64_t)block.GetBlockTime()));
@@ -127,6 +128,14 @@ Value getblockcount(const Array& params, bool fHelp)
     return nBestHeight;
 }
 
+unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, int algo);
+
+static const CBlockIndex* GetLastBlockIndex4Algo(const CBlockIndex* pindex, int algo)
+{
+    while (pindex && pindex->pprev && pindex->IsProofOfStake() && GetAlgo(pindex->nVersion) != algo)
+        pindex = pindex->pprev;
+    return pindex;
+}
 
 Value getdifficulty(const Array& params, bool fHelp)
 {
@@ -135,10 +144,21 @@ Value getdifficulty(const Array& params, bool fHelp)
             "getdifficulty\n"
             "Returns the difficulty as a multiple of the minimum difficulty.");
 
+    const CBlockIndex* lastPoW = GetLastBlockIndex4Algo(pindexBest, miningAlgo);
+    unsigned int nextPoW = GetNextTargetRequired(pindexBest, false, miningAlgo);
+    const CBlockIndex* lastPoS = GetLastBlockIndex(pindexBest, true);
+    unsigned int nextPoS = GetNextTargetRequired(pindexBest, true, ALGO_SCRYPT);
+
     Object obj;
-    obj.push_back(Pair("proof-of-work",        GetDifficulty()));
-    obj.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
+
+    obj.push_back(Pair("proof-of-work",				GetDifficultyFromBits(lastPoW->nBits)));
+    obj.push_back(Pair("proof-of-work-next",		GetDifficultyFromBits(nextPoW)));
+    obj.push_back(Pair("proof-of-work-last-height", lastPoW->nHeight));
+    obj.push_back(Pair("proof-of-stake",			GetDifficultyFromBits(lastPoS->nBits)));
+    obj.push_back(Pair("proof-of-stake-next",		GetDifficultyFromBits(nextPoS)));
+    obj.push_back(Pair("proof-of-stake-last-height",lastPoS->nHeight));
+    obj.push_back(Pair("search-interval",			(int)nLastCoinStakeSearchInterval));
+
     return obj;
 }
 
@@ -213,7 +233,7 @@ Value getblockbynumber(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "getblock <number> [txinfo]\n"
+            "getblockbynumber <number> [txinfo]\n"
             "txinfo optional to print more detailed tx info\n"
             "Returns details of a block with given block-number.");
 
@@ -232,6 +252,35 @@ Value getblockbynumber(const Array& params, bool fHelp)
     block.ReadFromDisk(pblockindex, true);
 
     return blockToJSON(block, pblockindex, params.size() > 1 ? params[1].get_bool() : false);
+}
+
+Value getrawblockbynumber(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "getrawblockbynumber <number>\n"
+            "Returns raw details of a block with given block-number.");
+
+    int nHeight = params[0].get_int();
+    if (nHeight < 0 || nHeight > nBestHeight)
+        throw runtime_error("Block number out of range.");
+
+    CBlock block;
+    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+    while (pblockindex->nHeight > nHeight)
+        pblockindex = pblockindex->pprev;
+
+    uint256 hash = *pblockindex->phashBlock;
+
+    pblockindex = mapBlockIndex[hash];
+    block.ReadFromDisk(pblockindex, true);
+
+    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+
+    ssTx << block;
+    string strHex = HexStr(ssTx.begin(), ssTx.end());
+
+    return strHex;
 }
 
 // ppcoin: get information of sync-checkpoint

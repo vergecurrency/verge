@@ -5,7 +5,7 @@
 #ifndef BITCOIN_WALLETDB_H
 #define BITCOIN_WALLETDB_H
 
-#include "db.h"
+#include "dbx.h"
 #include "base58.h"
 
 class CKeyPool;

@@ -1,8 +1,11 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2016 Verge developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#include "db.h"
+#include "config/verge-config.h"
+
+#include "dbx.h"
 #include "walletdb.h"
 #include "bitcoinrpc.h"
 #include "net.h"
@@ -10,6 +13,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
+#include "scrypt.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -23,6 +27,13 @@
 
 using namespace std;
 using namespace boost;
+
+// Used to pass flags to the Bind() function
+enum BindFlags {
+    BF_NONE         = 0,
+    BF_EXPLICIT     = (1U << 0),
+    BF_REPORT_ERROR = (1U << 1)
+};
 
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
@@ -42,13 +53,12 @@ void ExitTimeout(void* parg)
 
 void StartShutdown()
 {
-#ifdef QT_GUI
-    // ensure we leave the Qt main loop for a clean GUI exit (Shutdown() is called in bitcoin.cpp afterwards)
-    uiInterface.QueueShutdown();
-#else
-    // Without UI, Shutdown() can simply be started in a new thread
-    NewThread(Shutdown, NULL);
-#endif
+	if (!fHeadless)
+	    // ensure we leave the Qt main loop for a clean GUI exit (Shutdown() is called in bitcoin.cpp afterwards)
+    	uiInterface.QueueShutdown();
+    else
+	    // Without UI, Shutdown() can simply be started in a new thread
+	    NewThread(Shutdown, NULL);
 }
 
 void Shutdown(void* parg)
@@ -83,10 +93,9 @@ void Shutdown(void* parg)
         Sleep(50);
         printf("VERGE exited\n\n");
         fExit = true;
-#ifndef QT_GUI
-        // ensure non-UI client gets exited here, but let Bitcoin-Qt reach 'return 0;' in bitcoin.cpp
-        exit(0);
-#endif
+		if (fHeadless)
+			// ensure non-UI client gets exited here, but let Bitcoin-Qt reach 'return 0;' in bitcoin.cpp
+			exit(0);
     }
     else
     {
@@ -115,7 +124,8 @@ void HandleSIGHUP(int)
 //
 // Start
 //
-#if !defined(QT_GUI)
+// only called by daemon.cpp
+//
 bool AppInit(int argc, char* argv[])
 {
     bool fRet = false;
@@ -172,23 +182,6 @@ bool AppInit(int argc, char* argv[])
     return fRet;
 }
 
-extern void noui_connect();
-int main(int argc, char* argv[])
-{
-    bool fRet = false;
-
-    // Connect bitcoind signal handlers
-    noui_connect();
-
-    fRet = AppInit(argc, argv);
-
-    if (fRet && fDaemon)
-        return 0;
-
-    return 1;
-}
-#endif
-
 bool static InitError(const std::string &str)
 {
     uiInterface.ThreadSafeMessageBox(str, _("VERGE"), CClientUIInterface::OK | CClientUIInterface::MODAL);
@@ -231,7 +224,7 @@ std::string HelpMessage()
         "  -socks=<n>             " + _("Select the version of socks proxy to use (4-5, default: 5)") + "\n" +
         "  -tor=<ip:port>         " + _("Use proxy to reach tor hidden services (default: same as -proxy)") + "\n"
         "  -dns                   " + _("Allow DNS lookups for -addnode, -seednode and -connect") + "\n" +
-        "  -port=<port>           " + _("Listen for connections on <port> (default: 21102 or testnet: 29102)") + "\n" +
+        "  -port=<port>           " + _("Listen for connections on <port> (default: 46393 or testnet: 18393)") + "\n" +
         "  -maxconnections=<n>    " + _("Maintain at most <n> connections to peers (default: 125)") + "\n" +
         "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n" +
         "  -connect=<ip>          " + _("Connect only to the specified node(s)") + "\n" +
@@ -257,11 +250,12 @@ std::string HelpMessage()
 #endif
         "  -detachdb              " + _("Detach block and address databases. Increases shutdown time (default: 0)") + "\n" +
         "  -paytxfee=<amt>        " + _("Fee per KB to add to transactions you send") + "\n" +
-#ifdef QT_GUI
-        "  -server                " + _("Accept command line and JSON-RPC commands") + "\n" +
-#endif
-#if !defined(WIN32) && !defined(QT_GUI)
-        "  -daemon                " + _("Run in the background as a daemon and accept commands") + "\n" +
+		(!fHeadless ?
+        ("  -server                "+ _("Accept command line and JSON-RPC commands") + "\n") : "") +
+
+#if !defined(WIN32)
+        (fHeadless ?
+        ("  -daemon                "+ _("Run in the background as a daemon and accept commands") + "\n") : "") +
 #endif
         "  -testnet               " + _("Use the test network") + "\n" +
         "  -debug                 " + _("Output extra debugging information. Implies all other -debug* options") + "\n" +
@@ -274,11 +268,10 @@ std::string HelpMessage()
 #endif
         "  -rpcuser=<user>        " + _("Username for JSON-RPC connections") + "\n" +
         "  -rpcpassword=<pw>      " + _("Password for JSON-RPC connections") + "\n" +
-        "  -rpcport=<port>        " + _("Listen for JSON-RPC connections on <port> (default: 20102 or testnet: 21102)") + "\n" +
+        "  -rpcport=<port>        " + _("Listen for JSON-RPC connections on <port> (default: 8395 or testnet: 18395)") + "\n" +
         "  -rpcallowip=<ip>       " + _("Allow JSON-RPC connections from specified IP address") + "\n" +
         "  -rpcconnect=<ip>       " + _("Send commands to node running on <ip> (default: 127.0.0.1)") + "\n" +
         "  -blocknotify=<cmd>     " + _("Execute command when the best block changes (%s in cmd is replaced by block hash)") + "\n" +
-		"  -walletnotify=<cmd>    " + _("Execute command when a wallet transaction changes (%s in cmd is replaced by TxID)") + "\n" +
         "  -upgradewallet         " + _("Upgrade wallet to latest format") + "\n" +
         "  -keypool=<n>           " + _("Set key pool size to <n> (default: 100)") + "\n" +
         "  -rescan                " + _("Rescan the block chain for missing wallet transactions") + "\n" +
@@ -388,6 +381,25 @@ bool AppInit2()
         SoftSetBoolArg("-rescan", true);
     }
 
+    // determine mining Algo
+    std::string strAlgo = GetArg("-algo", "scrypt");
+    transform(strAlgo.begin(),strAlgo.end(),strAlgo.begin(),::tolower);
+    if (strAlgo == "scrypt")
+        miningAlgo = ALGO_SCRYPT;
+    else if (strAlgo == "groestl")
+        miningAlgo = ALGO_GROESTL;
+    else if (strAlgo == "x17")
+	miningAlgo = ALGO_X17;
+    else if (strAlgo == "lyra" || strAlgo == "lyra2re" || strAlgo == "lyra2re" || strAlgo == "lyra2" || strAlgo == "lyra2rev2")
+	miningAlgo = ALGO_LYRA2RE;
+    else if (strAlgo == "blake")
+	miningAlgo = ALGO_BLAKE;
+
+    bnProofOfWorkLimit[ALGO_SCRYPT]  = CBigNum(~uint256(0) >> 20);
+    bnProofOfWorkLimit[ALGO_GROESTL] = CBigNum(~uint256(0) >> 20);
+    bnProofOfWorkLimit[ALGO_X17]     = CBigNum(~uint256(0) >> 20);
+    bnProofOfWorkLimit[ALGO_LYRA2RE] = CBigNum(~uint256(0) >> 20);
+    bnProofOfWorkLimit[ALGO_BLAKE]   = CBigNum(~uint256(0) >> 20);
     // ********************************************************* Step 3: parameter-to-internal-flags
 
     fDebug = GetBoolArg("-debug");
@@ -400,8 +412,8 @@ bool AppInit2()
 
     bitdb.SetDetach(GetBoolArg("-detachdb", false));
 
-#if !defined(WIN32) && !defined(QT_GUI)
-    fDaemon = GetBoolArg("-daemon");
+#if !defined(WIN32)
+    fDaemon = GetBoolArg("-daemon") && fHeadless;
 #else
     fDaemon = false;
 #endif
@@ -412,9 +424,8 @@ bool AppInit2()
         fServer = GetBoolArg("-server");
 
     /* force fServer when running without GUI */
-#if !defined(QT_GUI)
-    fServer = true;
-#endif
+    fServer |= fHeadless;
+    
     fPrintToConsole = GetBoolArg("-printtoconsole");
     fPrintToDebugger = GetBoolArg("-printtodebugger");
     fLogTimestamps = GetBoolArg("-logtimestamps");
@@ -453,8 +464,8 @@ bool AppInit2()
     if (!lock.try_lock())
         return InitError(strprintf(_("Cannot obtain a lock on data directory %s.  VERGE is probably already running."), strDataDir.c_str()));
 
-#if !defined(WIN32) && !defined(QT_GUI)
-    if (fDaemon)
+#if !defined(WIN32)
+    if (fDaemon && fHeadless)
     {
         // Daemonize
         pid_t pid = fork();
@@ -483,7 +494,9 @@ bool AppInit2()
     if (!fLogTimestamps)
         printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
     printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
+    printf("Default mining hash algorithm: %s\n", GetAlgoName(miningAlgo).c_str());
     printf("Used data directory %s\n", strDataDir.c_str());
+
     std::ostringstream strErrors;
 
     if (fDaemon)
@@ -491,7 +504,11 @@ bool AppInit2()
 
     int64 nStart;
 
-    // ********************************************************* Step 5: verify database integrity
+#if defined(HAVE_SSE2)
+    scrypt_detect_sse2();
+#endif
+
+     // ********************************************************* Step 5: verify database integrity
 
     uiInterface.InitMessage(_("Verifying database integrity..."));
 
@@ -546,12 +563,6 @@ bool AppInit2()
                 SetLimited(net);
         }
     }
-#if defined(USE_IPV6)
-#if ! USE_IPV6
-    else
-        SetLimited(NET_IPV6);
-#endif
-#endif
 
     CService addrProxy;
     bool fProxy = false;
@@ -563,10 +574,8 @@ bool AppInit2()
         if (!IsLimited(NET_IPV4))
             SetProxy(NET_IPV4, addrProxy, nSocksVersion);
         if (nSocksVersion > 4) {
-#ifdef USE_IPV6
             if (!IsLimited(NET_IPV6))
                 SetProxy(NET_IPV6, addrProxy, nSocksVersion);
-#endif
             SetNameProxy(addrProxy, nSocksVersion);
         }
         fProxy = true;
@@ -607,12 +616,8 @@ bool AppInit2()
         } else {
             struct in_addr inaddr_any;
             inaddr_any.s_addr = INADDR_ANY;
-#ifdef USE_IPV6
-            if (!IsLimited(NET_IPV6))
-                fBound |= Bind(CService(in6addr_any, GetListenPort()), false);
-#endif
-            if (!IsLimited(NET_IPV4))
-                fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound);
+            fBound |= Bind(CService(in6addr_any, GetListenPort()), BF_NONE);
+            fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound ? BF_REPORT_ERROR : BF_NONE);
         }
         if (!fBound)
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));
@@ -786,8 +791,6 @@ bool AppInit2()
         CBlockLocator locator;
         if (walletdb.ReadBestBlock(locator))
             pindexRescan = locator.GetBlockIndex();
-		else
-			pindexRescan = pindexGenesisBlock;
     }
     if (pindexBest != pindexRescan && pindexBest && pindexRescan && pindexBest->nHeight > pindexRescan->nHeight)
     {
@@ -796,8 +799,6 @@ bool AppInit2()
         nStart = GetTimeMillis();
         pwalletMain->ScanForWalletTransactions(pindexRescan, true);
         printf(" rescan      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
-		pwalletMain->SetBestChain(CBlockLocator(pindexBest));
-		nWalletDBUpdated++;
     }
 
     // ********************************************************* Step 9: import blocks
@@ -872,12 +873,13 @@ bool AppInit2()
      // Add wallet transactions that aren't already in a block to mapTransactions
     pwalletMain->ReacceptWalletTransactions();
 
-#if !defined(QT_GUI)
-    // Loop until process is exit()ed from shutdown() function,
-    // called from ThreadRPCServer thread when a "stop" command is received.
-    while (1)
-        Sleep(5000);
-#endif
+	if (fHeadless)
+	{
+		// Loop until process is exit()ed from shutdown() function,
+		// called from ThreadRPCServer thread when a "stop" command is received.
+		while (1)
+		    Sleep(5000);
+	}
 
     return true;
 }

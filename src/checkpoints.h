@@ -5,6 +5,9 @@
 #define  BITCOIN_CHECKPOINT_H
 
 #include <map>
+#ifdef WIN32
+#include <winsock2.h>
+#endif
 #include "net.h"
 #include "util.h"
 
@@ -44,6 +47,11 @@ namespace Checkpoints
     bool SetCheckpointPrivKey(std::string strPrivKey);
     bool SendSyncCheckpoint(uint256 hashCheckpoint);
     bool IsMatureSyncCheckpoint();
+    bool IsSyncCheckpointTooOld(unsigned int nSeconds);
+
+    void SetHackReload(bool val);
+    bool GetHackReload();
+
 }
 
 // ppcoin: synchronized checkpoint
@@ -86,7 +94,8 @@ public:
 class CSyncCheckpoint : public CUnsignedSyncCheckpoint
 {
 public:
-    static const std::string strMasterPubKey;
+    static const std::string strMainMasterPubKey;
+    static const std::string strTestMasterPubKey;
     static std::string strMasterPrivKey;
 
     std::vector<unsigned char> vchMsg;
@@ -122,6 +131,10 @@ public:
 
     bool RelayTo(CNode* pnode) const
     {
+        // we only relay sync-checkpoints to fully connected nodes
+        if (!pnode->fSuccessfullyConnected)
+            return false;
+
         // returns true if wasn't already sent
         if (pnode->hashCheckpointKnown != hashCheckpoint)
         {

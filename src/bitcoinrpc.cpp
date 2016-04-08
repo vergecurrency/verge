@@ -9,7 +9,7 @@
 #include "ui_interface.h"
 #include "base58.h"
 #include "bitcoinrpc.h"
-#include "db.h"
+#include "dbx.h"
 
 #undef printf
 #include <boost/asio.hpp>
@@ -35,6 +35,10 @@ using namespace json_spirit;
 
 void ThreadRPCServer2(void* parg);
 
+// Key used by getwork/getblocktemplate miners.
+// Allocated in StartRPCThreads, free'd in StopRPCThreads
+CReserveKey* pMiningKey = NULL;
+
 static std::string strRPCUserColonPass;
 
 const Object emptyobj;
@@ -43,7 +47,7 @@ void ThreadRPCServer3(void* parg);
 
 static inline unsigned short GetDefaultRPCPort()
 {
-    return GetBoolArg("-testnet", false) ? 21102 : 20102;
+    return GetBoolArg("-testnet", false) ? 18393 : 46393;
 }
 
 Object JSONRPCError(int code, const string& message)
@@ -236,10 +240,10 @@ static const CRPCCommand vRPCCommands[] =
     { "sendfrom",               &sendfrom,               false,  false },
     { "sendmany",               &sendmany,               false,  false },
     { "addmultisigaddress",     &addmultisigaddress,     false,  false },
-	{ "createmultisig",         &createmultisig,         true,   true  },
     { "getrawmempool",          &getrawmempool,          true,   false },
     { "getblock",               &getblock,               false,  false },
     { "getblockbynumber",       &getblockbynumber,       false,  false },
+    { "getrawblockbynumber",    &getrawblockbynumber,    false,  false },
     { "getblockhash",           &getblockhash,           false,  false },
     { "gettransaction",         &gettransaction,         false,  false },
     { "listtransactions",       &listtransactions,       false,  false },
@@ -389,7 +393,7 @@ int ReadHTTPStatus(std::basic_istream<char>& stream, int &proto)
 int ReadHTTPHeader(std::basic_istream<char>& stream, map<string, string>& mapHeadersRet)
 {
     int nLen = 0;
-    while (true)
+    loop
     {
         string str;
         std::getline(stream, str);
@@ -512,8 +516,6 @@ bool ClientAllowed(const boost::asio::ip::address& address)
       || address.to_v6().is_v4_mapped()))
         return ClientAllowed(address.to_v6().to_v4());
 
-	std::string ipv4addr = address.to_string();
-
     if (address == asio::ip::address_v4::loopback()
      || address == asio::ip::address_v6::loopback()
      || (address.is_v4()
@@ -634,6 +636,9 @@ void ThreadRPCServer(void* parg)
     // Make this thread recognisable as the RPC listener
     RenameThread("bitcoin-rpclist");
 
+    // getwork/getblocktemplate mining rewards paid here:
+    pMiningKey = new CReserveKey(pwalletMain);
+
     try
     {
         vnThreadsRunning[THREAD_RPCLISTENER]++;
@@ -647,6 +652,9 @@ void ThreadRPCServer(void* parg)
         vnThreadsRunning[THREAD_RPCLISTENER]--;
         PrintException(NULL, "ThreadRPCServer()");
     }
+
+    delete pMiningKey; pMiningKey = NULL;
+
     printf("ThreadRPCServer exited\n");
 }
 
@@ -731,8 +739,7 @@ void ThreadRPCServer2(void* parg)
     printf("ThreadRPCServer started\n");
 
     strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];
-    if ((mapArgs["-rpcpassword"] == "") ||
-		(mapArgs["-rpcuser"] == mapArgs["-rpcpassword"]))
+    if (mapArgs["-rpcpassword"] == "")
     {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
@@ -747,7 +754,6 @@ void ThreadRPCServer2(void* parg)
               "rpcuser=bitcoinrpc\n"
               "rpcpassword=%s\n"
               "(you do not need to remember this password)\n"
-			  "The username and password MUST NOT be the same.\n"
               "If the file does not exist, create it with owner-readable-only file permissions.\n"),
                 strWhatAmI.c_str(),
                 GetConfigFile().string().c_str(),
@@ -943,7 +949,7 @@ void ThreadRPCServer3(void* parg)
     AcceptedConnection *conn = (AcceptedConnection *) parg;
 
     bool fRun = true;
-    while (true) {
+    loop {
         if (fShutdown || !fRun)
         {
             conn->close();
@@ -1162,6 +1168,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getblockbynumber"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "getblockbynumber"       && n > 1) ConvertTo<bool>(params[1]);
+    if (strMethod == "getrawblockbynumber"    && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "getblockhash"           && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "move"                   && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "move"                   && n > 3) ConvertTo<boost::int64_t>(params[3]);
@@ -1180,8 +1187,6 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "reservebalance"          && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "addmultisigaddress"     && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "addmultisigaddress"     && n > 1) ConvertTo<Array>(params[1]);
-	if (strMethod == "createmultisig"         && n > 0) ConvertTo<boost::int64_t>(params[0]);
-	if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "listunspent"            && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "listunspent"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "listunspent"            && n > 2) ConvertTo<Array>(params[2]);

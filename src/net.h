@@ -35,7 +35,7 @@ bool GetMyExternalIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
-CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL);
+CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, int64 nTimeout=0);
 void MapPort();
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
@@ -106,7 +106,7 @@ enum threadId
     THREAD_ADDEDCONNECTIONS,
     THREAD_DUMPADDRESS,
     THREAD_RPCHANDLER,
-    THREAD_RCER,
+    THREAD_MINTER,
 
     THREAD_MAX
 };
@@ -141,6 +141,7 @@ public:
     int nVersion;
     std::string strSubVer;
     bool fInbound;
+    int64 nReleaseTime;
     int nStartingHeight;
     int nMisbehavior;
 };
@@ -178,8 +179,8 @@ public:
     bool fSuccessfullyConnected;
     bool fDisconnect;
     CSemaphoreGrant grantOutbound;
-    int nRefCount;
 protected:
+    int nRefCount;
 
     // Denial-of-service detection/prevention
     // Key is IP address, value is banned-until-time
@@ -188,6 +189,7 @@ protected:
     int nMisbehavior;
 
 public:
+    int64 nReleaseTime;
     std::map<uint256, CRequestTracker> mapRequests;
     CCriticalSection cs_mapRequests;
     uint256 hashContinue;
@@ -229,6 +231,7 @@ public:
         fSuccessfullyConnected = false;
         fDisconnect = false;
         nRefCount = 0;
+        nReleaseTime = 0;
         hashContinue = 0;
         pindexLastGetBlocksBegin = 0;
         hashLastGetBlocksEnd = 0;
@@ -239,7 +242,7 @@ public:
         setInventoryKnown.max_size(SendBufferSize() / 1000);
 
         // Be shy and don't send version until we hear
-        if (hSocket != INVALID_SOCKET && !fInbound)
+        if (!fInbound)
             PushVersion();
     }
 
@@ -260,13 +263,15 @@ public:
 
     int GetRefCount()
     {
-        assert(nRefCount >= 0);
-		return nRefCount;
+        return std::max(nRefCount, 0) + (GetTime() < nReleaseTime ? 1 : 0);
     }
 
-    CNode* AddRef()
+    CNode* AddRef(int64 nTimeout=0)
     {
-        nRefCount++;
+        if (nTimeout != 0)
+            nReleaseTime = std::max(nReleaseTime, GetTime() + nTimeout);
+        else
+            nRefCount++;
         return this;
     }
 
@@ -309,7 +314,7 @@ public:
         }
     }
 
-    void AskFor(const CInv& inv, bool fImmediateRetry = false)
+    void AskFor(const CInv& inv)
     {
         // We're using mapAskFor as a priority queue,
         // the key is the earliest time the request can be sent
@@ -325,12 +330,7 @@ public:
         nLastTime = nNow;
 
         // Each retry is 2 minutes after the last
-        if (fImmediateRetry) nRequestTime = nNow;
- 
-        else {
-          nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
-        }
-        
+        nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
         mapAskFor.insert(std::make_pair(nRequestTime, inv));
     }
 
