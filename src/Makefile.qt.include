@@ -54,8 +54,6 @@ QT_MOC_CPP = \
   qt/moc_transactionview.cpp \
   qt/moc_qtipcserver.cpp \
   qt/moc_qrcodedialog.cpp \
-  qt/chatwindow.cpp \
-  qt/serveur.cpp \
   qt/moc_walletmodel.cpp
 
 BITCOIN_MM = \
@@ -164,6 +162,8 @@ BITCOIN_QT_CPP = \
   qt/bitcoinunits.cpp \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
+  qt/chatwindow.cpp \
+  qt/serveur.cpp \
   qt/guiutil.cpp \
   qt/monitoreddatamapper.cpp \
   qt/notificator.cpp \
@@ -181,6 +181,8 @@ BITCOIN_QT_CPP += \
   qt/askpassphrasedialog.cpp \
   qt/editaddressdialog.cpp \
   qt/overviewpage.cpp \
+  qt/chatwindow.cpp \
+  qt/serveur.cpp \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
   qt/signverifymessagedialog.cpp \
