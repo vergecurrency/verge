@@ -20,7 +20,7 @@ QT_FORMS_UI = \
   qt/forms/signverifymessagedialog.ui \
   qt/forms/chatwindow.ui \
   qt/forms/transactiondescdialog.ui \
-  qt/forms/blockbrowser.ui \
+  qt/forms/blockbrowser.ui 
 
 QT_MOC_CPP = \
   qt/moc_aboutdialog.cpp \
