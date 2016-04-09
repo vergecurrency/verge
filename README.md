@@ -54,11 +54,11 @@ to clone and compile a daemon and gui wallet:
 
     git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
 
-then
+then you now have the gui wallet in the /verge/src/qt and the daemon in /verge/src/
 
-type `sudo cp ~/verge/src/VERGEd /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide.
+type `sudo cp ~/verge/src/VERGEd /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide. you can also do this with your gui wallet.
 
-after that has been done, type cd ~/ to get back to the home folder and type `VERGEd` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
+after that has been done, type cd ~/ to get back to the home folder and type `VERGEd` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `VERGEd` command into the VERGE.conf like so
 ```
 rpcuser=vergerpcusername
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES
