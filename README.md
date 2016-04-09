@@ -52,7 +52,7 @@ if you have never compiled a wallet in linux before, here are the dependencies y
 
 to clone and compile a daemon and gui wallet:
 
-    git clone https://github.com/vergecurrency/verge && cd verge/src && autogen.sh && ./configure && make
+    git clone https://github.com/vergecurrency/verge && cd verge && autogen.sh && ./configure && make
 
 then
 
