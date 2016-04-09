@@ -1,4 +1,4 @@
-AM_CPPFLAGS =  $(INCLUDES) -std=c99
+AM_CPPFLAGS =  $(INCLUDES) 
 AM_LDFLAGS = $(PTHREAD_CFLAGS)
 
 
@@ -18,7 +18,7 @@ $(LIBLEVELDB) $(LIBMEMENV):
 endif
 
 BITCOIN_CONFIG_INCLUDES=-I$(builddir)/config
-BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) -std=c99
+BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS)
 
 LIBBITCOIN_SERVER=libbitcoin_server.a
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
@@ -131,7 +131,7 @@ obj/build.h: FORCE
 libbitcoin_util_a-version.$(OBJEXT): obj/build.h
 
 # server: shared between bitcoind and bitcoin-qt
-libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES) -std=c99
+libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
