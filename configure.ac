@@ -186,6 +186,8 @@ CFLAGS="$CFLAGS -DHAVE_BUILD_INFO"
 
 AC_LANG_PUSH([C++])
 
+TARGET_OS=linux
+
 use_pkgconfig=yes
 case $host in
   *mingw*)
@@ -685,6 +687,7 @@ fi
 AM_CONDITIONAL([TARGET_DARWIN], [test x$TARGET_OS = xdarwin])
 AM_CONDITIONAL([BUILD_DARWIN], [test x$BUILD_OS = xdarwin])
 AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
+AM_CONDITIONAL([TARGET_LINUX], [test x$TARGET_OS = xlinux])
 AM_CONDITIONAL([ENABLE_WALLET],[test x$enable_wallet == xyes])
 AM_CONDITIONAL([ENABLE_TESTS],[test x$use_tests == xyes])
 AM_CONDITIONAL([ENABLE_QT],[test x$bitcoin_enable_qt == xyes])
