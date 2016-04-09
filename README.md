@@ -75,7 +75,9 @@ now exit the VERGE.conf by pressing ctrl + x on your keyboard then pressing `y` 
 if you wish you can check again by typing sudo nano VERGE.conf. After you've checked then exit the file the exact same way, then type `cd ~/` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should boot.
 To check the status of how much is synced type `verged getinfo`
 
-To compile on Mac (OSX El Capitan):
+
+To compile on Mac (OSX El Capitan)
+-------
     brew install boost miniupnpc openssl qt4 qrencode berkeley-db4
     git clone https://github.com/vergecurrency/verge
     cd verge
