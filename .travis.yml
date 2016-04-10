@@ -1,12 +1,15 @@
 language: cpp
 sudo: required
+
 env:
   matrix:
     - VERGE_PLATFORM='linux64'
-      #- VERGE_PLATFORM='windows32'
+    - VERGE_PLATFORM='windows32'
       #- VERGE_PLATFORM='windows64' TODO after 32 works
+
 compiler:
 - gcc
+
 before_install:
   - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
   - sudo add-apt-repository --yes ppa:bitcoin/bitcoin
@@ -18,7 +21,7 @@ before_install:
   - ./building/${VERGE_TARGET}/requirements.sh
 
 install:
-- ./autogen.sh
-- ./configure
+  - source ./building/${VERGE_TARGET}/build.sh
+
 script:
-- make
+  - echo "nothing."
