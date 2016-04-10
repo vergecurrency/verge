@@ -87,6 +87,11 @@ To compile on Mac (OSX El Capitan)
 
 Note: It may be possible to use qt5.
 
+Using Docker
+------------
+
+check out the readme: https://github.com/vergecurrency/VERGE/tree/master/contrib/docker
+
 
 Linux Wallet Video Tutorial
 -------
