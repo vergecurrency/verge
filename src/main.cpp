@@ -45,7 +45,7 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 unsigned int nStakeMinAge = 10000 * 10000;	// minimum age disabled
 unsigned int nStakeMaxAge = 10000 * 10000;	// stake max age disabled
 unsigned int nStakeTargetSpacing = 30;		// 30 seconds POS block spacing
-unsigned int nProofOfWorkTargetSpacing = 30; 	// 30 seconds PoW block spacing
+unsigned int nProofOfWorkTargetSpacing = 30*5; 	// 30 seconds PoW block spacing
 
 int64 nChainStartTime = 1412878964;
 int nCoinbaseMaturity = 120;
