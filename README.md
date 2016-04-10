@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/vergecurrency/VERGE.svg?branch=master)](https://travis-ci.org/vergecurrency/VERGE)
+[![Build Status](https://travis-ci.org/mkinney/VERGE.svg?branch=master)](https://travis-ci.org/mkinney/VERGE)
+
 
 ```
 ____   _________________________   ________ ___________
