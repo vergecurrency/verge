@@ -13,7 +13,7 @@ VERGE [XVG] Source Code
 Specifications:
 --------------
 
-* Algorithms: scrypt, x17, Lyra2rev, myr-groestl, & blake2s
+* Algorithms: scrypt, x17, Lyra2re, myr-groestl, & blake2s
 * PoW (proof of work)
 * Blocktime: 30 seconds
 * RPC port: 20102
@@ -33,6 +33,8 @@ Total Supply
 ------------
 
 Approximately total reward: 16.5 Billion
+
+binary (precompiled) wallets are available on all platforms at http://vergecurrency.com/#wallets-top
 
 
 Compiling Linux Wallet
@@ -91,6 +93,14 @@ Using Docker
 ------------
 
 check out the readme: https://github.com/vergecurrency/VERGE/tree/master/contrib/docker
+
+Using different algorithms
+----------
+```
+just use the algo switch in your .conf or from command line.
+algo=x17
+algo=scrypt
+```
 
 
 Linux Wallet Video Tutorial
