@@ -685,7 +685,7 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
 void CWalletTx::GetAccountAmounts(const string& strAccount, int64& nGenerated, int64& nReceived,
                                   int64& nSent, int64& nFee) const
 {
-    nReceived = nSent = nFee = 0;
+    nGenerated = nReceived = nSent = nFee = 0;
 
     int64 allGeneratedImmature, allGeneratedMature, allFee;
     string strSentAccount;
