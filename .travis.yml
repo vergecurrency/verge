@@ -12,7 +12,7 @@ compiler:
 - gcc
 
 before_install:
-  - sudo apt-get install software-properties-common
+  - sudo apt-get --yes install software-properties-common
   - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
   - sudo add-apt-repository --yes ppa:bitcoin/bitcoin
   - sudo apt-get update -qq
