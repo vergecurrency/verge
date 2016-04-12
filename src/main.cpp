@@ -45,7 +45,7 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 unsigned int nStakeMinAge = 10000 * 10000;	// minimum age disabled
 unsigned int nStakeMaxAge = 10000 * 10000;	// stake max age disabled
 unsigned int nStakeTargetSpacing = 30;		// 30 seconds POS block spacing
-unsigned int nProofOfWorkTargetSpacing = 30; 	// 30 seconds PoW block spacing
+unsigned int nProofOfWorkTargetSpacing = 150; 	// 30 seconds PoW block spacing
 
 int64 nChainStartTime = 1412878964;
 int nCoinbaseMaturity = 120;
@@ -2866,14 +2866,6 @@ string GetWarnings(string strFor)
         nPriority = 1000;
         strStatusBar = strMiscWarning;
     }
-
-    // ppcoin: should not enter safe mode for longer invalid chain
-    // ppcoin: if sync-checkpoint is too old do not enter safe mode
-	if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 90) && !fTestNet && !IsInitialBlockDownload())
-	{
-		nPriority = 100;
-		strStatusBar = "WARNING: Checkpoint is too old. Wait for block chain to download, or notify developers.";
-	}
 
 
     // ppcoin: if detected invalid checkpoint enter safe mode

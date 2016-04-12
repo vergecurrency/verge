@@ -25,6 +25,7 @@ extern const std::string CLIENT_DATE;
 //
 // network protocol versioning
 //
+
 static const int PROTOCOL_VERSION = 90001;
 
 // clients with smaller version number are disconnected

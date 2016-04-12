@@ -13,9 +13,9 @@ VERGE [XVG] Source Code
 Specifications:
 --------------
 
-* Algorithm: scrypt
+* Algorithms: scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 * PoW (proof of work)
-* Blocktime: ~5 minutes
+* Blocktime: 30 seconds
 * RPC port: 20102
 * P2P port: 21102
 * Blockreward: 
@@ -32,7 +32,9 @@ Specifications:
 Total Supply
 ------------
 
-Approximately total reward: 9 Billion (9,000,000,000) during first year then issuing 1 billion (1,000,000,000) each year after.
+Approximately total reward: 16.5 Billion
+
+binary (precompiled) wallets are available on all platforms at http://vergecurrency.com/#wallets-top
 
 
 Compiling Linux Wallet
@@ -40,28 +42,32 @@ Compiling Linux Wallet
 
 if you have never compiled a wallet in linux before, here are the dependencies you will need:
 
-    sudo apt-get update && sudo apt-get install build-essential pkg-config libtool autotools-dev autoconf automake libssl-dev libboost-all-dev  libminiupnpc-dev libdb++-dev libdb-dev qt4-qmake libqt4-dev libqrencode-dev libssl-dev git
-
-to clone and compile:
-
-    git clone https://github.com/vergecurrency/verge && cd verge/src && make -f makefile.unix
-
-to make the qt gui wallet:
-
-    git clone https://github.com/vergecurrency/verge && cd verge && qmake && make
-
-then
-
-type `sudo cp ~/verge/src/verged /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide.
-
-after that has been done, type cd ~/ to get back to the home folder and type `verged` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `verged` command into the VERGE.conf like so
+    sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+ 
 ```
-rpcuser=bitcoinrpc
+ then:
+ 
+ sudo add-apt-repository ppa:bitcoin/bitcoin
+ sudo apt-get update
+ sudo apt-get install libdb4.8-dev libdb4.8++-dev
+```
+
+to clone and compile a daemon and gui wallet:
+
+    git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
+
+then you now have the gui wallet in the /verge/src/qt and the daemon in /verge/src/
+
+type `sudo cp ~/verge/src/VERGEd /usr/bin/` after you have typed that. Your Verge daemon will now be accessible system wide. you can also do this with your gui wallet.
+
+after that has been done, type cd ~/ to get back to the home folder and type `VERGEd` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `VERGEd` command into the VERGE.conf like so
+```
+rpcuser=vergerpcusername
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES
 ```
 Once that has been completed proceed to add `rpcport=20102 port=21102 and daemon=1` below the rpcpassword. your config should look something like this
 ```
-rpcuser=bitcoinrpc
+rpcuser=vergerpcusername
 rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
 rpcport=20102
 port=21102
@@ -70,6 +76,52 @@ daemon=1
 now exit the VERGE.conf by pressing ctrl + x on your keyboard then pressing `y` and hitting enter. this should have made your .conf save with all the stuff you just added,
 if you wish you can check again by typing sudo nano VERGE.conf. After you've checked then exit the file the exact same way, then type `cd ~/` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should boot.
 To check the status of how much is synced type `verged getinfo`
+
+
+To compile on Mac (OSX El Capitan)
+-------
+    brew install boost miniupnpc openssl qt4 qrencode berkeley-db4
+    git clone https://github.com/vergecurrency/verge
+    cd verge
+    ./autogen.sh
+    ./configure
+    make -j4
+
+Note: It may be possible to use qt5.
+
+Using Docker
+------------
+
+check out the readme: https://github.com/vergecurrency/VERGE/tree/master/contrib/docker
+
+Using different algorithms
+----------
+```
+just use the algo switch in your .conf or from command line. (specify one only)
+algo=x17
+algo=scrypt
+algo=groestl
+algo=lyra
+algo=blake
+
+```
+
+Using Windows
+-------------
+```
+1. Download the pre-compiled software. (only from official VERGE site)
+2. Install
+3. In windows file explorer, open c:\Users\XXX\AppData\Roaming\VERGE (be sure to change XXX to your windows user)
+4. Right click and create a new file verge.txt
+5. Edit the file to have contents above (see Linux instructions)
+6. Save and close the file
+7. Reame the file to verge.conf
+8. Start the VERGE-qt program.
+9. Open up VERGE-qt console and run 'getinfo' (or 'getmininginfo') to verify settings from conf file
+
+Note: You must re-start VERGE-qt after making changes to verge.conf.
+```
+
 
 Linux Wallet Video Tutorial
 -------
