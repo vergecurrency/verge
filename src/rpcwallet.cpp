@@ -80,10 +80,15 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
     obj.push_back(Pair("pow_algo_id",   miningAlgo));
     obj.push_back(Pair("pow_algo",      GetAlgoName(miningAlgo)));
-    obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
+    obj.push_back(Pair("difficulty",         (double)GetDifficulty(NULL, miningAlgo)));
+    obj.push_back(Pair("difficulty_x17", (double)GetDifficulty(NULL, ALGO_X17)));
+    obj.push_back(Pair("difficulty_scrypt",  (double)GetDifficulty(NULL, ALGO_SCRYPT)));
+    obj.push_back(Pair("difficulty_groestl", (double)GetDifficulty(NULL, ALGO_GROESTL)));
+    obj.push_back(Pair("difficulty_lyra2re",   (double)GetDifficulty(NULL, ALGO_LYRA2RE)));
+    obj.push_back(Pair("difficulty_blake",   (double)GetDifficulty(NULL, ALGO_BLAKE)));
     obj.push_back(Pair("testnet",       fTestNet));
     obj.push_back(Pair("keypoololdest", (boost::int64_t)pwalletMain->GetOldestKeyPoolTime()));
     obj.push_back(Pair("keypoolsize",   pwalletMain->GetKeyPoolSize()));
