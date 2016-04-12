@@ -146,7 +146,7 @@ enum
     BLOCK_VERSION_DEFAULT        = 2,
 
     // algo
-    BLOCK_VERSION_ALGO           = (10 << 11),
+    BLOCK_VERSION_ALGO           = (15 << 11),
     BLOCK_VERSION_SCRYPT         = (1  << 11),
     BLOCK_VERSION_GROESTL        = (2  << 11),
     BLOCK_VERSION_X17		 = (3  << 11),
