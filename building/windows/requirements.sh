@@ -1,27 +1,33 @@
 #!/bin/bash
 
+# Note: This assumes ubuntu:14.04
+
 pwd
 
 # using: https://github.com/coinzen/devcoin/blob/master/doc/build-mingw-under_linux.txt as a guide
 
 #sudo apt-get --yes upgrade 
 #sudo apt-get --yes update
-sudo apt-get --yes install git sudo make mingw-w64 mingw-w64-common wget g++-mingw-w64 binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools mingw-w64-x86-64-dev
+sudo apt-get --yes install dpkg-dev git sudo make mingw-w64 mingw-w64-common wget g++-mingw-w64 binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools mingw-w64-x86-64-dev
 
 sudo apt-get --yes install software-properties-common
 sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
 sudo add-apt-repository --yes ppa:bitcoin/bitcoin
 #sudo apt-get --yes update -qq
 
+# TODO: perhaps put each of these 4 requirements in their own bash file (to see how travis will roll up the log files)
 # build openssl
+echo "=== Building openssl now..."
 cd /tmp/
 sudo apt-get source openssl
-cd /tmp/openssl-1.0.2d/
+# TODO: need to determine directory/version automatically
+cd /tmp/openssl-1.0.1f
 CROSS_COMPILE="x86_64-w64-mingw32-" ./Configure mingw64 no-asm shared --prefix=/opt/mingw64 
 PATH=$PATH:/usr/i686-w64-mingw32/bin make depend
 PATH=$PATH:/usr/i686-w64-mingw32/bin make
 
 # build Berkeley DB v4.8
+echo "=== Building BDB now..."
 cd /tmp
 # Note: would be nice if 'apt-get source libdbd4.8' (or similar) would work
 wget 'https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/db4.8_4.8.30.orig.tar.gz' -O db4.8_4.8.30.orig.tar.gz
@@ -32,6 +38,7 @@ PATH=$PATH:/usr/i686-w64-mingw32/bin sh ../dist/configure --host=i686-w64-mingw3
 PATH=$PATH:/usr/i686-w64-mingw32/bin make
 
 # miniupnpc 
+echo "=== Building MINIUPNPC now..."
 cd /tmp
 wget 'http://miniupnp.tuxfamily.org/files/download.php?file=miniupnpc-1.6.tar.gz' -O /tmp/miniupnpc-1.6.tar.gz
 tar xzf miniupnpc-1.6.tar.gz
@@ -46,6 +53,7 @@ sed -i 's/; miniupnpc library/miniupnpc/' miniupnpc.def
 AR=i686-w64-mingw32-ar make -f Makefile.mingw
 
 # boost
+echo "=== Building BOOST now..."
 cd /tmp
 wget wget 'http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2/download' -O boost_1_60_0.tar.bz2
 tar jxf boost_1_60_0.tar.bz2
