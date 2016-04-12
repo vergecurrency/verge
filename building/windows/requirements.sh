@@ -4,18 +4,18 @@ pwd
 
 # using: https://github.com/coinzen/devcoin/blob/master/doc/build-mingw-under_linux.txt as a guide
 
-apt-get --yes upgrade 
-apt-get --yes update
-apt-get --yes install git sudo make mingw-w64 mingw-w64-common wget g++-mingw-w64 binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools mingw-w64-x86-64-dev
+sudo apt-get --yes upgrade 
+sudo apt-get --yes update
+sudo apt-get --yes install git sudo make mingw-w64 mingw-w64-common wget g++-mingw-w64 binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools mingw-w64-x86-64-dev
 
-apt-get --yes install software-properties-common
-add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
-add-apt-repository --yes ppa:bitcoin/bitcoin
-apt-get --yes update -qq
+sudo apt-get --yes install software-properties-common
+sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
+sudo add-apt-repository --yes ppa:bitcoin/bitcoin
+sudo apt-get --yes update -qq
 
 # build openssl
 cd /tmp/
-apt-get source openssl
+sudo apt-get source openssl
 cd /tmp/openssl-1.0.2d/
 CROSS_COMPILE="x86_64-w64-mingw32-" ./Configure mingw64 no-asm shared --prefix=/opt/mingw64 
 PATH=$PATH:/usr/i686-w64-mingw32/bin make depend

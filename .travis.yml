@@ -19,7 +19,7 @@ before_install:
   - sudo ./building/${VERGE_TARGET}/requirements.sh
 
 install:
-  - sudo source ./building/${VERGE_TARGET}/build.sh
+  - source ./building/${VERGE_TARGET}/build.sh
 
 script:
   - echo "nothing."
