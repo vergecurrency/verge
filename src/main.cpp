@@ -1930,12 +1930,12 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         const CBlockIndex* pindex = pindexBest;
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            if (pindex->nVersion > (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT))
+            if (pindex->nVersion > (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT));
+            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
         if (nUpgraded > 100/2)
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
