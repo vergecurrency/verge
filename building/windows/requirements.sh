@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pwd
+
 # using: https://github.com/coinzen/devcoin/blob/master/doc/build-mingw-under_linux.txt as a guide
 
 apt-get --yes upgrade 
@@ -58,9 +60,9 @@ sed -i 's/ -Wunused-local-typedefs//' ./libs/core/test/Jamfile.v2
 ./b2 -j10 --user-config=user-config.jam toolset=gcc-mingw address-model=32 binary-format=pe target-os=windows release --prefix=/usr/i686-w64-mingw32/local --without-python --without-wave --without-context --without-coroutine --without-mpi --without-test --without-graph --without-graph_parallel -sNO_BZIP2=1
 
 # build wallet
-cd /tmp
-git clone https://github.com/vergecurrency/verge 
-cd verge
+#cd /tmp
+#git clone https://github.com/vergecurrency/verge 
+#cd verge
 
 # TODO: more work here...
 

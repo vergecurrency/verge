@@ -16,10 +16,10 @@ before_install:
   - sudo add-apt-repository --yes ppa:bitcoin/bitcoin
   - sudo apt-get update -qq
   - VERGE_TARGET="${VERGE_PLATFORM::${#VERGE_PLATFORM}-2}"
-  - ./building/${VERGE_TARGET}/requirements.sh
+  - sudo ./building/${VERGE_TARGET}/requirements.sh
 
 install:
-  - source ./building/${VERGE_TARGET}/build.sh
+  - sudo source ./building/${VERGE_TARGET}/build.sh
 
 script:
   - echo "nothing."
