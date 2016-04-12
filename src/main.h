@@ -146,6 +146,7 @@ enum
     BLOCK_VERSION_DEFAULT        = 2,
 
     // algo
+    BLOCK_VERSION_ALGO_BROKEN    = (10 << 11),
     BLOCK_VERSION_ALGO           = (15 << 11),
     BLOCK_VERSION_SCRYPT         = (1  << 11),
     BLOCK_VERSION_GROESTL        = (2  << 11),
@@ -156,7 +157,7 @@ enum
 
 inline int GetAlgo(int nVersion)
 {
-    switch (nVersion & BLOCK_VERSION_ALGO)
+    switch (nVersion & (nBestHeight >= 350000 ? BLOCK_VERSION_ALGO : BLOCK_VERSION_ALGO_BROKEN))
     {
         case BLOCK_VERSION_SCRYPT:
             return ALGO_SCRYPT;
