@@ -5,6 +5,7 @@
 
 #include "main.h"
 #include "bitcoinrpc.h"
+#include "json/json_spirit_value.h"
 
 using namespace json_spirit;
 using namespace std;
