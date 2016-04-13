@@ -11,6 +11,13 @@ using namespace std;
 
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, json_spirit::Object& entry);
 
+static const CBlockIndex* GetLastBlockIndex4Algo(const CBlockIndex* pindex, int algo)
+{
+    while (pindex && pindex->pprev && (pindex->IsProofOfStake() || GetAlgo(pindex->nVersion) != algo))
+        pindex = pindex->pprev;
+    return pindex;
+}
+
 double GetDifficultyFromBits(unsigned int nBits)
 {
     int nShift = (nBits >> 24) & 0xff;
@@ -41,7 +48,7 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
         if (pindexBest == NULL)
             return 1.0;
         else
-            blockindex = GetLastBlockIndex(pindexBest, false);
+            blockindex = GetLastBlockIndex4Algo(pindexBest, algo);
     }
 
     int nShift = (blockindex->nBits >> 24) & 0xff;
@@ -129,13 +136,6 @@ Value getblockcount(const Array& params, bool fHelp)
 }
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, int algo);
-
-static const CBlockIndex* GetLastBlockIndex4Algo(const CBlockIndex* pindex, int algo)
-{
-    while (pindex && pindex->pprev && pindex->IsProofOfStake() && GetAlgo(pindex->nVersion) != algo)
-        pindex = pindex->pprev;
-    return pindex;
-}
 
 Value getdifficulty(const Array& params, bool fHelp)
 {
