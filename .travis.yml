@@ -1,6 +1,4 @@
 language: cpp
-sudo: required
-dist: trusty
 
 matrix:
 
@@ -24,7 +22,7 @@ matrix:
       compiler: clang 
 
 before_install:
-  - sudo ./building/${VERGE_PLATFORM}/requirements.sh
+  - ./building/${VERGE_PLATFORM}/requirements.sh
 
 install:
   - source ./building/${VERGE_PLATFORM}/build.sh
