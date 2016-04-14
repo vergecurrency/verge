@@ -3,9 +3,9 @@
 # boost
 echo "=== Building BOOST now..."
 cd /tmp
-wget wget 'http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2/download' -O boost_1_60_0.tar.bz2
-tar jxf boost_1_60_0.tar.bz2
-cd /tmp/boost_1_60_0
+wget wget 'http://sourceforge.net/projects/boost/files/boost/1.55.0/boost_1_55_0.tar.bz2/download' -O boost_1_55_0.tar.bz2
+tar jxf boost_1_55_0.tar.bz2
+cd /tmp/boost_1_55_0
 
 # (if troubleshooting and want to 'make clean all')
 # bjam --clean 
