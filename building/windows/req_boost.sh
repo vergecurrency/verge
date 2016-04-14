@@ -6,7 +6,7 @@ cd /tmp
 wget wget 'http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2/download' -O boost_1_60_0.tar.bz2
 tar jxf boost_1_60_0.tar.bz2
 cd /tmp/boost_1_60_0
-./bootstrap.sh --without-icu
+./bootstrap.sh --without-icu --with-libraries=thread
 echo "using gcc : 4.9.2 : i686-w64-mingw32-g++ : <rc>i686-w64-mingw32-windres <archiver>i686-w64-mingw32-ar ;" > user-config.jam
 sed -i 's/ -Wunused-local-typedefs//' ./libs/core/test/Jamfile.v2
 sed -i 's/40700/10/' ./boost/tuple/detail/tuple_basic.hpp
