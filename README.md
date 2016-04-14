@@ -78,7 +78,7 @@ if you wish you can check again by typing sudo nano VERGE.conf. After you've che
 To check the status of how much is synced type `verged getinfo`
 
 To compile on Mac (OSX El Capitan):
-    brew install boost miniupnpc openssl qt4 qrencode berkeley-db4
+    brew install protobuf boost miniupnpc openssl qt4 qrencode berkeley-db4
     git clone https://github.com/vergecurrency/verge
     cd verge
     ./autogen.sh
