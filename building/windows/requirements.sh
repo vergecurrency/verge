@@ -20,11 +20,11 @@ sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
 sudo add-apt-repository --yes ppa:bitcoin/bitcoin
 #sudo apt-get --yes update -qq
 
-./req_openssl.sh
-./req_dbd.sh
-./req_miniupnpc.sh
-./req_boost.sh
-./req_qt.sh
+./building/${VERGE_PLATFORM}/req_openssl.sh
+./building/${VERGE_PLATFORM}/req_dbd.sh
+./building/${VERGE_PLATFORM}/req_miniupnpc.sh
+./building/${VERGE_PLATFORM}/req_boost.sh
+./building/${VERGE_PLATFORM}/req_qt.sh
 
 # build wallet
 #cd /tmp
