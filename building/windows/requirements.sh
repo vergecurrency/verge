@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# Note: This assumes ubuntu:14.04
+# Note: This assumes ubuntu:14.04 and we are going to cross-compile the windows binaries
+
+sudo apt-get --yes install software-properties-common
+sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
+sudo add-apt-repository --yes ppa:bitcoin/bitcoin
+sudo apt-get update -qq
 
 pwd
 
@@ -66,6 +71,16 @@ sed -i 's/#.*//' libs/context/src/unsupported.cpp
 ./b2 -j10 --user-config=user-config.jam toolset=gcc-mingw address-model=32 binary-format=pe target-os=windows release --prefix=/usr/i686-w64-mingw32/local --without-python --without-wave --without-context --without-coroutine --without-mpi --without-test --without-graph --without-graph_parallel -sNO_BZIP2=1
 sed -i 's/ -Wunused-local-typedefs//' ./libs/core/test/Jamfile.v2
 ./b2 -j10 --user-config=user-config.jam toolset=gcc-mingw address-model=32 binary-format=pe target-os=windows release --prefix=/usr/i686-w64-mingw32/local --without-python --without-wave --without-context --without-coroutine --without-mpi --without-test --without-graph --without-graph_parallel -sNO_BZIP2=1
+
+# qt4  (see https://wiki.qt.io/MinGW-64-bit )
+# considering... https://sourceforge.net/projects/mingwbuilds/files/mingw-sources/4.8.1/src-4.8.1-release-rev5.tar.7z/download
+# also considering using the apt-get source ...
+echo "=== Building QT now..."
+sudo apt-get --yes install unzip libqt4-dev
+cd /tmp
+wget http://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
+unzip qt-everywhere-opensource-src-4.8.5.zip
+cd /tmp/qt-everywhere-opensource-src-4.8.5
 
 # build wallet
 #cd /tmp

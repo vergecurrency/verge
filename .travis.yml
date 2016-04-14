@@ -2,25 +2,32 @@ language: cpp
 sudo: required
 dist: trusty
 
-env:
-  matrix:
-    - VERGE_PLATFORM='linux64'
-    #- VERGE_PLATFORM='windows32' TODO after 64 works
-    - VERGE_PLATFORM='windows64'
+matrix:
 
-compiler:
-- gcc
+  include:
+
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: VERGE_PLATFORM='linux'
+      compiler: gcc
+
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: VERGE_PLATFORM='windows'
+      compiler: gcc
+
+    - os: osx
+      osx_image: xcode7.2
+      env: VERGE_PLATFORM='mac'
+      compiler: clang 
 
 before_install:
-  - sudo apt-get --yes install software-properties-common
-  - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
-  - sudo add-apt-repository --yes ppa:bitcoin/bitcoin
-  - sudo apt-get update -qq
-  - VERGE_TARGET="${VERGE_PLATFORM::${#VERGE_PLATFORM}-2}"
-  - sudo ./building/${VERGE_TARGET}/requirements.sh
+  - sudo ./building/${VERGE_PLATFORM}/requirements.sh
 
 install:
-  - source ./building/${VERGE_TARGET}/build.sh
+  - source ./building/${VERGE_PLATFORM}/build.sh
 
 script:
   - echo "nothing."
