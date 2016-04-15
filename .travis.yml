@@ -1,34 +1,44 @@
 language: cpp
 
-# TODO: push releases to github
-# see http://stackoverflow.com/questions/12343452/how-to-publish-artifacts-in-travis-ci/33109519#33109519
-
 matrix:
 
   include:
 
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: VERGE_PLATFORM='linux'
-      compiler: gcc
+  - os: linux
+    dist: trusty
+    sudo: required
+    env: VERGE_PLATFORM='linux'
+    compiler: gcc
 
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: VERGE_PLATFORM='windows'
-      compiler: gcc
+  - os: linux
+    dist: trusty
+    sudo: required
+    env: VERGE_PLATFORM='windows'
+    compiler: gcc
 
-    - os: osx
-      osx_image: xcode7.2
-      env: VERGE_PLATFORM='mac'
-      compiler: clang 
+  - os: osx
+    osx_image: xcode7.2
+    env: VERGE_PLATFORM='mac'
+    compiler: clang
 
 before_install:
-  - ./building/${VERGE_PLATFORM}/requirements.sh
+- "./building/${VERGE_PLATFORM}/requirements.sh"
 
 install:
-  - source ./building/${VERGE_PLATFORM}/build.sh
+- source ./building/${VERGE_PLATFORM}/build.sh
 
 script:
-  - echo "nothing."
+- "./building/${VERGE_PLATFORM}/dist.sh"
+
+# see http://stackoverflow.com/questions/12343452/how-to-publish-artifacts-in-travis-ci/33109519
+# git commit -m 1.0
+# git tag -m 1.0 1.0
+# git push --tags
+deploy: 
+  provider: releases
+    api_key:
+      secure: "2MFTd9bXbZlwLMh+/KkJWrUA5KKeGrpZCw/5iybkzPFhUYv2znskQia0XHnj5VIDNCC7a+CtmIz07ZEI7B3uB+UISCgpZ8ifmPGfGeuy0VI2qt+CZ0Z34oMsJNUkCFYLgGbi0/ro2lKL7BmSxClVHtfYgyxo/yLeTO9f7Q08CKPmb5Nv4EKycZq6rzA02UScRjiIHWfKZ6fDsCecV6CYJSoKsuOfw54/1HBzh/iFtywQCjCrBOQwpPI11kO6GbrcTfYqz1c4Va6QVuDtH7yzW1VqEZHHnPDb6H+YEofVRhJAw3jHyisU/r6I3mnV1KaPkNW0iifRaQrFBYv9RWBhBuRJNGh1QwcTHhrDKxkF4IHBMbFjeeHrm07RTMT9Yp8tZbpF9Mc3KdMQBwOQhXWB7KvMYdcFpEKm5dfwcWqEl//YWBMvKf0EE7/vnTWDkEq7vn8ompRxqlPiLgkK2bqRtHrYFo5dtrY5BIDr7CCkL1XAiUCCZ2B5lezOwOzea/thUL+q2M8rELKjrXUFHehcIqRqs9JRXaiig10BKRKYlp+R/Sw/GFvh5xr0ALtV6rCzkfJlMdXqO3TXxQf/ZAV95tIafBEoBlQENqutMMDpNM2vrNrl6MIV1PNIfRREw5HSLJUmtP1H130EmhOX9PHZhGqZPIi1aRd6j0kXIwFURyw="
+  file: 'release.zip'
+  skip_cleanup: true
+  on:
+    tags
