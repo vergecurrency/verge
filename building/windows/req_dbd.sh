@@ -10,5 +10,5 @@ tar xzf db4.8_4.8.30.orig.tar.gz
 cd /tmp/db-4.8.30/build_unix
 PATH=$PATH:/usr/i686-w64-mingw32/bin sh ../dist/configure --host=i686-w64-mingw32 --enable-cxx --enable-mingw --disable-replication --prefix=/usr/i686-w64-mingw32
 PATH=$PATH:/usr/i686-w64-mingw32/bin make
-PATH=$PATH:/usr/i686-w64-mingw32/bin make install
+PATH=$PATH:/usr/i686-w64-mingw32/bin sudo make install
 
