@@ -19,5 +19,6 @@ sudo apt-get --yes install build-essential libtool autotools-dev automake pkg-co
 ./building/${VERGE_PLATFORM}/req_dbd.sh
 ./building/${VERGE_PLATFORM}/req_miniupnpc.sh
 ./building/${VERGE_PLATFORM}/req_boost.sh
+./building/${VERGE_PLATFORM}/req_protobuf.sh
 # TODO: ./building/${VERGE_PLATFORM}/req_qt.sh
 # TODO: add qt building
