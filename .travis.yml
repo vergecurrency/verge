@@ -38,4 +38,10 @@ deploy:
   file: 'release.zip'
   skip_cleanup: true
   on:
-    tags: false
+    # FUTURE: only 'vergecurrency' should do releases - uncomment this when complete
+    # repo: vergecurrency/VERGE
+    tags: true
+
+branches:
+  only:
+    - master 
