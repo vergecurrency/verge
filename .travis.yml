@@ -29,10 +29,10 @@ before_install:
   - ./building/${VERGE_PLATFORM}/requirements.sh
 
 install:
-  - source ./building/${VERGE_PLATFORM}/build.sh
+  - ./building/${VERGE_PLATFORM}/build.sh
 
 script:
-  - echo "nothing."
+  - ./building/${VERGE_PLATFORM}/dist.sh
 
 # see http://stackoverflow.com/questions/12343452/how-to-publish-artifacts-in-travis-ci/33109519
 # git commit -m 1.0
