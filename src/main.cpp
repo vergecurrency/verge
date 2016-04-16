@@ -45,7 +45,7 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 unsigned int nStakeMinAge = 10000 * 10000;	// minimum age disabled
 unsigned int nStakeMaxAge = 10000 * 10000;	// stake max age disabled
 unsigned int nStakeTargetSpacing = 30;		// 30 seconds POS block spacing
-unsigned int nProofOfWorkTargetSpacing = 30; 	// 30 seconds PoW block spacing
+unsigned int nProofOfWorkTargetSpacing = 150; 	// 30 seconds PoW block spacing
 
 int64 nChainStartTime = 1412878964;
 int nCoinbaseMaturity = 120;
@@ -1930,12 +1930,12 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         const CBlockIndex* pindex = pindexBest;
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            if (pindex->nVersion > (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT))
+            if (pindex->nVersion > (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT));
+            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
         if (nUpgraded > 100/2)
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");

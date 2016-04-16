@@ -15,7 +15,7 @@ VERGE [XVG] Source Code
 Specifications:
 --------------
 
-* Algorithms: scrypt, x17, Lyra2rev, myr-groestl, & blake2s
+* Algorithms: scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 * PoW (proof of work)
 * Blocktime: 30 seconds
 * RPC port: 20102
@@ -35,6 +35,8 @@ Total Supply
 ------------
 
 Approximately total reward: 16.5 Billion
+
+binary (precompiled) wallets are available on all platforms at http://vergecurrency.com/#wallets-top
 
 
 Compiling Linux Wallet
@@ -58,7 +60,7 @@ to clone and compile a daemon and gui wallet:
 
 then you now have the gui wallet in the /verge/src/qt and the daemon in /verge/src/
 
-type `sudo cp ~/verge/src/VERGEd /usr/bin/` after you have typed that. Your Verge daemon will now be accessiable system wide. you can also do this with your gui wallet.
+type `sudo cp ~/verge/src/VERGEd /usr/bin/` after you have typed that. Your Verge daemon will now be accessible system wide. you can also do this with your gui wallet.
 
 after that has been done, type cd ~/ to get back to the home folder and type `VERGEd` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `VERGEd` command into the VERGE.conf like so
 ```
@@ -86,6 +88,39 @@ To compile on Mac (OSX El Capitan):
     make -j4
 
 Note: It may be possible to use qt5.
+
+Using Docker
+------------
+
+check out the readme: https://github.com/vergecurrency/VERGE/tree/master/contrib/docker
+
+Using different algorithms
+----------
+```
+just use the algo switch in your .conf or from command line. (specify one only)
+algo=x17
+algo=scrypt
+algo=groestl
+algo=lyra
+algo=blake
+
+```
+
+Using Windows
+-------------
+```
+1. Download the pre-compiled software. (only from official VERGE site)
+2. Install
+3. In windows file explorer, open c:\Users\XXX\AppData\Roaming\VERGE (be sure to change XXX to your windows user)
+4. Right click and create a new file verge.txt
+5. Edit the file to have contents above (see Linux instructions)
+6. Save and close the file
+7. Reame the file to verge.conf
+8. Start the VERGE-qt program.
+9. Open up VERGE-qt console and run 'getinfo' (or 'getmininginfo') to verify settings from conf file
+
+Note: You must re-start VERGE-qt after making changes to verge.conf.
+```
 
 
 Linux Wallet Video Tutorial

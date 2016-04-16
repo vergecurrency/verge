@@ -11,6 +11,13 @@ using namespace std;
 
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, json_spirit::Object& entry);
 
+static const CBlockIndex* GetLastBlockIndex4Algo(const CBlockIndex* pindex, int algo)
+{
+    while (pindex && pindex->pprev && (pindex->IsProofOfStake() || GetAlgo(pindex->nVersion) != algo))
+        pindex = pindex->pprev;
+    return pindex;
+}
+
 double GetDifficultyFromBits(unsigned int nBits)
 {
     int nShift = (nBits >> 24) & 0xff;
@@ -32,7 +39,7 @@ double GetDifficultyFromBits(unsigned int nBits)
     return dDiff;
 }
 
-double GetDifficulty(const CBlockIndex* blockindex)
+double GetDifficulty(const CBlockIndex* blockindex, int algo)
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
@@ -41,7 +48,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
         if (pindexBest == NULL)
             return 1.0;
         else
-            blockindex = GetLastBlockIndex(pindexBest, false);
+            blockindex = GetLastBlockIndex4Algo(pindexBest, algo);
     }
 
     int nShift = (blockindex->nBits >> 24) & 0xff;
@@ -83,7 +90,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     result.push_back(Pair("time", (boost::int64_t)block.GetBlockTime()));
     result.push_back(Pair("nonce", (boost::uint64_t)block.nNonce));
     result.push_back(Pair("bits", HexBits(block.nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
+    result.push_back(Pair("difficulty", GetDifficulty(blockindex, miningAlgo)));
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
@@ -129,13 +136,6 @@ Value getblockcount(const Array& params, bool fHelp)
 }
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake, int algo);
-
-static const CBlockIndex* GetLastBlockIndex4Algo(const CBlockIndex* pindex, int algo)
-{
-    while (pindex && pindex->pprev && pindex->IsProofOfStake() && GetAlgo(pindex->nVersion) != algo)
-        pindex = pindex->pprev;
-    return pindex;
-}
 
 Value getdifficulty(const Array& params, bool fHelp)
 {
