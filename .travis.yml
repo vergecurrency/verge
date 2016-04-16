@@ -24,6 +24,8 @@ matrix:
       env: VERGE_PLATFORM='mac'
       compiler: clang 
 
+ruby: 2.2.3
+
 before_install:
   - ./building/${VERGE_PLATFORM}/requirements.sh
 
