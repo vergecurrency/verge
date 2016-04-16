@@ -36,48 +36,69 @@ Total Supply
 
 Approximately total reward: 16.5 Billion
 
-binary (precompiled) wallets are available on all platforms at http://vergecurrency.com/#wallets-top
+Binary (pre-compiled) wallets are available on all platforms at [http://vergecurrency.com](http://vergecurrency.com/#wallets-top)
 
 
-Compiling Linux Wallet
+Compiling Linux Wallet on Ubuntu
 ----------------------
 
-if you have never compiled a wallet in linux before, here are the dependencies you will need:
+If you have never compiled a wallet in linux before, here are the dependencies you will need:
 
     sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
  
 ```
- then:
- 
  sudo add-apt-repository ppa:bitcoin/bitcoin
  sudo apt-get update
  sudo apt-get install libdb4.8-dev libdb4.8++-dev
 ```
 
-to clone and compile a daemon and gui wallet:
+To clone the git repository and compile the daemon and gui wallet:
 
     git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
 
-then you now have the gui wallet in the /verge/src/qt and the daemon in /verge/src/
+The gui wallet is in ./verge/src/qt and the daemon in ./verge/src directories.
 
-type `sudo cp ~/verge/src/VERGEd /usr/bin/` after you have typed that. Your Verge daemon will now be accessible system wide. you can also do this with your gui wallet.
+    Note: If you see something like 'Killed (program cc1plus)' run 'dmesg' to see the error(s)/problems(s). This is most likely caused by running out of resources. You may need to add some RAM or add some swap space.
 
-after that has been done, type cd ~/ to get back to the home folder and type `VERGEd` this will tell you that you need to make a VERGE.conf. So once you've ran that, then type `cd ~/.VERGE`, after that has been done type `sudo nano VERGE.conf`, paste the output from the `VERGEd` command into the VERGE.conf like so
-```
-rpcuser=vergerpcusername
-rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX - THESE ARE EXAMPLES
-```
+Optional:
+If you want to copy the binaries for use by all users, run the following commands:
+
+    sudo cp src/VERGEd /usr/bin/
+    sudo cp src/qt/VERGE-qt /usr/bin/
+
+After that has been done, type cd ~/ to get back to the home folder and type:
+
+    ./VERGEd
+
+this will tell you that you need to make a VERGE.conf and some good starting values.
+
+Change to the configuration directory:
+
+    cd ~/.VERGE
+
+Create a new configuration file:
+ 
+    sudo nano VERGE.conf
+    
+Paste the output from the `VERGEd` command into the VERGE.conf like this: (It is recommended to change the password.)
+
+    rpcuser=vergerpcusername
+    rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
+    
+    
 Once that has been completed proceed to add `rpcport=20102 port=21102 and daemon=1` below the rpcpassword. your config should look something like this
-```
-rpcuser=vergerpcusername
-rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
-rpcport=20102
-port=21102
-daemon=1
-```
-now exit the VERGE.conf by pressing ctrl + x on your keyboard then pressing `y` and hitting enter. this should have made your .conf save with all the stuff you just added,
-if you wish you can check again by typing sudo nano VERGE.conf. After you've checked then exit the file the exact same way, then type `cd ~/` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should boot.
-To check the status of how much is synced type `verged getinfo`
+
+    rpcuser=vergerpcusername
+    rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
+    rpcport=20102
+    port=21102
+    daemon=1
+
+Exit the VERGE.conf by pressing `ctrl + x` on your keyboard then pressing `y` and hitting enter. This should have made your .conf save with all the stuff you just added. If you wish you can check again by typing `sudo nano ~/.VERGE/VERGE.conf`. After you've checked then exit the file the exact same way, then type `cd ~` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should start.
+
+To check the status of how much of the blockchain has been downloaded (aka synced) type `verged getinfo`.
+
+
 
 To compile on Mac (OSX El Capitan):
 ------------
@@ -90,24 +111,23 @@ To compile on Mac (OSX El Capitan):
 
 Note: It may be possible to use qt5.
 
-Using Docker
+Want to use Docker?
 ------------
 
-check out the readme: https://github.com/vergecurrency/VERGE/tree/master/contrib/docker
+Check out the [readme](https://github.com/vergecurrency/VERGE/tree/master/contrib/docker) for more information.
 
-Using different algorithms
+Using different algorithms (for mining)
 ----------
-```
-just use the algo switch in your .conf or from command line. (specify one only)
-algo=x17
-algo=scrypt
-algo=groestl
-algo=lyra
-algo=blake
 
-```
+To use a specific mining algorithm use the `algo` switch in your configuration file (.conf file) or from the command line (like this `--algo=x17`) Here are the possible values:
 
-Using Windows
+    algo=x17
+    algo=scrypt
+    algo=groestl
+    algo=lyra
+    algo=blake
+
+Using VERGE on Windows
 -------------
 ```
 1. Download the pre-compiled software. (only from official VERGE site)
@@ -131,7 +151,8 @@ https://www.youtube.com/watch?v=WYe75b6RWes
 Live Chat
 ---------
 
-come check out our live chat:
+Come check out our live chat:
+
 [![Visit our IRC Chat!](https://kiwiirc.com/buttons/chat.freenode.net/verge.png)](https://kiwiirc.com/client/chat.freenode.net/?nick=xvg|?&theme=cli#verge)
 
 
