@@ -2,7 +2,8 @@
 
 To create a release, tag the commit:
    git commit -m 'some commit message'
-   git tag -a 2.0.0.2 -m 'new shiny release' 
+   #git tag -a 2.0.0.2 -m 'new shiny release' 
+   git tag -m 'new shiny release' 2.0.0.2
    git push --tags
 
 To delete a tag:
