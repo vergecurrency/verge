@@ -42,6 +42,3 @@ deploy:
     # repo: vergecurrency/VERGE
     tags: true
 
-branches:
-  only:
-    - master 
