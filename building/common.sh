@@ -1,8 +1,8 @@
 
 # print out enviroment variables
-echo "=== Here are all of the environment variables:"
-env
-echo "==="
+#echo "=== Here are all of the environment variables:"
+#env
+#echo "==="
 
 PWD=`pwd`
 echo "PWD:$PWD"
@@ -10,5 +10,4 @@ echo "PWD:$PWD"
 #echo "DEPLOY_REPO_SLUG:${DEPLOY_REPO_SLUG}"
 ME=`pwd | sed 's!.*/\(.*\)/VERGE!\1!'`
 echo "ME:$ME"
-
-echo "==="
+#echo "==="
