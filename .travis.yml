@@ -12,20 +12,17 @@ matrix:
       sudo: required
       env: VERGE_PLATFORM='linux'
       compiler: gcc
-      ruby: 2.2.3
 
     - os: linux
       dist: trusty
       sudo: required
       env: VERGE_PLATFORM='windows'
       compiler: gcc
-      ruby: 2.2.3
 
     - os: osx
       osx_image: xcode7.2
       env: VERGE_PLATFORM='mac'
       compiler: clang 
-      ruby: 2.2.3
 
 before_install:
   - ./building/${VERGE_PLATFORM}/requirements.sh

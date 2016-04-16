@@ -24,3 +24,8 @@ sudo apt-get --yes install build-essential libtool autotools-dev automake pkg-co
 # TODO: need? ./building/${VERGE_PLATFORM}/req_libevent.sh
 # TODO: ./building/${VERGE_PLATFORM}/req_qt.sh
 # TODO: add qt building
+
+# for pushing releases
+sudo apt-add-repository --yes ppa:brightbox/ruby-ng
+sudo apt-get update -qq
+sudo apt-get --yes install ruby2.2
