@@ -22,4 +22,5 @@ sudo apt-get --yes install build-essential libtool autotools-dev automake pkg-co
 ./building/${VERGE_PLATFORM}/req_protobuf.sh
 ./building/${VERGE_PLATFORM}/req_boost.sh
 # TODO: need? ./building/${VERGE_PLATFORM}/req_libevent.sh
+./building/${VERGE_PLATFORM}/req_qrencode.sh
 ./building/${VERGE_PLATFORM}/req_qt.sh
