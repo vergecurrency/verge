@@ -25,6 +25,7 @@ matrix:
       compiler: clang 
 
 before_install:
+  - ./building/common.sh
   - ./building/${VERGE_PLATFORM}/requirements.sh
 
 install:
