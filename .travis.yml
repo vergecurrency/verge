@@ -31,10 +31,6 @@ install:
 script:
   - ./building/${VERGE_PLATFORM}/dist.sh
 
-# see http://stackoverflow.com/questions/12343452/how-to-publish-artifacts-in-travis-ci/33109519
-# git commit -m 1.0
-# git tag -m 1.0 1.0
-# git push --tags
 deploy: 
   provider: releases
   api_key:
