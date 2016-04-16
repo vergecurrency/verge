@@ -40,5 +40,6 @@ deploy:
   on:
     # FUTURE: only 'vergecurrency' should do releases - uncomment this when complete
     # repo: vergecurrency/VERGE
-    tags: true
+    tags: false
+    all_branches: true
 
