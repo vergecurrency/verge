@@ -38,8 +38,8 @@ deploy:
   file: 'release.zip'
   skip_cleanup: true
   on:
-    # FUTURE: only 'vergecurrency' should do releases - uncomment this when complete
-    # repo: vergecurrency/VERGE
-    tags: false
+    # TODO: change me vergeDEV
+    repo: mkinney/VERGE
+    tags: true
     all_branches: true
 
