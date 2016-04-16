@@ -1,8 +1,5 @@
 language: cpp
 
-# TODO: push releases to github
-# see http://stackoverflow.com/questions/12343452/how-to-publish-artifacts-in-travis-ci/33109519#33109519
-
 matrix:
 
   include:
