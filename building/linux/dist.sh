@@ -1,6 +1,6 @@
 
 cp src/VERGEd .
-zip release.zip VERGEd
+zip release_${VERGE_PLATFORM}.zip VERGEd
 
 # for pushing releases
 sudo apt-get --yes install ruby curl
