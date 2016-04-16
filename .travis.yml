@@ -40,6 +40,6 @@ deploy:
   on:
     # TODO: change me vergeDEV
     repo: mkinney/VERGE
-    tags: true
+    tags: false
     all_branches: true
 
