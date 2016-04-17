@@ -4,8 +4,8 @@
 # Note: This assumes ubuntu:14.04 and we are going to cross-compile the windows binaries
 
 sudo apt-get --yes -qq install software-properties-common > /dev/null
-sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
-sudo add-apt-repository --yes ppa:bitcoin/bitcoin
+sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa > /dev/null
+sudo add-apt-repository --yes ppa:bitcoin/bitcoin > /dev/null
 sudo apt-get update -qq > /dev/null
 
 # add the cross compiling stuffs

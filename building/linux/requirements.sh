@@ -1,7 +1,7 @@
 
 sudo apt-get --yes -qq install software-properties-common > /dev/null
-sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
-sudo add-apt-repository --yes ppa:bitcoin/bitcoin
+sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa > /dev/null
+sudo add-apt-repository --yes ppa:bitcoin/bitcoin > /dev/null
 sudo apt-get update -qq > /dev/null
 
 sudo apt-get --yes -qq install qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev zip > /dev/null

@@ -102,14 +102,14 @@ To check the status of how much of the blockchain has been downloaded (aka synce
 
 To compile on Mac (OSX El Capitan):
 ------------
-    brew install protobuf boost miniupnpc openssl qt4 qrencode berkeley-db4
+    brew install protobuf boost miniupnpc openssl qt5 qrencode berkeley-db4
+    brew link --force qt5
     git clone https://github.com/vergecurrency/verge
     cd verge
     ./autogen.sh
     ./configure
     make -j4
 
-Note: It may be possible to use qt5.
 
 Want to use Docker?
 ------------
