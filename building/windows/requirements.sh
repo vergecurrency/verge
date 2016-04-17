@@ -12,7 +12,7 @@ sudo apt-get update -qq > /dev/null
 sudo apt-get --yes -qq install dpkg-dev git sudo make mingw-w64 mingw-w64-common wget g++-mingw-w64 binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools mingw-w64-x86-64-dev zip > /dev/null
 
 # base requirements for building wallet (pulled from linux)
-sudo apt-get --yes -qq install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libprotobuf-dev protobuf-compiler libqrencode-dev protobuf-compiler autoconf bsdmainutils python > /dev/null
+sudo apt-get --yes -qq install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libprotobuf-dev protobuf-compiler libqrencode-dev protobuf-compiler autoconf bsdmainutils python curl > /dev/null
 # TODO: (need or want?) libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools 
 
 ./building/${VERGE_PLATFORM}/req_openssl.sh
