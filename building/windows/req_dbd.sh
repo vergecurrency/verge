@@ -5,9 +5,10 @@ echo "=== Building BDB now..."
 cd /tmp
 # Note: would be nice if 'apt-get source libdbd4.8' (or similar) would work
 wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
+CC=/usr/bin/x86_64-w64-mingw32-gcc
 tar xzf db-4.8.30.NC.tar.gz
 cd /tmp/db-4.8.30.NC/build_unix
-../dist/configure --enable-cxx --enable-mingw --disable-replication --disable-shared --host=x86_64-w64-mingw32
+CFLAGS="-march=x86-64 -mtune=x86-64" ../dist/configure --enable-cxx --enable-mingw --disable-replication --disable-shared --host=x86_64-w64-mingw32 CC=/usr/bin/x86_64-w64-mingw32-gcc CC=/usr/bin/x86_64-w64-mingw32-gcc LD=/usr/bin/x86_64-w64-mingw32-ld
 make library_build
 make install_lib install_include
 echo "=== done building DB =="
