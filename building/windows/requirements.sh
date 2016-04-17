@@ -9,7 +9,7 @@ sudo add-apt-repository --yes ppa:bitcoin/bitcoin > /dev/null
 sudo apt-get update -qq > /dev/null
 
 # add the cross compiling stuffs
-sudo apt-get --yes -qq install dpkg-dev git sudo make mingw-w64 mingw-w64-common wget g++-mingw-w64 binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools mingw-w64-x86-64-dev zip nsis binutils-mingw-w64-i686 g++-mingw-w64-i686 gcc-mingw-w64-i686 mingw-w64-i686-dev > /dev/null
+sudo apt-get --yes -qq install dpkg-dev git sudo make mingw-w64 mingw-w64-common wget g++-mingw-w64 binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools mingw-w64-x86-64-dev zip nsis binutils-mingw-w64-i686 g++-mingw-w64-i686 gcc-mingw-w64-i686 mingw-w64-i686-dev mingw32 mingw32-binutils mingw32-runtime > /dev/null
 
 # base requirements for building wallet (pulled from linux)
 sudo apt-get --yes -qq install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libprotobuf-dev protobuf-compiler libqrencode-dev protobuf-compiler autoconf bsdmainutils python curl > /dev/null
