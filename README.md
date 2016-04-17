@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mkinney/VERGE.svg?branch=master)](https://travis-ci.org/mkinney/VERGE)
+[![Build Status](https://travis-ci.org/vergecurrency/VERGE.svg?branch=master)](https://travis-ci.org/vergecurrency/VERGE)
 
 
 ```
@@ -15,8 +15,8 @@ VERGE [XVG] Source Code
 Specifications:
 --------------
 
-* Algorithms: scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 * PoW (proof of work)
+* Algorithms: scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 * Blocktime: 30 seconds
 * RPC port: 20102
 * P2P port: 21102
