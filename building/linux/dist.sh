@@ -1,9 +1,9 @@
 
 cp src/VERGEd .
-cp src/qt/VERGEd-qt .
+cp src/qt/VERGE-qt .
 strip VERGEd
-strip VERGEd-qt
-zip release_${VERGE_PLATFORM}.zip VERGEd VERGEd-qt
+strip VERGE-qt
+zip release_${VERGE_PLATFORM}.zip VERGEd VERGE-qt
 
 # for pushing releases
 sudo apt-get --yes -qq install ruby curl > /dev/null
