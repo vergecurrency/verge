@@ -314,23 +314,11 @@ bool CTransaction::IsStandard() const
         if (!txin.scriptSig.IsPushOnly())
             return false;
     }
-	unsigned int nDataOut = 0;
-	txnouttype whichType;
     BOOST_FOREACH(const CTxOut& txout, vout) {
-        if (!::IsStandard(txout.scriptPubKey)) {
-			strReason = "scriptpubkey";
+        if (!::IsStandard(txout.scriptPubKey))
             return false;
-		}
-		if (whichType == TX_NULL_DATA)
-			nDataOut++;
-		else if (txout.nValue == 0) {
+        if (txout.nValue == 0)
             return false;
-		}
-	}
-	// only one OP_RETURN txout is permitted
-    if (nDataOut > 1) {
-        strReason = "multi-op-return";
-        return false;
     }
     return true;
 }

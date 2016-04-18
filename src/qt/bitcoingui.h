@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
-#include <QLabel>
 
 class TransactionTableModel;
 class ClientModel;
@@ -28,21 +27,6 @@ class QProgressBar;
 class QStackedWidget;
 class QUrl;
 QT_END_NAMESPACE
-
-class ActiveLabel : public QLabel
-{
-    Q_OBJECT
-public:
-    ActiveLabel(const QString & text = "", QWidget * parent = 0);
-    ~ActiveLabel(){}
-
-signals:
-    void clicked();
-
-protected:
-    void mouseReleaseEvent (QMouseEvent * event) ;
-
-};
 
 /**
   Bitcoin GUI main class. This class represents the main window of the Bitcoin UI. It communicates with both the client and
@@ -86,7 +70,7 @@ private:
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
-    ActiveLabel *labelEncryptionIcon;
+    QLabel *labelEncryptionIcon;
     QLabel *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;

@@ -272,15 +272,6 @@ static const CRPCCommand vRPCCommands[] =
     { "resendtx",               &resendtx,               false,  true},
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
-	
-	{ "getnewstealthaddress",   &getnewstealthaddress,   false,  false},
-	{ "liststealthaddresses",   &liststealthaddresses,   false,  false},
-	{ "importstealthaddress",   &importstealthaddress,   false,  false},
-	{ "sendtostealthaddress",   &sendtostealthaddress,   false,  false},
-	{ "clearwallettransactions",&clearwallettransactions,false,  false},
-	{ "scanforalltxns",         &scanforalltxns,         false,  false},
-	{ "scanforstealthtxns",     &scanforstealthtxns,     false,  false},
-	
 };
 
 CRPCTable::CRPCTable()
@@ -1204,7 +1195,6 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "createrawtransaction"   && n > 1) ConvertTo<Object>(params[1]);
     if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1], true);
     if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2], true);
-	if (strMethod == "sendtostealthaddress"   && n > 1) ConvertTo<double>(params[1]);
 
     return params;
 }

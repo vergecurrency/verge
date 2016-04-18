@@ -23,7 +23,7 @@
    <property name="spacing">
     <number>12</number>
    </property>
-   <item row="6" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
       <string>A&amp;mount:</string>
@@ -49,7 +49,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="5" column="1">
     <widget class="BitcoinAmountField" name="payAmount"/>
    </item>
    <item row="4" column="1">
@@ -68,30 +68,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>N&amp;arration:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-     <property name="buddy">
-      <cstring>narration</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QValidatedLineEdit" name="narration">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="toolTip">
-        <string>Enter a short note to send with payment (max 24 characters)</string>
-       </property>
-    </widget>
-    
    </item>
    <item row="4" column="0">
     <widget class="QLabel" name="label_4">
