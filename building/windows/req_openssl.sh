@@ -10,6 +10,7 @@ sudo ./Configure mingw64 no-zlib no-asm no-shared no-dso no-asm
 # skip the tests as they build exe files that will not run on linux
 sudo sed -i 's/TESTS = alltests/TESTS = /' Makefile
 sudo rm -rf certs/demo
-make
+sudo make
+sudo make install_sw
 
 echo "=== done building OPENSSL =="
