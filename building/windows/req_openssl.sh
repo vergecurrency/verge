@@ -10,7 +10,7 @@ PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH CROSS_COMPILE="i686-w64-mingw32.static
 # skip the tests as they build exe files that will not run on linux
 sudo sed -i 's/TESTS = alltests/TESTS = /' Makefile
 sudo rm -rf certs/demo
-PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH sudo make
-PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH sudo make install
+PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH make library_build
+PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH sudo make install_lib install_include
 
 echo "=== done building OPENSSL =="

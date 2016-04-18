@@ -28,6 +28,21 @@ sudo apt-get -qq --yes install mxe-i686-w64-mingw32.static-qt mxe-i686-w64-mingw
 echo "=== dpkg -l (after)"
 dpkg -l
 
+export CROSS=i686-w64-mingw32.static-
+export CC=${CROSS}gcc
+export CXX=${CROSS}g++
+export LD=${CROSS}ld
+export AR=${CROSS}ar
+export PKG_CONFIG=${CROSS}pkg-config
+
+which $CC
+which $CXX
+which $LD
+which $AR
+which $PKG
+
+export PATH=/usr/lib/mxe/usr/bin/:$PATH
+
 ./building/${VERGE_PLATFORM}/req_openssl.sh
 ./building/${VERGE_PLATFORM}/req_dbd.sh
 ./building/${VERGE_PLATFORM}/req_miniupnpc.sh
