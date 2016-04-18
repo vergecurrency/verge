@@ -110,7 +110,8 @@ BITCOIN_QT_H = \
   qt/transactionview.h \
   qt/chatwindow.h \
   qt/serveur.h \
-  qt/walletmodel.h
+  qt/walletmodel.h \
+  src/stealth.h
 
 RES_ICONS = \
   qt/res/icons/add.png \
@@ -149,6 +150,7 @@ RES_ICONS = \
   qt/res/icons/receive.png \
   qt/res/icons/remove.png \
   qt/res/icons/send.png \
+  qt/res/icons/stealth.png \
   qt/res/icons/synced.png \
   qt/res/icons/toolbar_verge.png \
   qt/res/icons/toolbar_testnet.png \
@@ -179,7 +181,8 @@ BITCOIN_QT_CPP = \
   qt/optionsmodel.cpp \
   qt/qvalidatedlineedit.cpp \
   qt/qvaluecombobox.cpp \
-  qt/rpcconsole.cpp
+  qt/rpcconsole.cpp \
+  src/stealth.cpp
 
 if ENABLE_WALLET
 BITCOIN_QT_CPP += \

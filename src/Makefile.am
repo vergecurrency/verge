@@ -111,7 +111,8 @@ BITCOIN_CORE_H = \
   util.h \
   version.h \
   walletdb.h \
-  wallet.h
+  wallet.h \
+  stealth.h
 
 JSON_H = \
   json/json_spirit.h \
@@ -147,6 +148,7 @@ libbitcoin_server_a_SOURCES = \
   rpcmining.cpp \
   rpcnet.cpp \
   rpcrawtransaction.cpp \
+  stealth.cpp \
   $(JSON_H) \
   $(BITCOIN_CORE_H)
 
