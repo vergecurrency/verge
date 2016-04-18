@@ -49,7 +49,7 @@ RUN git clone https://github.com/vergecurrency/verge /coin/git
 
 WORKDIR /coin/git
 
-RUN ./autogen.sh && ./configure && make && mv src/VERGEd /coin/VERGEd && rm -rf /coin/git
+RUN ./autogen.sh && ./configure && make && mv src/VERGEd /coin/VERGEd
 
 WORKDIR /coin
 VOLUME ["/coin/home"]

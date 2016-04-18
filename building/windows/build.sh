@@ -2,9 +2,25 @@
 
 # build the windows exe
 
-./autogen.sh --host=i686-w64-mingw32 
-PATH=$PATH:/usr/i686-w64-mingw32/bin env PTW32_INCLUDE=/tmp/pthreads.2 PTW32_LIB=/tmp/pthreads.2 SSL_CFLAGS='-L/tmp/openssl-1.0.1f/include' SSL_LIBS='-L/tmp/openssl-1.0.1f/lib' CFLAGS='-I/tmp/openssl-1.0.1f/include -I/tmp/db-4.8.30/build_unix -I/tmp/boost_1_55_0 -I/tmp/miniupnpc-1.6 -I/tmp/pthreads.2' CRYPTO_CFLAGS='-L/tmp/openssl-1.0.1f/include' CRYPTO_LIBS='-L/tmp/openssl-1.0.1f/lib' CPPFLAGS='-I/tmp/openssl-1.0.1f/include -I/tmp/db-4.8.30/build_unix -I/tmp/boost_1_55_0' LDFLAGS='-L/tmp/openssl-1.0.1f -L/tmp/db-4.8.30/build_unix/.libs -L/tmp/boost_1_55_0/stage/lib -L/tmp/miniupnpc-1.6 -lssl -lcrypto -L/tmp/protobuf-2.5.0/src/.libs -L/tmp/pthreads.2' ./configure --host=i686-w64-mingw32 --with-boost-libdir=/tmp/boost_1_55_0/stage/lib 
+export CROSS=i686-w64-mingw32.static-
+export CC=${CROSS}gcc
+export CXX=${CROSS}g++
+export LD=${CROSS}ld
+export AR=${CROSS}ar
+export PKG_CONFIG=${CROSS}pkg-config
 
-PATH=$PATH:/usr/i686-w64-mingw32/bin AR=i686-w64-mingw32-ar make
+which $CC
+which $CXX
+which $LD
+which $AR
+which $PKG
+
+PATH=/usr/lib/mxe/usr/bin/:$PATH 
+
+./autogen.sh --host=i686-w64-mingw32.static-
+
+LDFLAGS='-lssl -lcrypto -static -L/usr/local/BerkeleyDB.4.8/lib' CFLAGS='-I/usr/local/BerkeleyDB.4.8/include/ -I/tmp/db-4.8.30.NC/build_windows' ./configure --host=i686-w64-mingw32.static --enable-static --disable-shared 
+
+make
 
 echo "done"

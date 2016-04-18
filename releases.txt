@@ -1,0 +1,13 @@
+# see http://stackoverflow.com/questions/12343452/how-to-publish-artifacts-in-travis-ci/33109519
+
+To create a release, tag the commit:
+   git commit -m 'some commit message'
+   git tag -m 'new shiny release' 2.0.0.2 c02aa6e8ae407f3693a2fb26acbd0108d311cd71
+   git push
+   git push --tags
+
+To delete a tag:
+   git tag -d 2.0.0.2
+
+To see tags: ('-n' shows comment, '-l' shows in order)
+   git tag -n -l
