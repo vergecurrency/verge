@@ -27,6 +27,7 @@
 #include "guiutil.h"
 #include "rpcconsole.h"
 #include "chatwindow.h"
+#include "radio.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -246,6 +247,12 @@ void BitcoinGUI::createActions()
     blockAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
+	
+	radioAction = new QAction(QIcon(":/icons/radio"), tr("&Radio"), this);
+    radioAction->setToolTip(tr("Verge Radio"));
+    radioAction->setCheckable(true);
+    radioAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_0));
+    tabGroup->addAction(radioAction);
 
     connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
 	connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -349,6 +356,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(addressBookAction);
 	toolbar->addAction(blockAction);
     toolbar->addAction(chatAction);
+	toolbar->addAction(radioAction);
 
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
     toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -729,6 +737,13 @@ void BitcoinGUI::gotoChatPage()
 {
     chatAction->setChecked(true);
     centralWidget->setCurrentWidget(chatWindow);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+{
+    radioAction->setChecked(true);
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
