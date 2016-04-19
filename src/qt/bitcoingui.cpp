@@ -113,7 +113,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     transactionView = new TransactionView(this);
     vbox->addWidget(transactionView);
     transactionsPage->setLayout(vbox);
-	radio = new Radio(this);
+	radioPage = new Radio(this);
 
     addressBookPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::SendingTab);
 
@@ -131,7 +131,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(addressBookPage);
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
-	centralWidget->addWidget(radio);
+	centralWidget->addWidget(radioPage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -268,7 +268,7 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-	connect(radioAction, SIGNAL(triggered()), this, SLOT(gotoRadio()));
+	connect(radioAction, SIGNAL(triggered()), this, SLOT(gotoRadioPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -425,7 +425,7 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
         sendCoinsPage->setModel(walletModel);
         signVerifyMessageDialog->setModel(walletModel);
 		blockBrowser->setModel(clientModel);
-		radio->setModel(walletModel);
+		radioPage->setModel(walletModel);
 
         setEncryptionStatus(walletModel->getEncryptionStatus());
         connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SLOT(setEncryptionStatus(int)));
@@ -746,10 +746,10 @@ void BitcoinGUI::gotoChatPage()
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
-void BitcoinGUI::gotoRadio()
+void BitcoinGUI::gotoRadioPage()
 {
     radioAction->setChecked(true);
-    centralWidget->setCurrentWidget(radio);
+    centralWidget->setCurrentWidget(radioPage);
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
