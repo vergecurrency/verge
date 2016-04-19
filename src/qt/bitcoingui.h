@@ -151,7 +151,7 @@ private slots:
     /** Switch to chat page */
     void gotoChatPage();
 	/** Switch to radio page */
-	void gotoRadio
+	void gotoRadio();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
     /** Switch to address book page */
