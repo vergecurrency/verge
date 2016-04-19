@@ -33,12 +33,14 @@ export CC=${CROSS}gcc
 export CXX=${CROSS}g++
 export LD=${CROSS}ld
 export AR=${CROSS}ar
+export RANLIB=${CROSS}ranlib
 export PKG_CONFIG=${CROSS}pkg-config
 
 which $CC
 which $CXX
 which $LD
 which $AR
+which $RANLIB
 which $PKG
 
 export PATH=/usr/lib/mxe/usr/bin/:$PATH
