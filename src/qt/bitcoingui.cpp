@@ -746,7 +746,7 @@ void BitcoinGUI::gotoChatPage()
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
-void BitoinGUI::gotoRadio()
+void BitcoinGUI::gotoRadio()
 {
     radioAction->setChecked(true);
     centralWidget->setCurrentWidget(radio);
