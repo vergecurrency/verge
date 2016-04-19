@@ -1,5 +1,6 @@
 #include "ui_radio.h"
 #include "guiutil.h"
+#include "bitcoingui.h"
 #include "util.h"
 #include "main.h"
 #include <QtCore>
