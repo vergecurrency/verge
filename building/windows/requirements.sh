@@ -33,7 +33,7 @@ export CC=${CROSS}gcc
 export CXX=${CROSS}g++
 export LD=${CROSS}ld
 export AR=${CROSS}ar
-export RANLIB=${CROSS}ranlib
+export RANLIB=${CROSS}gcc-ranlib
 export PKG_CONFIG=${CROSS}pkg-config
 
 which $CC
