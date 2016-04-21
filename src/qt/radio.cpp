@@ -8,6 +8,8 @@
 #include <QtWebKit>
 #include <QtWidgets>
 #include <QWebView>
+#include <QtWebKit/QtWebKit>
+#include <QtWebKitWidgets/QtWebKitWidgets>
 
 Radio::Radio(QWidget *parent) :
     QWidget(parent),
