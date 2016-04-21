@@ -7,7 +7,6 @@
 #include <QtGui>
 #include <QtWebKit>
 #include <QtWidgets>
-#include <QWebView>
 #include <QtWebKit/QtWebKit>
 #include <QtWebKitWidgets/QtWebKitWidgets>
 
