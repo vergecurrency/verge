@@ -13,7 +13,7 @@ src/build-aux/depcomp
 src/build-aux/install-sh
 src/build-aux/missing
 src/build-aux/test-driver
-src/config-verge-config.h
+src/config/verge-config.h
 src/VERGEd
 src/qt/VERGE-qt
 
