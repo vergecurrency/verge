@@ -19,6 +19,7 @@ QT_FORMS_UI = \
   qt/forms/sendcoinsentry.ui \
   qt/forms/signverifymessagedialog.ui \
   qt/forms/chatwindow.ui \
+  qt/forms/radio.ui \
   qt/forms/transactiondescdialog.ui \
   qt/forms/blockbrowser.ui 
 
@@ -35,6 +36,7 @@ QT_MOC_CPP = \
   qt/moc_clientmodel.cpp \
   qt/moc_csvmodelwriter.cpp \
   qt/moc_chatwindow.cpp \
+  qt/moc_radio.cpp \
   qt/moc_serveur.cpp \
   qt/moc_editaddressdialog.cpp \
   qt/moc_guiutil.cpp \
@@ -82,6 +84,7 @@ BITCOIN_QT_H = \
   qt/bitcoingui.h \
   qt/bitcoinunits.h \
   qt/blockbrowser.h \
+  qt/radio.h \
   qt/clientmodel.h \
   qt/csvmodelwriter.h \
   qt/editaddressdialog.h \
@@ -116,6 +119,7 @@ RES_ICONS = \
   qt/res/icons/add.png \
   qt/res/icons/chat.png \
   qt/res/icons/social.png \
+  qt/res/icons/radio.png \
   qt/res/icons/block.png \
   qt/res/icons/address-book.png \
   qt/res/icons/verge.ico \
@@ -171,6 +175,7 @@ BITCOIN_QT_CPP = \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
   qt/chatwindow.cpp \
+  qt/radio.cpp \
   qt/serveur.cpp \
   qt/guiutil.cpp \
   qt/monitoreddatamapper.cpp \
@@ -192,6 +197,7 @@ BITCOIN_QT_CPP += \
   qt/overviewpage.cpp \
   qt/chatwindow.cpp \
   qt/serveur.cpp \
+  qt/radio.cpp \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
   qt/signverifymessagedialog.cpp \
