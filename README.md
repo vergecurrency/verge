@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mkinney/VERGE.svg?branch=master)](https://travis-ci.org/mkinney/VERGE)
+[![Build Status](https://travis-ci.org/vergecurrency/VERGE.svg?branch=master)](https://travis-ci.org/vergecurrency/VERGE)
 
 
 ```
@@ -44,12 +44,10 @@ Compiling Linux Wallet on Ubuntu
 
 If you have never compiled a wallet in linux before, here are the dependencies you will need:
 
-    sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
- 
 ```
  sudo add-apt-repository ppa:bitcoin/bitcoin
  sudo apt-get update
- sudo apt-get install libdb4.8-dev libdb4.8++-dev
+ sudo apt-get install libdb4.8-dev libdb4.8++-dev build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
 ```
 
 To clone the git repository and compile the daemon and gui wallet:
@@ -58,7 +56,7 @@ To clone the git repository and compile the daemon and gui wallet:
 
 The gui wallet is in ./verge/src/qt and the daemon in ./verge/src directories.
 
-    Note: If you see something like 'Killed (program cc1plus)' run 'dmesg' to see the error(s)/problems(s). This is most likely caused by running out of resources. You may need to add some RAM or add some swap space.
+> Note: If you see something like 'Killed (program cc1plus)' run 'dmesg' to see the error(s)/problems(s). This is most likely caused by running out of resources. You may need to add some RAM or add some swap space.
 
 Optional:
 If you want to copy the binaries for use by all users, run the following commands:
@@ -72,13 +70,9 @@ After that has been done, type cd ~/ to get back to the home folder and type:
 
 this will tell you that you need to make a VERGE.conf and some good starting values.
 
-Change to the configuration directory:
-
-    cd ~/.VERGE
-
 Create a new configuration file:
  
-    sudo nano VERGE.conf
+    nano ~/.VERGE/VERGE.conf
     
 Paste the output from the `VERGEd` command into the VERGE.conf like this: (It is recommended to change the password.)
 
@@ -94,7 +88,7 @@ Once that has been completed proceed to add `rpcport=20102 port=21102 and daemon
     port=21102
     daemon=1
 
-Exit the VERGE.conf by pressing `ctrl + x` on your keyboard then pressing `y` and hitting enter. This should have made your .conf save with all the stuff you just added. If you wish you can check again by typing `sudo nano ~/.VERGE/VERGE.conf`. After you've checked then exit the file the exact same way, then type `cd ~` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should start.
+Exit the VERGE.conf by pressing `ctrl + x` on your keyboard then pressing `y` and hitting enter. This should have made your .conf save with all the stuff you just added. If you wish you can check again by typing `nano ~/.VERGE/VERGE.conf`. After you've checked then exit the file the exact same way, then type `cd ~` as before i said this takes you back to your home folder, you can now type verged and your verge daemon should start.
 
 To check the status of how much of the blockchain has been downloaded (aka synced) type `verged getinfo`.
 
@@ -129,7 +123,7 @@ To use a specific mining algorithm use the `algo` switch in your configuration f
 
 Using VERGE on Windows
 -------------
-```
+
 1. Download the pre-compiled software. (only from official VERGE site)
 2. Install
 3. In windows file explorer, open c:\Users\XXX\AppData\Roaming\VERGE (be sure to change XXX to your windows user)
@@ -140,8 +134,8 @@ Using VERGE on Windows
 8. Start the VERGE-qt program.
 9. Open up VERGE-qt console and run 'getinfo' (or 'getmininginfo') to verify settings from conf file
 
-Note: You must re-start VERGE-qt after making changes to verge.conf.
-```
+> Note: You must re-start VERGE-qt after making changes to verge.conf.
+
 
 
 Linux Wallet Video Tutorial
