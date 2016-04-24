@@ -13,5 +13,5 @@ sed -i 's/wine /.\/updateminiupnpcstrings.sh #/' Makefile.mingw
 sed -i 's/-enable-stdcall-fixup/-Wl,-enable-stdcall-fixup/' Makefile.mingw
 sed -i 's/driver-name gcc/driver-name i686-w64-mingw32.static-gcc/' Makefile.mingw
 sed -i 's/; miniupnpc library/miniupnpc/' miniupnpc.def
-PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH make -f Makefile.mingw 
+make -f Makefile.mingw 
 echo "=== done building MINIUPNPC =="

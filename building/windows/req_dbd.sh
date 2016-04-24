@@ -7,8 +7,8 @@ cd /tmp
 wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
 tar xzf db-4.8.30.NC.tar.gz
 cd /tmp/db-4.8.30.NC/build_unix
-PATH=/usr/lib/mxe/usr/bin/:$PATH CFLAGS="-m32 -mtune=generic" ../dist/configure --enable-cxx --enable-mingw --host=i686-w64-mingw32.static  --disable-replication
+CFLAGS="-m32 -mtune=generic" ../dist/configure --enable-cxx --enable-mingw --host=i686-w64-mingw32.static  --disable-replication
 sed -i 's/#include <direct.h>//' ../dist/../dbinc/win_db.h
-PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH make library_build
-PATH=/usr/lib/mxe/usr/bin/:/usr/bin:$PATH make install_lib install_include
+make library_build
+sudo make install_lib install_include
 echo "=== done building DB =="
