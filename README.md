@@ -96,14 +96,24 @@ To check the status of how much of the blockchain has been downloaded (aka synce
 
 To compile on Mac (OSX El Capitan):
 ------------
-    brew install protobuf boost miniupnpc openssl qt5 qrencode berkeley-db4
-    brew link --force qt5
+1. Ensure you do not have qt5 nor qt installed.
+    brew uninstall qt qt5 qt55 qt52
+2. Download https://download.qt.io/official_releases/qt/5.4/5.4.2/qt-opensource-mac-x64-clang-5.4.2.dmg
+3. Install qt5 into /usr/local/qt5
+   Note: Change the installation folder from "<home>/Qt5.4.2" to "/usr/local/qt5"
+4. Run these commands:
+    export PKG_CONFIG_PATH=/usr/local/qt5/5.4/clang_64/lib/pkgconfig
+    export PATH=/usr/local/qt5/5.4/clang_64/bin:$PATH
+    export QT_CFLAGS="-I/usr/local/qt5/5.4/clang_64/lib/QtWebKitWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebView.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtDBus.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebKit.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtNetwork.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtGui.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtCore.framework/Versions/5/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AGL.framework/Headers -I/usr/local/qt5/5.4/clang_64/mkspecs/macx-clang -F/usr/local/qt5/5.4/clang_64/lib"
+    export QT_LIBS="-F/usr/local/qt5/5.4/clang_64/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus -framework QtWebView"
+5. Install the other required items:
+    brew install protobuf boost miniupnpc openssl qrencode berkeley-db4
+6. Download the wallet source and build:
     git clone https://github.com/vergecurrency/verge
     cd verge
     ./autogen.sh
-    ./configure
+    ./configure --with-gui=qt5 
     make -j4
-
 
 Want to use Docker?
 ------------
