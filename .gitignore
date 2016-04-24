@@ -3,11 +3,19 @@
 nbproject/*
 
 *.exe
-src/digitalcoin
-src/digitalcoind
-src/digitalcoin-cli
-src/test/test_digitalcoin
-src/qt/test/test_digitalcoin-qt
+
+qa/pull-tester/run-bitcoind-for-test.sh
+
+src/build-aux/compile
+src/build-aux/config.guess
+src/build-aux/config.sub
+src/build-aux/depcomp
+src/build-aux/install-sh
+src/build-aux/missing
+src/build-aux/test-driver
+src/config-verge-config.h
+src/VERGEd
+src/qt/VERGE-qt
 
 Makefile.in
 aclocal.m4
@@ -29,8 +37,6 @@ config.log
 config.status
 configure
 libtool
-src/digitalcoin-config.h
-src/digitalcoin-config.h.in
 src/config/stamp-h1
 share/setup.nsi
 share/qt/Info.plist
@@ -54,7 +60,6 @@ src/qt/test/moc*.cpp
 *.o
 *.o-*
 *.patch
-.digitalcoin
 *.a
 *.pb.cc
 *.pb.h
@@ -69,12 +74,10 @@ src/qt/test/moc*.cpp
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-digitalcoin-qt
-Digitalcoin-Qt.app
+VERGE-Qt.app
 
 # Unit-tests
 Makefile.test
-digitalcoin-qt_test
 
 # Resources cpp
 qrc_*.cpp
@@ -89,7 +92,6 @@ build
 #lcov
 *.gcno
 /*.info
-test_digitalcoin.coverage/
 total.coverage/
 coverage_percent.txt
 
@@ -97,7 +99,6 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
-qa/pull-tester/run-digitalcoind-for-test.sh
 qa/pull-tester/build-tests.sh
 
 !src/leveldb*/Makefile
