@@ -5,7 +5,7 @@
 
 # https://github.com/vergecurrency/Docker-Verge-Daemon.git
 
-FROM ubuntu:latest
+FROM ubuntu:14.04
 
 MAINTAINER Jeremiah Buddenhagen <bitspill@bitspill.net>
 

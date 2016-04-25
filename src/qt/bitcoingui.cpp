@@ -288,7 +288,7 @@ void BitcoinGUI::createActions()
     encryptWalletAction->setToolTip(tr("Encrypt or decrypt wallet"));
     encryptWalletAction->setCheckable(true);
     unlockWalletAction = new QAction(QIcon(":/icons/lock_open"), tr("&Unlock Wallet..."), this);
-    unlockWalletAction->setToolTip(tr("Unlock wallet for minting"));
+    //unlockWalletAction->setToolTip(tr("Unlock wallet for minting"));
     backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
     backupWalletAction->setToolTip(tr("Backup wallet to another location"));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
@@ -864,6 +864,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         unlockWalletAction->setEnabled(false);
         encryptWalletAction->setEnabled(true);
         break;
+/*
     case WalletModel::Unlocked:
         labelEncryptionIcon->show();
         labelEncryptionIcon->setPixmap(QIcon(":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
@@ -884,6 +885,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
         overviewPage->setUnlockWalletButtonText(tr("Unlock wallet for minting"));
         break;
+*/
     }
 }
 

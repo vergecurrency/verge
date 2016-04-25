@@ -3,7 +3,7 @@ cp src/VERGEd.exe .
 cp src/VERGEd-qt.exe .
 strip VERGEd.exe
 strip VERGEd-qt.exe
-zip release_${VERGE_PLATFORM}.zip VERGEd.exe VERGEd-qt.exe
+zip release_windows.zip VERGEd.exe VERGEd-qt.exe
 
 # for pushing releases
 sudo apt-get --yes -qq install ruby curl > /dev/null
