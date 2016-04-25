@@ -3,7 +3,7 @@
 # miniupnpc 
 echo "=== Building MINIUPNPC now..."
 cd /tmp
-wget 'http://miniupnp.tuxfamily.org/files/download.php?file=miniupnpc-1.6.tar.gz' -O /tmp/miniupnpc-1.6.tar.gz
+wget -q 'http://miniupnp.tuxfamily.org/files/download.php?file=miniupnpc-1.6.tar.gz' -O /tmp/miniupnpc-1.6.tar.gz
 tar xzf miniupnpc-1.6.tar.gz
 cd /tmp/miniupnpc-1.6
 sed -i 's/CC = gcc/CC = i686-w64-mingw32.static-gcc/' Makefile.mingw

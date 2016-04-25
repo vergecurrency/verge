@@ -1695,7 +1695,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return error("ConnectBlock() : UpdateTxIndex failed");
     }
 
-    uint256 prevHash = 0;
+    //uint256 prevHash = 0;
     if(vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees))
 	return false;
 

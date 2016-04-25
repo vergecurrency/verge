@@ -2,7 +2,7 @@
 
 echo "=== Building QT now..."
 cd /tmp/
-wget http://download.qt.io/official_releases/qt/5.6/5.6.0/single/qt-everywhere-opensource-src-5.6.0.tar.gz
+wget -q http://download.qt.io/official_releases/qt/5.6/5.6.0/single/qt-everywhere-opensource-src-5.6.0.tar.gz
 tar xzf qt-everywhere-opensource-src-5.6.0.tar.gz
 cd /tmp/qt-everywhere-opensource-src-5.6.0
 

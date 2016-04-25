@@ -180,7 +180,7 @@ fi
 CPPFLAGS="$CPPFLAGS -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS"
 
 if test "x$CFLAGS_overridden" = "xno"; then
-  CFLAGS="$CFLAGS -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter"
+  CFLAGS="$CFLAGS -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -std=c99"
 fi
 CFLAGS="$CFLAGS -DHAVE_BUILD_INFO"
 
@@ -230,7 +230,7 @@ case $host in
        AC_MSG_ERROR("windres not found")
      fi
 
-     CPPFLAGS="$CPPFLAGS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -std=c99"
+     CPPFLAGS="$CPPFLAGS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB"
      LEVELDB_TARGET_FLAGS="TARGET_OS=OS_WINDOWS_CROSSCOMPILE"
      if test "x$CXXFLAGS_overridden" = "xno"; then
        CXXFLAGS="$CXXFLAGS -w"
@@ -279,7 +279,7 @@ case $host in
      CPPFLAGS="$CPPFLAGS -DMAC_OSX"
      ;;
    *)
-     CPPFLAGS="$CPPFLAGS -std=c99"
+     CPPFLAGS="$CPPFLAGS"
      ;;
 esac
 
