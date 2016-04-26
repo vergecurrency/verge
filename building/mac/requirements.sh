@@ -16,6 +16,7 @@ mkdir -p /usr/local/qt5
 ./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.license.thirdparty/1.0.0ThirdPartySoftware_Listing.7z /usr/local/qt5
 ./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.license.thirdparty/1.0.0fdl_license.7z /usr/local/qt5
 ./qt-opensource-mac-x64-clang-5.4.2 --runoperation QtPatch mac /usr/local/qt5/5.4/clang_64 qt5
+cd /tmp
 # unmount volume
 hdiutil detach /Volumes/qt-opensource-mac-x64-clang-5.4.2
 
