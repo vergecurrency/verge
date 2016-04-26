@@ -114,6 +114,12 @@ To compile on Mac (OSX El Capitan):
     ./autogen.sh
     ./configure --with-gui=qt5 
     make -j4
+Note: If you are building the .dmg (by running 'mac deploy') you will need to run these commands:
+    brew install mysql
+    cd /usr/local/qt5/clang_64/plugins/sqldrivers
+    otool -L libqsqlmysql.dylib
+        Note: This should should that it is pointing to mysql55
+    install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.12/lib/libmysqlclient.20.dylib libqsqlmysql.dylib
 
 Want to use Docker?
 ------------
