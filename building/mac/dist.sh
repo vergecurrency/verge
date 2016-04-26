@@ -5,8 +5,10 @@ strip VERGEd
 strip VERGE-qt
 zip release_${VERGE_PLATFORM}.zip VERGEd VERGE-qt
 
-# doubt this will work... but will give it a shot
+sudo easy_install appscript
+
 make deploy
+ls -al VER*
 
 # for pushing releases
 brew install ruby
