@@ -1,9 +1,21 @@
 brew install protobuf boost miniupnpc openssl qrencode berkeley-db4 
 brew uninstall qt qt5 qt55 qt52
 
-# TODO: get the qt 5.4.2 dmg pkg installed
+# This next part is to "install" just the necessary parts of the qt5 library
+cd /tmp
+wget -q https://download.qt.io/official_releases/qt/5.4/5.4.2/qt-opensource-mac-x64-clang-5.4.2.dmg
+hdiutil attach -nobrowse /tmp/qt-opensource-mac-x64-clang-5.4.2.dmg
+cd /Volumes/qt-opensource-mac-x64-clang-5.4.2/qt-opensource-mac-x64-clang-5.4.2.app/Contents/MacOS/
+mkdir -p /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.54.clang_64/5.4.2-0qt5_addons.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.54.clang_64/5.4.2-0qt5_essentials.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.54.qtwebengine.clang_64/5.4.2-0qt5_qtwebengine.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.extras.qtcanvas3d.10.src/1.0.0-2qtcanvas3d-opensource-src-1.0.0.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.extras.qtwebview.10.src/1.0.0-2qtwebview-opensource-src-1.0.0.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.extras.qtwebview.qt54.clang_64/1.0.0-2qt5_qtwebview.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.license.thirdparty/1.0.0ThirdPartySoftware_Listing.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation Extract installer://qt.license.thirdparty/1.0.0fdl_license.7z /usr/local/qt5
+./qt-opensource-mac-x64-clang-5.4.2 --runoperation QtPatch mac /usr/local/qt5/5.4/clang_64 qt5
+# unmount volume
+hdiutil detach /Volumes/qt-opensource-mac-x64-clang-5.4.2
 
-export PKG_CONFIG_PATH=/usr/local/qt5/5.4/clang_64/lib/pkgconfig
-export PATH=/usr/local/qt5/5.4/clang_64/bin:$PATH
-export QT_CFLAGS="-I/usr/local/qt5/5.4/clang_64/lib/QtWebKitWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebView.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtDBus.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebKit.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtNetwork.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtGui.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtCore.framework/Versions/5/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AGL.framework/Headers -I/usr/local/qt5/5.4/clang_64/mkspecs/macx-clang -F/usr/local/qt5/5.4/clang_64/lib"
-export QT_LIBS="-F/usr/local/qt5/5.4/clang_64/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus -framework QtWebView"
