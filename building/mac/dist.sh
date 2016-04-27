@@ -11,7 +11,7 @@ sudo easy_install appscript
 brew install mysql
 cd /usr/local/qt5/clang_64/plugins/sqldrivers
 otool -L libqsqlmysql.dylib
-install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.12/lib/libmysqlclient.20.dylib libqsqlmysql.dylib
+install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.11/lib/libmysqlclient.20.dylib libqsqlmysql.dylib
 
 make deploy
 ls -al VER*

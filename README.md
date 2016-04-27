@@ -131,7 +131,7 @@ To compile on Mac (OSX El Capitan):
     Note: If you are building the .dmg (by running 'mac deploy') you may need to run these commands if you get an error regarding mysql:
 
     `brew install mysql
-    cd /usr/local/qt5/clang_64/plugins/sqldrivers
+    cd /usr/local/qt5/5.4/clang_64/plugins/sqldrivers
     otool -L libqsqlmysql.dylib`
 
     Note: This may be pointing to an version of mysql that you do not have installed (like mysql55)
