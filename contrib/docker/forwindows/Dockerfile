@@ -25,6 +25,11 @@ ENV PATH /usr/lib/mxe/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 RUN /tmp/requirements.sh
 RUN ./building/windows/req_openssl.sh
 RUN ./building/windows/req_dbd.sh
+RUN ./building/windows/req_miniupnpc.sh
+RUN ./building/windows/req_protobuf.sh
+RUN ./building/windows/req_boost.sh
+RUN ./building/windows/req_qrencode.sh
+RUN ./building/windows/req_qt.sh
 
 # export CROSS=x86_64-w64-mingw32.static- CC=${CROSS}gcc CXX=${CROSS}g++ LD=${CROSS}ld AR=${CROSS}ar RANLIB=${CROSS}gcc-ranlib PKG_CONFIG=${CROSS}pkg-config PATH=/usr/lib/mxe/usr/bin/:$PATH
 
