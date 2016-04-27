@@ -45,10 +45,10 @@ which $PKG
 
 export PATH=/usr/lib/mxe/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
 
-#./building/windows/req_openssl.sh
-#./building/windows/req_dbd.sh
-#./building/windows/req_miniupnpc.sh
-#./building/windows/req_protobuf.sh
-#./building/windows/req_boost.sh
-#./building/windows/req_qrencode.sh
-#./building/windows/req_qt.sh
+./building/windows/req_openssl.sh
+./building/windows/req_dbd.sh
+./building/windows/req_miniupnpc.sh
+./building/windows/req_protobuf.sh
+./building/windows/req_boost.sh
+./building/windows/req_qrencode.sh
+./building/windows/req_qt.sh
