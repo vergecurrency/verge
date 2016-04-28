@@ -363,14 +363,17 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
-        toolbar->addAction(blockAction);
+    toolbar->addAction(blockAction);
     toolbar->addAction(chatAction);
-        toolbar->addAction(radioAction);
+    toolbar->addAction(radioAction);
 
 
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
     toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    addToolBar(Qt::LeftToolBarArea,toolbar2);
+    toolbar2->setOrientation(Qt::Vertical);
     toolbar2->addAction(exportAction);
+
 }
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
