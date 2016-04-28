@@ -8,6 +8,7 @@ ADD ./req_dbd.sh /building/windows/req_dbd.sh
 ADD ./req_miniupnpc.sh /building/windows/req_miniupnpc.sh
 ADD ./req_openssl.sh /building/windows/req_openssl.sh
 ADD ./req_protobuf.sh /building/windows/req_protobuf.sh
+ADD ./req_zlib.sh /building/windows/req_zlib.sh
 ADD ./req_qrencode.sh /building/windows/req_qrencode.sh
 ADD ./req_qt.sh /building/windows/req_qt.sh
 
@@ -27,15 +28,19 @@ RUN ./building/windows/req_openssl.sh
 RUN ./building/windows/req_dbd.sh
 RUN ./building/windows/req_miniupnpc.sh
 RUN ./building/windows/req_protobuf.sh
+RUN ./building/windows/req_zlib.sh
 RUN ./building/windows/req_boost.sh
 RUN ./building/windows/req_qrencode.sh
 RUN ./building/windows/req_qt.sh
 
-# export CROSS=x86_64-w64-mingw32.static- CC=${CROSS}gcc CXX=${CROSS}g++ LD=${CROSS}ld AR=${CROSS}ar RANLIB=${CROSS}gcc-ranlib PKG_CONFIG=${CROSS}pkg-config PATH=/usr/lib/mxe/usr/bin/:$PATH
+WORKDIR /tmp
+ENV LDFLAGS '-lssl -lcrypto -static -L/tmp/db-4.8.30.NC/build_windows -L/tmp/boost_1_55_0/stage/lib -L/tmp/miniupnpc-1.9.20160209 -L/tmp/protobuf-2.5.0/src/.libs/ -L/tmp/zlib-1.2.8'
+ENV CFLAGS '-I/tmp/db-4.8.30.NC/build_windows -I/tmp/boost_1_55_0/boost -I/tmp -I/tmp/protobuf-2.5.0 -I/tmp/zlib-1.2.8'
+ENV CXXFLAGS $CFLAGS
+ENV CPPFLAGS $CFLAGS
+ENV BOOST_ROOT /tmp/boost_1_55_0
+# TODO: change fork/branch
+RUN git clone https://github.com/mkinney/verge -b test-work ; cd verge ; ./autogen.sh --host=i686-w64-mingw32.static- 
 
-#./building/windows/req_dbd.sh
-#./building/windows/req_miniupnpc.sh
-#./building/windows/req_protobuf.sh
-#./building/windows/req_boost.sh
-#./building/windows/req_qrencode.sh
-#./building/windows/req_qt.sh
+RUN cd /tmp/verge && ./configure --host=i686-w64-mingw32.static && make
+
