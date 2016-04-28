@@ -77,7 +77,7 @@ int LYRA2(void *K, uint64_t kLen, const void *pwd, uint64_t pwdlen, const void *
     }
     //Places the pointers in the correct positions
     uint64_t *ptrWord = wholeMatrix;
-    for (i = 0; i < nRows; i++) {
+    for (i = 0; i < (int64_t) nRows; i++) {
       memMatrix[i] = ptrWord;
       ptrWord += ROW_LEN_INT64;
     }
@@ -133,7 +133,7 @@ int LYRA2(void *K, uint64_t kLen, const void *pwd, uint64_t pwdlen, const void *
     //================================ Setup Phase =============================//
     //Absorbing salt, password and basil: this is the only place in which the block length is hard-coded to 512 bits
     ptrWord = wholeMatrix;
-    for (i = 0; i < nBlocksInput; i++) {
+    for (i = 0; i < (int64_t) nBlocksInput; i++) {
       absorbBlockBlake2Safe(state, ptrWord); //absorbs each block of pad(pwd || salt || basil)
       ptrWord += BLOCK_LEN_BLAKE2_SAFE_INT64; //goes to next block of pad(pwd || salt || basil)
     }
@@ -161,12 +161,12 @@ int LYRA2(void *K, uint64_t kLen, const void *pwd, uint64_t pwdlen, const void *
       gap = -gap; //inverts the modifier to the step
     }
 
-    } while (row < nRows);
+    } while (row < (int64_t) nRows);
     //==========================================================================/
 
     //============================ Wandering Phase =============================//
     row = 0; //Resets the visitation to the first row of the memory matrix
-    for (tau = 1; tau <= timeCost; tau++) {
+    for (tau = 1; tau <= (int64_t) timeCost; tau++) {
     	//Step is approximately half the number of all rows of the memory matrix for an odd tau; otherwise, it is -1
     	step = (tau % 2 == 0) ? -1 : nRows / 2 - 1;
     	do {
@@ -246,7 +246,7 @@ int LYRA2_old(void *K, uint64_t kLen, const void *pwd, uint64_t pwdlen, const vo
     }
     //Places the pointers in the correct positions
     uint64_t *ptrWord = wholeMatrix;
-    for (i = 0; i < nRows; i++) {
+    for (i = 0; i < (int64_t) nRows; i++) {
       memMatrix[i] = ptrWord;
       ptrWord += ROW_LEN_INT64;
     }
@@ -302,7 +302,7 @@ int LYRA2_old(void *K, uint64_t kLen, const void *pwd, uint64_t pwdlen, const vo
     //================================ Setup Phase =============================//
     //Absorbing salt, password and basil: this is the only place in which the block length is hard-coded to 512 bits
     ptrWord = wholeMatrix;
-    for (i = 0; i < nBlocksInput; i++) {
+    for (i = 0; i < (int64_t) nBlocksInput; i++) {
       absorbBlockBlake2Safe(state, ptrWord); //absorbs each block of pad(pwd || salt || basil)
       ptrWord += BLOCK_LEN_BLAKE2_SAFE_BYTES; //goes to next block of pad(pwd || salt || basil)
     }
@@ -330,12 +330,12 @@ int LYRA2_old(void *K, uint64_t kLen, const void *pwd, uint64_t pwdlen, const vo
       gap = -gap; //inverts the modifier to the step
     }
 
-    } while (row < nRows);
+    } while (row < (int64_t) nRows);
     //==========================================================================/
 
     //============================ Wandering Phase =============================//
     row = 0; //Resets the visitation to the first row of the memory matrix
-    for (tau = 1; tau <= timeCost; tau++) {
+    for (tau = 1; tau <= (int64_t) timeCost; tau++) {
     	//Step is approximately half the number of all rows of the memory matrix for an odd tau; otherwise, it is -1
     	step = (tau % 2 == 0) ? -1 : nRows / 2 - 1;
     	do {

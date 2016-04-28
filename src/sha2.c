@@ -44,6 +44,11 @@ void sha256_init(uint32_t *state)
 	memcpy(state, sha256_h, 32);
 }
 
+/* to quiet strict compiler warning */
+uint32_t swab32(uint32_t i);
+uint32_t be32dec(uint32_t *i);
+uint32_t be32enc(uint32_t *j, uint32_t i);
+
 /* Elementary functions used by SHA256 */
 #define Ch(x, y, z)     ((x & (y ^ z)) ^ z)
 #define Maj(x, y, z)    ((x & (y | z)) | (y & z))
@@ -178,6 +183,7 @@ static const uint32_t sha256d_hash1[16] = {
 	0x00000000, 0x00000000, 0x00000000, 0x00000100
 };
 
+/*
 static void sha256d_80_swap(uint32_t *hash, const uint32_t *data)
 {
 	uint32_t S[16];
@@ -192,6 +198,7 @@ static void sha256d_80_swap(uint32_t *hash, const uint32_t *data)
 	for (i = 0; i < 8; i++)
 		hash[i] = swab32(hash[i]);
 }
+*/
 
 void sha256d(unsigned char *hash, const unsigned char *data, int len)
 {
@@ -218,6 +225,7 @@ void sha256d(unsigned char *hash, const unsigned char *data, int len)
 		be32enc((uint32_t *)hash + i, T[i]);
 }
 
+/*
 static inline void sha256d_preextend(uint32_t *W)
 {
 	W[16] = s1(W[14]) + W[ 9] + s0(W[ 1]) + W[ 0];
@@ -237,7 +245,9 @@ static inline void sha256d_preextend(uint32_t *W)
 	W[30] =                     s0(W[15]) + W[14];
 	W[31] =                     s0(W[16]) + W[15];
 }
+*/
 
+/*
 static inline void sha256d_prehash(uint32_t *S, const uint32_t *W)
 {
 	uint32_t t0, t1;
@@ -245,6 +255,7 @@ static inline void sha256d_prehash(uint32_t *S, const uint32_t *W)
 	RNDr(S, W, 1);
 	RNDr(S, W, 2);
 }
+*/
 
 #ifdef EXTERN_SHA256
 
@@ -253,6 +264,7 @@ void sha256d_ms(uint32_t *hash, uint32_t *W,
 
 #else
 
+/*
 static inline void sha256d_ms(uint32_t *hash, uint32_t *W,
 	const uint32_t *midstate, const uint32_t *prehash)
 {
@@ -457,6 +469,7 @@ static inline void sha256d_ms(uint32_t *hash, uint32_t *W,
 	         + S[60] + sha256_k[60]
 	         + sha256_h[7];
 }
+*/
 
 #endif /* EXTERN_SHA256 */
 
