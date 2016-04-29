@@ -2102,10 +2102,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
-    CBlockIndex* pindexPrev = pindexBest;
-    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
-    if (mi != mapBlockIndex.end())
-		pindexPrev = (*mi).second;
+    //CBlockIndex* pindexPrev = pindexBest;
+    //map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
+    //if (mi != mapBlockIndex.end())
+		//pindexPrev = (*mi).second;
 
     // Size limits
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
