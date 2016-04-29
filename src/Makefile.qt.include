@@ -31,7 +31,6 @@ QT_MOC_CPP = \
   qt/moc_bitcoinaddressvalidator.cpp \
   qt/moc_bitcoinamountfield.cpp \
   qt/moc_bitcoingui.cpp \
-  qt/moc_bitcoinunits.cpp \
   qt/moc_blockbrowser.cpp \
   qt/moc_clientmodel.cpp \
   qt/moc_csvmodelwriter.cpp \
@@ -58,7 +57,6 @@ QT_MOC_CPP = \
   qt/moc_transactionfilterproxy.cpp \
   qt/moc_transactiontablemodel.cpp \
   qt/moc_transactionview.cpp \
-  qt/moc_qtipcserver.cpp \
   qt/moc_qrcodedialog.cpp \
   qt/moc_walletmodel.cpp
 
@@ -67,7 +65,6 @@ BITCOIN_MM = \
   qt/macnotificationhandler.mm
 
 QT_MOC = \
-  qt/bitcoin.moc \
   qt/overviewpage.moc \
   qt/rpcconsole.moc
 
@@ -98,7 +95,6 @@ BITCOIN_QT_H = \
   qt/optionsmodel.h \
   qt/overviewpage.h \
   qt/qrcodedialog.h \
-  qt/qtipcserver.h \
   qt/qvalidatedlineedit.h \
   qt/qvaluecombobox.h \
   qt/rpcconsole.h \
