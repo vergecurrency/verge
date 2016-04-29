@@ -9,9 +9,13 @@ FROM ubuntu:14.04
 
 MAINTAINER Jeremiah Buddenhagen <bitspill@bitspill.net>
 
-RUN apt-get install --yes software-properties-common && \
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get install --yes -qq software-properties-common > /dev/null && \
     add-apt-repository --yes ppa:bitcoin/bitcoin && \
-    apt-get update --yes && apt-get install --yes \
+    apt-get update --yes > /dev/null && \
+    apt-get upgrade --yes > /dev/null && \
+    apt-get install --yes -qq \
        autoconf \
        automake \
        autotools-dev \
@@ -43,13 +47,16 @@ RUN apt-get install --yes software-properties-common && \
        qtbase5-dev \
        qtdeclarative5-dev \
        qttools5-dev \
-       qttools5-dev-tools
+       qttools5-dev-tools \
+      > /dev/null
 
-RUN git clone https://github.com/vergecurrency/verge /coin/git
+# TODO: go back... RUN git clone https://github.com/vergecurrency/verge /coin/git
+# This is temp during testing.
+RUN git clone https://github.com/mkinney/verge -b test-work /coin/git
 
 WORKDIR /coin/git
 
-RUN ./autogen.sh && ./configure && make && mv src/VERGEd /coin/VERGEd
+RUN ./autogen.sh && ./configure --with-gui=qt5 && make && mv src/VERGEd /coin/VERGEd
 
 WORKDIR /coin
 VOLUME ["/coin/home"]

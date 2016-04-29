@@ -3,14 +3,14 @@
 # using: https://github.com/coinzen/devcoin/blob/master/doc/build-mingw-under_linux.txt as a guide
 # Note: This assumes ubuntu:14.04 and we are going to cross-compile the windows binaries
 
-echo "=== dpkg -l (before)"
-dpkg -l
+#echo "=== dpkg -l (before)"
+#dpkg -l
 
 #sudo apt-get remove -y mingw32 mingw32-binutils mingw32-runtime
-sudo apt-get remove -y "^libqt4-.*" "^mingw32.*"
+sudo apt-get remove -y "^libqt4-.*" "^mingw32.*" > /dev/null
 
-echo "=== dpkg -l (after removal of some stuffs)"
-dpkg -l
+#echo "=== dpkg -l (after removal of some stuffs)"
+#dpkg -l
 
 sudo apt-get --yes -qq install software-properties-common > /dev/null
 sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa > /dev/null
@@ -33,7 +33,7 @@ export CC=${CROSS}gcc
 export CXX=${CROSS}g++
 export LD=${CROSS}ld
 export AR=${CROSS}ar
-export RANLIB=${CROSS}gcc-ranlib
+export RANLIB=${CROSS}ranlib
 export PKG_CONFIG=${CROSS}pkg-config
 
 which $CC
@@ -43,12 +43,13 @@ which $AR
 which $RANLIB
 which $PKG
 
-export PATH=/usr/lib/mxe/usr/bin/:$PATH
+export PATH=/usr/lib/mxe/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
 
 ./building/windows/req_openssl.sh
 ./building/windows/req_dbd.sh
 ./building/windows/req_miniupnpc.sh
 ./building/windows/req_protobuf.sh
+./building/windows/req_zlib.sh
 ./building/windows/req_boost.sh
 ./building/windows/req_qrencode.sh
-./building/windows/req_qt.sh
+#./building/windows/req_qt.sh

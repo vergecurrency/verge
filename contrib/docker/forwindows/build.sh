@@ -2,9 +2,16 @@
 
 # build the windows exe
 
+export LDFLAGS='-lssl -lcrypto -static -L/tmp/db-4.8.30.NC/build_windows -L/tmp/boost_1_55_0/stage/lib -L/tmp/miniupnpc-1.9.20160209 -L/tmp/protobuf-2.5.0/src/.libs/ -L/tmp/zlib-1.2.8' 
+export CFLAGS='-I/tmp/db-4.8.30.NC/build_windows -I/tmp/boost_1_55_0/boost -I/tmp -I/tmp/protobuf-2.5.0 -I/tmp/zlib-1.2.8'
+export CXXFLAGS=$CFLAGS
+export CPPFLAGS=$CFLAGS
+export BOOST_ROOT=/tmp/boost_1_55_0
+
 ./autogen.sh --host=i686-w64-mingw32.static-
 
-LDFLAGS='-lssl -lcrypto -static -L/usr/local/BerkeleyDB.4.8/lib' CFLAGS='-I/usr/local/BerkeleyDB.4.8/include/ -I/tmp/db-4.8.30.NC/build_windows' ./configure --host=i686-w64-mingw32.static --enable-static --disable-shared 
+./configure --host=i686-w64-mingw32.static 
+#./configure --host=i686-w64-mingw32.static --with-gui=qt5
 
 make
 
