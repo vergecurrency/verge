@@ -39,7 +39,7 @@ Approximately total reward: 16.5 Billion
 Binary (pre-compiled) wallets are available on all platforms at [http://vergecurrency.com](http://vergecurrency.com/#wallets-top)
 
 
-Compiling Linux Wallet on Ubuntu
+Compiling Linux Wallet on Ubuntu/Debian
 ----------------------
 
 If you have never compiled a wallet in linux before, here are the dependencies you will need:
@@ -49,6 +49,8 @@ If you have never compiled a wallet in linux before, here are the dependencies y
  sudo apt-get update
  sudo apt-get install libdb4.8-dev libdb4.8++-dev build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
 ```
+(if you are on debian, you will also need to apt-get install libcanberra-gtk-module)
+
 
 To clone the git repository and compile the daemon and gui wallet:
 
