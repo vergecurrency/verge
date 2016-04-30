@@ -1,5 +1,5 @@
 brew install protobuf boost miniupnpc openssl qrencode berkeley-db4 
-brew uninstall qt qt5 qt55 qt52
+brew uninstall qt qt5 qt55 qt52 > /dev/null 2>&1
 
 # This next part is to "install" just the necessary parts of the qt5 library
 cd /tmp
