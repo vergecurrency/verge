@@ -77,6 +77,7 @@ static const sph_u32 V_INIT[5][8] = {
 	}
 };
 
+#ifndef MAC_OSX
 /* 32 bit */
 static const sph_u32 RC00[8] = {
 	SPH_C32(0x303994a6), SPH_C32(0xc0e65299),
@@ -108,6 +109,7 @@ static const sph_u32 RC14[8] = {
 	SPH_C32(0x144ae5cc), SPH_C32(0xfaa7ae2b),
 	SPH_C32(0x2e48f1c1), SPH_C32(0xb923c704)
 };
+#endif
 
 #if SPH_LUFFA_PARALLEL
 
@@ -141,6 +143,7 @@ static const sph_u32 RC24[8] = {
 	SPH_C32(0x36eda57f), SPH_C32(0x703aace7)
 };
 
+#ifndef MAC_OSX
 /* 32 bit */
 static const sph_u32 RC30[8] = {
 	SPH_C32(0xb213afa5), SPH_C32(0xc84ebe95),
@@ -156,6 +159,7 @@ static const sph_u32 RC34[8] = {
 	SPH_C32(0xfe191be2), SPH_C32(0x3cb226e5),
 	SPH_C32(0x5944a28e), SPH_C32(0xa1c4c355)
 };
+#endif
 
 #if SPH_LUFFA_PARALLEL
 
