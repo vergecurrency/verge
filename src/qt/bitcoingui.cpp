@@ -289,7 +289,6 @@ void BitcoinGUI::createActions()
     encryptWalletAction->setToolTip(tr("Encrypt or decrypt wallet"));
     encryptWalletAction->setCheckable(true);
     unlockWalletAction = new QAction(QIcon(":/icons/lock_open"), tr("&Unlock Wallet..."), this);
-    //unlockWalletAction->setToolTip(tr("Unlock wallet for minting"));
     backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
     backupWalletAction->setToolTip(tr("Backup wallet to another location"));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
@@ -475,6 +474,10 @@ void BitcoinGUI::createTrayIcon()
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(signMessageAction);
     trayIconMenu->addAction(verifyMessageAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(encryptWalletAction);
+    trayIconMenu->addAction(unlockWalletAction);
+    trayIconMenu->addAction(changePassphraseAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(optionsAction);
     trayIconMenu->addAction(openRPCConsoleAction);
@@ -683,10 +686,7 @@ void BitcoinGUI::closeEvent(QCloseEvent *event)
 void BitcoinGUI::askFee(qint64 nFeeRequired, bool *payFee)
 {
     QString strMessage =
-        tr("This transaction is over the size limit.  You can still send it for a fee of %1. "
-           "The fee amount will be destroyed, thus taken out of circulation, which is meant to "
-           "increase incentive to both miners and stake holders as transaction volume increases "
-           "over time. Do you want to pay the fee?").arg(
+        tr("Do you want to pay the %1 fee?").arg(
                 BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nFeeRequired));
     QMessageBox::StandardButton retval = QMessageBox::question(
           this, tr("Confirm transaction fee"), strMessage,
@@ -874,16 +874,14 @@ void BitcoinGUI::setEncryptionStatus(int status)
         unlockWalletAction->setEnabled(false);
         encryptWalletAction->setEnabled(true);
         break;
-/*
     case WalletModel::Unlocked:
         labelEncryptionIcon->show();
         labelEncryptionIcon->setPixmap(QIcon(":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        labelEncryptionIcon->setToolTip(fWalletUnlockMintOnly? tr("Wallet is <b>encrypted</b> and currently <b>unlocked for block minting only</b>") : tr("Wallet is <b>encrypted</b> and currently <b>unlocked</b>"));
+        labelEncryptionIcon->setToolTip(fWalletUnlockMintOnly? tr("Wallet is <b>encrypted</b> and currently <b>unlocked</b>") : tr("Wallet is <b>encrypted</b> and currently <b>unlocked</b>"));
         encryptWalletAction->setChecked(true);
         changePassphraseAction->setEnabled(true);
         unlockWalletAction->setEnabled(false);
         encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
-        overviewPage->setUnlockWalletButtonText(tr("Lock wallet"));
         break;
     case WalletModel::Locked:
         labelEncryptionIcon->show();
@@ -893,9 +891,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         unlockWalletAction->setEnabled(true);
         changePassphraseAction->setEnabled(true);
         encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
-        overviewPage->setUnlockWalletButtonText(tr("Unlock wallet for minting"));
         break;
-*/
     }
 }
 
