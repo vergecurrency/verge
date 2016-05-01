@@ -4,14 +4,17 @@
 # https://github.com/vergecurrency/verge
 
 # https://github.com/vergecurrency/Docker-Verge-Daemon.git
+#  Jeremiah Buddenhagen <bitspill@bitspill.net>
 
 FROM ubuntu:14.04
 
-MAINTAINER Jeremiah Buddenhagen <bitspill@bitspill.net>
+MAINTAINER Mike Kinney <mike.kinney@gmail.com>
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get install --yes -qq software-properties-common > /dev/null && \
+RUN apt-get update --yes > /dev/null && \
+    apt-get upgrade --yes > /dev/null && \
+    apt-get install --yes -qq software-properties-common > /dev/null && \
     add-apt-repository --yes ppa:bitcoin/bitcoin && \
     apt-get update --yes > /dev/null && \
     apt-get upgrade --yes > /dev/null && \
@@ -50,9 +53,7 @@ RUN apt-get install --yes -qq software-properties-common > /dev/null && \
        qttools5-dev-tools \
       > /dev/null
 
-# TODO: go back... RUN git clone https://github.com/vergecurrency/verge /coin/git
-# This is temp during testing.
-RUN git clone https://github.com/mkinney/verge -b test-work /coin/git
+RUN git clone https://github.com/vergecurrency/VERGE.git /coin/git
 
 WORKDIR /coin/git
 
