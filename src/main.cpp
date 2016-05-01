@@ -2617,7 +2617,7 @@ bool LoadBlockIndex(bool fAllowNew)
 //vMerkleTree: ea6fed5e2
         // Genesis block
         const char* pszTimestamp = "Name: Dogecoin Dark";
-				if(TestNet)
+				if(fTestNet)
 					pszTimestamp = "VERGE TESTNET";
         CTransaction txNew;
         txNew.nTime = nChainStartTime;
@@ -2636,6 +2636,7 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nTime    = 1412878964;
         block.nBits    = bnProofOfWorkLimit[ALGO_SCRYPT].GetCompact();
         block.nNonce   = 1473191;
+
 				if(fTestNet)
 		{
 			block.nTime = 1462058066;
@@ -2643,14 +2644,20 @@ bool LoadBlockIndex(bool fAllowNew)
 		}
 						
 
+				if(fTestNet) {
+           assert(block.hashMerkleRoot == uint256("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
+        }
+        else {
+           assert(block.hashMerkleRoot == uint256("0x1c83275d9151711eec3aec37d829837cc3c2730b2bdfd00ec5e8e5dce675fd00"));
+        }
+
         //// debug print
-        assert(block.hashMerkleRoot == (!fTestNet ? uint256("0x1c83275d9151711eec3aec37d829837cc3c2730b2bdfd00ec5e8e5dce675fd00"));
 		block.print();
         printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
         printf("block.hashMerkleRoot == %s\n", block.hashMerkleRoot.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("block.nNonce = %u \n", block.nNonce);
-		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet);
+		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 		assert(block.CheckBlock());
 
         // Start new block file
