@@ -52,7 +52,7 @@ static const int fHaveUPnP = false;
 #endif
 
 static const uint256 hashGenesisBlockOfficial("0x00000fc63692467faeb20cdb3b53200dc601d75bdfa1001463304cc790d77278");
-static const uint256 hashGenesisBlockTestNet("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347");
+static const uint256 hashGenesisBlockTestNet("0xd29db84baabb156dce853742ee1e6edf8b9a61049571d81907cab72bc4964f09");
 
 static const int64 nMaxClockDrift = 2 * 60 * 60;        // two hours
 
@@ -146,7 +146,8 @@ enum
     BLOCK_VERSION_DEFAULT        = 2,
 
     // algo
-    BLOCK_VERSION_ALGO           = (10 << 11),
+    BLOCK_VERSION_ALGO_BROKEN    = (10 << 11),
+    BLOCK_VERSION_ALGO           = (15 << 11),
     BLOCK_VERSION_SCRYPT         = (1  << 11),
     BLOCK_VERSION_GROESTL        = (2  << 11),
     BLOCK_VERSION_X17		 = (3  << 11),
@@ -156,7 +157,7 @@ enum
 
 inline int GetAlgo(int nVersion)
 {
-    switch (nVersion & BLOCK_VERSION_ALGO)
+    switch (nVersion & (nBestHeight >= 380000 ? BLOCK_VERSION_ALGO : BLOCK_VERSION_ALGO_BROKEN))
     {
         case BLOCK_VERSION_SCRYPT:
             return ALGO_SCRYPT;
