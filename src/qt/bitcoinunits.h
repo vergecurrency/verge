@@ -2,6 +2,7 @@
 #define BITCOINUNITS_H
 
 #include <QString>
+#include <QLocale>
 #include <QAbstractListModel>
 
 /** Bitcoin unit definitions. Encapsulates parsing and formatting

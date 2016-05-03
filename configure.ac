@@ -1,7 +1,7 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR, 2)
-define(_CLIENT_VERSION_MINOR, 0)
+define(_CLIENT_VERSION_MINOR, 1)
 define(_CLIENT_VERSION_REVISION, 0)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
@@ -180,7 +180,7 @@ fi
 CPPFLAGS="$CPPFLAGS -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS"
 
 if test "x$CFLAGS_overridden" = "xno"; then
-  CFLAGS="$CFLAGS -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter"
+  CFLAGS="$CFLAGS -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -std=c99"
 fi
 CFLAGS="$CFLAGS -DHAVE_BUILD_INFO"
 
@@ -230,7 +230,7 @@ case $host in
        AC_MSG_ERROR("windres not found")
      fi
 
-     CPPFLAGS="$CPPFLAGS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -std=c99"
+     CPPFLAGS="$CPPFLAGS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB"
      LEVELDB_TARGET_FLAGS="TARGET_OS=OS_WINDOWS_CROSSCOMPILE"
      if test "x$CXXFLAGS_overridden" = "xno"; then
        CXXFLAGS="$CXXFLAGS -w"
@@ -279,7 +279,7 @@ case $host in
      CPPFLAGS="$CPPFLAGS -DMAC_OSX"
      ;;
    *)
-     CPPFLAGS="$CPPFLAGS -std=c99"
+     CPPFLAGS="$CPPFLAGS"
      ;;
 esac
 
@@ -379,7 +379,7 @@ if test x$use_hardening != xno; then
   AX_CHECK_LINK_FLAG([[-Wl,-z,relro]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,relro"])
   AX_CHECK_LINK_FLAG([[-Wl,-z,now]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,now"])
 
-  if test x$TARGET_OS != xwindows; then
+  if test x$TARGET_OS = xlinux; then
     # -pie will link successfully with MinGW, but it's unsupported and leads to undeterministic binaries
     AX_CHECK_LINK_FLAG([[-pie]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -pie"])
   fi

@@ -1,17 +1,16 @@
 # Dockerfile for Verge
-# http://vergecurrency.com/
-# https://bitcointalk.org/index.php?topic=1365894
-# https://github.com/vergecurrency/verge
 
-# https://github.com/vergecurrency/Docker-Verge-Daemon.git
+FROM debian:8.4
 
-FROM ubuntu:latest
+MAINTAINER Mike Kinney <mike.kinney@gmail.com>
 
-MAINTAINER Jeremiah Buddenhagen <bitspill@bitspill.net>
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get install --yes software-properties-common && \
-    add-apt-repository --yes ppa:bitcoin/bitcoin && \
-    apt-get update --yes && apt-get install --yes \
+ADD http://httpredir.debian.org/debian/project/trace/ftp-master.debian.org /etc/trace_ftp-master.debian.org
+ADD http://security.debian.org/project/trace/security-master.debian.org /etc/trace_security-master.debian.org
+RUN apt-get update && apt-get -y dist-upgrade
+
+RUN apt-get -y install \
        autoconf \
        automake \
        autotools-dev \
@@ -24,8 +23,9 @@ RUN apt-get install --yes software-properties-common && \
        libboost-system-dev \
        libboost-test-dev \
        libboost-thread-dev \
-       libdb4.8++-dev \
-       libdb4.8-dev \
+       libcanberra-gtk-module \
+       libdb++-dev \
+       libdb-dev \
        libevent-dev \
        libminiupnpc-dev \
        libprotobuf-dev \
@@ -45,11 +45,13 @@ RUN apt-get install --yes software-properties-common && \
        qttools5-dev \
        qttools5-dev-tools
 
-RUN git clone https://github.com/vergecurrency/verge /coin/git
+# TODO: go back... RUN git clone https://github.com/vergecurrency/verge /coin/git
+# This is temp during testing.
+RUN git clone https://github.com/mkinney/verge -b test-work /coin/git
 
 WORKDIR /coin/git
 
-RUN ./autogen.sh && ./configure && make && mv src/VERGEd /coin/VERGEd
+RUN ./autogen.sh && ./configure --with-gui=qt5 --with-incompatible-bdb && make && mv src/VERGEd /coin/VERGEd
 
 WORKDIR /coin
 VOLUME ["/coin/home"]

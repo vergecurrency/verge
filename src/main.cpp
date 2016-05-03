@@ -1185,7 +1185,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, int algo)
     }
 
     // Check proof of work matches claimed amount
-    if (hash > bnTarget.getuint256())
+    if (hash > bnTarget.getuint256() && hash != hashGenesisBlockTestNet)
         return error("CheckProofOfWork() : hash doesn't match nBits");
 
     return true;
@@ -1695,7 +1695,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return error("ConnectBlock() : UpdateTxIndex failed");
     }
 
-    uint256 prevHash = 0;
+    //uint256 prevHash = 0;
     if(vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees))
 	return false;
 
@@ -2102,10 +2102,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
-    CBlockIndex* pindexPrev = pindexBest;
-    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
-    if (mi != mapBlockIndex.end())
-		pindexPrev = (*mi).second;
+    //CBlockIndex* pindexPrev = pindexBest;
+    //map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
+    //if (mi != mapBlockIndex.end())
+		//pindexPrev = (*mi).second;
 
     // Size limits
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
@@ -2589,7 +2589,7 @@ bool LoadBlockIndex(bool fAllowNew)
         nStakeMinAge = 24 * 60 * 60; // test net min age is 24 hours
         nModifierInterval = 20 * 60; // test modifier interval is 20 minutes
         nCoinbaseMaturity = 5; // test maturity is 5 blocks
-        nStakeTargetSpacing = 10 * 60; // test block spacing is 3 minutes
+        nStakeTargetSpacing = 1 * 60; // test block spacing is 1 minute
     }
 
     //
@@ -2617,8 +2617,13 @@ bool LoadBlockIndex(bool fAllowNew)
 //vMerkleTree: ea6fed5e2
         // Genesis block
         const char* pszTimestamp = "Name: Dogecoin Dark";
+				if(fTestNet)
+					pszTimestamp = "VERGE TESTNET";
         CTransaction txNew;
         txNew.nTime = nChainStartTime;
+				if(fTestNet)
+					txNew.nTime = 1462058066;
+				
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
@@ -2632,17 +2637,28 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nBits    = bnProofOfWorkLimit[ALGO_SCRYPT].GetCompact();
         block.nNonce   = 1473191;
 
+				if(fTestNet)
+		{
+			block.nTime = 1462058066;
+			block.nNonce = 2;
+		}
+						
+
+				if(fTestNet) {
+           assert(block.hashMerkleRoot == uint256("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
+        }
+        else {
+           assert(block.hashMerkleRoot == uint256("0x1c83275d9151711eec3aec37d829837cc3c2730b2bdfd00ec5e8e5dce675fd00"));
+        }
+
         //// debug print
-        block.print();
+		block.print();
         printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
         printf("block.hashMerkleRoot == %s\n", block.hashMerkleRoot.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("block.nNonce = %u \n", block.nNonce);
-
-        assert(block.hashMerkleRoot == uint256("0x1c83275d9151711eec3aec37d829837cc3c2730b2bdfd00ec5e8e5dce675fd00"));
-
-        assert(block.GetHash() == hashGenesisBlock);
-
+		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
+		assert(block.CheckBlock());
 
         // Start new block file
         unsigned int nFile;
@@ -2841,7 +2857,7 @@ bool LoadExternalBlockFile(FILE* fileIn)
 extern map<uint256, CAlert> mapAlerts;
 extern CCriticalSection cs_mapAlerts;
 
-static string strMintMessage = "Info: Minting suspended due to locked wallet.";
+static string strMintMessage = "";
 static string strMintWarning;
 
 string GetWarnings(string strFor)

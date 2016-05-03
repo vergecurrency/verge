@@ -39,7 +39,7 @@ Approximately total reward: 16.5 Billion
 Binary (pre-compiled) wallets are available on all platforms at [http://vergecurrency.com](http://vergecurrency.com/#wallets-top)
 
 
-Compiling Linux Wallet on Ubuntu
+Compiling Linux Wallet on Ubuntu/Debian
 ----------------------
 
 If you have never compiled a wallet in linux before, here are the dependencies you will need:
@@ -47,8 +47,10 @@ If you have never compiled a wallet in linux before, here are the dependencies y
 ```
  sudo add-apt-repository ppa:bitcoin/bitcoin
  sudo apt-get update
- sudo apt-get install libdb4.8-dev libdb4.8++-dev build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+ sudo apt-get install libdb4.8-dev libdb4.8++-dev build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
 ```
+(if you are on debian, you will also need to apt-get install libcanberra-gtk-module)
+
 
 To clone the git repository and compile the daemon and gui wallet:
 
@@ -96,14 +98,48 @@ To check the status of how much of the blockchain has been downloaded (aka synce
 
 To compile on Mac (OSX El Capitan):
 ------------
-    brew install protobuf boost miniupnpc openssl qt5 qrencode berkeley-db4
-    brew link --force qt5
-    git clone https://github.com/vergecurrency/verge
+1. Ensure you do not have qt5 nor qt installed.
+
+    `brew uninstall qt qt5 qt55 qt52`   
+   
+2. Download [qt5.4.2](https://download.qt.io/official_releases/qt/5.4/5.4.2/qt-opensource-mac-x64-clang-5.4.2.dmg)
+     
+3. Install qt5 into /usr/local/qt5
+   
+   Note: Change the installation folder from "xxx/Qt5.4.2" to "/usr/local/qt5"
+   
+4. Run these commands:
+
+    `export PKG_CONFIG_PATH=/usr/local/qt5/5.4/clang_64/lib/pkgconfig`
+    
+    `export PATH=/usr/local/qt5/5.4/clang_64/bin:$PATH`
+    `export QT_CFLAGS="-I/usr/local/qt5/5.4/clang_64/lib/QtWebKitWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebView.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtDBus.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebKit.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtNetwork.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtGui.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtCore.framework/Versions/5/Headers -I. -I/usr/local/qt5/5.4/clang_64/mkspecs/macx-clang -F/usr/local/qt5/5.4/clang_64/lib"`
+    
+    `export QT_LIBS="-F/usr/local/qt5/5.4/clang_64/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus -framework QtWebView"`
+    
+    
+5. Install the other required items:
+
+    `brew install protobuf boost miniupnpc openssl qrencode berkeley-db4`
+    
+6. Download the wallet source and build:
+
+    `git clone https://github.com/vergecurrency/verge
     cd verge
     ./autogen.sh
-    ./configure
-    make -j4
+    ./configure --with-gui=qt5 
+    make -j4`
+    
+    Note: If you are building the .dmg (by running 'mac deploy') you may need to run these commands if you get an error regarding mysql:
 
+    `brew install mysql
+    cd /usr/local/qt5/5.4/clang_64/plugins/sqldrivers
+    otool -L libqsqlmysql.dylib`
+
+    Note: This may be pointing to an version of mysql that you do not have installed (like mysql55)
+
+    `install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.12/lib/libmysqlclient.20.dylib libqsqlmysql.dylib`
+    
 
 Want to use Docker?
 ------------

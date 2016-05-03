@@ -1,3 +1,3 @@
 ./autogen.sh
-./configure
+./configure --with-gui=qt5
 make

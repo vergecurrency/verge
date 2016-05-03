@@ -27,6 +27,7 @@
         <file alias="toolbar_testnet">res/icons/toolbar_verge_testnet.png</file>
         <file alias="edit">res/icons/edit.png</file>
         <file alias="history">res/icons/history.png</file>
+		<file alias="radio">res/icons/radio.png</file>
         <file alias="overview">res/icons/overview.png</file>
 		<file alias="social">res/icons/chat.png</file>
         <file alias="export">res/icons/export.png</file>
@@ -44,6 +45,7 @@
         <file alias="debugwindow">res/icons/debugwindow.png</file>
     </qresource>
     <qresource prefix="/images">
+        <file alias="bkg">res/images/bkg.png</file>
         <file alias="about">res/images/about.png</file>
         <file alias="about_testnet">res/images/about_testnet.png</file>
         <file alias="splash">res/images/splash.png</file>
