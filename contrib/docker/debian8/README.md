@@ -3,7 +3,6 @@ Copied from here:
 
 To build:
 ---
-    docker build --rm -t verge:debian8 .
+    docker build --rm -t vergecurrency/verge:2.1.0-debian8 .
 
-See ubuntu14 for use as they're the same.
-
+See the instructions in the ubunt14 docker for how to use
