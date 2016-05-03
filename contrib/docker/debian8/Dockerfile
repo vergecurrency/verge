@@ -45,9 +45,7 @@ RUN apt-get -y install \
        qttools5-dev \
        qttools5-dev-tools
 
-# TODO: go back... RUN git clone https://github.com/vergecurrency/verge /coin/git
-# This is temp during testing.
-RUN git clone https://github.com/mkinney/verge -b test-work /coin/git
+RUN git clone https://github.com/vergecurrency/verge /coin/git
 
 WORKDIR /coin/git
 

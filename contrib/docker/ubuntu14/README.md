@@ -3,7 +3,7 @@ Copied from here:
 
 To build:
 ---
-    docker build --rm -t mkinney/verge:2.0.0-ubuntu14 .
+    docker build --rm -t vergecurrency/verge:2.1.0-ubuntu14 .
 
 
 Before running:
@@ -56,7 +56,7 @@ To run VERGE wallet on a Synology using this docker image:
     
 * Start docker. Click 'main menu', then 'Docker'. (If you do not see that option, you will have install the Docker package on the Synology.)
 
-* Click on 'Image', then 'Add', 'from URL', and enter ```https://hub.docker.com/r/mkinney/verge/```
+* Click on 'Image', then 'Add', 'from URL', and enter ```https://hub.docker.com/r/vergecurrency/verge/```
 
 * Wait for it to download.
 

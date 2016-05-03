@@ -11,3 +11,13 @@ To delete a tag:
 
 To see tags: ('-n' shows comment, '-l' shows in order)
    git tag -n -l
+
+
+-- Minimum OS for installation validation
+- Mac OSX 10.7 Lion?
+- Ubuntu 14.04
+  - For Ubuntu 14.04, you need to run these steps before you can run VERGE-qt:
+    sudo apt-get install -y libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev libqrencode-dev
+    sudo add-apt-repository ppa:bitcoin/bitcoin
+    sudo apt-get update
+    sudo apt-get install libdb4.8++-dev
