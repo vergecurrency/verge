@@ -14,6 +14,7 @@ To see tags: ('-n' shows comment, '-l' shows in order)
 
 
 -- Minimum OS for installation validation
+- Windows 7
 - Mac OSX 10.7 Lion?
 - Ubuntu 14.04
   - For Ubuntu 14.04, you need to run these steps before you can run VERGE-qt:
