@@ -154,23 +154,23 @@ Run `make deploy`
 
 If you are building the .dmg (by running 'mac deploy') you may need to run these commands if you get an error regarding mysql:
 
-    `brew install mysql`
+    brew install mysql
     
-    `cd /usr/local/qt5/5.4/clang_64/plugins/sqldrivers`
+    cd /usr/local/qt5/5.4/clang_64/plugins/sqldrivers
     
-    `otool -L libqsqlmysql.dylib`
+    otool -L libqsqlmysql.dylib
 
-Note: This may be pointing to an version of mysql that you do not have installed (like mysql55)
+Note: This may be pointing to an version of mysql that you do not have installed (like mysql55) - Alternatively, you may be able to remove the library from the sqldrivers folder.
 
-    `install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.12/lib/libmysqlclient.20.dylib libqsqlmysql.dylib`
+    install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.12/lib/libmysqlclient.20.dylib libqsqlmysql.dylib
     
-    Trying to build .dmg on 10.8? You will need to run this:
+Trying to build .dmg on 10.8? You will need to run this:
     
-    `export CFLAGS=-Qunused-arguments`
+    export CFLAGS=-Qunused-arguments
     
-    `export CPPFLAGS=-Qunused-arguments`
+    export CPPFLAGS=-Qunused-arguments
     
-    `sudo -E easy_install appscript`
+    sudo -E easy_install appscript
     
 
 Want to use Docker?
