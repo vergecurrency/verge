@@ -5,10 +5,8 @@
 #include "main.h"
 #include <QtCore>
 #include <QtGui>
-#include <QtWebKit>
 #include <QtWidgets>
-#include <QtWebKit/QtWebKit>
-#include <QtWebKitWidgets/QtWebKitWidgets>
+#include <QtWebEngineWidgets/QtWebEngineWidgets>
 
 Radio::Radio(QWidget *parent) :
     QWidget(parent),

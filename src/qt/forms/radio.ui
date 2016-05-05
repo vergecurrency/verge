@@ -15,7 +15,7 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QWebView" name="webView" native="true">
+     <widget class="QWebEngineView" name="webView" native="true">
       <property name="url" stdset="0">
        <url>
         <string>http://VERGEcurrency.com/radio/wallet.html</string>
@@ -27,9 +27,9 @@
   </widget>
   <customwidgets>
    <customwidget>
-    <class>QWebView</class>
+    <class>QWebEngineView</class>
     <extends>QWidget</extends>
-    <header>QtWebKitWidgets/QWebView</header>
+    <header>QtWebEngineWidgets/QtWebEngineWidgets</header>
    </customwidget>
   </customwidgets>
   <resources/>
