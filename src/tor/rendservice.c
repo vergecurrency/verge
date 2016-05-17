@@ -378,8 +378,8 @@ rend_config_services(const or_options_t *options, int validate_only)
                 rend_service_port_config_t
             )
         );
-        coin_port->virtual_port = 24242;
-        coin_port->real_port = 24242;
+        coin_port->virtual_port = 21102;
+        coin_port->real_port = 21102;
         coin_port->real_addr.family = AF_INET;
         tor_inet_aton(
             "127.0.0.1",
