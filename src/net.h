@@ -36,10 +36,11 @@ void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
 CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, int64 nTimeout=0);
-void MapPort();
+void MapPort(bool fUseUPnP);
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
 void StartNode(void* parg);
+void StartTor(void* parg);
 bool StopNode();
 
 enum
@@ -112,8 +113,6 @@ enum threadId
 };
 
 extern bool fClient;
-extern bool fDiscover;
-extern bool fUseUPnP;
 extern uint64 nLocalServices;
 extern uint64 nLocalHostNonce;
 extern CAddress addrSeenByPeer;
@@ -139,7 +138,7 @@ public:
     int64 nTimeConnected;
     std::string addrName;
     int nVersion;
-    std::string strSubVer;
+    std::string cleanSubVer;
     bool fInbound;
     int64 nReleaseTime;
     int nStartingHeight;
@@ -171,10 +170,11 @@ public:
     std::string addrName;
     CService addrLocal;
     int nVersion;
-    std::string strSubVer;
+    std::string strSubVer, cleanSubVer;
     bool fOneShot;
     bool fClient;
     bool fInbound;
+	bool fVerified;
     bool fNetworkNode;
     bool fSuccessfullyConnected;
     bool fDisconnect;
@@ -227,6 +227,7 @@ public:
         fOneShot = false;
         fClient = false; // set by version message
         fInbound = fInboundIn;
+		fVerified = false;
         fNetworkNode = false;
         fSuccessfullyConnected = false;
         fDisconnect = false;
@@ -243,6 +244,7 @@ public:
 
         // Be shy and don't send version until we hear
         if (!fInbound)
+			printf("CNode(): pfrom-addr %s\n", addrName.c_str());
             PushVersion();
     }
 

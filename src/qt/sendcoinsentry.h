@@ -41,6 +41,7 @@ signals:
     void removeEntry(SendCoinsEntry *entry);
 
 private slots:
+    void on_stealthsendButton_clicked();
     void on_deleteButton_clicked();
     void on_payTo_textChanged(const QString &address);
     void on_addressBookButton_clicked();

@@ -3017,12 +3017,15 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         CAddress addrMe;
         CAddress addrFrom;
         uint64 nNonce = 1;
+		uint64 verification_token = 0;
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
 
         if (!vRecv.empty())
-            vRecv >> addrFrom >> nNonce;
-        if (!vRecv.empty())
+           vRecv >> addrFrom >> verification_token >> nNonce;
+        if (!vRecv.empty()) {
             vRecv >> pfrom->strSubVer;
+			pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
+		}
         if (!vRecv.empty())
             vRecv >> pfrom->nStartingHeight;
 
@@ -3059,7 +3062,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         if (!pfrom->fInbound)
         {
             // Advertise our address
-            if (!fNoListen && !IsInitialBlockDownload())
+            if (!IsInitialBlockDownload())
             {
                 CAddress addr = GetLocalAddress(&pfrom->addr);
                 if (addr.IsRoutable())
@@ -3074,10 +3077,21 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
             addrman.Good(pfrom->addr);
         } else {
-            if (((CNetAddr)pfrom->addr) == (CNetAddr)addrFrom)
+            addrFrom.SetPort(GetDefaultPort());
+			pfrom->addr = addrFrom;
+            if (CNode::IsBanned(addrFrom))
             {
-                addrman.Add(addrFrom, addrFrom);
-                addrman.Good(addrFrom);
+                printf("connection from %s dropped (banned)\n", addrFrom.ToString().c_str());
+				pfrom->fDisconnect = true;
+				return true;
+            }
+            if (addrman.CheckVerificationToken(addrFrom, verification_token)) {
+                printf("connection from %s verified\n", addrFrom.ToString().c_str());
+                pfrom->fVerified = true;
+                addrman.Good(pfrom->addr);
+            } else {
+                printf("couldn't verify %s\n", addrFrom.ToString().c_str());
+                addrman.SetReconnectToken(addrFrom, verification_token);
             }
         }
 
@@ -3107,7 +3121,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         pfrom->fSuccessfullyConnected = true;
 
-        printf("receive version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString().c_str(), addrFrom.ToString().c_str(), pfrom->addr.ToString().c_str());
+        printf("receive version message: %s: version %d, blocks=%d, us=%s, them=%s, peer=%s, verification=%" PRI64d "\n", pfrom->cleanSubVer.c_str(), pfrom->nStartingHeight, addrMe.ToString().c_str(), addrFrom.ToString().c_str(), pfrom->addr.ToString().c_str());
 
         cPeerBlockCounts.input(pfrom->nStartingHeight);
 
@@ -3644,9 +3658,18 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
 bool ProcessMessages(CNode* pfrom)
 {
+	if (fDebug) {
+        printf("ProcessMessages: %s\n",
+               pfrom->addr.ToString().c_str());
+    }
     CDataStream& vRecv = pfrom->vRecv;
-    if (vRecv.empty())
+    if (vRecv.empty()) {
+		if (fDebug) {
+            printf("ProcessMessages: %s message empty\n",
+                   pfrom->addr.ToString().c_str());
+        }
         return true;
+	}
     //if (fDebug)
     //    printf("ProcessMessages(%u bytes)\n", vRecv.size());
 
@@ -3795,7 +3818,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                         pnode->setAddrKnown.clear();
 
                     // Rebroadcast our address
-                    if (!fNoListen)
+                    if (true)
                     {
                         CAddress addr = GetLocalAddress(&pnode->addr);
                         if (addr.IsRoutable())

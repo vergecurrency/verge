@@ -111,7 +111,9 @@ BITCOIN_CORE_H = \
   util.h \
   version.h \
   walletdb.h \
-  wallet.h
+  wallet.h \
+  src/qt/httpsocket.h \
+  src/qt/stealthsend.h 
 
 JSON_H = \
   json/json_spirit.h \
@@ -147,6 +149,83 @@ libbitcoin_server_a_SOURCES = \
   rpcmining.cpp \
   rpcnet.cpp \
   rpcrawtransaction.cpp \
+  src/tor/address.c \
+  src/tor/addressmap.c \
+  src/tor/aes.c \
+  src/tor/backtrace.c \
+  src/tor/buffers.c \
+  src/tor/channel.c \
+  src/tor/channeltls.c \
+  src/tor/circpathbias.c \
+  src/tor/circuitbuild.c \
+  src/tor/circuitlist.c \
+  src/tor/circuitmux.c \
+  src/tor/circuitmux_ewma.c \
+  src/tor/circuitstats.c \
+  src/tor/circuituse.c \
+  src/tor/command.c \
+  src/tor/compat.c \
+  src/tor/compat_libevent.c \
+  src/tor/config.c \
+  src/tor/config_codedigest.c \
+  src/tor/confparse.c \
+  src/tor/connection.c \
+  src/tor/connection_edge.c \
+  src/tor/connection_or.c \
+  src/tor/container.c \
+  src/tor/control.c \
+  src/tor/cpuworker.c \
+  src/tor/crypto.c \    
+  src/tor/crypto_curve25519.c \
+  src/tor/crypto_format.c \
+  src/tor/curve25519-donna.c \
+  src/tor/di_ops.c \
+  src/tor/directory.c \
+  src/tor/dirserv.c \
+  src/tor/dirvote.c \
+  src/tor/dns.c \
+  src/tor/dnsserv.c \
+  src/tor/entrynodes.c \
+  src/tor/ext_orport.c \
+  src/tor/fp_pair.c \
+  src/tor/geoip.c \
+  src/tor/hibernate.c \
+  src/tor/log.c \
+  src/tor/memarea.c \
+  src/tor/mempool.c \
+  src/tor/microdesc.c \
+  src/tor/networkstatus.c \
+  src/tor/nodelist.c \
+  src/tor/onion.c \
+  src/tor/onion_fast.c \
+  src/tor/onion_main.c \
+  src/tor/onion_ntor.c \
+  src/tor/onion_tap.c \
+  src/tor/policies.c \
+  src/tor/stealth.cpp \
+  src/tor/procmon.c \
+  src/tor/reasons.c \
+  src/tor/relay.c \
+  src/tor/rendclient.c \
+  src/tor/rendcommon.c \
+  src/tor/rendmid.c \
+  src/tor/rendservice.c \
+  src/tor/rephist.c \
+  src/tor/replaycache.c \
+  src/tor/router.c \
+  src/tor/routerlist.c \
+  src/tor/routerparse.c \
+  src/tor/routerset.c \
+  src/tor/sandbox.c \
+  src/tor/statefile.c \
+  src/tor/status.c \
+  src/tor/strlcat.c \
+  src/tor/strlcpy.c \
+  src/tor/tor_util.c \
+  src/tor/torgzip.c \
+  src/tor/tortls.c \
+  src/tor/transports.c \
+  src/tor/util_codedigest.c \
   $(JSON_H) \
   $(BITCOIN_CORE_H)
 
@@ -160,6 +239,8 @@ libbitcoin_wallet_a_SOURCES = \
   rpcwallet.cpp \
   wallet.cpp \
   walletdb.cpp \
+  src/qt/httpsocket.cpp \
+  src/qt/stealthsend.cpp \
   $(BITCOIN_CORE_H)
 
 # common: shared between bitcoind, and bitcoin-qt and non-server tools

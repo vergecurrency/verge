@@ -10,6 +10,7 @@
 #include "strlcpy.h"
 #include "addrman.h"
 #include "ui_interface.h"
+#include "onionseed.h"
 
 #ifdef WIN32
 #include <string.h>
@@ -28,6 +29,10 @@
 
 using namespace std;
 using namespace boost;
+
+extern "C" {
+    int tor_main(int argc, char *argv[]);
+}
 
 static const int MAX_OUTBOUND_CONNECTIONS = 8;
 
@@ -105,9 +110,6 @@ void CNode::PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd)
 // find 'best' local address for a particular peer
 bool GetLocal(CService& addr, const CNetAddr *paddrPeer)
 {
-    if (fNoListen)
-        return false;
-
     int nBestScore = -1;
     int nBestReachability = -1;
     {
@@ -225,7 +227,7 @@ bool AddLocal(const CService& addr, int nScore)
     if (!addr.IsRoutable())
         return false;
 
-    if (!fDiscover && nScore < LOCAL_MANUAL)
+    if (nScore < LOCAL_MANUAL)
         return false;
 
     if (IsLimited(addr))
@@ -486,7 +488,10 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, int64 nTimeout)
             return pnode;
         }
     }
-
+	
+	if (fDebug) {
+         printf("ConnectNode(): pszDest: %s\n", pszDest);
+    }
 
     /// debug print
     printf("trying connection %s lastseen=%.1fhrs\n",
@@ -554,12 +559,36 @@ void CNode::PushVersion()
 {
     /// when NTP implemented, change to just nTime = GetAdjustedTime()
     int64 nTime = (fInbound ? GetAdjustedTime() : GetTime());
+	uint64 verification_token = 0;
+    if (
+        !fInbound
+    ) {
+        if (!addrman.GetReconnectToken(addr, verification_token)) {
+            RAND_bytes((unsigned char*)&verification_token, sizeof(verification_token));
+            addrman.SetVerificationToken(
+                addr,
+                verification_token
+            );
+        }
+    }
+    if (fDebug) {
+      if (addr.IsRoutable()) {
+         printf("PushVersion(): Address is routable (good)\n");
+      } else {
+         printf("PushVersion(): Address not routable (bad)\n");
+      }
+      if (IsProxy(addr)) {
+         printf("PushVersion(): Address is proxy (bad)\n");
+      } else {
+         printf("PushVersion(): Address not proxy (good)\n");
+      }
+    }
     CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr) ? addr : CAddress(CService("0.0.0.0",0)));
     CAddress addrMe = GetLocalAddress(&addr);
     RAND_bytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
-    printf("send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString().c_str(), addrYou.ToString().c_str(), addr.ToString().c_str());
+    printf("send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s, verification=%" PRI64d "\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString().c_str(), addrYou.ToString().c_str(), addr.ToString().c_str(), verification_token);
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe,
-                nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>()), nBestHeight);
+                verification_token, nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>()), nBestHeight);
 }
 
 
@@ -625,7 +654,7 @@ void CNode::copyStats(CNodeStats &stats)
     X(nTimeConnected);
     X(addrName);
     X(nVersion);
-    X(strSubVer);
+    X(cleanSubVer);
     X(fInbound);
     X(nReleaseTime);
     X(nStartingHeight);
@@ -677,7 +706,7 @@ void ThreadSocketHandler2(void* parg)
         {
             LOCK(cs_vNodes);
             // Disconnect unused nodes
-            vector<CNode*> vNodesCopy = vNodes;
+            vector<CNode*> const vNodesCopy = vNodes;
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
             {
                 if (pnode->fDisconnect ||
@@ -733,7 +762,32 @@ void ThreadSocketHandler2(void* parg)
                     }
                 }
             }
-        }
+        // count secured connections
+            int unsecured = 0;
+            int secured = 0;
+            vector<CNode*> vNodesUnsecure;
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+            {
+                if (GetTime() - pnode->nTimeConnected < 60) {
+                    continue;
+                }
+                if (
+                    !pnode->fInbound || pnode->fVerified
+                ) {
+                    secured++;
+                } else {
+                    unsecured++;
+                    vNodesUnsecure.push_back(pnode);
+                }
+            }
+            if (
+                0 > 2 * secured - 3 * unsecured
+            ) {
+                random_shuffle(vNodesUnsecure.begin(), vNodesUnsecure.end(), GetRandInt);
+                printf("removing unsecured connection %s\n", (*vNodesUnsecure.begin())->addr.ToString().c_str());
+                (*vNodesUnsecure.begin())->fDisconnect = true;
+            }
+		}
         if (vNodes.size() != nPrevNodeCount)
         {
             nPrevNodeCount = vNodes.size();
@@ -837,11 +891,6 @@ void ThreadSocketHandler2(void* parg)
                     if (!setservAddNodeAddresses.count(addr))
                         closesocket(hSocket);
                 }
-            }
-            else if (CNode::IsBanned(addr))
-            {
-                printf("connection from %s dropped (banned)\n", addr.ToString().c_str());
-                closesocket(hSocket);
             }
             else
             {
@@ -1002,6 +1051,8 @@ void ThreadMapPort(void* parg)
     // Make this thread recognisable as the UPnP thread
     RenameThread("bitcoin-UPnP");
 
+	printf("ThreadMapPort started\n");
+	
     try
     {
         vnThreadsRunning[THREAD_UPNP]++;
@@ -1020,7 +1071,7 @@ void ThreadMapPort(void* parg)
 
 void ThreadMapPort2(void* parg)
 {
-    printf("ThreadMapPort started\n");
+    printf("ThreadMapPort2 started\n");
 
     std::string port = strprintf("%u", GetListenPort());
     const char * multicastif = 0;
@@ -1048,23 +1099,6 @@ void ThreadMapPort2(void* parg)
     r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr));
     if (r == 1)
     {
-        if (fDiscover) {
-            char externalIPAddress[40];
-            r = UPNP_GetExternalIPAddress(urls.controlURL, data.first.servicetype, externalIPAddress);
-            if(r != UPNPCOMMAND_SUCCESS)
-                printf("UPnP: GetExternalIPAddress() returned %d\n", r);
-            else
-            {
-                if(externalIPAddress[0])
-                {
-                    printf("UPnP: ExternalIPAddress = %s\n", externalIPAddress);
-                    AddLocal(CNetAddr(externalIPAddress), LOCAL_UPNP);
-                }
-                else
-                    printf("UPnP: GetExternalIPAddress failed.\n");
-            }
-        }
-
         string strDesc = "VERGE " + FormatFullVersion();
 #ifndef UPNPDISCOVER_SUCCESS
         /* miniupnpc 1.5 */
@@ -1123,10 +1157,12 @@ void ThreadMapPort2(void* parg)
             Sleep(2000);
         }
     }
+	printf("ThreadMapPort2 exited\n");
 }
 
-void MapPort()
+	void MapPort(bool fUseUPnP)
 {
+	printf("MapPort()...\n");
     if (fUseUPnP && vnThreadsRunning[THREAD_UPNP] < 1)
     {
         if (!NewThread(ThreadMapPort, NULL))
@@ -1140,79 +1176,35 @@ void MapPort()
 }
 #endif
 
-
-
-
-
-
-
-
-
-// DNS seeds
-// Each pair gives a source name and a seed name.
-// The first name is used as information source for addrman.
-// The second name should resolve to a list of seed addresses.
-static const char *strDNSSeed[][2] = {
-    {"162.243.30.96", "104.131.144.82"},
-    {"192.241.187.222", "162.243.14.59"},
-};
-
-void ThreadDNSAddressSeed(void* parg)
+void ThreadOnionSeed(void* parg)
 {
-    // Make this thread recognisable as the DNS seeding thread
-    RenameThread("bitcoin-dnsseed");
-
-    try
-    {
-        vnThreadsRunning[THREAD_DNSSEED]++;
-        ThreadDNSAddressSeed2(parg);
-        vnThreadsRunning[THREAD_DNSSEED]--;
-    }
-    catch (std::exception& e) {
-        vnThreadsRunning[THREAD_DNSSEED]--;
-        PrintException(&e, "ThreadDNSAddressSeed()");
-    } catch (...) {
-        vnThreadsRunning[THREAD_DNSSEED]--;
-        throw; // support pthread_cancel()
-    }
-    printf("ThreadDNSAddressSeed exited\n");
-}
-
-void ThreadDNSAddressSeed2(void* parg)
-{
-    printf("ThreadDNSAddressSeed started\n");
+	// Make this thread recognisable as the tor thread
+	RenameThread("onionseed");
+	
+	static const char *(*strOnionSeed)[1] = fTestNet ? strTestNetOnionSeed : strMainNetOnionSeed;
+	
     int found = 0;
 
-    if (!fTestNet)
-    {
-        printf("Loading addresses from DNS seeds (could take a while)\n");
+    printf("Loading addresses from .onion seeds\n");
 
-        for (unsigned int seed_idx = 0; seed_idx < ARRAYLEN(strDNSSeed); seed_idx++) {
-            if (HaveNameProxy()) {
-                AddOneShot(strDNSSeed[seed_idx][1]);
-            } else {
-                vector<CNetAddr> vaddr;
-                vector<CAddress> vAdd;
-                if (LookupHost(strDNSSeed[seed_idx][1], vaddr))
-                {
-                    BOOST_FOREACH(CNetAddr& ip, vaddr)
-                    {
-                        int nOneDay = 24*3600;
-                        CAddress addr = CAddress(CService(ip, GetDefaultPort()));
-                        addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
-                        vAdd.push_back(addr);
-                        found++;
-                    }
-                }
-                addrman.Add(vAdd, CNetAddr(strDNSSeed[seed_idx][0], true));
-            }
+    for (unsigned int seed_idx = 0; strOnionSeed[seed_idx][0] != NULL; seed_idx++) {
+		CNetAddr parsed;
+		if (
+		!parsed.SetSpecial(
+			strOnionSeed[seed_idx][0]
+		)
+		){
+		throw runtime_error("ThreadOnionSeed() : invalid .onion seed");
         }
+		int nOneDay = 24*3600;
+        CAddress addr = CAddress(CService(parsed, GetDefaultPort()));
+        addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
+        found++;
+        addrman.Add(addr, parsed);
     }
-
-    printf("%d addresses found from DNS seeds\n", found);
+	
+    printf("%d addresses found from .onion seeds\n", found);
 }
-
-
 
 
 
@@ -1454,6 +1446,7 @@ void ThreadOpenAddedConnections(void* parg)
     // Make this thread recognisable as the connection opening thread
     RenameThread("bitcoin-opencon");
 
+	printf("ThreadOpenAddedConnections started\n");
     try
     {
         vnThreadsRunning[THREAD_ADDEDCONNECTIONS]++;
@@ -1472,7 +1465,7 @@ void ThreadOpenAddedConnections(void* parg)
 
 void ThreadOpenAddedConnections2(void* parg)
 {
-    printf("ThreadOpenAddedConnections started\n");
+    printf("ThreadOpenAddedConnections2 started\n");
 
     if (mapArgs.count("-addnode") == 0)
         return;
@@ -1539,6 +1532,7 @@ void ThreadOpenAddedConnections2(void* parg)
         if (fShutdown)
             return;
     }
+	printf("ThreadOpenAddedConnections2 exited\n");
 }
 
 // if successful, this moves the passed grant to the constructed node
@@ -1584,6 +1578,8 @@ void ThreadMessageHandler(void* parg)
 {
     // Make this thread recognisable as the message handling thread
     RenameThread("bitcoin-msghand");
+	
+	printf("ThreadMessageHandler started\n");
 
     try
     {
@@ -1603,7 +1599,7 @@ void ThreadMessageHandler(void* parg)
 
 void ThreadMessageHandler2(void* parg)
 {
-    printf("ThreadMessageHandler started\n");
+    printf("ThreadMessageHandler2 started\n");
     SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
     while (!fShutdown)
     {
@@ -1657,6 +1653,7 @@ void ThreadMessageHandler2(void* parg)
         if (fShutdown)
             return;
     }
+	printf("ThreadMessageHandler2 exited\n");
 }
 
 
@@ -1771,56 +1768,37 @@ bool BindListenPort(const CService &addrBind, string& strError)
 
 void static Discover()
 {
-    if (!fDiscover)
-        return;
+	// no network discovery
+}
 
-#ifdef WIN32
-    // Get local host IP
-    char pszHostName[1000] = "";
-    if (gethostname(pszHostName, sizeof(pszHostName)) != SOCKET_ERROR)
-    {
-        vector<CNetAddr> vaddr;
-        if (LookupHost(pszHostName, vaddr))
-        {
-            BOOST_FOREACH (const CNetAddr &addr, vaddr)
-            {
-                AddLocal(addr, LOCAL_IF);
-            }
-        }
-    }
-#else
-    // Get local host ip
-    struct ifaddrs* myaddrs;
-    if (getifaddrs(&myaddrs) == 0)
-    {
-        for (struct ifaddrs* ifa = myaddrs; ifa != NULL; ifa = ifa->ifa_next)
-        {
-            if (ifa->ifa_addr == NULL) continue;
-            if ((ifa->ifa_flags & IFF_UP) == 0) continue;
-            if (strcmp(ifa->ifa_name, "lo") == 0) continue;
-            if (strcmp(ifa->ifa_name, "lo0") == 0) continue;
-            if (ifa->ifa_addr->sa_family == AF_INET)
-            {
-                struct sockaddr_in* s4 = (struct sockaddr_in*)(ifa->ifa_addr);
-                CNetAddr addr(s4->sin_addr);
-                if (AddLocal(addr, LOCAL_IF))
-                    printf("IPv4 %s: %s\n", ifa->ifa_name, addr.ToString().c_str());
-            }
-            else if (ifa->ifa_addr->sa_family == AF_INET6)
-            {
-                struct sockaddr_in6* s6 = (struct sockaddr_in6*)(ifa->ifa_addr);
-                CNetAddr addr(s6->sin6_addr);
-                if (AddLocal(addr, LOCAL_IF))
-                    printf("IPv6 %s: %s\n", ifa->ifa_name, addr.ToString().c_str());
-            }
-        }
-        freeifaddrs(myaddrs);
-    }
-#endif
+static void run_tor() {
+    printf("TOR thread started.\n");
+    std::string logDecl = "notice file " + GetDataDir().string() + "/tor/tor.log";
+    char *argvLogDecl = (char*) logDecl.c_str();
+    char* argv[] = {
+        "tor",
+        "--hush",
+        "--Log",
+        argvLogDecl
+    };
 
-    // Don't use external IPv4 discovery, when -onlynet="IPv6"
-    if (!IsLimited(NET_IPV4))
-        NewThread(ThreadGetMyExternalIP, NULL);
+tor_main(4, argv);
+    // Get local host IP		}
+    char pszHostName[1000] = "";		
+    if (gethostname(pszHostName, sizeof(pszHostName)) != SOCKET_ERROR)		
+void StartTor(void* parg)
+{
+    // Make this thread recognisable as the tor thread
+    RenameThread("onion");
+    try
+    {
+        run_tor();
+    }
+	catch (std::exception& e) {
+		PrintException(&e, "StartTor()");
+}
+printf("Onion thread exited.");
+
 }
 
 void StartNode(void* parg)
@@ -1836,30 +1814,26 @@ void StartNode(void* parg)
 
     if (pnodeLocalHost == NULL)
         pnodeLocalHost = new CNode(INVALID_SOCKET, CAddress(CService("127.0.0.1", 0), nLocalServices));
-
+	
+	printf("StartNode(): pnodeLocalHost addr: %s\n",
+           pnodeLocalHost->addr.ToString().c_str());
+	
     Discover();
 
     //
     // Start threads
     //
 
-
-    if (!GetBoolArg("-dnsseed", true))
-        printf("DNS seeding disabled\n");
+	// start the onion seeder
+    if (!GetBoolArg("-onionseed", true))
+        printf(".onion seeding disabled\n");
     else
-        if (!NewThread(ThreadDNSAddressSeed, NULL))
-            printf("Error: NewThread(ThreadDNSAddressSeed) failed\n");
+        if (!NewThread(ThreadOnionSeed, NULL))
+            printf("Error: could not start onion seeding\n");
 
-    /*
-    if (!GetBoolArg("-dnsseed", false))
-        printf("DNS seeding disabled\n");
-    if (GetBoolArg("-dnsseed", false))
-        printf("DNS seeding NYI\n");
-    */
-
-    // Map ports with UPnP
+    // Map ports with UPnP (default)
     if (fUseUPnP)
-        MapPort();
+        MapPort(fUseUPnP);
 
     // Get addresses from IRC and advertise ours
     if (!NewThread(ThreadIRCSeed, NULL))

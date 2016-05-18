@@ -179,6 +179,12 @@ private:
 
     // find an nId based on its network address
     std::map<CNetAddr, int> mapAddr;
+	
+	// address verification tokens
+    std::map<CNetAddr, uint64> verificationToken;
+    
+    // address reconnect tokens
+    std::map<CNetAddr, uint64> reconnectToken;
 
     // randomly-ordered vector of all nIds
     std::vector<int> vRandom;
@@ -459,6 +465,71 @@ public:
             Attempt_(addr, nTime);
             Check();
         }
+    }
+	
+	void SetReconnectToken(const CNetAddr &addr, uint64 reconnect_token)
+    {
+        {
+            LOCK(cs);
+            Check();
+            reconnectToken[addr] = reconnect_token;
+            Check();
+        }
+    }
+    
+    bool GetReconnectToken(const CNetAddr &addr, uint64& reconnect_token)
+    {
+        bool result = false;
+        {
+            LOCK(cs);
+            Check();
+            std::map<
+            CNetAddr,
+            uint64
+            >::const_iterator found = reconnectToken.find(
+                                                          addr
+                                                          );
+            if (
+                reconnectToken.end() != found
+                ) {
+                reconnect_token = found->second;
+                result = true;
+            }
+            Check();
+        }
+        return result;
+    }
+    
+    void SetVerificationToken(const CNetAddr &addr, uint64 verification_token)
+    {
+        {
+            LOCK(cs);
+            Check();
+            verificationToken[addr] = verification_token;
+            Check();
+        }
+    }
+    
+    bool CheckVerificationToken(const CNetAddr &addr, uint64 verification_token)
+    {
+        bool result = false;
+        {
+            LOCK(cs);
+            Check();
+            std::map<
+            CNetAddr,
+            uint64
+            >::const_iterator found = verificationToken.find(
+                                                             addr
+                                                             );
+            if (
+                verificationToken.end() != found
+                ) {
+                result = verification_token == found->second;
+            }
+            Check();
+        }
+        return result;
     }
 
     // Choose an address to connect to.

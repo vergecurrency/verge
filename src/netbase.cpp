@@ -217,6 +217,10 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         return error("Hostname too long");
     }
     char pszSocks5Init[] = "\5\1\0";
+	if (fDebug)
+    {
+         printf("Socks5(): pszSocks5Init: %s\n", pszSocks5Init);
+    }
     char *pszSocks5 = pszSocks5Init;
     ssize_t nSize = sizeof(pszSocks5Init) - 1;
 
@@ -232,12 +236,20 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         closesocket(hSocket);
         return error("Error reading proxy response");
     }
+	if (fDebug)
+    {
+          printf("Socks5(): pchRet1: %s\n", pchRet1);
+    }
     if (pchRet1[0] != 0x05 || pchRet1[1] != 0x00)
     {
         closesocket(hSocket);
         return error("Proxy failed to initialize");
     }
     string strSocks5("\5\1");
+	if (fDebug)
+    {
+          printf("Socks5(): strSocks5: %s\n", strSocks5.c_str());
+    }
     strSocks5 += '\000'; strSocks5 += '\003';
     strSocks5 += static_cast<char>(std::min((int)strDest.size(), 255));
     strSocks5 += strDest;
@@ -254,6 +266,10 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
         return error("Error reading proxy response");
+    }
+	if (fDebug)
+    {
+          printf("Socks5(): pchRet2: %s\n", pchRet2);
     }
     if (pchRet2[0] != 0x05)
     {
@@ -405,7 +421,7 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
     if (ioctlsocket(hSocket, FIONBIO, &fNonblock) == SOCKET_ERROR)
 #else
     fFlags = fcntl(hSocket, F_GETFL, 0);
-    if (fcntl(hSocket, F_SETFL, fFlags & !O_NONBLOCK) == SOCKET_ERROR)
+    if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR)
 #endif
     {
         closesocket(hSocket);
@@ -417,6 +433,7 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 }
 
 bool SetProxy(enum Network net, CService addrProxy, int nSocksVersion) {
+	printf("SetProxy(): nSocksVersion is %d\n", nSocksVersion);
     assert(net >= 0 && net < NET_MAX);
     if (nSocksVersion != 0 && nSocksVersion != 4 && nSocksVersion != 5)
         return false;
@@ -476,25 +493,46 @@ bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout)
     if (!GetProxy(addrDest.GetNetwork(), proxy))
         return ConnectSocketDirectly(addrDest, hSocketRet, nTimeout);
 
+	if (fDebug)
+        printf("ConnectSocket(): proxy\n");
+ 
     SOCKET hSocket = INVALID_SOCKET;
 
     // first connect to proxy server
     if (!ConnectSocketDirectly(proxy.first, hSocket, nTimeout))
         return false;
+		
+	if (fDebug)
+        printf("ConnectSocket(): connected %s to proxy (%d)\n",
+                addrDest.ToString().c_str(), proxy.second);
 
     // do socks negotiation
     switch (proxy.second) {
     case 4:
         if (!Socks4(addrDest, hSocket))
             return false;
+		if (fDebug)
+              printf("ConnectSocket(): connected Socks 5\n");
         break;
     case 5:
         if (!Socks5(addrDest.ToStringIP(), addrDest.GetPort(), hSocket))
+		{
+            if (fDebug)
+                printf("ConnectSocket(): Socks 5 failed %s\n",
+                        addrDest.ToString().c_str());
             return false;
+		}
+        if (fDebug)
+            printf("ConnectSocket(): connected Socks 5\n");
         break;
     default:
+		if (fDebug)
+            printf("ConnectSocket(): second is %d\n", proxy.second);
         return false;
     }
+	
+	if (fDebug)
+        printf("ConnectSocket(): connection succeeded\n");
 
     hSocketRet = hSocket;
     return true;
@@ -514,13 +552,18 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
     CService addrResolved(CNetAddr(strDest, fNameLookup && !nameproxy.second), port);
     if (addrResolved.IsValid()) {
         addr = addrResolved;
+		printf("ConnectSocketByName(): address resolved: %s\n",
+                addr.ToString().c_str());
         return ConnectSocket(addr, hSocketRet, nTimeout);
     }
     addr = CService("0.0.0.0:0");
     if (!nameproxy.second)
         return false;
+	printf("ConnectSocketByName(): does have second name proxy\n");
     if (!ConnectSocketDirectly(nameproxy.first, hSocket, nTimeout))
         return false;
+		
+	printf("ConnectSocketByName(): connected second name proxy\n");
 
     switch(nameproxy.second) {
         default:
@@ -528,6 +571,7 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
         case 5:
             if (!Socks5(strDest, port, hSocket))
                 return false;
+			printf("ConnectSocketByName(): connected socks 5\n");
             break;
     }
 
@@ -537,7 +581,7 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
 
 void CNetAddr::Init()
 {
-    memset(ip, 0, 16);
+    memset(ip, 0, sizeof(ip));
 }
 
 void CNetAddr::SetIP(const CNetAddr& ipIn)

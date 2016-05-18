@@ -155,7 +155,6 @@ extern bool fHeadless;
 extern bool fCommandLine;
 extern std::string strMiscWarning;
 extern bool fTestNet;
-extern bool fNoListen;
 extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
 
@@ -196,6 +195,7 @@ void ParseString(const std::string& str, char c, std::vector<std::string>& v);
 std::string FormatMoney(int64 n, bool fPlus=false);
 bool ParseMoney(const std::string& str, int64& nRet);
 bool ParseMoney(const char* pszIn, int64& nRet);
+std::string SanitizeString(const std::string& str);
 std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
 bool IsHex(const std::string& str);
