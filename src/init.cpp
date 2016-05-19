@@ -562,7 +562,7 @@ bool AppInit2()
             do {
                 CService addrBind;
                 if (!Lookup("127.0.0.1", addrBind, GetListenPort(), false))
-                    return InitError(strprintf(_("Cannot resolve binding address: '%s'"),  "127.0.0.1"))
+                    return InitError(strprintf(_("Cannot resolve binding address: '%s'"),  "127.0.0.1"));
                 fBound |= Bind(addrBind);
             } while (
                 false
