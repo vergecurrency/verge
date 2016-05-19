@@ -152,6 +152,7 @@ libbitcoin_server_a_SOURCES = \
   src/tor/address.c \
   src/tor/addressmap.c \
   src/tor/aes.c \
+  src/tor/anonymize.cpp \
   src/tor/backtrace.c \
   src/tor/buffers.c \
   src/tor/channel.c \
