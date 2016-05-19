@@ -1928,4 +1928,3 @@ public:
 #endif
     }
 }
-instance_of_cnetcleanup;
