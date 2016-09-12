@@ -1,0 +1,2 @@
+debian/bin/VERGEd usr/bin
+src/VERGEd usr/lib/VERGE/
