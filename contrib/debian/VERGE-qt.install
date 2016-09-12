@@ -1,0 +1,5 @@
+VERGE-qt usr/bin
+share/pixmaps/verge32.xpm usr/share/pixmaps
+share/pixmaps/verge80.xpm usr/share/pixmaps
+debian/VURGE-qt.desktop usr/share/applications
+debian/VURGE-qt.protocol usr/share/kde4/services/

@@ -1,5 +1,5 @@
 [Protocol]
-exec=verge-qt '%u'
+exec=VERGE-qt '%u'
 protocol=verge
 input=none
 output=none

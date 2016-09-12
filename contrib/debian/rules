@@ -12,22 +12,9 @@ DEB_INSTALL_MANPAGES_verged += debian/manpages/*
 	dh --with bash-completion $@
 
 override_dh_auto_build:
-	cd src; $(MAKE) -f makefile.unix verged
+	cd src; $(MAKE) -f makefile.unix VERGEd
 	$(MAKE)
 
 override_dh_auto_clean:
-	if [ -f Makefile ]; then $(MAKE) clean; else rm -rf build/; rm -f verge-qt; fi
+	if [ -f Makefile ]; then $(MAKE) clean; else rm -rf build/; rm -f VERGE-qt; fi
 	cd src; $(MAKE) -f makefile.unix clean
-
-override_dh_auto_configure:
-	qmake verge-qt.pro USE_QRCODE=1
-
-override_dh_auto_test:
-	cd src; $(MAKE) -f makefile.unix test_verge
-	src/test_verge
-
-# Ensure wrapper is set executable
-binary-post-install/verged:
-	chmod +x $(cdbs_curdestdir)usr/bin/verged
-binary-post-install/verge-qt:
-	chmod +x $(cdbs_curdestdir)usr/bin/verge-qt
