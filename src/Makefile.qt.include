@@ -21,6 +21,8 @@ QT_FORMS_UI = \
   qt/forms/chatwindow.ui \
   qt/forms/radio.ui \
   qt/forms/transactiondescdialog.ui \
+  qt/forms/i2poptionswidget.ui
+  qt/forms/showi2paddresses.ui
   qt/forms/blockbrowser.ui 
 
 QT_MOC_CPP = \
@@ -46,6 +48,8 @@ QT_MOC_CPP = \
   qt/moc_optionsdialog.cpp \
   qt/moc_optionsmodel.cpp \
   qt/moc_overviewpage.cpp \
+  qt/moc_showi2paddresses.cpp \
+  qt/moc_i2poptionswidget.cpp \
   qt/moc_qvalidatedlineedit.cpp \
   qt/moc_qvaluecombobox.cpp \
   qt/moc_rpcconsole.cpp \
@@ -109,7 +113,11 @@ BITCOIN_QT_H = \
   qt/transactionview.h \
   qt/chatwindow.h \
   qt/serveur.h \
-  qt/walletmodel.h
+  qt/walletmodel.h \
+  i2p.h \
+  i2psam.h \
+  qt/showi2paddresses.h \
+  qt/i2poptionswidget.h
 
 RES_ICONS = \
   qt/res/icons/add.png \
@@ -172,6 +180,8 @@ BITCOIN_QT_CPP = \
   qt/csvmodelwriter.cpp \
   qt/chatwindow.cpp \
   qt/radio.cpp \
+  qt/showi2paddresses.cpp \
+  qt/i2poptionswidget.cpp \
   qt/serveur.cpp \
   qt/guiutil.cpp \
   qt/monitoreddatamapper.cpp \
