@@ -153,7 +153,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     labelEncryptionIcon = new QLabel();
     labelConnectionsIcon = new QLabel();
     labelBlocksIcon = new QLabel();
-    #ifdef USE_NATIVE_I2P
+#ifdef USE_NATIVE_I2P
     labelI2PConnections = new QLabel();
     labelI2POnly = new QLabel();
     labelI2PGenerated = new QLabel();
@@ -257,20 +257,20 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 	
-	blockAction = new QAction(QIcon(":/icons/block"), tr("&Block Explorer"), this);
+    blockAction = new QAction(QIcon(":/icons/block"), tr("&Block Explorer"), this);
     blockAction->setToolTip(tr("Explore the BlockChain"));
     blockAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
 	
-	radioAction = new QAction(QIcon(":/icons/radio"), tr("&Radio"), this);
+    radioAction = new QAction(QIcon(":/icons/radio"), tr("&Radio"), this);
     radioAction->setToolTip(tr("Verge Radio"));
     radioAction->setCheckable(true);
     radioAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_0));
     tabGroup->addAction(radioAction);
 
     connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
-	connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(chatAction, SIGNAL(triggered()), this, SLOT(gotoChatPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -281,7 +281,7 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-	connect(radioAction, SIGNAL(triggered()), this, SLOT(gotoRadioPage()));
+    connect(radioAction, SIGNAL(triggered()), this, SLOT(gotoRadioPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
