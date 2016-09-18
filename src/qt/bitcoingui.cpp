@@ -389,6 +389,13 @@ void BitcoinGUI::createToolBars()
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
 {
+    this->clientModel = clientModel;
+    if(clientModel)
+    {
+        // Replace some strings and icons, when using the testnet
+        if(clientModel->isTestNet())
+        {
+            setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
     {
     #ifdef USE_NATIVE_I2P
              setNumI2PConnections(clientModel->getNumI2PConnections());
@@ -401,13 +408,6 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
     else
     {
     #endif
-    this->clientModel = clientModel;
-    if(clientModel)
-    {
-        // Replace some strings and icons, when using the testnet
-        if(clientModel->isTestNet())
-        {
-            setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
 #ifndef Q_OS_MAC
             qApp->setWindowIcon(QIcon(":icons/bitcoin_testnet"));
             setWindowIcon(QIcon(":icons/bitcoin_testnet"));
