@@ -1,7 +1,7 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR, 2)
-define(_CLIENT_VERSION_MINOR, 1)
+define(_CLIENT_VERSION_MINOR, 2)
 define(_CLIENT_VERSION_REVISION, 0)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
@@ -55,6 +55,13 @@ AC_ARG_ENABLE([wallet],
   [enable wallet (default is yes)])],
   [enable_wallet=$enableval],
   [enable_wallet=yes])
+  
+# Enable i2psam
+AC_ARG_ENABLE([i2psam],
+  [AS_HELP_STRING([--enable-i2psam],
+  [enable i2psam (default is yes)])],
+  [enable_i2psam=$enableval],
+  [enable_i2psam=yes])  
 
 AC_ARG_WITH([miniupnpc],
   [AS_HELP_STRING([--with-miniupnpc],
@@ -436,11 +443,14 @@ fi
 
 dnl Check for boost libs
 AX_BOOST_BASE
-AX_BOOST_SYSTEM
-AX_BOOST_FILESYSTEM
-AX_BOOST_PROGRAM_OPTIONS
-AX_BOOST_THREAD
 AX_BOOST_CHRONO
+AX_BOOST_DATE_TIME
+AX_BOOST_FILESYSTEM
+AX_BOOST_IOSTREAMS
+AX_BOOST_PROGRAM_OPTIONS
+AX_BOOST_REGEX
+AX_BOOST_SYSTEM
+AX_BOOST_THREAD
 
 if test x$use_tests = xyes; then
 
@@ -470,7 +480,7 @@ if test x$use_tests = xyes; then
   CPPFLAGS="$TEMP_CPPFLAGS"
 fi
 
-BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB"
+BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_DATE_TIME_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_IOSTREAMS_LIB $BOOST_REGEX_LIB $BOOST_THREAD_LIB"
 BOOST_INCLUDES="$BOOST_CPPFLAGS"
 
 dnl Boost >= 1.50 uses sleep_for rather than the now-deprecated sleep, however
@@ -607,6 +617,15 @@ else
   AC_MSG_RESULT(no)
 fi
 
+dnl enable i2psam
+AC_MSG_CHECKING([if i2psam module should be included])
+if test x$enable_i2psam != xno; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE_UNQUOTED([ENABLE_I2PSAM],[1],[Define to 1 to enable I2Psam interface functions])
+else
+  AC_MSG_RESULT(no)
+fi
+
 dnl enable upnp support
 AC_MSG_CHECKING([whether to build with support for UPnP])
 if test x$have_miniupnpc = xno; then
@@ -691,6 +710,7 @@ AM_CONDITIONAL([BUILD_DARWIN], [test x$BUILD_OS = xdarwin])
 AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
 AM_CONDITIONAL([TARGET_LINUX], [test x$TARGET_OS = xlinux])
 AM_CONDITIONAL([ENABLE_WALLET],[test x$enable_wallet == xyes])
+AM_CONDITIONAL([ENABLE_I2PSAM],[test x$enable_i2psam = xyes])
 AM_CONDITIONAL([ENABLE_TESTS],[test x$use_tests == xyes])
 AM_CONDITIONAL([ENABLE_QT],[test x$bitcoin_enable_qt == xyes])
 AM_CONDITIONAL([ENABLE_QT_TESTS],[test x$use_tests$bitcoin_enable_qt_test = xyesyes])

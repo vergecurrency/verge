@@ -21,6 +21,7 @@ QT_FORMS_UI = \
   qt/forms/chatwindow.ui \
   qt/forms/radio.ui \
   qt/forms/transactiondescdialog.ui \
+  qt/forms/showi2paddresses.ui \
   qt/forms/blockbrowser.ui 
 
 QT_MOC_CPP = \
@@ -46,6 +47,7 @@ QT_MOC_CPP = \
   qt/moc_optionsdialog.cpp \
   qt/moc_optionsmodel.cpp \
   qt/moc_overviewpage.cpp \
+  qt/moc_showi2paddresses.cpp \
   qt/moc_qvalidatedlineedit.cpp \
   qt/moc_qvaluecombobox.cpp \
   qt/moc_rpcconsole.cpp \
@@ -109,7 +111,9 @@ BITCOIN_QT_H = \
   qt/transactionview.h \
   qt/chatwindow.h \
   qt/serveur.h \
-  qt/walletmodel.h
+  qt/walletmodel.h \
+  qt/showi2paddresses.h \
+  qt/i2poptionswidget.h
 
 RES_ICONS = \
   qt/res/icons/add.png \
@@ -172,6 +176,7 @@ BITCOIN_QT_CPP = \
   qt/csvmodelwriter.cpp \
   qt/chatwindow.cpp \
   qt/radio.cpp \
+  qt/showi2paddresses.cpp \
   qt/serveur.cpp \
   qt/guiutil.cpp \
   qt/monitoreddatamapper.cpp \
@@ -257,6 +262,9 @@ if TARGET_WINDOWS
   qt_VERGE_qt_SOURCES += $(BITCOIN_RC)
 endif
 qt_VERGE_qt_LDADD = qt/libbitcoinqt.a $(LIBBITCOIN_SERVER)
+if ENABLE_I2PSAM
+qt_VERGE_qt_LDADD += libbitcoin_i2pnet.a
+endif
 if ENABLE_WALLET
  qt_VERGE_qt_LDADD += $(LIBBITCOIN_WALLET)
 endif
