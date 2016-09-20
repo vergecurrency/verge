@@ -80,9 +80,11 @@ private:
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
 
+#ifdef USE_NATIVE_I2P
     QLabel* labelI2PConnections;
     QLabel* labelI2POnly;
     QLabel* labelI2PGenerated;
+#endif
 
     QMenuBar *appMenuBar;
     QAction *overviewAction;
