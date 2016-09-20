@@ -128,9 +128,7 @@ private:
     void setWalletLock(bool fLockForMintingOnly = false);
 
 public slots:
-ifdef USE_NATIVE_I2P
     void setNumI2PConnections(int count);
-#endif
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
     /** Set number of blocks shown in the UI */
