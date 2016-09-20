@@ -43,11 +43,6 @@
         <file alias="filesave">res/icons/filesave.png</file>
         <file alias="qrcode">res/icons/qrcode.png</file>
         <file alias="debugwindow">res/icons/debugwindow.png</file>
-		<file alias="bwi2pconnect_0">res/icons/i2plogo_0_16.png</file>
-        <file alias="bwi2pconnect_1">res/icons/i2plogo_1_16.png</file>
-        <file alias="bwi2pconnect_2">res/icons/i2plogo_2_16.png</file>
-        <file alias="bwi2pconnect_3">res/icons/i2plogo_3_16.png</file>
-        <file alias="bwi2pconnect_4">res/icons/i2plogo_4_16.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="bkg">res/images/bkg.png</file>
