@@ -28,8 +28,6 @@
 #include "rpcconsole.h"
 #include "chatwindow.h"
 #include "radio.h"
-
-#ifdef USE_NATIVE_I2P
 #include "showi2paddresses.h"
 #endif
 
@@ -153,14 +151,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     labelEncryptionIcon = new QLabel();
     labelConnectionsIcon = new QLabel();
     labelBlocksIcon = new QLabel();
-#ifdef USE_NATIVE_I2P
     labelI2PConnections = new QLabel();
     labelI2POnly = new QLabel();
     labelI2PGenerated = new QLabel();
     frameBlocksLayout->addWidget(labelI2PGenerated);
     frameBlocksLayout->addWidget(labelI2POnly);
     frameBlocksLayout->addWidget(labelI2PConnections);
-#endif
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelEncryptionIcon);
     frameBlocksLayout->addStretch();
@@ -391,38 +387,20 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 {
     this->clientModel = clientModel;
     if(clientModel)
+    
+    setNumI2PConnections(clientModel->getNumI2PConnections());
+            connect(clientModel, SIGNAL(numI2PConnectionsChanged(int)), this, SLOT(setNumI2PConnections(int)));
+            netLabel->setText("I2P");
+            netLabel->setToolTip(tr("Wallet is using I2P-network only"));
+            labelI2PGenerated->setText("DYN");
+            labelI2PGenerated->setToolTip(tr("Wallet is running with a random generated I2P-address"));
     {
         // Replace some strings and icons, when using the testnet
         if(clientModel->isTestNet())
         {
             setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
     {
-    #ifdef USE_NATIVE_I2P
-             setNumI2PConnections(clientModel->getNumI2PConnections());
-             connect(clientModel, SIGNAL(numI2PConnectionsChanged(int)), this, SLOT(setNumI2PConnections(int)));
-    if(clientModel->isI2POnly())
-    {
-         netLabel->setText("I2P");
-             netLabel->setToolTip(tr("Wallet is using I2P-network only"));
-    }
-    else
-    {
-    #endif
-    #ifdef USE_NATIVE_I2P
-    }
-
-        if (clientModel->isI2PAddressGenerated())
-        {
-            labelI2PGenerated->setText("DYN");
-            labelI2PGenerated->setToolTip(tr("Wallet is running with a random generated I2P-address"));
-        }
-        else
-        {
-            labelI2PGenerated->setText("STA");
-            labelI2PGenerated->setToolTip(tr("Wallet is running with a static I2P-address"));
-        }
-    #endif
-    }
+ 
 #ifndef Q_OS_MAC
             qApp->setWindowIcon(QIcon(":icons/bitcoin_testnet"));
             setWindowIcon(QIcon(":icons/bitcoin_testnet"));
