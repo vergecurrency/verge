@@ -29,7 +29,6 @@
 #include "chatwindow.h"
 #include "radio.h"
 #include "showi2paddresses.h"
-#endif
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -535,15 +534,12 @@ void BitcoinGUI::aboutClicked()
     dlg.exec();
 }
 
-#ifdef USE_NATIVE_I2P
 void BitcoinGUI::showGeneratedI2PAddr(const QString& caption, const QString& pub, const QString& priv, const QString& b32, const QString& configFileName)
 {
     ShowI2PAddresses i2pDialog(caption, pub, priv, b32, configFileName, this);
     i2pDialog.exec();
 }
-#endif
 
-#ifdef USE_NATIVE_I2P
 void BitcoinGUI::setNumI2PConnections(int count)
 {
     QString i2pIcon;
@@ -558,7 +554,6 @@ void BitcoinGUI::setNumI2PConnections(int count)
     labelI2PConnections->setPixmap(QPixmap(i2pIcon));
     labelI2PConnections->setToolTip(tr("%n active connection(s) to I2P-Crave network", "", count));
 }
-#endif
 
 void BitcoinGUI::setNumConnections(int count)
 {
