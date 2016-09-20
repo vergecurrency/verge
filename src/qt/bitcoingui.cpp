@@ -28,7 +28,6 @@
 #include "rpcconsole.h"
 #include "chatwindow.h"
 #include "radio.h"
-#include "showi2paddresses.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -109,13 +108,13 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     // Create tabs
     overviewPage = new OverviewPage();
     chatWindow = new ChatWindow(this);
-    blockBrowser = new BlockBrowser(this);
+	blockBrowser = new BlockBrowser(this);
     transactionsPage = new QWidget(this);
     QVBoxLayout *vbox = new QVBoxLayout();
     transactionView = new TransactionView(this);
     vbox->addWidget(transactionView);
     transactionsPage->setLayout(vbox);
-    radioPage = new Radio(this);
+	radioPage = new Radio(this);
 
     addressBookPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::SendingTab);
 
@@ -128,12 +127,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget = new QStackedWidget(this);
     centralWidget->addWidget(overviewPage);
     centralWidget->addWidget(chatWindow);
-    centralWidget->addWidget(blockBrowser);
+	centralWidget->addWidget(blockBrowser);
     centralWidget->addWidget(transactionsPage);
     centralWidget->addWidget(addressBookPage);
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
-    centralWidget->addWidget(radioPage);
+	centralWidget->addWidget(radioPage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -150,12 +149,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     labelEncryptionIcon = new QLabel();
     labelConnectionsIcon = new QLabel();
     labelBlocksIcon = new QLabel();
-    labelI2PConnections = new QLabel();
-    labelI2POnly = new QLabel();
-    labelI2PGenerated = new QLabel();
-    frameBlocksLayout->addWidget(labelI2PGenerated);
-    frameBlocksLayout->addWidget(labelI2POnly);
-    frameBlocksLayout->addWidget(labelI2PConnections);
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelEncryptionIcon);
     frameBlocksLayout->addStretch();
@@ -252,20 +245,20 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 	
-    blockAction = new QAction(QIcon(":/icons/block"), tr("&Block Explorer"), this);
+	blockAction = new QAction(QIcon(":/icons/block"), tr("&Block Explorer"), this);
     blockAction->setToolTip(tr("Explore the BlockChain"));
     blockAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
 	
-    radioAction = new QAction(QIcon(":/icons/radio"), tr("&Radio"), this);
+	radioAction = new QAction(QIcon(":/icons/radio"), tr("&Radio"), this);
     radioAction->setToolTip(tr("Verge Radio"));
     radioAction->setCheckable(true);
     radioAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_0));
     tabGroup->addAction(radioAction);
 
     connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
-    connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(chatAction, SIGNAL(triggered()), this, SLOT(gotoChatPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -276,7 +269,7 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-    connect(radioAction, SIGNAL(triggered()), this, SLOT(gotoRadioPage()));
+	connect(radioAction, SIGNAL(triggered()), this, SLOT(gotoRadioPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -386,20 +379,11 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 {
     this->clientModel = clientModel;
     if(clientModel)
-    
-    setNumI2PConnections(clientModel->getNumI2PConnections());
-            connect(clientModel, SIGNAL(numI2PConnectionsChanged(int)), this, SLOT(setNumI2PConnections(int)));
-            netLabel->setText("I2P");
-            netLabel->setToolTip(tr("Wallet is using I2P-network only"));
-            labelI2PGenerated->setText("DYN");
-            labelI2PGenerated->setToolTip(tr("Wallet is running with a random generated I2P-address"));
     {
         // Replace some strings and icons, when using the testnet
         if(clientModel->isTestNet())
         {
             setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
-    {
- 
 #ifndef Q_OS_MAC
             qApp->setWindowIcon(QIcon(":icons/bitcoin_testnet"));
             setWindowIcon(QIcon(":icons/bitcoin_testnet"));
@@ -532,27 +516,6 @@ void BitcoinGUI::aboutClicked()
     if(clientModel && clientModel->isTestNet())
         dlg.setTestnetLogo();
     dlg.exec();
-}
-
-void BitcoinGUI::showGeneratedI2PAddr(const QString& caption, const QString& pub, const QString& priv, const QString& b32, const QString& configFileName)
-{
-    ShowI2PAddresses i2pDialog(caption, pub, priv, b32, configFileName, this);
-    i2pDialog.exec();
-}
-
-void BitcoinGUI::setNumI2PConnections(int count)
-{
-    QString i2pIcon;
-    switch(count)
-    {
-    case 0: i2pIcon = ":/icons/bwi2pconnect_0"; break;
-    case 1: /*case 2: case 3:*/ i2pIcon = ":/icons/bwi2pconnect_1"; break;
-    case 2:/*case 4: case 5: case 6:*/ i2pIcon = ":/icons/bwi2pconnect_2"; break;
-    case 3:/*case 7: case 8: case 9:*/ i2pIcon = ":/icons/bwi2pconnect_3"; break;
-    default: i2pIcon = ":/icons/bwi2pconnect_4"; break;
-    }
-    labelI2PConnections->setPixmap(QPixmap(i2pIcon));
-    labelI2PConnections->setToolTip(tr("%n active connection(s) to I2P-Crave network", "", count));
 }
 
 void BitcoinGUI::setNumConnections(int count)
