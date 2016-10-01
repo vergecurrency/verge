@@ -92,7 +92,6 @@ BITCOIN_CORE_H = \
   blake2-impl.h \
   dbx.h \
   init.h \
-  irc.h \
   kernel.h \
   key.h \
   keystore.h \
@@ -137,7 +136,6 @@ libbitcoin_server_a_SOURCES = \
   alert.cpp \
   checkpoints.cpp \
   init.cpp \
-  irc.cpp \
   bitcoinrpc.cpp \
   keystore.cpp \
   main.cpp \
