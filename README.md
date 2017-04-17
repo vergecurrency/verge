@@ -5,7 +5,7 @@
 ____   _________________________   ________ ___________
 \   \ /   /\_   _____/\______   \ /  _____/ \_   _____/
  \   Y   /  |    __)_  |       _//   \  ___  |    __)_ 
-  \     /   |        \ |    |   \\    \_\  \ |        \ 2016 VERGE/XVG
+  \     /   |        \ |    |   \\    \_\  \ |        \ 2017 VERGE/XVG
    \___/   /_______  / |____|_  / \______  //_______  /
                    \/         \/         \/         \/ 
 ```
@@ -100,9 +100,9 @@ To check the status of how much of the blockchain has been downloaded (aka synce
 
 
 
-To compile on Mac (OSX El Capitan):
+To compile on Mac (OSX Sierra):
 ------------
-    brew install protobuf boost miniupnpc openssl qt5 qrencode berkeley-db4
+    brew install brew install protobuf --c++11 boost --c++11 miniupnpc openssl pkg-config qrencode berkeley-db4 qt5
     brew link --force qt5
     git clone https://github.com/vergecurrency/verge
     cd verge

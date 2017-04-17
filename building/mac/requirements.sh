@@ -1,2 +1,3 @@
-brew install protobuf --c++11 boost --c++11 miniupnpc openssl pkg-config qrencode berkeley-db4 qt5 
+#brew install boost pkg-config 
+brew install protobuf miniupnpc openssl qrencode berkeley-db4 qt5 
 # Might need these later: libevent librsvg
