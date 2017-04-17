@@ -102,7 +102,11 @@ To check the status of how much of the blockchain has been downloaded (aka synce
 
 To compile on Mac (OSX Sierra):
 ------------
-    brew install brew install protobuf --c++11 boost --c++11 miniupnpc openssl pkg-config qrencode berkeley-db4 qt5
+    brew install brew install protobuf --c++11 boost --c++11 miniupnpc openssl pkg-config qrencode berkeley-db4 
+    brew uinstall qt4 qt5
+    # this installs qt v5.6.1
+    curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/fdfc724dd532345f5c6cdf47dc43e99654e6a5fd/Formula/qt5.rb
+    brew install ./qt5.rb
     brew link --force qt5
     git clone https://github.com/vergecurrency/verge
     cd verge
