@@ -276,7 +276,7 @@ case $host in
        esac
      fi
 
-     CPPFLAGS="$CPPFLAGS -DMAC_OSX"
+     CPPFLAGS="$CPPFLAGS -DMAC_OSX -std=c++11"
      ;;
    *)
      CPPFLAGS="$CPPFLAGS -std=c99"
