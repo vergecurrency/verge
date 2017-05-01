@@ -42,7 +42,7 @@ Binary (pre-compiled) wallets are available on all platforms at [http://vergecur
 Compiling Linux Wallet on Ubuntu/Debian
 ----------------------
 
-Step 1. Install the depencies. 
+Step 1. Install the dependencies. 
 
 ```sudo add-apt-repository ppa:bitcoin/bitcoin```
 
@@ -56,6 +56,7 @@ Step 2. Clone the git repository and compile the daemon and gui wallet:
 
 ```git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make```
 
+**Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
 
 Using the wallet:
 ----
