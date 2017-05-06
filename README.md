@@ -179,6 +179,9 @@ Want to use Docker?
 
 Check out the [readme](https://github.com/vergecurrency/VERGE/tree/master/contrib/docker) for more information. [Official VERGE docker images](https://hub.docker.com/r/vergecurrency/verge/)
 
+Want to to download the blockchain instead of waiting/syncing? (quicker)
+------------
+download this .zip file, and extract it to your verge data directory: http://108.61.216.160/cryptochainer.chains/chains/Verge_blockchain.zip
 
 Want to 'solo-mine' from the wallet?
 ----------
