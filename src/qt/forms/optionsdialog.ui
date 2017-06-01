@@ -23,7 +23,7 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabMain">
       <attribute name="title">
@@ -59,7 +59,19 @@
           </widget>
          </item>
          <item>
-          <widget class="BitcoinAmountField" name="transactionFee"/>
+          <widget class="BitcoinAmountField" name="transactionFee">
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 15px;
+max-height: 15px;
+min-width: 50px;
+max-width: 50px;</string>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="horizontalSpacer_Main">
@@ -155,12 +167,24 @@
           <widget class="QValidatedLineEdit" name="proxyIp">
            <property name="maximumSize">
             <size>
-             <width>140</width>
-             <height>16777215</height>
+             <width>154</width>
+             <height>29</height>
             </size>
            </property>
            <property name="toolTip">
             <string>IP address of the proxy (e.g. 127.0.0.1)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 150px;
+max-width: 150px;</string>
            </property>
           </widget>
          </item>
@@ -181,12 +205,23 @@
           <widget class="QLineEdit" name="proxyPort">
            <property name="maximumSize">
             <size>
-             <width>55</width>
-             <height>16777215</height>
+             <width>84</width>
+             <height>29</height>
             </size>
            </property>
            <property name="toolTip">
             <string>Port of the proxy (e.g. 9050)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 80px;
+max-width: 80px;</string>
            </property>
           </widget>
          </item>
@@ -207,6 +242,17 @@
           <widget class="QValueComboBox" name="socksVersion">
            <property name="toolTip">
             <string>SOCKS version of the proxy (e.g. 5)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 80px;
+max-width: 80px;</string>
            </property>
           </widget>
          </item>
@@ -305,6 +351,18 @@
            <property name="toolTip">
             <string>The user interface language can be set here. This setting will take effect after restarting VERGE.</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 300px;
+max-width: 300px;</string>
+           </property>
           </widget>
          </item>
         </layout>
@@ -328,6 +386,18 @@
           <widget class="QValueComboBox" name="unit">
            <property name="toolTip">
             <string>Choose the default subdivision unit to show in the interface and when sending coins.</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 100px;
+max-width: 100px;</string>
            </property>
           </widget>
          </item>
@@ -409,6 +479,18 @@
      </item>
      <item>
       <widget class="QPushButton" name="okButton">
+       <property name="styleSheet">
+        <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 100px;
+max-width: 100px;</string>
+       </property>
        <property name="text">
         <string>&amp;OK</string>
        </property>
@@ -416,6 +498,18 @@
      </item>
      <item>
       <widget class="QPushButton" name="cancelButton">
+       <property name="styleSheet">
+        <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 100px;
+max-width: 100px;</string>
+       </property>
        <property name="text">
         <string>&amp;Cancel</string>
        </property>
@@ -426,6 +520,18 @@
      </item>
      <item>
       <widget class="QPushButton" name="applyButton">
+       <property name="styleSheet">
+        <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 100px;
+max-width: 100px;</string>
+       </property>
        <property name="text">
         <string>&amp;Apply</string>
        </property>
@@ -443,6 +549,7 @@
    <class>BitcoinAmountField</class>
    <extends>QSpinBox</extends>
    <header>bitcoinamountfield.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>QValueComboBox</class>

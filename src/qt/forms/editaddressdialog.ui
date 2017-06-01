@@ -34,6 +34,16 @@
        <property name="toolTip">
         <string>The label associated with this address book entry</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;</string>
+       </property>
       </widget>
      </item>
      <item row="1" column="0">
@@ -50,6 +60,16 @@
       <widget class="QLineEdit" name="addressEdit">
        <property name="toolTip">
         <string>The address associated with this address book entry. This can only be modified for sending addresses.</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;</string>
        </property>
       </widget>
      </item>

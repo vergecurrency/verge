@@ -66,6 +66,18 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="styleSheet">
+            <string notr="true">
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 175px;
+max-width: 175px;</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -81,9 +93,20 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>100</width>
-             <height>20</height>
+             <width>129</width>
+             <height>29</height>
             </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 125px;
+max-width: 125px;</string>
            </property>
            <property name="text">
             <string>Connect</string>
@@ -227,9 +250,20 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
-             <height>30</height>
+             <width>154</width>
+             <height>29</height>
             </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+min-width: 150px;
+max-width: 150px;</string>
            </property>
            <property name="text">
             <string>Disconnect</string>

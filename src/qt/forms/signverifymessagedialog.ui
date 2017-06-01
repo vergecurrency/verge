@@ -50,6 +50,15 @@
            <property name="toolTip">
             <string>The address to sign the message with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;</string>
+           </property>
            <property name="maxLength">
             <number>34</number>
            </property>
@@ -59,6 +68,13 @@
           <widget class="QPushButton" name="addressBookButton_SM">
            <property name="toolTip">
             <string>Choose an address from the address book</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+</string>
            </property>
            <property name="text">
             <string/>
@@ -79,6 +95,12 @@
           <widget class="QPushButton" name="pasteButton_SM">
            <property name="toolTip">
             <string>Paste address from clipboard</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;</string>
            </property>
            <property name="text">
             <string/>
@@ -102,6 +124,15 @@
          <property name="toolTip">
           <string>Enter the message you want to sign here</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 150px;
+max-height: 150px;</string>
+         </property>
         </widget>
        </item>
        <item>
@@ -116,6 +147,15 @@
              <italic>true</italic>
             </font>
            </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;</string>
+           </property>
            <property name="readOnly">
             <bool>true</bool>
            </property>
@@ -125,6 +165,15 @@
           <widget class="QPushButton" name="copySignatureButton_SM">
            <property name="toolTip">
             <string>Copy the current signature to the system clipboard</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+
+
+</string>
            </property>
            <property name="text">
             <string/>
@@ -147,6 +196,16 @@
            <property name="toolTip">
             <string>Sign the message to prove you own this VERGE address</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 1px solid #000000;
+min-width: 100px;
+max-width: 100px;
+</string>
+           </property>
            <property name="text">
             <string>&amp;Sign Message</string>
            </property>
@@ -163,6 +222,15 @@
           <widget class="QPushButton" name="clearButton_SM">
            <property name="toolTip">
             <string>Reset all sign message fields</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 1px solid #000000;
+min-width: 90px;
+max-width: 90px;</string>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
@@ -253,6 +321,16 @@
            <property name="toolTip">
             <string>The address the message was signed with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;
+</string>
+           </property>
            <property name="maxLength">
             <number>34</number>
            </property>
@@ -262,6 +340,15 @@
           <widget class="QPushButton" name="addressBookButton_VM">
            <property name="toolTip">
             <string>Choose an address from the address book</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+
+
+</string>
            </property>
            <property name="text">
             <string/>
@@ -281,10 +368,30 @@
         </layout>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="messageIn_VM"/>
+        <widget class="QPlainTextEdit" name="messageIn_VM">
+         <property name="styleSheet">
+          <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 150px;
+max-height: 150px;</string>
+         </property>
+        </widget>
        </item>
        <item>
-        <widget class="QValidatedLineEdit" name="signatureIn_VM"/>
+        <widget class="QValidatedLineEdit" name="signatureIn_VM">
+         <property name="styleSheet">
+          <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 2px solid #000000;
+min-height: 25px;
+max-height: 25px;</string>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2_VM">
@@ -292,6 +399,16 @@
           <widget class="QPushButton" name="verifyMessageButton_VM">
            <property name="toolTip">
             <string>Verify the message to ensure it was signed with the specified VERGE address</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 1px solid #000000;
+min-width: 100px;
+max-width: 100px;
+</string>
            </property>
            <property name="text">
             <string>&amp;Verify Message</string>
@@ -309,6 +426,16 @@
           <widget class="QPushButton" name="clearButton_VM">
            <property name="toolTip">
             <string>Reset all verify message fields</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+border: 1px solid #000000;
+min-width: 100px;
+max-width: 100px;
+</string>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
