@@ -36,7 +36,7 @@ Total Supply
 
 Approximately total reward cap: 16.5 Billion
 
-Binary (pre-compiled) wallets are available on all platforms at [http://vergecurrency.com](http://vergecurrency.com/#wallets-top)
+Binary (pre-compiled) wallets are available on all platforms at [https://vergecurrency.com](https://vergecurrency.com/#wallets)
 
 
 Compiling Linux Wallet on Ubuntu/Debian
