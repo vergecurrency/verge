@@ -41,7 +41,9 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 Compiling Linux Wallet on Ubuntu/Debian (faster) 
 ----------------------
 
-sudo apt-get install git && cd ~ && git clone https://github.com/vergecurrency/raspi && cd raspi && sh go.sh
+sudo rm -Rf ~/VERGE  (if you already have it) 
+
+sudo apt-get install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
 
 
 Compiling Linux Wallet on Ubuntu/Debian
