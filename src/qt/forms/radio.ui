@@ -18,7 +18,7 @@
      <widget class="QWebView" name="webView" native="true">
       <property name="url" stdset="0">
        <url>
-        <string>http://RadioCrypto.com/index.html</string>
+        <string>http://vergecurrency.com/radio/wallet.html</string>
        </url>
       </property>
      </widget>
