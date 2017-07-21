@@ -72,8 +72,8 @@ sudo rm Verge-Blockchain*.zip
 
 # Create Icon on Desktop and in menu
 
-sudo cp ~/raspi/vergepi.png /usr/share/icons/
-echo '#!/usr/bin/env xdg-open''\n'"[Desktop Entry]"'\n'"Version=1.0"'\n'"Type=Application"'\n'"Terminal=false"'\n'"Icon[en]=/usr/share/icons/vergepi.png"'\n'"Name[en]=VERGE"'\n'"Exec=VERGE-qt"'\n'"Name=VERGE"'\n'"Icon=/usr/share/icons/vergepi.png"'\n'"Categories=Network;Internet;" > ~/Desktop/VERGE.desktop
+sudo cp ~/VERGE/src/qt/res/icons/verge.png /usr/share/icons/
+echo '#!/usr/bin/env xdg-open''\n'"[Desktop Entry]"'\n'"Version=1.0"'\n'"Type=Application"'\n'"Terminal=false"'\n'"Icon[en]=/usr/share/icons/verge.png"'\n'"Name[en]=VERGE"'\n'"Exec=VERGE-qt"'\n'"Name=VERGE"'\n'"Icon=/usr/share/icons/verge.png"'\n'"Categories=Network;Internet;" > ~/Desktop/VERGE.desktop
 sudo chmod +x ~/Desktop/VERGE.desktop
 sudo cp ~/Desktop/VERGE.desktop /usr/share/applications/VERGE.desktop
 sudo chmod +x /usr/share/applications/VERGE.desktop
