@@ -35,7 +35,7 @@ cd ~
 #// Compile Berkeley
 if [ -e /usr/lib/libdb_cxx-4.8.so ]
 then
-echo "BerkeleyDb already present"
+echo "BerkeleyDb already present..."
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz 
@@ -51,7 +51,10 @@ sudo rm -Rf db-4.8.30.NC
 fi
 
 #// Clone files from repo, Permissions and make
-
+if [ -e ~/VERGE/src/qt/VERGE-qt ]
+then
+echo "VERGE-qt already compiled..."
+else
 git clone https://github.com/vergecurrency/VERGE
 cd VERGE
 sudo sh autogen.sh
@@ -59,10 +62,12 @@ chmod 777 ~/VERGE/share/genbuild.sh
 chmod 777 ~/VERGE/src/leveldb/build_detect_platform
 cd ~/raspi 
 ./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5
-make -j4
+make
 sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
+fi
+
 cd ~
 
 #// Create the config file with random user and password
