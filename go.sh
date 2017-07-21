@@ -30,8 +30,13 @@ sudo apt-get -y install lynx
 
 sudo apt-get -y install unzip
 
-#// Compile Berkeley
 cd ~
+
+#// Compile Berkeley
+if [ -e /usr/lib/libdb_cxx-4.8.so ]
+then
+echo "BerkeleyDb already present"
+else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz 
 rm db-4.8.30.NC.tar.gz
@@ -41,10 +46,12 @@ make
 sudo make install 
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
-
-#// Clone files from repo, Permissions and make
 cd ~
 sudo rm -Rf db-4.8.30.NC
+fi
+
+#// Clone files from repo, Permissions and make
+
 git clone https://github.com/vergecurrency/VERGE
 cd VERGE
 sudo sh autogen.sh
@@ -65,8 +72,12 @@ echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\
 
 #// Extract http link, download blockchain and install it.
 
+until [ -e Verge*.zip ]
+do
 echo "wget" $(lynx --dump --listonly http://vergecurrency.de | grep -o "http:*.*zip") > link.sh
 sh link.sh
+done
+
 unzip -o Verge-Blockchain*.zip -d ~/.VERGE
 sudo rm Verge-Blockchain*.zip
 
