@@ -50,6 +50,19 @@ cd ~
 sudo rm -Rf db-4.8.30.NC
 fi
 
+#// Check if libboost is present
+
+if [ -e $(find /usr/lib/ -name libboost_chrono.so) ]
+then
+echo "Libboost found..."
+else
+echo "Compile and install libboost"
+#todo 
+#download and unzip libboost.zip from web
+#start install script
+#add to ./configure --with-boost-libdir=$(dirname "$(find /usr/lib/ -name libboost_chrono.so)")
+fi
+
 #// Clone files from repo, Permissions and make
 if [ -e ~/VERGE/src/qt/VERGE-qt ]
 then
@@ -99,7 +112,7 @@ if echo "$answer" | grep -iq "^y" ;then
     unzip -o Verge-Blockchain*.zip -d ~/.VERGE
     sudo rm Verge-Blockchain*.zip
 else
-    
+ echo "Blockchain will not be installed sync may be long"   
 fi
 
 # Create Icon on Desktop and in menu
