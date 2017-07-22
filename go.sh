@@ -8,13 +8,13 @@ sudo swapon /swapfile1
 
 sudo apt-get -y install software-properties-common
 
-sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo add-apt-repository -y ppa:bitcoin/bitcoin
 
 sudo apt-get update
 
 sudo apt-get install libcanberra-gtk-module
 
-sudo apt-get -y install git libdb4.8-dev libdb4.8++-dev
+sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
 
 sudo apt-get -y install git build-essential libtool autotools-dev autoconf automake pkg-config libssl-dev libevent-dev bsdmainutils git libprotobuf-dev protobuf-compiler libqrencode-dev
 
@@ -30,8 +30,13 @@ sudo apt-get -y install lynx
 
 sudo apt-get -y install unzip
 
-#// Compile Berkeley
 cd ~
+
+#// Compile Berkeley
+if [ -e /usr/lib/libdb_cxx-4.8.so ]
+then
+echo "BerkeleyDb already present..."
+else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz 
 rm db-4.8.30.NC.tar.gz
@@ -41,21 +46,36 @@ make
 sudo make install 
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
-
-#// Clone files from repo, Permissions and make
 cd ~
 sudo rm -Rf db-4.8.30.NC
+fi
+
+#// Clone files from repo, Permissions and make
+if [ -e ~/VERGE/src/qt/VERGE-qt ]
+then
+echo "VERGE-qt already compiled..."
+else
 git clone https://github.com/vergecurrency/VERGE
 cd VERGE
 sudo sh autogen.sh
 chmod 777 ~/VERGE/share/genbuild.sh
 chmod 777 ~/VERGE/src/leveldb/build_detect_platform
-cd ~/raspi 
+
+if [ -d /usr/local/BerkeleyDB.4.8/include ]
+then
 ./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5
-make -j4
+echo "Using Berkeley Generic..."
+else
+./configure --with-gui=qt5
+echo "Using default system Berkeley..."
+fi
+
+make
 sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
+fi
+
 cd ~
 
 #// Create the config file with random user and password
@@ -65,8 +85,14 @@ echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\
 
 #// Extract http link, download blockchain and install it.
 
-echo "wget" $(lynx --dump --listonly http://vergecurrency.de | grep -o "http:*.*zip") > link.sh
+until [ -e Verge*.zip ]
+do
+sleep 1
+echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
+sleep 1
 sh link.sh
+done
+
 unzip -o Verge-Blockchain*.zip -d ~/.VERGE
 sudo rm Verge-Blockchain*.zip
 
