@@ -14,7 +14,7 @@ sudo apt-get update
 
 sudo apt-get install libcanberra-gtk-module
 
-sudo apt-get -y install git libdb4.8-dev libdb4.8++-dev
+sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
 
 sudo apt-get -y install git build-essential libtool autotools-dev autoconf automake pkg-config libssl-dev libevent-dev bsdmainutils git libprotobuf-dev protobuf-compiler libqrencode-dev
 
