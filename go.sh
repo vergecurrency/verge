@@ -8,7 +8,7 @@ sudo swapon /swapfile1
 
 sudo apt-get -y install software-properties-common
 
-sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo add-apt-repository -y ppa:bitcoin/bitcoin
 
 sudo apt-get update
 
