@@ -80,7 +80,7 @@ echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\
 until [ -e Verge*.zip ]
 do
 sleep 1
-echo "wget" $(lynx --dump --listonly http://vergecurrency.de | grep -o "http:*.*zip") > link.sh
+echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
 sleep 1
 sh link.sh
 done
