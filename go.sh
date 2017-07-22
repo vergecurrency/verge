@@ -83,7 +83,7 @@ else
 echo "Using default system Berkeley..."
 fi
 
-make
+make -j%(nproc)
 sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
