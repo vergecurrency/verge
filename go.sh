@@ -60,7 +60,6 @@ cd VERGE
 sudo sh autogen.sh
 chmod 777 ~/VERGE/share/genbuild.sh
 chmod 777 ~/VERGE/src/leveldb/build_detect_platform
-cd ~/raspi 
 ./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5
 make
 sudo strip ~/VERGE/src/VERGEd
