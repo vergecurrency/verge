@@ -12,7 +12,7 @@ sudo add-apt-repository -y ppa:bitcoin/bitcoin
 
 sudo apt-get update
 
-sudo apt-get install libcanberra-gtk-module
+sudo apt-get -y install libcanberra-gtk-module
 
 sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
 
@@ -85,16 +85,22 @@ echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\
 
 #// Extract http link, download blockchain and install it.
 
-until [ -e Verge*.zip ]
-do
-sleep 1
-echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
-sleep 1
-sh link.sh
-done
-
-unzip -o Verge-Blockchain*.zip -d ~/.VERGE
-sudo rm Verge-Blockchain*.zip
+echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
+read answer
+if echo "$answer" | grep -iq "^y" ;then
+    sudo rm Verge-Blockchain*.zip
+    until [ -e Verge*.zip ]
+    do
+    sleep 1
+    echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
+    sleep 1
+    sh link.sh
+    done
+    unzip -o Verge-Blockchain*.zip -d ~/.VERGE
+    sudo rm Verge-Blockchain*.zip
+else
+    
+fi
 
 # Create Icon on Desktop and in menu
 
