@@ -41,7 +41,7 @@ else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz 
 rm db-4.8.30.NC.tar.gz
-cd db-4.8.30.NC/build_unix 
+cd db-4.8.30.NC/build_unicdx 
 ../dist/configure --enable-cxx 
 make 
 sudo make install 
@@ -57,15 +57,15 @@ fi
 results=$(find /usr/ -name libboost_chrono.so)
 
 if [ -z $results ]; then
-sudo rm boost_1_64_0.zip
-     wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.zip 
-     unzip -o boost_1_64_0.zip
-     cd boost_1_64_0
+sudo rm boost_1_63_0.zip
+     wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
+     unzip -o boost_1_63_0.zip
+     cd boost_1_63_0
 	sh bootstrap.sh
 	sudo ./b2 install
 	cd ~
-	sudo rm boost_1_64_0.zip
-	sudo rm -Rf boost_1_64_0 
+	sudo rm boost_1_63_0.zip 
+	sudo rm -Rf boost_1_63_0
 else
      echo "Libboost found..."           
 fi
