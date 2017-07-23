@@ -1,10 +1,11 @@
+#!/bin/bash
 #// full deployement : run sh go.sh
 cd ~
-sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
-sudo mkswap /swapfile1
-sudo chown root:root /swapfile1
-sudo chmod 0600 /swapfile1
-sudo swapon /swapfile1
+#sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
+#sudo mkswap /swapfile1
+#sudo chown root:root /swapfile1
+#sudo chmod 0600 /swapfile1
+#sudo swapon /swapfile1
 
 sudo apt-get -y install software-properties-common
 
@@ -52,22 +53,27 @@ fi
 
 #// Check if libboost is present
 
-if [ -e $(find /usr/lib/ -name libboost_chrono.so) ]
-then
-echo "Libboost found..."
+
+
+
+if [ -e $(find /usr/lib/ -name libboost_chrono.so) ]; then
+     echo "Libboost found..."
 else
-echo "Compile and install libboost"
-#todo 
-#download and unzip libboost.zip from web
-#start install script
-#add to ./configure --with-boost-libdir=$(dirname "$(find /usr/lib/ -name libboost_chrono.so)")
+     sudo rm boost_1_64_0.zip
+     wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.zip 
+     unzip -o boost_1_64_0.zip
+     cd boost_1_64_0
+	sh bootstrap.sh
+	./b2 
+	cd ~
+	sudo rm boost_1_64_0.zip
+	sudo rm -Rf boost_1_64_0           
 fi
 
+
+
 #// Clone files from repo, Permissions and make
-if [ -e ~/VERGE/src/qt/VERGE-qt ]
-then
-echo "VERGE-qt already compiled..."
-else
+
 git clone https://github.com/vergecurrency/VERGE
 cd VERGE
 sudo sh autogen.sh
@@ -76,18 +82,17 @@ chmod 777 ~/VERGE/src/leveldb/build_detect_platform
 
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
-./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5
+./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/lib/ -name libboost_chrono.so)")
 echo "Using Berkeley Generic..."
 else
-./configure --with-gui=qt5
+./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/lib/ -name libboost_chrono.so)")
 echo "Using default system Berkeley..."
 fi
 
-make -j%(nproc)
+make -j$(nproc)
 sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
-fi
 
 cd ~
 
@@ -126,7 +131,7 @@ sudo chmod +x /usr/share/applications/VERGE.desktop
 # Erase all VERGE compilation directory , cleaning
 
 cd ~
-sudo rm -Rf ~/VERGE
+#sudo rm -Rf ~/VERGE
 
 #// Start Verge
 
