@@ -50,17 +50,7 @@
     </widget>
    </item>
    <item row="5" column="1">
-    <widget class="BitcoinAmountField" name="payAmount">
-     <property name="styleSheet">
-      <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;</string>
-     </property>
-    </widget>
+    <widget class="BitcoinAmountField" name="payAmount"/>
    </item>
    <item row="4" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -74,15 +64,6 @@ max-height: 25px;</string>
        </property>
        <property name="toolTip">
         <string>Enter a label for this address to add it to your address book</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;</string>
        </property>
       </widget>
      </item>
@@ -111,15 +92,6 @@ max-height: 25px;</string>
        <property name="toolTip">
         <string>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
        </property>
-       <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;</string>
-       </property>
        <property name="maxLength">
         <number>34</number>
        </property>
@@ -129,14 +101,6 @@ max-height: 25px;</string>
       <widget class="QToolButton" name="addressBookButton">
        <property name="toolTip">
         <string>Choose address from address book</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-min-height: 25px;
-max-height: 25px;</string>
        </property>
        <property name="text">
         <string/>
@@ -155,14 +119,6 @@ max-height: 25px;</string>
        <property name="toolTip">
         <string>Paste address from clipboard</string>
        </property>
-       <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-min-height: 25px;
-max-height: 25px;</string>
-       </property>
        <property name="text">
         <string/>
        </property>
@@ -179,14 +135,6 @@ max-height: 25px;</string>
       <widget class="QToolButton" name="deleteButton">
        <property name="toolTip">
         <string>Remove this recipient</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-min-height: 25px;
-max-height: 25px;</string>
        </property>
        <property name="text">
         <string/>

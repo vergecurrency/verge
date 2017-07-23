@@ -1,10 +1,11 @@
+#!/bin/bash
 #// full deployement : run sh go.sh
 cd ~
-sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
-sudo mkswap /swapfile1
-sudo chown root:root /swapfile1
-sudo chmod 0600 /swapfile1
-sudo swapon /swapfile1
+#sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
+#sudo mkswap /swapfile1
+#sudo chown root:root /swapfile1
+#sudo chmod 0600 /swapfile1
+#sudo swapon /swapfile1
 
 sudo apt-get -y install software-properties-common
 
@@ -12,7 +13,7 @@ sudo add-apt-repository -y ppa:bitcoin/bitcoin
 
 sudo apt-get update
 
-sudo apt-get install libcanberra-gtk-module
+sudo apt-get -y install libcanberra-gtk-module
 
 sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
 
@@ -50,11 +51,31 @@ cd ~
 sudo rm -Rf db-4.8.30.NC
 fi
 
-#// Clone files from repo, Permissions and make
-if [ -e ~/VERGE/src/qt/VERGE-qt ]
-then
-echo "VERGE-qt already compiled..."
+#// Check if libboost is present
+
+
+results=$(find /usr/ -name libboost_chrono.so)
+
+if [ -z $results ]; then
+sudo rm boost_1_63_0.zip
+     wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
+     unzip -o boost_1_63_0.zip
+     cd boost_1_63_0
+	sh bootstrap.sh
+	sudo ./b2 install
+	cd ~
+	sudo rm boost_1_63_0.zip 
+	sudo rm -Rf boost_1_63_0
+	sudo ln -s $(dirname "$(find /usr/ -name libboost_chrono.so)")/lib*.so /usr/lib
+	sudo rm /usr/lib/libboost_chrono.so
 else
+     echo "Libboost found..."           
+fi
+
+
+
+#// Clone files from repo, Permissions and make
+
 git clone https://github.com/vergecurrency/VERGE
 cd VERGE
 sudo sh autogen.sh
@@ -63,18 +84,18 @@ chmod 777 ~/VERGE/src/leveldb/build_detect_platform
 
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
-./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5
+./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/ -name libboost_chrono.so)")
 echo "Using Berkeley Generic..."
 else
-./configure --with-gui=qt5
+./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/ -name libboost_chrono.so)")
 echo "Using default system Berkeley..."
 fi
 
-make
+make -j$(nproc)
 sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
-fi
+
 
 cd ~
 
@@ -85,16 +106,22 @@ echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\
 
 #// Extract http link, download blockchain and install it.
 
-until [ -e Verge*.zip ]
-do
-sleep 1
-echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
-sleep 1
-sh link.sh
-done
-
-unzip -o Verge-Blockchain*.zip -d ~/.VERGE
-sudo rm Verge-Blockchain*.zip
+echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
+read answer
+if echo "$answer" | grep -iq "^y" ;then
+    sudo rm Verge-Blockchain*.zip
+    until [ -e Verge*.zip ]
+    do
+    sleep 1
+    echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
+    sleep 1
+    sh link.sh
+    done
+    unzip -o Verge-Blockchain*.zip -d ~/.VERGE
+    sudo rm Verge-Blockchain*.zip
+else
+ echo "Blockchain will not be installed sync may be long"   
+fi
 
 # Create Icon on Desktop and in menu
 
@@ -107,7 +134,7 @@ sudo chmod +x /usr/share/applications/VERGE.desktop
 # Erase all VERGE compilation directory , cleaning
 
 cd ~
-sudo rm -Rf ~/VERGE
+#sudo rm -Rf ~/VERGE
 
 #// Start Verge
 
