@@ -66,6 +66,7 @@ sudo rm boost_1_63_0.zip
 	cd ~
 	sudo rm boost_1_63_0.zip 
 	sudo rm -Rf boost_1_63_0
+	sudo cp /usr/local/lib/*boost* /usr/lib
 else
      echo "Libboost found..."           
 fi
