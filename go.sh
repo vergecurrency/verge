@@ -54,12 +54,10 @@ fi
 #// Check if libboost is present
 
 
+results=$(find /usr/lib/ -name libboost_chrono.so)
 
-
-if [ -e $(find /usr/lib/ -name libboost_chrono.so) ]; then
-     echo "Libboost found..."
-else
-     sudo rm boost_1_64_0.zip
+if [ -z $results ]; then
+sudo rm boost_1_64_0.zip
      wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.zip 
      unzip -o boost_1_64_0.zip
      cd boost_1_64_0
@@ -67,7 +65,9 @@ else
 	./b2 
 	cd ~
 	sudo rm boost_1_64_0.zip
-	sudo rm -Rf boost_1_64_0           
+	sudo rm -Rf boost_1_64_0 
+else
+     echo "Libboost found..."           
 fi
 
 
