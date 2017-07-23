@@ -41,7 +41,7 @@ else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz 
 rm db-4.8.30.NC.tar.gz
-cd db-4.8.30.NC/build_unicdx 
+cd db-4.8.30.NC/build_unix 
 ../dist/configure --enable-cxx 
 make 
 sudo make install 
