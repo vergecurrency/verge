@@ -66,6 +66,8 @@ sudo rm boost_1_63_0.zip
 	cd ~
 	sudo rm boost_1_63_0.zip 
 	sudo rm -Rf boost_1_63_0
+	sudo ln -s $(dirname "$(find /usr/ -name libboost_chrono.so)")/lib*.so /usr/lib
+	sudo rm /usr/lib/libboost_chrono.so
 else
      echo "Libboost found..."           
 fi
@@ -93,8 +95,7 @@ make -j$(nproc)
 sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
-sudo cp /usr/local/lib/*boost* /usr/lib
-sudo rm /usr/lib/libboost_chrono.so
+
 
 cd ~
 
