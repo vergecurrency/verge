@@ -94,6 +94,7 @@ sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
 sudo cp /usr/local/lib/*boost* /usr/lib
+sudo rm /usr/lib/libboost_chrono.so
 
 cd ~
 
