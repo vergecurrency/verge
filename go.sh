@@ -54,7 +54,7 @@ fi
 #// Check if libboost is present
 
 
-results=$(find /usr/lib/ -name libboost_chrono.so)
+results=$(find /usr/ -name libboost_chrono.so)
 
 if [ -z $results ]; then
 sudo rm boost_1_64_0.zip
@@ -62,7 +62,7 @@ sudo rm boost_1_64_0.zip
      unzip -o boost_1_64_0.zip
      cd boost_1_64_0
 	sh bootstrap.sh
-	./b2 
+	sudo ./b2 install
 	cd ~
 	sudo rm boost_1_64_0.zip
 	sudo rm -Rf boost_1_64_0 
@@ -82,10 +82,10 @@ chmod 777 ~/VERGE/src/leveldb/build_detect_platform
 
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
-./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/lib/ -name libboost_chrono.so)")
+./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/ -name libboost_chrono.so)")
 echo "Using Berkeley Generic..."
 else
-./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/lib/ -name libboost_chrono.so)")
+./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/ -name libboost_chrono.so)")
 echo "Using default system Berkeley..."
 fi
 
