@@ -1,7 +1,7 @@
 #ifndef CSVMODELWRITER_H
 #define CSVMODELWRITER_H
 
-#include <QtCore/QObject>
+#include <QObject>
 #include <QList>
 
 QT_BEGIN_NAMESPACE
