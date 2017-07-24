@@ -1,7 +1,7 @@
 #ifndef CLIENTMODEL_H
 #define CLIENTMODEL_H
 
-#include <QObject>
+#include <QtCore/QObject>
 
 class OptionsModel;
 class AddressTableModel;
