@@ -5,7 +5,7 @@
 #include "main.h"
 #include "wallet.h"
 #include "base58.h"
-#include <QWidget>
+#include <Qtwidgets/Qtwidgets>
 
 #include <QDir>
 #include <QFile>
