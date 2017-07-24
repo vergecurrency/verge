@@ -1,11 +1,11 @@
 #!/bin/bash
 #// full deployement : run sh go.sh
 cd ~
-#sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
-#sudo mkswap /swapfile1
-#sudo chown root:root /swapfile1
-#sudo chmod 0600 /swapfile1
-#sudo swapon /swapfile1
+sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
+sudo mkswap /swapfile1
+sudo chown root:root /swapfile1
+sudo chmod 0600 /swapfile1
+sudo swapon /swapfile1
 
 sudo apt-get -y install software-properties-common
 
@@ -57,17 +57,18 @@ fi
 results=$(find /usr/ -name libboost_chrono.so)
 
 if [ -z $results ]; then
-sudo rm boost_1_63_0.zip
+sudo rm download
      wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
-     unzip -o boost_1_63_0.zip
+     unzip -o download
      cd boost_1_63_0
 	sh bootstrap.sh
 	sudo ./b2 install
 	cd ~
-	sudo rm boost_1_63_0.zip 
+	sudo rm download 
 	sudo rm -Rf boost_1_63_0
 	sudo ln -s $(dirname "$(find /usr/ -name libboost_chrono.so)")/lib*.so /usr/lib
-	sudo rm /usr/lib/libboost_chrono.so
+	sudo ldconfig
+        sudo rm /usr/lib/libboost_chrono.so
 else
      echo "Libboost found..."           
 fi
