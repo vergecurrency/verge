@@ -2,7 +2,7 @@
 #define GUIUTIL_H
 
 #include <QString>
-#include <QtCore/QObject>
+#include <QObject>
 #include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
