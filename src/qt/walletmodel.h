@@ -1,7 +1,7 @@
 #ifndef WALLETMODEL_H
 #define WALLETMODEL_H
 
-#include <QObject>
+#include <QtCore/QObject>
 
 #include "allocators.h" /* for SecureString */
 
