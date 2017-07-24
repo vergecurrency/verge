@@ -17,12 +17,12 @@
 #ifndef SERVEUR_H
 #define SERVEUR_H
 
-#include <QWidget>
+
 #include <QListView>
 #include <QTextEdit>
 #include <QtGui>
 #include <QtNetwork>
-#include <QSystemTrayIcon>
+#include <QtWidgets/QtWidgets>
 
 class Serveur : public QTcpSocket
 {

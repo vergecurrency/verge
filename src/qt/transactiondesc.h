@@ -2,7 +2,7 @@
 #define TRANSACTIONDESC_H
 
 #include <QString>
-#include <QObject>
+#include <QtCore/QObject>
 #include <string>
 
 class CWallet;
