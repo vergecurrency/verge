@@ -1,7 +1,7 @@
 #ifndef BITCOINFIELD_H
 #define BITCOINFIELD_H
 
-#include <QWidget>
+#include <QtWidgets/QtWidgets>
 
 QT_BEGIN_NAMESPACE
 class QDoubleSpinBox;
