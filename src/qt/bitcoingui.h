@@ -1,7 +1,7 @@
 #ifndef BITCOINGUI_H
 #define BITCOINGUI_H
 
-#include <QMainWindow>
+#include <QtWidgets/QMainWindow>
 #include <QSystemTrayIcon>
 #include "radio.h"
 
