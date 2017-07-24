@@ -1,7 +1,7 @@
 #ifndef RADIO_H
 #define RADIO_H
 
-#include <QtWidgets/QtWidgets>
+#include <QtWidget>
 
 namespace Ui {
 	class Radio;
