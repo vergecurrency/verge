@@ -22,7 +22,7 @@
 #include <QTextEdit>
 #include <QtGui>
 #include <QtNetwork>
-#include <QtWidget>
+#include <QWidget>
 #include <QSystemTrayIcon>
 
 class Serveur : public QTcpSocket
