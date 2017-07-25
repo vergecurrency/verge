@@ -83,12 +83,22 @@ sudo sh autogen.sh
 chmod 777 ~/VERGE/share/genbuild.sh
 chmod 777 ~/VERGE/src/leveldb/build_detect_platform
 
+grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
+find /usr/ -name libboost_chrono.so > words
+split -dl 1 --additional-suffix=.txt words wrd
+echo 0. $(cat wrd00.txt)
+echo 1. $(cat wrd01.txt)
+echo 2. $(cat wrd02.txt)
+echo 3. $(cat wrd03.txt)
+echo -n "Choose libboost library to use(0-3)?"
+read answer
+
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
-./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/ -name libboost_chrono.so)")
+./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)")
 echo "Using Berkeley Generic..."
 else
-./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(find /usr/ -name libboost_chrono.so)")
+./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)")
 echo "Using default system Berkeley..."
 fi
 
