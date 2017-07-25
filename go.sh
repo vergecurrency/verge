@@ -1,11 +1,15 @@
 #!/bin/bash
 #// full deployement : run sh go.sh
 cd ~
+if [ -e /swapfile1 ]; then
+echo "Swapfile already present"
+else
 sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
 sudo mkswap /swapfile1
 sudo chown root:root /swapfile1
 sudo chmod 0600 /swapfile1
 sudo swapon /swapfile1
+fi
 
 sudo apt-get -y install software-properties-common
 
@@ -15,7 +19,13 @@ sudo apt-get update
 
 sudo apt-get -y install libcanberra-gtk-module
 
+results=$(find /usr/ -name libdb_cxx.so)
+if [ -z $results ]; then
 sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
+else
+grep DB_VERSION_STRING $(find /usr/ -name db.h)
+echo "BerkeleyDb will not be installed its already there...."
+fi
 
 sudo apt-get -y install git build-essential libtool autotools-dev autoconf automake pkg-config libssl-dev libevent-dev bsdmainutils git libprotobuf-dev protobuf-compiler libqrencode-dev
 
@@ -23,7 +33,16 @@ sudo apt-get -y install libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qt
 
 sudo apt-get -y install libminiupnpc-dev
 
+results=$(find /usr/ -name libboost_chrono.so)
+if [ -z $results ]; then
 sudo apt-get -y install libboost-all-dev
+else
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+echo "${red}Libboost will not be installed its already there....${reset}"
+grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
+fi
 
 sudo apt-get -y install --no-install-recommends gnome-panel
 
@@ -55,7 +74,6 @@ fi
 
 
 results=$(find /usr/ -name libboost_chrono.so)
-
 if [ -z $results ]; then
 sudo rm download
      wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
