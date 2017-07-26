@@ -19,13 +19,13 @@ sudo apt-get update
 
 sudo apt-get -y install libcanberra-gtk-module
 
-results=$(find /usr/ -name libdb_cxx.so)
-if [ -z $results ]; then
+#results=$(find /usr/ -name libdb_cxx.so)
+#if [ -z $results ]; then
 sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
-else
-grep DB_VERSION_STRING $(find /usr/ -name db.h)
-echo "BerkeleyDb will not be installed its already there...."
-fi
+#else
+#grep DB_VERSION_STRING $(find /usr/ -name db.h)
+#echo "BerkeleyDb will not be installed its already there...."
+#fi
 
 sudo apt-get -y install git build-essential libtool autotools-dev autoconf automake pkg-config libssl-dev libevent-dev bsdmainutils git libprotobuf-dev protobuf-compiler libqrencode-dev
 
@@ -121,10 +121,36 @@ echo "Using default system Berkeley..."
 fi
 
 make -j$(nproc)
+
+if [ -e ~/VERGE/src/VERGE-qt ]; then
+#sudo apt-get -y install pulseaudio
+#sudo apt-get -y install portaudio19-dev
+# synthetic voice 
+#cd ~
+#wget https://sourceforge.net/projects/espeak/files/espeak/espeak-1.48/espeak-1.48.04-source.zip/download
+#unzip -o download
+#cd espeak-1.48.04-source/src
+#cp portaudio19.h portaudio.h
+#make
+#cd ~
+for i in 528 1000 1600 2000 3000
+do
+pactl load-module module-sine frequency=$i > /dev/null
+sleep 0.1
+done
+sleep 1
+pactl unload-module module-sine
+pactl upload-sample complet test2
+openssl rand -hex 4096 | padsp tee /dev/audio > /dev/null
+sleep 1.3
+pactl play-sample test2
+#espeak mission,complete
 sudo strip ~/VERGE/src/VERGEd
 sudo strip ~/VERGE/src/qt/VERGE-qt
 sudo make install
-
+else
+echo "Compile fail not VERGE-qt present"
+fi
 
 cd ~
 
