@@ -64,10 +64,11 @@ cd db-4.8.30.NC/build_unix
 ../dist/configure --enable-cxx 
 make 
 sudo make install 
-sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
-sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
+#sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
+#sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
 cd ~
 sudo rm -Rf db-4.8.30.NC
+sudo ldconfig
 fi
 
 #// Check if libboost is present
@@ -84,9 +85,9 @@ sudo rm download
 	cd ~
 	sudo rm download 
 	sudo rm -Rf boost_1_63_0
-	sudo ln -s $(dirname "$(find /usr/ -name libboost_chrono.so)")/lib*.so /usr/lib
+	#sudo ln -s $(dirname "$(find /usr/ -name libboost_chrono.so)")/lib*.so /usr/lib
 	sudo ldconfig
-        sudo rm /usr/lib/libboost_chrono.so
+        #sudo rm /usr/lib/libboost_chrono.so
 else
      echo "Libboost found..." 
      grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
