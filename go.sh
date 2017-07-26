@@ -55,7 +55,7 @@ cd ~
 #// Compile Berkeley
 if [ -e /usr/lib/libdb_cxx-4.8.so ]
 then
-echo "BerkeleyDb already present..."
+echo "BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'DB_VERSION_STRING')" 
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz 
@@ -88,9 +88,9 @@ sudo rm download
 	sudo ldconfig
         sudo rm /usr/lib/libboost_chrono.so
 else
-     echo "Libboost found..."           
+     echo "Libboost found..." 
+     grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
 fi
-
 
 
 #// Clone files from repo, Permissions and make
