@@ -123,7 +123,7 @@ fi
 
 make -j$(nproc)
 
-if [ -e ~/VERGE/src/VERGE-qt ]; then
+if [ -e ~/VERGE/src/qt/VERGE-qt ]; then
 #sudo apt-get -y install pulseaudio
 #sudo apt-get -y install portaudio19-dev
 # synthetic voice 
