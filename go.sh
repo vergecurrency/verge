@@ -1,5 +1,35 @@
 #!/bin/bash
 #// full deployement : run sh go.sh
+
+# generating entropy make it harder to guess the randomness!.
+echo "Initializing random number generator..."
+random_seed=/var/run/random-seed
+# Carry a random seed from start-up to start-up
+# Load and then save the whole entropy pool
+if [ -f $random_seed ]; then
+    sudo cat $random_seed >/dev/urandom
+else
+    sudo touch $random_seed
+fi
+sudo chmod 600 $random_seed
+poolfile=/proc/sys/kernel/random/poolsize
+[ -r $poolfile ] && bytes=`sudo cat $poolfile` || bytes=512
+sudo dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
+
+#Also, add the following lines in an appropriate script which is run during the$
+
+# Carry a random seed from shut-down to start-up
+# Save the whole entropy pool
+echo "Saving random seed..."
+random_seed=/var/run/random-seed
+sudo touch $random_seed
+sudo chmod 600 $random_seed
+poolfile=/proc/sys/kernel/random/poolsize
+[ -r $poolfile ] && bytes=`sudo cat $poolfile` || bytes=512
+sudo dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
+
+# Create a swap file
+
 cd ~
 if [ -e /swapfile1 ]; then
 echo "Swapfile already present"
@@ -11,6 +41,8 @@ sudo chmod 0600 /swapfile1
 sudo swapon /swapfile1
 fi
 
+# Install dependency
+
 sudo apt-get -y install software-properties-common
 
 sudo add-apt-repository -y ppa:bitcoin/bitcoin
@@ -19,6 +51,7 @@ sudo apt-get update
 
 sudo apt-get -y install libcanberra-gtk-module
 
+# Dont need to check if bd is already installed, will override or pass by
 #results=$(find /usr/ -name libdb_cxx.so)
 #if [ -z $results ]; then
 sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
@@ -33,6 +66,7 @@ sudo apt-get -y install libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qt
 
 sudo apt-get -y install libminiupnpc-dev
 
+# Keep current version of libboost if already present
 results=$(find /usr/ -name libboost_chrono.so)
 if [ -z $results ]; then
 sudo apt-get -y install libboost-all-dev
@@ -52,7 +86,7 @@ sudo apt-get -y install unzip
 
 cd ~
 
-#// Compile Berkeley
+#// Compile Berkeley if 4.8 is not there
 if [ -e /usr/lib/libdb_cxx-4.8.so ]
 then
 echo "BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'DB_VERSION_STRING')" 
@@ -73,7 +107,6 @@ fi
 
 #// Check if libboost is present
 
-
 results=$(find /usr/ -name libboost_chrono.so)
 if [ -z $results ]; then
 sudo rm download
@@ -92,7 +125,6 @@ else
      echo "Libboost found..." 
      grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
 fi
-
 
 #// Clone files from repo, Permissions and make
 
