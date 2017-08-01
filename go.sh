@@ -134,15 +134,31 @@ sudo sh autogen.sh
 chmod 777 ~/VERGE/share/genbuild.sh
 chmod 777 ~/VERGE/src/leveldb/build_detect_platform
 
+
+
 grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
+
+sudo rm wrd01.txt
+sudo rm wrd00.txt
+sudo rm words
 find /usr/ -name libboost_chrono.so > words
 split -dl 1 --additional-suffix=.txt words wrd
+
+
+
+if [ -e wrd01.txt ]; then
 echo 0. $(cat wrd00.txt)
 echo 1. $(cat wrd01.txt)
 echo 2. $(cat wrd02.txt)
 echo 3. $(cat wrd03.txt)
 echo -n "Choose libboost library to use(0-3)?"
 read answer
+else
+echo "There is only 1 libboost library present. We choose for you 0"
+answer=0
+fi
+
+echo "You have choosen $answer"
 
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
