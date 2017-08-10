@@ -227,8 +227,8 @@ if echo "$answer" | grep -iq "^y" ;then
     sudo rm blockchain
     wget https://www.vergecurrency.com/checksums/blockchain
     md5sum Verge-Blockchain*.zip > md5
-    checksum="($grep $(cat md5) blockchain)"
-    if [ -z "$test" ];
+    checksum="$(grep $(cat md5) blockchain)"
+    if [ -z "$checksum" ];
     then
     echo "Warning: MD5 is not matching"
     else
