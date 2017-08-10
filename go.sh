@@ -222,6 +222,19 @@ if echo "$answer" | grep -iq "^y" ;then
     sleep 1
     sh link.sh
     done
+    
+    #checksum
+    sudo rm blockchain
+    wget https://www.vergecurrency.com/checksums/blockchain
+    md5sum Verge-Blockchain*.zip > md5
+    checksum="($grep $(cat md5) blockchain)"
+    if [ -z "$test" ];
+    then
+    echo "Warning: MD5 is not matching"
+    else
+    echo "MD5 is matching...Success"
+    fi
+    
     unzip -o Verge-Blockchain*.zip -d ~/.VERGE
     sudo rm Verge-Blockchain*.zip
 else
