@@ -206,7 +206,8 @@ cd ~
 #// Create the config file with random user and password
 
 mkdir ~/.VERGE
-echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" > ~/.VERGE/VERGE.conf
+cp ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
+echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" '\n'"server=1" '\n'"addnode=103.18.40.125:21102" '\n'"addnode=104.131.144.82:21102" '\n'"addnode=138.197.68.130:21102" '\n'"addnode=144.76.167.66:21102" '\n'"addnode=152.186.36.86:21102" '\n'"addnode=159.203.121.202:21102" '\n'"addnode=172.104.157.38:21102" '\n'"addnode=192.99.7.127:21102" '\n'"addnode=219.89.84.46:21102" '\n'"addnode=45.32.129.168:21102" '\n'"addnode=45.55.59.206:21102" '\n'"addnode=46.4.64.68:21102" '\n'"addnode=51.15.46.1:21102" '\n'"addnode=52.9.109.214:21102" '\n'"addnode=66.55.64.183:21102" '\n'"addnode=67.167.207.164:21102" '\n'"addnode=78.46.190.152:21102"> ~/.VERGE/VERGE.conf
 
 #// Extract http link, download blockchain and install it.
 
@@ -221,6 +222,19 @@ if echo "$answer" | grep -iq "^y" ;then
     sleep 1
     sh link.sh
     done
+    
+    #checksum
+    sudo rm blockchain
+    wget https://www.vergecurrency.com/checksums/blockchain
+    md5sum Verge-Blockchain*.zip > md5
+    checksum="$(grep $(cat md5) blockchain)"
+    if [ -z "$checksum" ];
+    then
+    echo "Warning: MD5 is not matching"
+    else
+    echo "MD5 is matching...Success"
+    fi
+    
     unzip -o Verge-Blockchain*.zip -d ~/.VERGE
     sudo rm Verge-Blockchain*.zip
 else
@@ -243,3 +257,4 @@ cd ~
 #// Start Verge
 
 VERGE-qt
+cp ~/.VERGE/wallet.dat ~/vergewallet.bak
