@@ -126,6 +126,17 @@ void CKey::SetCompressedPubKey()
     fCompressedPubKey = true;
 }
 
+void CKey::SetUnCompressedPubKey()
+{
+    EC_KEY_set_conv_form(pkey, POINT_CONVERSION_UNCOMPRESSED);
+    fCompressedPubKey = false;
+}
+
+EC_KEY* CKey::GetECKey()
+{
+    return pkey;
+}
+
 void CKey::Reset()
 {
     fCompressedPubKey = false;
