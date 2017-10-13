@@ -2109,7 +2109,6 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
         if (!SetBestChain(txdb, pindexNew))
             return false;
 
-    txdb.Close();
 
     if (pindexNew == pindexBest)
     {
@@ -2624,7 +2623,6 @@ bool LoadBlockIndex(bool fAllowNew)
     CTxDB txdb("cr");
     if (!txdb.LoadBlockIndex())
         return false;
-    txdb.Close();
 
     //
     // Init with genesis block
@@ -2721,7 +2719,6 @@ bool LoadBlockIndex(bool fAllowNew)
             Checkpoints::ResetSyncCheckpoint();
         } 
 
-        txdb.Close();
     }
 
     return true;

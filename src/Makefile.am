@@ -137,6 +137,8 @@ libbitcoin_server_a_SOURCES = \
   alert.cpp \
   checkpoints.cpp \
   init.cpp \
+  db.cpp \
+  txdb-leveldb \
   bitcoinrpc.cpp \
   keystore.cpp \
   main.cpp \
@@ -153,8 +155,6 @@ libbitcoin_server_a_SOURCES = \
 # when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_SOURCES = \
-  db.cpp \
-  txdb-leveldb.cpp \
   crypter.cpp \
   rpcdump.cpp \
   rpcwallet.cpp \
