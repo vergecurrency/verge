@@ -2155,14 +2155,14 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     for (unsigned int i = 2; i < vtx.size(); i++)
         if (vtx[i].IsCoinStake())
             return DoS(100, error("CheckBlock() : coinstake in wrong position"));
-
-    // Check coinbase timestamp
-    if (GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
-        return DoS(50, error("CheckBlock() : coinbase timestamp is too early"));
 	
 	// ppcoin: coinbase output should be empty if proof-of-stake block
     if (IsProofOfStake() && (vtx[0].vout.size() != 1 || !vtx[0].vout[0].IsEmpty()))
         return error("CheckBlock() : coinbase output not empty for proof-of-stake block");
+	
+	// Check coinbase timestamp
+    if (GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
+        return DoS(50, error("CheckBlock() : coinbase timestamp is too early"));
 
     // Check coinstake timestamp
     if (IsProofOfStake() && !CheckCoinStakeTimestamp(GetBlockTime(), (int64)vtx[1].nTime))
