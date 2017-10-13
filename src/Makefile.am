@@ -90,7 +90,8 @@ BITCOIN_CORE_H = \
   Sponge.h \
   blake2.h \
   blake2-impl.h \
-  dbx.h \
+  db.h \
+  txdb-leveldb.h \
   init.h \
   kernel.h \
   key.h \
@@ -136,6 +137,8 @@ libbitcoin_server_a_SOURCES = \
   alert.cpp \
   checkpoints.cpp \
   init.cpp \
+  db.cpp \
+  txdb-leveldb.cpp \
   bitcoinrpc.cpp \
   keystore.cpp \
   main.cpp \
@@ -152,7 +155,6 @@ libbitcoin_server_a_SOURCES = \
 # when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_SOURCES = \
-  db.cpp \
   crypter.cpp \
   rpcdump.cpp \
   rpcwallet.cpp \

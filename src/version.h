@@ -21,18 +21,13 @@ static const int CLIENT_VERSION =
 extern const std::string CLIENT_NAME;
 extern const std::string CLIENT_BUILD;
 extern const std::string CLIENT_DATE;
-
-//
+// database format versioning
+static const int DATABASE_VERSION = 70509;
 // network protocol versioning
-//
-
 static const int PROTOCOL_VERSION = 90001;
-
 // clients with smaller version number are disconnected
 static const int MIN_PROTO_VERSION = 90001;
-
 // nTime field added to CAddress, starting with this version;
 // if possible, avoid requesting addresses nodes older than this
 static const int CADDR_TIME_VERSION = 31402;
-
 #endif
