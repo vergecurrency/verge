@@ -4661,7 +4661,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
         {
             if (!NewThread(ThreadVERGEMiner, pwallet))
                 printf("Error: NewThread(ThreadVERGEMiner) failed\n");
-            Sleep(10);
+            MilliSleep(10);
         }
     }
 }
