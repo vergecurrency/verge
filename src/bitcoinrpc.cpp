@@ -9,7 +9,7 @@
 #include "ui_interface.h"
 #include "base58.h"
 #include "bitcoinrpc.h"
-#include "dbx.h"
+#include "db.h"
 
 #undef printf
 #include <boost/asio.hpp>
@@ -189,8 +189,6 @@ Value stop(const Array& params, bool fHelp)
             "<detach> is true or false to detach the database or not for this stop only\n"
             "Stop VERGE server (and possibly override the detachdb config value).");
     // Shutdown will take long enough that the response should get back
-    if (params.size() > 0)
-        bitdb.SetDetach(params[0].get_bool());
     StartShutdown();
     return "VERGE server stopping";
 }
@@ -978,7 +976,7 @@ void ThreadRPCServer3(void* parg)
                If this results in a DOS the user really
                shouldn't have their RPC port exposed.*/
             if (mapArgs["-rpcpassword"].size() < 20)
-                Sleep(250);
+                MilliSleep(250);
 
             conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << std::flush;
             break;

@@ -5,12 +5,14 @@
 #ifndef BITCOIN_WALLETDB_H
 #define BITCOIN_WALLETDB_H
 
-#include "dbx.h"
+#include "db.h"
 #include "base58.h"
 
 class CKeyPool;
 class CAccount;
 class CAccountingEntry;
+class CWallet;
+class CWalletTx;
 
 /** Error statuses for the wallet database */
 enum DBErrors
