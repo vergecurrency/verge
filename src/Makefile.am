@@ -138,7 +138,7 @@ libbitcoin_server_a_SOURCES = \
   checkpoints.cpp \
   init.cpp \
   db.cpp \
-  txdb-leveldb \
+  txdb-leveldb.cpp \
   bitcoinrpc.cpp \
   keystore.cpp \
   main.cpp \
