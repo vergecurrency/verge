@@ -141,7 +141,7 @@
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="text">
-          <string>0.00 BTC</string>
+          <string>0.00 XVG</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -221,7 +221,7 @@
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="text">
-          <string>0.00 BTC</string>
+          <string>0.00 XVG</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -307,7 +307,7 @@
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="text">
-          <string>0.00 BTC</string>
+          <string>0.00 XVG</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -345,7 +345,7 @@
           <enum>Qt::ActionsContextMenu</enum>
          </property>
          <property name="text">
-          <string>0.00 BTC</string>
+          <string>0.00 XVG</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -379,7 +379,7 @@
         <height>41</height>
        </rect>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayoutPanel" stretch="0,0,0,0">
+      <layout class="QHBoxLayout" name="horizontalLayoutPanel" stretch="0,0,0,0,0">
        <property name="spacing">
         <number>14</number>
        </property>
@@ -451,7 +451,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>12</number>
+      <number>11</number>
      </property>
      <attribute name="headerShowSortIndicator" stdset="0">
       <bool>true</bool>
@@ -471,7 +471,7 @@
      </column>
      <column>
       <property name="text">
-       <string notr="true">Label</string>
+       <string>Label</string>
       </property>
      </column>
      <column>
@@ -490,11 +490,6 @@
       </property>
       <property name="toolTip">
        <string>Confirmed</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Coin days</string>
       </property>
      </column>
      <column>

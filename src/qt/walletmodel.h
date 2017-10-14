@@ -2,8 +2,6 @@
 #define WALLETMODEL_H
 
 #include <QObject>
-#include <vector>
-#include <map>
 
 #include "allocators.h" /* for SecureString */
 
@@ -11,6 +9,7 @@ class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
 class CWallet;
+<<<<<<< HEAD
 <<<<<<< HEAD
 class CKeyID;
 class CPubKey;
@@ -22,6 +21,10 @@ class CCoinControl;
 
 =======
 >>>>>>> parent of bf2abfb... bloom filters
+=======
+class CPubKey;
+class CKeyID;
+>>>>>>> parent of fbb8249... finished coin control
 
 QT_BEGIN_NAMESPACE
 class QTimer;
@@ -80,7 +83,7 @@ public:
     // Return status record for SendCoins, contains error id + information
     struct SendCoinsReturn
     {
-        SendCoinsReturn(StatusCode status=Aborted,
+        SendCoinsReturn(StatusCode status,
                          qint64 fee=0,
                          QString hex=QString()):
             status(status), fee(fee), hex(hex) {}
@@ -90,7 +93,7 @@ public:
     };
 
     // Send coins to a list of recipients
-    SendCoinsReturn sendCoins(const QList<SendCoinsRecipient> &recipients, const CCoinControl *coinControl=NULL);
+    SendCoinsReturn sendCoins(const QList<SendCoinsRecipient> &recipients);
 
     // Wallet encryption
     bool setWalletEncrypted(bool encrypted, const SecureString &passphrase);
@@ -123,6 +126,7 @@ public:
     UnlockContext requestUnlock();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     
 	bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
     void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
@@ -137,6 +141,10 @@ public:
 =======
 	CWallet * getWallet();
 >>>>>>> parent of bf2abfb... bloom filters
+=======
+    bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
+    CWallet * getWallet();
+>>>>>>> parent of fbb8249... finished coin control
 
 private:
     CWallet *wallet;

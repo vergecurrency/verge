@@ -15,9 +15,12 @@ QT_FORMS_UI = \
   qt/forms/multisigaddressentry.ui \
   qt/forms/multisiginputentry.ui \
   qt/forms/multisigdialog.ui \
+<<<<<<< HEAD
   qt/forms/coincontroldialog.ui \
 =======
 >>>>>>> parent of 3e6867f... multisig 2/2
+=======
+>>>>>>> parent of fbb8249... finished coin control
   qt/forms/editaddressdialog.ui \
   qt/forms/overviewpage.ui \
   qt/forms/qrcodedialog.ui \
@@ -64,8 +67,6 @@ QT_MOC_CPP = \
   qt/moc_monitoreddatamapper.cpp \
   qt/moc_notificator.cpp \
   qt/moc_optionsdialog.cpp \
-  qt/moc_coincontroldialog.cpp \
-  qt/moc_coincontroltreewidget.cpp \
   qt/moc_optionsmodel.cpp \
   qt/moc_overviewpage.cpp \
   qt/moc_qvalidatedlineedit.cpp \
@@ -115,8 +116,6 @@ BITCOIN_QT_H = \
   qt/macnotificationhandler.h \
   qt/optionsdialog.h \
   qt/optionsmodel.h \
-  qt/coincontroldialog.h \
-  qt/coincontroltreewidget.h \
   qt/overviewpage.h \
   qt/qrcodedialog.h \
   qt/qvalidatedlineedit.h \
@@ -201,8 +200,6 @@ BITCOIN_QT_CPP = \
   qt/monitoreddatamapper.cpp \
   qt/notificator.cpp \
   qt/optionsdialog.cpp \
-  qt/coincontroldialog.cpp \
-  qt/coincontroltreewidget.cpp \
   qt/optionsmodel.cpp \
   qt/qvalidatedlineedit.cpp \
   qt/qvaluecombobox.cpp \
