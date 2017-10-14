@@ -69,10 +69,11 @@ void SendCoinsEntry::setModel(WalletModel *model)
 {
     this->model = model;
 
-    if(model && model->getOptionsModel())
-        connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
-
-    clear();
+    //if(model && model->getOptionsModel())
+    //    connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+	connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged()));
+    
+	clear();
 }
 
 void SendCoinsEntry::setRemoveEnabled(bool enabled)

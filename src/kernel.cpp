@@ -9,7 +9,6 @@
 
 using namespace std;
 
-extern int nStakeMaxAge;
 extern int nStakeTargetSpacing;
 
 // Modifier interval: time to elapse before new modifier is computed
