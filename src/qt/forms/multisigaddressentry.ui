@@ -43,9 +43,6 @@
        <property name="toolTip">
         <string>The public key of an address</string>
        </property>
-       <property name="placeholderText">
-        <string>Enter a public key</string>
-       </property>
       </widget>
      </item>
      <item>
@@ -106,9 +103,6 @@
        </property>
        <property name="toolTip">
         <string>Address associated to the public key</string>
-       </property>
-       <property name="placeholderText">
-        <string>Enter one of your addresses to get its public key</string>
        </property>
       </widget>
      </item>

@@ -11,6 +11,9 @@ QT_FORMS_UI = \
   qt/forms/addressbookpage.ui \
   qt/forms/askpassphrasedialog.ui \
   qt/forms/optionsdialog.ui \
+  qt/forms/multisigaddressentry.ui \
+  qt/forms/multisiginputentry.ui \
+  qt/forms/multisigdialog.ui \
   qt/forms/editaddressdialog.ui \
   qt/forms/overviewpage.ui \
   qt/forms/qrcodedialog.ui \
@@ -20,11 +23,8 @@ QT_FORMS_UI = \
   qt/forms/signverifymessagedialog.ui \
   qt/forms/chatwindow.ui \
   qt/forms/radio.ui \
-  qt/forms/transactiondescdialog.ui \
-  qt/forms/multisigaddressentry.ui \
-  qt/forms/multisiginputentry.ui \
-  qt/forms/multisigdialog.ui \
-  qt/forms/blockbrowser.ui 
+  qt/forms/blockbrowser.ui \
+  qt/forms/transactiondescdialog.ui
 
 QT_MOC_CPP = \
   qt/moc_aboutdialog.cpp \

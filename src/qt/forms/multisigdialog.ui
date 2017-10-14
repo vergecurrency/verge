@@ -148,9 +148,6 @@
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
-           <property name="placeholderText">
-            <string>Enter a number</string>
-           </property>
           </widget>
          </item>
          <item>
@@ -632,9 +629,6 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-             <property name="placeholderText">
-              <string>Enter a raw transaction or create a new one</string>
              </property>
             </widget>
            </item>
