@@ -94,7 +94,6 @@ BITCOIN_CORE_H = \
   blake2.h \
   blake2-impl.h \
   db.h \
-  txdb.h \
   txdb-leveldb.h \
   init.h \
   kernel.h \

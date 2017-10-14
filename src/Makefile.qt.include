@@ -11,10 +11,13 @@ QT_FORMS_UI = \
   qt/forms/addressbookpage.ui \
   qt/forms/askpassphrasedialog.ui \
   qt/forms/optionsdialog.ui \
+<<<<<<< HEAD
   qt/forms/multisigaddressentry.ui \
   qt/forms/multisiginputentry.ui \
   qt/forms/multisigdialog.ui \
   qt/forms/coincontroldialog.ui \
+=======
+>>>>>>> parent of 3e6867f... multisig 2/2
   qt/forms/editaddressdialog.ui \
   qt/forms/overviewpage.ui \
   qt/forms/qrcodedialog.ui \
@@ -25,12 +28,20 @@ QT_FORMS_UI = \
   qt/forms/chatwindow.ui \
   qt/forms/radio.ui \
 <<<<<<< HEAD
+<<<<<<< HEAD
   qt/forms/blockbrowser.ui \
   qt/forms/transactiondescdialog.ui
 =======
   qt/forms/transactiondescdialog.ui \
   qt/forms/blockbrowser.ui 
 >>>>>>> parent of 2859757... multi sig
+=======
+  qt/forms/transactiondescdialog.ui \
+  qt/forms/multisigaddressentry.ui \
+  qt/forms/multisiginputentry.ui \
+  qt/forms/multisigdialog.ui \
+  qt/forms/blockbrowser.ui 
+>>>>>>> parent of 3e6867f... multisig 2/2
 
 QT_MOC_CPP = \
   qt/moc_aboutdialog.cpp \

@@ -1,5 +1,10 @@
+#include <QClipboard>
+#include <QDialog>
+#include <QMessageBox>
+#include <QScrollBar>
+#include <vector>
+
 #include "addresstablemodel.h"
-#include "ui_multisigdialog.h"
 #include "base58.h"
 #include "key.h"
 #include "main.h"
@@ -7,18 +12,12 @@
 #include "multisigaddressentry.h"
 #include "multisiginputentry.h"
 #include "multisigdialog.h"
-
+#include "ui_multisigdialog.h"
 #include "script.h"
 #include "sendcoinsentry.h"
 #include "util.h"
 #include "wallet.h"
 #include "walletmodel.h"
-
-#include <QClipboard>
-#include <QDialog>
-#include <QMessageBox>
-#include <QScrollBar>
-#include <vector>
 
 
 MultisigDialog::MultisigDialog(QWidget *parent) : QDialog(parent), ui(new Ui::MultisigDialog), model(0)
@@ -42,18 +41,13 @@ MultisigDialog::MultisigDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Mu
 
     addInput();
     addOutput();
+    updateAmounts();
 
     connect(ui->addInputButton, SIGNAL(clicked()), this, SLOT(addInput()));
     connect(ui->addOutputButton, SIGNAL(clicked()), this, SLOT(addOutput()));
 
     ui->signTransactionButton->setEnabled(false);
     ui->sendTransactionButton->setEnabled(false);
-	
-#if QT_VERSION >= 0x040700
-    /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    ui->requiredSignatures->setPlaceholderText(tr("Enter a number"));
-    ui->transaction->setPlaceholderText(tr("Enter a raw transaction or create a new one"));
-#endif
 }
 
 MultisigDialog::~MultisigDialog()
@@ -87,8 +81,6 @@ void MultisigDialog::setModel(WalletModel *model)
         if(entry)
             entry->setModel(model);
     }
-	
-	updateAmounts();
 }
 
 void MultisigDialog::updateRemoveEnabled()
