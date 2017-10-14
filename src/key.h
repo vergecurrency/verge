@@ -96,6 +96,7 @@ public:
     std::vector<unsigned char> Raw() const {
         return vchPubKey;
     }
+	bool IsFullyValid() const;
 };
 
 

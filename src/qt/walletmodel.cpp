@@ -377,3 +377,8 @@ void WalletModel::UnlockContext::CopyFrom(const UnlockContext& rhs)
     *this = rhs;
     rhs.relock = false;
 }
+
+CWallet * WalletModel::getWallet()
+{
+    return wallet;
+}

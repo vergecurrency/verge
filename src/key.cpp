@@ -444,3 +444,12 @@ bool CKey::IsValid()
     key2.SetSecret(secret, fCompr);
     return GetPubKey() == key2.GetPubKey();
 }
+
+bool CPubKey::IsFullyValid() const {
+    if (!IsValid())
+        return false;
+    CKey key;
+    if (!key.SetPubKey(*this))
+        return false;
+    return true;
+}

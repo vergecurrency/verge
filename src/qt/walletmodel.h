@@ -108,6 +108,7 @@ public:
     };
 
     UnlockContext requestUnlock();
+	CWallet * getWallet();
 
 private:
     CWallet *wallet;
