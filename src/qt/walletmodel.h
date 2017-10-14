@@ -127,9 +127,6 @@ public:
     void listLockedCoins(std::vector<COutPoint>& vOutpts);
 	CWallet * getWallet();
 
-    bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
-    CWallet * getWallet();
-
 private:
     CWallet *wallet;
 
