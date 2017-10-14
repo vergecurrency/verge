@@ -9,6 +9,8 @@ class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
 class CWallet;
+class CPubKey;
+class CKeyID;
 
 QT_BEGIN_NAMESPACE
 class QTimer;
@@ -108,7 +110,8 @@ public:
     };
 
     UnlockContext requestUnlock();
-	CWallet * getWallet();
+    bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
+    CWallet * getWallet();
 
 private:
     CWallet *wallet;
