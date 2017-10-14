@@ -11,6 +11,7 @@ class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
 class CWallet;
+<<<<<<< HEAD
 class CKeyID;
 class CPubKey;
 class COutput;
@@ -19,6 +20,8 @@ class uint256;
 class CCoinControl;
 
 
+=======
+>>>>>>> parent of bf2abfb... bloom filters
 
 QT_BEGIN_NAMESPACE
 class QTimer;
@@ -119,6 +122,7 @@ public:
 
     UnlockContext requestUnlock();
 <<<<<<< HEAD
+<<<<<<< HEAD
     
 	bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
     void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
@@ -130,6 +134,9 @@ public:
     void listLockedCoins(std::vector<COutPoint>& vOutpts);
 =======
 >>>>>>> parent of 2859757... multi sig
+=======
+	CWallet * getWallet();
+>>>>>>> parent of bf2abfb... bloom filters
 
 private:
     CWallet *wallet;

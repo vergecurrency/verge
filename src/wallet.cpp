@@ -885,17 +885,18 @@ void CWalletTx::RelayWalletTransaction(CTxDB& txdb)
     {
         if (!(tx.IsCoinBase() || tx.IsCoinStake()))
         {
-            if (tx.GetDepthInMainChain() == 0)
-                RelayTransaction((CTransaction)tx, tx.GetHash());
+            uint256 hash = tx.GetHash();
+            if (!txdb.ContainsTx(hash))
+                RelayMessage(CInv(MSG_TX, hash), (CTransaction)tx);
         }
     }
     if (!(IsCoinBase() || IsCoinStake()))
     {
         uint256 hash = GetHash();
-        if (!GetDepthInMainChain() == 0)
+        if (!txdb.ContainsTx(hash))
         {
             printf("Relaying wtx %s\n", hash.ToString().substr(0,10).c_str());
-            RelayTransaction((CTransaction)*this, hash);
+            RelayMessage(CInv(MSG_TX, hash), (CTransaction)*this);
         }
     }
 }

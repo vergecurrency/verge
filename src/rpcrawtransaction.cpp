@@ -526,7 +526,7 @@ Value sendrawtransaction(const Array& params, bool fHelp)
 
         SyncWithWallets(tx, NULL, true);
     }
-    RelayTransaction(tx, hashTx);
+    RelayMessage(CInv(MSG_TX, hashTx), tx);
 
     return hashTx.GetHex();
 }

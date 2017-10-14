@@ -57,7 +57,6 @@ BITCOIN_CORE_H = \
   alert.h \
   allocators.h \
   base58.h \
-  bloom.h \
   bignum.h \
   bitcoinrpc.h \
   checkpoints.h \
@@ -79,7 +78,6 @@ BITCOIN_CORE_H = \
   sph_shavite.h \
   sph_sha2.h \
   sph_haval.h \
-  hash.h \
   hashgroestl.h \
   hashskein.h \
   hashqubit.h \
@@ -138,7 +136,6 @@ libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
-  bloom.cpp \
   checkpoints.cpp \
   init.cpp \
   db.cpp \
@@ -173,7 +170,6 @@ libbitcoin_common_a_SOURCES = \
   netbase.cpp \
   protocol.cpp \
   script.cpp \
-  hash.cpp \
   kernel.cpp \
   scrypt.cpp \
   groestl.c \
