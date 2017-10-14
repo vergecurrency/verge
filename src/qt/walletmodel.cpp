@@ -377,18 +377,13 @@ void WalletModel::UnlockContext::CopyFrom(const UnlockContext& rhs)
     *this = rhs;
     rhs.relock = false;
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 bool WalletModel::getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const
 {
     return wallet->GetPubKey(address, vchPubKeyOut);
 }
-=======
->>>>>>> parent of fbb8249... finished coin control
 
 CWallet * WalletModel::getWallet()
 {
     return wallet;
 }
-=======
->>>>>>> parent of 2859757... multi sig
