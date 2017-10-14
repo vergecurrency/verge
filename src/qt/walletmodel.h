@@ -118,6 +118,7 @@ public:
     };
 
     UnlockContext requestUnlock();
+<<<<<<< HEAD
     
 	bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
     void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
@@ -127,6 +128,8 @@ public:
     void lockCoin(COutPoint& output);
     void unlockCoin(COutPoint& output);
     void listLockedCoins(std::vector<COutPoint>& vOutpts);
+=======
+>>>>>>> parent of 2859757... multi sig
 
 private:
     CWallet *wallet;
