@@ -21,6 +21,9 @@ QT_FORMS_UI = \
   qt/forms/chatwindow.ui \
   qt/forms/radio.ui \
   qt/forms/transactiondescdialog.ui \
+  qt/forms/messagepage.ui \
+  qt/forms/sendmessagesdialog.ui \
+  qt/forms/sendmessagesentry.ui \
   qt/forms/blockbrowser.ui 
 
 QT_MOC_CPP = \
@@ -51,6 +54,11 @@ QT_MOC_CPP = \
   qt/moc_rpcconsole.cpp \
   qt/moc_sendcoinsdialog.cpp \
   qt/moc_sendcoinsentry.cpp \
+  qt/moc_messagemodel.cpp \
+  qt/moc_messagepage.cpp \
+  qt/moc_qvalidatedtextedit.cpp \
+  qt/moc_sendmessagesdialog.cpp \
+  qt/moc_sendmessagesentry.cpp \
   qt/moc_signverifymessagedialog.cpp \
   qt/moc_transactiondesc.cpp \
   qt/moc_transactiondescdialog.cpp \
@@ -88,6 +96,8 @@ BITCOIN_QT_H = \
   qt/guiconstants.h \
   qt/guiutil.h \
   qt/macdockiconhandler.h \
+  qt/messagemodel.h \
+  qt/messagepage.h \
   qt/monitoreddatamapper.h \
   qt/notificator.h \
   qt/macnotificationhandler.h \
@@ -96,6 +106,9 @@ BITCOIN_QT_H = \
   qt/overviewpage.h \
   qt/qrcodedialog.h \
   qt/qvalidatedlineedit.h \
+  qt/qvalidatedtextedit.h \
+  qt/sendmessagesdialog.h \
+  qt/sendmessagesentry.h \
   qt/qvaluecombobox.h \
   qt/rpcconsole.h \
   qt/sendcoinsdialog.h \
@@ -178,7 +191,6 @@ BITCOIN_QT_CPP = \
   qt/notificator.cpp \
   qt/optionsdialog.cpp \
   qt/optionsmodel.cpp \
-  qt/qvalidatedlineedit.cpp \
   qt/qvaluecombobox.cpp \
   qt/rpcconsole.cpp
 
@@ -188,6 +200,13 @@ BITCOIN_QT_CPP += \
   qt/addressbookpage.cpp \
   qt/addresstablemodel.cpp \
   qt/askpassphrasedialog.cpp \
+  qt/optionsmodel.cpp \
+  qt/qvalidatedtextedit.cpp \
+  qt/sendmessagesdialog.cpp \
+  qt/sendmessagesentry.cpp \
+  qt/qvalidatedlineedit.cpp \
+  qt/messagepage.cpp \
+  qt/messagemodel.cpp \
   qt/blockbrowser.cpp \
   qt/editaddressdialog.cpp \
   qt/overviewpage.cpp \

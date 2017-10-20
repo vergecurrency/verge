@@ -8,7 +8,7 @@
 
 #include "ui_interface.h"
 #include "base58.h"
-#include "json_spirit.h"
+#include "json/json_spirit.h"
 
 #include <QSet>
 #include <QTimer>
@@ -210,9 +210,14 @@ public:
     {
         // -- wallet is unlocked, can get at the private keys now
         refreshMessageTable();
-        
+
+#if QT_VERSION <0x050000
         parent->reset(); // reload table view
-        
+
+#else
+	parent->beginResetModel();
+	parent->endResetModel();
+#endif
         if (parent->proxyModel)
         {
             parent->proxyModel->setFilterRole(false);
@@ -232,7 +237,12 @@ public:
             // -- Wallet is locked, clear secure message display.
             cachedMessageTable.clear();
 
+#if QT_VERSION <0x050000
             parent->reset(); // reload table view
+#else
+	    parent->beginResetModel();
+	    parent->endResetModel();
+#endif
         };
     };
 

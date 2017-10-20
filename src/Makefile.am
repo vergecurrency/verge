@@ -63,6 +63,8 @@ BITCOIN_CORE_H = \
   clientversion.h \
   compat.h \
   crypter.h \
+  smessage.h \
+  xxhash/xxhash.h \
   sph_groestl.h \
   sph_types.h \
   sph_blake.h \
@@ -96,6 +98,7 @@ BITCOIN_CORE_H = \
   kernel.h \
   key.h \
   keystore.h \
+  lz4/lz4.h \
   main.h \
   mruset.h \
   netbase.h \
@@ -138,6 +141,7 @@ libbitcoin_server_a_SOURCES = \
   checkpoints.cpp \
   init.cpp \
   db.cpp \
+  smessage.cpp \
   txdb-leveldb.cpp \
   bitcoinrpc.cpp \
   keystore.cpp \
@@ -147,6 +151,7 @@ libbitcoin_server_a_SOURCES = \
   rpcblockchain.cpp \
   rpcmining.cpp \
   rpcnet.cpp \
+  rpcsmessage.cpp \
   rpcrawtransaction.cpp \
   $(JSON_H) \
   $(BITCOIN_CORE_H)
@@ -205,6 +210,8 @@ libbitcoin_util_a_SOURCES = \
   version.cpp \
   compat/glibc_sanity.cpp \
   compat/glibcxx_sanity.cpp \
+  lz4/lz4.c \
+  xxhash/xxhash.c \
   $(BITCOIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
