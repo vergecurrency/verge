@@ -270,7 +270,7 @@ static const CRPCCommand vRPCCommands[] =
     { "resendtx",               &resendtx,               false,  true},
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
-	{ "smsgenable",             &smsgenable,             false,  false},
+    { "smsgenable",             &smsgenable,             false,  false},
     { "smsgdisable",            &smsgdisable,            false,  false},
     { "smsglocalkeys",          &smsglocalkeys,          false,  false},
     { "smsgoptions",            &smsgoptions,            false,  false},
