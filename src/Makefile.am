@@ -112,6 +112,7 @@ BITCOIN_CORE_H = \
   ui_interface.h \
   uint256.h \
   util.h \
+  hash.h \
   version.h \
   walletdb.h \
   wallet.h

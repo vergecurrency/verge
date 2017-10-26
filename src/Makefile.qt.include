@@ -130,6 +130,7 @@ RES_ICONS = \
   qt/res/icons/social.png \
   qt/res/icons/radio.png \
   qt/res/icons/block.png \
+  qt/res/icons/visp.png \
   qt/res/icons/address-book.png \
   qt/res/icons/verge.ico \
   qt/res/icons/verge.png \

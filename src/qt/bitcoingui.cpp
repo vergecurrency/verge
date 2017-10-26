@@ -262,7 +262,7 @@ void BitcoinGUI::createActions()
     radioAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_0));
     tabGroup->addAction(radioAction);
 	
-	messageAction = new QAction(QIcon(":/icons/message"),tr("WraithMsg"), this);
+	messageAction = new QAction(QIcon(":/icons/visp"),tr("VispMsg"), this);
     messageAction->setToolTip(tr("View and Send Encrypted messages"));
     messageAction->setCheckable(true);
     messageAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));
