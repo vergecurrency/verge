@@ -354,8 +354,6 @@ public:
         return (unsigned char*)&pn[WIDTH];
     }
 
-	unsigned int size()
-
     unsigned int size()
     {
         return sizeof(pn);
