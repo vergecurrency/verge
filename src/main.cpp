@@ -3507,7 +3507,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                         pfrom->PushMessage("tx", ss);
                     }
                 }
-								if (!pushed)
+				if (!pushed)
                     vNotFound.push_back(inv);
             }
 
@@ -3515,7 +3515,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             Inventory(inv.hash);
         }
 		
-				if (!vNotFound.empty()) {
+		if (!vNotFound.empty()) {
             // Let the peer know that we didn't find what it asked for, so it doesn't
             // have to wait around forever. Currently only SPV clients actually care
             // about this message: it's needed when they are recursively walking the
