@@ -17,7 +17,6 @@
 typedef std::vector<unsigned char> valtype;
 
 class CTransaction;
-static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 520; // bytes
 static const unsigned int LOCKTIME_THRESHOLD = 500000000;
 
 /** Signature hash types/flags */

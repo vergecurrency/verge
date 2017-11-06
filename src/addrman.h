@@ -8,7 +8,6 @@
 #include "protocol.h"
 #include "util.h"
 #include "sync.h"
-#include "hash.h"
 
 
 #include <map>
