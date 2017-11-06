@@ -300,7 +300,7 @@ bool CheckLockTime(const CTransaction& txTo, unsigned int nIn, const CBigNum& nL
         return false;
     int nOpCount = 0;
 
-	bool fStrictEncodings = flags & SCRIPT_VERIFY_STRICTENC;
+	//bool fStrictEncodings = flags & SCRIPT_VERIFY_STRICTENC;
 
     try
     {

@@ -2134,7 +2134,8 @@ bool ScanChainForPublicKeys(CBlockIndex* pindexStart)
     
     printf("Scanned %u blocks, %u transactions, %u inputs\n", nBlocks, nTransactions, nInputs);
     printf("Found %u public keys, %u duplicates.\n", nPubkeys, nDuplicates);
-    printf("Took %"PRId64" ms\n", GetTimeMillis() - nStart);
+    //printf("Took %"PRId64" ms\n", GetTimeMillis() - nStart);
+    printf("Took %llu ms\n", GetTimeMillis() - nStart);
     
     return true;
 };
@@ -2313,7 +2314,8 @@ bool SecureMsgScanBuckets()
     };
     
     printf("Processed %u files, scanned %u messages, received %u messages.\n", nFiles, nMessages, nFoundMessages);
-    printf("Took %"PRId64" ms\n", GetTimeMillis() - mStart);
+    //printf("Took %"PRId64" ms\n", GetTimeMillis() - mStart);
+    printf("Took %llu ms\n", GetTimeMillis() - mStart);
     
     return true;
 }
@@ -3290,7 +3292,8 @@ int SecureMsgSetHash(unsigned char *pHeader, unsigned char *pPayload, uint32_t n
     if (!found)
     {
         if (fDebugSmsg)
-            printf("SecureMsgSetHash() failed, took %"PRId64" ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
+            //printf("SecureMsgSetHash() failed, took %"PRId64" ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
+	    printf("SecureMsgSetHash() failed, took %llu ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
         return 1;
     };
     
@@ -3298,7 +3301,8 @@ int SecureMsgSetHash(unsigned char *pHeader, unsigned char *pPayload, uint32_t n
     //memcpy(psmsg->hash, &vchHash[0], 4);
     
     if (fDebugSmsg)
-        printf("SecureMsgSetHash() took %"PRId64" ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
+        //printf("SecureMsgSetHash() took %"PRId64" ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
+        printf("SecureMsgSetHash() took %llu ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
     
     return 0;
 };
