@@ -59,6 +59,7 @@ BITCOIN_CORE_H = \
   base58.h \
   bignum.h \
   bitcoinrpc.h \
+  bloom.h \
   checkpoints.h \
   clientversion.h \
   compat.h \
@@ -93,6 +94,7 @@ BITCOIN_CORE_H = \
   blake2.h \
   blake2-impl.h \
   db.h \
+  hash.h \
   txdb-leveldb.h \
   init.h \
   kernel.h \
@@ -139,6 +141,7 @@ libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
+  bloom.cpp \
   checkpoints.cpp \
   init.cpp \
   db.cpp \
@@ -175,6 +178,7 @@ libbitcoin_common_a_SOURCES = \
   netbase.cpp \
   protocol.cpp \
   script.cpp \
+  hash.cpp \
   kernel.cpp \
   scrypt.cpp \
   groestl.c \
