@@ -37,8 +37,8 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #endif
 
 // Need a global reference for the notifications to find the GUI
-static BitcoinGUI *guiref;
-static QSplashScreen *splashref;
+static BitcoinGUI *guiref = NULL;
+static QSplashScreen *splashref = NULL;
 
 static void ThreadSafeMessageBox(const std::string& message, const std::string& caption, int style)
 {
@@ -88,7 +88,11 @@ static void InitMessage(const std::string &message)
 {
     if(splashref)
     {
-        splashref->showMessage(QString::fromStdString(message), Qt::AlignVCenter|Qt::AlignHCenter, QColor(255,255,200));
+        //splashref->showMessage(QString::fromStdString(message), Qt::AlignVCenter|Qt::AlignHCenter, QColor(255,255,200));
+		QMetaObject::invokeMethod(splashref, "showMessage", GUIUtil::blockingGUIThreadConnection(),
+                               Q_ARG(QString, QString::fromStdString(message)),
+                               Q_ARG(int, Qt::AlignVCenter|Qt::AlignHCenter),
+							   Q_ARG(const QColor &, QColor(255, 255, 200)));
         QApplication::instance()->processEvents();
     }
 }
