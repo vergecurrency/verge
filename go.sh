@@ -218,7 +218,7 @@ if echo "$answer" | grep -iq "^y" ;then
     until [ -e Verge*.zip ]
     do
     sleep 1
-    echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
+    echo "wget" $(lynx --dump --listonly https://verge-blockchain.com | grep -o "https:*.*zip") > link.sh
     sleep 1
     sh link.sh
     done
