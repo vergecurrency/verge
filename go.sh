@@ -214,19 +214,14 @@ echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\
 echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
 read answer
 if echo "$answer" | grep -iq "^y" ;then
-    sudo rm Verge-Blockchain*.zip
-    until [ -e Verge*.zip ]
-    do
-    sleep 1
-    echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
-    sleep 1
-    sh link.sh
-    done
-    
+    sudo rm go.sh-Verge-Blockchain.zip
+
+    wget --no-check-certificate https://verge-blockchain.com/blockchain/go.sh-Verge-Blockchain.zip
+
     #checksum
     sudo rm blockchain
     wget https://www.vergecurrency.com/checksums/blockchain
-    md5sum Verge-Blockchain*.zip > md5
+    md5sum go.sh-Verge-Blockchain.zip > md5
     checksum="$(grep $(cat md5) blockchain)"
     if [ -z "$checksum" ];
     then
@@ -234,11 +229,11 @@ if echo "$answer" | grep -iq "^y" ;then
     else
     echo "MD5 is matching...Success"
     fi
-    
-    unzip -o Verge-Blockchain*.zip -d ~/.VERGE
-    sudo rm Verge-Blockchain*.zip
+
+    unzip -o go.sh-Verge-Blockchain.zip -d ~/.VERGE
+    sudo rm go.sh-Verge-Blockchain.zip
 else
- echo "Blockchain will not be installed sync may be long"   
+ echo "Blockchain will not be installed sync may be long"
 fi
 
 # Create Icon on Desktop and in menu
