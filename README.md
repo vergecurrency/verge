@@ -189,7 +189,7 @@ Check out the [readme](https://github.com/vergecurrency/VERGE/tree/master/contri
 Want to to download the blockchain instead of waiting/syncing? (quicker)
 ------------
 download this .zip file, and extract it to your verge data directory:
-http://vergecurrency.de (follow the easy HOW TO instructions!)
+https://verge-blockchain.dom (follow the easy HOW TO instructions!)
 http://108.61.216.160/cryptochainer.chains/chains/Verge_blockchain.zip
 
 Want to 'solo-mine' from the wallet?
