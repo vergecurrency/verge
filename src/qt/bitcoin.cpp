@@ -91,8 +91,8 @@ static void InitMessage(const std::string &message)
         //splashref->showMessage(QString::fromStdString(message), Qt::AlignVCenter|Qt::AlignHCenter, QColor(255,255,200));
 		QMetaObject::invokeMethod(splashref, "showMessage", GUIUtil::blockingGUIThreadConnection(),
                                Q_ARG(QString, QString::fromStdString(message)),
-                               Q_ARG(int, Qt::AlignVCenter|Qt::AlignHCenter),
-							   Q_ARG(const QColor &, QColor(255, 255, 200)));
+                               Q_ARG(int, Qt::AlignBottom|Qt::AlignHCenter),
+							   Q_ARG(const QColor &, QColor(6, 197, 210)));
         QApplication::instance()->processEvents();
     }
 }
