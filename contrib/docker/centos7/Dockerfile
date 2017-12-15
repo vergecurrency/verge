@@ -29,6 +29,8 @@ WORKDIR /coin/git
 
 RUN ./autogen.sh && ./configure --with-gui=qt5 && make && mv src/VERGEd /coin/VERGEd
 
+ADD ./conf/VERGE.conf /root/.VERGE/VERGE.conf
+
 WORKDIR /coin
 VOLUME ["/coin/home"]
 
