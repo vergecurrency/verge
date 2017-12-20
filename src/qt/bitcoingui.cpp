@@ -80,10 +80,10 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     notificator(0),
     rpcConsole(0)
 {
-    setMinimumSize(970,500);   
+    setMinimumSize(970,500);
     resize(970, 500);
     setWindowTitle(tr("VERGE") + " - " + tr("Wallet"));
-    qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none;font-family:'Open Sans,sans-serif'; } #frame { } QToolBar QLabel { padding-top:15px;padding-bottom:10px;margin:0px; } #spacer { background:rgb(12,12,12);border:none; } #toolbar3 { border:none;width:1px; background-color: rgb(249,221,131); } #toolbar2 { border:none;width:5px; background-color:rgb(249,221,131); } #toolbar { border:none;height:100%;padding-top:20px; background: rgb(12,12,12); text-align: left; color: white;} QToolBar QToolButton:hover {background-color:qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,stop: 0 rgb(12,12,12), stop: 1 rgb(216,252,251),stop: 2 rgb(59,62,65));} QToolBar QToolButton { font-family:Century Gothic;padding-left:5px;padding-right:5px;padding-top:10px;padding-bottom:10px; color: white; text-align: left; background-color: rgb(12,12,12) } #labelMiningIcon { padding-left:5px;font-family:Century Gothic;font-size:10px;text-align:center;color:white; } QMenu { background: rgb(12,12,12); color:white; padding-bottom:10px; } QMenu::item { color:white; background-color: transparent; } QMenu::item:selected { background-color:qlineargradient(x1: 0, y1: 0, x2: 0.5, y2: 0.5,stop: 0 rgb(12,12,12), stop: 1 rgb(149,204,244)); } QMenuBar { background: rgb(12,12,12); color:white; } QMenuBar::item { font-size:12px;padding-bottom:8px;padding-top:5px;padding-left:5px;padding-right:5px;color:white; background-color: transparent; } QMenuBar::item:selected { background-color:qlineargradient(x1: 0, y1: 0, x2: 0.5, y2: 0.5,stop: 0 rgb(12,12,12), stop: 1 rgb(149,204,244)); }");
+    qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none;font-family:'Open Sans,sans-serif'; } #frame { } QToolBar QLabel { padding-top:15px;padding-bottom:10px;margin:0px; } #spacer { background:rgb(57,85,95);border:none; } #toolbar3 { border:none;width:1px; background-color: rgb(249,221,131); } #toolbar2 { border:none;width:5px; background-color:rgb(249,221,131); } #toolbar { border:none;height:100%;padding-top:20px; background: rgb(57,85,95); text-align: left; color: white;}  #labelMiningIcon { padding-left:5px;font-family:'Open Sans,sans-serif';font-size:10px;text-align:center;color:white; } QMenu { background: rgb(57,85,95); color:white; padding-bottom:10px; } QMenu::item { color:white; background-color: transparent; }  QMenuBar { background: rgb(57,85,95); color:white; } QMenuBar::item { font-size:12px;padding-bottom:8px;padding-top:5px;padding-left:5px;padding-right:5px;color:white; background-color: transparent; }");
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
     setWindowIcon(QIcon(":icons/bitcoin"));
@@ -216,7 +216,7 @@ void BitcoinGUI::createActions()
     overviewAction->setCheckable(true);
     overviewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_1));
     tabGroup->addAction(overviewAction);
-	
+
     chatAction = new QAction(QIcon(":/icons/social"), tr("&Chat"), this);
     chatAction->setToolTip(tr("View chat"));
     chatAction->setCheckable(true);
@@ -245,13 +245,13 @@ void BitcoinGUI::createActions()
     addressBookAction->setCheckable(true);
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
-	
+
 	blockAction = new QAction(QIcon(":/icons/block"), tr("&Block Explorer"), this);
     blockAction->setToolTip(tr("Explore the BlockChain"));
     blockAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
-	
+
 	radioAction = new QAction(QIcon(":/icons/radio"), tr("&Radio"), this);
     radioAction->setToolTip(tr("Verge Radio"));
     radioAction->setCheckable(true);
@@ -743,7 +743,7 @@ void BitcoinGUI::gotoBlockBrowser()
 {
     blockAction->setChecked(true);
     centralWidget->setCurrentWidget(blockBrowser);
-	
+
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
