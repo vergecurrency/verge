@@ -70,7 +70,7 @@
           </font>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:20px; font-weight:600; color:#000000;&quot;&gt;Block Explorer &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:20px; font-weight:400; color:#0b3b47;&quot;&gt;Block Explorer &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -126,7 +126,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;</string>
          </property>
@@ -218,7 +218,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;</string>
          </property>
@@ -249,7 +249,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;</string>
          </property>
@@ -404,7 +404,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;</string>
          </property>

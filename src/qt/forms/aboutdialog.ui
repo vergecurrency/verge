@@ -146,7 +146,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;
 min-width: 100px;
