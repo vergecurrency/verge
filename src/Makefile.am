@@ -156,6 +156,7 @@ libbitcoin_server_a_SOURCES = \
   rpcmining.cpp \
   rpcnet.cpp \
   rpcrawtransaction.cpp \
+  rpcsmessage.cpp \
   $(JSON_H) \
   $(BITCOIN_CORE_H)
 
@@ -166,6 +167,7 @@ libbitcoin_wallet_a_SOURCES = \
   crypter.cpp \
   rpcdump.cpp \
   rpcwallet.cpp \
+  rpcsmessage.cpp \
   wallet.cpp \
   walletdb.cpp \
   $(BITCOIN_CORE_H)
