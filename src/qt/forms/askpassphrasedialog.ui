@@ -56,7 +56,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;</string>
        </property>
@@ -80,7 +80,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;</string>
        </property>
@@ -104,7 +104,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 min-height: 25px;
 max-height: 25px;</string>
        </property>
@@ -139,7 +139,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #0b3b47;
 </string>
      </property>
      <property name="orientation">
