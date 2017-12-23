@@ -62,8 +62,10 @@ BITCOIN_CORE_H = \
   bitcoinrpc.h \
   checkpoints.h \
   clientversion.h \
+  coincontrol.h \
   compat.h \
   crypter.h \
+  lz4/lz4.h \
   sph_groestl.h \
   sph_types.h \
   sph_blake.h \
@@ -106,12 +108,15 @@ BITCOIN_CORE_H = \
   script.h \
   scrypt.h \
   serialize.h \
+  stealth.h \
+  smessage.h \
   strlcpy.h \
   sync.h \
   ui_interface.h \
   uint256.h \
   util.h \
   version.h \
+  xxhash/xxhash.h \
   walletdb.h \
   wallet.h
 
@@ -175,6 +180,8 @@ libbitcoin_common_a_SOURCES = \
   hash.cpp \
   kernel.cpp \
   scrypt.cpp \
+  smessage.cpp \
+  stealth.cpp \
   groestl.c \
   blake.c \
   blake2s-ref.c \
@@ -184,6 +191,7 @@ libbitcoin_common_a_SOURCES = \
   jh.c \
   keccak.c \
   luffa.c \
+  lz4/lz4.c \
   shavite.c \
   simd.c \
   skein.c \
@@ -198,6 +206,7 @@ libbitcoin_common_a_SOURCES = \
   Lyra2RE.c \
   Sponge.c \
   sph_sha2big.c \
+  xxhash/xxhash.c \
   $(BITCOIN_CORE_H)
 
 # util: shared between all executables.
