@@ -32,6 +32,7 @@
 
 typedef long long  int64;
 typedef unsigned long long  uint64;
+typedef int32_t int32;
 
 static const int64 COIN = 1000000;
 static const int64 CENT = 10000;
