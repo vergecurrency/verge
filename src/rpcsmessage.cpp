@@ -795,7 +795,7 @@ Value smsgbuckets(const Array& params, bool fHelp)
         uint64_t nBytes = 0;
         {
             LOCK(cs_smsg);
-            std::map<int64_t, SecMsgBucket>::iterator it;
+            std::map<int64, SecMsgBucket>::iterator it;
             it = smsgBuckets.begin();
             
             for (it = smsgBuckets.begin(); it != smsgBuckets.end(); ++it)
@@ -863,7 +863,7 @@ Value smsgbuckets(const Array& params, bool fHelp)
     {
         {
             LOCK(cs_smsg);
-            std::map<int64_t, SecMsgBucket>::iterator it;
+            std::map<int64, SecMsgBucket>::iterator it;
             it = smsgBuckets.begin();
             
             for (it = smsgBuckets.begin(); it != smsgBuckets.end(); ++it)
