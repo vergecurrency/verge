@@ -170,6 +170,7 @@ libbitcoin_wallet_a_SOURCES = \
   rpcsmessage.cpp \
   wallet.cpp \
   walletdb.cpp \
+  stealth.cpp \
   $(BITCOIN_CORE_H)
 
 # common: shared between bitcoind, and bitcoin-qt and non-server tools
