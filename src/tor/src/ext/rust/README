@@ -1,0 +1,5 @@
+The crates directory is a local mirror for the crates.io repository. Use
+
+    cargo vendor -x -v <path_to_this_repo>/crates
+
+to update when adding a new dependency or when updating an older version.
