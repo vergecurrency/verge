@@ -41,9 +41,10 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 Compiling Linux Wallet on Ubuntu/Debian (faster) 
 ----------------------
 
-```sudo rm -Rf ~/VERGE  #(if you already have it) ```
-
-```sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh```
+```shell
+sudo rm -Rf ~/VERGE  #(if you already have it)
+sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
+```
 
 
 Compiling Linux Wallet on Ubuntu/Debian
@@ -51,66 +52,77 @@ Compiling Linux Wallet on Ubuntu/Debian
 
 Step 1. Install the dependencies. 
 
-```sudo add-apt-repository ppa:bitcoin/bitcoin```
-
-```sudo apt-get update```
-
-```sudo apt-get install libdb4.8-dev libdb4.8++-dev build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev```
+```shell
+sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo apt-get update
+sudo apt-get install \
+    libdb4.8-dev libdb4.8++-dev build-essential \
+    libtool autotools-dev automake pkg-config libssl-dev libevent-dev \
+    bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 \
+    libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev \
+    qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+```
 
 **Note**: If you are on debian, you will also need to `apt-get install libcanberra-gtk-module`.
 
 Step 2. Clone the git repository and compile the daemon and gui wallet:
 
-```git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make```
+```shell
+git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
+```
 
 **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
 
 Using the wallet:
 ----
-The gui wallet is in ./verge/src/qt and the daemon in ./verge/src directories.
+The gui wallet is in `./verge/src/qt` and the daemon in `./verge/src` directories.
 
 **Note**: If you see something like 'Killed (program cc1plus)' run ```dmesg``` to see the error(s)/problems(s). This is most likely caused by running out of resources. You may need to add some RAM or add some swap space.
 
 **Optional**:
 If you want to copy the binaries for use by all users, run the following commands:
 
-```sudo cp src/VERGEd /usr/bin/```
+```shell
+sudo cp src/VERGEd /usr/bin/
+sudo cp src/qt/VERGE-qt /usr/bin/
+```
 
-```sudo cp src/qt/VERGE-qt /usr/bin/```
+Step 3. Creating a configuration file. Type `cd ~` to get back to the home folder and type:
 
-Step 3. Creating a configuration file. Type ```cd ~``` to get back to the home folder and type:
-
-```VERGEd.exe```  (or ```./VERGEd``` if on mac or linux)
+`VERGEd.exe`  (or `./VERGEd` if on mac or linux)
 
 the output from this command will tell you that you need to make a VERGE.conf and will suggest some good starting values.
 
 For Linux users, type:
- 
-```nano ~/.VERGE/VERGE.conf```
-(For Windows users, see below. For mac users, the command is ```nano ~/Library/Application\ Support\VERGE\VERGE.conf```)
-    
+
+`nano ~/.VERGE/VERGE.conf`
+(For Windows users, see below. For mac users, the command is `nano ~/Library/Application\ Support\VERGE\VERGE.conf`)
+
 Paste the output from the `VERGEd` command into the VERGE.conf like this: (It is recommended to change the password to something unique.)
 
-    rpcuser=vergerpcusername
-    rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
-    
-    
+```
+rpcuser=vergerpcusername
+rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
+```
+
 **Optional**: Add `rpcport=20102`, `port=21102`, or `algo=groestl` to the configuration file.
 
 Add `daemon=1`. 
 
 Your config may look something like this:
 
-    rpcuser=vergerpcusername
-    rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
-    rpcport=20102
-    port=21102
-    daemon=1
-    algo=groestl
+```
+rpcuser=vergerpcusername
+rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
+rpcport=20102
+port=21102
+daemon=1
+algo=groestl
+```
 
 Exit the VERGE.conf by pressing `ctrl + x` on your keyboard then pressing `y` and hitting enter. This should have created a VERGE.conf file with what you just added. 
 
-Type ```VERGEd.exe``` (or ```./VERGEd``` if on mac or linux) and your verge daemon should start.
+Type `VERGEd.exe` (or `./VERGEd` if on mac or linux) and your verge daemon should start.
 
 To check the status of how much of the blockchain has been downloaded (aka synced) type `VERGEd.exe getinfo` (or `./VERGEd getinfo` if on mac or linux).
 
@@ -124,37 +136,32 @@ To compile on Mac (OSX El Capitan, but test compiled on Mountain Lion v10.8):
    
 2. Download [qt5.4.2](https://download.qt.io/official_releases/qt/5.4/5.4.2/qt-opensource-mac-x64-clang-5.4.2.dmg)
      
-3. Install qt5 into /usr/local/qt5
-   
-   Note: Change the installation folder from "xxx/Qt5.4.2" to "/usr/local/qt5"
+3. Install qt5 into `/usr/local/qt5`
+
+   Note: Change the installation folder from `xxx/Qt5.4.2` to `/usr/local/qt5`
    
 4. Run these commands:
 
-    `export PKG_CONFIG_PATH=/usr/local/qt5/5.4/clang_64/lib/pkgconfig`
-    
-    `export PATH=/usr/local/qt5/5.4/clang_64/bin:$PATH`
-    
-    `export QT_CFLAGS="-I/usr/local/qt5/5.4/clang_64/lib/QtWebKitWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebView.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtDBus.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebKit.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtNetwork.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtGui.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtCore.framework/Versions/5/Headers -I. -I/usr/local/qt5/5.4/clang_64/mkspecs/macx-clang -F/usr/local/qt5/5.4/clang_64/lib"`
-    
-    `export QT_LIBS="-F/usr/local/qt5/5.4/clang_64/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus -framework QtWebView"`
-    
-    
+    ```shell
+    export PKG_CONFIG_PATH=/usr/local/qt5/5.4/clang_64/lib/pkgconfig    
+    export PATH=/usr/local/qt5/5.4/clang_64/bin:$PATH
+    export QT_CFLAGS="-I/usr/local/qt5/5.4/clang_64/lib/QtWebKitWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebView.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtDBus.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtWebKit.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtNetwork.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtGui.framework/Versions/5/Headers -I/usr/local/qt5/5.4/clang_64/lib/QtCore.framework/Versions/5/Headers -I. -I/usr/local/qt5/5.4/clang_64/mkspecs/macx-clang -F/usr/local/qt5/5.4/clang_64/lib"
+    export QT_LIBS="-F/usr/local/qt5/5.4/clang_64/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus -framework QtWebView"
+    ```
+
 5. Install the other required items:
 
     `brew install protobuf boost miniupnpc openssl qrencode berkeley-db4 automake`
     
 6. Download the wallet source and build:
 
-    `git clone https://github.com/vergecurrency/verge`
-
-    `cd verge`
-    
-    `./autogen.sh`
-    
-    `./configure --with-gui=qt5`
-    
-    `make -j4`
-    
+    ```shell
+    git clone https://github.com/vergecurrency/verge
+    cd verge
+    ./autogen.sh
+    ./configure --with-gui=qt5
+    make -j4
+    ```
 
 Building the Mac installer (.dmg) file
 -----
@@ -162,24 +169,25 @@ Run `make deploy`
 
 If you are building the .dmg (by running 'mac deploy') you may need to run these commands if you get an error regarding mysql:
 
-    brew install mysql
-    
-    cd /usr/local/qt5/5.4/clang_64/plugins/sqldrivers
-    
-    otool -L libqsqlmysql.dylib
+```shell
+brew install mysql
+cd /usr/local/qt5/5.4/clang_64/plugins/sqldrivers
+otool -L libqsqlmysql.dylib
+```
 
 Note: This may be pointing to an version of mysql that you do not have installed (like mysql55) - Alternatively, you may be able to remove the library from the sqldrivers folder.
 
-    install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.12/lib/libmysqlclient.20.dylib libqsqlmysql.dylib
-    
+```
+install_name_tool -change /opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib /usr/local/Cellar/mysql/5.7.12/lib/libmysqlclient.20.dylib libqsqlmysql.dylib
+```
+
 Trying to build .dmg on 10.8? You will need to run this:
-    
-    export CFLAGS=-Qunused-arguments
-    
-    export CPPFLAGS=-Qunused-arguments
-    
-    sudo -E easy_install appscript
-    
+
+```shell
+export CFLAGS=-Qunused-arguments
+export CPPFLAGS=-Qunused-arguments
+sudo -E easy_install appscript
+```
 
 Want to use Docker?
 ------------
@@ -194,7 +202,7 @@ http://108.61.216.160/cryptochainer.chains/chains/Verge_blockchain.zip
 
 Want to 'solo-mine' from the wallet?
 ----------
-You can use the wallet to mine. You need to specify the algorithm (see below) and set the "gen" flag. For instance, in the configuration specify ```gen=1```. 
+You can use the wallet to mine. You need to specify the algorithm (see below) and set the "gen" flag. For instance, in the configuration specify `gen=1`. 
 
 
 Using different algorithms (for mining)
@@ -202,11 +210,13 @@ Using different algorithms (for mining)
 
 To use a specific mining algorithm use the `algo` switch in your configuration file (.conf file) or from the command line (like this `--algo=x17`) Here are the possible values:
 
-    algo=x17
-    algo=scrypt
-    algo=groestl
-    algo=lyra
-    algo=blake
+```
+algo=x17
+algo=scrypt
+algo=groestl
+algo=lyra
+algo=blake
+```
 
 Using VERGE on Windows
 -------------
