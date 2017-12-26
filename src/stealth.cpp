@@ -22,14 +22,14 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     if (!DecodeBase58(encodedAddress, raw))
     {
         if (fDebug)
-            printf("CStealthAddress::SetEncoded DecodeBase58 falied.\n");
+            printf("CStealthAddress::SetEncoded DecodeBase58 failed.\n");
         return false;
     };
     
     if (!VerifyChecksum(raw))
     {
         if (fDebug)
-            printf("CStealthAddress::SetEncoded verify_checksum falied.\n");
+            printf("CStealthAddress::SetEncoded verify_checksum failed.\n");
         return false;
     };
     
@@ -653,13 +653,13 @@ bool IsStealthAddress(const std::string& encodedAddress)
     
     if (!DecodeBase58(encodedAddress, raw))
     {
-        //printf("IsStealthAddress DecodeBase58 falied.\n");
+        //printf("IsStealthAddress DecodeBase58 failed.\n");
         return false;
     };
     
     if (!VerifyChecksum(raw))
     {
-        //printf("IsStealthAddress verify_checksum falied.\n");
+        //printf("IsStealthAddress verify_checksum failed.\n");
         return false;
     };
     
