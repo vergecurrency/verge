@@ -113,9 +113,13 @@ protected:
     bool fSet;
     bool fCompressedPubKey;
 
-public:
-    void SetCompressedPubKey();
 
+public:
+	
+	void SetCompressedPubKey();
+    void SetUnCompressedPubKey();
+    EC_KEY* GetECKey();
+	
     void Reset();
 
     CKey();
@@ -137,7 +141,6 @@ public:
     CPubKey GetPubKey() const;
 
     bool Sign(uint256 hash, std::vector<unsigned char>& vchSig);
-    EC_KEY* GetECKey();
 
     // create a compact signature (65 bytes), which allows reconstructing the used public key
     // The format is one header byte, followed by two times 32 bytes for the serialized r and s values.

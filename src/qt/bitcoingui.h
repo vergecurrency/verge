@@ -9,10 +9,12 @@
 class TransactionTableModel;
 class ClientModel;
 class WalletModel;
+class MessageModel;
 class TransactionView;
 class OverviewPage;
 class BlockBrowser;
 class Radio;
+class MessagePage;
 class ChatWindow;
 class AddressBookPage;
 class SendCoinsDialog;
@@ -51,6 +53,7 @@ public:
         functionality.
     */
     void setWalletModel(WalletModel *walletModel);
+	void setMessageModel(MessageModel *messageModel);
 
 protected:
     void changeEvent(QEvent *e);
@@ -61,13 +64,14 @@ protected:
 private:
     ClientModel *clientModel;
     WalletModel *walletModel;
-
+	MessageModel *messageModel;
     QStackedWidget *centralWidget;
 
     OverviewPage *overviewPage;
 	BlockBrowser *blockBrowser;
     ChatWindow *chatWindow;
 	Radio *radioPage;
+	MessagePage *messagePage;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
@@ -85,6 +89,7 @@ private:
 	QAction *blockAction;
     QAction *chatAction;
 	QAction *radioAction;
+	QAction *messageAction;
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
@@ -162,7 +167,8 @@ private slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage();
-
+	/** Switch to secure messages page */
+	void gotoMessagePage();
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
@@ -181,6 +187,7 @@ private slots:
         The new items are those between start and end inclusive, under the given parent item.
     */
     void incomingTransaction(const QModelIndex & parent, int start, int end);
+	void incomingMessage(const QModelIndex & parent, int start, int end);
     /** Encrypt the wallet */
     void encryptWallet(bool status);
     /** Backup the wallet */

@@ -5,6 +5,7 @@
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "optionsmodel.h"
+#include "messagemodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
 
@@ -36,8 +37,8 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #endif
 
 // Need a global reference for the notifications to find the GUI
-static BitcoinGUI *guiref;
-static QSplashScreen *splashref;
+static BitcoinGUI *guiref = NULL;
+static QSplashScreen *splashref = NULL;
 
 static void ThreadSafeMessageBox(const std::string& message, const std::string& caption, int style)
 {
@@ -87,7 +88,11 @@ static void InitMessage(const std::string &message)
 {
     if(splashref)
     {
-        splashref->showMessage(QString::fromStdString(message), Qt::AlignVCenter|Qt::AlignHCenter, QColor(255,255,200));
+        //splashref->showMessage(QString::fromStdString(message), Qt::AlignVCenter|Qt::AlignHCenter, QColor(255,255,200));
+		QMetaObject::invokeMethod(splashref, "showMessage", GUIUtil::blockingGUIThreadConnection(),
+                               Q_ARG(QString, QString::fromStdString(message)),
+                               Q_ARG(int, Qt::AlignBottom|Qt::AlignHCenter),
+							   Q_ARG(const QColor &, QColor(6, 197, 210)));
         QApplication::instance()->processEvents();
     }
 }
@@ -230,9 +235,11 @@ int main(int argc, char *argv[])
 
                 ClientModel clientModel(&optionsModel);
                 WalletModel walletModel(pwalletMain, &optionsModel);
+				MessageModel messageModel(pwalletMain, &walletModel);
 
                 window.setClientModel(&clientModel);
                 window.setWalletModel(&walletModel);
+				window.setMessageModel(&messageModel);
 
                 // If -min option passed, start window minimized.
                 if(GetBoolArg("-min"))
@@ -252,6 +259,7 @@ int main(int argc, char *argv[])
                 window.hide();
                 window.setClientModel(0);
                 window.setWalletModel(0);
+				window.setMessageModel(0);
                 guiref = 0;
             }
             // Shutdown the core and its threads, but don't exit Bitcoin-Qt here

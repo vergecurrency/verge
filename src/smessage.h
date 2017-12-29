@@ -1,4 +1,5 @@
 // Copyright (c) 2014 The ShadowCoin developers
+// Copyright (c) 2017 Verge
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef SEC_MESSAGE_H
@@ -377,4 +378,3 @@ int SecureMsgDecrypt(bool fTestOnly, std::string& address, SecureMessage& smsg, 
 
 
 #endif // SEC_MESSAGE_H
-

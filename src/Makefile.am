@@ -57,15 +57,14 @@ BITCOIN_CORE_H = \
   alert.h \
   allocators.h \
   base58.h \
-  bloom.h \
   bignum.h \
   bitcoinrpc.h \
   checkpoints.h \
   clientversion.h \
-  coincontrol.h \
   compat.h \
   crypter.h \
-  lz4/lz4.h \
+  smessage.h \
+  xxhash/xxhash.h \
   sph_groestl.h \
   sph_types.h \
   sph_blake.h \
@@ -94,12 +93,12 @@ BITCOIN_CORE_H = \
   blake2.h \
   blake2-impl.h \
   db.h \
-  hash.h \
   txdb-leveldb.h \
   init.h \
   kernel.h \
   key.h \
   keystore.h \
+  lz4/lz4.h \
   main.h \
   mruset.h \
   netbase.h \
@@ -108,17 +107,17 @@ BITCOIN_CORE_H = \
   script.h \
   scrypt.h \
   serialize.h \
-  stealth.h \
-  smessage.h \
   strlcpy.h \
   sync.h \
   ui_interface.h \
   uint256.h \
   util.h \
+  hash.h \
   version.h \
-  xxhash/xxhash.h \
   walletdb.h \
-  wallet.h
+  wallet.h \
+  src/qt/httpsocket.h \
+  src/qt/stealthsend.h 
 
 JSON_H = \
   json/json_spirit.h \
@@ -142,10 +141,10 @@ libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
-  bloom.cpp \
   checkpoints.cpp \
   init.cpp \
   db.cpp \
+  smessage.cpp \
   txdb-leveldb.cpp \
   bitcoinrpc.cpp \
   keystore.cpp \
@@ -155,8 +154,86 @@ libbitcoin_server_a_SOURCES = \
   rpcblockchain.cpp \
   rpcmining.cpp \
   rpcnet.cpp \
-  rpcrawtransaction.cpp \
   rpcsmessage.cpp \
+  rpcrawtransaction.cpp \
+  src/tor/address.c \
+  src/tor/addressmap.c \
+  src/tor/aes.c \
+  src/tor/anonymize.cpp \
+  src/tor/backtrace.c \
+  src/tor/buffers.c \
+  src/tor/channel.c \
+  src/tor/channeltls.c \
+  src/tor/circpathbias.c \
+  src/tor/circuitbuild.c \
+  src/tor/circuitlist.c \
+  src/tor/circuitmux.c \
+  src/tor/circuitmux_ewma.c \
+  src/tor/circuitstats.c \
+  src/tor/circuituse.c \
+  src/tor/command.c \
+  src/tor/compat.c \
+  src/tor/compat_libevent.c \
+  src/tor/config.c \
+  src/tor/config_codedigest.c \
+  src/tor/confparse.c \
+  src/tor/connection.c \
+  src/tor/connection_edge.c \
+  src/tor/connection_or.c \
+  src/tor/container.c \
+  src/tor/control.c \
+  src/tor/cpuworker.c \
+  src/tor/crypto.c \    
+  src/tor/crypto_curve25519.c \
+  src/tor/crypto_format.c \
+  src/tor/curve25519-donna.c \
+  src/tor/di_ops.c \
+  src/tor/directory.c \
+  src/tor/dirserv.c \
+  src/tor/dirvote.c \
+  src/tor/dns.c \
+  src/tor/dnsserv.c \
+  src/tor/entrynodes.c \
+  src/tor/ext_orport.c \
+  src/tor/fp_pair.c \
+  src/tor/geoip.c \
+  src/tor/hibernate.c \
+  src/tor/log.c \
+  src/tor/memarea.c \
+  src/tor/mempool.c \
+  src/tor/microdesc.c \
+  src/tor/networkstatus.c \
+  src/tor/nodelist.c \
+  src/tor/onion.c \
+  src/tor/onion_fast.c \
+  src/tor/onion_main.c \
+  src/tor/onion_ntor.c \
+  src/tor/onion_tap.c \
+  src/tor/policies.c \
+  src/tor/stealth.cpp \
+  src/tor/procmon.c \
+  src/tor/reasons.c \
+  src/tor/relay.c \
+  src/tor/rendclient.c \
+  src/tor/rendcommon.c \
+  src/tor/rendmid.c \
+  src/tor/rendservice.c \
+  src/tor/rephist.c \
+  src/tor/replaycache.c \
+  src/tor/router.c \
+  src/tor/routerlist.c \
+  src/tor/routerparse.c \
+  src/tor/routerset.c \
+  src/tor/sandbox.c \
+  src/tor/statefile.c \
+  src/tor/status.c \
+  src/tor/strlcat.c \
+  src/tor/strlcpy.c \
+  src/tor/tor_util.c \
+  src/tor/torgzip.c \
+  src/tor/tortls.c \
+  src/tor/transports.c \
+  src/tor/util_codedigest.c \
   $(JSON_H) \
   $(BITCOIN_CORE_H)
 
@@ -167,10 +244,10 @@ libbitcoin_wallet_a_SOURCES = \
   crypter.cpp \
   rpcdump.cpp \
   rpcwallet.cpp \
-  rpcsmessage.cpp \
   wallet.cpp \
   walletdb.cpp \
-  stealth.cpp \
+  src/qt/httpsocket.cpp \
+  src/qt/stealthsend.cpp \
   $(BITCOIN_CORE_H)
 
 # common: shared between bitcoind, and bitcoin-qt and non-server tools
@@ -180,11 +257,8 @@ libbitcoin_common_a_SOURCES = \
   netbase.cpp \
   protocol.cpp \
   script.cpp \
-  hash.cpp \
   kernel.cpp \
   scrypt.cpp \
-  smessage.cpp \
-  stealth.cpp \
   groestl.c \
   blake.c \
   blake2s-ref.c \
@@ -194,7 +268,6 @@ libbitcoin_common_a_SOURCES = \
   jh.c \
   keccak.c \
   luffa.c \
-  lz4/lz4.c \
   shavite.c \
   simd.c \
   skein.c \
@@ -209,7 +282,6 @@ libbitcoin_common_a_SOURCES = \
   Lyra2RE.c \
   Sponge.c \
   sph_sha2big.c \
-  xxhash/xxhash.c \
   $(BITCOIN_CORE_H)
 
 # util: shared between all executables.
@@ -221,6 +293,8 @@ libbitcoin_util_a_SOURCES = \
   version.cpp \
   compat/glibc_sanity.cpp \
   compat/glibcxx_sanity.cpp \
+  lz4/lz4.c \
+  xxhash/xxhash.c \
   $(BITCOIN_CORE_H)
 
 if GLIBC_BACK_COMPAT

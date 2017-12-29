@@ -18,7 +18,7 @@
 #include "netbase.h"
 #include "protocol.h"
 #include "addrman.h"
-#include "bloom.h"
+#include "hash.h"
 
 class CRequestTracker;
 class CNode;
@@ -37,10 +37,11 @@ void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
 CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, int64 nTimeout=0);
-void MapPort();
+void MapPort(bool fUseUPnP);
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
 void StartNode(void* parg);
+void StartTor(void* parg);
 bool StopNode();
 
 enum
@@ -72,9 +73,6 @@ enum
 {
     MSG_TX = 1,
     MSG_BLOCK,
-	// Nodes may always request a MSG_FILTERED_BLOCK in a getdata, however,
-    // MSG_FILTERED_BLOCK should not appear in any invs except as a part of getdata.
-    MSG_FILTERED_BLOCK,
 };
 
 class CRequestTracker
@@ -109,14 +107,13 @@ enum threadId
     THREAD_ADDEDCONNECTIONS,
     THREAD_DUMPADDRESS,
     THREAD_RPCHANDLER,
+	THREAD_IMPORT,
     THREAD_MINTER,
 
     THREAD_MAX
 };
 
 extern bool fClient;
-extern bool fDiscover;
-extern bool fUseUPnP;
 extern uint64 nLocalServices;
 extern uint64 nLocalHostNonce;
 extern CAddress addrSeenByPeer;
@@ -131,6 +128,61 @@ extern CCriticalSection cs_mapRelay;
 extern std::map<CInv, int64> mapAlreadyAskedFor;
 
 
+
+
+class CNodeStats
+{
+public:
+    uint64 nServices;
+    int64 nLastSend;
+    int64 nLastRecv;
+    int64 nTimeConnected;
+    std::string addrName;
+    int nVersion;
+    std::string cleanSubVer;
+    bool fInbound;
+    int64 nReleaseTime;
+    int nStartingHeight;
+    int nMisbehavior;
+};
+
+class CNetMessage {
+public:
+    bool in_data;                   // parsing header (false) or data (true)
+
+    CDataStream hdrbuf;             // partially received header
+    CMessageHeader hdr;             // complete header
+    unsigned int nHdrPos;
+
+    CDataStream vRecv;              // received message data
+    unsigned int nDataPos;
+
+    int64_t nTime;                  // time (in microseconds) of message receipt.
+
+    CNetMessage(int nTypeIn, int nVersionIn) : hdrbuf(nTypeIn, nVersionIn), vRecv(nTypeIn, nVersionIn) {
+        hdrbuf.resize(24);
+        in_data = false;
+        nHdrPos = 0;
+        nDataPos = 0;
+        nTime = 0;
+    }
+
+bool complete() const
+    {
+        if (!in_data)
+            return false;
+        return (hdr.nMessageSize == nDataPos);
+    }
+
+    void SetVersion(int nVersionIn)
+    {
+        hdrbuf.SetVersion(nVersionIn);
+        vRecv.SetVersion(nVersionIn);
+    }
+
+    int readHeader(const char *pch, unsigned int nBytes);
+    int readData(const char *pch, unsigned int nBytes);
+};
 
 class SecMsgNode
 {
@@ -156,26 +208,6 @@ public:
     
 };
 
-class CNodeStats
-{
-public:
-    uint64 nServices;
-    int64 nLastSend;
-    int64 nLastRecv;
-    int64 nTimeConnected;
-    std::string addrName;
-    int nVersion;
-    std::string strSubVer;
-    bool fInbound;
-    int64 nReleaseTime;
-    int nStartingHeight;
-    int nMisbehavior;
-};
-
-
-
-
-
 /** Information about a peer */
 class CNode
 {
@@ -197,21 +229,15 @@ public:
     std::string addrName;
     CService addrLocal;
     int nVersion;
-    std::string strSubVer;
+    std::string strSubVer, cleanSubVer;
     bool fOneShot;
     bool fClient;
     bool fInbound;
+	bool fVerified;
     bool fNetworkNode;
     bool fSuccessfullyConnected;
     bool fDisconnect;
-	// We use fRelayTxes for two purposes -
-    // a) it allows us to not relay tx invs before receiving the peer's version message
-    // b) the peer may tell us in their version message that we should not relay tx invs
-    //    until they have initialized their bloom filter.
-    bool fRelayTxes;
     CSemaphoreGrant grantOutbound;
-	CCriticalSection cs_filter;
-    CBloomFilter* pfilter;
 protected:
     int nRefCount;
 
@@ -242,8 +268,7 @@ public:
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
     std::multimap<int64, CInv> mapAskFor;
-
-    SecMsgNode smsgData;
+	SecMsgNode smsgData;
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : vSend(SER_NETWORK, MIN_PROTO_VERSION), vRecv(SER_NETWORK, MIN_PROTO_VERSION)
     {
@@ -262,6 +287,7 @@ public:
         fOneShot = false;
         fClient = false; // set by version message
         fInbound = fInboundIn;
+		fVerified = false;
         fNetworkNode = false;
         fSuccessfullyConnected = false;
         fDisconnect = false;
@@ -273,13 +299,12 @@ public:
         nStartingHeight = -1;
         fGetAddr = false;
         nMisbehavior = 0;
-		fRelayTxes = false;
         hashCheckpointKnown = 0;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
-		pfilter = new CBloomFilter();
 
         // Be shy and don't send version until we hear
-        if (hSocket != INVALID_SOCKET && !fInbound)
+        if (!fInbound)
+			printf("CNode(): pfrom-addr %s\n", addrName.c_str());
             PushVersion();
     }
 
@@ -290,9 +315,6 @@ public:
             closesocket(hSocket);
             hSocket = INVALID_SOCKET;
         }
-		
-		if (pfilter)
-            delete pfilter;
     }
 
 private:
@@ -687,11 +709,53 @@ public:
     void copyStats(CNodeStats &stats);
 };
 
-class CTransaction;
-class CTxIn;
-class CTxOut;
 
-void RelayTransaction(const CTransaction& tx, const uint256& hash);
-void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
+
+
+
+
+
+
+
+
+inline void RelayInventory(const CInv& inv)
+{
+    // Put on lists to offer to the other nodes
+    {
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodes)
+            pnode->PushInventory(inv);
+    }
+}
+
+template<typename T>
+void RelayMessage(const CInv& inv, const T& a)
+{
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss.reserve(10000);
+    ss << a;
+    RelayMessage(inv, ss);
+}
+
+template<>
+inline void RelayMessage<>(const CInv& inv, const CDataStream& ss)
+{
+    {
+        LOCK(cs_mapRelay);
+        // Expire old relay messages
+        while (!vRelayExpiration.empty() && vRelayExpiration.front().first < GetTime())
+        {
+            mapRelay.erase(vRelayExpiration.front().second);
+            vRelayExpiration.pop_front();
+        }
+
+        // Save original serialized message so newer versions are preserved
+        mapRelay.insert(std::make_pair(inv, ss));
+        vRelayExpiration.push_back(std::make_pair(GetTime() + 15 * 60, inv));
+    }
+
+    RelayInventory(inv);
+}
+
 
 #endif
