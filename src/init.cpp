@@ -14,6 +14,7 @@
 #include "ui_interface.h"
 #include "checkpoints.h"
 #include "scrypt.h"
+#include "smessage.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -82,6 +83,7 @@ void Shutdown(void* parg)
     if (fFirstThread)
     {
         fShutdown = true;
+		SecureMsgShutdown();
         nTransactionsUpdated++;
         bitdb.Flush(false);
         StopNode();
@@ -289,7 +291,12 @@ std::string HelpMessage()
         "  -rpcssl                                  " + _("Use OpenSSL (https) for JSON-RPC connections") + "\n" +
         "  -rpcsslcertificatechainfile=<file.cert>  " + _("Server certificate file (default: server.cert)") + "\n" +
         "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n" +
-        "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)") + "\n";
+        "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)") + "\n"; +
+
+		"\n" + _("Secure messaging options:") + "\n" +
+        "  -nosmsg                                  " + _("Disable secure messaging.") + "\n" +
+        "  -debugsmsg                               " + _("Log extra debug messages.") + "\n" +
+        "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n";
 
     return strUsage;
 }
@@ -408,9 +415,15 @@ bool AppInit2()
 
     // -debug implies fDebug*
     if (fDebug)
-        fDebugNet = true;
-    else
-        fDebugNet = GetBoolArg("-debugnet");
+   {
+        fDebugNet  = true;
+        fDebugSmsg = true;
+    } else
+    {
+        fDebugNet  = GetBoolArg("-debugnet");
+        fDebugSmsg = GetBoolArg("-debugsmsg");
+    }
+    fNoSmsg = GetBoolArg("-nosmsg");
 
 #if !defined(WIN32)
     fDaemon = GetBoolArg("-daemon") && fHeadless;
@@ -808,31 +821,16 @@ bool AppInit2()
 
     // ********************************************************* Step 9: import blocks
 
+	std::vector<boost::filesystem::path> *vPath = new std::vector<boost::filesystem::path>();
     if (mapArgs.count("-loadblock"))
     {
-        uiInterface.InitMessage(_("Importing blockchain data file."));
 
         BOOST_FOREACH(string strFile, mapMultiArgs["-loadblock"])
-        {
-            FILE *file = fopen(strFile.c_str(), "rb");
-            if (file)
-                LoadExternalBlockFile(file);
-        }
+			vPath->push_back(strFile);
     }
+	NewThread(ThreadImport, vPath);
 
-    filesystem::path pathBootstrap = GetDataDir() / "bootstrap.dat";
-    if (filesystem::exists(pathBootstrap)) {
-        uiInterface.InitMessage(_("Importing bootstrap blockchain data file."));
-
-        FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
-        if (file) {
-            filesystem::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
-            LoadExternalBlockFile(file);
-            RenameOver(pathBootstrap, pathBootstrapOld);
-        }
-    }
-
-    // ********************************************************* Step 10: load peers
+    // ********************************************************* Step 10.1: load peers
 
     uiInterface.InitMessage(_("Loading addresses..."));
     printf("Loading addresses...\n");
@@ -846,6 +844,10 @@ bool AppInit2()
 
     printf("Loaded %i addresses from peers.dat  %" PRI64d"ms\n",
            addrman.size(), GetTimeMillis() - nStart);
+		   
+	// ********************************************************* Step 10.b: startup secure messaging
+    
+    SecureMsgStart(fNoSmsg, GetBoolArg("-smsgscanchain"));
 
     // ********************************************************* Step 11: start node
 
