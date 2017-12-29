@@ -12,6 +12,7 @@
 #include <QLocale>
 #include <QTextDocument>
 #include <QScrollBar>
+#include "stealthsend.h"
 
 SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
     QDialog(parent),

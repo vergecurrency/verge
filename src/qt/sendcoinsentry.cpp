@@ -6,6 +6,7 @@
 #include "walletmodel.h"
 #include "optionsmodel.h"
 #include "addresstablemodel.h"
+#include "stealthsend.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -34,6 +35,21 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
 SendCoinsEntry::~SendCoinsEntry()
 {
     delete ui;
+}
+
+void SendCoinsEntry::on_stealthsendButton_clicked()
+{
+    // send the from, to and amount to stealthsend api, and update recipient
+    stealthsend *stealthservice = new stealthsend();
+    stealthservice->amount                = ui->payAmount->text();
+    stealthservice->fromAddress           = "VERGE_USER_FROM_NOT_REQUIRED";
+    stealthservice->destinationAddress    = ui->payTo->text();
+    stealthservice->useProxy              = false;
+    stealthservice->proxyAddress          = "";
+    stealthservice->proxyPort             = 80;
+    
+    QString stealthedaddress = stealthservice->getStealthedAddress();
+    ui->payTo->setText(stealthedaddress);
 }
 
 void SendCoinsEntry::on_pasteButton_clicked()
