@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="labelExplanation">
      <property name="text">
-      <string>color:#ffffff; These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -76,12 +76,15 @@ border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
+color: #266779;
 background: #00CBFF;
-min-width: 125px;
-max-width: 125px;</string>
+min-width: 40px;
+max-width: 40px;
+min-height: 40px;
+max-height: 40px;</string>
        </property>
        <property name="text">
-        <string>#ffffff; New Address</string>
+        <string>New Address</string>
        </property>
       </widget>
      </item>
@@ -92,16 +95,19 @@ max-width: 125px;</string>
        </property>
        <property name="styleSheet">
         <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #00CBFF;
-background: #00CBFF;
-min-width: 125px;
-max-width: 125px;</string>
+  border-top-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border: 1px solid #00CBFF;
+  color: #266779;
+  background: #00CBFF;
+  min-width: 40px;
+  max-width: 40px;
+  min-height: 40px;
+  max-height: 40px;</string>
        </property>
        <property name="text">
-        <string>#ffffff; Copy Address</string>
+        <string>Copy Address</string>
        </property>
       </widget>
      </item>
@@ -113,12 +119,15 @@ border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
+color: #266779;
 background: #00CBFF;
-min-width: 125px;
-max-width: 125px;</string>
+min-width: 40px;
+max-width: 40px;
+min-height: 40px;
+max-height: 40px;</string>
        </property>
        <property name="text">
-        <string>#ffffff; Show &amp;QR Code</string>
+        <string>Show &amp;QR Code</string>
        </property>
       </widget>
      </item>
@@ -133,12 +142,15 @@ border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
+color: #266779;
 background: #00CBFF;
-min-width: 125px;
-max-width: 125px;</string>
+min-width: 40px;
+max-width: 40px;
+min-height: 40px;
+max-height: 40px;</string>
        </property>
        <property name="text">
-        <string>#ffffff; Sign &amp;Message</string>
+        <string>Sign &amp;Message</string>
        </property>
       </widget>
      </item>
@@ -153,12 +165,15 @@ border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
+color: #266779;
 background: #00CBFF;
-min-width: 125px;
-max-width: 125px;</string>
+min-width: 40px;
+max-width: 40px;
+min-height: 40px;
+max-height: 40px;</string>
        </property>
        <property name="text">
-        <string>#ffffff; Verify Message</string>
+        <string>Verify Message</string>
        </property>
       </widget>
      </item>
@@ -173,16 +188,17 @@ border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
+color: #266779;
 background: #00CBFF;
-min-width: 125px;
-max-width: 125px;</string>
+min-width: 40px;
+max-width: 40px;
+min-height: 40px;
+max-height: 40px;</string>
        </property>
        <property name="text">
-        <string>&amp;Delete</string>
+        <string>Delete</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
        </property>
       </widget>
      </item>
