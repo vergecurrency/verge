@@ -16,7 +16,7 @@ files:
 - "boost_1_55_0.tar.bz2"
 - "db-4.8.30.NC.tar.gz"
 - "miniupnpc-1.9.tar.gz"
-- "openssl-1.1.0g.tar.gz"
+- "openssl-1.0.1g.tar.gz"
 - "protobuf-2.5.0.tar.bz2"
 - "qrencode-3.4.3.tar.bz2"
 - "MacOSX10.6.pkg"
