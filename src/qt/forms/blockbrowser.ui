@@ -70,7 +70,7 @@
           </font>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:20px; font-weight:400; color:#0b3b47;&quot;&gt;Block Explorer &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:20px; font-weight:400; color:#ffffff;&quot;&gt;Block Explorer &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -126,19 +126,19 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
+border: 1px solid #ffffff;
 min-height: 25px;
 max-height: 25px;</string>
          </property>
          <property name="text">
-          <string>Decode Transaction</string>
+          <string>color:#ffffff; Decode Transaction</string>
          </property>
         </widget>
        </item>
        <item row="17" column="0">
         <widget class="QLabel" name="inputLabel">
          <property name="text">
-          <string>Inputs:</string>
+          <string>color:#ffffff; Inputs:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -148,35 +148,35 @@ max-height: 25px;</string>
        <item row="10" column="1">
         <widget class="QLabel" name="pawBox">
          <property name="text">
-          <string>0000 KH/s</string>
+          <string>color:#ffffff; 0000 KH/s</string>
          </property>
         </widget>
        </item>
        <item row="14" column="0">
         <widget class="QLabel" name="valueLabel">
          <property name="text">
-          <string>Value out:</string>
+          <string>color:#ffffff; Value out:</string>
          </property>
         </widget>
        </item>
        <item row="13" column="0">
         <widget class="QLabel" name="txLabel">
          <property name="text">
-          <string>Transaction ID:</string>
+          <string>color:#ffffff; Transaction ID:</string>
          </property>
         </widget>
        </item>
        <item row="9" column="1">
         <widget class="QLabel" name="hardBox">
          <property name="text">
-          <string>0.00</string>
+          <string>color:#ffffff; 0.00</string>
          </property>
         </widget>
        </item>
        <item row="13" column="1">
         <widget class="QLabel" name="txID">
          <property name="text">
-          <string>000</string>
+          <string>color:#ffffff; 000</string>
          </property>
         </widget>
        </item>
@@ -200,7 +200,7 @@ max-height: 25px;</string>
        <item row="9" column="0">
         <widget class="QLabel" name="hardLabel">
          <property name="text">
-          <string>Block Difficulty:</string>
+          <string>color:#ffffff; Block Difficulty:</string>
          </property>
         </widget>
        </item>
@@ -230,7 +230,7 @@ max-height: 25px;</string>
        <item row="3" column="0">
         <widget class="QLabel" name="heightLabel_2">
          <property name="text">
-          <string>Block Height:</string>
+          <string>color:#ffffff; Block Height:</string>
          </property>
         </widget>
        </item>
@@ -249,26 +249,26 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
+border: 1px solid #ffffff;
 min-height: 25px;
 max-height: 25px;</string>
          </property>
          <property name="text">
-          <string>Jump to Block</string>
+          <string>color:#ffffff; Jump to Block</string>
          </property>
         </widget>
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="merkleLabel">
          <property name="text">
-          <string>Block Merkle:</string>
+          <string>color:#ffffff; Block Merkle:</string>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="hashLabel">
          <property name="text">
-          <string>Block Hash:</string>
+          <string>color:#ffffff; Block Hash:</string>
          </property>
         </widget>
        </item>
@@ -282,7 +282,7 @@ max-height: 25px;</string>
        <item row="10" column="0">
         <widget class="QLabel" name="pawLabel">
          <property name="text">
-          <string>Block Hashrate:</string>
+          <string>color:#ffffff; Block Hashrate:</string>
          </property>
         </widget>
        </item>
@@ -296,14 +296,14 @@ max-height: 25px;</string>
        <item row="15" column="0">
         <widget class="QLabel" name="feesLabel">
          <property name="text">
-          <string>Fees:</string>
+          <string>color:#ffffff; Fees:</string>
          </property>
         </widget>
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="bitsLabel">
          <property name="text">
-          <string>Block nBits:</string>
+          <string>color:#ffffff; Block nBits:</string>
          </property>
         </widget>
        </item>
@@ -330,7 +330,7 @@ max-height: 25px;</string>
        <item row="16" column="0">
         <widget class="QLabel" name="outputLabel">
          <property name="text">
-          <string>Outputs:</string>
+          <string>color:#ffffff; Outputs:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -350,7 +350,7 @@ max-height: 25px;</string>
        <item row="6" column="0">
         <widget class="QLabel" name="nonceLabel">
          <property name="text">
-          <string>Block nNonce:</string>
+          <string>color:#ffffff; Block nNonce:</string>
          </property>
         </widget>
        </item>
@@ -364,7 +364,7 @@ max-height: 25px;</string>
        <item row="8" column="0">
         <widget class="QLabel" name="timeLabel">
          <property name="text">
-          <string>Block Timestamp:</string>
+          <string>color:#ffffff; Block Timestamp:</string>
          </property>
         </widget>
        </item>
