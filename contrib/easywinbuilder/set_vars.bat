@@ -4,7 +4,7 @@
 @set LANG=en_US.UTF8
 @set LC_ALL=en_US.UTF8
 
-@set OPENSSL=openssl-1.0.1e
+@set OPENSSL=openssl-1.1.0g
 @set BERKELEYDB=db-4.8.30.NC
 @set BOOST=boost_1_54_0
 @set BOOSTVERSION=1.54.0
