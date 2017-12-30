@@ -78,10 +78,10 @@ border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
 color: #266779;
 background: #00CBFF;
-min-width: 40px;
-max-width: 40px;
-min-height: 40px;
-max-height: 40px;</string>
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>New Address</string>
@@ -101,10 +101,10 @@ max-height: 40px;</string>
   border: 1px solid #00CBFF;
   color: #266779;
   background: #00CBFF;
-  min-width: 40px;
-  max-width: 40px;
-  min-height: 40px;
-  max-height: 40px;</string>
+  min-width: 125px;
+  max-width: 125px;
+  min-height: 30px;
+  max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Copy Address</string>
@@ -121,10 +121,10 @@ border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
 color: #266779;
 background: #00CBFF;
-min-width: 40px;
-max-width: 40px;
-min-height: 40px;
-max-height: 40px;</string>
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Show &amp;QR Code</string>
@@ -144,10 +144,10 @@ border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
 color: #266779;
 background: #00CBFF;
-min-width: 40px;
-max-width: 40px;
-min-height: 40px;
-max-height: 40px;</string>
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Sign &amp;Message</string>
@@ -167,10 +167,10 @@ border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
 color: #266779;
 background: #00CBFF;
-min-width: 40px;
-max-width: 40px;
-min-height: 40px;
-max-height: 40px;</string>
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Verify Message</string>
@@ -190,10 +190,10 @@ border-bottom-right-radius: 5px;
 border: 1px solid #00CBFF;
 color: #266779;
 background: #00CBFF;
-min-width: 40px;
-max-width: 40px;
-min-height: 40px;
-max-height: 40px;</string>
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Delete</string>
