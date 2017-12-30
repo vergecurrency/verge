@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="labelExplanation">
      <property name="text">
-      <string>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</string>
+      <string>color:#ffffff; These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -41,7 +41,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;</string>
+border: 1px solid #000000;</string>
      </property>
      <property name="tabKeyNavigation">
       <bool>false</bool>
@@ -75,16 +75,13 @@ border: 2px solid #000000;</string>
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+border: 1px solid #00CBFF;
+background: #00CBFF;
+min-width: 125px;
+max-width: 125px;</string>
        </property>
        <property name="text">
-        <string>&amp;New Address</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
+        <string>#ffffff; New Address</string>
        </property>
       </widget>
      </item>
@@ -98,16 +95,13 @@ max-width: 95px;</string>
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+border: 1px solid #00CBFF;
+background: #00CBFF;
+min-width: 125px;
+max-width: 125px;</string>
        </property>
        <property name="text">
-        <string>&amp;Copy Address</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/editcopy</normaloff>:/icons/editcopy</iconset>
+        <string>#ffffff; Copy Address</string>
        </property>
       </widget>
      </item>
@@ -118,16 +112,13 @@ max-width: 95px;</string>
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+border: 1px solid #00CBFF;
+background: #00CBFF;
+min-width: 125px;
+max-width: 125px;</string>
        </property>
        <property name="text">
-        <string>Show &amp;QR Code</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/qrcode</normaloff>:/icons/qrcode</iconset>
+        <string>#ffffff; Show &amp;QR Code</string>
        </property>
       </widget>
      </item>
@@ -141,16 +132,13 @@ max-width: 95px;</string>
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+border: 1px solid #00CBFF;
+background: #00CBFF;
+min-width: 125px;
+max-width: 125px;</string>
        </property>
        <property name="text">
-        <string>Sign &amp;Message</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/edit</normaloff>:/icons/edit</iconset>
+        <string>#ffffff; Sign &amp;Message</string>
        </property>
       </widget>
      </item>
@@ -164,16 +152,13 @@ max-width: 95px;</string>
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+border: 1px solid #00CBFF;
+background: #00CBFF;
+min-width: 125px;
+max-width: 125px;</string>
        </property>
        <property name="text">
-        <string>&amp;Verify Message</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/transaction_0</normaloff>:/icons/transaction_0</iconset>
+        <string>#ffffff; Verify Message</string>
        </property>
       </widget>
      </item>
@@ -187,9 +172,10 @@ max-width: 95px;</string>
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+border: 1px solid #00CBFF;
+background: #00CBFF;
+min-width: 125px;
+max-width: 125px;</string>
        </property>
        <property name="text">
         <string>&amp;Delete</string>
