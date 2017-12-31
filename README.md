@@ -171,7 +171,7 @@ If you are building the .dmg (by running 'mac deploy') you may need to run these
 
 ```shell
 brew install mysql
-cd /usr/local/qt5/5.9.3/clang_64/plugins/sqldrivers
+cd /usr/local/qt5/5.10.0/clang_64/plugins/sqldrivers
 otool -L libqsqlmysql.dylib
 ```
 
