@@ -16,8 +16,12 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="labelExplanation">
+      <property name="styleSheet">
+       <string notr="true">
+ color: #ffffff;</string>
+      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -71,13 +75,14 @@ border: 1px solid #000000;</string>
         <string>Create a new address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #00CBFF;
-color: #266779;
-background: #00CBFF;
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
 min-width: 125px;
 max-width: 125px;
 min-height: 30px;
@@ -94,17 +99,18 @@ max-height: 30px;</string>
         <string>Copy the currently selected address to the system clipboard</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid #00CBFF;
-  color: #266779;
-  background: #00CBFF;
-  min-width: 125px;
-  max-width: 125px;
-  min-height: 30px;
-  max-height: 30px;</string>
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Copy Address</string>
@@ -114,13 +120,14 @@ max-height: 30px;</string>
      <item>
       <widget class="QPushButton" name="showQRCode">
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #00CBFF;
-color: #266779;
-background: #00CBFF;
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
 min-width: 125px;
 max-width: 125px;
 min-height: 30px;
@@ -137,13 +144,14 @@ max-height: 30px;</string>
         <string>Sign a message to prove you own a VERGE address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #00CBFF;
-color: #266779;
-background: #00CBFF;
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
 min-width: 125px;
 max-width: 125px;
 min-height: 30px;
@@ -160,13 +168,14 @@ max-height: 30px;</string>
         <string>Verify a message to ensure it was signed with a specified VERGE address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #00CBFF;
-color: #266779;
-background: #00CBFF;
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
 min-width: 125px;
 max-width: 125px;
 min-height: 30px;
@@ -183,13 +192,14 @@ max-height: 30px;</string>
         <string>Delete the currently selected address from the list</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #00CBFF;
-color: #266779;
-background: #00CBFF;
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
 min-width: 125px;
 max-width: 125px;
 min-height: 30px;
@@ -224,11 +234,12 @@ max-height: 30px;</string>
         </sizepolicy>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
+        <string notr="true">
+border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #000000;
 min-width: 85px;
 max-width: 85px;</string>
        </property>
