@@ -1,7 +1,6 @@
 #brew install boost pkg-config
 brew uninstall qt5
-brew install protobuf miniupnpc openssl qrencode
-brew install https://raw.github.com/mxcl/homebrew/master/Library/Formula/berkeley-db4.rb -–without-java
+brew install autoconf automake libtool boost miniupnpc openssl pkg-config protobuf qrencode berkeley-db4
 cd ..
 db-4.8.30/dist/configure --prefix=/usr/local/Cellar/berkeley-db4/4.8.30 --mandir=/usr/local/Cellar/berkeley-db4/4.8.30/share/man --enable-cxx
 make
