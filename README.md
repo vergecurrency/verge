@@ -134,19 +134,19 @@ To compile on Mac (OSX El Capitan, but test compiled on Mountain Lion v10.8):
 
     `brew uninstall qt qt5 qt55 qt52`
 
-2. Download [qt5.5.0](https://download.qt.io/archive/qt/5.5/5.5.0/qt-opensource-mac-x64-clang-5.5.0.dmg)
+2. Download [qt5.10.0](https://download.qt.io/official_releases/qt/5.10/5.10.0/qt-opensource-mac-x64-5.10.0.dmg)
 
 3. Install qt5 into `/usr/local/qt5`
 
-   Note: Change the installation folder from `xxx/Qt5.5.0` to `/usr/local/qt5`
+   Note: Change the installation folder from `xxx/Qt5.10.0` to `/usr/local/qt5`
 
 4. Run these commands:
 
     ```shell
-    export PKG_CONFIG_PATH=/usr/local/qt5/5.5/clang_64/lib/pkgconfig
-    export PATH=/usr/local/qt5/5.5/clang_64/bin:$PATH
-    export QT_CFLAGS="-I/usr/local/qt5/5.5/clang_64/lib/QtWebKitWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.5/clang_64/lib/QtWebView.framework/Versions/5/Headers -I/usr/local/qt5/5.5/clang_64/lib/QtDBus.framework/Versions/5/Headers -I/usr/local/qt5/5.5/clang_64/lib/QtWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.5/clang_64/lib/QtWebKit.framework/Versions/5/Headers -I/usr/local/qt5/5.5/clang_64/lib/QtNetwork.framework/Versions/5/Headers -I/usr/local/qt5/5.5/clang_64/lib/QtGui.framework/Versions/5/Headers -I/usr/local/qt5/5.5/clang_64/lib/QtCore.framework/Versions/5/Headers -I. -I/usr/local/qt5/5.5/clang_64/mkspecs/macx-clang -F/usr/local/qt5/5.5/clang_64/lib"
-    export QT_LIBS="-F/usr/local/qt5/5.5/clang_64/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus -framework QtWebView"
+    export PKG_CONFIG_PATH=/usr/local/qt5/5.10.0/clang_64/lib/pkgconfig
+    export PATH=/usr/local/qt5/5.10.0/clang_64/bin:$PATH
+    export QT_CFLAGS="-I/usr/local/qt5/5.10.0/clang_64/lib/QtWebKitWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.10.0/clang_64/lib/QtWebView.framework/Versions/5/Headers -I/usr/local/qt5/5.10.0/clang_64/lib/QtDBus.framework/Versions/5/Headers -I/usr/local/qt5/5.10.0/clang_64/lib/QtWidgets.framework/Versions/5/Headers -I/usr/local/qt5/5.10.0/clang_64/lib/QtWebKit.framework/Versions/5/Headers -I/usr/local/qt5/5.10.0/clang_64/lib/QtNetwork.framework/Versions/5/Headers -I/usr/local/qt5/5.10.0/clang_64/lib/QtGui.framework/Versions/5/Headers -I/usr/local/qt5/5.10.0/clang_64/lib/QtCore.framework/Versions/5/Headers -I. -I/usr/local/qt5/5.10.0/clang_64/mkspecs/macx-clang -F/usr/local/qt5/5.10.0/clang_64/lib"
+    export QT_LIBS="-F/usr/local/qt5/5.10.0/clang_64/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus -framework QtWebView"
     ```
 
 5. Install the other required items:
@@ -171,7 +171,7 @@ If you are building the .dmg (by running 'mac deploy') you may need to run these
 
 ```shell
 brew install mysql
-cd /usr/local/qt5/5.4/clang_64/plugins/sqldrivers
+cd /usr/local/qt5/5.10.0/clang_64/plugins/sqldrivers
 otool -L libqsqlmysql.dylib
 ```
 
