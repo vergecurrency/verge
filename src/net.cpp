@@ -28,7 +28,9 @@
 using namespace std;
 using namespace boost;
 
-extern "C" { int tor_main(int argc, char *argv[]); }
+extern "C" {
+    int tor_main(int argc, char *argv[]);
+}
 
 static const int MAX_OUTBOUND_CONNECTIONS = 16;
 
@@ -53,6 +55,7 @@ struct LocalServiceInfo {
 // Global state variables
 //
 bool fClient = false;
+bool fDiscover = true;
 bool fUseUPnP = false;
 uint64 nLocalServices = (fClient ? 0 : NODE_NETWORK);
 static CCriticalSection cs_mapLocalHost;
