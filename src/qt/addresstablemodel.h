@@ -28,8 +28,8 @@ public:
 
     enum ColumnIndex {
         Label = 0,   /**< User specified label */
-        Address = 1  /**< Verge Public address */
-		Type = 2 /** < Verge Stealth Address */
+        Address = 1,  /**< Verge Public address */
+		Type = 2, /** < Verge Stealth Address */
     };
 
     enum RoleIndex {
