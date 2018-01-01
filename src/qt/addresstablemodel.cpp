@@ -21,10 +21,11 @@ struct AddressTableEntry
     Type type;
     QString label;
     QString address;
+	bool stealth;
 
     AddressTableEntry() {}
-    AddressTableEntry(Type type, const QString &label, const QString &address):
-        type(type), label(label), address(address) {}
+    AddressTableEntry(Type type, const QString &label, const QString &address, const bool &stealth = false):
+	type(type), label(label), address(address), stealth(stealth) {}
 };
 
 struct AddressTableEntryLessThan
