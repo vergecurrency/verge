@@ -1465,11 +1465,13 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
     wtxNew.BindWallet(this);
 
     {
+		CTxDB txdb("r");
         LOCK2(cs_main, cs_wallet);
         // txdb must be opened before the mapWallet lock
-        CTxDB txdb("r");
+        
         {
-            nFeeRet = nTransactionFee;
+            nFeeRet = 0.01*COIN;
+			int64_t nFee = 0.01*COIN;
             while (true)
             {
                 wtxNew.vin.clear();
@@ -1480,8 +1482,15 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 double dPriority = 0;
                 // vouts to the payees
                 BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
-                    wtxNew.vout.push_back(CTxOut(s.second, s.first));
-
+                    {
+						CTxOut txout(s.second, s.first);
+						if (txout.IsDust(MIN_RELAY_TX_FEE))
+						{
+							strFailReason = _("Transaction amount too small");
+							return false;
+						}
+						wtxNew.vout.push_back(txout);
+					}
                 // Choose coins to use
                 set<pair<const CWalletTx*,unsigned int> > setCoins;
                 int64 nValueIn = 0;
@@ -1607,7 +1616,8 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, std::strin
     //    narration output will be for preceding output
     
     int nChangePos;
-    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, nChangePos, coinControl);
+	std::string strFailReason;
+    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, nChangePos, strFailReason, coinControl);
     
     // -- narration will be added to mapValue later in FindStealthTransactions From CommitTransaction
     return rv;
