@@ -32,7 +32,6 @@ QT_MOC_CPP = \
   qt/moc_blockbrowser.cpp \
   qt/moc_clientmodel.cpp \
   qt/moc_csvmodelwriter.cpp \
-  qt/moc_serveur.cpp \
   qt/moc_editaddressdialog.cpp \
   qt/moc_guiutil.cpp \
   qt/moc_macdockiconhandler.cpp \
@@ -102,7 +101,6 @@ BITCOIN_QT_H = \
   qt/transactionrecord.h \
   qt/transactiontablemodel.h \
   qt/transactionview.h \
-  qt/serveur.h \
   qt/walletmodel.h
 
 RES_ICONS = \
@@ -162,7 +160,6 @@ BITCOIN_QT_CPP = \
   qt/blockbrowser.cpp \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
-  qt/serveur.cpp \
   qt/guiutil.cpp \
   qt/monitoreddatamapper.cpp \
   qt/notificator.cpp \
@@ -181,7 +178,6 @@ BITCOIN_QT_CPP += \
   qt/blockbrowser.cpp \
   qt/editaddressdialog.cpp \
   qt/overviewpage.cpp \
-  qt/serveur.cpp \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
   qt/signverifymessagedialog.cpp \
