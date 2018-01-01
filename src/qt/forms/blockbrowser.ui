@@ -129,8 +129,6 @@ border-bottom-right-radius: 3px;
 border: 1px solid #10829F;
 color: #ffffff;
 background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
 min-height: 30px;
 max-height: 30px;</string>
          </property>
@@ -256,8 +254,6 @@ border-bottom-right-radius: 3px;
 border: 1px solid #10829F;
 color: #ffffff;
 background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
 min-height: 30px;
 max-height: 30px;</string>
          </property>
