@@ -1450,7 +1450,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 }
 
 
-bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, int32_t& nChangePos)
+// bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, int32_t& nChangePos)
+// bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
+bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
 {
     int64 nValue = 0;
     BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
@@ -1470,7 +1472,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
         // txdb must be opened before the mapWallet lock
         
         {
-            nFeeRet = 0.01*COIN;
+            // nFeeRet = 0.01*COIN;
+            nFeeRet = nTransactionFee;
             while (true)
             {
                 wtxNew.vin.clear();
@@ -1537,18 +1540,21 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     scriptChange.SetDestination(vchPubKey.GetID());
 
                     // Insert change txn at random position:
-                    vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size() + 1);
-                    
+                    // vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size() + 1);
+                    // Insert change txn at random position:
+                    vector<CTxOut>::iterator position = wtxNew.vout.begin() + GetRandInt(wtxNew.vout.size());
+                    wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
+
                     // -- don't put change output between value and narration outputs
-                    if (position > wtxNew.vout.begin() && position < wtxNew.vout.end())
-                    {
-                        while (position > wtxNew.vout.begin())
-                        {
-                            if (position->nValue != 0)
-                                break;
-                            position--;
-                        };
-                    };
+                    // if (position > wtxNew.vout.begin() && position < wtxNew.vout.end())
+                    // {
+                    //     while (position > wtxNew.vout.begin())
+                    //     {
+                    //         if (position->nValue != 0)
+                    //             break;
+                    //         position--;
+                    //     };
+                    // };
                 }
                 else
                     reservekey.ReturnKey();
@@ -1612,8 +1618,7 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, std::strin
     // -- CreateTransaction won't place change between value and narr output.
     //    narration output will be for preceding output
     
-    int nChangePos;
-    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, nChangePos);
+    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet);
     
     // -- narration will be added to mapValue later in FindStealthTransactions From CommitTransaction
     return rv;
@@ -1956,8 +1961,7 @@ bool CWallet::CreateStealthTransaction(CScript scriptPubKey, int64_t nValue, std
     // -- shuffle inputs, change output won't mix enough as it must be not fully random for plantext narrations
     std::random_shuffle(vecSend.begin(), vecSend.end());
     
-    int nChangePos;
-    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, nChangePos);
+    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet);
     
     // -- the change txn is inserted in a random pos, check here to match narr to output
     if (rv && narr.size() > 0)

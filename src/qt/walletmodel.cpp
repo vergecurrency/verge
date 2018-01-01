@@ -289,15 +289,15 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
 
         CReserveKey keyChange(wallet);
         int64 nFeeRequired = 0;
-        int nChangePos = -1;
-        bool fCreated = wallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, nChangePos);
+        // int nChangePos = -1;
+        bool fCreated = wallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired);
         
         std::map<int, std::string>::iterator it;
         for (it = mapStealthNarr.begin(); it != mapStealthNarr.end(); ++it)
         {
             int pos = it->first;
-            if (nChangePos > -1 && it->first >= nChangePos)
-                pos++;
+            // if (nChangePos > -1 && it->first >= nChangePos)
+            //     pos++;
             
             char key[64];
             if (snprintf(key, sizeof(key), "n_%u", pos) < 1)
