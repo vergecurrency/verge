@@ -5,5 +5,5 @@ export QT_CFLAGS="-I/usr/local/opt/qt@5.5/lib/QtWebKitWidgets.framework/Versions
 export QT_LIBS="-F/usr/local/opt/qt@5.5/lib -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL -framework QtNetwork -framework QtWebKit -framework QtWebKitWidgets -framework QtDBus"
 
 ./autogen.sh
-./configure --with-gui=qt5
+./configure --with-gui=qt5 --with-boost=$(brew --prefix boost@1.60)
 make
