@@ -40,7 +40,7 @@ border: 1px solid #ffffff;
              </font>
             </property>
             <property name="text">
-             <string>Wallet</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Wallet &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -50,7 +50,7 @@ border: 1px solid #ffffff;
              <string>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</string>
             </property>
             <property name="styleSheet">
-             <string notr="true">QLabel { color: red; }</string>
+             <string notr="true">QLabel { color: white; }</string>
             </property>
             <property name="text">
              <string notr="true">(out of sync)</string>
@@ -89,7 +89,7 @@ border: 1px solid #ffffff;
           <item row="0" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Balance:</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Balance: &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -118,7 +118,7 @@ border: 1px solid #ffffff;
           <item row="1" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Unconfirmed:</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Unconfirmed: &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -173,7 +173,7 @@ border: 1px solid #ffffff;
           <item row="3" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>Number of transactions:</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Number of transactions: &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -242,7 +242,7 @@ border: 1px solid #ffffff;
           <item>
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>&lt;b&gt;Recent transactions&lt;/b&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Recent transactions &lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;</string>
             </property>
            </widget>
           </item>
@@ -252,7 +252,7 @@ border: 1px solid #ffffff;
              <string>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</string>
             </property>
             <property name="styleSheet">
-             <string notr="true">QLabel { color: red; }</string>
+             <string notr="true">QLabel { color: white; }</string>
             </property>
             <property name="text">
              <string notr="true">(out of sync)</string>

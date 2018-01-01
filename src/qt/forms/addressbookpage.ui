@@ -41,7 +41,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;</string>
+border: 1px solid #000000;</string>
      </property>
      <property name="tabKeyNavigation">
       <bool>false</bool>
@@ -71,20 +71,21 @@ border: 2px solid #000000;</string>
         <string>Create a new address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
-        <string>&amp;New Address</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
+        <string>New Address</string>
        </property>
       </widget>
      </item>
@@ -94,40 +95,42 @@ max-width: 95px;</string>
         <string>Copy the currently selected address to the system clipboard</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
-        <string>&amp;Copy Address</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/editcopy</normaloff>:/icons/editcopy</iconset>
+        <string>Copy Address</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="showQRCode">
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Show &amp;QR Code</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/qrcode</normaloff>:/icons/qrcode</iconset>
        </property>
       </widget>
      </item>
@@ -137,20 +140,21 @@ max-width: 95px;</string>
         <string>Sign a message to prove you own a VERGE address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
         <string>Sign &amp;Message</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/edit</normaloff>:/icons/edit</iconset>
        </property>
       </widget>
      </item>
@@ -160,20 +164,21 @@ max-width: 95px;</string>
         <string>Verify a message to ensure it was signed with a specified VERGE address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
-        <string>&amp;Verify Message</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/transaction_0</normaloff>:/icons/transaction_0</iconset>
+        <string>Verify Message</string>
        </property>
       </widget>
      </item>
@@ -183,20 +188,23 @@ max-width: 95px;</string>
         <string>Delete the currently selected address from the list</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-width: 95px;
-max-width: 95px;</string>
+        <string notr="true">
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-width: 125px;
+max-width: 125px;
+min-height: 30px;
+max-height: 30px;</string>
        </property>
        <property name="text">
-        <string>&amp;Delete</string>
+        <string>Delete</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
        </property>
       </widget>
      </item>
@@ -222,11 +230,12 @@ max-width: 95px;</string>
         </sizepolicy>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
+        <string notr="true">
+border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+border: 1px solid #000000;
 min-width: 85px;
 max-width: 85px;</string>
        </property>

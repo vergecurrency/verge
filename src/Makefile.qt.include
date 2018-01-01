@@ -113,9 +113,7 @@ BITCOIN_QT_H = \
 
 RES_ICONS = \
   qt/res/icons/add.png \
-  qt/res/icons/chat.png \
   qt/res/icons/social.png \
-  qt/res/icons/radio.png \
   qt/res/icons/block.png \
   qt/res/icons/address-book.png \
   qt/res/icons/verge.ico \

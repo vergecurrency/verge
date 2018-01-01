@@ -205,8 +205,10 @@ cd ~
 
 #// Create the config file with random user and password
 
-mkdir ~/.VERGE
-cp ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
+mkdir -p ~/.VERGE
+if [ -e ~/.VERGE/VERGE.conf ]; then
+    cp -a ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
+fi
 echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" '\n'"server=1" '\n'"addnode=103.18.40.125:21102" '\n'"addnode=104.131.144.82:21102" '\n'"addnode=138.197.68.130:21102" '\n'"addnode=144.76.167.66:21102" '\n'"addnode=152.186.36.86:21102" '\n'"addnode=159.203.121.202:21102" '\n'"addnode=172.104.157.38:21102" '\n'"addnode=192.99.7.127:21102" '\n'"addnode=219.89.84.46:21102" '\n'"addnode=45.32.129.168:21102" '\n'"addnode=45.55.59.206:21102" '\n'"addnode=46.4.64.68:21102" '\n'"addnode=51.15.46.1:21102" '\n'"addnode=52.9.109.214:21102" '\n'"addnode=66.55.64.183:21102" '\n'"addnode=67.167.207.164:21102" '\n'"addnode=78.46.190.152:21102"> ~/.VERGE/VERGE.conf
 
 #// Extract http link, download blockchain and install it.
@@ -237,7 +239,7 @@ else
 fi
 
 # Create Icon on Desktop and in menu
-
+mkdir -p ~/Desktop/
 sudo cp ~/VERGE/src/qt/res/icons/verge.png /usr/share/icons/
 echo '#!/usr/bin/env xdg-open''\n'"[Desktop Entry]"'\n'"Version=1.0"'\n'"Type=Application"'\n'"Terminal=false"'\n'"Icon[en]=/usr/share/icons/verge.png"'\n'"Name[en]=VERGE"'\n'"Exec=VERGE-qt"'\n'"Name=VERGE"'\n'"Icon=/usr/share/icons/verge.png"'\n'"Categories=Network;Internet;" > ~/Desktop/VERGE.desktop
 sudo chmod +x ~/Desktop/VERGE.desktop
@@ -252,4 +254,6 @@ cd ~
 #// Start Verge
 
 VERGE-qt
-cp ~/.VERGE/wallet.dat ~/vergewallet.bak
+if [ -e ~/.VERGE/wallet.dat ]; then
+    cp ~/.VERGE/wallet.dat ~/vergewallet.bak
+fi
