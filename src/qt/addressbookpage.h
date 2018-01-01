@@ -58,13 +58,18 @@ private:
     QString newAddressToSelect;
 
 private slots:
+	/** Delete currently selected address entry */
     void on_deleteButton_clicked();
+	/** Create a new address for receiving coins and / or add a new address book entry */
     void on_newAddressButton_clicked();
     /** Copy address of currently selected address entry to clipboard */
     void on_copyToClipboard_clicked();
+	/** Open the sign message tab in the Sign/Verify Message dialog with currently selected address */
     void on_signMessage_clicked();
+	/** Open the verify message tab in the Sign/Verify Message dialog with currently selected address */
     void on_verifyMessage_clicked();
     void selectionChanged();
+	/** Generate a QR Code from the currently selected address */
     void on_showQRCode_clicked();
     /** Spawn contextual menu (right mouse menu) for address book entry */
     void contextualMenu(const QPoint &point);
