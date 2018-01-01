@@ -409,7 +409,7 @@ border-top-left-radius: 5px;
 border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
+border: 1px solid #0b3b46;
 min-height: 25px;
 max-height: 25px;</string>
          </property>
