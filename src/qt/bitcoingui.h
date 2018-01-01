@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
-#include "radio.h"
 
 
 class TransactionTableModel;
@@ -12,8 +11,6 @@ class WalletModel;
 class TransactionView;
 class OverviewPage;
 class BlockBrowser;
-class Radio;
-class ChatWindow;
 class AddressBookPage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
@@ -66,8 +63,6 @@ private:
 
     OverviewPage *overviewPage;
 	BlockBrowser *blockBrowser;
-    ChatWindow *chatWindow;
-	Radio *radioPage;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
@@ -83,8 +78,6 @@ private:
     QMenuBar *appMenuBar;
     QAction *overviewAction;
 	QAction *blockAction;
-    QAction *chatAction;
-	QAction *radioAction;
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
@@ -150,10 +143,6 @@ private slots:
     void gotoOverviewPage();
 	/** Switch to block explorer*/
     void gotoBlockBrowser();
-    /** Switch to chat page */
-    void gotoChatPage();
-	/** Switch to radio page */
-	void gotoRadioPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
     /** Switch to address book page */
