@@ -108,14 +108,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     // Create tabs
     overviewPage = new OverviewPage();
-    chatWindow = new ChatWindow(this);
 	blockBrowser = new BlockBrowser(this);
     transactionsPage = new QWidget(this);
     QVBoxLayout *vbox = new QVBoxLayout();
     transactionView = new TransactionView(this);
     vbox->addWidget(transactionView);
     transactionsPage->setLayout(vbox);
-	radioPage = new Radio(this);
 
     addressBookPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::SendingTab);
 
@@ -127,13 +125,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     centralWidget = new QStackedWidget(this);
     centralWidget->addWidget(overviewPage);
-    centralWidget->addWidget(chatWindow);
 	centralWidget->addWidget(blockBrowser);
     centralWidget->addWidget(transactionsPage);
     centralWidget->addWidget(addressBookPage);
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
-	centralWidget->addWidget(radioPage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -732,24 +728,6 @@ void BitcoinGUI::gotoBlockBrowser()
 {
     blockAction->setChecked(true);
     centralWidget->setCurrentWidget(blockBrowser);
-
-    exportAction->setEnabled(false);
-    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
-}
-
-void BitcoinGUI::gotoChatPage()
-{
-    chatAction->setChecked(true);
-    centralWidget->setCurrentWidget(chatWindow);
-
-    exportAction->setEnabled(false);
-    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
-}
-
-void BitcoinGUI::gotoRadioPage()
-{
-    radioAction->setChecked(true);
-    centralWidget->setCurrentWidget(radioPage);
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
