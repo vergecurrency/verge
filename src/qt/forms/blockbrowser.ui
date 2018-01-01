@@ -122,14 +122,15 @@
         <widget class="QPushButton" name="txButton">
          <property name="styleSheet">
           <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #ffffff;
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
 color: #ffffff;
-min-height: 25px;
-max-height: 25px;</string>
+background: #00C2F3;
+min-height: 30px;
+max-height: 30px;</string>
          </property>
          <property name="text">
           <string>Decode Transaction</string>
@@ -220,7 +221,6 @@ border-top-right-radius: 5px;
 border-bottom-left-radius: 5px;
 border-bottom-right-radius: 5px;
 border: 1px solid #0b3b47;
-color: #ffffff;
 min-height: 25px;
 max-height: 25px;</string>
          </property>
@@ -247,13 +247,15 @@ max-height: 25px;</string>
         <widget class="QPushButton" name="blockButton">
          <property name="styleSheet">
           <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #ffffff;
-min-height: 25px;
-max-height: 25px;</string>
+border-top-left-radius: 3px;
+border-top-right-radius: 3px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border: 1px solid #10829F;
+color: #ffffff;
+background: #00C2F3;
+min-height: 30px;
+max-height: 30px;</string>
          </property>
          <property name="text">
           <string>Jump to Block</string>
