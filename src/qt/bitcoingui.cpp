@@ -81,7 +81,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     setMinimumSize(970,500);
     resize(970, 500);
     setWindowTitle(tr("VERGE") + " - " + tr("Wallet"));
-    qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none;font-family:'Open Sans,sans-serif'; } #frame { } QToolBar { padding-top:15px;padding-bottom:10px;margin:0px;text-align:center;}  QLabel { padding-top:15px;padding-bottom:10px;margin:0px; } #spacer { background:rgb(57,85,95);border:none; } #toolbar3 { border:none;width:1px; background-color: transparent; } #toolbar2 { border:none;width:5px; background-color:transparent; } #toolbar { border:none;height:100%;padding-top:20px; background: transparent; text-align: center; color: white;}  #labelMiningIcon { padding-left:5px;font-family:'Open Sans,sans-serif';font-size:10px;text-align:center;color:white; } QMenu { background: rgb(57,85,95); text-align: center; color:white; padding-bottom:10px; } QMenu::item { color:white; text-align: center; background-color: transparent; }  QMenuBar { background: rgb(57,85,95); color:white; } QMenuBar::item { font-size:12px;padding-bottom:8px;padding-top:5px;padding-left:5px;padding-right:5px;color:white; text-align: center; background-color: transparent; }");
+    qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none;font-family:'Open Sans,sans-serif'; } #frame { } QToolBar { text-align:center; } QToolBar QLabel { padding-top:15px;padding-bottom:10px;margin:0px; } #spacer { background:rgb(57,85,95);border:none; } #toolbar3 { border:none;width:1px; background-color: transparent; } #toolbar2 { border:none;width:5px; background-color:transparent; } #toolbar { border:none;height:100%;padding-top:20px; background: transparent; text-align: center; color: white;}  #labelMiningIcon { padding-left:5px;font-family:'Open Sans,sans-serif';font-size:10px;text-align:center;color:white; } QMenu { background: rgb(57,85,95); text-align: center; color:white; padding-bottom:10px; } QMenu::item { color:white; text-align: center; background-color: transparent; }  QMenuBar { background: rgb(57,85,95); color:white; } QMenuBar::item { font-size:12px;padding-bottom:8px;padding-top:5px;padding-left:5px;padding-right:5px;color:white; text-align: center; background-color: transparent; }");
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
     setWindowIcon(QIcon(":icons/bitcoin"));
@@ -249,6 +249,7 @@ void BitcoinGUI::createActions()
     connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
 	connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
+    // connect(chatAction, SIGNAL(triggered()), this, SLOT(gotoChatPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -257,6 +258,7 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+	// connect(radioAction, SIGNAL(triggered()), this, SLOT(gotoRadioPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -345,6 +347,8 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
     toolbar->addAction(blockAction);
+    // toolbar->addAction(chatAction);
+    // toolbar->addAction(radioAction);
 
 
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
