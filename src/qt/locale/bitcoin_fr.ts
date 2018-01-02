@@ -2166,17 +2166,17 @@ Addresse: %4
     <message>
         <location line="+60"/>
         <source>Specify data directory</source>
-        <translation>Specify data directory</translation>
+        <translation>Spécifier le répertoire de donnée</translation>
     </message>
     <message>
         <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
-        <translation>Set database cache size in megabytes (default: 25)</translation>
+        <translation>Définir la taille du cache en megabytes (defaut: 25)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set database disk log size in megabytes (default: 100)</source>
-        <translation>Set database disk log size in megabytes (default: 100)</translation>
+        <translation>Définir la taille du log disque de la base de donnée en megabytes (default: 100)</translation>
     </message>
     <message>
         <location line="-26"/>
