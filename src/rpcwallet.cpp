@@ -1776,7 +1776,7 @@ Value getnewstealthaddress(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "getnewstealthaddress [label]\n"
-            "Returns a new OpalCoin stealth address for receiving payments anonymously.  ");
+            "Returns a new Verge stealth address for receiving payments anonymously.  ");
     
     if (pwalletMain->IsLocked())
         throw runtime_error("Failed: Wallet must be unlocked.");
@@ -1978,7 +1978,7 @@ Value sendtostealthaddress(const Array& params, bool fHelp)
     
     if (!sxAddr.SetEncoded(sEncoded))
     {
-        result.push_back(Pair("result", "Invalid OpalCoin stealth address."));
+        result.push_back(Pair("result", "Invalid Verge stealth address."));
         return result;
     };
     

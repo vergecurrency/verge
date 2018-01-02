@@ -20,7 +20,7 @@ public:
 
     enum EAddressType {
         AT_Unknown = 0, /**< User specified label */
-        AT_Normal = 1,  /**< Bitcoin address */
+        AT_Normal = 1,  /**< Verge Public address */
         AT_Stealth = 2,  /**< Stealth address */
         AT_BIP32 = 3, /**< BIP32 address */
         AT_Group = 4, /**< BIP32 address */
@@ -28,7 +28,8 @@ public:
 
     enum ColumnIndex {
         Label = 0,   /**< User specified label */
-        Address = 1  /**< Bitcoin address */
+        Address = 1,  /**< Verge Public address */
+		Type = 2, /** < Verge Stealth Address */
     };
 
     enum RoleIndex {
@@ -38,6 +39,7 @@ public:
     /** Return status of edit/insert operation */
     enum EditStatus {
         OK,
+		NO_CHANGES,         /**< No changes were made during edit operation */
         INVALID_ADDRESS,   /**< Unparseable address */
         DUPLICATE_ADDRESS,  /**< Address already in address book */
         WALLET_UNLOCK_FAILURE, /**< Wallet could not be unlocked to create new receiving address */
@@ -62,7 +64,7 @@ public:
     /* Add an address to the model.
        Returns the added address on success, and an empty string otherwise.
      */
-    QString addRow(const QString &type, const QString &label, const QString &address);
+    QString addRow(const QString &type, const QString &label, const QString &address, int addressType);
 
     /* Look up label for address in address book, if not found return empty string.
      */
@@ -84,9 +86,6 @@ private:
 
     /** Notify listeners that data changed. */
     void emitDataChanged(int index);
-
-signals:
-    void defaultAddressChanged(const QString &address);
 
 public slots:
     /* Update address list from core.
