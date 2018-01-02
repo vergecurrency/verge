@@ -2,6 +2,7 @@
     <qresource prefix="/icons">
         <file alias="bitcoin">res/icons/verge.png</file>
         <file alias="address-book">res/icons/address-book.png</file>
+        <file alias="address-book_filled">res/icons/address-book_filled.png</file>
         <file alias="quit">res/icons/quit.png</file>
         <file alias="send">res/icons/send.png</file>
 		<file alias="block">res/icons/block.png</file>
