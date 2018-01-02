@@ -21,7 +21,7 @@ RUN echo "/usr/local/lib" >> /etc/ld.so.conf && \
 
 ENV PKG_CONFIG_PATH /usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
-RUN yum install -y qt5-qtbase-devel qt5-qttools-devel qt5-qtwebkit-devel qt5-qtwebsockets qrencode-devel
+RUN yum install -y qt5-qtbase-devel qt5-qttools-devel qt5-qtwebsockets qrencode-devel
 
 RUN git clone https://github.com/vergecurrency/verge /coin/git
 
