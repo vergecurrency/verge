@@ -1,7 +1,10 @@
+# Coding Style
+
 Please be consistent with the existing coding style.
 
 Block style:
 
+```c++
 bool Function(char* psz, int n)
 {
     // Comment summarising what this section of code does
@@ -16,6 +19,7 @@ bool Function(char* psz, int n)
     // Success return is usually at the end
     return true;
 }
+```
 
 - ANSI/Allman block style
 - 4 space indenting, no tabs
