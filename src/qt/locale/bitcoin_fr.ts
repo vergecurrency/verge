@@ -1036,23 +1036,23 @@ Addresse: %4
     <message>
         <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</translation>
+        <translation>Nombre de transaction restant à confirmer, et non encore comptabilisées pour l'instant dans la balance.</translation>
     </message>
     <message>
         <location line="+134"/>
         <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>Total of coins that was staked, and do not yet count toward the current balance</translation>
+        <translation>Nombre de pièces jalonnées, et non encore comptabilisées pour l'instant dans la balance.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>Total number of transactions in wallet</translation>
+        <translation>Nombre total de transactions dans le portefeuille</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
-        <translation>out of sync</translation>
+        <translation>Non synchronisé</translation>
     </message>
 </context>
 <context>
@@ -1060,17 +1060,17 @@ Addresse: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation>QR Code Dialog</translation>
+        <translation>Fenêtre QR Code</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Request Payment</source>
-        <translation>Request Payment</translation>
+        <translation>Demander Paiement</translation>
     </message>
     <message>
         <location line="+56"/>
         <source>Amount:</source>
-        <translation>Amount:</translation>
+        <translation>Quantité:</translation>
     </message>
     <message>
         <location line="-44"/>
@@ -1085,27 +1085,27 @@ Addresse: %4
     <message>
         <location line="+71"/>
         <source>&amp;Save As...</source>
-        <translation>&amp;Save As...</translation>
+        <translation>&amp;Enregistrer sous...</translation>
     </message>
     <message>
         <location filename="../qrcodedialog.cpp" line="+62"/>
         <source>Error encoding URI into QR Code.</source>
-        <translation>Error encoding URI into QR Code.</translation>
+        <translation>Erreur lors de l'encodage de l'URI en QR Code.</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>The entered amount is invalid, please check.</source>
-        <translation>The entered amount is invalid, please check.</translation>
+        <translation>Le montant entré est invalide, merci de vérifier.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>Resulting URI too long, try to reduce the text for label / message.</translation>
+        <translation>L'URI resultante est trop longue, essayez de réduire le texte du label / message.</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>Save QR Code</translation>
+        <translation>Sauvegarder QR Code</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -1118,7 +1118,7 @@ Addresse: %4
     <message>
         <location filename="../forms/rpcconsole.ui" line="+46"/>
         <source>Client name</source>
-        <translation>Client name</translation>
+        <translation>Nom du client</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1137,7 +1137,7 @@ Addresse: %4
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation>Client version</translation>
+        <translation>Version du Client</translation>
     </message>
     <message>
         <location line="-45"/>
@@ -1147,57 +1147,57 @@ Addresse: %4
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation>Using OpenSSL version</translation>
+        <translation>Usilise la version OpenSSL</translation>
     </message>
     <message>
         <location line="+49"/>
         <source>Startup time</source>
-        <translation>Startup time</translation>
+        <translation>Temps de démarrage</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Network</source>
-        <translation>Network</translation>
+        <translation>Réseau</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Number of connections</source>
-        <translation>Number of connections</translation>
+        <translation>Nombre de connexions</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>On testnet</translation>
+        <translation>Sur testnet</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>Block chain</translation>
+        <translation>Chaine de blocs</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>Current number of blocks</translation>
+        <translation>Nombre actuel de blocs</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Estimated total blocks</source>
-        <translation>Estimated total blocks</translation>
+        <translation>Nombre total estimé de blocs</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>Last block time</translation>
+        <translation>Temps du dernier bloc</translation>
     </message>
     <message>
         <location line="+52"/>
         <source>&amp;Open</source>
-        <translation>&amp;Open</translation>
+        <translation>&amp;Ouvert</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Command-line options</source>
-        <translation>Command-line options</translation>
+        <translation>options de ligne de commande</translation>
     </message>
     <message>
         <location line="+7"/>
