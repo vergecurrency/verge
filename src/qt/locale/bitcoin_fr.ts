@@ -2181,52 +2181,52 @@ Addresse: %4
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Listen for connections on &lt;port&gt; (default: 21102 or testnet: 18333)</translation>
+        <translation>Ecouter les connexion sur &lt;port&gt; (defaut: 21102 ou testnet: 18333)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Maintain at most &lt;n&gt; connections to peers (default: 125)</source>
-        <translation>Maintain at most &lt;n&gt; connections to peers (default: 125)</translation>
+        <translation>Maintenir au moins &lt;n&gt; connexions avec les pairs (defaut: 125)</translation>
     </message>
     <message>
         <location line="-33"/>
         <source>Connect to a node to retrieve peer addresses, and disconnect</source>
-        <translation>Connect to a node to retrieve peer addresses, and disconnect</translation>
+        <translation>Connecter pour retrouver les adresses des pairs, et déconnecter</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>Specify your own public address</source>
-        <translation>Specify your own public address</translation>
+        <translation>Spécifier votre adresse publique</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Bind to given address. Use [host]:port notation for IPv6</source>
-        <translation>Bind to given address. Use [host]:port notation for IPv6</translation>
+        <translation>Utiliser une adresse spécifique. Utiliser la notation [host]:port pour IPv6</translation>
     </message>
     <message>
         <location line="+77"/>
         <source>Threshold for disconnecting misbehaving peers (default: 100)</source>
-        <translation>Threshold for disconnecting misbehaving peers (default: 100)</translation>
+        <translation>Seuil pour déconnecter les pairs avec un mauvais comportement (defaut: 100)</translation>
     </message>
     <message>
         <location line="-112"/>
         <source>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</source>
-        <translation>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</translation>
+        <translation>Nombre de secondes avant reconnexion des pair avec mauvais comportement (defaut: 86400)</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur lors de la configuration du port RPC %u pour écouter sur IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Detach block and address databases. Increases shutdown time (default: 0)</source>
-        <translation>Detach block and address databases. Increases shutdown time (default: 0)</translation>
+        <translation>Détachement des bases de données de blocs et d'adresses. Augmente le temps d'arrêt (defaut: 0)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur: la transaction a été rejetée. Celà peut arriver si certaines de vos pièces ont été déjà dépensées, par exemple si vous avez utilisé une copie de wallet.dat, et que vos pièces ont été utilisée dans la copie mais non marquées comme dépensées ici.</translation>
     </message>
     <message>
         <location line="+4"/>
