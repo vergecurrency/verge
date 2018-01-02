@@ -240,8 +240,6 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
                     };
                     
                     vecSend.push_back(make_pair(scriptP, 0));
-                    
-                    continue;
                 }; // else drop through to normal
             }
             
