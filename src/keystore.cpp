@@ -108,12 +108,15 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             key.SetPubKey(vchPubKey);
             key.SetSecret(vchSecret);
             if (key.GetPubKey() == vchPubKey)
-                break;
+            {
+                vMasterKey = vMasterKeyIn;
+                NotifyStatusChanged(this);
+                return true;
+            }
         }
-        vMasterKey = vMasterKeyIn;
     }
-    NotifyStatusChanged(this);
-    return true;
+    
+    return false;
 }
 
 bool CCryptoKeyStore::AddKey(const CKey& key)
