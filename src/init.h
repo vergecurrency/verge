@@ -6,6 +6,7 @@
 #define BITCOIN_INIT_H
 
 #include "wallet.h"
+#include "tor/anonymize.h"
 
 extern CWallet* pwalletMain;
 

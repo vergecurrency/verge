@@ -40,6 +40,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, int64 nTime
 void MapPort();
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
+void StartTor(void* parg);
 void StartNode(void* parg);
 bool StopNode();
 
@@ -105,7 +106,7 @@ enum threadId
     THREAD_MINER,
     THREAD_RPCLISTENER,
     THREAD_UPNP,
-    THREAD_DNSSEED,
+    THREAD_ONIONSEED,
     THREAD_ADDEDCONNECTIONS,
     THREAD_DUMPADDRESS,
     THREAD_RPCHANDLER,
@@ -115,7 +116,6 @@ enum threadId
 };
 
 extern bool fClient;
-extern bool fDiscover;
 extern bool fUseUPnP;
 extern uint64 nLocalServices;
 extern uint64 nLocalHostNonce;
@@ -167,6 +167,7 @@ public:
     int nVersion;
     std::string strSubVer;
     bool fInbound;
+	bool fVerified;
     int64 nReleaseTime;
     int nStartingHeight;
     int nMisbehavior;
