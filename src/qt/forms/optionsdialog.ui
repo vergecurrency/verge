@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>540</width>
+    <width>657</width>
     <height>380</height>
    </rect>
   </property>
@@ -23,7 +23,7 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabMain">
       <attribute name="title">
@@ -44,22 +44,28 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="transactionFeeLabel">
+         <property name="text">
+          <string>Pay transaction &amp;fee</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
+         </property>
+         <property name="buddy">
+          <cstring>transactionFee</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_Main">
          <item>
-          <widget class="QLabel" name="transactionFeeLabel">
-           <property name="text">
-            <string>Pay transaction &amp;fee</string>
-           </property>
-           <property name="textFormat">
-            <enum>Qt::PlainText</enum>
-           </property>
-           <property name="buddy">
-            <cstring>transactionFee</cstring>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="BitcoinAmountField" name="transactionFee">
+           <property name="maximumSize">
+            <size>
+             <width>104</width>
+             <height>19</height>
+            </size>
+           </property>
            <property name="styleSheet">
             <string notr="true">border-top-left-radius: 5px;
 border-top-right-radius: 5px;
@@ -68,8 +74,8 @@ border-bottom-right-radius: 5px;
 border: 2px solid #000000;
 min-height: 15px;
 max-height: 15px;
-min-width: 50px;
-max-width: 50px;</string>
+min-width: 100px;
+max-width: 100px;</string>
            </property>
           </widget>
          </item>
@@ -89,16 +95,6 @@ max-width: 50px;</string>
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="bitcoinAtStartup">
-         <property name="toolTip">
-          <string>Automatically start VERGE after logging in to the system.</string>
-         </property>
-         <property name="text">
-          <string>&amp;Start VERGE on system login</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacer_Main">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -110,6 +106,16 @@ max-width: 50px;</string>
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="bitcoinAtStartup">
+         <property name="toolTip">
+          <string>Automatically start VERGE after logging in to the system.</string>
+         </property>
+         <property name="text">
+          <string>&amp;Start VERGE on system login</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -536,6 +542,11 @@ max-width: 100px;</string>
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qvalidatedlineedit.h</header>
+  </customwidget>
+  <customwidget>
    <class>BitcoinAmountField</class>
    <extends>QSpinBox</extends>
    <header>bitcoinamountfield.h</header>
@@ -545,11 +556,6 @@ max-width: 100px;</string>
    <class>QValueComboBox</class>
    <extends>QComboBox</extends>
    <header>qvaluecombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QValidatedLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>qvalidatedlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
