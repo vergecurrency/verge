@@ -2745,9 +2745,9 @@ rpcpassword=%s
         <source>You must set rpcpassword=&lt;password&gt; in the configuration file:
 %s
 If the file does not exist, create it with owner-readable-only file permissions.</source>
-        <translation>Вы должны установить rpcpassword=&lt;password&gt; в конфигурационном файле:
+        <translation>Ви повинні встановити rpcpassword=&lt;password&gt; у кофігураційному файлі:
 %s
-Если файл не существует, создайте его и установите права доступа только для владельца.</translation>
+Якщо файлу не існує, створіть його і встановіть права доступу тільки для власника.</translation>
     </message>
 </context>
 </TS>
