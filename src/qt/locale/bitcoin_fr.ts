@@ -830,7 +830,7 @@ Addresse: %4
     <message>
         <location line="+6"/>
         <source>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>ouvrir automatiquement le port du client VERGE sur le routeur. Celà ne marche que si votre routeur supporte UPnP et qu'il est activé.</translation>
+        <translation>Ouvrir automatiquement le port du client VERGE sur le routeur. Celà ne marche que si votre routeur supporte UPnP et qu'il est activé.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1282,17 +1282,17 @@ Addresse: %4
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajouter &amp;Destinataire</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Remove all transaction fields</source>
-        <translation>Remove all transaction fields</translation>
+        <translation>Retirer tous les champs de transactions</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Clear &amp;All</source>
-        <translation>Clear &amp;All</translation>
+        <translation>Effacer &amp;Tout</translation>
     </message>
     <message>
         <location line="+22"/>
@@ -1307,67 +1307,67 @@ Addresse: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>Confirm the send action</translation>
+        <translation>Confirmer l'action d'envoi</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation type="unfinished"></translation>
+        <translation>E&amp;nvoyer</translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
         <source>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; vers %2 (%3)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm send coins</source>
-        <translation>Confirm send coins</translation>
+        <translation>Confirmer l'envoi des pièces</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>Are you sure you want to send %1?</translation>
+        <translation>Etes vous sûr de vouloir envoyer %1?</translation>
     </message>
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> and </translation>
+        <translation> et </translation>
     </message>
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>The recipient address is not valid, please recheck.</translation>
+        <translation>L'adresse du destinataie est invalide, merci de re-vérifier.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>The amount to pay must be larger than 0.</translation>
+        <translation>Le montant à payer doit être supérieur à 0.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount exceeds your balance.</source>
-        <translation>The amount exceeds your balance.</translation>
+        <translation>Le montant est supérieur à votre balance.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>The total exceeds your balance when the %1 transaction fee is included.</translation>
+        <translation>Le total est supérieur à votre balance avec les frais de transaction %1 inclus.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Duplicate address found, can only send to each address once per send operation.</source>
-        <translation>Duplicate address found, can only send to each address once per send operation.</translation>
+        <translation>Deux adresses sont identiques, il n'est possible d'envoyer vers chaque adresse une seule fois par opération</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>Error: Transaction creation failed.</translation>
+        <translation>Erreur: création de la transaction échouée.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</translation>
+       <translation>Erreur: la transation a été rejectée. Celà peut arriver si certaines de vos pièces ont été déjà dépensées, par exemple si vous avez utilisé une copie de wallet.dat, et que vos pièces ont été utilisée dans la copie mais non marquées comme dépensées ici.</translation>
     </message>
 </context>
 <context>
@@ -1375,23 +1375,23 @@ Addresse: %4
     <message>
         <location filename="../forms/sendcoinsentry.ui" line="+14"/>
         <source>Form</source>
-        <translation>Form</translation>
+        <translation>Formulaire</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>A&amp;mount:</translation>
+        <translation>Q&amp;uantité:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Pay &amp;To:</source>
-        <translation>Pay &amp;To:</translation>
+        <translation>Payer &amp;à:</translation>
     </message>
     <message>
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>Enter a label for this address to add it to your address book</translation>
+        <translation>Entrer un label pour cette address pour l'ajouter à votre carnet d'adresses</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -1401,12 +1401,12 @@ Addresse: %4
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation type="unfinished"></translation>
+        <translation>Adresse vers laquelle envoyer le paiement (ex: 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Choose address from address book</source>
-        <translation>Choose address from address book</translation>
+        <translation>Choisir une adresse depuis le carnet d'adresses</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1416,7 +1416,7 @@ Addresse: %4
     <message>
         <location line="+7"/>
         <source>Paste address from clipboard</source>
-        <translation>Paste address from clipboard</translation>
+        <translation>Coller l'adresse depuis le Presse-Papier</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1426,12 +1426,12 @@ Addresse: %4
     <message>
         <location line="+7"/>
         <source>Remove this recipient</source>
-        <translation>Remove this recipient</translation>
+        <translation>Supprimer ce destinataire</translation>
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Enter a valid VERGE address </translation>
+        <translation>Entrer une adresse VERGE valide </translation>
     </message>
 </context>
 <context>
@@ -1439,29 +1439,29 @@ Addresse: %4
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>Signatures - Sign / Verify a Message</translation>
+        <translation>Signatures - Signer / Verifier un Message</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+124"/>
         <source>&amp;Sign Message</source>
-        <translation>&amp;Sign Message</translation>
+        <translation>&amp;Signer Message</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</translation>
+        <translation>Vous pouvez signer les messages avec votre adresse pour prouver que vous les reconnaissez. Soyez attentif de ne pas signer quelque chose de vague, car des attaques de Phishing pourraient tenter de vous berner et vous faire signer. Signez uniquement des déclaration très détaillées avec lesquelles vous êtes en accord.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to sign the message with </source>
-        <translation>The address to sign the message with </translation>
+        <translation>L'adresse avec laquelle signer le message </translation>
     </message>
     <message>
         <location line="+10"/>
         <location line="+203"/>
         <source>Choose an address from the address book</source>
-        <translation>Choose an address from the address book</translation>
+        <translation>Choisir une adresse depuis le carnet d'adresse</translation>
     </message>
     <message>
         <location line="-193"/>
@@ -1472,7 +1472,7 @@ Addresse: %4
     <message>
         <location line="-193"/>
         <source>Paste address from clipboard</source>
-        <translation>Paste address from clipboard</translation>
+        <translation>Coller l'adresse depuis le Presse-Papier</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1482,76 +1482,76 @@ Addresse: %4
     <message>
         <location line="+12"/>
         <source>Enter the message you want to sign here</source>
-        <translation>Enter the message you want to sign here</translation>
+        <translation>Entrez le message que vous voulez signer ici</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Copy the current signature to the system clipboard</source>
-        <translation>Copy the current signature to the system clipboard</translation>
+        <translation>Copier la signature courante dans le Presse-Papier</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Sign the message to prove you own this VERGE address</source>
-        <translation>Sign the message to prove you own this VERGE address</translation>
+        <translation>Signer le message pour prouver que vous possédez cette adresse VERGE</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all sign message fields</source>
-        <translation>Reset all sign message fields</translation>
+        <translation>Réinitialiser tous les champs de signature du message</translation>
     </message>
     <message>
         <location line="+3"/>
         <location line="+146"/>
         <source>Clear &amp;All</source>
-        <translation>Clear &amp;All</translation>
+        <translation>Effacer &amp;Tout</translation>
     </message>
     <message>
         <location line="-87"/>
         <location line="+70"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Verify Message</translation>
+        <translation>&amp;Verifier Message</translation>
     </message>
     <message>
         <location line="-64"/>
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</translation>
+        <translation>Entrer l'adresse de signature, message (Assurez vous de copier les retours à la ligne, espaces, tabulations, etc. exactement), et la signature ci-dessous pour vérifier le message. Attention de ne pas lire plus dans la signature qu'il n'y avait dans le message signé, pour éviter une attaque de l'homme du milieu.</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>The address the message was signed with </source>
-        <translation>The address the message was signed with </translation>
+        <translation>Adresse avec laquelle le message a été signé </translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Verify the message to ensure it was signed with the specified VERGE address</source>
-        <translation>Verify the message to ensure it was signed with the specified VERGE address</translation>
+        <translation>Vérifier le message pour s'assurer qu'il a été signé avec l'adresse VERGE spécifiée</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all verify message fields</source>
-        <translation>Reset all verify message fields</translation>
+        <translation>Réinitialiser tous les champs de vérification de message</translation>
     </message>
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Enter a valid VERGE address</translation>
+        <translation>Entrer une adresse VERGE valide</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Click &quot;Sign Message&quot; to generate signature</source>
-        <translation>Click &quot;Sign Message&quot; to generate signature</translation>
+        <translation>Clicker &quot;Signer Message&quot; pour générer la signature</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Enter VERGE signature</source>
-        <translation>Enter VERGE signature</translation>
+        <translation>Entrer la signature VERGE</translation>
     </message>
     <message>
         <location line="+82"/>
         <location line="+81"/>
         <source>The entered address is invalid.</source>
-        <translation>The entered address is invalid.</translation>
+        <translation>L'adresse entrée est invalide.</translation>
     </message>
     <message>
         <location line="-81"/>
@@ -1559,59 +1559,59 @@ Addresse: %4
         <location line="+73"/>
         <location line="+8"/>
         <source>Please check the address and try again.</source>
-        <translation>Please check the address and try again.</translation>
+        <translation>Merci de vérifier l'adresse et d'essayer à nouveau.</translation>
     </message>
     <message>
         <location line="-81"/>
         <location line="+81"/>
         <source>The entered address does not refer to a key.</source>
-        <translation>The entered address does not refer to a key.</translation>
+        <translation>L'adresse entrée ne correspond pas à une clé.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>Wallet unlock was cancelled.</translation>
+        <translation>Le dévérouillage du portefeuille a été annulé.</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Private key for the entered address is not available.</source>
-        <translation>Private key for the entered address is not available.</translation>
+        <translation>La clé privée pour l'adresse entrée n'est pas disponible.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Message signing failed.</source>
-        <translation>Message signing failed.</translation>
+        <translation>Echec de la signature du message.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message signed.</source>
-        <translation>Message signed.</translation>
+        <translation>Message signé.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>The signature could not be decoded.</source>
-        <translation>The signature could not be decoded.</translation>
+        <translation>La signature n'a pas pu être décodée.</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Please check the signature and try again.</source>
-        <translation>Please check the signature and try again.</translation>
+        <translation>Merci de vérifier la signature et d'essayer à nouveau.</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>The signature did not match the message digest.</source>
-        <translation>The signature did not match the message digest.</translation>
+        <translation>La signature ne correspond pas au digest du message.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Message verification failed.</source>
-        <translation>Message verification failed.</translation>
+        <translation>Echec de la vérification du message.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message verified.</source>
-        <translation>Message verified.</translation>
+        <translation>Message verifié.</translation>
     </message>
 </context>
 <context>
@@ -1619,25 +1619,25 @@ Addresse: %4
     <message>
         <location filename="../transactiondesc.cpp" line="+19"/>
         <source>Open until %1</source>
-        <translation>Open until %1</translation>
+        <translation>Ouvert jusqu'à %1</translation>
     </message>
     <message numerus="yes">
         <location line="-2"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Open for %n block</numerusform>
-            <numerusform>Open for %n blocks</numerusform>
+            <numerusform>Ouvert pour %n bloc</numerusform>
+            <numerusform>Ouvert pour %n blocs</numerusform>
         </translation>
     </message>
     <message>
         <location line="+8"/>
         <source>%1/offline</source>
-        <translation>%1/offline</translation>
+        <translation>%1/déconnecté</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1/unconfirmed</source>
-        <translation>%1/unconfirmed</translation>
+        <translation>%1/non confirmé</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -1653,8 +1653,8 @@ Addresse: %4
         <location line="+7"/>
         <source>, broadcast through %n node(s)</source>
         <translation>
-            <numerusform>, broadcast through %n node</numerusform>
-            <numerusform>, broadcast through %n nodes</numerusform>
+            <numerusform>, diffusion via %n noeud</numerusform>
+            <numerusform>, diffusion via %n noeuds</numerusform>
         </translation>
     </message>
     <message>
@@ -1670,26 +1670,26 @@ Addresse: %4
     <message>
         <location line="+0"/>
         <source>Generated</source>
-        <translation>Generated</translation>
+        <translation>Généré</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+17"/>
         <source>From</source>
-        <translation>From</translation>
+        <translation>De</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+22"/>
         <location line="+58"/>
         <source>To</source>
-        <translation>To</translation>
+        <translation>à</translation>
     </message>
     <message>
         <location line="-77"/>
         <location line="+2"/>
         <source>own address</source>
-        <translation>own address</translation>
+        <translation>Mon adresse</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -1703,20 +1703,20 @@ Addresse: %4
         <location line="+17"/>
         <location line="+30"/>
         <source>Credit</source>
-        <translation>Credit</translation>
+        <translation>Crédit</translation>
     </message>
     <message numerus="yes">
         <location line="-102"/>
         <source>matures in %n more block(s)</source>
         <translation>
-            <numerusform>matures in %n more block</numerusform>
-            <numerusform>matures in %n more blocks</numerusform>
+            <numerusform>maturation dans %n bloc supplémentaire</numerusform>
+            <numerusform>maturation dans %n blocs supplémentaires</numerusform>
         </translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not accepted</source>
-        <translation>not accepted</translation>
+        <translation>non accepté</translation>
     </message>
     <message>
         <location line="+44"/>
@@ -1724,17 +1724,17 @@ Addresse: %4
         <location line="+15"/>
         <location line="+30"/>
         <source>Debit</source>
-        <translation>Debit</translation>
+        <translation>Débit</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Transaction fee</source>
-        <translation>Transaction fee</translation>
+        <translation>Frais de transaction</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Net amount</source>
-        <translation>Net amount</translation>
+        <translation>Montant net</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -1744,17 +1744,17 @@ Addresse: %4
     <message>
         <location line="+2"/>
         <source>Comment</source>
-        <translation>Comment</translation>
+        <translation>Commentaire</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Transaction ID</source>
-        <translation>Transaction ID</translation>
+        <translation>ID de Transaction</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</translation>
+        <translation>Les pièces générées doivent murir 25 blocs avant de pouvoir être dépensées. Lorsque vous avez généré ce bloc, il a été diffusé au réseau pour être ajouté à la chaîne de blocs. Si l'ajout dans la chaîne échoue, son statut va changer en &quot;non accepté&quot; et il ne pourra pas être dépensé. Celà peut arriver occasionellement si un autre noeud génère un bloc dans les quelques secondes suivant le vôtre.</translation>
     </message>
     <message>
         <location line="+4"/>
