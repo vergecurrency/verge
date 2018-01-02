@@ -242,6 +242,12 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             //    wtx.hashBlock.ToString().substr(0,20).c_str(),
             //    wtx.mapValue["message"].c_str());
         }
+        else if (strType == "sxAddr")		
+        {
+            CStealthAddress sxAddr;
+            ssValue >> sxAddr;
+            pwallet->stealthAddresses.insert(sxAddr);
+        }
         else if (strType == "acentry")
         {
             string strAccount;
