@@ -622,42 +622,42 @@ Addresse: %4
         <location line="-15"/>
         <location line="+15"/>
         <source>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</source>
-        <translation>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</translation>
+        <translation>URI ne peut pas être analysée! Celà peut être dû à une adresse VERGE invalide ou des paramêtres URI malformés.</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
-        <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</translation>
+        <translation>Le portefeuille est &lt;b&gt;encrypté&lt;/b&gt; et actuellement &lt;b&gt;dévérouillé&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
-        <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</translation>
+        <translation>Le portefeuille est &lt;b&gt;encrypté&lt;/b&gt; et actuellement &lt;b&gt;vérouillé&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Backup Wallet</source>
-        <translation>Backup Wallet</translation>
+        <translation>Sauvegrade portefeuille</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Wallet Data (*.dat)</source>
-        <translation>Wallet Data (*.dat)</translation>
+        <translation>Données de portefeuille (*.dat)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup Failed</source>
-        <translation>Backup Failed</translation>
+        <translation>Sauvegade échouée</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>There was an error trying to save the wallet data to the new location.</translation>
+        <translation>il y a eu une erreur lors de la sauvegarde du portefeuille vers une nouvelle destination.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
         <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
-        <translation>A fatal error occurred. VERGE can no longer continue safely and will quit.</translation>
+        <translation>Erreur fatale. VERGE ne peut plus continuer à être exécuté et va s'arrêter.</translation>
     </message>
 </context>
 <context>
@@ -665,7 +665,7 @@ Addresse: %4
     <message>
         <location filename="../clientmodel.cpp" line="+87"/>
         <source>Network Alert</source>
-        <translation>Network Alert</translation>
+        <translation>Alerte Réseau</translation>
     </message>
 </context>
 <context>
@@ -673,7 +673,7 @@ Addresse: %4
     <message>
         <location filename="../forms/editaddressdialog.ui" line="+14"/>
         <source>Edit Address</source>
-        <translation>Edit Address</translation>
+        <translation>Editer Adresse</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -683,57 +683,57 @@ Addresse: %4
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>The label associated with this address book entry</translation>
+        <translation>Label associé avec cette entrée du répertoire d'adresses</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Address</source>
-        <translation>&amp;Address</translation>
+        <translation>&amp;Adresse</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>The address associated with this address book entry. This can only be modified for sending addresses.</translation>
+        <translation>Label associé avec cette entrée du répertoire d'adresses. Ne peut être modifié que pour les adresses d'envoi.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
         <source>New receiving address</source>
-        <translation>New receiving address</translation>
+        <translation>Nouvelle adresse de réception</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>New sending address</source>
-        <translation>New sending address</translation>
+        <translation>Nouvelle adresse d'envoi</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Edit receiving address</source>
-        <translation>Edit receiving address</translation>
+        <translation>Editer l'adresse de réception</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Edit sending address</source>
-        <translation>Edit sending address</translation>
+        <translation>Editer l'adresse d'envoi</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>The entered address &quot;%1&quot; is already in the address book.</translation>
+        <translation>L'adresse entrée &quot;%1&quot; existe déjà dans le répertoire d'adresses.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The entered address &quot;%1&quot; is not a valid VERGE address.</source>
-        <translation>The entered address &quot;%1&quot; is not a valid VERGE address.</translation>
+        <translation>L'adresse entrée &quot;%1&quot; n'est pas une adresse VERGE valide.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Could not unlock wallet.</source>
-        <translation>Could not unlock wallet.</translation>
+        <translation>Impossible de dévérouiller le portefeuille.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>New key generation failed.</source>
-        <translation>New key generation failed.</translation>
+        <translation>la génération d'une nouvelle clé a échouée</translation>
     </message>
 </context>
 <context>
@@ -752,32 +752,32 @@ Addresse: %4
     <message>
         <location line="+2"/>
         <source>Usage:</source>
-        <translation>Usage:</translation>
+        <translation>Utilisation:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>command-line options</source>
-        <translation>command-line options</translation>
+        <translation>Options de ligne de commandes</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>UI options</source>
-        <translation>UI options</translation>
+        <translation>Options d'interface Utilisateur</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set language, for example &quot;de_DE&quot; (default: system locale)</source>
-        <translation>Set language, for example &quot;de_DE&quot; (default: system locale)</translation>
+        <translation>Définir la langue, par exemple &quot;de_DE&quot; (default: system locale)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Start minimized</source>
-        <translation>Start minimized</translation>
+        <translation>Démarrer réduit</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>Show splash screen on startup (default: 1)</translation>
+        <translation>Montrer le l'écran de démarrage (default: 1)</translation>
     </message>
 </context>
 <context>
@@ -790,72 +790,72 @@ Addresse: %4
     <message>
         <location line="+16"/>
         <source>&amp;Main</source>
-        <translation>&amp;Main</translation>
+        <translation>&amp;Général</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</translation>
+        <translation>Frais de transactions optionnels par kB, qui aideront à assurer un traitement rapide de votre transaction. La plupart des transactions font 1 kB. Frais de 0.01 recommendés.</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Pay transaction &amp;fee</translation>
+        <translation>Payer &amp;les frais de transaction</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Automatically start VERGE after logging in to the system.</source>
-        <translation>Automatically start VERGE after logging in to the system.</translation>
+        <translation>Démarrer automatiquementVERGE après l'authentification sur le système.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Start VERGE on system login</source>
-        <translation>&amp;Start VERGE on system login</translation>
+        <translation>&amp;Démarrer VERGE lors de l'authentification sur le système</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</translation>
+        <translation>Détacher les bases de données de blocs et d'addresses lors de l'arrêt. Celà signifie qu'ils pourront être déplacés vers un autre emplacement, mais celà ralentit l'arrêt. Le portefeuille est toujours détaché.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Detach databases at shutdown</source>
-        <translation>&amp;Detach databases at shutdown</translation>
+        <translation>&amp;Détacher les bases de données lors de l'arrêt</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Network</source>
-        <translation>&amp;Network</translation>
+        <translation>&amp;Réseau</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
+        <translation>ouvrir automatiquement le port du client VERGE sur le routeur. Celà ne marche que si votre routeur supporte UPnP et qu'il est activé.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Map port using &amp;UPnP</source>
-        <translation>Map port using &amp;UPnP</translation>
+        <translation>Mapper le port en utilisant &amp;UPnP</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</translation>
+        <translation>Se connecter au réseau VERGE à travers un proxy SOCKS (ex: lors d'une connexion via TOR).</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Connect through SOCKS proxy:</source>
-        <translation>&amp;Connect through SOCKS proxy:</translation>
+        <translation>&amp;Se connecter à travers un proxy SOCKS:</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Proxy &amp;IP:</source>
-        <translation>Proxy &amp;IP:</translation>
+        <translation>&amp;IP du Proxy</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>IP address of the proxy (e.g. 127.0.0.1)</source>
-        <translation>IP address of the proxy (e.g. 127.0.0.1)</translation>
+        <translation>Adresse IP du proxy (ex: 127.0.0.1)</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -865,77 +865,77 @@ Addresse: %4
     <message>
         <location line="+19"/>
         <source>Port of the proxy (e.g. 9050)</source>
-        <translation>Port of the proxy (e.g. 9050)</translation>
+        <translation>Port du Proxy (ex: 9050)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SOCKS &amp;Version:</source>
-        <translation>SOCKS &amp;Version:</translation>
+        <translation>&amp;Version SOCKS:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>SOCKS version of the proxy (e.g. 5)</source>
-        <translation>SOCKS version of the proxy (e.g. 5)</translation>
+        <translation>Version SOCKS du proxy (e.g. 5)</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>&amp;Window</source>
-        <translation>&amp;Window</translation>
+        <translation>&amp;Fenêtre</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>Show only a tray icon after minimizing the window.</translation>
+        <translation>Ne montrer une icône dans la barre de tâche qu'une fois la fenêtre minimisée</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Minimize to the tray instead of the taskbar</source>
-        <translation>&amp;Minimize to the tray instead of the taskbar</translation>
+        <translation>&amp;Minimiser dans la zone de notifications plutôt que dans la barre des tâches</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</translation>
+        <translation>Minimiser au lieu de fermer l'application lors de la fermeture de la fenêtre. Lorsque cette option est activée, l'application sera fermée uniquement après avoir sélectionné Quitter dans le menu.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>M&amp;inimize on close</translation>
+        <translation>M&amp;inimiser sur fermeture</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>&amp;Display</translation>
+        <translation>&amp;Affichage</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>User Interface &amp;language:</source>
-        <translation>User Interface &amp;language:</translation>
+        <translation>&amp;Langue d'interface utilisateur:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The user interface language can be set here. This setting will take effect after restarting VERGE.</source>
-        <translation>The user interface language can be set here. This setting will take effect after restarting VERGE.</translation>
+        <translation>La langue de l'interface utilisateur peut ête définie ici. Ce paramêtre sera pris en compte après un redémarrage de VERGE.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Unit to show amounts in:</source>
-        <translation>&amp;Unit to show amounts in:</translation>
+        <translation>&amp;Unité des montants:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Choose the default subdivision unit to show in the interface and when sending coins.</translation>
+        <translation>Choisir la subdivision par défaut à montrer dans l'interface et lors de l'envoi des pièces.</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Whether to show VERGE addresses in the transaction list or not.</source>
-        <translation>Whether to show VERGE addresses in the transaction list or not.</translation>
+        <translation>Montrer ou non les adresses VERGE dans la liste de transactions.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;Display addresses in transaction list</translation>
+        <translation>&amp;Afficher les adresses dans la liste de transactions</translation>
     </message>
     <message>
         <location line="+71"/>
@@ -945,34 +945,34 @@ Addresse: %4
     <message>
         <location line="+7"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;Cancel</translation>
+        <translation>&amp;Annuler</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>&amp;Apply</source>
-        <translation>&amp;Apply</translation>
+        <translation>&amp;Appliquer</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>default</translation>
+        <translation>Défaut</translation>
     </message>
     <message>
         <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
-        <translation>Warning</translation>
+        <translation>Attention</translation>
     </message>
     <message>
         <location line="-9"/>
         <location line="+9"/>
         <source>This setting will take effect after restarting VERGE.</source>
-        <translation>This setting will take effect after restarting VERGE.</translation>
+        <translation>ce paramètre sera pris en compte après redémarrage de VERGE.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The supplied proxy address is invalid.</source>
-        <translation>The supplied proxy address is invalid.</translation>
+        <translation>L'adresse de proxy fournie est invalide</translation>
     </message>
 </context>
 <context>
@@ -980,13 +980,13 @@ Addresse: %4
     <message>
         <location filename="../forms/overviewpage.ui" line="+14"/>
         <source>Form</source>
-        <translation>Form</translation>
+        <translation>formulaire</translation>
     </message>
     <message>
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</source>
-        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</translation>
+        <translation>L'information affichée peut être périmée. Votre portefeuille se synchronise automatiquement avec le réseau VERGE dès qu'une connexion est établie, mais ce processus n'a pas encore abouti.</translation>
     </message>
     <message>
         <location line="-141"/>
@@ -1001,17 +1001,17 @@ Addresse: %4
     <message>
         <location line="+58"/>
         <source>Number of transactions:</source>
-        <translation>Number of transactions:</translation>
+        <translation>Nombre de transactions:</translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Unconfirmed:</source>
-        <translation>Unconfirmed:</translation>
+        <translation>Non confirmées:</translation>
     </message>
     <message>
         <location line="-78"/>
         <source>Wallet</source>
-        <translation>Wallet</translation>
+        <translation>Portefeuille</translation>
     </message>
     <message>
         <location line="+124"/>
@@ -1021,17 +1021,17 @@ Addresse: %4
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>Mined balance that has not yet matured</translation>
+        <translation>Balance minée mais non encore mature</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Recent transactions&lt;/b&gt;</translation>
+        <translation>&lt;b&gt;transactions récentes&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>Your current balance</source>
-        <translation>Your current balance</translation>
+        <translation>Votre balance actuelle</translation>
     </message>
     <message>
         <location line="+29"/>
