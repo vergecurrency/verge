@@ -45,7 +45,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Для того, чтобы изменить адрес или метку давжды кликните по изменяемому объекту</translation>
+        <translation>Для того, чтобы изменить адрес или метку дважды кликните по изменяемому объекту</translation>
     </message>
     <message>
         <location line="+27"/>
@@ -312,7 +312,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-299"/>
         <source>&amp;Overview</source>
-        <translation>О&amp;бзор</translation>
+        <translation>&amp;Обзор</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -352,7 +352,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-7"/>
         <source>&amp;Send coins</source>
-        <translation>Отп&amp;равка монет</translation>
+        <translation>&amp;Отправка монет</translation>
     </message>
     <message>
         <location line="+35"/>
@@ -382,7 +382,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+2"/>
         <source>&amp;Options...</source>
-        <translation>Оп&amp;ции...</translation>
+        <translation>&amp;Опции...</translation>
     </message>
     <message>
         <location line="+4"/>
