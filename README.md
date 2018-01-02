@@ -59,7 +59,7 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 1. Download the pre-compiled software.
 2. Install
-3. In windows file explorer, open c:\Users\XXX\AppData\Roaming\VERGE (be sure to change XXX to your windows user)
+3. In windows file explorer, open `c:\Users\XXX\AppData\Roaming\VERGE` (be sure to change XXX to your windows user)
 4. Right click and create a new file `verge.txt`
 5. Edit the file to have the following contents (be sure to change the password)
 
@@ -111,10 +111,9 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
     ```
 
 4. Run `./VERGEd` from wherever you put it. The output from this command will tell you that you need to make a `VERGE.conf` file and will suggest some good starting values.
-5.  Go to your home directory and open up your new conf file in your favorite text editor
+5.  Open up your new config file that was created in your home directory in your favorite text editor
 
     ```shell
-    cd ~
     nano ~/.VERGE/VERGE.conf
     ```
 
@@ -143,9 +142,9 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.com/watch?v=WYe75b6RWes).
 
-### Building From Source
+## Building From Source
 
-#### Linux Wallet on Ubuntu/Debian
+### Linux Wallet on Ubuntu/Debian
 
 Here is a quick short hand way:
 
@@ -178,7 +177,7 @@ The _slightly_ longer version:
 > **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
 
 
-#### Mac OS X Wallet
+### Mac OS X Wallet
 
 > **Note:** This has only been confirmed to work on OS X Sierra (10.12) and OS X High Sierra (10.13) with XCode 9.2 and `Apple LLVM version 9.0.0 (clang-900.0.39.2)`.
 
@@ -218,21 +217,21 @@ The _slightly_ longer version:
     ./building/mac/dist.sh
     ```
 
-#### Windows Wallet
+### Windows Wallet
 
 TODO. Take a look as [building/windows](./building/windows).
 
-### Docker Images
+## Docker Images
 
 Check out the [`contrib/readme`](https://github.com/vergecurrency/VERGE/tree/master/contrib/docker) for more information.
 
-### Mining
+## Mining
 
-#### Solo mining
+### Solo mining
 
 Instead of joining a mining pool you can use the wallet to mine all by yourself. You need to specify the algorithm (see below) and set the "gen" flag. For instance, in the configuration specify `gen=1`.
 
-#### Using different algorithms
+### Using different algorithms
 
 To use a specific mining algorithm use the `algo` switch in your configuration file (`.conf` file) or from the command line (like this `--algo=x17`). Here are the possible values:
 
@@ -251,9 +250,9 @@ We believe in keeping Verge free and open. Any donations to help fuel the develo
 * Address for donations in Verge (XVG): `DDd1pVWr8PPAw1z7DRwoUW6maWh5SsnCcp`
 * Address for donations in Bitcoin (BTC): `142r3vCAH3AzABiQjFPmcrSCp6TDzEDuB1`
 
-## Special Shout Outs :raised_hands:
+## Special Shout Outs
 
-Special thanks to the following people that have helped make Verge possible:
+Special thanks to the following people that have helped make Verge possible. :raised_hands:
 
 Sunerok, CryptoRekt, MKinney, BearSylla, Hypermist, Pallas1, FuzzBawls, BuZz, glodfinch, InfernoMan, AhmedBodi, BitSpill, MentalCollatz, ekryski and the **entire** #VERGE community!
 
