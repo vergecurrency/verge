@@ -806,7 +806,7 @@ Address: %4
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Заплатить ко&amp;миссию</translation>
+        <translation>Заплатить &amp;комиссию</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -866,7 +866,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>&amp;Port:</source>
-        <translation>По&amp;рт: </translation>
+        <translation>&amp;Порт: </translation>
     </message>
     <message>
         <location line="+19"/>
