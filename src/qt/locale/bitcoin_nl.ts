@@ -544,40 +544,40 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
         <location line="+4"/>
         <source>%n minute(s) ago</source>
         <translation>
-            <numerusform>%n minute ago</numerusform>
-            <numerusform>%n minutes ago</numerusform>
+            <numerusform>%n minuten geleden</numerusform>
+            <numerusform>%n minuten geleden</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n hour(s) ago</source>
         <translation>
-            <numerusform>%n hour ago</numerusform>
-            <numerusform>%n hours ago</numerusform>
+            <numerusform>%n uur geleden</numerusform>
+            <numerusform>%n uur geleden</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n day(s) ago</source>
         <translation>
-            <numerusform>%n day ago</numerusform>
-            <numerusform>%n days ago</numerusform>
+            <numerusform>%n dagen geleden</numerusform>
+            <numerusform>%n dagen geleden</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Up to date</source>
-        <translation>Up to date</translation>
+        <translation>Actueel</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Catching up...</source>
-        <translation>Catching up...</translation>
+        <translation>Aan het laden...</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>Last received block was generated %1.</translation>
+        <translation>Het laatst ontvangen blok is gegenereerd %1.</translation>
     </message>
     <message>
         <location line="+59"/>
@@ -592,12 +592,12 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+27"/>
         <source>Sent transaction</source>
-        <translation>Sent transaction</translation>
+        <translation>Bevestig transactiekosten</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>Incoming transaction</translation>
+        <translation>Inkomend transactiekosten</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -606,7 +606,7 @@ Amount: %2
 Type: %3
 Address: %4
 </source>
-        <translation>Date: %1
+        <translation>Datum: %1
 Amount: %2
 Type: %3
 Address: %4
@@ -616,23 +616,23 @@ Address: %4
         <location line="+100"/>
         <location line="+15"/>
         <source>URI handling</source>
-        <translation>URI handling</translation>
+        <translation>URI-behandeling</translation>
     </message>
     <message>
         <location line="-15"/>
         <location line="+15"/>
         <source>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</source>
-        <translation>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</translation>
+        <translation>URI kan niet worden geparseerd! Dit kan worden veroorzaakt door een ongeldig VERGE-adres of onjuist geformuleerde URI-parameters.</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
-        <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</translation>
+        <translation>Portemonnee is &lt;b&gt;gecodeerd&lt;/b&gt; en &lt;b&gt;ontgrendeld&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
-        <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</translation>
+        <translation>Portemonnee is &lt;b&gt;gecodeerd&lt;/b&gt; en &lt;b&gt;vergrendeld&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+23"/>
