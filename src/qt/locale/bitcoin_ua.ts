@@ -891,94 +891,94 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>Показувани лише іконку в системному треї після згротання вікна.</translation>
+        <translation>Показувани лише іконку в системному треї після згортання вікна.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Minimize to the tray instead of the taskbar</source>
-        <translation>&amp;Cворачивать в системный лоток вместо панели задач</translation>
+        <translation>&amp;Згортати в системний трей замість панелі задач</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>Сворачивать вместо закрытия. Если данная опция будет выбрана — приложение закроется только после выбора соответствующего пункта в меню.</translation>
+        <translation>Згортати замість завершення роботи, коли вікно закрите. Якщо дана опція буде вибрана — програма закриється тільки після вибору відповідного пункту в меню.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>С&amp;ворачивать при закрытии</translation>
+        <translation>&amp;Згортати при закритті</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>О&amp;тображение</translation>
+        <translation>&amp;Вигляд</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>User Interface &amp;language:</source>
-        <translation>&amp;Язык интерфейса:</translation>
+        <translation>&amp;Мова інтерфейсу:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The user interface language can be set here. This setting will take effect after restarting Verge.</source>
-        <translation>Здесь можно выбрать язык интерфейса. Настройки вступят в силу после перезапуска Verge.</translation>
+        <translation>Тут можна вибрати мову інтерфейсу. Налаштування вступлять в силу після перезапуску Verge.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Unit to show amounts in:</source>
-        <translation>&amp;Отображать суммы в единицах: </translation>
+        <translation>&amp;Відображати суми в одиницях: </translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Выберите единицу измерения монет при отображении и отправке.</translation>
+        <translation>Виберіть одиницю виміру монет при відображенні і відправленні.</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Whether to show Verge addresses in the transaction list or not.</source>
-        <translation>Показывать ли адреса Verge в списке транзакций.</translation>
+        <translation>Чи показувати адреси Verge в списку транзакцій.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;Показывать адреса в списке транзакций</translation>
+        <translation>&amp;Показувати адреси Verge в списку транзакцій</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;OK</source>
-        <translation>О&amp;К</translation>
+        <translation>&amp;OK</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;Отмена</translation>
+        <translation>&amp;Скасувати</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>&amp;Apply</source>
-        <translation>&amp;Применить</translation>
+        <translation>&amp;Застосувати</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>по умолчанию</translation>
+        <translation>по замовчуванню</translation>
     </message>
     <message>
         <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
-        <translation>Внимание</translation>
+        <translation>Увага</translation>
     </message>
     <message>
         <location line="-9"/>
         <location line="+9"/>
         <source>This setting will take effect after restarting Verge.</source>
-        <translation>Эта настройка вступит в силу после перезапуска Verge</translation>
+        <translation>Це налаштування вступить в силу після перезапуску Verge</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The supplied proxy address is invalid.</source>
-        <translation>Адрес прокси неверен.</translation>
+        <translation>Адреса проксі неправильна.</translation>
     </message>
 </context>
 <context>
@@ -992,7 +992,7 @@ Address: %4
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Verge network after a connection is established, but this process has not completed yet.</source>
-        <translation>Отображаемая информация может быть устаревшей. Ваш бумажник автоматически синхронизируется с сетью Verge после подключения, но этот процесс пока не завершён.</translation>
+        <translation>Інформація, що відображається, може бути застаріла. Ваш гаманець автоматично синхронізуєтсья з мережею Verge після підключення, але цей процес поки що не завершений.</translation>
     </message>
     <message>
         <location line="-141"/>
@@ -1007,58 +1007,58 @@ Address: %4
     <message>
         <location line="+58"/>
         <source>Number of transactions:</source>
-        <translation>Количество транзакций:</translation>
+        <translation>Кількість транзакцій:</translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Unconfirmed:</source>
-        <translation>Не подтверждено:</translation>
+        <translation>Не підтверджено:</translation>
     </message>
     <message>
         <location line="-78"/>
         <source>Wallet</source>
-        <translation>Бумажник</translation>
+        <translation>Гаманець</translation>
     </message>
     <message>
         <location line="+124"/>
         <source>Immature:</source>
-        <translation>Незрелые:</translation>
+        <translation>Незрілі:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>Баланс добытых монет, который ещё не созрел</translation>
+        <translation>Баланс добутих монет, який ще не дозрів</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Последние транзакции&lt;/b&gt;</translation>
+        <translation>&lt;b&gt;Останні транзакції&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>Your current balance</source>
-        <translation>Ваш текущий баланс</translation>
+        <translation>Ваш поточний баланс</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Общая сумма всех транзакций, которые до сих пор не подтверждены, и до сих пор не учитываются в текущем балансе</translation>
+        <translation>Загальна сума всіх транзакцій, які досі не підтверджені, і досі не враховуються в поточному балансі</translation>
     </message>
     <message>
         <location line="+134"/>
         <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>Общая сумма всех монет, используемых для Proof-of-Stake, и не учитывающихся на балансе</translation>
+        <translation>Загальна сума всіх монет, що використовуютсья для Proof-of-Stake, і не враховуються на балансі</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>Общее количество транзакций в Вашем бумажнике</translation>
+        <translation>Загальна кількість транзакцій у вашому гаманці</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
-        <translation>не синхронизировано</translation>
+        <translation>не синхронізовано</translation>
     </message>
 </context>
 <context>
@@ -1066,57 +1066,57 @@ Address: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation>Диалог QR-кода</translation>
+        <translation>Діалог QR-коду</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Request Payment</source>
-        <translation>Запросить платёж</translation>
+        <translation>Запросити платіж</translation>
     </message>
     <message>
         <location line="+56"/>
         <source>Amount:</source>
-        <translation>Количество:</translation>
+        <translation>Кількість:</translation>
     </message>
     <message>
         <location line="-44"/>
         <source>Label:</source>
-        <translation>Метка:</translation>
+        <translation>Мітка:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Message:</source>
-        <translation>Сообщение:</translation>
+        <translation>Повідомлення:</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;Save As...</source>
-        <translation>&amp;Сохранить как...</translation>
+        <translation>&amp;Зберегти як...</translation>
     </message>
     <message>
         <location filename="../qrcodedialog.cpp" line="+62"/>
         <source>Error encoding URI into QR Code.</source>
-        <translation>Ошибка кодирования URI в QR-код</translation>
+        <translation>Помилка кодування URI в QR-код</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>The entered amount is invalid, please check.</source>
-        <translation>Введено неверное количество, проверьте ещё раз.</translation>
+        <translation>Введена неправильна кількість, перевірте ще раз.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>Получившийся URI слишком длинный, попробуйте сократить текст метки / сообщения.</translation>
+        <translation>отриманий URI надто довгий, попробуйте скоротити текст мітки / повідомлення.</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>Сохранить QR-код</translation>
+        <translation>Зберегти QR-код</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>PNG Images (*.png)</source>
-        <translation>PNG Изображения (*.png)</translation>
+        <translation>PNG Зображення (*.png)</translation>
     </message>
 </context>
 <context>
@@ -1124,7 +1124,7 @@ Address: %4
     <message>
         <location filename="../forms/rpcconsole.ui" line="+46"/>
         <source>Client name</source>
-        <translation>Имя клиента</translation>
+        <translation>Ім&apos;я клієнта</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1143,77 +1143,77 @@ Address: %4
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation>Версия клиента</translation>
+        <translation>Версія клієнта</translation>
     </message>
     <message>
         <location line="-45"/>
         <source>&amp;Information</source>
-        <translation>&amp;Информация</translation>
+        <translation>&amp;Інформація</translation>
     </message>
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation>Используется версия OpenSSL</translation>
+        <translation>Використовується версія OpenSSL</translation>
     </message>
     <message>
         <location line="+49"/>
         <source>Startup time</source>
-        <translation>Время запуска</translation>
+        <translation>Час запуску</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Network</source>
-        <translation>Сеть</translation>
+        <translation>Мережа</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Number of connections</source>
-        <translation>Число подключений</translation>
+        <translation>Число підключень</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>В тестовой сети</translation>
+        <translation>В тестовій мережі</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>Цепь блоков</translation>
+        <translation>Блокчейн</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>Текущее число блоков</translation>
+        <translation>Поточне число блоків</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Estimated total blocks</source>
-        <translation>Расчётное число блоков</translation>
+        <translation>Очікуване число блоків</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>Время последнего блока</translation>
+        <translation>Час останнього блоку</translation>
     </message>
     <message>
         <location line="+52"/>
         <source>&amp;Open</source>
-        <translation>&amp;Открыть</translation>
+        <translation>&amp;Відкрити</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Command-line options</source>
-        <translation>Параметры командной строки</translation>
+        <translation>Параметри командної стрічки</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Show the Verge-Qt help message to get a list with possible Verge command-line options.</source>
-        <translation>Показать помощь по Verge-Qt, чтобы получить список доступных параметров командной строки.</translation>
+        <translation>Показати допомогу по Verge-Qt, щоб отримати список доступних параметрів командної стрічки.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Show</source>
-        <translation>&amp;Показать</translation>
+        <translation>&amp;Показати</translation>
     </message>
     <message>
         <location line="+24"/>
@@ -1223,12 +1223,12 @@ Address: %4
     <message>
         <location line="-260"/>
         <source>Build date</source>
-        <translation>Дата сборки</translation>
+        <translation>Дата збірки</translation>
     </message>
     <message>
         <location line="-104"/>
         <source>Verge - Debug window</source>
-        <translation>Verge - Окно отладки</translation>
+        <translation>Verge - Вікно Debug</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1238,32 +1238,32 @@ Address: %4
     <message>
         <location line="+279"/>
         <source>Debug log file</source>
-        <translation>Отладочный лог-файл</translation>
+        <translation>Debug лог-файл</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Open the Verge debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Открыть отладочный лог-файл Verge из текущего каталога данных. Это может занять несколько секунд для больших лог-файлов.</translation>
+        <translation>Відкрити debug лог-файл Verge з поточного каталогу даних. Це може зайняти декілька секунд для великих лог-файлів.</translation>
     </message>
     <message>
         <location line="+102"/>
         <source>Clear console</source>
-        <translation>Очистить консоль</translation>
+        <translation>Очистити консоль</translation>
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
         <source>Welcome to the Verge RPC console.</source>
-        <translation>Добро пожаловать в RPC-консоль Verge.</translation>
+        <translation>Ласкаво просимо в RPC-консоль Verge.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>Используйте стрелки вверх и вниз для просмотра истории и &lt;b&gt;Ctrl-L&lt;/b&gt; для очистки экрана.</translation>
+        <translation>Використовуйте стрілки вверх і вниз для перегляду історії і &lt;b&gt;Ctrl-L&lt;/b&gt; для очистки екрану.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>Напишите &lt;b&gt;help&lt;/b&gt; для просмотра доступных команд.</translation>
+        <translation>Напишіть &lt;b&gt;help&lt;/b&gt; для перегляду доступних команд.</translation>
     </message>
 </context>
 <context>
@@ -1278,27 +1278,27 @@ Address: %4
         <location line="+5"/>
         <location line="+5"/>
         <source>Send Coins</source>
-        <translation>Отправка</translation>
+        <translation>Надсилання</translation>
     </message>
     <message>
         <location line="+50"/>
         <source>Send to multiple recipients at once</source>
-        <translation>Отправить нескольким получателям одновременно</translation>
+        <translation>Надіслати декільком отримувачам одночасно</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation>&amp;Добавить получателя</translation>
+        <translation>Додати &amp;Отримувача</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Remove all transaction fields</source>
-        <translation>Удалить все поля транзакции</translation>
+        <translation>Видалити всі поля транзакції</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Clear &amp;All</source>
-        <translation>Очистить &amp;всё</translation>
+        <translation>Очистити &amp;Все</translation>
     </message>
     <message>
         <location line="+22"/>
@@ -1313,12 +1313,12 @@ Address: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>Подтвердить отправку</translation>
+        <translation>Підтвердити надсилання</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation>&amp;Отправить</translation>
+        <translation>&amp;Надіслати</translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
@@ -1328,52 +1328,52 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>Confirm send coins</source>
-        <translation>Подтвердите отправку монет</translation>
+        <translation>Підтвердіть надсилання монет</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>Вы уверены, что хотите отправить %1?</translation>
+        <translation>Ви впевнені, що хочите надіслати %1?</translation>
     </message>
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> и </translation>
+        <translation> і </translation>
     </message>
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>Адрес получателя неверный, пожалуйста, перепроверьте.</translation>
+        <translation>Адреса отримувача неправильна, будь ласка, перепровірте.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>Количество монет для отправки должно быть больше 0.</translation>
+        <translation>Кількість монет для надсилання повинна бути більша за 0.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount exceeds your balance.</source>
-        <translation>Количество отправляемых монет превышает Ваш баланс</translation>
+        <translation>Кількість монет для надсилання перевищує Ваш баланс</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>Сумма превысит Ваш баланс, если комиссия в размере %1 будет добавлена к транзакции</translation>
+        <translation>Сума перевищить Ваш баланс, якщо комісія в розмірі %1 буде додава до транзакції</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Duplicate address found, can only send to each address once per send operation.</source>
-        <translation>Обнаружен дублирующийся адрес. Отправка на один и тот же адрес возможна только один раз за одну операцию отправки</translation>
+        <translation>Виявлено дублюючу адресу. Надсилання на одну і ту ж адресу можлива лише один раз за одну операції надсилання</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>Ошибка: не удалось создать транзакцию.</translation>
+        <translation>Помилка: не вдалось створити транзакцію.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Ошибка: В транзакции отказано.  Такое может произойти, если некоторые монеты уже были потрачены, например, если Вы используете одну копию файла wallet.dat, а монеты были потрачены из другой копии, но не были отмечены как потраченные в этой.</translation>
+        <translation>Помилка: В транзакції відмовлено. Таке може відбутися, якщо деякі монеті вже були витрачені, наприклад, якщо Ви використовуєте одну копію файлу wallet.dat, а монеті були витрачені з іншої копії, але не були відмічені як витрачені в цій.</translation>
     </message>
 </context>
 <context>
@@ -1386,12 +1386,12 @@ Address: %4
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>Ко&amp;личество:</translation>
+        <translation>&amp;Кількість:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Pay &amp;To:</source>
-        <translation>Полу&amp;чатель:</translation>
+        <translation>&amp;Отримувач:</translation>
     </message>
     <message>
         <location line="+24"/>

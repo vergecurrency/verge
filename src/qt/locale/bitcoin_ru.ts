@@ -906,12 +906,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>С&amp;ворачивать при закрытии</translation>
+        <translation>&amp;Сворачивать при закрытии</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>О&amp;тображение</translation>
+        <translation>&amp;Отображение</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -946,7 +946,7 @@ Address: %4
     <message>
         <location line="+71"/>
         <source>&amp;OK</source>
-        <translation>О&amp;К</translation>
+        <translation>&amp;OK</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1386,7 +1386,7 @@ Address: %4
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>Ко&amp;личество:</translation>
+        <translation>&amp;Количество:</translation>
     </message>
     <message>
         <location line="+13"/>
