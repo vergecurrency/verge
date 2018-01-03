@@ -17,7 +17,7 @@
     <message>
         <location line="+41"/>
         <source>Copyright © 2014-2016 The Verge developers</source>
-        <translation>Derechos Reservados © 2014-2016 The Verge developers</translation>
+        <translation>Derechos Reservados © 2018 Verge </translation>
     </message>
     <message>
         <location line="+13"/>
