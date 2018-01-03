@@ -28,7 +28,7 @@ Distributed under the MIT/X11 software license, see the accompanying file COPYIN
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
         <translation>
-Questo é un software sperimentale.
+Questo &egrave; un software sperimentale.
 
 Distributo sotto licenza MIT/X11, vedere il file COPYING correlato o  http://www.opensource.org/licenses/mit-license.php.
 
@@ -96,7 +96,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified VERGE address</source>
-        <translation>Verifica un message per assicurre che é stato firmato con un indirizzo VERGE specificato</translation>
+        <translation>Verifica un message per assicurre che &egrave; stato firmato con un indirizzo VERGE specificato</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -136,7 +136,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Non é possibile scrivere sul file %1.</translation>
+        <translation>Non &egrave; possibile scrivere sul file %1.</translation>
     </message>
 </context>
 <context>
@@ -243,7 +243,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
         <location line="+100"/>
         <location line="+24"/>
         <source>Warning: The Caps Lock key is on!</source>
-        <translation>Attenzione: Il tasto Caps Lock é attivo!</translation>
+        <translation>Attenzione: Il tasto Caps Lock &egrave; attivo!</translation>
     </message>
     <message>
         <location line="-130"/>
