@@ -13,6 +13,7 @@ AC_CANONICAL_HOST
 AH_TOP([#ifndef VERGE_CONFIG_H])
 AH_TOP([#define VERGE_CONFIG_H])
 AH_BOTTOM([#endif //VERGE_CONFIG_H])
+AX_SUBDIRS_CONFIGURE([tor], [[--disable-unittests], [--disable-system-torrc], [--disable-systemd], [--disable-lzma], [--disable-asciidoc], [--with-openssl-dir=$($PKG_CONFIG --variable=libdir openssl)], [CFLAGS=$($PKG_CONFIG --cflags openssl)]])
 
 # This m4 will only be used if a system copy cannot be found. This is helpful
 # on systems where autotools are installed but the pkg-config macros are not in
@@ -548,6 +549,8 @@ if test x$use_pkgconfig = xyes; then
   m4_ifdef(
     [PKG_CHECK_MODULES],
     [
+	  PKG_CHECK_MODULES(LIBEVENT, [libevent], [], [AC_MSG_ERROR([libevent not found])])
+	  PKG_CHECK_MODULES(ZLIB, [zlib], [], [AC_MSG_ERROR([zlib not found])])
       PKG_CHECK_MODULES([SSL], [libssl], [INCLUDES="$INCLUDES $SSL_CFLAGS"; LIBS="$LIBS $SSL_LIBS"], [AC_MSG_ERROR(openssl  not found.)])
       PKG_CHECK_MODULES([CRYPTO], [libcrypto], [INCLUDES="$INCLUDES $CRYPTO_CFLAGS"; LIBS="$LIBS $CRYPTO_LIBS"], [AC_MSG_ERROR(libcrypto  not found.)])
       BITCOIN_QT_CHECK([PKG_CHECK_MODULES([PROTOBUF], [protobuf], [have_protobuf=yes], [BITCOIN_QT_FAIL(libprotobuf not found)])])
