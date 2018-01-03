@@ -166,7 +166,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Уведіть пароль</translation>
+        <translation>Введіть пароль</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -181,7 +181,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Уведіть новий пароль для гаманця. &lt;br/&gt; Будь ласка, використовуйте пароль з &lt;b&gt;10 чи більше випадкових символів&lt;/b&gt;, або &lt;b&gt;восьми чи більше слів.&lt;/b&gt;</translation>
+        <translation>Введіть новий пароль для гаманця. &lt;br/&gt; Будь ласка, використовуйте пароль з &lt;b&gt;10 чи більше випадкових символів&lt;/b&gt;, або &lt;b&gt;восьми чи більше слів.&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -216,7 +216,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Уведіть старий і новий паролі від гаманця.</translation>
+        <translation>Введіть старий і новий паролі від гаманця.</translation>
     </message>
     <message>
         <location line="+46"/>
@@ -272,7 +272,7 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>Уведені паролі не співпадають.</translation>
+        <translation>Введені паролі не співпадають.</translation>
     </message>
     <message>
         <location line="-37"/>
@@ -284,7 +284,7 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+11"/>
         <location line="+19"/>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>Уведений пароль для розшифрування гаманця неправильний.</translation>
+        <translation>Введений пароль для розшифрування гаманця неправильний.</translation>
     </message>
     <message>
         <location line="-20"/>
@@ -724,7 +724,7 @@ Address: %4
     <message>
         <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>Уведена адреса «%1» вже знаходиться в адресній книзі.</translation>
+        <translation>Введена адреса «%1» вже знаходиться в адресній книзі.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1397,7 +1397,7 @@ Address: %4
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>Уведіть мітку для даної адреси (для додавання в адресну книгу)</translation>
+        <translation>Введіть мітку для даної адреси (для додавання в адресну книгу)</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -1437,7 +1437,7 @@ Address: %4
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
         <source>Enter a Verge address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Уведіть Verge-адресу (наприклад, 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Введіть Verge-адресу (наприклад, 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
 </context>
 <context>
@@ -1456,7 +1456,7 @@ Address: %4
     <message>
         <location line="-118"/>
         <source>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Ви можете підписувати повідомлення своїми адресами, щоб довести, що Ви володієте ними. Будьте обережні, непідписуйте щось неоднозначне, оскільки фішингові атаки можуть шляхом обману змусити Вас підписати небажані повідомлення. Підписуйте тільки ті повідомлення, з якими Ви повністю погоджуєтесь.</translation>
+        <translation>Ви можете підписувати повідомлення своїми адресами, щоб довести, що Ви володієте ними. Будьте обережні, не підписуйте щось неоднозначне, оскільки фішингові атаки можуть шляхом шахрайства змусити Вас підписати небажані повідомлення. Підписуйте тільки ті повідомлення, з якими Ви повністю погоджуєтесь.</translation>
     </message>
     <message>
         <location line="+18"/>
@@ -1467,7 +1467,7 @@ Address: %4
         <location line="+10"/>
         <location line="+203"/>
         <source>Choose an address from the address book</source>
-        <translation>Оберіть адресу із адресної книги</translation>
+        <translation>Оберіть адресу з адресної книги</translation>
     </message>
     <message>
         <location line="-193"/>
@@ -1478,7 +1478,7 @@ Address: %4
     <message>
         <location line="-193"/>
         <source>Paste address from clipboard</source>
-        <translation>Вчтавити адесу із буферу обміну</translation>
+        <translation>Вставити адресу з буферу обміну</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1488,7 +1488,7 @@ Address: %4
     <message>
         <location line="+12"/>
         <source>Enter the message you want to sign here</source>
-        <translation>Уведіть повідомлення для підпису</translation>
+        <translation>Введіть повідомлення для підпису</translation>
     </message>
     <message>
         <location line="+24"/>
@@ -1509,7 +1509,7 @@ Address: %4
         <location line="+3"/>
         <location line="+146"/>
         <source>Clear &amp;All</source>
-        <translation>Очистити &amp;все</translation>
+        <translation>Очистити &amp;Все</translation>
     </message>
     <message>
         <location line="-87"/>
@@ -1520,12 +1520,12 @@ Address: %4
     <message>
         <location line="-64"/>
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>Уведіть нижче адресу для підпису, повідомлення (переконайтесь, что переноси рядків, пробіли, таби и т.д. ідентично скопійовані) і підпис, щоб перевірити повідомлення. Переконайтесь, що не скопіювали зайвого до піпису, порівняно із самим повідомленням, що підписується, щоб не стати жертвою атаки &quot;man-in-the-middle&quot;.</translation>
+        <translation>Введіть адресу для підпису, повідомлення (переконайтесь, що переноси рядків, пробіли, таби и т.д. ідентично скопійовані) і підпис, щоб перевірити повідомлення. Переконайтесь, що не скопіювали зайвого до піпису, порівняно із самим повідомленням, що підписується, щоб не стати жертвою атаки &quot;man-in-the-middle&quot;.</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>The address the message was signed with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Адрес, которым было подписано сообщение (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Адреса, якою було підписано повідомлення (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="+40"/>
@@ -1541,7 +1541,7 @@ Address: %4
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
         <source>Enter a Verge address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Уведіть адресу Verge (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Введіть адресу Verge (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -1551,13 +1551,13 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Enter Verge signature</source>
-        <translation>Уведіть підпис Verge</translation>
+        <translation>Введіть підпис Verge</translation>
     </message>
     <message>
         <location line="+82"/>
         <location line="+81"/>
         <source>The entered address is invalid.</source>
-        <translation>Уведена адреса є неправильною.</translation>
+        <translation>Введена адреса є неправильною.</translation>
     </message>
     <message>
         <location line="-81"/>
@@ -1571,12 +1571,12 @@ Address: %4
         <location line="-81"/>
         <location line="+81"/>
         <source>The entered address does not refer to a key.</source>
-        <translation>Уведена адреса не пов&spos;язана з ключем.</translation>
+        <translation>Введена адреса не пов&spos;язана з ключем.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>Розблокування гаманця було відміненим.</translation>
+        <translation>Розблокування гаманця було скасоване.</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1612,12 +1612,12 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Message verification failed.</source>
-        <translation>Перевірка повідомлення виявилась неуспішною.</translation>
+        <translation>Перевірка повідомлення неуспішна.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message verified.</source>
-        <translation>Повідомлення перевірено.</translation>
+        <translation>Повідомлення перевірене.</translation>
     </message>
 </context>
 <context>
@@ -1691,13 +1691,13 @@ Address: %4
         <location line="+22"/>
         <location line="+58"/>
         <source>To</source>
-        <translation>Для</translation>
+        <translation>До</translation>
     </message>
     <message>
         <location line="-77"/>
         <location line="+2"/>
         <source>own address</source>
-        <translation>власна адресф</translation>
+        <translation>власна адреса</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -1718,7 +1718,7 @@ Address: %4
         <source>matures in %n more block(s)</source>
         <translation>
             <numerusform>буде доступно через %n блок</numerusform>
-            <numerusform>буде доступно через %n блока</numerusform>
+            <numerusform>буде доступно через %n блоків</numerusform>
             <numerusform>буде доступно через %n блоків</numerusform>
         </translation>
     </message>
@@ -1821,7 +1821,7 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>Даний діалог показує деталізовану статистику по обраній транзакції</translation>
+        <translation>Даний діалог показує деталізовану статистику про обрану транзакцію</translation>
     </message>
 </context>
 <context>
@@ -1880,19 +1880,19 @@ Address: %4
         <source>Mined balance will be available when it matures in %n more block(s)</source>
         <translation>
             <numerusform>Видобутими монетами можна буде скористатися через %n блок</numerusform>
-            <numerusform>Видобутими монетами можна буде скористатися через %n блока</numerusform>
+            <numerusform>Видобутими монетами можна буде скористатися через %n блоків</numerusform>
             <numerusform>Видобутими монетами можна буде скористатися через %n блоків</numerusform>
         </translation>
     </message>
     <message>
         <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>Цей блок не був отриманим іншими вузлами і, можливо, не бути прийнятим!</translation>
+        <translation>Цей блок не був отриманим іншими вузлами і, ймовірно, не буде прийнятим!</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated but not accepted</source>
-        <translation>Згенеровано, але не підтверджено</translation>
+        <translation>Згенеровано, але не прийнято</translation>
     </message>
     <message>
         <location line="+43"/>
@@ -1907,7 +1907,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Sent to</source>
-        <translation>Надіслано</translation>
+        <translation>Надіслано на</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -1927,7 +1927,7 @@ Address: %4
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>Статус транзакції. Наведіть курсор до потрібного поля, щоб побачити кількість підтверджень.</translation>
+        <translation>Статус транзакції. Наведіть курсор на потрібне поле, щоб побачити кількість підтверджень.</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2016,7 +2016,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>Уведіть адресу або мітку для пошуку</translation>
+        <translation>Введіть адресу або мітку для пошуку</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2127,7 +2127,7 @@ Address: %4
     <message>
         <location filename="../bitcoinstrings.cpp" line="+82"/>
         <source>Verge version</source>
-        <translation>Версія</translation>
+        <translation>Версія Verge</translation>
     </message>
     <message>
         <location line="+82"/>
@@ -2193,7 +2193,7 @@ Address: %4
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>ПРиймати вхідні підключення на &lt;port&gt; (за замовчуванням: 7777 або 17777 в тестовій мережі)</translation>
+        <translation>Прослуховувати вхідні підключення на &lt;port&gt; (за замовчуванням: 7777 або 17777 в тестовій мережі)</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -2238,7 +2238,7 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>Detach block and address databases. Increases shutdown time (default: 0)</source>
-        <translation>Відключити бази даних для блоків і адрес.Збільшує час завершення роботи (за замовчуванням: 0)</translation>
+        <translation>Відключити бази даних для блоків і адрес. Збільшує час завершення роботи (за замовчуванням: 0)</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2248,7 +2248,7 @@ Address: %4
     <message>
         <location line="+13"/>
         <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
-        <translation>Прослуховувати підключення JSON-RPC на &lt;порті&gt; (за замовчуванням: 8344 або для testnet: 18344)</translation>
+        <translation>Прослуховувати підключення JSON-RPC на &lt;port&gt; (за замовчуванням: 8344 або для testnet: 18344)</translation>
     </message>
     <message>
         <location line="+19"/>
@@ -2273,7 +2273,7 @@ Address: %4
     <message>
         <location line="+32"/>
         <source>Importing blockchain data file.</source>
-        <translation>Імпорт файлу ланцюга блоків.</translation>
+        <translation>Імпорт файлу блокчейну.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2283,7 +2283,7 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>Run in the background as a daemon and accept commands</source>
-        <translation>Запускатися у фоні як демон і приймати команди</translation>
+        <translation>Запускатися у фоні як daemon і приймати команди</translation>
     </message>
     <message>
         <location line="+33"/>
@@ -2313,7 +2313,7 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
-        <translation>Увага: установлено занадто великий розмір -paytxfee. Це комісія, яку ви заплатите при надсиланні транзакції.</translation>
+        <translation>Увага: встановлено занадто великий розмір -paytxfee. Це комісія, яку ви заплатите при надсиланні транзакції.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -2338,12 +2338,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Discover own IP address (default: 1 when listening and no -externalip)</source>
-        <translation>Визначити свою IP адресу (за замовчуванням: 1 при прослуховування і не використовується -externalip)</translation>
+        <translation>Визначити свою IP адресу (за замовчуванням: 1 при прослуховуванні і коли не використовується -externalip)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Error: Transaction creation failed  </source>
-        <translation>Ошибка: Создание транзакции не удалось  </translation>
+        <translation>Помилка: Створення транзакції не успішне  </translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2398,7 +2398,7 @@ Address: %4
     <message>
         <location line="+4"/>
         <source>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</source>
-        <translation>Параметри SSL: (см. Bitcoin Wiki для інструкцій по налаштуванню SSL)</translation>
+        <translation>Параметри SSL: (див. Bitcoin Wiki для інструкцій по налаштуванню SSL)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2428,7 +2428,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Shrink debug.log file on client startup (default: 1 when no -debug)</source>
-        <translation>Стискати файл debug.log при запуску клієнта (за замовчуванням: 1, еоли не використовується -debug)</translation>
+        <translation>Стискати файл debug.log при запуску клієнта (за замовчуванням: 1, коли не використовується -debug)</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2468,7 +2468,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Warning: This version is obsolete, upgrade required!</source>
-        <translation>Увага: ця версія застарівша, необхідне оновлення!</translation>
+        <translation>Увага: ця версія застаріла, необхідне оновлення!</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2593,7 +2593,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Error loading wallet.dat: Wallet requires newer version of Verge</source>
-        <translation>ПОмилка завантаження wallet.dat: Гаманець вимагає більш нової версії Verge</translation>
+        <translation>Помилка завантаження wallet.dat: Гаманець вимагає новішу версію Verge</translation>
     </message>
     <message>
         <location line="+73"/>
@@ -2618,22 +2618,22 @@ Address: %4
     <message>
         <location line="-1"/>
         <source>Unknown -socks proxy version requested: %i</source>
-        <translation>У параметрі -socks запитано невідому версію: %i</translation>
+        <translation>Невідома -socks версія проксі: %i</translation>
     </message>
     <message>
         <location line="-74"/>
         <source>Cannot resolve -bind address: &apos;%s&apos;</source>
-        <translation>Не вдалось вирішити адресу в параметрі -bind: &apos;%s&apos;</translation>
+        <translation>Не вдалось розпізнати адресу в параметрі -bind: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot resolve -externalip address: &apos;%s&apos;</source>
-        <translation>Не вдалось вирішити адресу в параметрі -externalip: &apos;%s&apos;</translation>
+        <translation>Не вдалось розпізнати адресу в параметрі -externalip: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</source>
-        <translation>Неправильна кількість в параметрі -paytxfee=&lt;кол-во&gt;: &apos;%s&apos;</translation>
+        <translation>Неправильна кількість в параметрі -paytxfee=&lt;amount&gt;: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="-15"/>
@@ -2678,7 +2678,7 @@ Address: %4
     <message>
         <location line="-2"/>
         <source>Fee per KB to add to transactions you send</source>
-        <translation>Комісія на один кілобайт, що додаєтсься до Ваших траназкцій</translation>
+        <translation>Комісія за один кілобайт, що додаєтсься до Ваших траназкцій</translation>
     </message>
     <message>
         <location line="+19"/>
