@@ -80,17 +80,17 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own a VERGE address</source>
-        <translation>Signeer een bericht om te bewijzen dat u een VERGE adres bezit.</translation>
+        <translation>Signeer een bericht om te bewijzen dat u een VERGE adres bezit</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sign &amp;Message</source>
-        <translation type="unfinished"></translation>
+        <translation>Signeer Bericht</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Delete the currently selected address from the list</source>
-        <translation type="unfinished"></translation>
+        <translation>Verwijder het geselecteerde adres van de lijst</translation>
     </message>
     <message>
         <location line="-14"/>
@@ -226,17 +226,17 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Waarschuwing: Als u uw encryptie op uw portemonnee toepast en uw wachtwoord verliest,, zult u &lt;b&gt;AL UW MUNTEN VERLIEZEN&lt;/b&gt;!</translation>
+        <translation>Waarschuwing: Als u uw encryptie op uw portemonnee toepast en uw wachtwoord verliest, zult u &lt;b&gt;AL UW MUNTEN VERLIEZEN&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Are you sure you wish to encrypt your wallet?</source>
-        <translation>Weet u zeker dat u uw portemonnee wilt coderen??</translation>
+        <translation>Weet u zeker dat u uw portemonnee wilt coderen?</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation type="unfinished"></translation>
+        <translation>BELANGRIJK: Alle voorgaan reservekopieën van je portemonnee-bestand moeten worden vervangen door het nieuwe, gecodeerde portemonnee-bestand. Omwille beveiligingsredenen zullen eerdere reservekopieën van niet-gecodeerde portemonee-bestanden onbruikbaar worden als u de nieuwe, gecodeerde, portemonnee gaat gebruiken.</translation>
     </message>
     <message>
         <location line="+100"/>
@@ -284,12 +284,12 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
         <location line="+11"/>
         <location line="+19"/>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>De wachtwoord die is ingevoerd voor het docoderen van de portemonnee was onjuist.</translation>
+        <translation>Het wachtwoord dat is ingevoerd voor het decoderen van de portemonnee was onjuist.</translation>
     </message>
     <message>
         <location line="-20"/>
         <source>Wallet decryption failed</source>
-        <translation>portemonnee decodering mislukt</translation>
+        <translation>Portemonnee decodering mislukt</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -582,7 +582,7 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation type="unfinished"></translation>
+        <translation>Deze transactie is groter dan </translation>
     </message>
     <message>
         <location line="+5"/>
@@ -597,7 +597,7 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>Inkomend transactie</translation>
+        <translation>Inkomende transactie</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1021,7 +1021,7 @@ Address: %4
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>Mined balance that has not yet matured</translation>
+        <translation>Gemijnde balans die nog niet is gerijpt</translation>
     </message>
     <message>
         <location line="+46"/>
@@ -1172,12 +1172,12 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>Blokketting</translation>
+        <translation>Block chain</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>Aantal blokken</translation>
+        <translation>Huidig aantal blokken</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1312,7 +1312,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation type="unfinished"></translation>
+        <translation>V&amp;erstuur</translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
@@ -1362,12 +1362,12 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>Error: Het maken van de transactie is mislukt.</translation>
+        <translation>Fout: Het maken van de transactie is mislukt.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Error: De transactie werd afgewezen. Dit kan gebeuren als sommige van de munten in je portemonnee al zijn uitgegeven, bijvoorbeeld als je een kopie van wallet.dat hebt gebruikt en er munten in de kopie zijn uitgegeven maar hier niet zijn gemarkeerd als uitgegeven.</translation>
+        <translation>Fout: De transactie werd afgewezen. Dit kan gebeuren als sommige van de munten in je portemonnee al zijn uitgegeven, bijvoorbeeld als je een kopie van wallet.dat hebt gebruikt en er munten in de kopie zijn uitgegeven maar hier niet zijn gemarkeerd als uitgegeven.</translation>
     </message>
 </context>
 <context>
@@ -1455,7 +1455,7 @@ Address: %4
     <message>
         <location line="+18"/>
         <source>The address to sign the message with </source>
-        <translation>Het adres om het bericht mee te ondertekenen</translation>
+        <translation>Het adres om het bericht mee te ondertekenen </translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1514,7 +1514,7 @@ Address: %4
     <message>
         <location line="-64"/>
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>Voer het ondertekeningsadres in, bericht (zorg ervoor dat u regelafbrekingen, spaties, tabbladen, enz. Exact kopieert) en teken hieronder om het bericht te verifiëren. Zorg ervoor dat je niet meer leest in de handtekening dan in het ondertekende bericht zelf, om te voorkomen dat je wordt misleid door een man-in-the-middle-aanval.</translation>
+        <translation>Voer het ondertekeningsadres in, bericht (zorg ervoor dat u regelafbrekingen, spaties, tabbladen, enz. exact kopieert) en teken hieronder om het bericht te verifiëren. Zorg ervoor dat je niet meer leest in de handtekening dan in het ondertekende bericht zelf, om te voorkomen dat je wordt misleid door een man-in-the-middle-aanval.</translation>
     </message>
     <message>
         <location line="+21"/>
@@ -1754,7 +1754,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Gegenereerde munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in & quot; niet geaccepteerd & quot; en het zal niet te besteden zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na jou een blok genereert.</translation>
+        <translation>Gegenereerde munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in &quot;niet geaccepteerd&quot; en het zal niet te besteden zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na jou een blok genereert.</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -1901,7 +1901,7 @@ Address: %4
     <message>
         <location line="+2"/>
         <source>Payment to yourself</source>
-        <translation>Betaling aan u zelf</translation>
+        <translation>Betaling aan uzelf</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2216,7 +2216,7 @@ Address: %4
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Er is een fout opgetreden tijdens het opzetten van de RPC port %u voor het luisten naar IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -2226,12 +2226,12 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Fout: De transactie is afgewezen.  Dit kan gebeuren als sommige munten in je wallet al uitgegeven zijn, bijvoorbeeld als je een kopie van wallet.dat hebt gebruikt en munten zijn uitgegeven in deze kopie, maar hier niet gemarkeerd als uitgeven.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation type="unfinished"></translation>
+        <translation>Fout: Deze transactie heeft transactiekosten van tenminste %s vanwege zijn grootte, complexiteit, of gebruik van recentelijk ontvangen tegoeden  </translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2246,22 +2246,22 @@ Address: %4
     <message>
         <location line="+26"/>
         <source>Error: Transaction creation failed  </source>
-        <translation type="unfinished"></translation>
+        <translation>Fout: Het creeëren van de transactie is mislukt  </translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation type="unfinished"></translation>
+        <translation>Fout: Portemonee gesloten, niet in staat om transactie te creeëren </translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Importing blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Importeren van blockchain-data bestand.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Importing bootstrap blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Importeren bootstrap blockchain-data bestand.</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -2281,12 +2281,12 @@ Address: %4
     <message>
         <location line="-53"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Er is een fout opgetreden tijdens het opzetten van RPC port %u voor het luisteren naar IPv6, val terug op IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation type="unfinished"></translation>
+        <translation>Er is een fout opgetreden bij het initialiseren van de database omgeving %s! Om te herstellen, MAAK EEN RESERVEKOPIE VAN DEZE FOLDER, verwijder daarna alles uit deze folder behalve het wallet.dat bestand.</translation>
     </message>
     <message>
         <location line="+18"/>
@@ -2446,7 +2446,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Verifying database integrity...</source>
-        <translation type="unfinished"></translation>
+        <translation>Verifiëren van database integriteit...</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2461,7 +2461,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>wallet.dat corrupt, salvage failed</source>
-        <translation type="unfinished"></translation>
+        <translation>wallet.dat is corrupt, berging mislukt</translation>
     </message>
     <message>
         <location line="-43"/>
