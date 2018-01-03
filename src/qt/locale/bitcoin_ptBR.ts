@@ -166,22 +166,22 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Digite a frase secreta</translation>
+        <translation>Digite a frase secreta (senha)</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>New passphrase</source>
-        <translation>Nova frase secreta</translation>
+        <translation>Nova frase secreta (senha)</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Repeat new passphrase</source>
-        <translation>Repita a nova frase secreta</translation>
+        <translation>Repita a nova frase secreta (senha)</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Digite a nova frase secreta na carteira.&lt;br/&gt;Use uma frase secreta de &lt;b&gt;10 ou mais caracteres aleatórios&lt;/b&gt;, ou &lt;b&gt;oito ou mais palavras&lt;/b&gt;.</translation>
+        <translation>Digite a nova frase secreta (senha) na carteira.&lt;br/&gt;Use uma frase secreta de &lt;b&gt;10 ou mais caracteres aleatórios&lt;/b&gt;, ou &lt;b&gt;oito ou mais palavras&lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -191,7 +191,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Esta operação precisa da frase secreta de sua carteira para desbloquear a carteira.</translation>
+        <translation>Esta operação precisa da frase secreta (senha) de sua carteira para desbloquear a carteira.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -201,7 +201,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Esta operação precisa da frase secreta de sua carteira para descriptografar a carteira.</translation>
+        <translation>Esta operação precisa da frase secreta (senha) de sua carteira para descriptografar a carteira.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -211,12 +211,12 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+3"/>
         <source>Change passphrase</source>
-        <translation>Modificar frase secreta</translation>
+        <translation>Modificar frase secreta (senha)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Insira a frase secreta antiga e nova na carteira.</translation>
+        <translation>Insira a frase secreta (senha) antiga e nova para a carteira.</translation>
     </message>
     <message>
         <location line="+46"/>
@@ -272,7 +272,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>As frases de acesso fornecidas não correspondem.</translation>
+        <translation>As senhas fornecidas não correspondem.</translation>
     </message>
     <message>
         <location line="-37"/>
@@ -327,7 +327,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+1"/>
         <source>Browse transaction history</source>
-        <translation>Procurar histórico de transações</translation>
+        <translation>Navegar pelo histórico de transações</translation>
     </message>
     <message>
         <location line="+5"/>
