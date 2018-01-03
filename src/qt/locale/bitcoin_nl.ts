@@ -28,11 +28,11 @@ Distributed under the MIT/X11 software license, see the accompanying file COPYIN
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
         <translation>
-Dit is een experimenteel software.
+Dit is experimentele software.
 
 Gedistributeerd onder the MIT/X11 software licentie, zie de bijbehorende document COPYING of http://www.opensource.org/licenses/mit-license.php.
 
-Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in OpenSSL Toolkit (http://www.openssl.org/) en cryptografisch software geschreven door Eric Young (eay@cryptsoft.com) en UPnP software geschreven door Thomas Bernard.</translation>
+Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de OpenSSL Toolkit (http://www.openssl.org/) en cryptografisch software geschreven door Eric Young (eay@cryptsoft.com) en UPnP software geschreven door Thomas Bernard.</translation>
     </message>
 </context>
 <context>
@@ -55,7 +55,7 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Kopieer de huidige geselecteerde adres naar het klembord</translation>
+        <translation>Kopieer het huidig geselecteerde adres naar het klembord</translation>
     </message>
     <message>
         <location line="-11"/>
@@ -95,7 +95,7 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified VERGE address</source>
-        <translation>Verifieer een bericht om te bevestigen dat het is geverifieerd met de gespecifieerde VERGE adres</translation>
+        <translation>Verifieer een bericht om te bevestigen dat het is ondertekend met het gespecificeerde VERGE adres</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -181,7 +181,7 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Voer de nieuwe wachtwoord in de portemonnee in.&lt;br/&gt;Gebruik alstublieft een wachtwoord van &lt;b&gt;10 of meer willekeurige tekens&lt;/b&gt;, of &lt;b&gt;acht of meer woorden&lt;/b&gt;.</translation>
+        <translation>Voer het nieuwe wachtwoord in de portemonnee in.&lt;br/&gt;Gebruik alstublieft een wachtwoord van &lt;b&gt;10 of meer willekeurige tekens&lt;/b&gt;, of &lt;b&gt;acht of meer woorden&lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -201,7 +201,7 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Voor deze bewerking is uw wachtwoord nodig om uw protemonnee te vergrendelen.</translation>
+        <translation>Voor deze bewerking is uw wachtwoord nodig om de portemonnee te vergrendelen.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -221,12 +221,12 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>Bevestig portemonnee codering</translation>
+        <translation>Bevestig portemonnee encryptie</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Waarschuwing: Als u uw portemonnee codeert en uw wachtwoord verliest, zult u &lt;b&gt;AL UW MUNTEN VERLIEZEN&lt;/b&gt;!</translation>
+        <translation>Waarschuwing: Als u uw encryptie op uw portemonnee toepast en uw wachtwoord verliest,, zult u &lt;b&gt;AL UW MUNTEN VERLIEZEN&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -253,7 +253,7 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="-56"/>
         <source>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>VERGE wordt nu gesloten om het coderingsproces te voltooien. Vergeet niet dat het coderen van uw portemonnee uw munten niet volledig kan beschermen tegen diefstal door malware die uw computer infecteert.</translation>
+        <translation>VERGE wordt nu gesloten om het encryptiesproces te voltooien. Vergeet niet dat het coderen van uw portemonnee uw munten niet volledig kan beschermen tegen diefstal door malware die uw computer infecteert.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -266,13 +266,13 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Portemonnee codering mislukt door een intere fout. Uw portemonnee is niet gecodeerd.</translation>
+        <translation>Portemonnee codering mislukt door een interne fout. Uw portemonnee is niet gecodeerd.</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>De geleverde wachtwoorden komen niet overeen.</translation>
+        <translation>De ingevoerde wachtwoorden komen niet overeen.</translation>
     </message>
     <message>
         <location line="-37"/>
@@ -294,7 +294,7 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>De wachtwoord van uw portemonnee is veranderd.</translation>
+        <translation>Het wachtwoord van uw portemonnee is succesvol gewijzigd.</translation>
     </message>
 </context>
 <context>
@@ -357,12 +357,12 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+35"/>
         <source>E&amp;xit</source>
-        <translation>V&amp;erlaat</translation>
+        <translation>S&amp;luiten</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Quit application</source>
-        <translation>Verlaat applicatie</translation>
+        <translation>Applicatie sluiten</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -403,8 +403,8 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
         <location line="+241"/>
         <source>~%n block(s) remaining</source>
         <translation>
-            <numerusform>~%n blokken over</numerusform>
-            <numerusform>~%n blokken over</numerusform>
+            <numerusform>~%n blokken resterend</numerusform>
+            <numerusform>~%n blokken resterend</numerusform>
         </translation>
     </message>
     <message>
@@ -445,7 +445,7 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Wijzig de wachtwoord die wordt gebruikt voor wallet-codering</translation>
+        <translation>Wijzig het wachtwoord voor de portemonnee versleuteling</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -587,17 +587,17 @@ Dit produkt includeerd software ontwikkeld door OpenSSL Project voor gebruik in 
     <message>
         <location line="+5"/>
         <source>Confirm transaction fee</source>
-        <translation>Confirm transaction fee</translation>
+        <translation>Bevestig transactiekosten</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Sent transaction</source>
-        <translation>Bevestig transactiekosten</translation>
+        <translation>Transactie verzonden</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>Inkomend transactiekosten</translation>
+        <translation>Inkomend transactie</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -637,27 +637,27 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>Backup Wallet</source>
-        <translation>Backup Wallet</translation>
+        <translation>Maak reservekopie van uw Portemonnee</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Wallet Data (*.dat)</source>
-        <translation>Wallet Data (*.dat)</translation>
+        <translation>Portemonnee Gegevens(*.dat)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup Failed</source>
-        <translation>Backup Failed</translation>
+        <translation>Reservekopie Mislukt</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>There was an error trying to save the wallet data to the new location.</translation>
+        <translation>Er is een fout opgetreden tijdens het opslaan van de portemonnee gegevens naar de nieuwe locatie.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
         <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
-        <translation>A fatal error occurred. VERGE can no longer continue safely and will quit.</translation>
+        <translation>Er is een fatale fout opgetreden. VERGE kan niet langer veilig doorgaan en zal stoppen.</translation>
     </message>
 </context>
 <context>
@@ -665,7 +665,7 @@ Address: %4
     <message>
         <location filename="../clientmodel.cpp" line="+87"/>
         <source>Network Alert</source>
-        <translation>Network Alert</translation>
+        <translation>Netwerk Alarm</translation>
     </message>
 </context>
 <context>
@@ -673,7 +673,7 @@ Address: %4
     <message>
         <location filename="../forms/editaddressdialog.ui" line="+14"/>
         <source>Edit Address</source>
-        <translation>Edit Address</translation>
+        <translation>Wijzig Adres</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -683,57 +683,57 @@ Address: %4
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>The label associated with this address book entry</translation>
+        <translation>Het label dat is gekoppeld aan deze adresboekvermelding</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Address</source>
-        <translation>&amp;Address</translation>
+        <translation>&amp;Adres</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>The address associated with this address book entry. This can only be modified for sending addresses.</translation>
+        <translation>Het adres dat is gekoppeld aan deze adresboekvermelding. Dit kan alleen worden gewijzigd voor het verzenden van adressen.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
         <source>New receiving address</source>
-        <translation>New receiving address</translation>
+        <translation>Nieuw ontvangend adres</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>New sending address</source>
-        <translation>New sending address</translation>
+        <translation>Nieuw verzendadres</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Edit receiving address</source>
-        <translation>Edit receiving address</translation>
+        <translation>Wijzig ontvangend adres</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Edit sending address</source>
-        <translation>Edit sending address</translation>
+        <translation>Wijzig verzendadres</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>The entered address &quot;%1&quot; is already in the address book.</translation>
+        <translation>Het ingevoerde adres &quot;%1&quot; staat al in het adresboek.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The entered address &quot;%1&quot; is not a valid VERGE address.</source>
-        <translation>The entered address &quot;%1&quot; is not a valid VERGE address.</translation>
+        <translation>Het ingevoerde adres &quot;%1&quot; is geen geldige VERGE adres.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Could not unlock wallet.</source>
-        <translation>Could not unlock wallet.</translation>
+        <translation>Kan portemonnee niet ontgrendelen.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>New key generation failed.</source>
-        <translation>New key generation failed.</translation>
+        <translation>Nieuwe sleutelgeneratie mislukt.</translation>
     </message>
 </context>
 <context>
@@ -747,37 +747,37 @@ Address: %4
     <message>
         <location line="-12"/>
         <source>version</source>
-        <translation>version</translation>
+        <translation>versie</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Usage:</source>
-        <translation>Usage:</translation>
+        <translation>Gebruik:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>command-line options</source>
-        <translation>command-line options</translation>
+        <translation>opdrachtprompt opties</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>UI options</source>
-        <translation>UI options</translation>
+        <translation>UI opties</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set language, for example &quot;de_DE&quot; (default: system locale)</source>
-        <translation>Set language, for example &quot;de_DE&quot; (default: system locale)</translation>
+        <translation>Taal instellen, bijvoorbeeld &quot;de_DE&quot; (standaard: system locale)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Start minimized</source>
-        <translation>Start minimized</translation>
+        <translation>Start geminimaliseerd</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>Show splash screen on startup (default: 1)</translation>
+        <translation>Toon startscherm bij het opstarten (standaard: 1)</translation>
     </message>
 </context>
 <context>
@@ -785,7 +785,7 @@ Address: %4
     <message>
         <location filename="../forms/optionsdialog.ui" line="+14"/>
         <source>Options</source>
-        <translation>Options</translation>
+        <translation>Opties</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -795,42 +795,42 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</translation>
+        <translation>Optionele transactiekosten per kB die ervoor zorgen dat uw transacties snel worden verwerkt. De meeste transacties zijn 1 kB. Kosten van 0,01 aanbevolen.</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Pay transaction &amp;fee</translation>
+        <translation>Betaal transactiekosten</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Automatically start VERGE after logging in to the system.</source>
-        <translation>Automatically start VERGE after logging in to the system.</translation>
+        <translation>Start VERGE automatisch bij het opstarten.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Start VERGE on system login</source>
-        <translation>&amp;Start VERGE on system login</translation>
+        <translation>&amp;Start VERGE automatisch na het aanmelden</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</translation>
+        <translation>Ontkoppel blok en adresseer databases bij het afsluiten. Dit betekent dat ze naar een andere gegevensdirectory kunnen worden verplaatst, maar het vertraagd het afsluiten. De portemonnee is altijd vrijstaand.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Detach databases at shutdown</source>
-        <translation>&amp;Detach databases at shutdown</translation>
+        <translation>&amp;Ontkoppen databases bij het afsluiten</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Network</source>
-        <translation>&amp;Network</translation>
+        <translation>&amp;Netwerk</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
+        <translation>Open de VERGE-clientpoort automatisch op de router. Dit werkt alleen als uw router UPnP ondersteunt en deze is ingeschakeld</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -840,12 +840,12 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</translation>
+        <translation>Maak verbinding met het VERGE-netwerk via een SOCKS-proxy (bijvoorbeeld bij verbinding via Tor).</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Connect through SOCKS proxy:</source>
-        <translation>&amp;Connect through SOCKS proxy:</translation>
+        <translation>&amp;Maak verbinding via een SOCKS-proxy:</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -855,87 +855,87 @@ Address: %4
     <message>
         <location line="+19"/>
         <source>IP address of the proxy (e.g. 127.0.0.1)</source>
-        <translation>IP address of the proxy (e.g. 127.0.0.1)</translation>
+        <translation>IP adres van de proxy (e.g. 127.0.0.1)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Port:</source>
-        <translation>&amp;Port:</translation>
+        <translation>&amp;Poort:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Port of the proxy (e.g. 9050)</source>
-        <translation>Port of the proxy (e.g. 9050)</translation>
+        <translation>Poort van de proxy (e.g. 9050)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SOCKS &amp;Version:</source>
-        <translation>SOCKS &amp;Version:</translation>
+        <translation>SOCKS &amp;Versie:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>SOCKS version of the proxy (e.g. 5)</source>
-        <translation>SOCKS version of the proxy (e.g. 5)</translation>
+        <translation>SOCKS versie van de proxy (e.g. 5)</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>&amp;Window</source>
-        <translation>&amp;Window</translation>
+        <translation>&amp;Venster</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>Show only a tray icon after minimizing the window.</translation>
+        <translation>Laat alleen een pictogram zien nadat het venster geminimaliseerd is.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Minimize to the tray instead of the taskbar</source>
-        <translation>&amp;Minimize to the tray instead of the taskbar</translation>
+        <translation>&amp;Minimaliseer naar de lade in plaats van de taakbalk</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</translation>
+        <translation>Minimaliseer venster in plaats van de applicatie te sluiten als het venster wordt gesloten. Wanneer deze optie is ingeschakeld, wordt de toepassing alleen gesloten nadat u Sluit in het menu hebt geselecteerd.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>M&amp;inimize on close</translation>
+        <translation>M&amp;inimaliseer bij sluiten</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>&amp;Display</translation>
+        <translation>&amp;Toon</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>User Interface &amp;language:</source>
-        <translation>User Interface &amp;language:</translation>
+        <translation>Gebruikersinterface &amp;taal:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The user interface language can be set here. This setting will take effect after restarting VERGE.</source>
-        <translation>The user interface language can be set here. This setting will take effect after restarting VERGE.</translation>
+        <translation>De taal van de gebruikersinterface kan hier worden ingesteld. Deze instelling wordt pas van kracht na het opnieuw opstarten van VERGE.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Unit to show amounts in:</source>
-        <translation>&amp;Unit to show amounts in:</translation>
+        <translation>&amp;Eenheid om bedragen weer te geven:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Choose the default subdivision unit to show in the interface and when sending coins.</translation>
+        <translation>Kies de standaardindelingseenheid die in de interface wordt weergegeven en wanneer u munten verzendt.</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Whether to show VERGE addresses in the transaction list or not.</source>
-        <translation>Whether to show VERGE addresses in the transaction list or not.</translation>
+        <translation>Of u VERGE-adressen in de transactielijst wilt weergeven of niet.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;Display addresses in transaction list</translation>
+        <translation>&amp;Geef adressen in de transactielijst weer</translation>
     </message>
     <message>
         <location line="+71"/>
@@ -945,34 +945,34 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;Cancel</translation>
+        <translation>&amp;Annuleer</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>&amp;Apply</source>
-        <translation>&amp;Apply</translation>
+        <translation>&amp;Toepassen</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>default</translation>
+        <translation>standaard</translation>
     </message>
     <message>
         <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
-        <translation>Warning</translation>
+        <translation>Waarschuwing</translation>
     </message>
     <message>
         <location line="-9"/>
         <location line="+9"/>
         <source>This setting will take effect after restarting VERGE.</source>
-        <translation>This setting will take effect after restarting VERGE.</translation>
+        <translation>Deze instelling wordt pas van kracht na opnieuw opstarten van VERGE.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The supplied proxy address is invalid.</source>
-        <translation>The supplied proxy address is invalid.</translation>
+        <translation>Het opgegeven proxy-adres is ongeldig.</translation>
     </message>
 </context>
 <context>
@@ -980,38 +980,38 @@ Address: %4
     <message>
         <location filename="../forms/overviewpage.ui" line="+14"/>
         <source>Form</source>
-        <translation>Form</translation>
+        <translation>Formulier</translation>
     </message>
     <message>
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</source>
-        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</translation>
+        <translation>De weergegeven informatie kan verouderd zijn. Uw portemonnee wordt automatisch gesynchroniseerd met het VERGE-netwerk nadat een verbinding tot stand is gebracht, maar dit proces is nog niet voltooid.</translation>
     </message>
     <message>
         <location line="-141"/>
         <source>Balance:</source>
-        <translation>Balance:</translation>
+        <translation>Saldo:</translation>
     </message>
     <message>
         <location line="+118"/>
         <source>Stake:</source>
-        <translation>Stake:</translation>
+        <translation>Inzet:</translation>
     </message>
     <message>
         <location line="+58"/>
         <source>Number of transactions:</source>
-        <translation>Number of transactions:</translation>
+        <translation>Aantal transacties:</translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Unconfirmed:</source>
-        <translation>Unconfirmed:</translation>
+        <translation>Niet bevestigd:</translation>
     </message>
     <message>
         <location line="-78"/>
         <source>Wallet</source>
-        <translation>Wallet</translation>
+        <translation>Portemonnee</translation>
     </message>
     <message>
         <location line="+124"/>
@@ -1026,33 +1026,33 @@ Address: %4
     <message>
         <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Recent transactions&lt;/b&gt;</translation>
+        <translation>&lt;b&gt;Recente transacties&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>Your current balance</source>
-        <translation>Your current balance</translation>
+        <translation>Uw huidige saldo</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</translation>
+        <translation>Totaal van aantal transacties die nog moeten worden bevestigd en nog niet meetellen voor het huidige saldo</translation>
     </message>
     <message>
         <location line="+134"/>
         <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>Total of coins that was staked, and do not yet count toward the current balance</translation>
+        <translation>Totaal van aantal munten die nog moeten worden bevestigd en nog niet meetellen voor het huidige saldo</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>Total number of transactions in wallet</translation>
+        <translation>Aantal transacties in portemonnee</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
-        <translation>out of sync</translation>
+        <translation>niet gesynchroniseerd</translation>
     </message>
 </context>
 <context>
@@ -1060,17 +1060,17 @@ Address: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation>QR Code Dialog</translation>
+        <translation>QR Code Dialoog</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Request Payment</source>
-        <translation>Request Payment</translation>
+        <translation>Betalingsverzoek</translation>
     </message>
     <message>
         <location line="+56"/>
         <source>Amount:</source>
-        <translation>Amount:</translation>
+        <translation>Aantal:</translation>
     </message>
     <message>
         <location line="-44"/>
@@ -1080,32 +1080,32 @@ Address: %4
     <message>
         <location line="+19"/>
         <source>Message:</source>
-        <translation>Message:</translation>
+        <translation>Bericht:</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;Save As...</source>
-        <translation>&amp;Save As...</translation>
+        <translation>&amp;Sla op als...</translation>
     </message>
     <message>
         <location filename="../qrcodedialog.cpp" line="+62"/>
         <source>Error encoding URI into QR Code.</source>
-        <translation>Error encoding URI into QR Code.</translation>
+        <translation>Fout bij het coderen van URI in QR-code</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>The entered amount is invalid, please check.</source>
-        <translation>The entered amount is invalid, please check.</translation>
+        <translation>Het ingevoerde bedrag is ongeldig. Gelieve dit te controleren.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>Resulting URI too long, try to reduce the text for label / message.</translation>
+        <translation>Resulterende URI te lang, probeer de tekst voor het label / bericht te verminderen</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>Save QR Code</translation>
+        <translation>Sla QR Code op</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -1118,7 +1118,7 @@ Address: %4
     <message>
         <location filename="../forms/rpcconsole.ui" line="+46"/>
         <source>Client name</source>
-        <translation>Client name</translation>
+        <translation>Client naame</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1137,57 +1137,57 @@ Address: %4
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation>Client version</translation>
+        <translation>Client versie</translation>
     </message>
     <message>
         <location line="-45"/>
         <source>&amp;Information</source>
-        <translation>&amp;Information</translation>
+        <translation>&amp;Informatie</translation>
     </message>
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation>Using OpenSSL version</translation>
+        <translation>OpenSSL versie</translation>
     </message>
     <message>
         <location line="+49"/>
         <source>Startup time</source>
-        <translation>Startup time</translation>
+        <translation>Opstarttijd</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Network</source>
-        <translation>Network</translation>
+        <translation>Netwerk</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Number of connections</source>
-        <translation>Number of connections</translation>
+        <translation>Aantal connecties</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>On testnet</translation>
+        <translation>Op het testnetwerk</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>Block chain</translation>
+        <translation>Blokketting</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>Current number of blocks</translation>
+        <translation>Aantal blokken</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Estimated total blocks</source>
-        <translation>Estimated total blocks</translation>
+        <translation>Geschat totaal aantal blokken</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>Last block time</translation>
+        <translation>Laatste bloktijd</translation>
     </message>
     <message>
         <location line="+52"/>
@@ -1197,17 +1197,17 @@ Address: %4
     <message>
         <location line="+16"/>
         <source>Command-line options</source>
-        <translation>Command-line options</translation>
+        <translation>Opdrachtprompt opties</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Show the VERGE-Qt help message to get a list with possible VERGE command-line options.</source>
-        <translation>Show the VERGE-Qt help message to get a list with possible VERGE command-line options.</translation>
+        <translation>Toon het VERGE-Qt helpbericht om een lijst met mogelijke VERGE opdrachtprompt commando's te krijgen.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Show</source>
-        <translation>&amp;Show</translation>
+        <translation>&amp;Toon</translation>
     </message>
     <message>
         <location line="+24"/>
@@ -1217,12 +1217,12 @@ Address: %4
     <message>
         <location line="-260"/>
         <source>Build date</source>
-        <translation>Build date</translation>
+        <translation>Build datum</translation>
     </message>
     <message>
         <location line="-104"/>
         <source>VERGE - Debug window</source>
-        <translation>VERGE - Debug window</translation>
+        <translation>VERGE - Debug venster</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1232,32 +1232,32 @@ Address: %4
     <message>
         <location line="+279"/>
         <source>Debug log file</source>
-        <translation>Debug log file</translation>
+        <translation>Debug log bestand</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</translation>
+        <translation>Open het foutenlogbestand van VERGE uit de huidige gegevensdirectory. Dit kan enkele seconden duren voor grote logbestanden.</translation>
     </message>
     <message>
         <location line="+102"/>
         <source>Clear console</source>
-        <translation>Clear console</translation>
+        <translation>Wis de console</translation>
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
         <source>Welcome to the VERGE RPC console.</source>
-        <translation>Welcome to the VERGE RPC console.</translation>
+        <translation>Welkom bij de VERGE RPC console.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</translation>
+        <translation>Gebruik de pijlen omhoog en omlaag om door de geschiedenis te navigeren, en &lt;b&gt;Ctrl-L&lt;/b&gt; om het scherm te wissen.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</translation>
+        <translation>Typ &lt;b&gt;help&lt;/b&gt; voor een overzicht van beschikbare commando's.</translation>
     </message>
 </context>
 <context>
@@ -1272,12 +1272,12 @@ Address: %4
         <location line="+5"/>
         <location line="+5"/>
         <source>Send Coins</source>
-        <translation>Send Coins</translation>
+        <translation>Verzend munten</translation>
     </message>
     <message>
         <location line="+50"/>
         <source>Send to multiple recipients at once</source>
-        <translation>Send to multiple recipients at once</translation>
+        <translation>Verstuur naar meerdere ontvangers tegelijkertijd</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1287,17 +1287,17 @@ Address: %4
     <message>
         <location line="+20"/>
         <source>Remove all transaction fields</source>
-        <translation>Remove all transaction fields</translation>
+        <translation>Wis alle transactievelden</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Clear &amp;All</source>
-        <translation>Clear &amp;All</translation>
+        <translation>Wis &amp;Alles</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Balance:</source>
-        <translation>Balance:</translation>
+        <translation>Saldo:</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1307,7 +1307,7 @@ Address: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>Confirm the send action</translation>
+        <translation>Bevestig de verzendactie</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1317,42 +1317,42 @@ Address: %4
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
         <source>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; naar %2 (%3)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm send coins</source>
-        <translation>Confirm send coins</translation>
+        <translation>Bevestig verzenden munten</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>Are you sure you want to send %1?</translation>
+        <translation>Weet u zeker dat u het wilt verzenden? %1?</translation>
     </message>
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> and </translation>
+        <translation> en </translation>
     </message>
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>The recipient address is not valid, please recheck.</translation>
+        <translation>Het adres van de ontvanger is niet geldig. Gelieve dit te controleren.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>The amount to pay must be larger than 0.</translation>
+        <translation>Het te betalen bedrag moet groter zijn dan 0.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount exceeds your balance.</source>
-        <translation>The amount exceeds your balance.</translation>
+        <translation>Het bedrag overschrijdt uw saldo.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>The total exceeds your balance when the %1 transaction fee is included.</translation>
+        <translation>Het totaal overschrijdt uw saldo wanneer de %1 transactiekosten zijn inbegrepen.</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2738,3 +2738,6 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
 </context>
 </TS>
+
+
+
