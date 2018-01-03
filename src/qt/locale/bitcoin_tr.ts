@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="nl">
+<TS version="2.0" language="tr">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
         <source>About VERGE</source>
-        <translation>Over VERGE</translation>
+        <translation>VERGE Hakkında</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>&lt;b&gt;VERGE&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;VERGE&lt;/b&gt; version</translation>
+        <translation>&lt;b&gt;VERGE&lt;/b&gt; versiyon</translation>
     </message>
     <message>
         <location line="+41"/>
-        <source>Copyright © 2014-2016 The Verge developers</source>
-        <translation>Copyright © 2014-2016 The Verge developers</translation>
+        <source>Copyright © 2014-2016 The Verge geliştiricileri</source>
+        <translation>Copyright © 2014-2016 The Verge geliştiricileri</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -28,11 +28,11 @@ Distributed under the MIT/X11 software license, see the accompanying file COPYIN
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
         <translation>
-Dit is experimentele software.
+Bu bir deneysel yazılımdır.
 
-Gedistributeerd onder the MIT/X11 software licentie, zie de bijbehorende document COPYING of http://www.opensource.org/licenses/mit-license.php.
+MIT/X11 lisansı ile dağıtılmıştır, lisans hakkında daha fazla bilgi için COPYING adlı dosyaya veya http://www.opensource.org/licenses/mit-license.php. adresine bakabilirsiniz.
 
-Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de OpenSSL Toolkit (http://www.openssl.org/) en cryptografisch software geschreven door Eric Young (eay@cryptsoft.com) en UPnP software geschreven door Thomas Bernard.</translation>
+Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak için faydalanmaktadır. Daha fazla bilgi için http://www.openssl.org/ adresini ziyaret edebilirsinizç Ayrıca kriptografik yazılımlar Eric Young (eay@cryptsoft.com) tarafından yazılmıştır ve Thomas Bernanrd tarafından yazılmış UPnP yazılımı kullanılmıştır. </translation>
     </message>
 </context>
 <context>
@@ -40,47 +40,47 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location filename="../forms/addressbookpage.ui" line="+14"/>
         <source>Address Book</source>
-        <translation>Adresboek</translation>
+        <translation>Adres Defteri</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Dubbel-klik om het adres of label te wijzigen</translation>
+        <translation>Adresi düzenlemek veya etiketlemek için çift tıkla</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Create a new address</source>
-        <translation>Maak een nieuw adres aan</translation>
+        <translation>Yeni adres oluştur</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Kopieer het huidig geselecteerde adres naar het klembord</translation>
+        <translation>Seçilmiş adresi kopyala</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>&amp;New Address</source>
-        <translation>&amp;Nieuw Adres</translation>
+        <translation>&amp;Yeni Adres</translation>
     </message>
     <message>
         <location line="-46"/>
         <source>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>Dit zijn jouw VERGE adressen om betalingen te ontvangen. U kunt elk afzender een afzonderlijke adres geven om de transacties te kunnen bijhouden.</translation>
+        <translation>Bunlar sizin ödemelerinizi alabilmeniz için VERGE adreslerinizdir. Kimden para aldıgınızı daha iyi takip edebilmek için her bir gönderici için farklı adresler vermek isteyebilirsiniz.</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>&amp;Copy Address</source>
-        <translation>&amp;Kopieer Address</translation>
+        <translation>&amp;Adresi Kopyala</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Show &amp;QR Code</source>
-        <translation>Toon &amp;QR Code</translation>
+        <translation>Show &amp;QR Kod</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own a VERGE address</source>
-        <translation>Signeer een bericht om te bewijzen dat u een VERGE adres bezit.</translation>
+        <translation>VERGE adresine sahip oldugunuzu kanıtlamak için mesajı imzala</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -95,47 +95,47 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified VERGE address</source>
-        <translation>Verifieer een bericht om te bevestigen dat het is ondertekend met het gespecificeerde VERGE adres</translation>
+        <translation>Bu VERGE adresinin doğruluğundan emin olmak için mesajı doğrula</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Verifieer Bericht</translation>
+        <translation>&amp;Mesajı doğrula</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>&amp;Delete</source>
-        <translation>&amp;Verwijder</translation>
+        <translation>&amp;Sil</translation>
     </message>
     <message>
         <location filename="../addressbookpage.cpp" line="+65"/>
         <source>Copy &amp;Label</source>
-        <translation>Kopieer &amp;Label</translation>
+        <translation>Kopyala &amp;Etiket</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Edit</source>
-        <translation>&amp;Wijzig</translation>
+        <translation>&amp;Düzenle</translation>
     </message>
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Exporteer Adresboek Gegevens</translation>
+        <translation>Adres Defteri Kayıtları Dışarı Çıkart</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Komma gescheiden bestand (*.csv)</translation>
+        <translation>Virgül ayraçlı dosya (*.csv)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Error exporting</source>
-        <translation>Fout bij exporteren</translation>
+        <translation>Dışarı çıkartırken hata oluştu</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Kon niet schrijven naar bestand %1.</translation>
+        <translation>Dosyaya yazılamıyor %1.</translation>
     </message>
 </context>
 <context>
@@ -143,7 +143,7 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location filename="../addresstablemodel.cpp" line="+142"/>
         <source>Label</source>
-        <translation>Label</translation>
+        <translation>Etiket</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -153,7 +153,7 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+36"/>
         <source>(no label)</source>
-        <translation>(geen label)</translation>
+        <translation>(etiket yok)</translation>
     </message>
 </context>
 <context>
@@ -161,77 +161,77 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location filename="../forms/askpassphrasedialog.ui" line="+26"/>
         <source>Passphrase Dialog</source>
-        <translation>Wachtwoord Dialoog</translation>
+        <translation>Anahtar Parola Dialoğu</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Voer wachtwoord in</translation>
+        <translation>Anahtar paralo giriniz</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>New passphrase</source>
-        <translation>Nieuw wachtwoord</translation>
+        <translation>Yeni anahtar parola</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Repeat new passphrase</source>
-        <translation>Herhaal nieuw wachtwoord</translation>
+        <translation>Anahtar paralo tekrarı</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Voer het nieuwe wachtwoord in de portemonnee in.&lt;br/&gt;Gebruik alstublieft een wachtwoord van &lt;b&gt;10 of meer willekeurige tekens&lt;/b&gt;, of &lt;b&gt;acht of meer woorden&lt;/b&gt;.</translation>
+        <translation>Yeni mevcut cüzdanınız için anahtar parola giriniz.&lt;br/&gt;Lütfen of &lt;b&gt;10 veya daha fazla karakterli rastgele karakter dizisi &lt;/b&gt;, veya &lt;b&gt;en az 8 kelime kullanız&lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Encrypt wallet</source>
-        <translation>Codeer portemonnee</translation>
+        <translation>Cüzdanı şifrele</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Voor deze bewerking is uw wachtwoord nodig om uw protemonnee te ontgrendelen.</translation>
+        <translation>Bu aksiyon için cüzdanınızın kilidinin anahtar paralonanızla açılması gerekmektedir.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Unlock wallet</source>
-        <translation>Ontgrendel portemonnee</translation>
+        <translation>Cüzdanın kilidini çöz</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Voor deze bewerking is uw wachtwoord nodig om de portemonnee te vergrendelen.</translation>
+        <translation>Bu aksiyon için cüzdanınızın anahtar paralonanızla şifresini çözmesini gerekmektedir.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Decrypt wallet</source>
-        <translation>Decodeer portemonnee</translation>
+        <translation>Cüzdanın şifresini çöz</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Change passphrase</source>
-        <translation>Wijzig wachtwoord</translation>
+        <translation>Anahtar paraloyı değiştir</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Voer de oude en nieuwe wachtwoord in de portemonnee in.</translation>
+        <translation>Lütfen eski ve yeni anahtar parolanızı giriniz.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>Bevestig portemonnee encryptie</translation>
+        <translation>Cüzdan şifrelenmesini onayla</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Waarschuwing: Als u uw encryptie op uw portemonnee toepast en uw wachtwoord verliest,, zult u &lt;b&gt;AL UW MUNTEN VERLIEZEN&lt;/b&gt;!</translation>
+        <translation>Uyarı: Eğer cüzdanızı şifrelerseniz ve şifrenizi unutursanız &lt;b&gt;tüm paranızı kaybedersiniz&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Are you sure you wish to encrypt your wallet?</source>
-        <translation>Weet u zeker dat u uw portemonnee wilt coderen??</translation>
+        <translation>Cüzdanızı şifrelemeyi istiyor musunuz?</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -242,18 +242,18 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
         <location line="+100"/>
         <location line="+24"/>
         <source>Warning: The Caps Lock key is on!</source>
-        <translation>Waarschuwing: De Caps Lock-toets is ingeschakeld!</translation>
+        <translation>Uyarı: Caps Lock tuşu açık!</translation>
     </message>
     <message>
         <location line="-130"/>
         <location line="+58"/>
         <source>Wallet encrypted</source>
-        <translation>Portemonnee gecodeerd</translation>
+        <translation>Cüzdan şifrelendi</translation>
     </message>
     <message>
         <location line="-56"/>
         <source>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>VERGE wordt nu gesloten om het encryptiesproces te voltooien. Vergeet niet dat het coderen van uw portemonnee uw munten niet volledig kan beschermen tegen diefstal door malware die uw computer infecteert.</translation>
+        <translation>VERGE şifreleme işlemi için kapanacaktır. Lütfen unutmayı cüzdan şifrelenmesi zararlı yazılım saldırıları gibi kötü niyetli saldırılardan sizi tamamen koruyamaz.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -261,40 +261,40 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>Portemonnee codering mislukt</translation>
+        <translation>Cüzdan şifrelemesi hatalı</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Portemonnee codering mislukt door een interne fout. Uw portemonnee is niet gecodeerd.</translation>
+        <translation>Cüzdan şifrelenmesi sırasında yazılım içi hata oluştu. Mevcut cüzdanınız şifrelenemedi.</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>De ingevoerde wachtwoorden komen niet overeen.</translation>
+        <translation>Anahtar paralo uyuşmadı.</translation>
     </message>
     <message>
         <location line="-37"/>
         <source>Wallet unlock failed</source>
-        <translation>Portemonnee ontgrendeling mislukt</translation>
+        <translation>Cüzdan şifre çözme işlemi başarısız</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+11"/>
         <location line="+19"/>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>De wachtwoord die is ingevoerd voor het docoderen van de portemonnee was onjuist.</translation>
+        <translation>Girilen anahtar paralo yanlış.</translation>
     </message>
     <message>
         <location line="-20"/>
         <source>Wallet decryption failed</source>
-        <translation>portemonnee decodering mislukt</translation>
+        <translation>Cüzdan şifre çözme başarısız</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>Het wachtwoord van uw portemonnee is succesvol gewijzigd.</translation>
+        <translation>Anahtar paralo başarıyla değiştirildi</translation>
     </message>
 </context>
 <context>
@@ -302,165 +302,164 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location filename="../bitcoingui.cpp" line="+257"/>
         <source>Sign &amp;message...</source>
-        <translation>Signeer &amp;bericht...</translation>
+        <translation>Mesajı şifrele...</translation>
     </message>
     <message>
         <location line="+237"/>
         <source>Synchronizing with network...</source>
-        <translation>Synchroniseren met netwerk...</translation>
+        <translation>Ağ ile sekronizasyon yapılıyor...</translation>
     </message>
     <message>
         <location line="-299"/>
         <source>&amp;Overview</source>
-        <translation>&amp;Overzicht</translation>
+        <translation>&amp;Genel Bakış</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show general overview of wallet</source>
-        <translation>Toon algemeen overzicht van portemonnee</translation>
+        <translation>Cüzdana genel bakış</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>&amp;Transactions</source>
-        <translation>&amp;Transacties</translation>
+        <translation>&amp;Para işlemleri</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Browse transaction history</source>
-        <translation>Doorzoek transactiegeschiedenis</translation>
+        <translation>Para işlemleri geçmişine bak</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>&amp;Address Book</source>
-        <translation>&amp;Adresboek</translation>
+        <translation>&amp;Adres Defteri</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit the list of stored addresses and labels</source>
-        <translation>Bewerk de lijst met opgeslagen adressen en labels</translation>
+        <translation>Kaydedilmiş adresleri ve etkiketleri düzenle</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>&amp;Receive coins</source>
-        <translation>&amp;Ontvang munten</translation>
+        <translation>&amp;Para al</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show the list of addresses for receiving payments</source>
-        <translation>Toon de lijst met adressen voor het ontvangen van betalingen</translation>
+        <translation>Gelen ödemelerin adreslerin listesini göster</translation>
     </message>
     <message>
         <location line="-7"/>
         <source>&amp;Send coins</source>
-        <translation>&amp;Verzend munten</translation>
+        <translation>&amp;Para Gönder</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>E&amp;xit</source>
-        <translation>S&amp;luiten</translation>
+        <translation>Ç&amp;ıkış</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Quit application</source>
-        <translation>Applicatie sluiten</translation>
+        <translation>Uygulamadan Çık</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Show information about VERGE</source>
-        <translation>Toon informatie over VERGE</translation>
+        <translation>VERGE hakkında daha fazla bilgi</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>About &amp;Qt</source>
-        <translation>Over &amp;Qt</translation>
+        <translation>Qt &amp;Hakkında</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show information about Qt</source>
-        <translation>Toon informatie over Qt</translation>
+        <translation>Qt hakkında daha fazla bilgi</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Options...</source>
-        <translation>&amp;Opties...</translation>
+        <translation>&amp;Ayarlar...</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>&amp;Encrypt Wallet...</source>
-        <translation>&amp;Codeer Portemonnee...</translation>
+        <translation>&amp;Cüzdanı Şifrele...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Backup Wallet...</source>
-        <translation>&amp;Reservekopie Portemonnee...</translation>
+        <translation>&amp;Cüzdanı Yedekle...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Change Passphrase...</source>
-        <translation>&amp;Wijzig Wachtwoord...</translation>
+        <translation>&amp;Anahtar paraloyı değiştir...</translation>
     </message>
     <message numerus="yes">
         <location line="+241"/>
         <source>~%n block(s) remaining</source>
         <translation>
-            <numerusform>~%n blokken resterend</numerusform>
-            <numerusform>~%n blokken resterend</numerusform>
+            <numerusform>~%n blok kaldı</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Downloaded %1 of %2 blocks of transaction history (%3% done).</source>
-        <translation>%1 van de %2 blokken met transactiehistorie gedownload  (%3% voltooid).</translation>
+        <translation>%1 / %2 para transferi geçmişi indirildi (%3% tamam).</translation>
     </message>
     <message>
         <location line="-242"/>
         <source>&amp;Export...</source>
-        <translation>&amp;Exporteer...</translation>
+        <translation>&amp;Program Dışına Çıkart...</translation>
     </message>
     <message>
         <location line="-58"/>
         <source>Send coins to a VERGE address</source>
-        <translation>Verzend munten naar een VERGE adres</translation>
+        <translation>VERGE adresini para gönder</translation>
     </message>
     <message>
         <location line="+45"/>
         <source>Modify configuration options for VERGE</source>
-        <translation>Pas configuratie-opties voor VERGE aan</translation>
+        <translation>VERGE ayarlarını değiştir</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Export the data in the current tab to a file</source>
-        <translation>Exporteer de gegevens in het huidige tabblad naar een bestand</translation>
+        <translation>Mevcut ekrandaki bilgileri dosyaya aktar</translation>
     </message>
     <message>
         <location line="-10"/>
         <source>Encrypt or decrypt wallet</source>
-        <translation>Codeer of decodeer portemonnee</translation>
+        <translation>Cüdanı şifrele veya şifresini çöz</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Maak een reservekopie van uw portemonnee naar een ander locatie</translation>
+        <translation>Cüzdanı başka bir lokasyonda yedekle</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Wijzig het wachtwoord voor de portemonnee versleuteling</translation>
+        <translation>Cüzdan şifrelemesinde kullanılan anahtar parolayı değştir</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Debug window</source>
-        <translation>&amp;Debug venster</translation>
+        <translation>&amp;Yazılım hata ayıklama penceresi</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Open debugging and diagnostic console</source>
-        <translation>Open foutopsporing en diagnose-console</translation>
+        <translation>Hata ayıklayıcı konsolunu aç</translation>
     </message>
     <message>
         <location line="-5"/>
         <source>&amp;Verify message...</source>
-        <translation>&amp;Verifieer bericht...</translation>
+        <translation>&amp;Mesajı doğrula..</translation>
     </message>
     <message>
         <location line="-186"/>
@@ -470,42 +469,42 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+0"/>
         <source>Wallet</source>
-        <translation>Portemonnee</translation>
+        <translation>Wallet</translation>
     </message>
     <message>
         <location line="+168"/>
         <source>&amp;About VERGE</source>
-        <translation>&amp;Over VERGE</translation>
+        <translation>&amp;VERGE Hakkında</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Show / Hide</source>
-        <translation>&amp;Toon / Verberg</translation>
+        <translation>&amp;Göster / Gizle</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>&amp;File</source>
-        <translation>&amp;Bestand</translation>
+        <translation>&amp;Dosya</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>&amp;Settings</source>
-        <translation>&amp;Instellingen</translation>
+        <translation>&amp;Ayarlar</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Help</source>
-        <translation>&amp;Hulp</translation>
+        <translation>&amp;Yardım</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Tabs toolbar</source>
-        <translation>Tabbladen werkbalk</translation>
+        <translation>Pencereler araç çubuğu</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Actions toolbar</source>
-        <translation>Acties werkbalk</translation>
+        <translation>İşlemler araç çubuğu</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -517,87 +516,82 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
         <location line="+0"/>
         <location line="+60"/>
         <source>VERGE client</source>
-        <translation>VERGE client</translation>
+        <translation>VERGE istemci</translation>
     </message>
     <message numerus="yes">
         <location line="+69"/>
         <source>%n active connection(s) to VERGE network</source>
         <translation>
-            <numerusform>%n actieve verbindingen met het VERGE-netwerk</numerusform>
-            <numerusform>%n actieve verbindingen met het VERGE-netwerk</numerusform>
+            <numerusform>VERGE ağına %n aktif bağlantı(lar) vardır</numerusform>
         </translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Downloaded %1 blocks of transaction history.</source>
-        <translation>%1 blokken van de transactiehistorie gedownload.</translation>
+        <translation> %1 tane para transfer geçmişi indirildi.</translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
         <source>%n second(s) ago</source>
         <translation>
-            <numerusform>%n seconden geleden</numerusform>
-            <numerusform>%n seconden geleden</numerusform>
+            <numerusform>%n saniye önce</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n minute(s) ago</source>
         <translation>
-            <numerusform>%n minuten geleden</numerusform>
-            <numerusform>%n minuten geleden</numerusform>
+            <numerusform>%n dakika önce</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n hour(s) ago</source>
         <translation>
-            <numerusform>%n uur geleden</numerusform>
-            <numerusform>%n uur geleden</numerusform>
+            <numerusform>%n saat önce</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n day(s) ago</source>
         <translation>
-            <numerusform>%n dagen geleden</numerusform>
-            <numerusform>%n dagen geleden</numerusform>
+            <numerusform>%n gün önce</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Up to date</source>
-        <translation>Actueel</translation>
+        <translation>Güncel</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Catching up...</source>
-        <translation>Aan het laden...</translation>
+        <translation>Günceleniyor</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>Het laatst ontvangen blok is gegenereerd %1.</translation>
+        <translation>En üretilen blok %1.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm transaction fee</source>
-        <translation>Bevestig transactiekosten</translation>
+        <translation>İşlem ücretini onayla</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Sent transaction</source>
-        <translation>Transactie verzonden</translation>
+        <translation>Para Transferini Gönder</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>Inkomend transactie</translation>
+        <translation>Gelen İşlemler</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -606,58 +600,58 @@ Amount: %2
 Type: %3
 Address: %4
 </source>
-        <translation>Datum: %1
-Amount: %2
-Type: %3
-Address: %4
+        <translation>Gün: %1
+Miktar: %2
+Tip: %3
+Adres: %4
 </translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+15"/>
         <source>URI handling</source>
-        <translation>URI-behandeling</translation>
+        <translation>URI düzenleniyor</translation>
     </message>
     <message>
         <location line="-15"/>
         <location line="+15"/>
         <source>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</source>
-        <translation>URI kan niet worden geparseerd! Dit kan worden veroorzaakt door een ongeldig VERGE-adres of onjuist geformuleerde URI-parameters.</translation>
+        <translation>URI parçalanamadı! Bu hata genellikte yanlış VERGE adresinden veya yanlış oluşturulmuş URI parametrelerinden oluşur.</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
-        <translation>Portemonnee is &lt;b&gt;gecodeerd&lt;/b&gt; en &lt;b&gt;ontgrendeld&lt;/b&gt;</translation>
+        <translation>Cüzdan &lt;b&gt;şifrelendi&lt;/b&gt; ve &lt;b&gt;kilidi açılmış halde&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
-        <translation>Portemonnee is &lt;b&gt;gecodeerd&lt;/b&gt; en &lt;b&gt;vergrendeld&lt;/b&gt;</translation>
+        <translation>Cüzdan &lt;b&gt;şifrelendi&lt;/b&gt; ve &lt;b&gt;kilitli halde&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Backup Wallet</source>
-        <translation>Maak reservekopie van uw Portemonnee</translation>
+        <translation>Cüzdanı Yedekle</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Wallet Data (*.dat)</source>
-        <translation>Portemonnee Gegevens(*.dat)</translation>
+        <translation>Cüzdan Verisi (*.dat)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup Failed</source>
-        <translation>Reservekopie Mislukt</translation>
+        <translation>Yedekleme Başarısız</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>Er is een fout opgetreden tijdens het opslaan van de portemonnee gegevens naar de nieuwe locatie.</translation>
+        <translation>Cüzdan verisi lokasyona yazılırken hata oluştur.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
         <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
-        <translation>Er is een fatale fout opgetreden. VERGE kan niet langer veilig doorgaan en zal stoppen.</translation>
+        <translation>Kritik hata oluştu. Verge güvenli bir şekilde çalışamayacağına karar verdiği için kendini kapatacak.</translation>
     </message>
 </context>
 <context>
@@ -665,7 +659,7 @@ Address: %4
     <message>
         <location filename="../clientmodel.cpp" line="+87"/>
         <source>Network Alert</source>
-        <translation>Netwerk Alarm</translation>
+        <translation type="unfinished">Ağ Uyarısı</translation>
     </message>
 </context>
 <context>
@@ -673,17 +667,17 @@ Address: %4
     <message>
         <location filename="../forms/editaddressdialog.ui" line="+14"/>
         <source>Edit Address</source>
-        <translation>Wijzig Adres</translation>
+        <translation>Adresi Düzenle</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Label</source>
-        <translation>&amp;Label</translation>
+        <translation>&amp;Etiket</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>Het label dat is gekoppeld aan deze adresboekvermelding</translation>
+        <translation>Bu etiket bu adres defteri kaydı ile ilişkilendirilmiş</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -693,47 +687,47 @@ Address: %4
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>Het adres dat is gekoppeld aan deze adresboekvermelding. Dit kan alleen worden gewijzigd voor het verzenden van adressen.</translation>
+        <translation>Mevcut adres, adres defteri ile ilişkilendirilmiş. Sadece gönderici adresi olarak düzenlenebilir.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
         <source>New receiving address</source>
-        <translation>Nieuw ontvangend adres</translation>
+        <translation>Yeni alıcı adresi</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>New sending address</source>
-        <translation>Nieuw verzendadres</translation>
+        <translation>Yeni gönderici adresi</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Edit receiving address</source>
-        <translation>Wijzig ontvangend adres</translation>
+        <translation>Alıcı adresi düzenle</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Edit sending address</source>
-        <translation>Wijzig verzendadres</translation>
+        <translation>Gönderici adresi düzenle</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>Het ingevoerde adres &quot;%1&quot; staat al in het adresboek.</translation>
+        <translation>Bu  &quot;%1&quot; adres,adres defterinde mevcut</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The entered address &quot;%1&quot; is not a valid VERGE address.</source>
-        <translation>Het ingevoerde adres &quot;%1&quot; is geen geldige VERGE adres.</translation>
+        <translation>&quot;%1&quot;  adres geçerli bir VERGE adresi değil.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Could not unlock wallet.</source>
-        <translation>Kan portemonnee niet ontgrendelen.</translation>
+        <translation>Cüzdanınızın kilidi açılmadı</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>New key generation failed.</source>
-        <translation>Nieuwe sleutelgeneratie mislukt.</translation>
+        <translation>Yeni anahtar oluşturma hatalı</translation>
     </message>
 </context>
 <context>
@@ -747,37 +741,37 @@ Address: %4
     <message>
         <location line="-12"/>
         <source>version</source>
-        <translation>versie</translation>
+        <translation>versiyon</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Usage:</source>
-        <translation>Gebruik:</translation>
+        <translation>Kullanım:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>command-line options</source>
-        <translation>opdrachtprompt opties</translation>
+        <translation>komut satırı kodları ayarları</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>UI options</source>
-        <translation>UI opties</translation>
+        <translation>Grafik Arayüz ayarları</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set language, for example &quot;de_DE&quot; (default: system locale)</source>
-        <translation>Taal instellen, bijvoorbeeld &quot;de_DE&quot; (standaard: system locale)</translation>
+        <translation>Dili Değiştir</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Start minimized</source>
-        <translation>Start geminimaliseerd</translation>
+        <translation>Simge durumunda başla</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>Toon startscherm bij het opstarten (standaard: 1)</translation>
+        <translation>Karşılama ekranı ile başla (varsayılan: 1)</translation>
     </message>
 </context>
 <context>
@@ -785,67 +779,67 @@ Address: %4
     <message>
         <location filename="../forms/optionsdialog.ui" line="+14"/>
         <source>Options</source>
-        <translation>Opties</translation>
+        <translation type="unfinished">Ayarlar</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>&amp;Main</source>
-        <translation>&amp;Main</translation>
+        <translation type="unfinished">&amp;Ana ekran</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Optionele transactiekosten per kB die ervoor zorgen dat uw transacties snel worden verwerkt. De meeste transacties zijn 1 kB. Kosten van 0,01 aanbevolen.</translation>
+        <translation type="unfinished">kB başına opsiyonel para transfer ücreti para transferinizin daha hızlı gerçekleşmesini sağlar. Çoğunlukla 1 kB. başına 0.01 VERGE önerilir.</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Betaal transactiekosten</translation>
+        <translation>Para Transfer ücreti &amp;</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Automatically start VERGE after logging in to the system.</source>
-        <translation>Start VERGE automatisch bij het opstarten.</translation>
+        <translation type="unfinished">İşletim sistemi bağladığında VERGE de başlatç</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Start VERGE on system login</source>
-        <translation>&amp;Start VERGE automatisch na het aanmelden</translation>
+        <translation type="unfinished">&amp;VERGE&apos;i sistem başlangıcında otomatik başlat</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>Ontkoppel blok en adresseer databases bij het afsluiten. Dit betekent dat ze naar een andere gegevensdirectory kunnen worden verplaatst, maar het vertraagd het afsluiten. De portemonnee is altijd vrijstaand.</translation>
+        <translation type="unfinished">Programı kapatırken blok ve adres defterini ilişkisini kaldır. Bu işlem kapatma süresini uzatır ama igili dosyalrı başka bir klasöre taşıyabilirsiniz. Cüzdanınız her zaman kapanış esnasında sistem ile ilişkisi kesilir.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Detach databases at shutdown</source>
-        <translation>&amp;Ontkoppen databases bij het afsluiten</translation>
+        <translation type="unfinished">&amp;Veritabı sistem ilişkisini kapanışta kaldır</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Network</source>
-        <translation>&amp;Netwerk</translation>
+        <translation type="unfinished">&amp;Ağ</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Open de VERGE-clientpoort automatisch op de router. Dit werkt alleen als uw router UPnP ondersteunt en deze is ingeschakeld</translation>
+        <translation>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Map port using &amp;UPnP</source>
-        <translation>Map port using &amp;UPnP</translation>
+        <translation type="unfinished">UPnP kullanarak port numarası kullan</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Maak verbinding met het VERGE-netwerk via een SOCKS-proxy (bijvoorbeeld bij verbinding via Tor).</translation>
+        <translation type="unfinished"> SOCKS proxy kullanarak VERGE  ağına bağlan (örnek: Tor ağına bağlanırken).</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Connect through SOCKS proxy:</source>
-        <translation>&amp;Maak verbinding via een SOCKS-proxy:</translation>
+        <translation>&amp;Connect through SOCKS proxy:</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -855,124 +849,124 @@ Address: %4
     <message>
         <location line="+19"/>
         <source>IP address of the proxy (e.g. 127.0.0.1)</source>
-        <translation>IP adres van de proxy (e.g. 127.0.0.1)</translation>
+        <translation type="unfinished">Proxy&apos;nin IP adresi (örnek. 127.0.0.1)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Port:</source>
-        <translation>&amp;Poort:</translation>
+        <translation>&amp;Port:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Port of the proxy (e.g. 9050)</source>
-        <translation>Poort van de proxy (e.g. 9050)</translation>
+        <translation type="unfinished">Proxy&apos;nin portu (örnek. 9050)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SOCKS &amp;Version:</source>
-        <translation>SOCKS &amp;Versie:</translation>
+        <translation type="unfinished">SOCKS &amp;Versiton:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>SOCKS version of the proxy (e.g. 5)</source>
-        <translation>SOCKS versie van de proxy (e.g. 5)</translation>
+        <translation type="unfinished">SOCKS proxy&apos;nin versiyonu (örnek. 5)</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>&amp;Window</source>
-        <translation>&amp;Venster</translation>
+        <translation type="unfinished">&amp;Pencere</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>Laat alleen een pictogram zien nadat het venster geminimaliseerd is.</translation>
+        <translation type="unfinished">Pencere küçültüğünde sadece simge göster</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Minimize to the tray instead of the taskbar</source>
-        <translation>&amp;Minimaliseer naar de lade in plaats van de taakbalk</translation>
+        <translation type="unfinished">&amp;Araç çubuğu yerine pencereyi küçült</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>Minimaliseer venster in plaats van de applicatie te sluiten als het venster wordt gesloten. Wanneer deze optie is ingeschakeld, wordt de toepassing alleen gesloten nadat u Sluit in het menu hebt geselecteerd.</translation>
+        <translation type="unfinished">Pencere kapatılma emri verildiğinden kapatma yerine simge durumuna küçült.  Bu opsiyon aktif hale getirildiğinde uygulamanız sadece üst menüde bulunan Uygulamadan Çık butonu ile kapanabilir.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>M&amp;inimaliseer bij sluiten</translation>
+        <translation type="unfinished">Kapanışta simge duruma küçült</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>&amp;Toon</translation>
+        <translation type="unfinished">&amp;Ekran</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>User Interface &amp;language:</source>
-        <translation>Gebruikersinterface &amp;taal:</translation>
+        <translation type="unfinished">Görünüş &amp;dil:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The user interface language can be set here. This setting will take effect after restarting VERGE.</source>
-        <translation>De taal van de gebruikersinterface kan hier worden ingesteld. Deze instelling wordt pas van kracht na het opnieuw opstarten van VERGE.</translation>
+        <translation type="unfinished">Uygulama dili buradan değiştirilebilirç Değişiklik sonrası uygulamanın kapatılıp tekrar açılması gerekmektedir.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Unit to show amounts in:</source>
-        <translation>&amp;Eenheid om bedragen weer te geven:</translation>
+        <translation type="unfinished">&amp;Miktarı göstermek için ölçek:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Kies de standaardindelingseenheid die in de interface wordt weergegeven en wanneer u munten verzendt.</translation>
+        <translation type="unfinished">Para transferinde miktari belirtmek için kullanılan ölçeğı seçebilirsiniz.</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Whether to show VERGE addresses in the transaction list or not.</source>
-        <translation>Of u VERGE-adressen in de transactielijst wilt weergeven of niet.</translation>
+        <translation type="unfinished">VERGE adreslerini para transferi listesinde göster/gösterme.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;Geef adressen in de transactielijst weer</translation>
+        <translation type="unfinished">&amp;Para transfer listesinde adresleri göster</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;OK</source>
-        <translation>&amp;OK</translation>
+        <translation type="unfinished">&amp;Tamam</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;Annuleer</translation>
+        <translation type="unfinished">&amp;Iptal</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>&amp;Apply</source>
-        <translation>&amp;Toepassen</translation>
+        <translation type="unfinished">&amp;Uygula</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>standaard</translation>
+        <translation type="unfinished">varsayılan</translation>
     </message>
     <message>
         <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
-        <translation>Waarschuwing</translation>
+        <translation type="unfinished">Uyarı</translation>
     </message>
     <message>
         <location line="-9"/>
         <location line="+9"/>
         <source>This setting will take effect after restarting VERGE.</source>
-        <translation>Deze instelling wordt pas van kracht na opnieuw opstarten van VERGE.</translation>
+        <translation type="unfinished">Yeni ayarlar VERGE yeniden başladığında etkili olacak</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The supplied proxy address is invalid.</source>
-        <translation>Het opgegeven proxy-adres is ongeldig.</translation>
+        <translation type="unfinished">Girilen Proxy adresi geçersiz.</translation>
     </message>
 </context>
 <context>
@@ -980,79 +974,79 @@ Address: %4
     <message>
         <location filename="../forms/overviewpage.ui" line="+14"/>
         <source>Form</source>
-        <translation>Formulier</translation>
+        <translation type="unfinished">Form</translation>
     </message>
     <message>
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</source>
-        <translation>De weergegeven informatie kan verouderd zijn. Uw portemonnee wordt automatisch gesynchroniseerd met het VERGE-netwerk nadat een verbinding tot stand is gebracht, maar dit proces is nog niet voltooid.</translation>
+        <translation type="unfinished">Gösterilen değerler güncel olmayabilir. Cüzdanınız internet bağlantınız etkin olduğunda kendisini güncellemeye başlayacak.</translation>
     </message>
     <message>
         <location line="-141"/>
         <source>Balance:</source>
-        <translation>Saldo:</translation>
+        <translation type="unfinished">Bakiye:</translation>
     </message>
     <message>
         <location line="+118"/>
         <source>Stake:</source>
-        <translation>Inzet:</translation>
+        <translation>Stake:</translation>
     </message>
     <message>
         <location line="+58"/>
         <source>Number of transactions:</source>
-        <translation>Aantal transacties:</translation>
+        <translation>Number of transactions:</translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Unconfirmed:</source>
-        <translation>Niet bevestigd:</translation>
+        <translation type="unfinished">Onaylanmamış:</translation>
     </message>
     <message>
         <location line="-78"/>
         <source>Wallet</source>
-        <translation>Portemonnee</translation>
+        <translation type="unfinished">Cüzdan</translation>
     </message>
     <message>
         <location line="+124"/>
         <source>Immature:</source>
-        <translation>Immature:</translation>
+        <translation type="unfinished">Olgunlaşmamış:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>Mined balance that has not yet matured</translation>
+        <translation type="unfinished">Kazılmış bakiye henüz olgunlaşmadı</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Recente transacties&lt;/b&gt;</translation>
+        <translation type="unfinished">&lt;b&gt;En son Para Transferlerı&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>Your current balance</source>
-        <translation>Uw huidige saldo</translation>
+        <translation type="unfinished">Mevcut bakiye</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Totaal van aantal transacties die nog moeten worden bevestigd en nog niet meetellen voor het huidige saldo</translation>
+        <translation type="unfinished">Para transferleri henüz onaylanmadı, değişiklikler mevcut bakiyesinize henüz yansımadı</translation>
     </message>
     <message>
         <location line="+134"/>
         <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>Totaal van aantal munten die nog moeten worden bevestigd en nog niet meetellen voor het huidige saldo</translation>
+        <translation>Total of coins that was staked, and do not yet count toward the current balance</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>Aantal transacties in portemonnee</translation>
+        <translation type="unfinished">Toplam cüzdanınızdaki para işlemleri</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
-        <translation>niet gesynchroniseerd</translation>
+        <translation type="unfinished">güncel değil</translation>
     </message>
 </context>
 <context>
@@ -1060,57 +1054,57 @@ Address: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation>QR Code Dialoog</translation>
+        <translation type="unfinished">QR Kod Dialogu</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Request Payment</source>
-        <translation>Betalingsverzoek</translation>
+        <translation type="unfinished">Para İste</translation>
     </message>
     <message>
         <location line="+56"/>
         <source>Amount:</source>
-        <translation>Aantal:</translation>
+        <translation type="unfinished">Miktar:</translation>
     </message>
     <message>
         <location line="-44"/>
         <source>Label:</source>
-        <translation>Label:</translation>
+        <translation type="unfinished">Etiket:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Message:</source>
-        <translation>Bericht:</translation>
+        <translation type="unfinished">Mesaj:</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;Save As...</source>
-        <translation>&amp;Sla op als...</translation>
+        <translation type="unfinished">&amp;Farklı Şekilde Kaydet...</translation>
     </message>
     <message>
         <location filename="../qrcodedialog.cpp" line="+62"/>
         <source>Error encoding URI into QR Code.</source>
-        <translation>Fout bij het coderen van URI in QR-code</translation>
+        <translation type="unfinished">QR kod içine URI kodlarken hata oluştu</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>The entered amount is invalid, please check.</source>
-        <translation>Het ingevoerde bedrag is ongeldig. Gelieve dit te controleren.</translation>
+        <translation type="unfinished">Girilen tutar geçersiz, lütfen kontrol ediniz.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>Resulterende URI te lang, probeer de tekst voor het label / bericht te verminderen</translation>
+        <translation>Resulting URI too long, try to reduce the text for label / message.</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>Sla QR Code op</translation>
+        <translation type="unfinished">QR Kodu Kaydet</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>PNG Images (*.png)</source>
-        <translation>PNG Images (*.png)</translation>
+        <translation type="unfinished">PNG resimleri (*.png)</translation>
     </message>
 </context>
 <context>
@@ -1118,7 +1112,7 @@ Address: %4
     <message>
         <location filename="../forms/rpcconsole.ui" line="+46"/>
         <source>Client name</source>
-        <translation>Client naame</translation>
+        <translation type="unfinished">İstemci İsmi</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1132,132 +1126,132 @@ Address: %4
         <location line="+23"/>
         <location filename="../rpcconsole.cpp" line="+348"/>
         <source>N/A</source>
-        <translation>N/A</translation>
+        <translation type="unfinished">Mevcut değil</translation>
     </message>
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation>Client versie</translation>
+        <translation type="unfinished">İstemci versiyonu</translation>
     </message>
     <message>
         <location line="-45"/>
         <source>&amp;Information</source>
-        <translation>&amp;Informatie</translation>
+        <translation type="unfinished">&amp;Bilgi</translation>
     </message>
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation>OpenSSL versie</translation>
+        <translation type="unfinished">OpenSSL versiyonu kullanarak</translation>
     </message>
     <message>
         <location line="+49"/>
         <source>Startup time</source>
-        <translation>Opstarttijd</translation>
+        <translation type="unfinished">Başlangıç süresi</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Network</source>
-        <translation>Netwerk</translation>
+        <translation type="unfinished">Ağ</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Number of connections</source>
-        <translation>Aantal connecties</translation>
+        <translation type="unfinished">Toplam aktif bağlantı</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>Op het testnetwerk</translation>
+        <translation type="unfinished">Test ağında mı?</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>Blokketting</translation>
+        <translation type="unfinished">Blok zinciri</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>Aantal blokken</translation>
+        <translation type="unfinished">Toplam blok sayısı</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Estimated total blocks</source>
-        <translation>Geschat totaal aantal blokken</translation>
+        <translation type="unfinished">Tahmin edilen toplam blok</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>Laatste bloktijd</translation>
+        <translation type="unfinished">En son blok süresi</translation>
     </message>
     <message>
         <location line="+52"/>
         <source>&amp;Open</source>
-        <translation>&amp;Open</translation>
+        <translation type="unfinished">&amp;Aç</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Command-line options</source>
-        <translation>Opdrachtprompt opties</translation>
+        <translation type="unfinished">Komut Satırı seçenekleri</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Show the VERGE-Qt help message to get a list with possible VERGE command-line options.</source>
-        <translation>Toon het VERGE-Qt helpbericht om een lijst met mogelijke VERGE opdrachtprompt commando's te krijgen.</translation>
+        <translation>Show the VERGE-Qt help message to get a list with possible VERGE command-line options.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Show</source>
-        <translation>&amp;Toon</translation>
+        <translation type="unfinished">&amp;Göster</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>&amp;Console</source>
-        <translation>&amp;Console</translation>
+        <translation type="unfinished">&amp;Konsol</translation>
     </message>
     <message>
         <location line="-260"/>
         <source>Build date</source>
-        <translation>Build datum</translation>
+        <translation type="unfinished">Derlenme tarihi</translation>
     </message>
     <message>
         <location line="-104"/>
         <source>VERGE - Debug window</source>
-        <translation>VERGE - Debug venster</translation>
+        <translation type="unfinished">VERGE - Hata Ayıklama Penceresi</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>VERGE Core</source>
-        <translation>VERGE Core</translation>
+        <translation type="unfinished">VERGE Çekirdek</translation>
     </message>
     <message>
         <location line="+279"/>
         <source>Debug log file</source>
-        <translation>Debug log bestand</translation>
+        <translation type="unfinished">Hata ayıklama kayıt dosyası</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Open het foutenlogbestand van VERGE uit de huidige gegevensdirectory. Dit kan enkele seconden duren voor grote logbestanden.</translation>
+        <translation>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</translation>
     </message>
     <message>
         <location line="+102"/>
         <source>Clear console</source>
-        <translation>Wis de console</translation>
+        <translation>Clear console</translation>
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
         <source>Welcome to the VERGE RPC console.</source>
-        <translation>Welkom bij de VERGE RPC console.</translation>
+        <translation type="unfinished">VERGE RPC konsoluna hoşgeldiniz</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>Gebruik de pijlen omhoog en omlaag om door de geschiedenis te navigeren, en &lt;b&gt;Ctrl-L&lt;/b&gt; om het scherm te wissen.</translation>
+        <translation type="unfinished">Yukarı ve aşağı ok işretleri ile geçmişte gezinebilirsiniz,  &lt;b&gt;Ctrl-L&lt;/b&gt;  ile ekranı temizleyebilirsiniz</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>Typ &lt;b&gt;help&lt;/b&gt; voor een overzicht van beschikbare commando's.</translation>
+        <translation type="unfinished"> &lt;b&gt;help&lt;/b&gt; yazarak daha fazla komut hakkında bilgi alabilirsiniz.</translation>
     </message>
 </context>
 <context>
@@ -1272,32 +1266,32 @@ Address: %4
         <location line="+5"/>
         <location line="+5"/>
         <source>Send Coins</source>
-        <translation>Verzend munten</translation>
+        <translation>Send Coins</translation>
     </message>
     <message>
         <location line="+50"/>
         <source>Send to multiple recipients at once</source>
-        <translation>Verstuur naar meerdere ontvangers tegelijkertijd</translation>
+        <translation>Send to multiple recipients at once</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Remove all transaction fields</source>
-        <translation>Wis alle transactievelden</translation>
+        <translation>Remove all transaction fields</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Clear &amp;All</source>
-        <translation>Wis &amp;Alles</translation>
+        <translation>Clear &amp;All</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Balance:</source>
-        <translation>Saldo:</translation>
+        <translation>Balance:</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1307,67 +1301,67 @@ Address: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>Bevestig de verzendactie</translation>
+        <translation>Confirm the send action</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
         <source>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; naar %2 (%3)</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm send coins</source>
-        <translation>Bevestig verzenden munten</translation>
+        <translation>Confirm send coins</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>Weet u zeker dat u het wilt verzenden? %1?</translation>
+        <translation>Are you sure you want to send %1?</translation>
     </message>
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> en </translation>
+        <translation> and </translation>
     </message>
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>Het adres van de ontvanger is niet geldig. Gelieve dit te controleren.</translation>
+        <translation>The recipient address is not valid, please recheck.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>Het te betalen bedrag moet groter zijn dan 0.</translation>
+        <translation>The amount to pay must be larger than 0.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount exceeds your balance.</source>
-        <translation>Het bedrag overschrijdt uw saldo.</translation>
+        <translation>The amount exceeds your balance.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>Het totaal overschrijdt uw saldo wanneer de %1 transactiekosten zijn inbegrepen.</translation>
+        <translation type="unfinished">%1 para transfer komisyonu eklendiğinde toplam paranız transfer için yetersiz.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Duplicate address found, can only send to each address once per send operation.</source>
-        <translation>Dubbel adres gevonden, kan slechts één keer per handeling naar elk adres worden verzonden.</translation>
+        <translation>Duplicate address found, can only send to each address once per send operation.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>Error: Het maken van de transactie is mislukt.</translation>
+        <translation>Error: Transaction creation failed.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Error: De transactie werd afgewezen. Dit kan gebeuren als sommige van de munten in je portemonnee al zijn uitgegeven, bijvoorbeeld als je een kopie van wallet.dat hebt gebruikt en er munten in de kopie zijn uitgegeven maar hier niet zijn gemarkeerd als uitgegeven.</translation>
+        <translation>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</translation>
     </message>
 </context>
 <context>
@@ -1375,23 +1369,23 @@ Address: %4
     <message>
         <location filename="../forms/sendcoinsentry.ui" line="+14"/>
         <source>Form</source>
-        <translation>Formulier</translation>
+        <translation>Form</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>B&amp;edrag:</translation>
+        <translation>A&amp;mount:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Pay &amp;To:</source>
-        <translation>Betaal &amp;Aan:</translation>
+        <translation>Pay &amp;To:</translation>
     </message>
     <message>
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>Voer een label in voor dit adres om het toe te voegen aan uw adresboek</translation>
+        <translation>Enter a label for this address to add it to your address book</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -1401,12 +1395,12 @@ Address: %4
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Choose address from address book</source>
-        <translation>Kies een adres uit het adresboek</translation>
+        <translation>Choose address from address book</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1416,7 +1410,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Paste address from clipboard</source>
-        <translation>Plak het adres van het klembord</translation>
+        <translation>Paste address from clipboard</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1426,12 +1420,12 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Remove this recipient</source>
-        <translation>Verwijder deze ontvanger</translation>
+        <translation>Remove this recipient</translation>
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Voer een geldig VERGE-adres in</translation>
+        <translation>Enter a valid VERGE address </translation>
     </message>
 </context>
 <context>
@@ -1439,29 +1433,29 @@ Address: %4
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>Handtekeningen - Onderteken / Verifieer een bericht</translation>
+        <translation type="unfinished">İmzalar - İmzala / Mesajı Doğrula</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+124"/>
         <source>&amp;Sign Message</source>
-        <translation>&amp;Onderteken Bericht</translation>
+        <translation type="unfinished">&amp;Mesajı Imzala</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>U kunt berichten ondertekenen met uw adressen om te bewijzen dat u de eigenaar bent. Pas op dat u niets vaags tekent, want phishing-aanvallen kunnen u proberen te misleiden om uw identiteit aan hen te laten signeren. Teken alleen volledig uitgewerkte verklaringen waarmee u akkoord gaat.</translation>
+        <translation type="unfinished">Mesajınızın sizin olduğu kanıtlamak için kendı adresinizle imzalayabilirsiniz. Lütfen istediğiniz mesaj dışında imzalama yapmayız ve imzaladığınız mesajın doğruluğundan emin olunuz.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to sign the message with </source>
-        <translation>Het adres om het bericht mee te ondertekenen</translation>
+        <translation type="unfinished">Mesajı imzalamak için adres </translation>
     </message>
     <message>
         <location line="+10"/>
         <location line="+203"/>
         <source>Choose an address from the address book</source>
-        <translation>Kies een adres uit het adresboek</translation>
+        <translation type="unfinished">Adres defterinden adres seçmek için tıklayınız</translation>
     </message>
     <message>
         <location line="-193"/>
@@ -1472,7 +1466,7 @@ Address: %4
     <message>
         <location line="-193"/>
         <source>Paste address from clipboard</source>
-        <translation>Plak het adres van het klembord</translation>
+        <translation type="unfinished">Adresi yapıştır</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1482,76 +1476,76 @@ Address: %4
     <message>
         <location line="+12"/>
         <source>Enter the message you want to sign here</source>
-        <translation>Voer het bericht in dat u hier wilt ondertekenen</translation>
+        <translation type="unfinished">Mesajı giriniz</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Copy the current signature to the system clipboard</source>
-        <translation>Kopieer de huidige handtekening naar het klembord</translation>
+        <translation type="unfinished">İmzayı kopyala</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Sign the message to prove you own this VERGE address</source>
-        <translation>Onderteken het bericht om aan te tonen dat u dit VERGE-adres bezit</translation>
+        <translation type="unfinished">Bu VERGE adresine sahip olduğunuzu kanıtlamak için mesajı imzala</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all sign message fields</source>
-        <translation>Reset alle velden voor tekenberichten</translation>
+        <translation type="unfinished">Tüm mesaji şifrele alanlarını sıfırla</translation>
     </message>
     <message>
         <location line="+3"/>
         <location line="+146"/>
         <source>Clear &amp;All</source>
-        <translation>Wis &amp;Alles</translation>
+        <translation type="unfinished">Hepsini &amp;Sil</translation>
     </message>
     <message>
         <location line="-87"/>
         <location line="+70"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Verifieer Bericht</translation>
+        <translation type="unfinished">&amp;Mesajı Doğrula</translation>
     </message>
     <message>
         <location line="-64"/>
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>Voer het ondertekeningsadres in, bericht (zorg ervoor dat u regelafbrekingen, spaties, tabbladen, enz. Exact kopieert) en teken hieronder om het bericht te verifiëren. Zorg ervoor dat je niet meer leest in de handtekening dan in het ondertekende bericht zelf, om te voorkomen dat je wordt misleid door een man-in-the-middle-aanval.</translation>
+        <translation>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>The address the message was signed with </source>
-        <translation>Het adres waarop het bericht is ondertekend </translation>
+        <translation>The address the message was signed with </translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Verify the message to ensure it was signed with the specified VERGE address</source>
-        <translation>Controleer of het bericht is ondertekend met het opgegeven VERGE-adres</translation>
+        <translation>Verify the message to ensure it was signed with the specified VERGE address</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all verify message fields</source>
-        <translation>Reset alle velden voor verificatieberichten</translation>
+        <translation>Reset all verify message fields</translation>
     </message>
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Voer een geldig VERGE-adres in</translation>
+        <translation>Enter a valid VERGE address</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Click &quot;Sign Message&quot; to generate signature</source>
-        <translation>Klik &quot;Teken Bericht&quot; om een handtekening te genereren</translation>
+        <translation>Click &quot;Sign Message&quot; to generate signature</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Enter VERGE signature</source>
-        <translation>Voer de VERGE-handtekening in</translation>
+        <translation>Enter VERGE signature</translation>
     </message>
     <message>
         <location line="+82"/>
         <location line="+81"/>
         <source>The entered address is invalid.</source>
-        <translation>Het ingevoerde adres is ongeldig.</translation>
+        <translation>The entered address is invalid.</translation>
     </message>
     <message>
         <location line="-81"/>
@@ -1559,59 +1553,59 @@ Address: %4
         <location line="+73"/>
         <location line="+8"/>
         <source>Please check the address and try again.</source>
-        <translation>Controleer het adres en probeer het opnieuw.</translation>
+        <translation>Please check the address and try again.</translation>
     </message>
     <message>
         <location line="-81"/>
         <location line="+81"/>
         <source>The entered address does not refer to a key.</source>
-        <translation>Het ingevoerde adres verwijst niet naar een sleutel.</translation>
+        <translation>The entered address does not refer to a key.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>Ontgrendeling van de portemonnee is geannuleerd.</translation>
+        <translation>Wallet unlock was cancelled.</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Private key for the entered address is not available.</source>
-        <translation>Privé sleutel voor het ingevoerde adres is niet beschikbaar.</translation>
+        <translation>Private key for the entered address is not available.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Message signing failed.</source>
-        <translation>Het ondertekenen van berichten is mislukt</translation>
+        <translation>Message signing failed.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message signed.</source>
-        <translation>Bericht ondertekend.</translation>
+        <translation>Message signed.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>The signature could not be decoded.</source>
-        <translation>De handtekening kon niet worden gedecodeerd.</translation>
+        <translation>The signature could not be decoded.</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Please check the signature and try again.</source>
-        <translation>Controleer de handtekening en probeer het opnieuw.</translation>
+        <translation>Please check the signature and try again.</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>The signature did not match the message digest.</source>
-        <translation>De handtekening kwam niet overeen met de berichtsamenvatting.</translation>
+        <translation>The signature did not match the message digest.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Message verification failed.</source>
-        <translation>Berichtverificatie mislukt.</translation>
+        <translation>Message verification failed.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message verified.</source>
-        <translation>Bericht geverifieerd.</translation>
+        <translation>Message verified.</translation>
     </message>
 </context>
 <context>
@@ -1619,14 +1613,14 @@ Address: %4
     <message>
         <location filename="../transactiondesc.cpp" line="+19"/>
         <source>Open until %1</source>
-        <translation>Open tot %1</translation>
+        <translation>Open until %1</translation>
     </message>
     <message numerus="yes">
         <location line="-2"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Open voor %n blokken</numerusform>
-            <numerusform>Open voor %n blokken</numerusform>
+            <numerusform>Open for %n block</numerusform>
+            <numerusform>Open for %n blocks</numerusform>
         </translation>
     </message>
     <message>
@@ -1637,64 +1631,64 @@ Address: %4
     <message>
         <location line="+2"/>
         <source>%1/unconfirmed</source>
-        <translation>%1/niet bevestigd</translation>
+        <translation>%1/unconfirmed</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1 confirmations</source>
-        <translation>%1 bevestigingen/translation>
+        <translation>%1 confirmations</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Status</source>
-        <translation>Staat</translation>
+        <translation>Status</translation>
     </message>
     <message numerus="yes">
         <location line="+7"/>
         <source>, broadcast through %n node(s)</source>
         <translation>
-            <numerusform>, Uitgezonden door %n node</numerusform>
-            <numerusform>, Uitgezonden door %n nodes</numerusform>
+            <numerusform>, broadcast through %n node</numerusform>
+            <numerusform>, broadcast through %n nodes</numerusform>
         </translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Date</source>
-        <translation>Datum</translation>
+        <translation>Date</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Source</source>
-        <translation>Bron</translation>
+        <translation>Source</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Generated</source>
-        <translation>Gegenereerd</translation>
+        <translation>Generated</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+17"/>
         <source>From</source>
-        <translation>Van</translation>
+        <translation>From</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+22"/>
         <location line="+58"/>
         <source>To</source>
-        <translation>Naar</translation>
+        <translation>To</translation>
     </message>
     <message>
         <location line="-77"/>
         <location line="+2"/>
         <source>own address</source>
-        <translation>eigen adres</translation>
+        <translation>own address</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>label</source>
-        <translation>etiket</translation>
+        <translation>label</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -1703,7 +1697,7 @@ Address: %4
         <location line="+17"/>
         <location line="+30"/>
         <source>Credit</source>
-        <translation>Krediet</translation>
+        <translation>Credit</translation>
     </message>
     <message numerus="yes">
         <location line="-102"/>
@@ -1716,7 +1710,7 @@ Address: %4
     <message>
         <location line="+2"/>
         <source>not accepted</source>
-        <translation>niet geaccepteerd</translation>
+        <translation>not accepted</translation>
     </message>
     <message>
         <location line="+44"/>
@@ -1724,82 +1718,82 @@ Address: %4
         <location line="+15"/>
         <location line="+30"/>
         <source>Debit</source>
-        <translation>Debiteren</translation>
+        <translation>Debit</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Transaction fee</source>
-        <translation>Transactiekosten</translation>
+        <translation>Transaction fee</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Net amount</source>
-        <translation>Netto bedrag</translation>
+        <translation>Net amount</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Message</source>
-        <translation>Bericht</translation>
+        <translation>Message</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Comment</source>
-        <translation>Commentaar</translation>
+        <translation>Comment</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Transaction ID</source>
-        <translation>Transactie ID</translation>
+        <translation>Transaction ID</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Gegenereerde munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in & quot; niet geaccepteerd & quot; en het zal niet te besteden zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na jou een blok genereert.</translation>
+        <translation>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</translation>
     </message>
     <message>
         <location line="+4"/>
-        <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>Ingezette munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in & quot; niet geaccepteerd & quot; en het zal niet besteedbaar zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na de jouwe een blok genereert.</translation>
+        <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \&quot;not accepted\&quot; and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
+        <translation>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \&quot;not accepted\&quot; and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Debug information</source>
-        <translation>Debug informatie</translation>
+        <translation>Debug information</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Transaction</source>
-        <translation>Transactie</translation>
+        <translation>Transaction</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Inputs</source>
-        <translation>Invoer</translation>
+        <translation>Inputs</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Amount</source>
-        <translation>Bedrag</translation>
+        <translation>Amount</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>true</source>
-        <translation>waar</translation>
+        <translation>true</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>false</source>
-        <translation>niet waar</translation>
+        <translation>false</translation>
     </message>
     <message>
         <location line="-211"/>
         <source>, has not been successfully broadcast yet</source>
-        <translation>, is nog niet succesvol uitgezonden</translation>
+        <translation>, has not been successfully broadcast yet</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>unknown</source>
-        <translation>onbekend</translation>
+        <translation>unknown</translation>
     </message>
 </context>
 <context>
@@ -1807,12 +1801,12 @@ Address: %4
     <message>
         <location filename="../forms/transactiondescdialog.ui" line="+14"/>
         <source>Transaction details</source>
-        <translation>Transactie gegevens</translation>
+        <translation>Para transferi detayları</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>Dit paneel toont een gedetailleerde beschrijving van de transactie</translation>
+        <translation>Bu pencere para transferinin detaylarını gösterir</translation>
     </message>
 </context>
 <context>
@@ -1820,12 +1814,12 @@ Address: %4
     <message>
         <location filename="../transactiontablemodel.cpp" line="+226"/>
         <source>Date</source>
-        <translation>Datum</translation>
+        <translation>Tarih</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type</source>
-        <translation>Type</translation>
+        <translation>Tip</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -1835,108 +1829,107 @@ Address: %4
     <message>
         <location line="+0"/>
         <source>Amount</source>
-        <translation>Bedrag</translation>
+        <translation>Miktar</translation>
     </message>
     <message numerus="yes">
         <location line="+57"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Open voor %n blok</numerusform>
-            <numerusform>Open voor %n blokken</numerusform>
+            <numerusform> %n bloku aç</numerusform>
         </translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open until %1</source>
-        <translation>Open tot %1</translation>
+        <translation>%1 bloka kadar aç</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Offline (%1 confirmations)</source>
-        <translation>Offline (%1 bevestigingen)</translation>
+        <translation>Çevrimdışı (%1 onaylar)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Unconfirmed (%1 of %2 confirmations)</source>
-        <translation>(%1 of %2 bevestigingen) bevestigd</translation>
+        <translation>Onaysız (%1 de %2 onaylar)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Confirmed (%1 confirmations)</source>
-        <translation>(%1 bevestigingen) bevestigd</translation>
+        <translation>Onayladı (%1 onaylar)</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
         <source>Mined balance will be available when it matures in %n more block(s)</source>
         <translation>
             <numerusform>Mined balance will be available when it matures in %n more block</numerusform>
-            <numerusform>Uw gemijnde balans is pas beschikbbaar wanneer het met %n meer blokken rijpt </numerusform>
+            <numerusform>Mined balance will be available when it matures in %n more blocks</numerusform>
         </translation>
     </message>
     <message>
         <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>Dit blok is niet ontvangen door andere knooppunten en wordt waarschijnlijk niet geaccepteerd!</translation>
+        <translation>Bu blok diğer uçlar tarafından alınamadığı için büyük ihtimalle kabul edilmedi!</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated but not accepted</source>
-        <translation>Gegenereerd maar niet geaccepteerd</translation>
+        <translation>Üretildi ama kabul edilmedi</translation>
     </message>
     <message>
         <location line="+43"/>
         <source>Received with</source>
-        <translation>Ontvangen met</translation>
+        <translation>Alındı ile</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Received from</source>
-        <translation>Ontvangen van</translation>
+        <translation>Alındı, gönderen</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sent to</source>
-        <translation>Verzonden aan</translation>
+        <translation>Kime</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Payment to yourself</source>
-        <translation>Betaling aan u zelf</translation>
+        <translation>Kendine ödeme gönder</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Mined</source>
-        <translation>gemijnd</translation>
+        <translation>Çıkarıldı</translation>
     </message>
     <message>
         <location line="+38"/>
         <source>(n/a)</source>
-        <translation>(n/a)</translation>
+        <translation>mevcut değil</translation>
     </message>
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>Transactie staat. Plaats de muisaanwijzer op dit veld om het aantal bevestigingen weer te geven.</translation>
+        <translation>Para transferi durumu. Fare ile üstüne gelerek toplam onay sayısını görebilirsiniz.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Date and time that the transaction was received.</source>
-        <translation>Datum en tijd waarop de transactie is ontvangen.</translation>
+        <translation>Para transferinin tarihi ve zamanı alındı.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Type of transaction.</source>
-        <translation>Type van de transactie.</translation>
+        <translation>Para transferinin türü.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Destination address of transaction.</source>
-        <translation>Bestemmingsadres van transactie</translation>
+        <translation>Para transferinin varış noktası.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Amount removed from or added to balance.</source>
-        <translation>Bedrag verwijderd van of toegevoegd aan saldo.</translation>
+        <translation>Miktar hesabınızda alındı veya hesabınıza eklendi.</translation>
     </message>
 </context>
 <context>
@@ -1945,122 +1938,122 @@ Address: %4
         <location filename="../transactionview.cpp" line="+55"/>
         <location line="+16"/>
         <source>All</source>
-        <translation>Alles</translation>
+        <translation>Hepsi</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Today</source>
-        <translation>Vandaag</translation>
+        <translation>Bugün</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This week</source>
-        <translation>Deze week</translation>
+        <translation>Bu hafta</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This month</source>
-        <translation>Deze maand</translation>
+        <translation>Bu ay</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Last month</source>
-        <translation>Vorige maand</translation>
+        <translation>Önceki Ay</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This year</source>
-        <translation>Dit jaar</translation>
+        <translation>Bu yıl</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Range...</source>
-        <translation>Reeks...</translation>
+        <translation>Aralık...</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received with</source>
-        <translation>Ontvangen met</translation>
+        <translation>Teslim alındı ile</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Sent to</source>
-        <translation>Verzonden aan</translation>
+        <translation>Gönderildi</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>To yourself</source>
-        <translation>Naar u zelf</translation>
+        <translation>Bana</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Mined</source>
-        <translation>Gemijnd</translation>
+        <translation>Çıkarılmış</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Other</source>
-        <translation>Andere</translation>
+        <translation>Diğer</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>Voer het adres of label in om te zoeken</translation>
+        <translation>Arama yapmak için adres veya etiket giriniz</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Min amount</source>
-        <translation>Min bedrag</translation>
+        <translation>Minimum miktar</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Copy address</source>
-        <translation>Kopieer adres</translation>
+        <translation>Adresi kopyala</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy label</source>
-        <translation>Kopieer etiket</translation>
+        <translation>Etiketi kopyala</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy amount</source>
-        <translation>Kopieer bedrag</translation>
+        <translation>Miktarı kopyala</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit label</source>
-        <translation>Wijzig etiket</translation>
+        <translation>Etiketi Düzenle</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show transaction details</source>
-        <translation>Toon transactiegegevens</translation>
+        <translation>Para transferi detaylarını göster</translation>
     </message>
     <message>
         <location line="+142"/>
         <source>Export Transaction Data</source>
-        <translation>Exporteer transactiegegevens</translation>
+        <translation>Para transferi datası çıkart</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Komma gescheiden bestand (*.csv)</translation>
+        <translation>Virgül ayraçlı dosya (*.csv)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Confirmed</source>
-        <translation>Bevestigd</translation>
+        <translation>Onayladı</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date</source>
-        <translation>Datum</translation>
+        <translation>Tarih</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type</source>
-        <translation>Type</translation>
+        <translation>Tip</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2075,7 +2068,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Amount</source>
-        <translation>Bedrag</translation>
+        <translation>Miktar</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2085,22 +2078,22 @@ Address: %4
     <message>
         <location line="+4"/>
         <source>Error exporting</source>
-        <translation>Fout bij exporteren</translation>
+        <translation>Dışarı çıkartırken hata oluştu</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Kon niet naar bestand schrijven %1.</translation>
+        <translation>%1 dosyasına yazılamıyor.</translation>
     </message>
     <message>
         <location line="+95"/>
         <source>Range:</source>
-        <translation>Reeks:</translation>
+        <translation>Aralık:</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>to</source>
-        <translation>Naar</translation>
+        <translation>kime</translation>
     </message>
 </context>
 <context>
@@ -2108,7 +2101,7 @@ Address: %4
     <message>
         <location filename="../walletmodel.cpp" line="+192"/>
         <source>Sending...</source>
-        <translation>Bezig met verzenden...</translation>
+        <translation>Gönderiliyor...</translation>
     </message>
 </context>
 <context>
@@ -2116,112 +2109,112 @@ Address: %4
     <message>
         <location filename="../bitcoinstrings.cpp" line="+82"/>
         <source>VERGE version</source>
-        <translation>VERGE versie</translation>
+        <translation>VERGE version</translation>
     </message>
     <message>
         <location line="+82"/>
         <source>Usage:</source>
-        <translation>Gebruik:</translation>
+        <translation>Usage:</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Send command to -server or bitcoind</source>
-        <translation>Verstuur commando naar -server of bitcoind</translation>
+        <translation>Send command to -server or bitcoind</translation>
     </message>
     <message>
         <location line="-19"/>
         <source>List commands</source>
-        <translation>Commandolijst</translation>
+        <translation>List commands</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>Get help for a command</source>
-        <translation>Hulp voor een commando</translation>
+        <translation>Get help for a command</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Options:</source>
-        <translation>Opties:</translation>
+        <translation>Options:</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Specify configuration file (default: VERGE.conf)</source>
-        <translation>Geef het configuratiebestand op (default: VERGE.conf)</translation>
+        <translation>Specify configuration file (default: VERGE.conf)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Specify pid file (default: VERGEd.pid)</source>
-        <translation>Geef het pid-bestand op (default: VERGEd.pid)</translation>
+        <translation>Specify pid file (default: VERGEd.pid)</translation>
     </message>
     <message>
         <location line="-47"/>
         <source>Generate coins</source>
-        <translation>Genereer munten</translation>
+        <translation>Generate coins</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Don&apos;t generate coins</source>
-        <translation>Don&apos;t genereer munten</translation>
+        <translation>Don&apos;t generate coins</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Specify data directory</source>
-        <translation>Geef de datadirectory op</translation>
+        <translation>Specify data directory</translation>
     </message>
     <message>
         <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
-        <translation>Stel de cachegrootte van de database in in megabytes (standaard: 25)</translation>
+        <translation>Set database cache size in megabytes (default: 25)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set database disk log size in megabytes (default: 100)</source>
-        <translation>Stel de logboekgrootte van de databasedisk in megabytes in (standaard: 100)</translation>
+        <translation>Set database disk log size in megabytes (default: 100)</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Luister naar verbindingen op &lt;port&gt; (standaard: 21102 of testnet: 18333)</translation>
+        <translation>Listen for connections on &lt;port&gt; (default: 21102 or testnet: 18333)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Maintain at most &lt;n&gt; connections to peers (default: 125)</source>
-        <translation>Behoud hoogstens &lt;n&gt; verbindingen met peers (standaard: 125)</translation>
+        <translation>Maintain at most &lt;n&gt; connections to peers (default: 125)</translation>
     </message>
     <message>
         <location line="-33"/>
         <source>Connect to a node to retrieve peer addresses, and disconnect</source>
-        <translation>Maak verbinding met een knooppunt om peer-adressen op te halen en verbreek de verbinding</translation>
+        <translation>Connect to a node to retrieve peer addresses, and disconnect</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>Specify your own public address</source>
-        <translation>Geef uw eigen openbare adres op</translation>
+        <translation>Specify your own public address</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Bind to given address. Use [host]:port notation for IPv6</source>
-        <translation>Binden aan opgegeven adres. Gebruik [host]: poortnotatie voor IPv6</translation>
+        <translation>Bind to given address. Use [host]:port notation for IPv6</translation>
     </message>
     <message>
         <location line="+77"/>
         <source>Threshold for disconnecting misbehaving peers (default: 100)</source>
-        <translation>Drempel voor het verbreken van slechte peers (standaard: 100)</translation>
+        <translation>Threshold for disconnecting misbehaving peers (default: 100)</translation>
     </message>
     <message>
         <location line="-112"/>
         <source>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</source>
-        <translation>Aantal seconden om te voorkomen dat slechte peers zich opnieuw verbinden (standaard: 86400)</translation>
+        <translation>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Detach block and address databases. Increases shutdown time (default: 0)</source>
-        <translation>Ontkoppel blok- en adresdatabases. Verhoogt de uitschakeltijd (standaard: 0)</translation>
+        <translation>Detach block and address databases. Increases shutdown time (default: 0)</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -2241,7 +2234,7 @@ Address: %4
     <message>
         <location line="+31"/>
         <source>Accept command line and JSON-RPC commands</source>
-        <translation>Accepteer opdrachtprompt en JSON-RPC commando's</translation>
+        <translation>Accept command line and JSON-RPC commands</translation>
     </message>
     <message>
         <location line="+26"/>
@@ -2266,17 +2259,17 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>Run in the background as a daemon and accept commands</source>
-        <translation>Draai op de achtergrond als een daemon en accepteer commando's</translation>
+        <translation>Run in the background as a daemon and accept commands</translation>
     </message>
     <message>
         <location line="+33"/>
         <source>Use the test network</source>
-        <translation>Gebruik het test netwerk</translation>
+        <translation>Use the test network</translation>
     </message>
     <message>
         <location line="-93"/>
         <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>
-        <translation>Accepteer verbindingen van buitenaf (standaard: 1 als er geen -proxy is, of -connect)</translation>
+        <translation>Accept connections from outside (default: 1 if no -proxy or -connect)</translation>
     </message>
     <message>
         <location line="-53"/>
@@ -2291,157 +2284,157 @@ Address: %4
     <message>
         <location line="+18"/>
         <source>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</source>
-        <translation>Stel de maximale grootte in van transacties met hoge of lage kosten in bytes (standaard: 27000)</translation>
+        <translation>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
-        <translation>Waarschuwing: -paytxfee is erg hoog ingesteld! Dit zijn de transactiekosten die u moet betalen als u een transactie verzendt.</translation>
+        <translation>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</source>
-        <translation>Waarschuwing: weergegeven transacties zijn mogelijk niet correct! Mogelijk moet u of andere knooppunten upgraden.</translation>
+        <translation>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong VERGE will not work properly.</source>
-        <translation>Waarschuwing: controleer of de datum en tijd van uw computer correct zijn! Als uw klok verkeerd is, werkt VERGE niet correct.</translation>
+        <translation>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong VERGE will not work properly.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</source>
-        <translation>Waarschuwing: fout bij lezen van wallet.dat! Alle sleutels worden correct gelezen, maar transactiegegevens of vermeldingen in het adresboek kunnen ontbreken of onjuist zijn.</translation>
+        <translation>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
-        <translation>Waarschuwing: wallet.dat corrupt, gegevens hersteld! Originele wallet.dat opgeslagen als portemonnee. {Timestamp} .bak in %s; als uw saldo of transacties niet kloppen zal u moeten herstellen vanaf een back-up.</translation>
+        <translation>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Attempt to recover private keys from a corrupt wallet.dat</source>
-        <translation>Poging om privésleutels te herstellen van een corrupte wallet.dat</translation>
+        <translation>Attempt to recover private keys from a corrupt wallet.dat</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Block creation options:</source>
-        <translation>Blok creatieopties:</translation>
+        <translation>Block creation options:</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Connect only to the specified node(s)</source>
-        <translation>Maak alleen verbinding met het opgegeven knooppunten</translation>
+        <translation>Connect only to the specified node(s)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Discover own IP address (default: 1 when listening and no -externalip)</source>
-        <translation>Ontdek eigen IP-adres (standaard: 1 tijdens het luisteren en geen -externalip)</translation>
+        <translation>Discover own IP address (default: 1 when listening and no -externalip)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
-        <translation>Kon op geen enkele poort luisteren. Gebruik -listen = 0 als u dit wilt.</translation>
+        <translation>Failed to listen on any port. Use -listen=0 if you want this.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Find peers using DNS lookup (default: 0)</source>
-        <translation>Zoek peers met behulp van DNS-lookup (standaard: 0)</translation>
+        <translation>Find peers using DNS lookup (default: 0)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Invalid -tor address: &apos;%s&apos;</source>
-        <translation>Ongeldig  -tor adres: &apos;%s&apos;</translation>
+        <translation>Invalid -tor address: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</source>
-        <translation>Maximale per-verbinding ontvangstbuffer, &lt;n&gt;*1000 bytes (standaard: 5000)</translation>
+        <translation>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: 1000)</source>
-        <translation>Maximale per-verbinding verzendbuffer, &lt;n&gt;*1000 bytes (standaard: 1000)</translation>
+        <translation>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: 1000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</source>
-        <translation>Alleen verbinden met knooppunten in het netwerk &lt;net&gt; (IPv4, IPv6 or Tor)</translation>
+        <translation>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Output extra debugging information. Implies all other -debug* options</source>
-        <translation>Geef extra foutopsporingsinformatie op. Impliceert alle andere -debug * -opties</translation>
+        <translation>Output extra debugging information. Implies all other -debug* options</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Output extra network debugging information</source>
-        <translation>Voer extra netwerkdebuggingsinformatie uit</translation>
+        <translation>Output extra network debugging information</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Prepend debug output with timestamp</source>
-        <translation>Voorzie debug-uitvoer van tevoren met tijdstempel</translation>
+        <translation>Prepend debug output with timestamp</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</source>
-        <translation>SSL opties: (zie de Bitcoin Wiki voor SSL setup instructies)</translation>
+        <translation>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Select the version of socks proxy to use (4-5, default: 5)</source>
-        <translation>Selecteer de te gebruiken versie van proxy socks (4-5, standaard: 5)</translation>
+        <translation>Select the version of socks proxy to use (4-5, default: 5)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Send trace/debug info to console instead of debug.log file</source>
-        <translation>Stuur trace / debug info naar console in plaats van debug.log bestand</translation>
+        <translation>Send trace/debug info to console instead of debug.log file</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Send trace/debug info to debugger</source>
-        <translation>Verzend tracering / debug-info naar debugger</translation>
+        <translation>Send trace/debug info to debugger</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Set maximum block size in bytes (default: 250000)</source>
-        <translation>Stel de maximale blokgrootte in bytes in (standaard: 250000)</translation>
+        <translation>Set maximum block size in bytes (default: 250000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set minimum block size in bytes (default: 0)</source>
-        <translation>Stel de minimale blokgrootte in bytes in (standaard: 0)</translation>
+        <translation>Set minimum block size in bytes (default: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Shrink debug.log file on client startup (default: 1 when no -debug)</source>
-        <translation>Krimp debug.log bestand bij het opstarten (standaard: 1 als er geen -debug is)</translation>
+        <translation>Shrink debug.log file on client startup (default: 1 when no -debug)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Specify connection timeout in milliseconds (default: 5000)</source>
-        <translation>Geef de time-out voor de verbinding op in milliseconden (standaard: 5000)</translation>
+        <translation>Specify connection timeout in milliseconds (default: 5000)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Use UPnP to map the listening port (default: 0)</source>
-        <translation>Gebruik UPnP om de luisterpoort in kaart te brengen (standaard: 0)</translation>
+        <translation>Use UPnP to map the listening port (default: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use UPnP to map the listening port (default: 1 when listening)</source>
-        <translation>Use UPnP to map the listening port (standaard: 1 when listening)</translation>
+        <translation>Use UPnP to map the listening port (default: 1 when listening)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use proxy to reach tor hidden services (default: same as -proxy)</source>
-        <translation>Gebruik proxy om verborgen services te bereiken (standaard: same as -proxy)</translation>
+        <translation>Use proxy to reach tor hidden services (default: same as -proxy)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Username for JSON-RPC connections</source>
-        <translation>Gebruikersnaam voor JSON-RPC-verbindingen</translation>
+        <translation>Username for JSON-RPC connections</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2451,12 +2444,12 @@ Address: %4
     <message>
         <location line="+2"/>
         <source>Warning: Disk space is low!</source>
-        <translation>Waarschuwing: schijfruimte is laag!</translation>
+        <translation>Warning: Disk space is low!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: This version is obsolete, upgrade required!</source>
-        <translation>Waarschuwing: deze versie is verouderd, upgrade vereist!</translation>
+        <translation>Warning: This version is obsolete, upgrade required!</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2466,82 +2459,82 @@ Address: %4
     <message>
         <location line="-43"/>
         <source>Password for JSON-RPC connections</source>
-        <translation>Wachtwoord voor JSON-RPC-verbindingen</translation>
+        <translation>Password for JSON-RPC connections</translation>
     </message>
     <message>
         <location line="-53"/>
         <source>Allow JSON-RPC connections from specified IP address</source>
-        <translation>Sta JSON-RPC-verbindingen toe vanaf het opgegeven IP-adres</translation>
+        <translation>Allow JSON-RPC connections from specified IP address</translation>
     </message>
     <message>
         <location line="+61"/>
         <source>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</source>
-        <translation>Stuur commando's naar het knooppunt waarop wordt uitgevoerd &lt;ip&gt; (standaard: 127.0.0.1)</translation>
+        <translation>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</translation>
     </message>
     <message>
         <location line="-99"/>
         <source>Execute command when the best block changes (%s in cmd is replaced by block hash)</source>
-        <translation>Voer het commando uit wanneer het beste blok verandert (%s wordt vervangen door blokhash in cmd)</translation>
+        <translation>Execute command when the best block changes (%s in cmd is replaced by block hash)</translation>
     </message>
     <message>
         <location line="+122"/>
         <source>Upgrade wallet to latest format</source>
-        <translation>Upgrade portemonnee naar nieuwste formaat</translation>
+        <translation>Upgrade wallet to latest format</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Set key pool size to &lt;n&gt; (default: 100)</source>
-        <translation>Stel de sleutelpoolgrootte in op &lt;n&gt; (standaard: 100)</translation>
+        <translation>Set key pool size to &lt;n&gt; (default: 100)</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Rescan the block chain for missing wallet transactions</source>
-        <translation>Scan de blokkeerketen opnieuw voor ontbrekende transacties</translation>
+        <translation>Rescan the block chain for missing wallet transactions</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>How many blocks to check at startup (default: 2500, 0 = all)</source>
-        <translation>Aantal blokken dat bij het opstarten moet worden gecontroleerd (standaard: 2500, 0 = all)</translation>
+        <translation>How many blocks to check at startup (default: 2500, 0 = all)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>How thorough the block verification is (0-6, default: 1)</source>
-        <translation>Hoe grondig de blokverificatie is (0-6, standaard: 1)</translation>
+        <translation>How thorough the block verification is (0-6, default: 1)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Imports blocks from external blk000?.dat file</source>
-        <translation>Importeert blokken van externe blk000?.dat bestand</translation>
+        <translation>Imports blocks from external blk000?.dat file</translation>
     </message>
     <message>
         <location line="+51"/>
         <source>Use OpenSSL (https) for JSON-RPC connections</source>
-        <translation>Gebruik OpenSSL (https) voor JSON-RPC connecties</translation>
+        <translation>Use OpenSSL (https) for JSON-RPC connections</translation>
     </message>
     <message>
         <location line="-21"/>
         <source>Server certificate file (default: server.cert)</source>
-        <translation>Server certificaatbestand (standaard: server.cert)</translation>
+        <translation>Server certificate file (default: server.cert)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Server private key (default: server.pem)</source>
-        <translation>Server privésleutel (standaard: server.pem)</translation>
+        <translation>Server private key (default: server.pem)</translation>
     </message>
     <message>
         <location line="-127"/>
         <source>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</source>
-        <translation>Aanvaardbare cijfers (standaard: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
+        <translation>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
     </message>
     <message>
         <location line="+139"/>
         <source>This help message</source>
-        <translation>Dit helpbericht</translation>
+        <translation>This help message</translation>
     </message>
     <message>
         <location line="-131"/>
         <source>Cannot obtain a lock on data directory %s.  VERGE is probably already running.</source>
-        <translation>Geen vergrendeling in gegevensdirectory %s.  VERGE is waarschijnlijk al actief.</translation>
+        <translation>Cannot obtain a lock on data directory %s.  VERGE is probably already running.</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -2551,157 +2544,157 @@ Address: %4
     <message>
         <location line="+77"/>
         <source>Unable to bind to %s on this computer (bind returned error %d, %s)</source>
-        <translation>Kan niet binden aan %s op deze computer (bind teruggegeven fout %d, %s)</translation>
+        <translation>Unable to bind to %s on this computer (bind returned error %d, %s)</translation>
     </message>
     <message>
         <location line="-69"/>
         <source>Connect through socks proxy</source>
-        <translation>Verbind via socks proxy</translation>
+        <translation>Connect through socks proxy</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>Allow DNS lookups for -addnode, -seednode and -connect</source>
-        <translation>DNS-zoekopdrachten toestaan voor -addnode, -seednode en -connect</translation>
+        <translation>Allow DNS lookups for -addnode, -seednode and -connect</translation>
     </message>
     <message>
         <location line="+44"/>
         <source>Loading addresses...</source>
-        <translation>Adressen aan het laden...</translation>
+        <translation>Loading addresses...</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Error loading blkindex.dat</source>
-        <translation>Fout bij het laden van blkindex.dat</translation>
+        <translation>Error loading blkindex.dat</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Error loading wallet.dat: Wallet corrupted</source>
-        <translation>Fout bij het laden van wallet.dat: Portemonnee corrupt</translation>
+        <translation>Error loading wallet.dat: Wallet corrupted</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error loading wallet.dat: Wallet requires newer version of VERGE</source>
-        <translation>Fout bij het laden van wallet.dat: Portemonnee vereist nieuwere versie van VERGE</translation>
+        <translation>Error loading wallet.dat: Wallet requires newer version of VERGE</translation>
     </message>
     <message>
         <location line="+73"/>
         <source>Wallet needed to be rewritten: restart VERGE to complete</source>
-        <translation>Wallet moest worden herschreven: herstart VERGE om te voltooien</translation>
+        <translation>Wallet needed to be rewritten: restart VERGE to complete</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Error loading wallet.dat</source>
-        <translation>Fout bij het laden van wallet.dat</translation>
+        <translation>Error loading wallet.dat</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Invalid -proxy address: &apos;%s&apos;</source>
-        <translation>Ongeldig -proxy adres: &apos;%s&apos;</translation>
+        <translation>Invalid -proxy address: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Unknown network specified in -onlynet: &apos;%s&apos;</source>
-        <translation>Onbekend netwerk opgegeven in -onlynet: &apos;%s&apos;</translation>
+        <translation>Unknown network specified in -onlynet: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="-1"/>
         <source>Unknown -socks proxy version requested: %i</source>
-        <translation>Onbekend -socks proxy versie aangevraagd: %i</translation>
+        <translation>Unknown -socks proxy version requested: %i</translation>
     </message>
     <message>
         <location line="-74"/>
         <source>Cannot resolve -bind address: &apos;%s&apos;</source>
-        <translation>Kan -bind adres niet oplossen: &apos;%s&apos;</translation>
+        <translation>Cannot resolve -bind address: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot resolve -externalip address: &apos;%s&apos;</source>
-        <translation>Kan -externalip adres niet oplossen: &apos;%s&apos;</translation>
+        <translation>Cannot resolve -externalip address: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</source>
-        <translation>Ongeldig bedrag voor -paytxfee=&lt;bedrag&gt;: &apos;%s&apos;</translation>
+        <translation>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Error: could not start node</source>
-        <translation>Fout: kan het knooppunt niet starten</translation>
+        <translation>Error: could not start node</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Sending...</source>
-        <translation>Aan het verzenden...</translation>
+        <translation>Sending...</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>Invalid amount</source>
-        <translation>Ongeldig bedrag</translation>
+        <translation>Invalid amount</translation>
     </message>
     <message>
         <location line="-4"/>
         <source>Insufficient funds</source>
-        <translation>Onvoldoende saldo funds</translation>
+        <translation>Insufficient funds</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Loading block index...</source>
-        <translation>block-index aan het laden...</translation>
+        <translation>Loading block index...</translation>
     </message>
     <message>
         <location line="-46"/>
         <source>Add a node to connect to and attempt to keep the connection open</source>
-        <translation>Voeg een knooppunt toe waarmee u verbinding wilt maken en probeer de verbinding open te houden</translation>
+        <translation>Add a node to connect to and attempt to keep the connection open</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Unable to bind to %s on this computer. VERGE is probably already running.</source>
-        <translation>Kan niet binden aan %s op deze computer. VERGE is waarschijnlijk al actief.</translation>
+        <translation>Unable to bind to %s on this computer. VERGE is probably already running.</translation>
     </message>
     <message>
         <location line="+55"/>
         <source>Find peers using internet relay chat (default: 1)</source>
-        <translation>Zoek peers met behulp van internet relay chat (standaard: 1)</translation>
+        <translation>Find peers using internet relay chat (default: 1)</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Fee per KB to add to transactions you send</source>
-        <translation>Vergoeding per KB om toe te voegen aan de transacties die u verzendt</translation>
+        <translation>Fee per KB to add to transactions you send</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Loading wallet...</source>
-        <translation>Portemonnee aan het laden...</translation>
+        <translation>Loading wallet...</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Cannot downgrade wallet</source>
-        <translation>Kan portemonnee niet downgraden</translation>
+        <translation>Cannot downgrade wallet</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot initialize keypool</source>
-        <translation>Kan geen keypool initialiseren</translation>
+        <translation>Cannot initialize keypool</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Cannot write default address</source>
-        <translation>Kan standaardadres niet schrijven</translation>
+        <translation>Cannot write default address</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Rescanning...</source>
-        <translation>Opnieuw aan het scannen...</translation>
+        <translation>Rescanning...</translation>
     </message>
     <message>
         <location line="-40"/>
         <source>Done loading</source>
-        <translation>Laden voltooid</translation>
+        <translation>Done loading</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>To use the %s option</source>
-        <translation>Om het %s optie te gebruiken</translation>
+        <translation>To use the %s option</translation>
     </message>
     <message>
         <location line="-150"/>
@@ -2713,31 +2706,28 @@ rpcpassword=%s
 (you do not need to remember this password)
 If the file does not exist, create it with owner-readable-only file permissions.
 </source>
-        <translation>%s, u moet een rpcpassword instellen in het configuratiebestand:
+        <translation>%s, you must set a rpcpassword in the configuration file:
  %s
-Het wordt aanbevolen om het volgende willekeurige wachtwoord te gebruiken:
+It is recommended you use the following random password:
 rpcuser=bitcoinrpc
 rpcpassword=%s
-(u hoeft dit wachtwoord niet te onthouden)
-Als het bestand niet bestaat, creëer het dan met eigenaar-alleen lezen bestandrechten.
+(you do not need to remember this password)
+If the file does not exist, create it with owner-readable-only file permissions.
 </translation>
     </message>
     <message>
         <location line="+91"/>
         <source>Error</source>
-        <translation>Fout</translation>
+        <translation>Error</translation>
     </message>
     <message>
         <location line="-30"/>
-        <source>U moet een rpcpassword=&lt;password&gt; in the configuration file:
+        <source>You must set rpcpassword=&lt;password&gt; in the configuration file:
 %s
 If the file does not exist, create it with owner-readable-only file permissions.</source>
-        <translation>Het volgende is vereist: rpcpassword=&lt;password&gt; in de configuratiebestand:
+        <translation>You must set rpcpassword=&lt;password&gt; in the configuration file:
 %s
-Als het bestand niet bestaat, creëer het dan met eigenaar-alleen lezen bestandrechten.</translation>
+If the file does not exist, create it with owner-readable-only file permissions.</translation>
     </message>
 </context>
 </TS>
-
-
-
