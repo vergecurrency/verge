@@ -11,8 +11,8 @@
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;VERGE&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;VERGE&lt;/b&gt; versiyon</translation>
+        <source>&lt;b&gt;VERGE&lt;/b&gt; sürüm</source>
+        <translation>&lt;b&gt;VERGE&lt;/b&gt; sürüm</translation>
     </message>
     <message>
         <location line="+41"/>
@@ -120,7 +120,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Adres Defteri Kayıtları Dışarı Çıkart</translation>
+        <translation>Adres Defteri Kayıtlarını Dışarı Çıkart</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -161,12 +161,12 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location filename="../forms/askpassphrasedialog.ui" line="+26"/>
         <source>Passphrase Dialog</source>
-        <translation>Anahtar Parola Dialoğu</translation>
+        <translation>Anahtar Parola Diyaloğu</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Anahtar paralo giriniz</translation>
+        <translation>Anahtar parola giriniz</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -176,7 +176,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+14"/>
         <source>Repeat new passphrase</source>
-        <translation>Anahtar paralo tekrarı</translation>
+        <translation>Anahtar parola tekrarı</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
@@ -191,7 +191,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Bu aksiyon için cüzdanınızın kilidinin anahtar paralonanızla açılması gerekmektedir.</translation>
+        <translation>Bu aksiyon için cüzdanınızın kilidinin anahtar parolananızla açılması gerekmektedir.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -272,7 +272,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>Anahtar paralo uyuşmadı.</translation>
+        <translation>Anahtar parola uyuşmadı.</translation>
     </message>
     <message>
         <location line="-37"/>
@@ -294,7 +294,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>Anahtar paralo başarıyla değiştirildi</translation>
+        <translation>Anahtar parola başarıyla değiştirildi</translation>
     </message>
 </context>
 <context>
@@ -444,7 +444,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Cüzdan şifrelemesinde kullanılan anahtar parolayı değştir</translation>
+        <translation>Cüzdan şifrelemesinde kullanılan anahtar parolayı değiştir</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -566,12 +566,12 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+7"/>
         <source>Catching up...</source>
-        <translation>Günceleniyor</translation>
+        <translation>Günceleniyor...</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>En üretilen blok %1.</translation>
+        <translation>Son alınan blok üretildi %1.</translation>
     </message>
     <message>
         <location line="+59"/>
@@ -646,12 +646,12 @@ Adres: %4
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>Cüzdan verisi lokasyona yazılırken hata oluştur.</translation>
+        <translation>Cüzdan verisi lokasyona yazılırken hata oluştu.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
         <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
-        <translation>Kritik hata oluştu. Verge güvenli bir şekilde çalışamayacağına karar verdiği için kendini kapatacak.</translation>
+        <translation>Kritik hata oluştu. VERGE güvenli bir şekilde çalışamayacağına karar verdiği için kendini kapatacak.</translation>
     </message>
 </context>
 <context>
@@ -741,7 +741,7 @@ Adres: %4
     <message>
         <location line="-12"/>
         <source>version</source>
-        <translation>versiyon</translation>
+        <translation>sürümn</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -1054,7 +1054,7 @@ Adres: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation type="unfinished">QR Kod Dialogu</translation>
+        <translation type="unfinished">QR Kod Diyaloğu</translation>
     </message>
     <message>
         <location line="+59"/>
@@ -1131,7 +1131,7 @@ Adres: %4
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation type="unfinished">İstemci versiyonu</translation>
+        <translation type="unfinished">İstemci sürümü</translation>
     </message>
     <message>
         <location line="-45"/>
@@ -1141,7 +1141,7 @@ Adres: %4
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation type="unfinished">OpenSSL versiyonu kullanarak</translation>
+        <translation type="unfinished">OpenSSL sürümünü kullanarak</translation>
     </message>
     <message>
         <location line="+49"/>
