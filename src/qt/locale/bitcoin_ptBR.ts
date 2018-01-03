@@ -75,12 +75,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+11"/>
         <source>Show &amp;QR Code</source>
-        <translation>Show &amp;QR Code</translation>
+        <translation>Mostrar &amp;QR Code</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own a VERGE address</source>
-        <translation>Sign a message to prove you own a VERGE address</translation>
+        <translation>Assine uma mensagem para provar que você possui um endereço VERGE</translation>
     </message>
     <message>
         <location line="+3"/>
