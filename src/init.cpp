@@ -592,8 +592,6 @@ bool AppInit2()
         if (!NewThread(StartTor, NULL))
                 InitError(_("Error: could not start tor node"));
 	}
-
-	wait_initialized();	
 	
     if (mapArgs.count("-externalip"))
     {
