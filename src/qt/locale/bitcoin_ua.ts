@@ -17,7 +17,7 @@
     <message>
         <location line="+41"/>
         <source>Copyright © 2014-2018 The Verge developers</source>
-        <translation>Всі права захищені © 2014-2018 Розробники Verge</translation>
+        <translation>Усі права захищено © 2014-2018 Розробники Verge</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -28,11 +28,11 @@ Distributed under the MIT/X11 software license, see the accompanying file COPYIN
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
         <translation>
-Це експериментальна програма.
+Це експериментальне програмне забезпечення.
 
 Розповсюджується на правах ліцензії MIT/X11, див. файл license.txt або http://www.opensource.org/licenses/mit-license.php.
 
-Цей продукт містить ПЗ, що було розроблене OpenSSL Project для використання в OpenSSL Toolkit (http://www.openssl.org/) і криптографічне ПЗ, написане Eric Young (eay@cryptsoft.com) і ПЗ для ріботи з UPnP, написане Thomas Bernard.</translation>
+Цей продукт містить ПЗ, що було розроблене OpenSSL Project для використання в OpenSSL Toolkit (http://www.openssl.org/) і криптографічне ПЗ, написане Eric Young (eay@cryptsoft.com) і ПЗ для роботи з UPnP, написане Thomas Bernard.</translation>
     </message>
 </context>
 <context>
@@ -45,7 +45,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Для того, щоб змінити адресу чи мітку двічі клікніть по змінюваному об&apos;єкту</translation>
+        <translation>Для того, щоб змінити адресу чи мітку двічі натисніть по змінюваному об&apos;єкту</translation>
     </message>
     <message>
         <location line="+27"/>
@@ -55,7 +55,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Копіювати поточну виділену адресу в буфер обміну</translation>
+        <translation>Копіювати поточну виділену адресу до буфера обміну</translation>
     </message>
     <message>
         <location line="-11"/>
@@ -65,12 +65,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-46"/>
         <source>These are your Verge addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>Це ваші адреси для отримання платежів. Ви можете давати різні адреси різними відправникам, щоб відслідковувати, хто саме вам платить.</translation>
+        <translation>Це ваші Verge адреси для отримання платежів. Ви можете давати різні адреси різними відправникам, щоб відслідковувати, хто саме Вам платить.</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>&amp;Copy Address</source>
-        <translation>&amp;Копіювати адресу</translation>
+        <translation>&amp;Скопіювати адресу</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -95,12 +95,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified Verge address</source>
-        <translation>Перевірити повідомдення, щоб переконатись, що воно підписане вказаною адресою Verge</translation>
+        <translation>Перевірити повідомлення, щоб переконатись, що воно підписане вказаною адресою Verge</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Перевірити повідомдення</translation>
+        <translation>&amp;Перевірити повідомлення</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -110,7 +110,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../addressbookpage.cpp" line="+65"/>
         <source>Copy &amp;Label</source>
-        <translation>Копіювати &amp;мітку</translation>
+        <translation>Скопіювати &amp;мітку</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -135,7 +135,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Неможливо записати в файл %1.</translation>
+        <translation>Неможливо записати у файл %1.</translation>
     </message>
 </context>
 <context>
@@ -161,12 +161,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../forms/askpassphrasedialog.ui" line="+26"/>
         <source>Passphrase Dialog</source>
-        <translation>Діалог введення пароля</translation>
+        <translation>Діалог введення паролю</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Введіть пароль</translation>
+        <translation>Уведіть пароль</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -181,7 +181,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Введіть новий пароль для гаманця. &lt;br/&gt; Будь ласка, використовуйте пароль з &lt;b&gt;10 чи більше випадкових символів&lt;/b&gt;, або &lt;b&gt;восьми чи більше слів.&lt;/b&gt;</translation>
+        <translation>Уведіть новий пароль для гаманця. &lt;br/&gt; Будь ласка, використовуйте пароль з &lt;b&gt;10 чи більше випадкових символів&lt;/b&gt;, або &lt;b&gt;восьми чи більше слів.&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -191,7 +191,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Для виконання операції небхідний пароль до вашого гаманця.</translation>
+        <translation>Для виконання операції необхідно ввести фразу-пароль від Вашого гаманця.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -201,7 +201,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Ця операція потребує пароль від гаманця для розшифрування гаманця</translation>
+        <translation>Ця операція вимагає фразу-пароль від гаманця для його розшифрування.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -216,17 +216,17 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Введіть страрий і новий паролі до гаманця.</translation>
+        <translation>Уведіть старий і новий паролі від гаманця.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>Підтвердьте шифрування гаманця</translation>
+        <translation>Підтвердіть шифрування гаманця</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Увага: Якщо ви зашифруєте гаманець і втратите пароль, ви &lt;b&gt;ВТРАТИТЕ УСІ ВАШІ КОШТИ&lt;/b&gt;!</translation>
+        <translation>Увага: якщо Ви зашифруєте гаманець і втратите пароль, ви &lt;b&gt;ВТРАТИТЕ УСІ ВАШІ КОШТИ&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -236,7 +236,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation>ВАЖЛИВО: Всі попередні резервні копії вашого гаманця повинні бути замінені наново згенерованим, зашифрованим файлом гаманця. В цілях безпеки попередені резервні копії незашифрованого кошелька стануть непридатними, яу тільки ви почнете використовувати новий зашифрований кошельок.</translation>
+        <translation>ВАЖЛИВО: Усі попередні резервні копії Вашого гаманця повинні бути заміненими заново згенерованим, зашифрованим файлом гаманця. У цілях безпеки попередені резервні копії незашифрованого гаманця стануть непридатними, як тільки Ви почнете використовувати новий зашифрований гаманець.</translation>
     </message>
     <message>
         <location line="+100"/>
@@ -253,7 +253,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-56"/>
         <source>Verge will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>Зараз програма закриється для завершення процесу шифрування. Пам&apos;ятайте, що шифрування вагошо гаманця не може повністю захистити ваші монети від крадіжки через зараження вашого ПК злоякісним програмним забезпеченням.</translation>
+        <translation>Зараз програма закриється для завершення процесу шифрування. Пам&apos;ятайте, що шифрування Вашого гаманця не може повністю захистити ваші монети від крадіжки через зараження вашого ПК злоякісним програмним забезпеченням.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -261,40 +261,40 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>Не вдалось зашифровати гаманець</translation>
+        <translation>Не вдалось зашифрувати гаманець</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Шифрування гаманця не успішне через внутрішню помилку. Ваш гаманець не був зашифрований.</translation>
+        <translation>Шифрування гаманця неуспішне через внутрішню помилку. Ваш гаманець не було зашифровано.</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>Введені паролі не співпадають.</translation>
+        <translation>Уведені паролі не співпадають.</translation>
     </message>
     <message>
         <location line="-37"/>
         <source>Wallet unlock failed</source>
-        <translation>Розблокування гаманця не вдалося</translation>
+        <translation>Розблокувати гаманець не вдалося</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+11"/>
         <location line="+19"/>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>Введений пароль для розшифрування гаманця не правильний.</translation>
+        <translation>Уведений пароль для розшифрування гаманця неправильний.</translation>
     </message>
     <message>
         <location line="-20"/>
         <source>Wallet decryption failed</source>
-        <translation>Розшифрування гаманця не вдалося</translation>
+        <translation>Розшифрувати гаманець не вдалося</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>Пароль до гаманця був успішно змінений.</translation>
+        <translation>Пароль до гаманця було успішно змінено.</translation>
     </message>
 </context>
 <context>
@@ -387,12 +387,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+4"/>
         <source>&amp;Encrypt Wallet...</source>
-        <translation>&amp;Зашифрувати кошельок...</translation>
+        <translation>&amp;Зашифрувати гаманець...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Backup Wallet...</source>
-        <translation>&amp;Створити резервну копію кошелька...</translation>
+        <translation>&amp;Створити резервну копію гаманця...</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -411,7 +411,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+6"/>
         <source>Downloaded %1 of %2 blocks of transaction history (%3% done).</source>
-        <translation>Завантажено %1 з %2 блоків исторії операцій (%3% готово).</translation>
+        <translation>Завантажено %1 з %2 блоків історії операцій (%3% готово).</translation>
     </message>
     <message>
         <location line="-242"/>
@@ -431,22 +431,22 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+14"/>
         <source>Export the data in the current tab to a file</source>
-        <translation>Експортувати дані з поточної вкладки в файл</translation>
+        <translation>Експортувати дані з поточної вкладки у файл</translation>
     </message>
     <message>
         <location line="-10"/>
         <source>Encrypt or decrypt wallet</source>
-        <translation>Зашифрувати чи расшифрувати кошельок</translation>
+        <translation>Зашифрувати чи розшифрувати гаманець</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Створити резервну копію кошелька в іншому місці</translation>
+        <translation>Створити резервну копію гаманця в іншому місці</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Змінити пароль для шифрування кошелька</translation>
+        <translation>Змінити пароль для шифрування гаманця</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -471,7 +471,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+0"/>
         <source>Wallet</source>
-        <translation>Кошельок</translation>
+        <translation>Гаманець</translation>
     </message>
     <message>
         <location line="+168"/>
@@ -512,7 +512,7 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+13"/>
         <location line="+9"/>
         <source>[testnet]</source>
-        <translation>[тестова мережа]</translation>
+        <translation>[тестова мережа (testnet)]</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -532,7 +532,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+40"/>
         <source>Downloaded %1 blocks of transaction history.</source>
-        <translation>Завантажено %1 блоків исторії транзакцій.</translation>
+        <translation>Завантажено %1 блоків історії транзакцій.</translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
@@ -583,7 +583,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>Останній отриманий блок був згенерований %1.</translation>
+        <translation>Останній отриманий блок було згенеровано %1.</translation>
     </message>
     <message>
         <location line="+59"/>
@@ -689,7 +689,7 @@ Address: %4
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>Мітка, зв'язана с даним записом</translation>
+        <translation>Мітка, пов&apos;язана с даним записом</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -699,7 +699,7 @@ Address: %4
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>Адреса, зв'язана з данним записом.</translation>
+        <translation>Адреса, пов&apos;язана з данним записом.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
@@ -724,7 +724,7 @@ Address: %4
     <message>
         <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>Введена адреса «%1» вже знаходиться в адресній книзі.</translation>
+        <translation>Уведена адреса «%1» вже знаходиться в адресній книзі.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -773,7 +773,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Set language, for example &quot;de_DE&quot; (default: system locale)</source>
-        <translation>Виберіть мову, наприклад &quot;de_DE&quot; (по замовчуванню: як в системі)</translation>
+        <translation>Виберіть мову, наприклад &quot;de_DE&quot; (за замовчуванням: системна)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -783,7 +783,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>Показувати заставку під час запуску (по замовчуванню: 1)</translation>
+        <translation>Показувати заставку під час запуску (за замовчуванням: 1)</translation>
     </message>
 </context>
 <context>
@@ -801,7 +801,7 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Опціональна комісія за кожен КБ транзакції, яка дозволяє бути впевненим, що вашу транзакцію буде оброблено швидко. Більшість траназкцій займають 1 КБ.  Рекомендується комісія 0.01.</translation>
+        <translation>Необов'язкова комісія за кожен КБ транзакції, яка дозволяє бути впевненим, що Вашу транзакцію буде оброблено швидко. Більшість траназкцій займають 1 КБ.  Рекомендується комісія 0.01.</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -821,7 +821,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>Відключати бази даних при завершенні роботи. Це означає, що їх можна буде перемістити в інший каталог даних, але завершення роботи буде повільніше. Гаманець завжди відключається.</translation>
+        <translation>Відключати бази даних при завершенні роботи. Це означає, що їх можна буде перемістити до іншого каталогу даних, але завершення роботи буде повільнішим. Гаманець завжди відключається.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -961,7 +961,7 @@ Address: %4
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>по замовчуванню</translation>
+        <translation>за замовчуванням</translation>
     </message>
     <message>
         <location line="+147"/>
@@ -992,7 +992,7 @@ Address: %4
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Verge network after a connection is established, but this process has not completed yet.</source>
-        <translation>Інформація, що відображається, може бути застаріла. Ваш гаманець автоматично синхронізуєтсья з мережею Verge після підключення, але цей процес поки що не завершений.</translation>
+        <translation>Інформація, що відображається, може бути застарілою. Ваш гаманець автоматично синхронізуєтсья з мережею Verge після підключення, але цей процес поки що не завершено.</translation>
     </message>
     <message>
         <location line="-141"/>
@@ -1052,7 +1052,7 @@ Address: %4
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>Загальна кількість транзакцій у вашому гаманці</translation>
+        <translation>Загальна кількість транзакцій у Вашому гаманці</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
@@ -1106,7 +1106,7 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>отриманий URI надто довгий, попробуйте скоротити текст мітки / повідомлення.</translation>
+        <translation>отриманий URI надто довгий, спопробуйте скоротити текст мітки / повідомлення.</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1138,7 +1138,7 @@ Address: %4
         <location line="+23"/>
         <location filename="../rpcconsole.cpp" line="+348"/>
         <source>N/A</source>
-        <translation>Н/Д</translation>
+        <translation>Не доступно</translation>
     </message>
     <message>
         <location line="-217"/>
@@ -1173,7 +1173,7 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>В тестовій мережі</translation>
+        <translation>У тестовій мережі (testnet)</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1228,7 +1228,7 @@ Address: %4
     <message>
         <location line="-104"/>
         <source>Verge - Debug window</source>
-        <translation>Verge - Вікно Debug</translation>
+        <translation>Verge - Вікно відлагодження</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1238,12 +1238,12 @@ Address: %4
     <message>
         <location line="+279"/>
         <source>Debug log file</source>
-        <translation>Debug лог-файл</translation>
+        <translation>Лог-файл відлагодження</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Open the Verge debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Відкрити debug лог-файл Verge з поточного каталогу даних. Це може зайняти декілька секунд для великих лог-файлів.</translation>
+        <translation>Відкрити Verge лог-файл відлагодження з поточного каталогу даних. Це може зайняти декілька секунд для великих лог-файлів.</translation>
     </message>
     <message>
         <location line="+102"/>
@@ -1253,7 +1253,7 @@ Address: %4
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
         <source>Welcome to the Verge RPC console.</source>
-        <translation>Ласкаво просимо в RPC-консоль Verge.</translation>
+        <translation>Ласкаво просимо до RPC-консолі Verge.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1278,7 +1278,7 @@ Address: %4
         <location line="+5"/>
         <location line="+5"/>
         <source>Send Coins</source>
-        <translation>Надсилання</translation>
+        <translation>Надсилання монет</translation>
     </message>
     <message>
         <location line="+50"/>
@@ -1333,7 +1333,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>Ви впевнені, що хочите надіслати %1?</translation>
+        <translation>Ви впевнені, що хочете надіслати %1?</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -1343,12 +1343,12 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>Адреса отримувача неправильна, будь ласка, перепровірте.</translation>
+        <translation>Адреса отримувача неправильна, будь ласка, перевірте знову.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>Кількість монет для надсилання повинна бути більша за 0.</translation>
+        <translation>Кількість монет для надсилання повинна бути більшою за 0.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1358,12 +1358,12 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>Сума перевищить Ваш баланс, якщо комісія в розмірі %1 буде додава до транзакції</translation>
+        <translation>Сума перевищить Ваш баланс, якщо комісія в розмірі %1 буде додана до транзакції</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Duplicate address found, can only send to each address once per send operation.</source>
-        <translation>Виявлено дублюючу адресу. Надсилання на одну і ту ж адресу можлива лише один раз за одну операції надсилання</translation>
+        <translation>Виявлено дублюючу адресу. Надсилання на одну і ту ж адресу можливе лише один раз за одну операції надсилання</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1373,7 +1373,7 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Помилка: В транзакції відмовлено. Таке може відбутися, якщо деякі монеті вже були витрачені, наприклад, якщо Ви використовуєте одну копію файлу wallet.dat, а монеті були витрачені з іншої копії, але не були відмічені як витрачені в цій.</translation>
+        <translation>Помилка: У транзакції відмовлено. Таке може відбутися, якщо деякі монеті вже були витрачені, наприклад, якщо Ви використовуєте одну копію файлу wallet.dat, а монети були витрачені з іншої копії, але не були відмічені як витрачені в цій.</translation>
     </message>
 </context>
 <context>
