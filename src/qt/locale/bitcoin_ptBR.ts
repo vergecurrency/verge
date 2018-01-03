@@ -12,7 +12,7 @@
     <message>
         <location line="+39"/>
         <source>&lt;b&gt;VERGE&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;VERGE&lt;/b&gt; version</translation>
+        <translation>Versão &lt;b&gt;VERGE&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+41"/>
@@ -45,7 +45,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Clique duas vezes para editar o endereço ou o rótulo</translation>
+        <translation>Clique duas vezes para editar o endereço ou a legenda</translation>
     </message>
     <message>
         <location line="+27"/>
@@ -85,12 +85,12 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+3"/>
         <source>Sign &amp;Message</source>
-        <translation type="unfinished"></translation>
+        <translation>Assinar &amp;Mensagem</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Delete the currently selected address from the list</source>
-        <translation type="unfinished"></translation>
+        <translation>Deletar o endereço atualmente selecionado da lista</translation>
     </message>
     <message>
         <location line="-14"/>
@@ -153,7 +153,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+36"/>
         <source>(no label)</source>
-        <translation>(sem rótulo)</translation>
+        <translation>(sem legenda)</translation>
     </message>
 </context>
 <context>
@@ -226,7 +226,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Aviso: se você criptografar sua carteira e perder sua senha, você irá &lt;b&gt;PERDER TODAS AS SUAS MOEDAS&lt;/b&gt;!</translation>
+        <translation>Atenção: se você criptografar sua carteira e perder sua senha, você irá &lt;b&gt;PERDER TODAS AS SUAS MOEDAS&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -236,13 +236,13 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation type="unfinished"></translation>
+        <translation>IMPORTANTE: Quaisquer backups anteriores que você fez de sua carteiram deve ser substituído com o recém-gerado arquivo criptografado de carteira. Por razões de segurança, arquivos de backups anteriores da carteira, não criptografados, vão se tornar inúteis, assim que você começar a usar a nova carteira criptografada.</translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+24"/>
         <source>Warning: The Caps Lock key is on!</source>
-        <translation>Aviso: a tecla Caps Lock está ativada!</translation>
+        <translation>Atenção: a tecla Caps Lock está ativada!</translation>
     </message>
     <message>
         <location line="-130"/>
@@ -337,7 +337,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+1"/>
         <source>Edit the list of stored addresses and labels</source>
-        <translation>Editar a lista de endereços e rótulos armazenados</translation>
+        <translation>Editar a lista de endereços e legendas armazenadas</translation>
     </message>
     <message>
         <location line="-13"/>
@@ -440,7 +440,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Backup wallet to another location</translation>
+        <translation>Fazer backup da carteira em outro local</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -500,7 +500,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+9"/>
         <source>Tabs toolbar</source>
-        <translation>Aba barra de ferramentas</translation>
+        <translation>Barra de ferramentas de abas</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -582,7 +582,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation type="unfinished"></translation>
+        <translation>Essa transação está acima do limite permitido. Você ainda pode enviá-lo com uma taxa de %1, que vai para os nós, que processam sua transação e ajuda a suportar a rede. Você deseja pagar a taxa?</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -678,12 +678,12 @@ Endereço: %4
     <message>
         <location line="+11"/>
         <source>&amp;Label</source>
-        <translation>&amp;Rótulo</translation>
+        <translation>&amp;Legenda</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>O rótulo associado a esta entrada do catálogo de endereços</translation>
+        <translation>A legenda associada a esta entrada do catálogo de endereços</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -693,7 +693,7 @@ Endereço: %4
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>O endereço associado a esta entrada do catálogo de endereços. Isso só pode ser modificado para o envio de endereços.</translation>
+        <translation>O endereço associado a esta entrada do catálogo de endereços. Isso só pode ser modificado para endereços de envio.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
@@ -1075,7 +1075,7 @@ Endereço: %4
     <message>
         <location line="-44"/>
         <source>Label:</source>
-        <translation>Rótulo:</translation>
+        <translation>Legenda:</translation>
     </message>
     <message>
         <location line="+19"/>
@@ -1100,12 +1100,12 @@ Endereço: %4
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>URI resultante muito longo, tente reduzir o texto para o rótulo / mensagem.</translation>
+        <translation>URI resultante muito longo, tente reduzir o texto para a legenda / mensagem.</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>Savar QR Code</translation>
+        <translation>Salvar QR Code</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -1187,7 +1187,7 @@ Endereço: %4
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>Última hora do bloco</translation>
+        <translation>Hora do último bloco</translation>
     </message>
     <message>
         <location line="+52"/>
@@ -1282,7 +1282,7 @@ Endereço: %4
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation type="unfinished"></translation>
+        <translation>Adicionar &amp;Destinatário</translation>
     </message>
     <message>
         <location line="+20"/>
@@ -1312,7 +1312,7 @@ Endereço: %4
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation type="unfinished"></translation>
+        <translation>E&amp;nviar</translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
@@ -1391,17 +1391,17 @@ Endereço: %4
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>Digite um rótulo para este endereço, para adicioná-lo ao seu catálogo de endereços</translation>
+        <translation>Digite uma legenda para este endereço, para adicioná-la ao seu catálogo de endereços</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Label:</source>
-        <translation>&amp;Rótulo:</translation>
+        <translation>&amp;Legenda:</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation type="unfinished"></translation>
+        <translation>O endereço para enviar o pagamento para (por exemplo, 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1694,7 +1694,7 @@ Endereço: %4
     <message>
         <location line="-2"/>
         <source>label</source>
-        <translation>rótulo</translation>
+        <translation>legenda</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -2005,7 +2005,7 @@ Endereço: %4
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>Digite o endereço ou o rótulo para pesquisar</translation>
+        <translation>Digite o endereço ou a legenda para pesquisar</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2020,7 +2020,7 @@ Endereço: %4
     <message>
         <location line="+1"/>
         <source>Copy label</source>
-        <translation>Copiar rótulo</translation>
+        <translation>Copiar legenda</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2030,7 +2030,7 @@ Endereço: %4
     <message>
         <location line="+1"/>
         <source>Edit label</source>
-        <translation>Editar rótulo</translation>
+        <translation>Editar legenda</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2065,7 +2065,7 @@ Endereço: %4
     <message>
         <location line="+1"/>
         <source>Label</source>
-        <translation>Rótulo</translation>
+        <translation>Legenda</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2216,7 +2216,7 @@ Endereço: %4
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Ocorreu um erro ao configurar a porta RPC %u para ouvir no IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -2226,17 +2226,17 @@ Endereço: %4
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Erro: a transação foi rejeitada. Isso pode acontecer se algumas das moedas da sua carteira já haviam sido gastas, como se você usasse uma cópia de wallet.dat e as moedas foram gastas na cópia, mas não marcadas como gastadas aqui.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation type="unfinished"></translation>
+        <translation>Erro: esta transação requer uma taxa de transação de pelo menos %s por causa de seu valor, complexidade ou uso de fundos recém-recebidos  </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
-        <translation type="unfinished"></translation>
+        <translation>Ouvir conexões JSON-RPC na &lt;porta&gt; (padrão: 8344 or testnet: 18344)</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -2246,22 +2246,22 @@ Endereço: %4
     <message>
         <location line="+26"/>
         <source>Error: Transaction creation failed  </source>
-        <translation type="unfinished"></translation>
+        <translation>Erro: a criação da transação falhou  </translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation type="unfinished"></translation>
+        <translation>Erro: Carteira bloqueada, incapaz de criar transação  </translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Importing blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Importando arquivo de dados blockchain.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Importing bootstrap blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Importando o arquivo de dados do bootstrap blockchain.</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -2281,12 +2281,12 @@ Endereço: %4
     <message>
         <location line="-53"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Ocorreu um erro ao configurar a porta RPC %u para ouvir no IPv6, voltando ao IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation type="unfinished"></translation>
+        <translation>Erro ao inicializar o ambiente do banco de dados %s! Para recuperar, FAÇA BACKUP DESSE DIRETÓRIO E, em seguida, remova tudo dele, exceto wallet.dat.</translation>
     </message>
     <message>
         <location line="+18"/>
@@ -2296,27 +2296,27 @@ Endereço: %4
     <message>
         <location line="+5"/>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
-        <translation>Aviso: -paytxfee está definido muito alto! Esta é a taxa de transação que você pagará se você enviar uma transação.</translation>
+        <translation>Atenção: -paytxfee está definido muito alto! Esta é a taxa de transação que você pagará se você enviar uma transação.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</source>
-        <translation>Aviso: as transações exibidas podem não estar corretas. Talvez seja necessário atualizar, ou outros nós precisam atualizar.</translation>
+        <translation>Atenção: as transações exibidas podem não estar corretas. Talvez seja necessário atualizar, ou outros nós precisam atualizar.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong VERGE will not work properly.</source>
-        <translation>Aviso: Verifique se a data e a hora do seu computador estão corretas. Se o seu relógio estiver errado, VERGE não funcionará corretamente.</translation>
+        <translation>Atenção: Verifique se a data e a hora do seu computador estão corretas. Se o seu relógio estiver errado, VERGE não funcionará corretamente.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</source>
-        <translation>Aviso: erro ao ler wallet.dat! Todas as chaves foram lidas corretamente, mas os dados da transação ou as entradas do catálogo de endereços podem estar faltando ou incorretas.</translation>
+        <translation>Atenção: erro ao ler wallet.dat! Todas as chaves foram lidas corretamente, mas os dados da transação ou as entradas do catálogo de endereços podem estar faltando ou incorretas.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
-        <translation>Aviso: wallet.dat corrompido, dados recuperados! Original wallet.dat salvo como wallet.{timestamp}.bak em %s; se o seu saldo ou transações estiverem incorretas, você deve restaurar a partir de um backup.</translation>
+        <translation>Atenção: wallet.dat corrompido, dados recuperados! Original wallet.dat salvo como wallet.{timestamp}.bak em %s; se o seu saldo ou transações estiverem incorretas, você deve restaurar a partir de um backup.</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -2446,22 +2446,22 @@ Endereço: %4
     <message>
         <location line="+1"/>
         <source>Verifying database integrity...</source>
-        <translation type="unfinished"></translation>
+        <translation>Verificando integridade do banco de dados...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Warning: Disk space is low!</source>
-        <translation>Aviso: o espaço em disco está baixo!</translation>
+        <translation>Atenção: o espaço em disco está baixo!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: This version is obsolete, upgrade required!</source>
-        <translation>Aviso: esta versão está obsoleta, é necessária uma atualização!</translation>
+        <translation>Atenção: esta versão está obsoleta, é necessária uma atualização!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>wallet.dat corrupt, salvage failed</source>
-        <translation type="unfinished"></translation>
+        <translation>wallet.data corrompido, salvamento falhou</translation>
     </message>
     <message>
         <location line="-43"/>
