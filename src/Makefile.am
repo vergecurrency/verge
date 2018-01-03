@@ -5,8 +5,8 @@ AM_LDFLAGS = $(PTHREAD_CFLAGS)
 if EMBEDDED_LEVELDB
 LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/include
 LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/helpers/memenv
-LIBLEVELDB += $(builddir)/leveldb/libleveldb.a
-LIBMEMENV  += $(builddir)/leveldb/libmemenv.a
+LIBLEVELDB += $(builddir)/leveldb/out-static/libleveldb.a
+LIBMEMENV  += $(builddir)/leveldb/out-static/libmemenv.a
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
@@ -252,7 +252,7 @@ VERGEd_SOURCES = daemon.cpp
 VERGEd_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
 VERGEd_CPPFLAGS = $(BITCOIN_INCLUDES)
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = leveldb/out-static/libleveldb.a leveldb/out-static/libmemenv.a *.gcda *.gcno
 
 DISTCLEANFILES = obj/build.h
 
