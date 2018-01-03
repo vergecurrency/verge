@@ -178,6 +178,7 @@ The _slightly_ longer version:
     ```shell
     git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
     ```
+(temp tor instructions: ./autogen.sh && ./configure --disable-unittests --disable-system-torrc --disable-systemd --disable-lzma --disable-asciidoc --with-openssl-dir=$(PKG_CONFIG --variable=libdir openssl) && make)
 
 > **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
 
