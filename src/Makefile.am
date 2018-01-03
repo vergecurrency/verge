@@ -252,7 +252,7 @@ VERGEd_SOURCES = daemon.cpp
 VERGEd_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
 VERGEd_CPPFLAGS = $(BITCOIN_INCLUDES)
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = leveldb/out-static/libleveldb.a leveldb/out-static/libmemenv.a *.gcda *.gcno
 
 DISTCLEANFILES = obj/build.h
 
