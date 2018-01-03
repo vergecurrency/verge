@@ -377,24 +377,36 @@ bool CTransaction::ReadFromDisk(COutPoint prevout)
 
 bool CTransaction::IsStandard() const
 {
-    if (nVersion > CTransaction::CURRENT_VERSION)
+    if (nVersion > CTransaction::CURRENT_VERSION) {
+	printf("CTransaction::IsStandard() : nVersion > CTransaction::CURRENT_VERSION \n");
         return false;
+    }
 
     BOOST_FOREACH(const CTxIn& txin, vin)
     {
         // Biggest 'standard' txin is a 3-signature 3-of-3 CHECKMULTISIG
         // pay-to-script-hash, which is 3 ~80-byte signatures, 3
         // ~65-byte public keys, plus a few script ops.
-        if (txin.scriptSig.size() > 500)
+        if (txin.scriptSig.size() > 500) {
+            printf("CTransaction::IsStandard() : txin Script Size > 500 \n");
             return false;
-        if (!txin.scriptSig.IsPushOnly())
+	}
+        if (!txin.scriptSig.IsPushOnly()) {
+            printf("CTransaction::IsStandard() : txin Script Sig is not push only \n");
             return false;
+	}
     }
+
+    txnouttype whichType;
     BOOST_FOREACH(const CTxOut& txout, vout) {
-        if (!::IsStandard(txout.scriptPubKey))
+        if (!::IsStandard(txout.scriptPubKey, whichType)) {
+            printf("CTransaction::IsStandard() : Vout is non standard\n");
             return false;
-        if (txout.nValue == 0)
+	}
+        if (whichType != TX_NULL_DATA && txout.nValue == 0) {
+            printf("CTransaction::IsStandard() : txout nValue is 0 and tx is of non-null data \n");
             return false;
+	}
     }
     return true;
 }
@@ -557,7 +569,7 @@ bool CTransaction::CheckTransaction() const
             return DoS(100, error("CTransaction::CheckTransaction() : txout empty for user transaction"));
 
         // ppcoin: enforce minimum output amount
-        if ((!txout.IsEmpty()) && txout.nValue < MIN_TXOUT_AMOUNT) {
+        if (txout.nValue < 0) {
             printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
         }
