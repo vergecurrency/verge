@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="en">
+<TS version="2.0" language="tr">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
         <source>About VERGE</source>
-        <translation>About VERGE</translation>
+        <translation>VERGE Hakkında</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>&lt;b&gt;VERGE&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;VERGE&lt;/b&gt; version</translation>
+        <translation>&lt;b&gt;VERGE&lt;/b&gt; versiyon</translation>
     </message>
     <message>
         <location line="+41"/>
-        <source>Copyright © 2014-2018 The Verge developers</source>
-        <translation>Copyright © 2014-2018 The Verge developers</translation>
+        <source>Copyright © 2014-2016 The Verge geliştiricileri</source>
+        <translation>Copyright © 2014-2016 The Verge geliştiricileri</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -28,11 +28,11 @@ Distributed under the MIT/X11 software license, see the accompanying file COPYIN
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
         <translation>
-This is experimental software.
+Bu bir deneysel yazılımdır.
 
-Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php.
+MIT/X11 lisansı ile dağıtılmıştır, lisans hakkında daha fazla bilgi için COPYING adlı dosyaya veya http://www.opensource.org/licenses/mit-license.php. adresine bakabilirsiniz.
 
-This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</translation>
+Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak için faydalanmaktadır. Daha fazla bilgi için http://www.openssl.org/ adresini ziyaret edebilirsinizç Ayrıca kriptografik yazılımlar Eric Young (eay@cryptsoft.com) tarafından yazılmıştır ve Thomas Bernanrd tarafından yazılmış UPnP yazılımı kullanılmıştır. </translation>
     </message>
 </context>
 <context>
@@ -40,47 +40,47 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../forms/addressbookpage.ui" line="+14"/>
         <source>Address Book</source>
-        <translation>Address Book</translation>
+        <translation>Adres Defteri</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Double-click to edit address or label</translation>
+        <translation>Adresi düzenlemek veya etiketlemek için çift tıkla</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Create a new address</source>
-        <translation>Create a new address</translation>
+        <translation>Yeni adres oluştur</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Copy the currently selected address to the system clipboard</translation>
+        <translation>Seçilmiş adresi kopyala</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>&amp;New Address</source>
-        <translation>&amp;New Address</translation>
+        <translation>&amp;Yeni Adres</translation>
     </message>
     <message>
         <location line="-46"/>
         <source>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</translation>
+        <translation>Bunlar sizin ödemelerinizi alabilmeniz için VERGE adreslerinizdir. Kimden para aldıgınızı daha iyi takip edebilmek için her bir gönderici için farklı adresler vermek isteyebilirsiniz.</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>&amp;Copy Address</source>
-        <translation>&amp;Copy Address</translation>
+        <translation>&amp;Adresi Kopyala</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Show &amp;QR Code</source>
-        <translation>Show &amp;QR Code</translation>
+        <translation>Show &amp;QR Kod</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own a VERGE address</source>
-        <translation>Sign a message to prove you own a VERGE address</translation>
+        <translation>VERGE adresine sahip oldugunuzu kanıtlamak için mesajı imzala</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -95,47 +95,47 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified VERGE address</source>
-        <translation>Verify a message to ensure it was signed with a specified VERGE address</translation>
+        <translation>Bu VERGE adresinin doğruluğundan emin olmak için mesajı doğrula</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Verify Message</translation>
+        <translation>&amp;Mesajı doğrula</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>&amp;Delete</source>
-        <translation>&amp;Delete</translation>
+        <translation>&amp;Sil</translation>
     </message>
     <message>
         <location filename="../addressbookpage.cpp" line="+65"/>
         <source>Copy &amp;Label</source>
-        <translation>Copy &amp;Label</translation>
+        <translation>Kopyala &amp;Etiket</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Edit</source>
-        <translation>&amp;Edit</translation>
+        <translation>&amp;Düzenle</translation>
     </message>
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Export Address Book Data</translation>
+        <translation>Adres Defteri Kayıtları Dışarı Çıkart</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Comma separated file (*.csv)</translation>
+        <translation>Virgül ayraçlı dosya (*.csv)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Error exporting</source>
-        <translation>Error exporting</translation>
+        <translation>Dışarı çıkartırken hata oluştu</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Could not write to file %1.</translation>
+        <translation>Dosyaya yazılamıyor %1.</translation>
     </message>
 </context>
 <context>
@@ -143,17 +143,17 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../addresstablemodel.cpp" line="+142"/>
         <source>Label</source>
-        <translation>Label</translation>
+        <translation>Etiket</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>Address</translation>
+        <translation>Adres</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>(no label)</source>
-        <translation>(no label)</translation>
+        <translation>(etiket yok)</translation>
     </message>
 </context>
 <context>
@@ -161,77 +161,77 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../forms/askpassphrasedialog.ui" line="+26"/>
         <source>Passphrase Dialog</source>
-        <translation>Passphrase Dialog</translation>
+        <translation>Anahtar Parola Dialoğu</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Enter passphrase</translation>
+        <translation>Anahtar paralo giriniz</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>New passphrase</source>
-        <translation>New passphrase</translation>
+        <translation>Yeni anahtar parola</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Repeat new passphrase</source>
-        <translation>Repeat new passphrase</translation>
+        <translation>Anahtar paralo tekrarı</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</translation>
+        <translation>Yeni mevcut cüzdanınız için anahtar parola giriniz.&lt;br/&gt;Lütfen of &lt;b&gt;10 veya daha fazla karakterli rastgele karakter dizisi &lt;/b&gt;, veya &lt;b&gt;en az 8 kelime kullanız&lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Encrypt wallet</source>
-        <translation>Encrypt wallet</translation>
+        <translation>Cüzdanı şifrele</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>This operation needs your wallet passphrase to unlock the wallet.</translation>
+        <translation>Bu aksiyon için cüzdanınızın kilidinin anahtar paralonanızla açılması gerekmektedir.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Unlock wallet</source>
-        <translation>Unlock wallet</translation>
+        <translation>Cüzdanın kilidini çöz</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>This operation needs your wallet passphrase to decrypt the wallet.</translation>
+        <translation>Bu aksiyon için cüzdanınızın anahtar paralonanızla şifresini çözmesini gerekmektedir.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Decrypt wallet</source>
-        <translation>Decrypt wallet</translation>
+        <translation>Cüzdanın şifresini çöz</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Change passphrase</source>
-        <translation>Change passphrase</translation>
+        <translation>Anahtar paraloyı değiştir</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Enter the old and new passphrase to the wallet.</translation>
+        <translation>Lütfen eski ve yeni anahtar parolanızı giriniz.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>Confirm wallet encryption</translation>
+        <translation>Cüzdan şifrelenmesini onayla</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</translation>
+        <translation>Uyarı: Eğer cüzdanızı şifrelerseniz ve şifrenizi unutursanız &lt;b&gt;tüm paranızı kaybedersiniz&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Are you sure you wish to encrypt your wallet?</source>
-        <translation>Are you sure you wish to encrypt your wallet?</translation>
+        <translation>Cüzdanızı şifrelemeyi istiyor musunuz?</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -242,18 +242,18 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+100"/>
         <location line="+24"/>
         <source>Warning: The Caps Lock key is on!</source>
-        <translation>Warning: The Caps Lock key is on!</translation>
+        <translation>Uyarı: Caps Lock tuşu açık!</translation>
     </message>
     <message>
         <location line="-130"/>
         <location line="+58"/>
         <source>Wallet encrypted</source>
-        <translation>Wallet encrypted</translation>
+        <translation>Cüzdan şifrelendi</translation>
     </message>
     <message>
         <location line="-56"/>
         <source>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</translation>
+        <translation>VERGE şifreleme işlemi için kapanacaktır. Lütfen unutmayı cüzdan şifrelenmesi zararlı yazılım saldırıları gibi kötü niyetli saldırılardan sizi tamamen koruyamaz.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -261,40 +261,40 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>Wallet encryption failed</translation>
+        <translation>Cüzdan şifrelemesi hatalı</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</translation>
+        <translation>Cüzdan şifrelenmesi sırasında yazılım içi hata oluştu. Mevcut cüzdanınız şifrelenemedi.</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>The supplied passphrases do not match.</translation>
+        <translation>Anahtar paralo uyuşmadı.</translation>
     </message>
     <message>
         <location line="-37"/>
         <source>Wallet unlock failed</source>
-        <translation>Wallet unlock failed</translation>
+        <translation>Cüzdan şifre çözme işlemi başarısız</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+11"/>
         <location line="+19"/>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>The passphrase entered for the wallet decryption was incorrect.</translation>
+        <translation>Girilen anahtar paralo yanlış.</translation>
     </message>
     <message>
         <location line="-20"/>
         <source>Wallet decryption failed</source>
-        <translation>Wallet decryption failed</translation>
+        <translation>Cüzdan şifre çözme başarısız</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>Wallet passphrase was successfully changed.</translation>
+        <translation>Anahtar paralo başarıyla değiştirildi</translation>
     </message>
 </context>
 <context>
@@ -302,165 +302,164 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../bitcoingui.cpp" line="+257"/>
         <source>Sign &amp;message...</source>
-        <translation>Sign &amp;message...</translation>
+        <translation>Mesajı şifrele...</translation>
     </message>
     <message>
         <location line="+237"/>
         <source>Synchronizing with network...</source>
-        <translation>Synchronizing with network...</translation>
+        <translation>Ağ ile sekronizasyon yapılıyor...</translation>
     </message>
     <message>
         <location line="-299"/>
         <source>&amp;Overview</source>
-        <translation>&amp;Overview</translation>
+        <translation>&amp;Genel Bakış</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show general overview of wallet</source>
-        <translation>Show general overview of wallet</translation>
+        <translation>Cüzdana genel bakış</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>&amp;Transactions</source>
-        <translation>&amp;Transactions</translation>
+        <translation>&amp;Para işlemleri</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Browse transaction history</source>
-        <translation>Browse transaction history</translation>
+        <translation>Para işlemleri geçmişine bak</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>&amp;Address Book</source>
-        <translation>&amp;Address Book</translation>
+        <translation>&amp;Adres Defteri</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit the list of stored addresses and labels</source>
-        <translation>Edit the list of stored addresses and labels</translation>
+        <translation>Kaydedilmiş adresleri ve etkiketleri düzenle</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>&amp;Receive coins</source>
-        <translation>&amp;Receive coins</translation>
+        <translation>&amp;Para al</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show the list of addresses for receiving payments</source>
-        <translation>Show the list of addresses for receiving payments</translation>
+        <translation>Gelen ödemelerin adreslerin listesini göster</translation>
     </message>
     <message>
         <location line="-7"/>
         <source>&amp;Send coins</source>
-        <translation>&amp;Send coins</translation>
+        <translation>&amp;Para Gönder</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>E&amp;xit</source>
-        <translation>E&amp;xit</translation>
+        <translation>Ç&amp;ıkış</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Quit application</source>
-        <translation>Quit application</translation>
+        <translation>Uygulamadan Çık</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Show information about VERGE</source>
-        <translation>Show information about VERGE</translation>
+        <translation>VERGE hakkında daha fazla bilgi</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>About &amp;Qt</source>
-        <translation>About &amp;Qt</translation>
+        <translation>Qt &amp;Hakkında</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show information about Qt</source>
-        <translation>Show information about Qt</translation>
+        <translation>Qt hakkında daha fazla bilgi</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Options...</source>
-        <translation>&amp;Options...</translation>
+        <translation>&amp;Ayarlar...</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>&amp;Encrypt Wallet...</source>
-        <translation>&amp;Encrypt Wallet...</translation>
+        <translation>&amp;Cüzdanı Şifrele...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Backup Wallet...</source>
-        <translation>&amp;Backup Wallet...</translation>
+        <translation>&amp;Cüzdanı Yedekle...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Change Passphrase...</source>
-        <translation>&amp;Change Passphrase...</translation>
+        <translation>&amp;Anahtar paraloyı değiştir...</translation>
     </message>
     <message numerus="yes">
         <location line="+241"/>
         <source>~%n block(s) remaining</source>
         <translation>
-            <numerusform>~%n block remaining</numerusform>
-            <numerusform>~%n blocks remaining</numerusform>
+            <numerusform>~%n blok kaldı</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Downloaded %1 of %2 blocks of transaction history (%3% done).</source>
-        <translation>Downloaded %1 of %2 blocks of transaction history (%3% done).</translation>
+        <translation>%1 / %2 para transferi geçmişi indirildi (%3% tamam).</translation>
     </message>
     <message>
         <location line="-242"/>
         <source>&amp;Export...</source>
-        <translation>&amp;Export...</translation>
+        <translation>&amp;Program Dışına Çıkart...</translation>
     </message>
     <message>
         <location line="-58"/>
         <source>Send coins to a VERGE address</source>
-        <translation>Send coins to a VERGE address</translation>
+        <translation>VERGE adresini para gönder</translation>
     </message>
     <message>
         <location line="+45"/>
         <source>Modify configuration options for VERGE</source>
-        <translation>Modify configuration options for VERGE</translation>
+        <translation>VERGE ayarlarını değiştir</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Export the data in the current tab to a file</source>
-        <translation>Export the data in the current tab to a file</translation>
+        <translation>Mevcut ekrandaki bilgileri dosyaya aktar</translation>
     </message>
     <message>
         <location line="-10"/>
         <source>Encrypt or decrypt wallet</source>
-        <translation>Encrypt or decrypt wallet</translation>
+        <translation>Cüdanı şifrele veya şifresini çöz</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Backup wallet to another location</translation>
+        <translation>Cüzdanı başka bir lokasyonda yedekle</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Change the passphrase used for wallet encryption</translation>
+        <translation>Cüzdan şifrelemesinde kullanılan anahtar parolayı değştir</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Debug window</source>
-        <translation>&amp;Debug window</translation>
+        <translation>&amp;Yazılım hata ayıklama penceresi</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Open debugging and diagnostic console</source>
-        <translation>Open debugging and diagnostic console</translation>
+        <translation>Hata ayıklayıcı konsolunu aç</translation>
     </message>
     <message>
         <location line="-5"/>
         <source>&amp;Verify message...</source>
-        <translation>&amp;Verify message...</translation>
+        <translation>&amp;Mesajı doğrula..</translation>
     </message>
     <message>
         <location line="-186"/>
@@ -475,37 +474,37 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+168"/>
         <source>&amp;About VERGE</source>
-        <translation>&amp;About VERGE</translation>
+        <translation>&amp;VERGE Hakkında</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Show / Hide</source>
-        <translation>&amp;Show / Hide</translation>
+        <translation>&amp;Göster / Gizle</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>&amp;File</source>
-        <translation>&amp;File</translation>
+        <translation>&amp;Dosya</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>&amp;Settings</source>
-        <translation>&amp;Settings</translation>
+        <translation>&amp;Ayarlar</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Help</source>
-        <translation>&amp;Help</translation>
+        <translation>&amp;Yardım</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Tabs toolbar</source>
-        <translation>Tabs toolbar</translation>
+        <translation>Pencereler araç çubuğu</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Actions toolbar</source>
-        <translation>Actions toolbar</translation>
+        <translation>İşlemler araç çubuğu</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -517,87 +516,82 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+0"/>
         <location line="+60"/>
         <source>VERGE client</source>
-        <translation>VERGE client</translation>
+        <translation>VERGE istemci</translation>
     </message>
     <message numerus="yes">
         <location line="+69"/>
         <source>%n active connection(s) to VERGE network</source>
         <translation>
-            <numerusform>%n active connection to VERGE network</numerusform>
-            <numerusform>%n active connections to VERGE network</numerusform>
+            <numerusform>VERGE ağına %n aktif bağlantı(lar) vardır</numerusform>
         </translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Downloaded %1 blocks of transaction history.</source>
-        <translation>Downloaded %1 blocks of transaction history.</translation>
+        <translation> %1 tane para transfer geçmişi indirildi.</translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
         <source>%n second(s) ago</source>
         <translation>
-            <numerusform>%n second ago</numerusform>
-            <numerusform>%n seconds ago</numerusform>
+            <numerusform>%n saniye önce</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n minute(s) ago</source>
         <translation>
-            <numerusform>%n minute ago</numerusform>
-            <numerusform>%n minutes ago</numerusform>
+            <numerusform>%n dakika önce</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n hour(s) ago</source>
         <translation>
-            <numerusform>%n hour ago</numerusform>
-            <numerusform>%n hours ago</numerusform>
+            <numerusform>%n saat önce</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n day(s) ago</source>
         <translation>
-            <numerusform>%n day ago</numerusform>
-            <numerusform>%n days ago</numerusform>
+            <numerusform>%n gün önce</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Up to date</source>
-        <translation>Up to date</translation>
+        <translation>Güncel</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Catching up...</source>
-        <translation>Catching up...</translation>
+        <translation>Günceleniyor</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>Last received block was generated %1.</translation>
+        <translation>En üretilen blok %1.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm transaction fee</source>
-        <translation>Confirm transaction fee</translation>
+        <translation>İşlem ücretini onayla</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Sent transaction</source>
-        <translation>Sent transaction</translation>
+        <translation>Para Transferini Gönder</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>Incoming transaction</translation>
+        <translation>Gelen İşlemler</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -606,58 +600,58 @@ Amount: %2
 Type: %3
 Address: %4
 </source>
-        <translation>Date: %1
-Amount: %2
-Type: %3
-Address: %4
+        <translation>Gün: %1
+Miktar: %2
+Tip: %3
+Adres: %4
 </translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+15"/>
         <source>URI handling</source>
-        <translation>URI handling</translation>
+        <translation>URI düzenleniyor</translation>
     </message>
     <message>
         <location line="-15"/>
         <location line="+15"/>
         <source>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</source>
-        <translation>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</translation>
+        <translation>URI parçalanamadı! Bu hata genellikte yanlış VERGE adresinden veya yanlış oluşturulmuş URI parametrelerinden oluşur.</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
-        <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</translation>
+        <translation>Cüzdan &lt;b&gt;şifrelendi&lt;/b&gt; ve &lt;b&gt;kilidi açılmış halde&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
-        <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</translation>
+        <translation>Cüzdan &lt;b&gt;şifrelendi&lt;/b&gt; ve &lt;b&gt;kilitli halde&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Backup Wallet</source>
-        <translation>Backup Wallet</translation>
+        <translation>Cüzdanı Yedekle</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Wallet Data (*.dat)</source>
-        <translation>Wallet Data (*.dat)</translation>
+        <translation>Cüzdan Verisi (*.dat)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup Failed</source>
-        <translation>Backup Failed</translation>
+        <translation>Yedekleme Başarısız</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>There was an error trying to save the wallet data to the new location.</translation>
+        <translation>Cüzdan verisi lokasyona yazılırken hata oluştur.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
         <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
-        <translation>A fatal error occurred. VERGE can no longer continue safely and will quit.</translation>
+        <translation>Kritik hata oluştu. Verge güvenli bir şekilde çalışamayacağına karar verdiği için kendini kapatacak.</translation>
     </message>
 </context>
 <context>
@@ -665,7 +659,7 @@ Address: %4
     <message>
         <location filename="../clientmodel.cpp" line="+87"/>
         <source>Network Alert</source>
-        <translation>Network Alert</translation>
+        <translation type="unfinished">Ağ Uyarısı</translation>
     </message>
 </context>
 <context>
@@ -673,67 +667,67 @@ Address: %4
     <message>
         <location filename="../forms/editaddressdialog.ui" line="+14"/>
         <source>Edit Address</source>
-        <translation>Edit Address</translation>
+        <translation>Adresi Düzenle</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Label</source>
-        <translation>&amp;Label</translation>
+        <translation>&amp;Etiket</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>The label associated with this address book entry</translation>
+        <translation>Bu etiket bu adres defteri kaydı ile ilişkilendirilmiş</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Address</source>
-        <translation>&amp;Address</translation>
+        <translation>&amp;Adres</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>The address associated with this address book entry. This can only be modified for sending addresses.</translation>
+        <translation>Mevcut adres, adres defteri ile ilişkilendirilmiş. Sadece gönderici adresi olarak düzenlenebilir.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
         <source>New receiving address</source>
-        <translation>New receiving address</translation>
+        <translation>Yeni alıcı adresi</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>New sending address</source>
-        <translation>New sending address</translation>
+        <translation>Yeni gönderici adresi</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Edit receiving address</source>
-        <translation>Edit receiving address</translation>
+        <translation>Alıcı adresi düzenle</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Edit sending address</source>
-        <translation>Edit sending address</translation>
+        <translation>Gönderici adresi düzenle</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>The entered address &quot;%1&quot; is already in the address book.</translation>
+        <translation>Bu  &quot;%1&quot; adres,adres defterinde mevcut</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The entered address &quot;%1&quot; is not a valid VERGE address.</source>
-        <translation>The entered address &quot;%1&quot; is not a valid VERGE address.</translation>
+        <translation>&quot;%1&quot;  adres geçerli bir VERGE adresi değil.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Could not unlock wallet.</source>
-        <translation>Could not unlock wallet.</translation>
+        <translation>Cüzdanınızın kilidi açılmadı</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>New key generation failed.</source>
-        <translation>New key generation failed.</translation>
+        <translation>Yeni anahtar oluşturma hatalı</translation>
     </message>
 </context>
 <context>
@@ -747,37 +741,37 @@ Address: %4
     <message>
         <location line="-12"/>
         <source>version</source>
-        <translation>version</translation>
+        <translation>versiyon</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Usage:</source>
-        <translation>Usage:</translation>
+        <translation>Kullanım:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>command-line options</source>
-        <translation>command-line options</translation>
+        <translation>komut satırı kodları ayarları</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>UI options</source>
-        <translation>UI options</translation>
+        <translation>Grafik Arayüz ayarları</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set language, for example &quot;de_DE&quot; (default: system locale)</source>
-        <translation>Set language, for example &quot;de_DE&quot; (default: system locale)</translation>
+        <translation>Dili Değiştir</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Start minimized</source>
-        <translation>Start minimized</translation>
+        <translation>Simge durumunda başla</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>Show splash screen on startup (default: 1)</translation>
+        <translation>Karşılama ekranı ile başla (varsayılan: 1)</translation>
     </message>
 </context>
 <context>
@@ -785,47 +779,47 @@ Address: %4
     <message>
         <location filename="../forms/optionsdialog.ui" line="+14"/>
         <source>Options</source>
-        <translation>Options</translation>
+        <translation type="unfinished">Ayarlar</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>&amp;Main</source>
-        <translation>&amp;Main</translation>
+        <translation type="unfinished">&amp;Ana ekran</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</translation>
+        <translation type="unfinished">kB başına opsiyonel para transfer ücreti para transferinizin daha hızlı gerçekleşmesini sağlar. Çoğunlukla 1 kB. başına 0.01 VERGE önerilir.</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Pay transaction &amp;fee</translation>
+        <translation>Para Transfer ücreti &amp;</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Automatically start VERGE after logging in to the system.</source>
-        <translation>Automatically start VERGE after logging in to the system.</translation>
+        <translation type="unfinished">İşletim sistemi bağladığında VERGE de başlatç</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Start VERGE on system login</source>
-        <translation>&amp;Start VERGE on system login</translation>
+        <translation type="unfinished">&amp;VERGE&apos;i sistem başlangıcında otomatik başlat</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</translation>
+        <translation type="unfinished">Programı kapatırken blok ve adres defterini ilişkisini kaldır. Bu işlem kapatma süresini uzatır ama igili dosyalrı başka bir klasöre taşıyabilirsiniz. Cüzdanınız her zaman kapanış esnasında sistem ile ilişkisi kesilir.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Detach databases at shutdown</source>
-        <translation>&amp;Detach databases at shutdown</translation>
+        <translation type="unfinished">&amp;Veritabı sistem ilişkisini kapanışta kaldır</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Network</source>
-        <translation>&amp;Network</translation>
+        <translation type="unfinished">&amp;Ağ</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -835,12 +829,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Map port using &amp;UPnP</source>
-        <translation>Map port using &amp;UPnP</translation>
+        <translation type="unfinished">UPnP kullanarak port numarası kullan</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</translation>
+        <translation type="unfinished"> SOCKS proxy kullanarak VERGE  ağına bağlan (örnek: Tor ağına bağlanırken).</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -855,7 +849,7 @@ Address: %4
     <message>
         <location line="+19"/>
         <source>IP address of the proxy (e.g. 127.0.0.1)</source>
-        <translation>IP address of the proxy (e.g. 127.0.0.1)</translation>
+        <translation type="unfinished">Proxy&apos;nin IP adresi (örnek. 127.0.0.1)</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -865,114 +859,114 @@ Address: %4
     <message>
         <location line="+19"/>
         <source>Port of the proxy (e.g. 9050)</source>
-        <translation>Port of the proxy (e.g. 9050)</translation>
+        <translation type="unfinished">Proxy&apos;nin portu (örnek. 9050)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SOCKS &amp;Version:</source>
-        <translation>SOCKS &amp;Version:</translation>
+        <translation type="unfinished">SOCKS &amp;Versiton:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>SOCKS version of the proxy (e.g. 5)</source>
-        <translation>SOCKS version of the proxy (e.g. 5)</translation>
+        <translation type="unfinished">SOCKS proxy&apos;nin versiyonu (örnek. 5)</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>&amp;Window</source>
-        <translation>&amp;Window</translation>
+        <translation type="unfinished">&amp;Pencere</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>Show only a tray icon after minimizing the window.</translation>
+        <translation type="unfinished">Pencere küçültüğünde sadece simge göster</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Minimize to the tray instead of the taskbar</source>
-        <translation>&amp;Minimize to the tray instead of the taskbar</translation>
+        <translation type="unfinished">&amp;Araç çubuğu yerine pencereyi küçült</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</translation>
+        <translation type="unfinished">Pencere kapatılma emri verildiğinden kapatma yerine simge durumuna küçült.  Bu opsiyon aktif hale getirildiğinde uygulamanız sadece üst menüde bulunan Uygulamadan Çık butonu ile kapanabilir.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>M&amp;inimize on close</translation>
+        <translation type="unfinished">Kapanışta simge duruma küçült</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>&amp;Display</translation>
+        <translation type="unfinished">&amp;Ekran</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>User Interface &amp;language:</source>
-        <translation>User Interface &amp;language:</translation>
+        <translation type="unfinished">Görünüş &amp;dil:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The user interface language can be set here. This setting will take effect after restarting VERGE.</source>
-        <translation>The user interface language can be set here. This setting will take effect after restarting VERGE.</translation>
+        <translation type="unfinished">Uygulama dili buradan değiştirilebilirç Değişiklik sonrası uygulamanın kapatılıp tekrar açılması gerekmektedir.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Unit to show amounts in:</source>
-        <translation>&amp;Unit to show amounts in:</translation>
+        <translation type="unfinished">&amp;Miktarı göstermek için ölçek:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Choose the default subdivision unit to show in the interface and when sending coins.</translation>
+        <translation type="unfinished">Para transferinde miktari belirtmek için kullanılan ölçeğı seçebilirsiniz.</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Whether to show VERGE addresses in the transaction list or not.</source>
-        <translation>Whether to show VERGE addresses in the transaction list or not.</translation>
+        <translation type="unfinished">VERGE adreslerini para transferi listesinde göster/gösterme.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;Display addresses in transaction list</translation>
+        <translation type="unfinished">&amp;Para transfer listesinde adresleri göster</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;OK</source>
-        <translation>&amp;OK</translation>
+        <translation type="unfinished">&amp;Tamam</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;Cancel</translation>
+        <translation type="unfinished">&amp;Iptal</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>&amp;Apply</source>
-        <translation>&amp;Apply</translation>
+        <translation type="unfinished">&amp;Uygula</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>default</translation>
+        <translation type="unfinished">varsayılan</translation>
     </message>
     <message>
         <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
-        <translation>Warning</translation>
+        <translation type="unfinished">Uyarı</translation>
     </message>
     <message>
         <location line="-9"/>
         <location line="+9"/>
         <source>This setting will take effect after restarting VERGE.</source>
-        <translation>This setting will take effect after restarting VERGE.</translation>
+        <translation type="unfinished">Yeni ayarlar VERGE yeniden başladığında etkili olacak</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The supplied proxy address is invalid.</source>
-        <translation>The supplied proxy address is invalid.</translation>
+        <translation type="unfinished">Girilen Proxy adresi geçersiz.</translation>
     </message>
 </context>
 <context>
@@ -980,18 +974,18 @@ Address: %4
     <message>
         <location filename="../forms/overviewpage.ui" line="+14"/>
         <source>Form</source>
-        <translation>Form</translation>
+        <translation type="unfinished">Form</translation>
     </message>
     <message>
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</source>
-        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</translation>
+        <translation type="unfinished">Gösterilen değerler güncel olmayabilir. Cüzdanınız internet bağlantınız etkin olduğunda kendisini güncellemeye başlayacak.</translation>
     </message>
     <message>
         <location line="-141"/>
         <source>Balance:</source>
-        <translation>Balance:</translation>
+        <translation type="unfinished">Bakiye:</translation>
     </message>
     <message>
         <location line="+118"/>
@@ -1006,37 +1000,37 @@ Address: %4
     <message>
         <location line="-29"/>
         <source>Unconfirmed:</source>
-        <translation>Unconfirmed:</translation>
+        <translation type="unfinished">Onaylanmamış:</translation>
     </message>
     <message>
         <location line="-78"/>
         <source>Wallet</source>
-        <translation>Wallet</translation>
+        <translation type="unfinished">Cüzdan</translation>
     </message>
     <message>
         <location line="+124"/>
         <source>Immature:</source>
-        <translation>Immature:</translation>
+        <translation type="unfinished">Olgunlaşmamış:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>Mined balance that has not yet matured</translation>
+        <translation type="unfinished">Kazılmış bakiye henüz olgunlaşmadı</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Recent transactions&lt;/b&gt;</translation>
+        <translation type="unfinished">&lt;b&gt;En son Para Transferlerı&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>Your current balance</source>
-        <translation>Your current balance</translation>
+        <translation type="unfinished">Mevcut bakiye</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</translation>
+        <translation type="unfinished">Para transferleri henüz onaylanmadı, değişiklikler mevcut bakiyesinize henüz yansımadı</translation>
     </message>
     <message>
         <location line="+134"/>
@@ -1046,13 +1040,13 @@ Address: %4
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>Total number of transactions in wallet</translation>
+        <translation type="unfinished">Toplam cüzdanınızdaki para işlemleri</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
-        <translation>out of sync</translation>
+        <translation type="unfinished">güncel değil</translation>
     </message>
 </context>
 <context>
@@ -1060,42 +1054,42 @@ Address: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation>QR Code Dialog</translation>
+        <translation type="unfinished">QR Kod Dialogu</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Request Payment</source>
-        <translation>Request Payment</translation>
+        <translation type="unfinished">Para İste</translation>
     </message>
     <message>
         <location line="+56"/>
         <source>Amount:</source>
-        <translation>Amount:</translation>
+        <translation type="unfinished">Miktar:</translation>
     </message>
     <message>
         <location line="-44"/>
         <source>Label:</source>
-        <translation>Label:</translation>
+        <translation type="unfinished">Etiket:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Message:</source>
-        <translation>Message:</translation>
+        <translation type="unfinished">Mesaj:</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;Save As...</source>
-        <translation>&amp;Save As...</translation>
+        <translation type="unfinished">&amp;Farklı Şekilde Kaydet...</translation>
     </message>
     <message>
         <location filename="../qrcodedialog.cpp" line="+62"/>
         <source>Error encoding URI into QR Code.</source>
-        <translation>Error encoding URI into QR Code.</translation>
+        <translation type="unfinished">QR kod içine URI kodlarken hata oluştu</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>The entered amount is invalid, please check.</source>
-        <translation>The entered amount is invalid, please check.</translation>
+        <translation type="unfinished">Girilen tutar geçersiz, lütfen kontrol ediniz.</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1105,12 +1099,12 @@ Address: %4
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>Save QR Code</translation>
+        <translation type="unfinished">QR Kodu Kaydet</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>PNG Images (*.png)</source>
-        <translation>PNG Images (*.png)</translation>
+        <translation type="unfinished">PNG resimleri (*.png)</translation>
     </message>
 </context>
 <context>
@@ -1118,7 +1112,7 @@ Address: %4
     <message>
         <location filename="../forms/rpcconsole.ui" line="+46"/>
         <source>Client name</source>
-        <translation>Client name</translation>
+        <translation type="unfinished">İstemci İsmi</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1132,72 +1126,72 @@ Address: %4
         <location line="+23"/>
         <location filename="../rpcconsole.cpp" line="+348"/>
         <source>N/A</source>
-        <translation>N/A</translation>
+        <translation type="unfinished">Mevcut değil</translation>
     </message>
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation>Client version</translation>
+        <translation type="unfinished">İstemci versiyonu</translation>
     </message>
     <message>
         <location line="-45"/>
         <source>&amp;Information</source>
-        <translation>&amp;Information</translation>
+        <translation type="unfinished">&amp;Bilgi</translation>
     </message>
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation>Using OpenSSL version</translation>
+        <translation type="unfinished">OpenSSL versiyonu kullanarak</translation>
     </message>
     <message>
         <location line="+49"/>
         <source>Startup time</source>
-        <translation>Startup time</translation>
+        <translation type="unfinished">Başlangıç süresi</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Network</source>
-        <translation>Network</translation>
+        <translation type="unfinished">Ağ</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Number of connections</source>
-        <translation>Number of connections</translation>
+        <translation type="unfinished">Toplam aktif bağlantı</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>On testnet</translation>
+        <translation type="unfinished">Test ağında mı?</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>Block chain</translation>
+        <translation type="unfinished">Blok zinciri</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>Current number of blocks</translation>
+        <translation type="unfinished">Toplam blok sayısı</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Estimated total blocks</source>
-        <translation>Estimated total blocks</translation>
+        <translation type="unfinished">Tahmin edilen toplam blok</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>Last block time</translation>
+        <translation type="unfinished">En son blok süresi</translation>
     </message>
     <message>
         <location line="+52"/>
         <source>&amp;Open</source>
-        <translation>&amp;Open</translation>
+        <translation type="unfinished">&amp;Aç</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Command-line options</source>
-        <translation>Command-line options</translation>
+        <translation type="unfinished">Komut Satırı seçenekleri</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1207,32 +1201,32 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>&amp;Show</source>
-        <translation>&amp;Show</translation>
+        <translation type="unfinished">&amp;Göster</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>&amp;Console</source>
-        <translation>&amp;Console</translation>
+        <translation type="unfinished">&amp;Konsol</translation>
     </message>
     <message>
         <location line="-260"/>
         <source>Build date</source>
-        <translation>Build date</translation>
+        <translation type="unfinished">Derlenme tarihi</translation>
     </message>
     <message>
         <location line="-104"/>
         <source>VERGE - Debug window</source>
-        <translation>VERGE - Debug window</translation>
+        <translation type="unfinished">VERGE - Hata Ayıklama Penceresi</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>VERGE Core</source>
-        <translation>VERGE Core</translation>
+        <translation type="unfinished">VERGE Çekirdek</translation>
     </message>
     <message>
         <location line="+279"/>
         <source>Debug log file</source>
-        <translation>Debug log file</translation>
+        <translation type="unfinished">Hata ayıklama kayıt dosyası</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1247,17 +1241,17 @@ Address: %4
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
         <source>Welcome to the VERGE RPC console.</source>
-        <translation>Welcome to the VERGE RPC console.</translation>
+        <translation type="unfinished">VERGE RPC konsoluna hoşgeldiniz</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</translation>
+        <translation type="unfinished">Yukarı ve aşağı ok işretleri ile geçmişte gezinebilirsiniz,  &lt;b&gt;Ctrl-L&lt;/b&gt;  ile ekranı temizleyebilirsiniz</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</translation>
+        <translation type="unfinished"> &lt;b&gt;help&lt;/b&gt; yazarak daha fazla komut hakkında bilgi alabilirsiniz.</translation>
     </message>
 </context>
 <context>
@@ -1282,7 +1276,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+20"/>
@@ -1312,7 +1306,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
@@ -1352,7 +1346,7 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>The total exceeds your balance when the %1 transaction fee is included.</translation>
+        <translation type="unfinished">%1 para transfer komisyonu eklendiğinde toplam paranız transfer için yetersiz.</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -1401,7 +1395,7 @@ Address: %4
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1439,29 +1433,29 @@ Address: %4
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>Signatures - Sign / Verify a Message</translation>
+        <translation type="unfinished">İmzalar - İmzala / Mesajı Doğrula</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+124"/>
         <source>&amp;Sign Message</source>
-        <translation>&amp;Sign Message</translation>
+        <translation type="unfinished">&amp;Mesajı Imzala</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</translation>
+        <translation type="unfinished">Mesajınızın sizin olduğu kanıtlamak için kendı adresinizle imzalayabilirsiniz. Lütfen istediğiniz mesaj dışında imzalama yapmayız ve imzaladığınız mesajın doğruluğundan emin olunuz.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to sign the message with </source>
-        <translation>The address to sign the message with </translation>
+        <translation type="unfinished">Mesajı imzalamak için adres </translation>
     </message>
     <message>
         <location line="+10"/>
         <location line="+203"/>
         <source>Choose an address from the address book</source>
-        <translation>Choose an address from the address book</translation>
+        <translation type="unfinished">Adres defterinden adres seçmek için tıklayınız</translation>
     </message>
     <message>
         <location line="-193"/>
@@ -1472,7 +1466,7 @@ Address: %4
     <message>
         <location line="-193"/>
         <source>Paste address from clipboard</source>
-        <translation>Paste address from clipboard</translation>
+        <translation type="unfinished">Adresi yapıştır</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1482,34 +1476,34 @@ Address: %4
     <message>
         <location line="+12"/>
         <source>Enter the message you want to sign here</source>
-        <translation>Enter the message you want to sign here</translation>
+        <translation type="unfinished">Mesajı giriniz</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Copy the current signature to the system clipboard</source>
-        <translation>Copy the current signature to the system clipboard</translation>
+        <translation type="unfinished">İmzayı kopyala</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Sign the message to prove you own this VERGE address</source>
-        <translation>Sign the message to prove you own this VERGE address</translation>
+        <translation type="unfinished">Bu VERGE adresine sahip olduğunuzu kanıtlamak için mesajı imzala</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all sign message fields</source>
-        <translation>Reset all sign message fields</translation>
+        <translation type="unfinished">Tüm mesaji şifrele alanlarını sıfırla</translation>
     </message>
     <message>
         <location line="+3"/>
         <location line="+146"/>
         <source>Clear &amp;All</source>
-        <translation>Clear &amp;All</translation>
+        <translation type="unfinished">Hepsini &amp;Sil</translation>
     </message>
     <message>
         <location line="-87"/>
         <location line="+70"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Verify Message</translation>
+        <translation type="unfinished">&amp;Mesajı Doğrula</translation>
     </message>
     <message>
         <location line="-64"/>
@@ -1758,8 +1752,8 @@ Address: %4
     </message>
     <message>
         <location line="+4"/>
-        <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</translation>
+        <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \&quot;not accepted\&quot; and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
+        <translation>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \&quot;not accepted\&quot; and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1807,12 +1801,12 @@ Address: %4
     <message>
         <location filename="../forms/transactiondescdialog.ui" line="+14"/>
         <source>Transaction details</source>
-        <translation>Transaction details</translation>
+        <translation>Para transferi detayları</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>This pane shows a detailed description of the transaction</translation>
+        <translation>Bu pencere para transferinin detaylarını gösterir</translation>
     </message>
 </context>
 <context>
@@ -1820,50 +1814,49 @@ Address: %4
     <message>
         <location filename="../transactiontablemodel.cpp" line="+226"/>
         <source>Date</source>
-        <translation>Date</translation>
+        <translation>Tarih</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type</source>
-        <translation>Type</translation>
+        <translation>Tip</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>Address</translation>
+        <translation>Adres</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Amount</source>
-        <translation>Amount</translation>
+        <translation>Miktar</translation>
     </message>
     <message numerus="yes">
         <location line="+57"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Open for %n block</numerusform>
-            <numerusform>Open for %n blocks</numerusform>
+            <numerusform> %n bloku aç</numerusform>
         </translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open until %1</source>
-        <translation>Open until %1</translation>
+        <translation>%1 bloka kadar aç</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Offline (%1 confirmations)</source>
-        <translation>Offline (%1 confirmations)</translation>
+        <translation>Çevrimdışı (%1 onaylar)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Unconfirmed (%1 of %2 confirmations)</source>
-        <translation>Unconfirmed (%1 of %2 confirmations)</translation>
+        <translation>Onaysız (%1 de %2 onaylar)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Confirmed (%1 confirmations)</source>
-        <translation>Confirmed (%1 confirmations)</translation>
+        <translation>Onayladı (%1 onaylar)</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
@@ -1876,67 +1869,67 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>This block was not received by any other nodes and will probably not be accepted!</translation>
+        <translation>Bu blok diğer uçlar tarafından alınamadığı için büyük ihtimalle kabul edilmedi!</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated but not accepted</source>
-        <translation>Generated but not accepted</translation>
+        <translation>Üretildi ama kabul edilmedi</translation>
     </message>
     <message>
         <location line="+43"/>
         <source>Received with</source>
-        <translation>Received with</translation>
+        <translation>Alındı ile</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Received from</source>
-        <translation>Received from</translation>
+        <translation>Alındı, gönderen</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sent to</source>
-        <translation>Sent to</translation>
+        <translation>Kime</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Payment to yourself</source>
-        <translation>Payment to yourself</translation>
+        <translation>Kendine ödeme gönder</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Mined</source>
-        <translation>Mined</translation>
+        <translation>Çıkarıldı</translation>
     </message>
     <message>
         <location line="+38"/>
         <source>(n/a)</source>
-        <translation>(n/a)</translation>
+        <translation>mevcut değil</translation>
     </message>
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>Transaction status. Hover over this field to show number of confirmations.</translation>
+        <translation>Para transferi durumu. Fare ile üstüne gelerek toplam onay sayısını görebilirsiniz.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Date and time that the transaction was received.</source>
-        <translation>Date and time that the transaction was received.</translation>
+        <translation>Para transferinin tarihi ve zamanı alındı.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Type of transaction.</source>
-        <translation>Type of transaction.</translation>
+        <translation>Para transferinin türü.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Destination address of transaction.</source>
-        <translation>Destination address of transaction.</translation>
+        <translation>Para transferinin varış noktası.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Amount removed from or added to balance.</source>
-        <translation>Amount removed from or added to balance.</translation>
+        <translation>Miktar hesabınızda alındı veya hesabınıza eklendi.</translation>
     </message>
 </context>
 <context>
@@ -1945,137 +1938,137 @@ Address: %4
         <location filename="../transactionview.cpp" line="+55"/>
         <location line="+16"/>
         <source>All</source>
-        <translation>All</translation>
+        <translation>Hepsi</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Today</source>
-        <translation>Today</translation>
+        <translation>Bugün</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This week</source>
-        <translation>This week</translation>
+        <translation>Bu hafta</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This month</source>
-        <translation>This month</translation>
+        <translation>Bu ay</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Last month</source>
-        <translation>Last month</translation>
+        <translation>Önceki Ay</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This year</source>
-        <translation>This year</translation>
+        <translation>Bu yıl</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Range...</source>
-        <translation>Range...</translation>
+        <translation>Aralık...</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received with</source>
-        <translation>Received with</translation>
+        <translation>Teslim alındı ile</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Sent to</source>
-        <translation>Sent to</translation>
+        <translation>Gönderildi</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>To yourself</source>
-        <translation>To yourself</translation>
+        <translation>Bana</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Mined</source>
-        <translation>Mined</translation>
+        <translation>Çıkarılmış</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Other</source>
-        <translation>Other</translation>
+        <translation>Diğer</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>Enter address or label to search</translation>
+        <translation>Arama yapmak için adres veya etiket giriniz</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Min amount</source>
-        <translation>Min amount</translation>
+        <translation>Minimum miktar</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Copy address</source>
-        <translation>Copy address</translation>
+        <translation>Adresi kopyala</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy label</source>
-        <translation>Copy label</translation>
+        <translation>Etiketi kopyala</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy amount</source>
-        <translation>Copy amount</translation>
+        <translation>Miktarı kopyala</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit label</source>
-        <translation>Edit label</translation>
+        <translation>Etiketi Düzenle</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show transaction details</source>
-        <translation>Show transaction details</translation>
+        <translation>Para transferi detaylarını göster</translation>
     </message>
     <message>
         <location line="+142"/>
         <source>Export Transaction Data</source>
-        <translation>Export Transaction Data</translation>
+        <translation>Para transferi datası çıkart</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Comma separated file (*.csv)</translation>
+        <translation>Virgül ayraçlı dosya (*.csv)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Confirmed</source>
-        <translation>Confirmed</translation>
+        <translation>Onayladı</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date</source>
-        <translation>Date</translation>
+        <translation>Tarih</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type</source>
-        <translation>Type</translation>
+        <translation>Tip</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Label</source>
-        <translation>Label</translation>
+        <translation>Etiket</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Address</source>
-        <translation>Address</translation>
+        <translation>Adres</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Amount</source>
-        <translation>Amount</translation>
+        <translation>Miktar</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2085,22 +2078,22 @@ Address: %4
     <message>
         <location line="+4"/>
         <source>Error exporting</source>
-        <translation>Error exporting</translation>
+        <translation>Dışarı çıkartırken hata oluştu</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Could not write to file %1.</translation>
+        <translation>%1 dosyasına yazılamıyor.</translation>
     </message>
     <message>
         <location line="+95"/>
         <source>Range:</source>
-        <translation>Range:</translation>
+        <translation>Aralık:</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>to</source>
-        <translation>to</translation>
+        <translation>kime</translation>
     </message>
 </context>
 <context>
@@ -2108,7 +2101,7 @@ Address: %4
     <message>
         <location filename="../walletmodel.cpp" line="+192"/>
         <source>Sending...</source>
-        <translation>Sending...</translation>
+        <translation>Gönderiliyor...</translation>
     </message>
 </context>
 <context>
@@ -2216,7 +2209,7 @@ Address: %4
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+8"/>
