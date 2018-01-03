@@ -144,82 +144,9 @@ You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.co
 
 ## Building From Source
 
-### Linux Wallet on Ubuntu/Debian
-
-Here is a quick short hand way:
-
-```shell
-sudo rm -Rf ~/VERGE  #(if you already have it)
-sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
-```
-
-The _slightly_ longer version:
-
-1. Install the dependencies. **Note**: If you are on debian, you will also need to `apt-get install libcanberra-gtk-module`.
-
-    ```shell
-    sudo add-apt-repository ppa:bitcoin/bitcoin
-    sudo apt-get update
-    sudo apt-get install \
-        libdb4.8-dev libdb4.8++-dev build-essential \
-        libtool autotools-dev automake pkg-config libssl-dev libevent-dev \
-        bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 \
-        libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev \
-        qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
-    ```
-
-2. Clone the git repository and compile the daemon and gui wallet:
-
-    ```shell
-    git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
-    ```
-
-> **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
-
-
-### Mac OS X Wallet
-
-> **Note:** This has only been confirmed to work on OS X Sierra (10.12) and OS X High Sierra (10.13) with XCode 9.2 and `Apple LLVM version 9.0.0 (clang-900.0.39.2)`.
-
-1. Ensure you have mysql and boost installed.
-    
-    ```shell
-    brew install mysql boost
-    ```
-
-2. Ensure you have python 2.7 installed and in your path (OS X comes with this by default)
-
-    ```shell
-    python --version
-    ```
-
-3. Export the required environment variables
-
-    ```shell
-    export VERGE_PLATFORM='mac'
-    export CXX=clang++
-    export CC=clang
-    ```
-
-4. Run your build commands
-
-    ```shell
-    ./building/common.sh
-    ./building/mac/requirements.sh
-    ./building/mac/build.sh
-    ```
-
-5. Grab a :coffee: and wait it out
-
-6. Create the `.dmg` file
-
-    ```shell
-    ./building/mac/dist.sh
-    ```
-
-### Windows Wallet
-
-TODO. Take a look as [building/windows](./building/windows).
+* [Linux Instructions](doc/build-verge-linux.md)
+* [OS X Instructions](doc/build-verge-osx.md)
+* [Windows Instructions](doc/build-verge-win.md)
 
 ## Docker Images
 
