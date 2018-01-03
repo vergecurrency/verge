@@ -1397,22 +1397,22 @@ Address: %4
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>Введите метку для данного адреса (для добавления в адресную книгу)</translation>
+        <translation>Уведіть мітку для даної адреси (для додавання в адресну книгу)</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Label:</source>
-        <translation>&amp;Метка:</translation>
+        <translation>&amp;Мітка:</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Адрес получателя платежа (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Адреса отримувача платежу (наприклад, 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Choose address from address book</source>
-        <translation>Выберите адрес из адресной книги</translation>
+        <translation>Оберіть адресу із адресної книги</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1422,7 +1422,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Paste address from clipboard</source>
-        <translation>Вставить адрес из буфера обмена</translation>
+        <translation>Вставити адресу із буферу обміну</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1432,12 +1432,12 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Remove this recipient</source>
-        <translation>Удалить этого получателя</translation>
+        <translation>Видалити цього отримувача</translation>
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
         <source>Enter a Verge address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите Verge-адрес (например 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Уведіть Verge-адресу (наприклад, 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
 </context>
 <context>
@@ -1445,29 +1445,29 @@ Address: %4
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>Подписи - подписать/проверить сообщение</translation>
+        <translation>Підписи - підписати/перевірити повідомлення</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+124"/>
         <source>&amp;Sign Message</source>
-        <translation>&amp;Подписать сообщение</translation>
+        <translation>&amp;Підписати повідомлення</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Вы можете подписывать сообщения своими адресами, чтобы доказать владение ими. Будьте осторожны, не подписывайте что-то неопределённое, так как фишинговые атаки могут обманным путём заставить вас подписать нежелательные сообщения. Подписывайте только те сообщения, с которыми вы согласны вплоть до мелочей.</translation>
+        <translation>Ви можете підписувати повідомлення своїми адресами, щоб довести, що Ви володієте ними. Будьте обережні, непідписуйте щось неоднозначне, оскільки фішингові атаки можуть шляхом обману змусити Вас підписати небажані повідомлення. Підписуйте тільки ті повідомлення, з якими Ви повністю погоджуєтесь.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to sign the message with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Адрес, которым вы хотите подписать сообщение  (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Адреса, якою ви хочете підписати повідомлення (наприклад, 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="+10"/>
         <location line="+203"/>
         <source>Choose an address from the address book</source>
-        <translation>Выберите адрес из адресной книги</translation>
+        <translation>Оберіть адресу із адресної книги</translation>
     </message>
     <message>
         <location line="-193"/>
@@ -1478,7 +1478,7 @@ Address: %4
     <message>
         <location line="-193"/>
         <source>Paste address from clipboard</source>
-        <translation>Вставить адрес из буфера обмена</translation>
+        <translation>Вчтавити адесу із буферу обміну</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1488,39 +1488,39 @@ Address: %4
     <message>
         <location line="+12"/>
         <source>Enter the message you want to sign here</source>
-        <translation>Введите сообщение для подписи</translation>
+        <translation>Уведіть повідомлення для підпису</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Copy the current signature to the system clipboard</source>
-        <translation>Скопировать текущую подпись в системный буфер обмена</translation>
+        <translation>Скопіювати поточний підпис до системного буферу обміну</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Sign the message to prove you own this Verge address</source>
-        <translation>Подписать сообщение, чтобы доказать владение адресом Verge</translation>
+        <translation>Підписати повідомлення, щоб довести, що Ви володієте цією адресою Verge</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all sign message fields</source>
-        <translation>Сбросить значения всех полей подписывания сообщений</translation>
+        <translation>Скинути значення усіх полів підпису повідомлення</translation>
     </message>
     <message>
         <location line="+3"/>
         <location line="+146"/>
         <source>Clear &amp;All</source>
-        <translation>Очистить &amp;всё</translation>
+        <translation>Очистити &amp;все</translation>
     </message>
     <message>
         <location line="-87"/>
         <location line="+70"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Проверить сообщение</translation>
+        <translation>&amp;Перевірити повідомлення</translation>
     </message>
     <message>
         <location line="-64"/>
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>Введите ниже адрес для подписи, сообщение (убедитесь, что переводы строк, пробелы, табы и т.п. в точности скопированы) и подпись, чтобы проверить сообщение. Убедитесь, что не скопировали лишнего в подпись, по сравнению с самим подписываемым сообщением, чтобы не стать жертвой атаки &quot;man-in-the-middle&quot;.</translation>
+        <translation>Уведіть нижче адресу для підпису, повідомлення (переконайтесь, что переноси рядків, пробіли, таби и т.д. ідентично скопійовані) і підпис, щоб перевірити повідомлення. Переконайтесь, що не скопіювали зайвого до піпису, порівняно із самим повідомленням, що підписується, щоб не стати жертвою атаки &quot;man-in-the-middle&quot;.</translation>
     </message>
     <message>
         <location line="+21"/>
@@ -1530,34 +1530,34 @@ Address: %4
     <message>
         <location line="+40"/>
         <source>Verify the message to ensure it was signed with the specified Verge address</source>
-        <translation>Проверить сообщение, чтобы убедиться, что оно было подписано указанным адресом Verge</translation>
+        <translation>Перевірити повідомлення, щоб переконатись, що воно було підписаним вказаною адресою Verge</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all verify message fields</source>
-        <translation>Сбросить все поля проверки сообщения</translation>
+        <translation>Скинути усі поля перевірки повідомлення</translation>
     </message>
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
         <source>Enter a Verge address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Введите адрес Verge (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Уведіть адресу Verge (напр. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Click &quot;Sign Message&quot; to generate signature</source>
-        <translation>Нажмите &quot;Подписать сообщение&quot; для создания подписи</translation>
+        <translation>Натисніть &quot;Підписати повідомлення&quot; для генерації підпису</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Enter Verge signature</source>
-        <translation>Введите подпись Verge</translation>
+        <translation>Уведіть підпис Verge</translation>
     </message>
     <message>
         <location line="+82"/>
         <location line="+81"/>
         <source>The entered address is invalid.</source>
-        <translation>Введённый адрес неверен</translation>
+        <translation>Уведена адреса є неправильною.</translation>
     </message>
     <message>
         <location line="-81"/>
@@ -1565,59 +1565,59 @@ Address: %4
         <location line="+73"/>
         <location line="+8"/>
         <source>Please check the address and try again.</source>
-        <translation>Пожалуйста, проверьте адрес и попробуйте ещё раз.</translation>
+        <translation>Будь ласка, перевірте адресу і спробуйте знову.</translation>
     </message>
     <message>
         <location line="-81"/>
         <location line="+81"/>
         <source>The entered address does not refer to a key.</source>
-        <translation>Введённый адрес не связан с ключом</translation>
+        <translation>Уведена адреса не пов&spos;язана з ключем.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>Разблокировка бумажника была отменена.</translation>
+        <translation>Розблокування гаманця було відміненим.</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Private key for the entered address is not available.</source>
-        <translation>Для введённого адреса недоступен закрытый ключ</translation>
+        <translation>Для введеної адреси приватний ключ є недоступним.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Message signing failed.</source>
-        <translation>Не удалось подписать сообщение</translation>
+        <translation>Не вдалось підписати повідомленняю</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message signed.</source>
-        <translation>Сообщение подписано</translation>
+        <translation>Повідомлення підписано.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>The signature could not be decoded.</source>
-        <translation>Подпись не может быть раскодирована.</translation>
+        <translation>Не вдалось декодувати підпис.</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Please check the signature and try again.</source>
-        <translation>Пожалуйста, проверьте подпись и попробуйте ещё раз.</translation>
+        <translation>Будь ласка, перевірте підпис і спробуйте знову.</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>The signature did not match the message digest.</source>
-        <translation>Подпись не соответствует отпечатку сообщения.</translation>
+        <translation>Підпис не співпадає з відбитком повідомлення.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Message verification failed.</source>
-        <translation>Проверка сообщения не удалась.</translation>
+        <translation>Перевірка повідомлення виявилась неуспішною.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message verified.</source>
-        <translation>Сообщение проверено.</translation>
+        <translation>Повідомлення перевірено.</translation>
     </message>
 </context>
 <context>
@@ -1625,31 +1625,31 @@ Address: %4
     <message>
         <location filename="../transactiondesc.cpp" line="+19"/>
         <source>Open until %1</source>
-        <translation>Открыто до %1</translation>
+        <translation>Відкрито до %1</translation>
     </message>
     <message numerus="yes">
         <location line="-2"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Открыто для %n блока</numerusform>
-            <numerusform>Открыто для %n блоков</numerusform>
-            <numerusform>Открыто для %n блоков</numerusform>
+            <numerusform>Відкрито для %n блока</numerusform>
+            <numerusform>Відкрито для %n блоків</numerusform>
+            <numerusform>Відкрито для %n блоків</numerusform>
         </translation>
     </message>
     <message>
         <location line="+8"/>
         <source>%1/offline</source>
-        <translation>%1/отключен</translation>
+        <translation>%1/оффлайн</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1/unconfirmed</source>
-        <translation>%1/не подтверждено</translation>
+        <translation>%1/не підтверждено</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1 confirmations</source>
-        <translation>%1 подтверждений</translation>
+        <translation>%1 підтверджень</translation>
     </message>
     <message>
         <location line="+18"/>
@@ -1660,9 +1660,9 @@ Address: %4
         <location line="+7"/>
         <source>, broadcast through %n node(s)</source>
         <translation>
-            <numerusform>, разослано через %n узел</numerusform>
-            <numerusform>, разослано через %n узла</numerusform>
-            <numerusform>, разослано через %n узлов</numerusform>
+            <numerusform>, розіслано через %n вузол</numerusform>
+            <numerusform>, розіслано через %n вузла</numerusform>
+            <numerusform>, розіслано через %n вузлів</numerusform>
         </translation>
     </message>
     <message>
@@ -1673,18 +1673,18 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Source</source>
-        <translation>Источник</translation>
+        <translation>Джерело</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Generated</source>
-        <translation>Сгенерированно</translation>
+        <translation>Згенеровано</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+17"/>
         <source>From</source>
-        <translation>От</translation>
+        <translation>Від</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1697,12 +1697,12 @@ Address: %4
         <location line="-77"/>
         <location line="+2"/>
         <source>own address</source>
-        <translation>свой адрес</translation>
+        <translation>власна адресф</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>label</source>
-        <translation>метка</translation>
+        <translation>мітка</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -1717,15 +1717,15 @@ Address: %4
         <location line="-102"/>
         <source>matures in %n more block(s)</source>
         <translation>
-            <numerusform>будет доступно через %n блок</numerusform>
-            <numerusform>будет доступно через %n блока</numerusform>
-            <numerusform>будет доступно через %n блоков</numerusform>
+            <numerusform>буде доступно через %n блок</numerusform>
+            <numerusform>буде доступно через %n блока</numerusform>
+            <numerusform>буде доступно через %n блоків</numerusform>
         </translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not accepted</source>
-        <translation>не принято</translation>
+        <translation>не прийнято</translation>
     </message>
     <message>
         <location line="+44"/>
@@ -1738,77 +1738,77 @@ Address: %4
     <message>
         <location line="-39"/>
         <source>Transaction fee</source>
-        <translation>Комиссия</translation>
+        <translation>Комісія</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Net amount</source>
-        <translation>Чистая сумма</translation>
+        <translation>Чиста сума</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Message</source>
-        <translation>Сообщение</translation>
+        <translation>Повідомлення</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Comment</source>
-        <translation>Комментарий:</translation>
+        <translation>Коментар:</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Transaction ID</source>
-        <translation>ID транзакции</translation>
+        <translation>ID транзакції</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Сгенерированные монеты должны подождать 25 блоков, прежде чем они могут быть потрачены. Когда Вы сгенерировали этот блок, он был отправлен в сеть для добавления в цепочку блоков. Если данная процедура не удастся, статус изменится на «не подтверждено», и монеты будут недействительны. Это иногда происходит в случае, если другой узел сгенерирует блок на несколько секунд раньше вас.</translation>
+        <translation>Згенеровані монети повинні почекати 25 блоків перед тим, як вони зможуть бути витраченими. Коли ви згенерували цей блок, він був відправленим в мережу для додавання в ланцюг блоків. Якщо ця процедура не виконається, статус зміниться на «не підтверждено», і монети будуть недісними. Інколи це відбувається у випадку, коли інший вузол згенерував блок на декілька секунд раніше, ніж Ви.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>Использованные в Proof-of-Stake монеты должны подождать 25 блоков, прежде чем они вернутся на баланс и смогут быть потрачены. Когда вы сгенерировали этот proof-of-stake блок, он был отправлен в сеть для добавления в цепочку блоков. Если данная процедура не удается, статус изменится на \"не подтверждени\" и блок будет недействителен. Это иногда происходит в случае, если другой узел сгенерирует блок на несколько секунд раньше вас.</translation>
+        <translation>Використані в Proof-of-Stake монети повинні почекати 25 блоків перед тим, як вони повернуться на баланс і зможуть бути витраченими. Коли ви згенерували цей proof-of-stake блок, він буде розісланим по мережі для додавання в ланцюг блоків. Якщо ця процедура не виконається, статус зміниться на \"не підтверждено\" і блок буде недійсним. Інколи таке відбувається у випадку, коли інший вузол згенерував блок на декілька секунд раніше, ніж Ви.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Debug information</source>
-        <translation>Отладочная информация</translation>
+        <translation>Відлагоджувальна інформація</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Transaction</source>
-        <translation>Транзакция</translation>
+        <translation>Транзакція</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Inputs</source>
-        <translation>Входы</translation>
+        <translation>Входи</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Amount</source>
-        <translation>Количество</translation>
+        <translation>Кількість</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>true</source>
-        <translation>истина</translation>
+        <translation>істина</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>false</source>
-        <translation>ложь</translation>
+        <translation>неправда</translation>
     </message>
     <message>
         <location line="-211"/>
         <source>, has not been successfully broadcast yet</source>
-        <translation>, ещё не было успешно разослано</translation>
+        <translation>, ще не було успішно розіслано</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>unknown</source>
-        <translation>неизвестно</translation>
+        <translation>невідомо</translation>
     </message>
 </context>
 <context>
@@ -1816,12 +1816,12 @@ Address: %4
     <message>
         <location filename="../forms/transactiondescdialog.ui" line="+14"/>
         <source>Transaction details</source>
-        <translation>Детали транзакции</translation>
+        <translation>Деталі транзакції</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>Данный диалог показывает детализированную статистику по выбранной транзакции</translation>
+        <translation>Даний діалог показує деталізовану статистику по обраній транзакції</translation>
     </message>
 </context>
 <context>
@@ -1839,85 +1839,85 @@ Address: %4
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>Адрес</translation>
+        <translation>Адреса</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Amount</source>
-        <translation>Количество</translation>
+        <translation>Кількість</translation>
     </message>
     <message numerus="yes">
         <location line="+57"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Открыто для %n блока</numerusform>
-            <numerusform>Открыто для %n блоков</numerusform>
-            <numerusform>Открыто для %n блоков</numerusform>
+            <numerusform>Відкрито для %n блока</numerusform>
+            <numerusform>Відкрито для %n блоків</numerusform>
+            <numerusform>Відкрито для %n блоків</numerusform>
         </translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open until %1</source>
-        <translation>Открыто до %1</translation>
+        <translation>Відкрито до %1</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Offline (%1 confirmations)</source>
-        <translation>Оффлайн (%1 подтверждений)</translation>
+        <translation>Оффлайн (%1 підтверждень)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Unconfirmed (%1 of %2 confirmations)</source>
-        <translation>Не подтверждено (%1 из %2 подтверждений)</translation>
+        <translation>Не підтверждено (%1 з %2 підтверждень)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Confirmed (%1 confirmations)</source>
-        <translation>Подтверждено (%1 подтверждений)</translation>
+        <translation>Підтверждено (%1 підтверждень)</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
         <source>Mined balance will be available when it matures in %n more block(s)</source>
         <translation>
-            <numerusform>Добытыми монетами можно будет воспользоваться через %n блок</numerusform>
-            <numerusform>Добытыми монетами можно будет воспользоваться через %n блока</numerusform>
-            <numerusform>Добытыми монетами можно будет воспользоваться через %n блоков</numerusform>
+            <numerusform>Видобутими монетами можна буде скористатися через %n блок</numerusform>
+            <numerusform>Видобутими монетами можна буде скористатися через %n блока</numerusform>
+            <numerusform>Видобутими монетами можна буде скористатися через %n блоків</numerusform>
         </translation>
     </message>
     <message>
         <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>Этот блок не был получен другими узлами и, возможно, не будет принят!</translation>
+        <translation>Цей блок не був отриманим іншими вузлами і, можливо, не бути прийнятим!</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated but not accepted</source>
-        <translation>Сгенерированно, но не подтверждено</translation>
+        <translation>Згенеровано, але не підтверджено</translation>
     </message>
     <message>
         <location line="+43"/>
         <source>Received with</source>
-        <translation>Получено</translation>
+        <translation>Отримано</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Received from</source>
-        <translation>Получено от</translation>
+        <translation>Отримано від</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sent to</source>
-        <translation>Отправлено</translation>
+        <translation>Надіслано</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Payment to yourself</source>
-        <translation>Отправлено себе</translation>
+        <translation>Оплата собі</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Mined</source>
-        <translation>Добыто</translation>
+        <translation>Видобуто</translation>
     </message>
     <message>
         <location line="+38"/>
@@ -1927,27 +1927,27 @@ Address: %4
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>Статус транзакции. Подведите курсор к нужному полю для того, чтобы увидеть количество подтверждений.</translation>
+        <translation>Статус транзакції. Наведіть курсор до потрібного поля, щоб побачити кількість підтверджень.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Date and time that the transaction was received.</source>
-        <translation>Дата и время, когда транзакция была получена.</translation>
+        <translation>Дата і час, коли транзакція була отримана.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Type of transaction.</source>
-        <translation>Тип транзакции.</translation>
+        <translation>Тип транзакції.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Destination address of transaction.</source>
-        <translation>Адрес назначения транзакции.</translation>
+        <translation>Адреса призначення транзакції.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Amount removed from or added to balance.</source>
-        <translation>Сумма, добавленная, или снятая с баланса.</translation>
+        <translation>Сума, додана, або знята з балансу.</translation>
     </message>
 </context>
 <context>
@@ -1956,112 +1956,112 @@ Address: %4
         <location filename="../transactionview.cpp" line="+55"/>
         <location line="+16"/>
         <source>All</source>
-        <translation>Все</translation>
+        <translation>Усі</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Today</source>
-        <translation>Сегодня</translation>
+        <translation>Сьогодні</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This week</source>
-        <translation>На этой неделе</translation>
+        <translation>Цього тижня</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This month</source>
-        <translation>В этом месяце</translation>
+        <translation>Цього місяця</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Last month</source>
-        <translation>За последний месяц</translation>
+        <translation>За останній місяць</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This year</source>
-        <translation>В этом году</translation>
+        <translation>У цьому році</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Range...</source>
-        <translation>Промежуток...</translation>
+        <translation>Проміжок...</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received with</source>
-        <translation>Получено на</translation>
+        <translation>Отримано на</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Sent to</source>
-        <translation>Отправлено на</translation>
+        <translation>Надіслано на</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>To yourself</source>
-        <translation>Отправленные себе</translation>
+        <translation>Надіслані собі</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Mined</source>
-        <translation>Добытые</translation>
+        <translation>Видобуті</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Other</source>
-        <translation>Другое</translation>
+        <translation>Інше</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>Введите адрес или метку для поиска</translation>
+        <translation>Уведіть адресу або мітку для пошуку</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Min amount</source>
-        <translation>Мин. сумма</translation>
+        <translation>Мін. сума</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Copy address</source>
-        <translation>Копировать адрес</translation>
+        <translation>Копіювати адресу</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy label</source>
-        <translation>Копировать метку</translation>
+        <translation>Копіювати мітку</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy amount</source>
-        <translation>Скопировать сумму</translation>
+        <translation>Копіювати суму</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit label</source>
-        <translation>Изменить метку</translation>
+        <translation>Змінити мітку</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show transaction details</source>
-        <translation>Показать подробности транзакции</translation>
+        <translation>Показати деталі транзакції</translation>
     </message>
     <message>
         <location line="+142"/>
         <source>Export Transaction Data</source>
-        <translation>Экспортировать данные транзакций</translation>
+        <translation>Експортувати дані про транзакції</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Текст, разделённый запятыми (*.csv)</translation>
+        <translation>Текст, розділений комами (*.csv)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Confirmed</source>
-        <translation>Подтверждено</translation>
+        <translation>Підтверджено</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2076,17 +2076,17 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Label</source>
-        <translation>Метка</translation>
+        <translation>Мітка</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Address</source>
-        <translation>Адрес</translation>
+        <translation>Адреса</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Amount</source>
-        <translation>Количество</translation>
+        <translation>Кількість</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2096,17 +2096,17 @@ Address: %4
     <message>
         <location line="+4"/>
         <source>Error exporting</source>
-        <translation>Ошибка экспорта</translation>
+        <translation>Помилка експорту</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Невозможно записать в файл %1.</translation>
+        <translation>Неможливо записати у файл %1.</translation>
     </message>
     <message>
         <location line="+95"/>
         <source>Range:</source>
-        <translation>Промежуток от:</translation>
+        <translation>Проміжок від:</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -2119,7 +2119,7 @@ Address: %4
     <message>
         <location filename="../walletmodel.cpp" line="+192"/>
         <source>Sending...</source>
-        <translation>Отправка....</translation>
+        <translation>Надсилання....</translation>
     </message>
 </context>
 <context>
@@ -2127,17 +2127,17 @@ Address: %4
     <message>
         <location filename="../bitcoinstrings.cpp" line="+82"/>
         <source>Verge version</source>
-        <translation>Версия</translation>
+        <translation>Версія</translation>
     </message>
     <message>
         <location line="+82"/>
         <source>Usage:</source>
-        <translation>Использование:</translation>
+        <translation>Використання:</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Send command to -server or bitcoind</source>
-        <translation>Отправить команду на -server или bitcoind</translation>
+        <translation>Відпривати команду на -server чи bitcoind</translation>
     </message>
     <message>
         <location line="-19"/>
@@ -2148,87 +2148,87 @@ Address: %4
     <message>
         <location line="-11"/>
         <source>Get help for a command</source>
-        <translation>Получить помощь по команде</translation>
+        <translation>Отримати допомогу по команді</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Options:</source>
-        <translation>Опции:</translation>
+        <translation>Опції:</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Specify configuration file (default: Verge.conf)</source>
-        <translation>Указать конфигурационный файл (за замовчуванням: Verge.conf)</translation>
+        <translation>Указати конфігураційний файл (за замовчуванням: Verge.conf)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Specify pid file (default: Verged.pid)</source>
-        <translation>Указать pid-файл (за замовчуванням: Verge.pid)</translation>
+        <translation>Указати pid-файл (за замовчуванням: Verge.pid)</translation>
     </message>
     <message>
         <location line="-47"/>
         <source>Generate coins</source>
-        <translation>Генерировать монеты</translation>
+        <translation>Генерувати монети</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Don&apos;t generate coins</source>
-        <translation>Не генерировать монеты</translation>
+        <translation>Не генерувати монети</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Specify data directory</source>
-        <translation>Укажите каталог данных</translation>
+        <translation>Укажіть каталог даних</translation>
     </message>
     <message>
         <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
-        <translation>Установить размер кэша базы данных в мегабайтах (за замовчуванням: 25)</translation>
+        <translation>Установити розмір кешу бази даних в мегабайтах (за замовчуванням: 25)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set database disk log size in megabytes (default: 100)</source>
-        <translation>Установить размер лога базы данных в мегабайтах (за замовчуванням: 100)</translation>
+        <translation>Установити розмір логу бази даних в мегабайтах (за замовчуванням: 100)</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Принимать входящие подключения на &lt;port&gt; (за замовчуванням: 7777 или 17777 в тестовой сети)</translation>
+        <translation>ПРиймати вхідні підключення на &lt;port&gt; (за замовчуванням: 7777 або 17777 в тестовій мережі)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Maintain at most &lt;n&gt; connections to peers (default: 125)</source>
-        <translation>Поддерживать не более &lt;n&gt; подключений к узлам (за замовчуванням: 125)</translation>
+        <translation>Підтримувати не більше &lt;n&gt; підключень до вузлів (за замовчуванням: 125)</translation>
     </message>
     <message>
         <location line="-33"/>
         <source>Connect to a node to retrieve peer addresses, and disconnect</source>
-        <translation>Подключиться к узлу, чтобы получить список адресов других участников и отключиться</translation>
+        <translation>Підключитись до вузла, щоб отримати список адрес інших учасників, і відключитись</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>Specify your own public address</source>
-        <translation>Укажите ваш собственный публичный адрес</translation>
+        <translation>Укажіть Вашу власну публічну адресу</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Bind to given address. Use [host]:port notation for IPv6</source>
-        <translation>Привязаться (bind) к указанному адресу. Используйте запись вида [хост]:порт для IPv6</translation>
+        <translation>Прив&apos;язаться (bind) до вказаної адреси. Використовуйте запис виду [хост]:порт для IPv6</translation>
     </message>
     <message>
         <location line="+77"/>
         <source>Threshold for disconnecting misbehaving peers (default: 100)</source>
-        <translation>Порог для отключения неправильно ведущих себя узлов (за замовчуванням: 100)</translation>
+        <translation>Поріг для відключення вузлів, що неправильно себе ведуть (за замовчуванням: 100)</translation>
     </message>
     <message>
         <location line="-112"/>
         <source>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</source>
-        <translation>Число секунд блокирования неправильно ведущих себя узлов (за замовчуванням: 86400)</translation>
+        <translation>Кількість секунд блокування вузлів, що неправильно себе ведуть (за замовчуванням: 86400)</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation>Произошла ошибка при открытии RPC-порта %u для прослушивания на IPv4: %s</translation>
+        <translation>Виникла помилка при відкритті RPC-порту %u для прослуховування на IPv4: %s</translation>
     </message>
     <message>
         <location line="+2"/>
