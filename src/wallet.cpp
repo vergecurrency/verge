@@ -1474,8 +1474,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
         // txdb must be opened before the mapWallet lock
         
         {
-            // nFeeRet = 0.01*COIN;
-            nFeeRet = nTransactionFee;
+            nFeeRet = max(10*CENT, nTransactionFee);
             while (true)
             {
                 wtxNew.vin.clear();
@@ -1540,7 +1539,19 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     scriptChange.SetDestination(vchPubKey.GetID());
 
                     // Insert change txn at random position:
-                    vector<CTxOut>::iterator position = wtxNew.vout.begin() + GetRandInt(wtxNew.vout.size());
+                    vector<CTxOut>::iterator position = wtxNew.vout.begin() + GetRandInt(wtxNew.vout.size() + 1);
+                    
+                    // -- don't put change output between value and narration outputs
+                    if (position > wtxNew.vout.begin() && position < wtxNew.vout.end())
+                    {
+                        while (position > wtxNew.vout.begin())
+                        {
+                            if (position->nValue != 0)
+                                break;
+                            position--;
+                        };
+                    };
+
                     wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
                 }
                 else
