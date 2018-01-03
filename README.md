@@ -148,6 +148,10 @@ You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.co
 * [OS X Instructions](doc/build-verge-osx.md)
 * [Windows Instructions](doc/build-verge-win.md)
 
+## Developer Notes
+
+Can be found [here](./doc/dev-notes.md)
+
 ## Docker Images
 
 Check out the [`contrib/readme`](https://github.com/vergecurrency/VERGE/tree/master/contrib/docker) for more information.
