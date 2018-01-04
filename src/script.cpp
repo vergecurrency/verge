@@ -1330,7 +1330,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 	    }
 	    else if (opcode2 == OP_RETURN)
 	    {
-		 return true;
+		break;
 	    }
             else if (opcode1 != opcode2 || vch1 != vch2)
             {
@@ -1464,23 +1464,8 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
 
 bool IsStandard(const CScript& scriptPubKey)
 {
-    vector<valtype> vSolutions;
     txnouttype whichType;
-    if (!Solver(scriptPubKey, whichType, vSolutions))
-        return false;
-
-    if (whichType == TX_MULTISIG)
-    {
-        unsigned char m = vSolutions.front()[0];
-        unsigned char n = vSolutions.back()[0];
-        // Support up to x-of-3 multisig txns as standard
-        if (n < 1 || n > 3)
-            return false;
-        if (m < 1 || m > n)
-            return false;
-    }
-
-    return whichType != TX_NONSTANDARD;
+    return IsStandard(scriptPubKey, whichType);
 }
 
 
