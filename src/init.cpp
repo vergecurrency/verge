@@ -592,7 +592,8 @@ bool AppInit2()
         if (!NewThread(StartTor, NULL))
                 InitError(_("Error: could not start tor node"));
 	}
-	
+
+
     if (mapArgs.count("-externalip"))
     {
         BOOST_FOREACH(string strAddr, mapMultiArgs["-externalip"]) {
