@@ -1551,7 +1551,7 @@ into signing your identity over to them. Only sign fully-detailed statements you
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be
 
 careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>Introdu adresa semnată, mesajul (asigura-te ca copiezi spațiile, taburile, etc.) și semnează dedesubt pentru a verifica mesajul.
+        <translation>Introdu adresa semnată, mesajul (asigura-te că o să copiezi spațiile, taburile, etc.) și semnează dedesubt pentru a verifica mesajul.
         Ai grijă să nu citești mai mult decât mesajul semnat în sine, pentru a evita să fii păcălit de un atac "omul din mijloc".</translation>
     </message>
     <message>
@@ -1809,51 +1809,51 @@ dacă un alt nod generează un bloc la câteva secunde distanță de al tău.</t
 to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may
 
 occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>Las monedas acaparadas deben esperar 25 bloques antes de que puedan retornar al balance y ser gastadas.  Cuando generaste este bloque POS,
+        <translation>Monedele plasate trebuie să aștepte 25 de blocuri înainte de a reveni în sold și a putea fi cheltuiți.  Când generezi acest POS,
 
-fue emitido a la red para ser añadido a la cadena de bloques. Si no logra ingresar a la cadena, su estado cambiará a  \"no aceptado\" y no será un acaparamiento
+este emis în rețea pentru a fi adăugat block chainului. Dacă eșuează să intre în chain, se va schimba în  \"neacceptat\" și nu va fi o plasare validă. Acest
 
-válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS con una diferencia de pocos segundos del tuyo.</translation>
+lucru se poate întampla ocazional dacă un alt nod generează un bloc POS la câteva secunde distanță de blocul tău.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Debug information</source>
-        <translation>Informacion de depuración</translation>
+        <translation>Informații de depanare</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Transaction</source>
-        <translation>Transacción</translation>
+        <translation>Tranzacții</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Inputs</source>
-        <translation>Entradas</translation>
+        <translation>Intrări</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Amount</source>
-        <translation>Cantidad</translation>
+        <translation>Suma</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>true</source>
-        <translation>verdadero</translation>
+        <translation>adevărat</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>false</source>
-        <translation>falso</translation>
+        <translation>fals</translation>
     </message>
     <message>
         <location line="-211"/>
         <source>, has not been successfully broadcast yet</source>
-        <translation>, no se ha difundido exitosamente aún</translation>
+        <translation>încă nu a fost difuzat cu succes</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>unknown</source>
-        <translation>desconocido</translation>
+        <translation>necunoscut</translation>
     </message>
 </context>
 <context>
@@ -1861,12 +1861,12 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
     <message>
         <location filename="../forms/transactiondescdialog.ui" line="+14"/>
         <source>Transaction details</source>
-        <translation>Detalles de la transacción</translation>
+        <translation>Detaliile tranzacției</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>Este panel muestra una descripción detallada de la transacción</translation>
+        <translation>Acest panou arată o descriere detaliată a tranzacției</translation>
     </message>
 </context>
 <context>
@@ -1874,93 +1874,93 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
     <message>
         <location filename="../transactiontablemodel.cpp" line="+226"/>
         <source>Date</source>
-        <translation>Fecha</translation>
+        <translation>Data</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type</source>
-        <translation>Tipo</translation>
+        <translation>Tip</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>Dirección</translation>
+        <translation>Adresă</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Amount</source>
-        <translation>Monto</translation>
+        <translation>Sumă</translation>
     </message>
     <message numerus="yes">
         <location line="+57"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Abierto por %n bloque</numerusform>
-            <numerusform>Abierto por %n bloques</numerusform>
+            <numerusform>Deschide pentru %n bloc</numerusform>
+            <numerusform>Deschide pentru %n blocuri</numerusform>
         </translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open until %1</source>
-        <translation>Abierto hasta %1</translation>
+        <translation>Deschis până la %1</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Offline (%1 confirmations)</source>
-        <translation>Fuera de línea (%1 confirmaciones)</translation>
+        <translation>Deconectat (%1 confirmări)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Unconfirmed (%1 of %2 confirmations)</source>
-        <translation>Sin confirmar (%1 de %2 confirmaciones)</translation>
+        <translation>Neconfirmate (%1 din %2 confirmări)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Confirmed (%1 confirmations)</source>
-        <translation>Confirmado (%1 confirmaciones)</translation>
+        <translation>Confirmate (%1 confirmări)</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
         <source>Mined balance will be available when it matures in %n more block(s)</source>
         <translation>
-            <numerusform>Balance minado estára disponible cuando madure en %n bloque más</numerusform>
-            <numerusform>Balance minado estára disponible cuando madure en %n bloques más</numerusform>
+            <numerusform>Suma minată este disponibilă când se maturizează în %n blocuri</numerusform>
+            <numerusform>Suma minată este disponibilă când se maturizează în %n blocuri</numerusform>
         </translation>
     </message>
     <message>
         <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>Este bloque no fue recibido por ningún otro nodo y probablemente no será aceptado!</translation>
+        <translation>Acest bloc nu a fost primit de alt nod și probabil nu va fi acceptat!</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated but not accepted</source>
-        <translation>Generado pero no aceptado</translation>
+        <translation>Generat dar neacceptat</translation>
     </message>
     <message>
         <location line="+43"/>
         <source>Received with</source>
-        <translation>Recibido con</translation>
+        <translation>Primit cu</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Received from</source>
-        <translation>Recibido desde</translation>
+        <translation>Primit de la</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sent to</source>
-        <translation>Enviado a</translation>
+        <translation>Trimis la</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Payment to yourself</source>
-        <translation>Pago a ti mismo</translation>
+        <translation>Plată către tine</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Mined</source>
-        <translation>Minado</translation>
+        <translation>Minat</translation>
     </message>
     <message>
         <location line="+38"/>
@@ -1970,27 +1970,27 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>Estado de la transacción. Desliza sobre este campo para mostrar el número de confirmaciones.</translation>
+        <translation>Statusul tranzacției. Treceți peste acest câmp pentru a vedea numărul de confirmări.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Date and time that the transaction was received.</source>
-        <translation>Fecha y hora a la que la transacción fue recibida.</translation>
+        <translation>Data și ora la care tranzacția a fost primită.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Type of transaction.</source>
-        <translation>Tipo de transacción.</translation>
+        <translation>Tipul tranzacției.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Destination address of transaction.</source>
-        <translation>Dirección de destino de la transacción.</translation>
+        <translation>Adresa de destinație a tranzacției.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Amount removed from or added to balance.</source>
-        <translation>Monto removido o añadido al balance.</translation>
+        <translation>Suma primită sau înlăturată din sold.</translation>
     </message>
 </context>
 <context>
@@ -1999,137 +1999,137 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
         <location filename="../transactionview.cpp" line="+55"/>
         <location line="+16"/>
         <source>All</source>
-        <translation>Todos</translation>
+        <translation>Introduceți</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Today</source>
-        <translation>Hoy</translation>
+        <translation>Azi</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This week</source>
-        <translation>Esta semana</translation>
+        <translation>Această săptămână</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This month</source>
-        <translation>Este mes</translation>
+        <translation>Această lună</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Last month</source>
-        <translation>Último mes</translation>
+        <translation>Luna trecută</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This year</source>
-        <translation>Este año</translation>
+        <translation>Acest an</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Range...</source>
-        <translation>Rango...</translation>
+        <translation>Gamă...</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received with</source>
-        <translation>Recibido con</translation>
+        <translation>Primit cu</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Sent to</source>
-        <translation>Enviado a</translation>
+        <translation>Trimis către</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>To yourself</source>
-        <translation>A ti mismo</translation>
+        <translation>Către tine</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Mined</source>
-        <translation>Minado</translation>
+        <translation>Minat</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Other</source>
-        <translation>Otro</translation>
+        <translation>Altul</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>Ingresa dirección o etiqueta para búsqueda</translation>
+        <translation>Introduceți adresa sau eticheta pentru căutare</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Min amount</source>
-        <translation>Monto mín.</translation>
+        <translation>Suma min.</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Copy address</source>
-        <translation>Copiar dirección</translation>
+        <translation>Copiază adresa</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy label</source>
-        <translation>Copiar etiqueta</translation>
+        <translation>Copiază eticheta</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy amount</source>
-        <translation>Copiar monto</translation>
+        <translation>Copiază suma</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit label</source>
-        <translation>Editar etiqueta</translation>
+        <translation>Editează eticheta</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show transaction details</source>
-        <translation>Mostrar detalles de la transacción</translation>
+        <translation>Arată detaliile tranzacției</translation>
     </message>
     <message>
         <location line="+142"/>
         <source>Export Transaction Data</source>
-        <translation>Exportar Datos de Transacción</translation>
+        <translation>Exportă Datele Tranzacției</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Archivo separado por comas (*.csv)</translation>
+        <translation>Fișier separat prin virgulă (*.csv)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Confirmed</source>
-        <translation>Confirmado</translation>
+        <translation>Confirmat</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date</source>
-        <translation>Fecha</translation>
+        <translation>Date</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type</source>
-        <translation>Tipo</translation>
+        <translation>Tip</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Label</source>
-        <translation>Etiqueta</translation>
+        <translation>Etichetăeta</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Address</source>
-        <translation>Dirección</translation>
+        <translation>Adresă</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Amount</source>
-        <translation>Monto</translation>
+        <translation>Sumă</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2139,22 +2139,22 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
     <message>
         <location line="+4"/>
         <source>Error exporting</source>
-        <translation>Error al exportar</translation>
+        <translation>Eroare de exportare</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>No se pudo escribir al fichero %1.</translation>
+        <translation>Nu se poate scrie în fișier %1.</translation>
     </message>
     <message>
         <location line="+95"/>
         <source>Range:</source>
-        <translation>Rango:</translation>
+        <translation>Gamă:</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>to</source>
-        <translation>a</translation>
+        <translation>către</translation>
     </message>
 </context>
 <context>
@@ -2162,7 +2162,7 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
     <message>
         <location filename="../walletmodel.cpp" line="+192"/>
         <source>Sending...</source>
-        <translation>Enviando...</translation>
+        <translation>Trimitere...</translation>
     </message>
 </context>
 <context>
@@ -2170,124 +2170,125 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
     <message>
         <location filename="../bitcoinstrings.cpp" line="+82"/>
         <source>VERGE version</source>
-        <translation>Versión de VERGE</translation>
+        <translation>Versiunea VERGE</translation>
     </message>
     <message>
         <location line="+82"/>
         <source> Usage:</source>
-        <translation>Uso:</translation>
+        <translation>Folosire:</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Send command to -server or bitcoind</source>
-        <translation>Enviar commando a -server o bitcoind</translation>
+        <translation>Trimite comandă către -server sau bitcoind</translation>
     </message>
     <message>
         <location line="-19"/>
         <source>List commands</source>
-        <translation>Listar comandos</translation>
+        <translation>Listează comenzile</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>Get help for a command</source>
-        <translation>Obtener ayuda para un comando</translation>
+        <translation>Ajutor pentru o comandă</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Options:</source>
-        <translation>Opciones:</translation>
+        <translation>Opțiuni:</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Specify configuration file (default: VERGE.conf)</source>
-        <translation>Especificar fichero de configuración (Por defecto: VERGE.conf)</translation>
+        <translation>Specifică fișierul de configurare (implicit: VERGE.conf)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Specify pid file (default: VERGEd.pid)</source>
-        <translation>Especificar fichero pid (Por defecto: VERGEd.pid)</translation>
+        <translation>Specifică fișierul pid (implicit: VERGEd.pid)</translation>
     </message>
     <message>
         <location line="-47"/>
         <source>Generate coins</source>
-        <translation>Generar monedas</translation>
+        <translation>Generează monede</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Don&apos;t generate coins</source>
-        <translation>No generar monedas</translation>
+        <translation>Nu&apos; genera monede</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Specify data directory</source>
-        <translation>Especificar directorio de datos</translation>
+        <translation>Specifică directorul de date</translation>
     </message>
     <message>
         <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
-        <translation>Elegir tamaño de caché de la base de datos en megabytes (Por defecto: 25)</translation>
+        <translation>Setează mărimea cache a bazei de date în megabiți (implicit: 25)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set database disk log size in megabytes (default: 100)</source>
-        <translation>Elegir tamaño del log de la base de datos en el disco en megabytes (Por defecto: 100)</translation>
+        <translation>Setează mărimea jurnalului de disc în megabiți (implicit: 100)</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Escuchar conexiones en &lt;puerto&gt; (Por defecto: 21102 o testnet: 18333)</translation>
+        <translation>Listează conexiuni în &lt;port&gt; (implicit: 21102 o testnet: 18333)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source> Maintain at most &lt;n&gt; connections to peers (Por defecto: 125)</source>
-        <translation> Mantener un máximo de &lt;n&gt; conexiones a pares (Por defecto: 125)</ translation>
+        <translation> Menține un maxim de&lt;n&gt; conexiuni către peers (implicit: 125)</ translation>
     </message>
     <message>
         <location line="-33"/>
         <source>Connect to a node to retrieve peer addresses, and disconnect</source>
-        <translation>Conectarse a nodo para obtener direcciones de pares, y desconectar</translation>
+        <translation>Conectează-te la un nod pentru a obține adresa și deconectează-te</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>Specify your own public address</source>
-        <translation>Especificar tu propia dirección pública</translation>
+        <translation>Specifică adresa dumneavoastră publică</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Bind to given address. Use [host]:port notation for IPv6</source>
-        <translation>Bind to given address. Usa notación [host]:port para IPv6</translation>
+        <translation>Legat la adresa oferită. Folosiți notația [host]:port pentru IPv6</translation>
     </message>
     <message>
         <location line="+77"/>
         <source>Threshold for disconnecting misbehaving peers (default: 100)</source>
-        <translation>Umbral para desconexión de nodos rebeldes (Por defecto: 100)</translation>
+        <translation>Cale pentru deconectarea peers (implicit: 100)</translation>
     </message>
     <message>
         <location line="-112"/>
         <source>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</source>
-        <translation>Número de segundos para impedir re-conexión de nodos rebeldes (Por defecto: 86400)</translation>
+        <translation>Numărul de secunde pentru a îndepărta peers de la reconectare (implicit: 86400)</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>O eroare s-a produs în timpul setări portului RPC %u pentru ascultarea în IPv4 %s</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Detach block and address databases. Increases shutdown time (default: 0)</source>
-        <translation>Desconectar base de datos de bloque y direcciones. Aumenta el tiempo de cierre (Por defecto: 0)</translation>
+        <translation>Deconectează blocurile și baza de date a adreselor. Crește timpul de oprire (implicit: 0)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of
 
 wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation type="unfinished"></translation>
+        <translation> Eroare: Tranzacția a fost respinsă. Acest lucru se poate întâmpla dacă unele monede din portofelul tău au fost deja cheltuite, cum ar fi folosirea unei copii
+        wallet.dat și monedele au fost cheltuite în copie dar nu au fost marcate ca fiind cheltuite aici</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation type="unfinished"></translation>
+        <translation>Eroare: Această tranzacție necesită o taxă de cel puțin %s datorită sumei sale, complexității, sau utilizării fondurilor recent primite</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2297,317 +2298,314 @@ wallet.dat and coins were spent in the copy but not marked as spent here.</sourc
     <message>
         <location line="+31"/>
         <source>Accept command line and JSON-RPC commands</source>
-        <translation>Aceptar línea de comando y comandos JSON-RPC</translation>
+        <translation>Acceptă linia de comandă și comenzile JSON-RPC</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>Error: Transaction creation failed  </source>
-        <translation type="unfinished"></translation>
+        <translation>Eroare: Crearea tranzacției a eșuat</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation type="unfinished"></translation>
+        <translation>Eroare: Portofel blocat, imposibil de creat tranzacție</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Importing blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Import fișier de date blockchain</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Importing bootstrap blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Import fișier de date boostrap blockchain</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Run in the background as a daemon and accept commands</source>
-        <translation>Ejecutar en Segundo plano como servicio y aceptar comandos</translation>
+        <translation>Rulează în fundal ca un proces de fundal și acceptă comenzi</translation>
     </message>
     <message>
         <location line="+33"/>
         <source>Use the test network</source>
-        <translation>Usar la red de prueba</translation>
+        <translation>Folosește rețeaua de test</translation>
     </message>
     <message>
         <location line="-93"/>
         <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>
-        <translation>Aceptar conexiones entrantes (Por defecto: 1 if no -proxy or -connect)</translation>
+        <translation>Acceptă conexiuni din exterior (implicit: 1 if no -proxy or -connect)</translation>
     </message>
     <message>
         <location line="-53"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>O eroare s-a produs în timpul setării portului RPC %u pentru ascultare pe IPv6, revenire la IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eroare inițializare bază de date %s! Pentru revenire, faceți backup directorului, apoi eliminați totul din el cu excepția wallet.dat</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</source>
-        <translation>Configurar tamaño máximo de transacciones de alta/baja tarifa en bytes (Por defecto: 27000)</translation>
+        <translation>Configurați mărimea maximă în biți a tranzacției pentru prioritate ridicată/taxă minimă  (implicit: 27000)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
-        <translation>Advertencia: -paytxfee está configurado muy alto! Esta es la tarifa que pagarás al enviar una transacción.</translation>
+        <translation>Avertizare: -paytxfee este setat foarte ridicat! Aceasta este taxa de tranzacție pe care o vei plăti dacă trimiți tranzacția.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</source>
-        <translation>Advertencia: Las transacciones mostradas podrían ser incorrectas! Quizás debas actualizar, u otros nodos necesiten
-
-actualización.</translation>
+        <translation>Avertizare: Tranzacțiile afișate e posibil să nu fie corecte! E posibil să aveți nevoie de o actualizare,
+         sau alte noduri au nevoie de actualiare .</translation>
     </message>
     <message>
         <location line="+3"/>
         <source> Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong VERGE will not work properly.</source>
-        <translation> Advertencia: Por favor verifica que la fecha y hora de tu computador son correctas! Si tu reloj está desfasado VERGE no funcionará
-
-correctamente.</translation>
+        <translation> Avertizare: Vă rog verificați data și ora setată la sistemul dumneavoastră! Dacă timpul setat este incorect VERGE
+        nu va funcționa corect.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</source>
-        <translation>Advertencia: error al leer fichero wallet.dat! Todas las claves leídas correctamente, pero la información de transacción o entradas de la
-
-libreta de direcciones están ausentes o incorrectas.</translation>
+        <translation>Avertisment: eroare citire fișier wallet.dat! Toate keys sunt corecte, dar datele de tranzacție sau cartea de adrese e posibil
+        să lipsească sau să fie incorecte.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source> Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are
 
 incorrect you should restore from a backup.</source>
-        <translation> Advertencia: fichero wallet.dat corrupto, datos salvados! Fichero wallet.dat original guardado como wallet.{timestamp}.bak in %s; sit u
+        <translation> Avertizare: fișierul wallet.dat corupt, datele salvate! Fișierul wallet.dat original salvat ca wallet.{timestamp}.bak în %s; dacă soldul
 
-balance o transacciones son incorrectas deberías restaurar desde un respaldo.</translation>
+tranzacțiilor este incorect, ar trebui să restaurați dintr-un backup.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Attempt to recover private keys from a corrupt wallet.dat</source>
-        <translation>Intento de recuperar claves privadas desde un fichero wallet.dat corrupto</translation>
+        <translation>Încercare de recuperare cheie privată dintr-un wallet.dat corupt</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Block creation options:</source>
-        <translation>Opciones de creación de bloque:</translation>
+        <translation>Opțiuni de creare blocului:</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Connect only to the specified node(s)</source>
-        <translation>Conectarse solamente a el(los) nodo(s) especificado(s)</translation>
+        <translation>Conectează-te numai la nodul(urile) specificat(e)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Discover own IP address (default: 1 when listening and no -externalip)</source>
-        <translation>Mostrar la dirección IP propia (Por defecto: 1 al escuchar y no -externalip)</translation>
+        <translation>Arată adresa IP proprie (implicit: 1 când ascultați și fără -externalip)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
-        <translation>Falló la escucha en todos los puertos. Usa -listen=0 si deseas esto.</translation>
+        <translation>Eșuat ascultare pe orice port. Folosește -listen=0 dacă dorești asta.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Find peers using DNS lookup (default: 0)</source>
-        <translation>Buscar pares usando búsqueda DNS (Por defecto: 0)</translation>
+        <translation>Caută peers folosind căutarea DNS (implicit: 0)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Invalid -tor address: &apos;%s&apos;</source>
-        <translation>Dirección -tor inválida: &apos;%s&apos;</translation>
+        <translation>Adresă -tor invalidă: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</source>
-        <translation>Búfer de recepción máximo por conexión, &lt;n&gt;*1000 bytes (Por defecto: 5000)</translation>
+        <translation> Buffer de primire, maximum per conexiuni &lt;n&gt;*1000 bytes (implicit: 5000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: 1000)</source>
-        <translation> Búfer de envío máximo por conexión, &lt;n&gt;*1000 bytes (Por defecto: 1000)</translation>
+        <translation> Buffer de trimitere, maximum per conexiuni &lt;n&gt;*1000 bytes (implicit: 1000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</source>
-        <translation>Conectarse solo a los nodos en la red &lt;net&gt; (IPv4, IPv6 o Tor)</translation>
+        <translation>Doar conexiunile în noduri în rețea &lt;net&gt; (IPv4, IPv6 sau Tor)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Output extra debugging information. Implies all other -debug* options</source>
-        <translation>Producir información de depuración extra. Implica todas las otras opciones de -debug*</translation>
+        <translation>Informații suplimentare de output depanare. Implică toate celelalte opțiuni -debug*</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Output extra network debugging information</source>
-        <translation>Producir información de depuración extra </translation>
+        <translation>Informații suplimentare de output depanare rețea</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Prepend debug output with timestamp</source>
-        <translation>Salida de depuración con marcador de tiempo</translation>
+        <translation>Prefixat output depanare cu  time-stamp</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</source>
-        <translation>Opciones SSL: (ver la Wiki de Bitcoin para instrucciones de seteo de SSL)</translation>
+        <translation>Opțiuni SSL: (verifică  Wiki Bitcoin pentru instrucțiuni de setare SSL)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Select the version of socks proxy to use (4-5, default: 5)</source>
-        <translation>Selecciona la version de sock proxy a usar (4-5, Por defecto: 5)</translation>
+        <translation>Selectează la versiunea de socks proxy pentru utiliare (4-5, implicit: 5)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Send trace/debug info to console instead of debug.log file</source>
-        <translation>Enviar información de traza/depuración a la consola en vez del fichero debug.log</translation>
+        <translation>Trimite informații de urmărire/depanare în consolă în locul fișierului debug.log</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Send trace/debug info to debugger</source>
-        <translation> Enviar información de traza/depuración al depurador</translation>
+        <translation> Trimite informații de urmărire/depanare către depanator</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Set maximum block size in bytes (default: 250000)</source>
-        <translation>Configurar tamaño máximo de bloque en bytes (Por defecto: 250000)</translation>
+        <translation>Setează valoarea maximă a blocului în bytes (implcit: 250000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set minimum block size in bytes (default: 0)</source>
-        <translation>Configurar tamaño mínimo del bloque en bytes (Por defecto: 0)</translation>
+        <translation>Setează valoarea minimă a blocului în bytes (implcit: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Shrink debug.log file on client startup (default: 1 when no -debug)</source>
-        <translation>Reducir fichero debug.log al iniciar cliente (Por defecto: 1 cuando no -debug)</translation>
+        <translation>Micșorează fișierul debug.log la pornirea clientului (implicit: 1 când e fără -debug)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Specify connection timeout in milliseconds (default: 5000)</source>
-        <translation>Especificar tiempo muerto en milisegundos (Por defecto: 5000)</translation>
+        <translation>Specifică timeout-ul conexiunii în milisecunde (implicit: 5000)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Use UPnP to map the listening port (default: 0)</source>
-        <translation>Usar UPnP para mapear puesto de escucha (Por defecto: 0)</translation>
+        <translation>Folosește UPnP pentru mapare și ascultare port(implicit: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use UPnP to map the listening port (default: 1 when listening)</source>
-        <translation> Usar UPnP para mapear puesto de escucha (Por defecto: 1 durante la escucha)</translation>
+        <translation> Folosește UPnP pentru mapare și pentru ascultare port (implicit: 1 când ascultă)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use proxy to reach tor hidden services (default: same as -proxy)</source>
-        <translation>Usar proxy para conectarse a servicios escondidos de Tor (Por defecto: al igual que -proxy)</translation>
+        <translation>Folosește proxy pentru a te conecta la serviciul ascuns Tor (implicit: la fel ca -proxy)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Username for JSON-RPC connections</source>
-        <translation>Nombre de usuario para conexiones JSON-RPC</translation>
+        <translation>Numele de utilizator pentru conexiunile JSON-RPC</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Verifying database integrity...</source>
-        <translation type="unfinished"></translation>
+        <translation type>Verificare integritate bază de date...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Warning: Disk space is low!</source>
-        <translation>Advertencia: poco espacio en disco duro!</translation>
+        <translation>Avertizare: Spațiul de pe disc este scăzut!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: This version is obsolete, upgrade required!</source>
-        <translation>Advertencia: Esta versión está obsoleta, se requiere actualización!</translation>
+        <translation>Avertizare: Această versiune este învechită, necesită actualizare!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>wallet.dat corrupt, salvage failed</source>
-        <translation type="unfinished"></translation>
+        <translation>wallet.dat corupt, salvare eșuată</translation>
     </message>
     <message>
         <location line="-43"/>
         <source>Password for JSON-RPC connections</source>
-        <translation>Contraseña para conexiones JSON-RPC </translation>
+        <translation>Parola pentru conexiunile JSON-RPC </translation>
     </message>
     <message>
         <location line="-53"/>
         <source>Allow JSON-RPC connections from specified IP address</source>
-        <translation>Permitir conexiones JSON-RPC desde la dirección IP especificada</translation>
+        <translation>Permite conexiunilor JSON-RPC  de la adresa IP specificată</translation>
     </message>
     <message>
         <location line="+61"/>
         <source>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</source>
-        <translation>Enviar commandos al nodo ejecutándose en &lt;ip&gt; (Por defecto: 127.0.0.1)</translation>
+        <translation>Trimite comenzi nodului ce rulează pe: &lt;ip&gt; (implicit: 127.0.0.1)</translation>
     </message>
     <message>
         <location line="-99"/>
         <source>Execute command when the best block changes (%s in cmd is replaced by block hash)</source>
-        <translation>Ejecutar comandos cuando el mejor bloque cambie (%s en cmd es remplazado por el hash del bloque)</translation>
+        <translation>Execută comanda când cel mai bun bloc se schimbă (%s în cmd este înlocuit de hashul blocului)</translation>
     </message>
     <message>
         <location line="+122"/>
         <source>Upgrade wallet to latest format</source>
-        <translation>Actualizar cartera al último formato</translation>
+        <translation>Actualizează portofelul la ultimul format</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Set key pool size to &lt;n&gt; (default: 100)</source>
-        <translation>Configurar tamaño de la pool de claves a &lt;n&gt; (Por defecto: 100)</translation>
+        <translation>Setează mărimea key poolului &lt;n&gt; (implicit: 100)</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Rescan the block chain for missing wallet transactions</source>
-        <translation>Re-escanear la cadena de bloques por transacciones de cartera perdidas</translation>
+        <translation>Re-scanează block chainul pentru tranzacțiile lipsă din portofel</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>How many blocks to check at startup (default: 2500, 0 = all)</source>
-        <translation>Cantidad de bloques revisar al inicio (Por defecto: 2500, 0 = all)</translation>
+        <translation>Cantitatea de blocuri de verificat la pornire (implicit: 2500, 0 = all)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>How thorough the block verification is (0-6, default: 1)</source>
-        <translation>Que tan completa es la verificación de bloque (0-6, Por defecto: 1)</translation>
+        <translation>Cât de complet este verificat blocul (0-6, implicit: 1)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Imports blocks from external blk000?.dat file</source>
-        <translation>Importar bloques desde fichero blk000?.dat externo</translation>
+        <translation>Importă blocurile din fișierul extern blk000?.dat</translation>
     </message>
     <message>
         <location line="+51"/>
         <source>Use OpenSSL (https) for JSON-RPC connections</source>
-        <translation>Usar OpenSSL (https) para conexiones JSON-RPC</translation>
+        <translation>Folosește OpenSSL (https) pentru conexiunile JSON-RPC</translation>
     </message>
     <message>
         <location line="-21"/>
         <source>Server certificate file (default: server.cert)</source>
-        <translation>Fichero de certificado de Servidor (Por defecto: server.cert)</translation>
+        <translation>Fișierul de certificare a Serverului (implicit: server.cert)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Server private key (default: server.pem)</source>
-        <translation>Clave privada de Servidor (Por defecto: server.pem)</translation>
+        <translation>Cheia privată a serverului (implicit: server.pem)</translation>
     </message>
     <message>
         <location line="-127"/>
         <source>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</source>
-        <translation>Cifrados aceptables (Por defecto: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
+        <translation>Coduri acceptate (implicit: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
     </message>
     <message>
         <location line="+139"/>
         <source>This help message</source>
-        <translation>Este mensaje de ayuda</translation>
+        <translation>Acest mesaj de ajutor</translation>
     </message>
     <message>
         <location line="-131"/>
         <source>Cannot obtain a lock on data directory %s.  VERGE is probably already running.</source>
-        <translation>No se pudo  obtener lock en el directorio de datos %s.  VERGE está probablemente ejecutándose ya.</translation>
+        <translation>Nu se poate fixa directorul de date %s.  VERGE probabil rulează deja.</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -2617,157 +2615,157 @@ balance o transacciones son incorrectas deberías restaurar desde un respaldo.</
     <message>
         <location line="+77"/>
         <source>Unable to bind to %s on this computer (bind returned error %d, %s)</source>
-        <translation>No se logró enlazar a %s en este computador (enlace retornó error %d, %s)</translation>
+        <translation>Nu se poate lega de %s pe acest computer (legarea a returnat eroarea %d, %s)</translation>
     </message>
     <message>
         <location line="-69"/>
         <source>Connect through socks proxy</source>
-        <translation>Conectarse a través de socks proxy</translation>
+        <translation>Conectează-te prin socks proxy</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>Allow DNS lookups for -addnode, -seednode and -connect</source>
-        <translation>Permitir búsquedas DNS para -addnode, -seednode y  -connect</translation>
+        <translation>Permite căutarea DNS pentru -addnode, -seednode și -connect</translation>
     </message>
     <message>
         <location line="+44"/>
         <source>Loading addresses...</source>
-        <translation>Cargando direcciones...</translation>
+        <translation>Încarcă adresele...</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Error loading blkindex.dat</source>
-        <translation>Error cargando blkindex.dat</translation>
+        <translation>Eroare încărcare blkindex.dat</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Error loading wallet.dat: Wallet corrupted</source>
-        <translation>Error cargando wallet.dat: Cartera corrupta</translation>
+        <translation>Eroare încărcare wallet.dat: Portofel corupt</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error loading wallet.dat: Wallet requires newer version of VERGE</source>
-        <translation>Error cargando wallet.dat: Cartera requiere versión actualizada de VERGE</translation>
+        <translation>Eroare încărcare wallet.dat: Portofelul necesită actualizare la ultima versiune VERGE</translation>
     </message>
     <message>
         <location line="+73"/>
         <source>Wallet needed to be rewritten: restart VERGE to complete</source>
-        <translation>Cartera requirió ser re-escrita: reiniciar VERGE para completar</translation>
+        <translation>Portofelul a fost nevoit să fie rescris: repornește VERGE pentru completare</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Error loading wallet.dat</source>
-        <translation>Error cargando wallet.dat</translation>
+        <translation>Eroare încărcare wallet.dat</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Invalid -proxy address: &apos;%s&apos;</source>
-        <translation>Dirección -proxy inválida: &apos;%s&apos;</translation>
+        <translation>Adresă -proxy invalidă: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Unknown network specified in -onlynet: &apos;%s&apos;</source>
-        <translation>Red desconocida especificada en -onlynet: &apos;%s&apos;</translation>
+        <translation>Rețea necunoscută specificată în -onlynet: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="-1"/>
         <source>Unknown -socks proxy version requested: %i</source>
-        <translation>Versión -sock proxy solicitada desconocida: %i</translation>
+        <translation>Versiune -sock proxy solicitată necunoscută: %i</translation>
     </message>
     <message>
         <location line="-74"/>
         <source>Cannot resolve -bind address: &apos;%s&apos;</source>
-        <translation> No se pudo resolver dirección -bind: &apos;%s&apos;</translation>
+        <translation> Nu se poate rezolva adresa -bind: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot resolve -externalip address: &apos;%s&apos;</source>
-        <translation>No se pudo resolver dirección -externalip: &apos;%s&apos;</translation>
+        <translation>Nu se poate rezolva adresa -externalip: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</source>
-        <translation>Monto inválido para -paytxfee=&lt;monto&gt;: &apos;%s&apos;</translation>
+        <translation>Sumă invalidă pentru -paytxfee=&lt;monto&gt;: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Error: could not start node</source>
-        <translation>Error: no se pudo iniciar nodo</translation>
+        <translation>Eroare: nu se poate iniția nod</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Sending...</source>
-        <translation>Enviando...</translation>
+        <translation>Trimitere...</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>Invalid amount</source>
-        <translation>Monto inválido</translation>
+        <translation>Sumă invalidă</translation>
     </message>
     <message>
         <location line="-4"/>
         <source>Insufficient funds</source>
-        <translation>Fondos insuficientes</translation>
+        <translation>Fonduri insuficiente</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Loading block index...</source>
-        <translation>Cargando índice de bloquestranslation>
+        <translation>Încărcare index blocuri...</translation>
     </message>
     <message>
         <location line="-46"/>
         <source>Add a node to connect to and attempt to keep the connection open</source>
-        <translation>Agregar a nodo para conectarse e intentar mantener la conexión abierta</translation>
+        <translation>Adaugă un nod de conectare și încercați să mențineți conexiunea</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Unable to bind to %s on this computer. VERGE is probably already running.</source>
-        <translation>No se logró enlazar a %s en este computador. VERGE probablemente ya se esté ejecutando.</translation>
+        <translation>Nu se poate lega de %s pe acest computer. VERGE probabil rulează deja.</translation>
     </message>
     <message>
         <location line="+55"/>
         <source>Find peers using internet relay chat (default: 1)</source>
-        <translation>Buscar pares usando IRC (Por defecto: 1)</translation>
+        <translation>Caută peers folosind IRC (implicit: 1)</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Fee per KB to add to transactions you send</source>
-        <translation>Tarifa por KB para agregar a las transacciones que realices</translation>
+        <translation>Tariful per KB adăugat la tranzacția pe care o trimiteți</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Loading wallet...</source>
-        <translation>Cargando cartera...</translation>
+        <translation>Încărcare portofel...</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Cannot downgrade wallet</source>
-        <translation>No se puede hacer downgrade de la cartera</translation>
+        <translation>Nu se poate declasa portofelul</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot initialize keypool</source>
-        <translation>No se pudo inicializar la keypool</translation>
+        <translation>Nu se poate iniția keypool</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Cannot write default address</source>
-        <translation>No se pudo escribir a la dirección por defecto</translation>
+        <translation>Nu se poate scrie adresa implicită</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Rescanning...</source>
-        <translation>Re-escaneando...</translation>
+        <translation>Rescanare...</translation>
     </message>
     <message>
         <location line="-40"/>
         <source>Done loading</source>
-        <translation>Carga completa</translation>
+        <translation>Încărcare efectuată</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>To use the %s option</source>
-        <translation>Para usar la opción %s</translation>
+        <translation>Pentru utilizarea opțiunii %s</translation>
     </message>
     <message>
         <location line="-150"/>
@@ -2779,28 +2777,28 @@ rpcpassword=%s
 (you do not need to remember this password)
 If the file does not exist, create it with owner-readable-only file permissions.
 </source>
-        <translation>%s, debes configurar rpcpassword en el fichero de configuración:
+        <translation>%s, trebuie configurată o  rpcpassword în fișierul de configurație:
  %s
-Se recomienda que uses la siguiente contraseña aleatoria:
+Se recomandă să utilizați următoarea parolă random:
 rpcuser=bitcoinrpc
 rpcpassword=%s
-(no necesitas recordar esta contraseña)
-Si el fichero no existe, crear uno con permisos de lectura solamente.
+(nu necesită memorare)
+Dacă fișierul nu există, creează-l cu permisiuni read-only.
 </translation>
     </message>
     <message>
         <location line="+91"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation>Eroare</translation>
     </message>
     <message>
         <location line="-30"/>
         <source>You must set rpcpassword=&lt;password&gt; in the configuration file:
 %s
 If the file does not exist, create it with owner-readable-only file permissions.</source>
-        <translation>Debes configurar  rpcpassword=&lt;password&gt; en el fichero de configuración:
+        <translation>Trebuie configurat  rpcpassword=&lt;password&gt; în fișierul de configurare:
 %s
-Si el fichero no existe, crear uno con permisos de lectura solamente.</translation>
+Dacă fișierul nu există, creează-l cu permisiuni read-only.</translation>
     </message>
 </context>
 </TS>
