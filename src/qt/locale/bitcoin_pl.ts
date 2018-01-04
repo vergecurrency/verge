@@ -95,12 +95,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified VERGE address</source>
-        <translation>Weryfikuj wiadomość aby upewnić się, że została podpisana podanym adresem VERGE</translation>
+        <translation>Zweryfikuj wiadomość aby upewnić się, że została podpisana podanym adresem VERGE</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Weryfikuj wiadomość</translation>
+        <translation>&amp;Zweryfikuj wiadomość</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -125,7 +125,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Plik (*.csv)</translation>
+        <translation>Plik oddzielany przecinkami (*.csv)</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -262,12 +262,12 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>Szyfrowanie portfelu nie powiodło się</translation>
+        <translation>Szyfrowanie portfela nie powiodło się</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Szyfrowanie portfelu nie powiodło się z powodu błędu wewnętrznego. Twój portfel nie został zaszyfrowany.</translation>
+        <translation>Szyfrowanie portfela nie powiodło się z powodu błędu wewnętrznego. Twój portfel nie został zaszyfrowany.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2489,17 +2489,17 @@ Dziś</translation>
     <message>
         <location line="-99"/>
         <source>Execute command when the best block changes (%s in cmd is replaced by block hash)</source>
-        <translation>Execute command when the best block changes (%s in cmd is replaced by block hash)</translation>
+        <translation>Wykonaj polecenie, gdy zmieni się najlepszy blok (%s w cmd jest zastąpiony przez hash bloku)</translation>
     </message>
     <message>
         <location line="+122"/>
         <source>Upgrade wallet to latest format</source>
-        <translation>Upgrade wallet to latest format</translation>
+        <translation>Zaktualizuj portfel do ostatniego formatu</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Set key pool size to &lt;n&gt; (default: 100)</source>
-        <translation>Set key pool size to &lt;n&gt; (default: 100)</translation>
+        <translation>Ustaw rozmiar puli kluczy na &lt;n&gt; (domyślnie: 100)</translation>
     </message>
     <message>
         <location line="-14"/>
@@ -2559,7 +2559,7 @@ Dziś</translation>
     <message>
         <location line="+77"/>
         <source>Unable to bind to %s on this computer (bind returned error %d, %s)</source>
-        <translation>Unable to bind to %s on this computer (bind returned error %d, %s)</translation>
+        <translation> Nie udało się powiązać z %s na tym komputerze (bind zwrócił błąd %d, %s)</translation>
     </message>
     <message>
         <location line="-69"/>
@@ -2615,17 +2615,17 @@ Dziś</translation>
     <message>
         <location line="-1"/>
         <source>Unknown -socks proxy version requested: %i</source>
-        <translation>Unknown -socks proxy version requested: %i</translation>
+        <translation>Zażądano nieznanej wersji -socks proxy: %i</translation>
     </message>
     <message>
         <location line="-74"/>
         <source>Cannot resolve -bind address: &apos;%s&apos;</source>
-        <translation>Cannot resolve -bind address: &apos;%s&apos;</translation>
+        <translation>Nie można rozwiązać -bind address: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot resolve -externalip address: &apos;%s&apos;</source>
-        <translation>Cannot resolve -externalip address: &apos;%s&apos;</translation>
+        <translation>Nie można rozwiązać -externalip address: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -2665,7 +2665,7 @@ Dziś</translation>
     <message>
         <location line="-25"/>
         <source>Unable to bind to %s on this computer. VERGE is probably already running.</source>
-        <translation>Nie udało się przywiązać %s na tym komputerze VERGE jest już prawdopodobnie aktywny.</translation>
+        <translation>Nie udało się powiązać z  %s na tym komputerze. VERGE jest już prawdopodobnie aktywny.</translation>
     </message>
     <message>
         <location line="+55"/>
@@ -2685,12 +2685,12 @@ Dziś</translation>
     <message>
         <location line="-39"/>
         <source>Cannot downgrade wallet</source>
-        <translation>Cannot downgrade wallet</translation>
+        <translation>Nie można degradować portfela.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot initialize keypool</source>
-        <translation>Nie można zainicjalizować keypool</translation>
+        <translation>Nie można zainicjalizować puli kluczy.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -2700,7 +2700,7 @@ Dziś</translation>
     <message>
         <location line="+46"/>
         <source>Rescanning...</source>
-        <translation>Ponowne skanowanie...</translation>
+        <translation>Skanowanie ponowne...</translation>
     </message>
     <message>
         <location line="-40"/>
