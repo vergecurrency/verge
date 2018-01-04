@@ -1330,7 +1330,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 	    }
 	    else if (opcode2 == OP_RETURN)
 	    {
-		return true;
+		 return true;
 	    }
             else if (opcode1 != opcode2 || vch1 != vch2)
             {
@@ -1394,9 +1394,8 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     switch (whichTypeRet)
     {
     case TX_NONSTANDARD:
-        return false;
     case TX_NULL_DATA:
-	return false;
+        return false;
     case TX_PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
         return Sign1(keyID, keystore, hash, nHashType, scriptSigRet);
@@ -1425,9 +1424,8 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
 {
     switch (t)
     {
-    case TX_NULL_DATA:
-	return -1;
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         return -1;
     case TX_PUBKEY:
         return 1;
@@ -1529,9 +1527,8 @@ bool IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
     CKeyID keyID;
     switch (whichType)
     {
-    case TX_NULL_DATA:
-	return false;
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         return false;
     case TX_PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
@@ -1567,10 +1564,6 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
     if (!Solver(scriptPubKey, whichType, vSolutions))
         return false;
 
-    if (whichType == TX_NULL_DATA){
-        // This is data, not addresses
-        return false;
-    }
     if (whichType == TX_PUBKEY)
     {
         addressRet = CPubKey(vSolutions[0]).GetID();
@@ -1639,6 +1632,11 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, vecto
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, typeRet, vSolutions))
         return false;
+
+    if (typeRet == TX_NULL_DATA){
+        // This is data, not addresses
+        return false;
+    }
 
     if (typeRet == TX_MULTISIG)
     {
@@ -1827,11 +1825,8 @@ static CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo,
 {
     switch (txType)
     {
-    case TX_NULL_DATA:
-        // Don't know anything about this, assume bigger one is correct:
-        if (sigs1.size() >= sigs2.size())
-	    return PushAll(sigs1);
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         // Don't know anything about this, assume bigger one is correct:
         if (sigs1.size() >= sigs2.size())
             return PushAll(sigs1);
