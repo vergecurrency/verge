@@ -31,3 +31,21 @@ The _slightly_ longer version:
 > **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
 
 
+### Building Linux Wallet on Fedora 27
+
+This should also work on some previous Fedoras if you replace `dnf` with `yum`.
+
+1. Install dependencies
+```
+sudo dnf install git automake boost-devel qt5-devel qrencode-devel libdb4-cxx-devel miniupnpc-devel protobuf-devel gcc gcc-c++ openssl-devel
+```
+2. Clone source and build
+```
+git clone https://github.com/vergecurrency/VERGE.git
+cd VERGE
+./autogen.sh
+./configure --with-gui=qt5
+make -j4 # number of CPU cores to use for compiling
+sudo make install
+```
+3. Run `VERGE-qt`
