@@ -45,7 +45,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Podwójne kliknięcie aby edytować adres lub etykietę</translation>
+        <translation>Kliknij podwójnie, aby edytować adres lub etykietę</translation>
     </message>
     <message>
         <location line="+27"/>
