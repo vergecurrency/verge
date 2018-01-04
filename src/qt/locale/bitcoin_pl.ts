@@ -65,7 +65,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-46"/>
         <source>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>To są  Twoje adresy VERGE do otrzymywania płatności. Możesz dać osobny adres każdemu odbiorcy aby śledzić kto Ci płaci.</translation>
+        <translation>To są Twoje adresy VERGE do otrzymywania płatności. Możesz dać osobny adres każdemu odbiorcy aby śledzić kto Ci płaci.</translation>
     </message>
     <message>
         <location line="+60"/>
@@ -80,7 +80,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own a VERGE address</source>
-        <translation>Podpisz wiadomość aby udowodnić, ze jesteś właścicielem adresu</translation>
+        <translation>Podpisz wiadomość aby udowodnić, że jesteś właścicielem adresu</translation>
     </message>
     <message>
         <location line="+3"/>
