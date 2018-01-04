@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>593</width>
-    <height>319</height>
+    <height>495</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>593</width>
+    <height>495</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>About VERGE</string>
@@ -23,7 +29,7 @@
       </sizepolicy>
      </property>
      <property name="pixmap">
-      <pixmap resource="../bitcoin.qrc">:/images/about</pixmap>
+      <pixmap>:/images/about</pixmap>
      </property>
     </widget>
    </item>
@@ -140,17 +146,11 @@ HTP!</string>
      </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
-min-height: 25px;
-max-height: 25px;
-min-width: 100px;
-max-width: 100px;</string>
+        <string notr="true"/>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -164,9 +164,7 @@ max-width: 100px;</string>
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../bitcoin.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
