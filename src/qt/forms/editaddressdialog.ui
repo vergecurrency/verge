@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>457</width>
-    <height>126</height>
+    <height>173</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,11 +36,6 @@
        </property>
        <property name="styleSheet">
         <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
 min-height: 25px;
 max-height: 25px;</string>
        </property>
@@ -63,30 +58,20 @@ max-height: 25px;</string>
        </property>
        <property name="styleSheet">
         <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
 min-height: 25px;
 max-height: 25px;</string>
        </property>
       </widget>
      </item>
-	 <item row="2" column="0">
+     <item row="2" column="1">
       <widget class="QCheckBox" name="stealthCB">
-       <property name="text">
-        <string>Stealth Address</string>
-       </property>
-	   <property name="styleSheet">
+       <property name="styleSheet">
         <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
 min-height: 25px;
 max-height: 25px;</string>
+       </property>
+       <property name="text">
+        <string>Stealth Address</string>
        </property>
       </widget>
      </item>

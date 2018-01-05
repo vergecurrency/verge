@@ -49,12 +49,7 @@
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #000000;
-min-height: 150px;
+      <string notr="true">min-height: 150px;
 max-height: 150px;</string>
      </property>
      <property name="readOnly">
@@ -78,12 +73,7 @@ max-height: 150px;</string>
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #000000;
-min-height: 125px;
+      <string notr="true">min-height: 125px;
 max-height: 125px;</string>
      </property>
      <property name="readOnly">
@@ -107,12 +97,7 @@ max-height: 125px;</string>
       <bool>false</bool>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+      <string notr="true">min-height: 25px;
 max-height: 25px;</string>
      </property>
      <property name="readOnly">
@@ -125,51 +110,33 @@ max-height: 25px;</string>
      <item>
       <widget class="QPushButton" name="privButton">
        <property name="styleSheet">
-        <string notr="true">border: 1px solid #000000;
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-min-width: 100px;
+        <string notr="true">min-width: 100px;
 max-height: 100px;</string>
        </property>
        <property name="text">
-        <string>Copy &quot;mydestination&quot; parameter
-to the clipboard</string>
+        <string>Copy My Destination</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pubButton">
        <property name="styleSheet">
-        <string notr="true">border: 1px solid #000000;
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-min-width: 100px;
+        <string notr="true">min-width: 100px;
 max-height: 100px;</string>
        </property>
        <property name="text">
-        <string>Copy public address
-to the clipboard</string>
+        <string>Copy Public Address</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="b32Button">
        <property name="styleSheet">
-        <string notr="true">border: 1px solid #000000;
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-min-width: 100px;
+        <string notr="true">min-width: 100px;
 max-height: 100px;</string>
        </property>
        <property name="text">
-        <string>Copy b32-address
-to the clipboard</string>
+        <string>Copy B32 Address</string>
        </property>
       </widget>
      </item>
