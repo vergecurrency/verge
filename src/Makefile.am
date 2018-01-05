@@ -237,6 +237,8 @@ VERGEd_LDADD = \
   $(LIBBITCOIN_UTIL) \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
+  $(ZLIB_LIBS) \
+  $(LIBEVENT_LIBS) \
   ../tor/src/or/libtor.a \
 			../tor/src/common/libor.a \
 			../tor/src/common/libor-ctime.a \
