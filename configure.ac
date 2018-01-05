@@ -13,7 +13,7 @@ AC_CANONICAL_HOST
 AH_TOP([#ifndef VERGE_CONFIG_H])
 AH_TOP([#define VERGE_CONFIG_H])
 AH_BOTTOM([#endif //VERGE_CONFIG_H])
-AX_SUBDIRS_CONFIGURE([tor], [[--disable-unittests], [--disable-system-torrc], [--disable-systemd], [--disable-lzma], [--disable-asciidoc], [--with-openssl-dir=$($PKG_CONFIG --variable=libdir openssl)], [CFLAGS=$($PKG_CONFIG --cflags openssl)]])
+AX_SUBDIRS_CONFIGURE([tor], [[--disable-unittests], [--disable-system-torrc], [--disable-systemd], [--disable-lzma], [--disable-asciidoc], [--with-openssl-dir=$($PKG_CONFIG --variable=libdir openssl)], [CFLAGS=$($PKG_CONFIG --cflags openssl) -fPIC]])
 
 
 # This m4 will only be used if a system copy cannot be found. This is helpful
