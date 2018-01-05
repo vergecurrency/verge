@@ -236,7 +236,17 @@ VERGEd_LDADD = \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBLEVELDB) \
-  $(LIBMEMENV)
+  $(LIBMEMENV) \
+  ../tor/src/or/libtor.a \
+			../tor/src/common/libor.a \
+			../tor/src/common/libor-ctime.a \
+			../tor/src/common/libor-crypto.a \
+			../tor/src/common/libor-event.a \
+			../tor/src/trunnel/libor-trunnel.a \
+			../tor/src/common/libcurve25519_donna.a \
+			../tor/src/ext/ed25519/donna/libed25519_donna.a \
+			../tor/src/ext/ed25519/ref10/libed25519_ref10.a \
+			../tor/src/ext/keccak-tiny/libkeccak-tiny.a
 
 if HAVE_SSE2
 libbitcoin_sse2_a_SOURCES = scrypt-sse2.cpp
