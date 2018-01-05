@@ -62,20 +62,12 @@
           <widget class="BitcoinAmountField" name="transactionFee">
            <property name="maximumSize">
             <size>
-             <width>104</width>
-             <height>19</height>
+             <width>106</width>
+             <height>21</height>
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 15px;
-max-height: 15px;
-min-width: 100px;
-max-width: 100px;</string>
+            <string notr="true"/>
            </property>
           </widget>
          </item>
@@ -163,21 +155,15 @@ max-width: 100px;</string>
           <widget class="QValidatedLineEdit" name="proxyIp">
            <property name="maximumSize">
             <size>
-             <width>154</width>
-             <height>29</height>
+             <width>152</width>
+             <height>27</height>
             </size>
            </property>
            <property name="toolTip">
             <string>IP address of the proxy (e.g. 127.0.0.1)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;
 min-width: 150px;
 max-width: 150px;</string>
@@ -201,20 +187,15 @@ max-width: 150px;</string>
           <widget class="QLineEdit" name="proxyPort">
            <property name="maximumSize">
             <size>
-             <width>84</width>
-             <height>29</height>
+             <width>82</width>
+             <height>27</height>
             </size>
            </property>
            <property name="toolTip">
             <string>Port of the proxy (e.g. 9050)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;
 min-width: 80px;
 max-width: 80px;</string>
@@ -240,12 +221,7 @@ max-width: 80px;</string>
             <string>SOCKS version of the proxy (e.g. 5)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;
 min-width: 80px;
 max-width: 80px;</string>
@@ -348,13 +324,7 @@ max-width: 80px;</string>
             <string>The user interface language can be set here. This setting will take effect after restarting VERGE.</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;
 min-width: 300px;
 max-width: 300px;</string>
@@ -384,30 +354,14 @@ max-width: 300px;</string>
             <string>Choose the default subdivision unit to show in the interface and when sending coins.</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;
-min-width: 100px;
-max-width: 100px;</string>
+min-width: 300px;
+max-width: 300px;</string>
            </property>
           </widget>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="displayAddresses">
-         <property name="toolTip">
-          <string>Whether to show VERGE addresses in the transaction list or not.</string>
-         </property>
-         <property name="text">
-          <string>&amp;Display addresses in transaction list</string>
-         </property>
-        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_Display">
@@ -421,6 +375,16 @@ max-width: 100px;</string>
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="displayAddresses">
+         <property name="toolTip">
+          <string>Whether to show VERGE addresses in the transaction list or not.</string>
+         </property>
+         <property name="text">
+          <string>&amp;Display addresses in transaction list</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -476,13 +440,7 @@ max-width: 100px;</string>
      <item>
       <widget class="QPushButton" name="okButton">
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+        <string notr="true">min-height: 25px;
 max-height: 25px;
 min-width: 100px;
 max-width: 100px;</string>
@@ -495,13 +453,7 @@ max-width: 100px;</string>
      <item>
       <widget class="QPushButton" name="cancelButton">
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+        <string notr="true">min-height: 25px;
 max-height: 25px;
 min-width: 100px;
 max-width: 100px;</string>
@@ -517,13 +469,7 @@ max-width: 100px;</string>
      <item>
       <widget class="QPushButton" name="applyButton">
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+        <string notr="true">min-height: 25px;
 max-height: 25px;
 min-width: 100px;
 max-width: 100px;</string>

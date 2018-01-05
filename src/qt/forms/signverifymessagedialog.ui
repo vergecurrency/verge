@@ -51,12 +51,7 @@
             <string>The address to sign the message with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;</string>
            </property>
            <property name="maxLength">
@@ -80,8 +75,8 @@ border-bottom-right-radius: 5px;
             <string/>
            </property>
            <property name="icon">
-            <iconset>
-             <normaloff>:/icons/address-book</normaloff>:/icons/address-book</iconset>
+            <iconset resource="../bitcoin.qrc">
+             <normaloff>:/icons/address-book_filled</normaloff>:/icons/address-book_filled</iconset>
            </property>
            <property name="shortcut">
             <string>Alt+A</string>
@@ -125,12 +120,7 @@ border-bottom-right-radius: 5px;</string>
           <string>Enter the message you want to sign here</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 150px;
+          <string notr="true">min-height: 150px;
 max-height: 150px;</string>
          </property>
         </widget>
@@ -148,12 +138,7 @@ max-height: 150px;</string>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;</string>
            </property>
            <property name="readOnly">
@@ -203,7 +188,8 @@ border-bottom-right-radius: 5px;
             <string>Sign the message to prove you own this VERGE address</string>
            </property>
            <property name="styleSheet">
-            <string notr="true"/>
+            <string notr="true">min-width: 100px;
+</string>
            </property>
            <property name="text">
             <string>&amp;Sign Message</string>
@@ -232,7 +218,7 @@ border-bottom-right-radius: 5px;
             <string>Reset all sign message fields</string>
            </property>
            <property name="styleSheet">
-            <string notr="true"/>
+            <string notr="true">min-width: 90px;</string>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
@@ -327,12 +313,7 @@ border-bottom-right-radius: 5px;
             <string>The address the message was signed with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;
 </string>
            </property>
@@ -359,8 +340,8 @@ border-bottom-right-radius: 5px;
             <string/>
            </property>
            <property name="icon">
-            <iconset>
-             <normaloff>:/icons/address-book</normaloff>:/icons/address-book</iconset>
+            <iconset resource="../bitcoin.qrc">
+             <normaloff>:/icons/address-book_filled</normaloff>:/icons/address-book_filled</iconset>
            </property>
            <property name="shortcut">
             <string>Alt+A</string>
@@ -375,12 +356,7 @@ border-bottom-right-radius: 5px;
        <item>
         <widget class="QPlainTextEdit" name="messageIn_VM">
          <property name="styleSheet">
-          <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 150px;
+          <string notr="true">min-height: 150px;
 max-height: 150px;</string>
          </property>
         </widget>
@@ -388,12 +364,7 @@ max-height: 150px;</string>
        <item>
         <widget class="QValidatedLineEdit" name="signatureIn_VM">
          <property name="styleSheet">
-          <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+          <string notr="true">min-height: 25px;
 max-height: 25px;</string>
          </property>
         </widget>
@@ -412,7 +383,8 @@ max-height: 25px;</string>
             <string>Verify the message to ensure it was signed with the specified VERGE address</string>
            </property>
            <property name="styleSheet">
-            <string notr="true"/>
+            <string notr="true">min-width: 100px;
+</string>
            </property>
            <property name="text">
             <string>&amp;Verify Message</string>
@@ -441,7 +413,7 @@ max-height: 25px;</string>
             <string>Reset all verify message fields</string>
            </property>
            <property name="styleSheet">
-            <string notr="true"/>
+            <string notr="true">min-width: 100px;</string>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
