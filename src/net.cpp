@@ -899,8 +899,6 @@ void ThreadSocketHandler2(void* parg)
 #ifdef USE_UPNP
 void ThreadMapPort(void* parg)
 {
-    IMPLEMENT_RANDOMIZE_STACK(ThreadMapPort(parg));
-
     // Make this thread recognisable as the UPnP thread
     RenameThread("verge-UPnP");
 
@@ -1031,7 +1029,7 @@ void MapPort(bool use_upnp)
 {
     if (use_upnp && vnThreadsRunning[THREAD_UPNP] < 1)
     {
-        if (!CreateThread(ThreadMapPort, NULL))
+        if (!NewThread(ThreadMapPort, NULL))
             printf("Error: ThreadMapPort(ThreadMapPort) failed\n");
     }
 }
@@ -1114,7 +1112,7 @@ void DumpAddresses()
     CAddrDB adb;
     adb.Write(addrman);
 
-    printf("Flushed %lld addresses to peers.dat  %dms\n",
+    printf("Flushed %d addresses to peers.dat  %lldms\n",
            addrman.size(), GetTimeMillis() - nStart);
 }
 
@@ -1181,7 +1179,6 @@ void ThreadOpenConnections2(void* parg)
     }
 
     // Initiate network connections
-    int64 nStart = GetTime();
     while (true)
     {
         ProcessOneShot();
@@ -1429,10 +1426,6 @@ void ThreadMessageHandler2(void* parg)
         CNode* pnodeTrickle = NULL;
         if (!vNodesCopy.empty())
             pnodeTrickle = vNodesCopy[GetRand(vNodesCopy.size())];
-
-        bool fSleep = true;
-
-        //BOOST_FOREACH(CNode* pnode, vNodesCopy)
 
         size_t r = GetRandInt(vNodesCopy.size()-1); // randomise the order
         for (size_t i = 0; i < vNodesCopy.size(); ++i)
