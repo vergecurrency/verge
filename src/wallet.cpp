@@ -1455,12 +1455,16 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
     int64 nValue = 0;
     BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
     {
-        if (nValue < 0)
+        if (nValue < 0) {
+	    printf("CreateTransaction() : nValue < 0 \n");
             return false;
+	}
         nValue += s.second;
     }
-    if (vecSend.empty() || nValue < 0)
+    if (vecSend.empty() || nValue < 0) {
+	printf("CreateTransaction() : vecSend is empty or nValue < 0 \n");
         return false;
+    }
 
     wtxNew.BindWallet(this);
 
@@ -1470,8 +1474,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
         // txdb must be opened before the mapWallet lock
         
         {
-            // nFeeRet = 0.01*COIN;
-            nFeeRet = nTransactionFee;
+            nFeeRet = max(10*CENT, nTransactionFee);
             while (true)
             {
                 wtxNew.vin.clear();
@@ -1482,18 +1485,16 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 double dPriority = 0;
                 // vouts to the payees
                 BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
-                    {
-						CTxOut txout(s.second, s.first);
-						if (txout.nValue <= MIN_RELAY_TX_FEE)
-							return false;
-
-						wtxNew.vout.push_back(txout);
-					}
+                {
+			wtxNew.vout.push_back(CTxOut(s.second, s.first));
+		}
                 // Choose coins to use
                 set<pair<const CWalletTx*,unsigned int> > setCoins;
                 int64 nValueIn = 0;
-                if (!SelectCoins(nTotalValue, wtxNew.nTime, setCoins, nValueIn))
+                if (!SelectCoins(nTotalValue, wtxNew.nTime, setCoins, nValueIn)) {
+		    printf("CreateTransaction() : SelectCoins Failed \n");
                     return false;
+		}
                 BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
                 {
                     int64 nCredit = pcoin.first->vout[pcoin.second].nValue;
@@ -1538,7 +1539,19 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     scriptChange.SetDestination(vchPubKey.GetID());
 
                     // Insert change txn at random position:
-                    vector<CTxOut>::iterator position = wtxNew.vout.begin() + GetRandInt(wtxNew.vout.size());
+                    vector<CTxOut>::iterator position = wtxNew.vout.begin() + GetRandInt(wtxNew.vout.size() + 1);
+                    
+                    // -- don't put change output between value and narration outputs
+                    if (position > wtxNew.vout.begin() && position < wtxNew.vout.end())
+                    {
+                        while (position > wtxNew.vout.begin())
+                        {
+                            if (position->nValue != 0)
+                                break;
+                            position--;
+                        };
+                    };
+
                     wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
                 }
                 else
@@ -1551,18 +1564,23 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 // Sign
                 int nIn = 0;
                 BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins)
-                    if (!SignSignature(*this, *coin.first, wtxNew, nIn++))
+                    if (!SignSignature(*this, *coin.first, wtxNew, nIn++)) {
+			printf("CreateTransaction() : Sign Signatue Failed \n");
                         return false;
+		    }
 
                 // Limit size
                 unsigned int nBytes = ::GetSerializeSize(*(CTransaction*)&wtxNew, SER_NETWORK, PROTOCOL_VERSION);
-                if (nBytes >= MAX_BLOCK_SIZE_GEN/5)
+                if (nBytes >= MAX_BLOCK_SIZE_GEN/5) {
+		    printf("CreateTransaction() : Transaction too large \n");
                     return false;
+		}
                 dPriority /= nBytes;
 
                 // Check that enough fee is included
                 int64 nPayFee = nTransactionFee * (1 + (int64)nBytes / 1000);
-                int64 nMinFee = wtxNew.GetMinFee(1, false, GMF_SEND);
+                bool fAllowFree = CTransaction::AllowFree(dPriority);
+                int64 nMinFee = wtxNew.GetMinFee(1, fAllowFree, GMF_SEND);
 
                 if (nFeeRet < max(nPayFee, nMinFee))
                 {
@@ -1938,11 +1956,11 @@ bool CWallet::CreateStealthTransaction(CScript scriptPubKey, int64_t nValue, std
     vecSend.push_back(make_pair(scriptPubKey, nValue));
     
     CScript scriptP = CScript() << OP_RETURN << P;
-    if (narr.size() > 0)
+    if (narr.size() > 0) {
         scriptP = scriptP << OP_RETURN << narr;
-    
-    vecSend.push_back(make_pair(scriptP, 0));
-    
+        vecSend.push_back(make_pair(scriptP, nTransactionFee));
+    }
+
     // -- shuffle inputs, change output won't mix enough as it must be not fully random for plantext narrations
     std::random_shuffle(vecSend.begin(), vecSend.end());
     
