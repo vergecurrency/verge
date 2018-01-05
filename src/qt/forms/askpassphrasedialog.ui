@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>598</width>
-    <height>215</height>
+    <height>217</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -51,14 +51,7 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="passEdit1">
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
-min-height: 25px;
-max-height: 25px;</string>
+        <string notr="true"/>
        </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
@@ -75,14 +68,7 @@ max-height: 25px;</string>
      <item row="1" column="1">
       <widget class="QLineEdit" name="passEdit2">
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
-min-height: 25px;
-max-height: 25px;</string>
+        <string notr="true"/>
        </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
@@ -99,14 +85,7 @@ max-height: 25px;</string>
      <item row="2" column="1">
       <widget class="QLineEdit" name="passEdit3">
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
-min-height: 25px;
-max-height: 25px;</string>
+        <string notr="true"/>
        </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
