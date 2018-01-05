@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 pushd tor
 git checkout -f
