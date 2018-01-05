@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>700</width>
-    <height>401</height>
+    <height>405</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabSignMessage">
       <attribute name="title">
@@ -178,12 +178,17 @@ border-bottom-right-radius: 5px;
         <layout class="QHBoxLayout" name="horizontalLayout_3_SM">
          <item>
           <widget class="QPushButton" name="signMessageButton_SM">
+           <property name="minimumSize">
+            <size>
+             <width>110</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Sign the message to prove you own this VERGE address</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">min-width: 100px;
-</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>&amp;Sign Message</string>
@@ -195,15 +200,24 @@ border-bottom-right-radius: 5px;
            <property name="autoDefault">
             <bool>false</bool>
            </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="clearButton_SM">
+           <property name="minimumSize">
+            <size>
+             <width>110</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Reset all sign message fields</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">min-width: 90px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
@@ -213,6 +227,9 @@ border-bottom-right-radius: 5px;
              <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
            <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="default">
             <bool>false</bool>
            </property>
           </widget>
@@ -355,12 +372,17 @@ max-height: 25px;</string>
         <layout class="QHBoxLayout" name="horizontalLayout_2_VM">
          <item>
           <widget class="QPushButton" name="verifyMessageButton_VM">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Verify the message to ensure it was signed with the specified VERGE address</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">min-width: 100px;
-</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>&amp;Verify Message</string>
@@ -372,15 +394,24 @@ max-height: 25px;</string>
            <property name="autoDefault">
             <bool>false</bool>
            </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="clearButton_VM">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Reset all verify message fields</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">min-width: 100px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
@@ -390,6 +421,12 @@ max-height: 25px;</string>
              <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
            <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
             <bool>false</bool>
            </property>
           </widget>

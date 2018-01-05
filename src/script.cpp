@@ -1327,11 +1327,12 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
                 // small pushdata, <= MAX_OP_RETURN_RELAY bytes
                 if (vch1.size() > MAX_OP_RETURN_RELAY)
                     break;
-	    }
-	    else if (opcode2 == OP_RETURN)
-	    {
-		return true;
-	    }
+	        }
+            else if (opcode2 == OP_RETURN)
+            {
+                typeRet = TX_NULL_DATA;
+                return true;
+            }
             else if (opcode1 != opcode2 || vch1 != vch2)
             {
                 // Others must match exactly
@@ -1394,9 +1395,8 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     switch (whichTypeRet)
     {
     case TX_NONSTANDARD:
-        return false;
     case TX_NULL_DATA:
-	return false;
+        return false;
     case TX_PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
         return Sign1(keyID, keystore, hash, nHashType, scriptSigRet);
@@ -1425,9 +1425,8 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
 {
     switch (t)
     {
-    case TX_NULL_DATA:
-	return -1;
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         return -1;
     case TX_PUBKEY:
         return 1;
@@ -1466,23 +1465,8 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
 
 bool IsStandard(const CScript& scriptPubKey)
 {
-    vector<valtype> vSolutions;
     txnouttype whichType;
-    if (!Solver(scriptPubKey, whichType, vSolutions))
-        return false;
-
-    if (whichType == TX_MULTISIG)
-    {
-        unsigned char m = vSolutions.front()[0];
-        unsigned char n = vSolutions.back()[0];
-        // Support up to x-of-3 multisig txns as standard
-        if (n < 1 || n > 3)
-            return false;
-        if (m < 1 || m > n)
-            return false;
-    }
-
-    return whichType != TX_NONSTANDARD;
+    return IsStandard(scriptPubKey, whichType);
 }
 
 
@@ -1529,9 +1513,8 @@ bool IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
     CKeyID keyID;
     switch (whichType)
     {
-    case TX_NULL_DATA:
-	return false;
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         return false;
     case TX_PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
@@ -1567,10 +1550,6 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
     if (!Solver(scriptPubKey, whichType, vSolutions))
         return false;
 
-    if (whichType == TX_NULL_DATA){
-        // This is data, not addresses
-        return false;
-    }
     if (whichType == TX_PUBKEY)
     {
         addressRet = CPubKey(vSolutions[0]).GetID();
@@ -1639,6 +1618,11 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, vecto
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, typeRet, vSolutions))
         return false;
+
+    if (typeRet == TX_NULL_DATA){
+        // This is data, not addresses
+        return false;
+    }
 
     if (typeRet == TX_MULTISIG)
     {
@@ -1827,11 +1811,8 @@ static CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo,
 {
     switch (txType)
     {
-    case TX_NULL_DATA:
-        // Don't know anything about this, assume bigger one is correct:
-        if (sigs1.size() >= sigs2.size())
-	    return PushAll(sigs1);
     case TX_NONSTANDARD:
+    case TX_NULL_DATA:
         // Don't know anything about this, assume bigger one is correct:
         if (sigs1.size() >= sigs2.size())
             return PushAll(sigs1);

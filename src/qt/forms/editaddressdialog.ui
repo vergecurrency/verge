@@ -41,16 +41,6 @@ max-height: 25px;</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>&amp;Address</string>
-       </property>
-       <property name="buddy">
-        <cstring>addressEdit</cstring>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="addressEdit">
        <property name="toolTip">
@@ -60,6 +50,16 @@ max-height: 25px;</string>
         <string notr="true">
 min-height: 25px;
 max-height: 25px;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="addressEditLabel">
+       <property name="text">
+        <string>&amp;Address</string>
+       </property>
+       <property name="buddy">
+        <cstring>addressEdit</cstring>
        </property>
       </widget>
      </item>
