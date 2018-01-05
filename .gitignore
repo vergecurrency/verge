@@ -17,6 +17,9 @@ src/config/verge-config.h
 src/VERGEd
 src/qt/VERGE-qt
 
+VERGEd
+VERGE-qt
+
 Makefile.in
 aclocal.m4
 autom4te.cache/
