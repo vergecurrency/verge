@@ -2202,7 +2202,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                 if (it->scan_secret.size() != ec_secret_size)
                     continue; // stealth address is not owned
                 
-                //printf("it->Encodeded() %s\n",  it->Encoded().c_str());
+                //printf("it->Encoded() %s\n",  it->Encoded().c_str());
                 memcpy(&sScan.e[0], &it->scan_secret[0], ec_secret_size);
                 
                 if (StealthSecret(sScan, vchEphemPK, it->spend_pubkey, sShared, pkExtracted) != 0)
