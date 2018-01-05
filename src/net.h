@@ -164,7 +164,7 @@ extern bool fUseUPnP;
 
 extern uint64_t nLocalServices;
 extern uint64 nLocalHostNonce;
-extern std::array<int, THREAD_MAX> vnThreadsRunning;
+extern boost::array<int, THREAD_MAX> vnThreadsRunning;
 extern CAddress addrSeenByPeer;
 extern CAddrMan addrman;
 

@@ -53,7 +53,7 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 bool fClient = false;
 bool fDiscover = true;
 bool fUseUPnP = false;
-std::array<int, THREAD_MAX> vnThreadsRunning;
+boost::array<int, THREAD_MAX> vnThreadsRunning;
 uint64_t nLocalServices = (fClient ? 0 : NODE_NETWORK);
 
 CCriticalSection cs_mapLocalHost;
