@@ -603,12 +603,21 @@ bool AppInit2()
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr.c_str()));
             AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL);
         }
-	} else {
+    }
+    else
+    {
         string automatic_onion;
-        filesystem::path const hostname_path = GetDefaultDataDir() / "onion" / "hostname";
+        filesystem::path hostname_path = GetDataDir() / "tor" / "onion" / "hostname";
 
-        if (!filesystem::exists(hostname_path)) {
-            return InitError(_("No external address found."));
+        int attempts = 0;
+        while (1) {
+            if (filesystem::exists(hostname_path))
+                break;
+            ++attempts;
+            boost::this_thread::sleep(boost::posix_time::seconds(2));
+            if (attempts > 8)
+                return InitError(_("Timed out waiting for onion hostname."));
+            LogPrintf("No onion hostname yet, will retry in 2 seconds... (%d/8)\n", attempts);
         }
 
         ifstream file(hostname_path.string().c_str());
