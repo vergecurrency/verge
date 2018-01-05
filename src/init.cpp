@@ -355,6 +355,7 @@ bool AppInit2()
         nLocalServices |= NODE_BLOOM;
     }
 
+    SoftSetBoolArg("-onionseed", true);
     if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0) {
 	// when only connecting to trusted nodes, do not seed via .onion, or listen by default
         SoftSetBoolArg("-onionseed", false);
