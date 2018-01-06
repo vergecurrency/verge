@@ -4,7 +4,7 @@ pushd tor
 git checkout -f
 popd
 
-git submodule update --init
+git submodule update --remote
 srcdir="$(dirname $0)"
 cd "$srcdir"
 autoreconf --install --force
