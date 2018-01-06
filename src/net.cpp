@@ -31,6 +31,9 @@ using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
 
+extern const char tor_git_revision[];
+const char tor_git_revision[] = "";
+
 extern "C" {
     int tor_main(int argc, char *argv[]);
 }
