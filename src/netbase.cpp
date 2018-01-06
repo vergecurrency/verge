@@ -26,6 +26,7 @@ static proxyType proxyInfo[NET_MAX];
 static proxyType nameproxyInfo;
 static CCriticalSection cs_proxyInfos;
 int nConnectTimeout = 5000;
+static const int SOCKS_RECV_TIMEOUT = 20 * 1000;
 bool fNameLookup = false;
 
 static const unsigned char pchIPv4[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };
@@ -165,6 +166,59 @@ bool LookupNumeric(const char *pszName, CService& addr, int portDefault)
     return Lookup(pszName, addr, portDefault, false);
 }
 
+timeval static MillisToTimeval(int64_t nTimeout)
+{
+    struct timeval timeout;
+    timeout.tv_sec  = nTimeout / 1000;
+    timeout.tv_usec = (nTimeout % 1000) * 1000;
+    return timeout;
+}
+
+bool static Recv(SOCKET& hSocket, char* data, int timeout, size_t len)
+{
+    int64_t curTime = GetTimeMillis();
+    int64_t endTime = curTime + timeout;
+    const int64_t maxWait = 1000;
+    while (len > 0 && curTime < endTime)
+    {
+        ssize_t ret = recv(hSocket, data, len, 0);
+        if (ret > 0)
+        {
+            len -= ret;
+            data += ret;
+        }
+        else if (ret == 0)
+        {
+            return false;
+        }
+        else        
+        {
+            int nErr = WSAGetLastError();
+            if (nErr == WSAEINPROGRESS || nErr == WSAEWOULDBLOCK || nErr == WSAEINVAL)
+            {
+                struct timeval tval = MillisToTimeval(std::min(endTime - curTime, maxWait));
+                fd_set fdset;
+                FD_ZERO(&fdset);
+                FD_SET(hSocket, &fdset);
+                int nRet = select(hSocket + 1, &fdset, NULL, NULL, &tval);
+                if (nRet == SOCKET_ERROR)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        if (fShutdown)
+            return false;
+
+        curTime = GetTimeMillis();
+    }
+    return len == 0;
+}
+
 bool static Socks4(const CService &addrDest, SOCKET& hSocket)
 {
     printf("SOCKS4 connecting %s\n", addrDest.ToString().c_str());
@@ -193,7 +247,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
         return error("Error sending to proxy");
     }
     char pchRet[8];
-    if (recv(hSocket, pchRet, 8, 0) != 8)
+    if (!Recv(hSocket, pchRet, SOCKS_RECV_TIMEOUT, 8))
     {
         CloseSocket(hSocket);
         return error("Error reading proxy response");
@@ -228,7 +282,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         return error("Error sending to proxy");
     }
     char pchRet1[2];
-    if (recv(hSocket, pchRet1, 2, 0) != 2)
+    if (!Recv(hSocket, pchRet1, SOCKS_RECV_TIMEOUT, 2))
     {
         CloseSocket(hSocket);
         return error("Error reading proxy response");
@@ -251,7 +305,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         return error("Error sending to proxy");
     }
     char pchRet2[4];
-    if (recv(hSocket, pchRet2, 4, 0) != 4)
+    if (!Recv(hSocket, pchRet2, SOCKS_RECV_TIMEOUT, 4))
     {
         CloseSocket(hSocket);
         return error("Error reading proxy response");
@@ -285,25 +339,25 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     char pchRet3[256];
     switch (pchRet2[3])
     {
-        case 0x01: ret = recv(hSocket, pchRet3, 4, 0) != 4; break;
-        case 0x04: ret = recv(hSocket, pchRet3, 16, 0) != 16; break;
+        case 0x01: ret = Recv(hSocket, pchRet3, SOCKS_RECV_TIMEOUT, 4); break;
+        case 0x04: ret = Recv(hSocket, pchRet3, SOCKS_RECV_TIMEOUT, 16); break;
         case 0x03:
         {
-            ret = recv(hSocket, pchRet3, 1, 0) != 1;
+            ret = Recv(hSocket, pchRet3, SOCKS_RECV_TIMEOUT, 1);
             if (ret)
                 return error("Error reading from proxy");
             int nRecv = pchRet3[0];
-            ret = recv(hSocket, pchRet3, nRecv, 0) != nRecv;
+            ret = Recv(hSocket, pchRet3, SOCKS_RECV_TIMEOUT, nRecv);
             break;
         }
         default: CloseSocket(hSocket); return error("Error: malformed proxy response");
     }
-    if (ret)
+    if (!ret)
     {
         CloseSocket(hSocket);
         return error("Error reading from proxy");
     }
-    if (recv(hSocket, pchRet3, 2, 0) != 2)
+    if (!Recv(hSocket, pchRet3, SOCKS_RECV_TIMEOUT, 2))
     {
         CloseSocket(hSocket);
         return error("Error reading from proxy");

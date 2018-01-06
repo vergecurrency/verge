@@ -38,7 +38,7 @@ enum BindFlags {
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 CService addrOnion;
-unsigned short const onion_port = 21102;
+unsigned short const onion_port = 9089;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -549,7 +549,6 @@ bool AppInit2()
     } while (false);
 
 	CService addrOnion;
-    unsigned short const onion_port = 9077;
 
     if (mapArgs.count("-tor") && mapArgs["-tor"] != "0") {
         addrOnion = CService(mapArgs["-tor"], onion_port);
