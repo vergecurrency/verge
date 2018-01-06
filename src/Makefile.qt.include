@@ -258,7 +258,9 @@ qt_VERGE_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $
 	../tor/src/ext/ed25519/ref10/libed25519_ref10.a \
 	../tor/src/ext/keccak-tiny/libkeccak-tiny.a \
   $(ZLIB_LIBS) \
-  $(LIBEVENT_LIBS)
+  $(LIBEVENT_LIBS) \
+  $(LIBCAP_LIBS) \
+  $(LIBSECCOMP_LIBS)
 
 if TARGET_LINUX
   qt_VERGE_qt_LDADD += -lrt
