@@ -135,7 +135,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Could not write to file %1.</translation>
+        <translation>Não foi possivel escrever no arquivo %1.</translation>
     </message>
 </context>
 <context>
@@ -403,7 +403,7 @@ Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no Ope
         <location line="+241"/>
         <source>~%n block(s) remaining</source>
         <translation>
-            <numerusform>~%n block remaining</numerusform>
+            <numerusform>~%n bloco restante</numerusform>
             <numerusform>~%n blocos restantes</numerusform>
         </translation>
     </message>
@@ -2181,7 +2181,7 @@ Endereço: %4
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Ouça as conexões em &lt;porta&gt; (padrão: 21102 ou testnet: 18333)</translation>
+        <translation>Ouça as conexões em &lt;porta&gt; (padrão: 7777 ou testnet: 17777)</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -2496,7 +2496,7 @@ Endereço: %4
     <message>
         <location line="-14"/>
         <source>Rescan the block chain for missing wallet transactions</source>
-        <translation>Rescanar o blockchain para as transações de carteira em falta</translation>
+        <translation>Reescanear o blockchain para as transações de carteira em falta</translation>
     </message>
     <message>
         <location line="-24"/>
