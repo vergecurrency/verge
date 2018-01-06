@@ -5,7 +5,7 @@ matrix:
   include:
 
     - os: linux
-      dist: trusty
+      dist: zesty
       sudo: required
       env: VERGE_PLATFORM='linux'
       compiler: gcc
