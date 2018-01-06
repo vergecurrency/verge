@@ -261,7 +261,9 @@ VERGEd_LDADD += \
   ../tor/src/ext/ed25519/ref10/libed25519_ref10.a \
   ../tor/src/ext/keccak-tiny/libkeccak-tiny.a \
   $(ZLIB_LIBS) \
-  $(LIBEVENT_LIBS)
+  $(LIBEVENT_LIBS) \
+  $(LIBSECCOMP_LIBS) \
+  $(LIBCAP_LIBS)
 
 VERGEd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(ZLIB_LDFLAGS)
 VERGEd_CPPFLAGS = $(BITCOIN_INCLUDES) $(LIBEVENT_CFLAGS) $(ZLIB_CFLAGS)
