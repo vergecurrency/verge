@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>340</width>
-    <height>530</height>
+    <height>590</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>QR Code Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
-   <item>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
     <widget class="QLabel" name="lblQRCode">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -39,7 +39,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item row="1" column="0">
     <widget class="QPlainTextEdit" name="outUri">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -50,17 +50,11 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>49</height>
+       <height>47</height>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 45px;
+      <string notr="true">min-height: 45px;
 max-height: 45px;</string>
      </property>
      <property name="tabChangesFocus">
@@ -71,10 +65,10 @@ max-height: 45px;</string>
      </property>
     </widget>
    </item>
-   <item>
+   <item row="2" column="0">
     <widget class="QWidget" name="widget" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
        <widget class="QCheckBox" name="chkReqPayment">
         <property name="enabled">
          <bool>true</bool>
@@ -84,71 +78,8 @@ max-height: 45px;</string>
         </property>
        </widget>
       </item>
-      <item>
-       <layout class="QFormLayout" name="formLayout">
-        <property name="fieldGrowthPolicy">
-         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-        </property>
-        <item row="1" column="0">
-         <widget class="QLabel" name="lblLabel">
-          <property name="text">
-           <string>Label:</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::PlainText</enum>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="buddy">
-           <cstring>lnLabel</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lnLabel">
-          <property name="styleSheet">
-           <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="lblMessage">
-          <property name="text">
-           <string>Message:</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::PlainText</enum>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="buddy">
-           <cstring>lnMessage</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="lnMessage">
-          <property name="styleSheet">
-           <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;</string>
-          </property>
-         </widget>
-        </item>
+      <item row="1" column="0">
+       <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <widget class="QLabel" name="lblAmount">
           <property name="sizePolicy">
@@ -179,24 +110,66 @@ max-height: 25px;</string>
           <property name="minimumSize">
            <size>
             <width>80</width>
-            <height>29</height>
+            <height>31</height>
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+           <string notr="true">min-height: 25px;
+max-height: 25px;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lblLabel">
+          <property name="text">
+           <string>Label:</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::PlainText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="buddy">
+           <cstring>lnLabel</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lnLabel">
+          <property name="styleSheet">
+           <string notr="true">min-height: 25px;
+max-height: 25px;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lblMessage">
+          <property name="text">
+           <string>Message:</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::PlainText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="buddy">
+           <cstring>lnMessage</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lnMessage">
+          <property name="styleSheet">
+           <string notr="true">min-height: 25px;
 max-height: 25px;</string>
           </property>
          </widget>
         </item>
        </layout>
       </item>
-      <item>
+      <item row="2" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <spacer name="horizontalSpacer">
@@ -214,16 +187,7 @@ max-height: 25px;</string>
         <item>
          <widget class="QPushButton" name="btnSaveAs">
           <property name="styleSheet">
-           <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;
-min-width: 100px;
-max-width: 100px;</string>
+           <string notr="true"/>
           </property>
           <property name="text">
            <string>&amp;Save As...</string>
