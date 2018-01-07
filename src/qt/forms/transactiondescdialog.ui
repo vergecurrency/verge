@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>620</width>
-    <height>250</height>
+    <height>291</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,12 +20,7 @@
       <string>This pane shows a detailed description of the transaction</string>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #000000;
-min-height: 225px;
+      <string notr="true">min-height: 225px;
 max-height: 225px;
 </string>
      </property>
