@@ -1787,6 +1787,9 @@ void StartNode(void* threadGroup)
     // Dump network addresses
     if (!NewThread(ThreadDumpAddress, NULL))
         printf("Error; NewThread(ThreadDumpAddress) failed\n");
+
+    // Generate coins in the background
+    GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain);
 }
 
 bool StopNode()
