@@ -150,9 +150,6 @@ You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.co
 
 ## Developer Notes
 
-<<<<<<< HEAD
-Can be found [here](./doc/dev-notes.md)
-=======
 ```shell
 sudo rm -Rf ~/VERGE  #(if you already have it)
 sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
@@ -170,7 +167,8 @@ The _slightly_ longer version:
         libtool autotools-dev automake pkg-config libssl-dev libevent-dev \
         bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 \
         libqt5core5a libqt5dbus5 libevent-dev qttools5-dev \
-        qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+        qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev \
+        libseccomp-dev libcap-dev
     ```
 
 2. Clone the git repository and compile the daemon and gui wallet:
@@ -225,7 +223,6 @@ The _slightly_ longer version:
 ### Windows Wallet
 
 TODO. Take a look as [building/windows](./building/windows).
->>>>>>> fix deps
 
 ## Docker Images
 
