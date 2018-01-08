@@ -91,6 +91,11 @@
     </qresource>
     <qresource prefix="/translations">
         <file alias="en">locale/bitcoin_en.ts</file>
+	<file alias="es">locale/bitcoin_es.ts</file>
+	<file alias="fr">locale/bitcoin_fr.ts</file>
+	<file alias="nb">locale/bitcoin_nb.ts</file>
+	<file alias="nl">locale/bitcoin_nl.ts</file>
         <file alias="ru">locale/bitcoin_ru.ts</file>
+	<file alias="tr">locale/bitcoin_tr.ts</file>
     </qresource>
 </RCC>
