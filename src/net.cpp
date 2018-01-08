@@ -1288,6 +1288,26 @@ void static ProcessOneShot()
     }
 }
 
+// ppcoin: stake minter thread
+void static ThreadStakeMinter(void* parg)
+{
+    printf("ThreadStakeMinter started\n");
+    CWallet* pwallet = (CWallet*)parg;
+    try
+    {
+        vnThreadsRunning[THREAD_MINTER]++;
+        VERGEMiner(pwallet, true);
+        vnThreadsRunning[THREAD_MINTER]--;
+    }
+    catch (std::exception& e) {
+        vnThreadsRunning[THREAD_MINTER]--;
+        PrintException(&e, "ThreadStakeMinter()");
+    } catch (...) {
+        vnThreadsRunning[THREAD_MINTER]--;
+        PrintException(NULL, "ThreadStakeMinter()");
+    }
+    printf("ThreadStakeMinter exiting, %d threads remaining\n", vnThreadsRunning[THREAD_MINTER]);
+}
 
 void ThreadOpenConnections2(void* parg)
 {
@@ -1844,7 +1864,6 @@ void StartNode(void* parg)
         printf("Error; NewThread(ThreadDumpAddress) failed\n");
 
     // ppcoin: mint proof-of-stake blocks in the background
-    // TODO: remove? or use ThreadVERGEMiner in main.cpp as it is a duplicated function of ThreadStakeMinter?
     //if (!NewThread(ThreadStakeMinter, pwalletMain))
     //    printf("Error: NewThread(ThreadStakeMinter) failed\n");
 
