@@ -50,7 +50,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+27"/>
         <source>Create a new address</source>
-        <translation>Anlegen einer neuen Adresse</translation>
+        <translation>Neue Adresse anlegen</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -90,7 +90,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+25"/>
         <source>Delete the currently selected address from the list</source>
-        <translation>L&ouml;schen der aktuell ausgew&auml;hlten Adresse aus der Liste</translation>
+        <translation>Aktuell ausgew&auml;hlte Adresse l&ouml;schen</translation>
     </message>
     <message>
         <location line="-14"/>
@@ -120,7 +120,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Adressbuchdaten exportieren/translation>
+        <translation>Addressbuch exportieren</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -153,7 +153,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+36"/>
         <source>(no label)</source>
-        <translation>(kein label)</translation>
+        <translation>(kein Label)</translation>
     </message>
 </context>
 <context>
@@ -181,7 +181,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Geben Sie die neue Passphrase f&uuml;r das Wallet ein.&lt;br/&gt;Bitte verwenden Sie ein Passwort von &lt;b&gt;10 oder mehr Zeichen&lt;/b&gt;, oder &lt;b&gt;acht oder mehr W&ouml;rter&lt;/b&gt;.</translation>
+        <translation>Geben Sie das neue Passwort f&uuml;r die Wallet ein.&lt;br/&gt;Bitte verwenden Sie ein Passwort von &lt;b&gt;10 oder mehr Zeichen&lt;/b&gt;, oder &lt;b&gt;acht oder mehr W&ouml;rtern&lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -191,7 +191,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Dieser Vorgang ben&ouml;tigt Ihr Wallet-Passwort, um das Wallet freizuschalten.</translation>
+        <translation>Dieser Vorgang ben&ouml;tigt Ihr Wallet-Passwort, um die Wallet freizuschalten.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -201,7 +201,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Diese Operation ben&ouml;tigt Ihr Wallet-Passwort, um das Wallet zu entschl&uuml;sseln.</translation>
+        <translation>Diese Operation ben&ouml;tigt Ihr Wallet-Passwort, um die Wallet zu entschl&uuml;sseln.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -216,7 +216,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Geben Sie das alte und das neue Passwort in die Wallet ein.</translation>
+        <translation>Geben Sie das alte und das neue Passwort f&uuml;r die Wallet ein.</translation>
     </message>
     <message>
         <location line="+46"/>
@@ -226,7 +226,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Warning: Wenn Sie Ihr Wallet verschl&uuml;sseln und Ihr Passwort verlieren, werden Sie &lt;b&gt;ALLE M&Uuml;NZEN VERLIEREN&lt;/b&gt;!</translation>
+        <translation>Warning: Wenn du die Wallet verschl&uuml;sselst und dein Passwort verlierst, wirst du &lt;b&gt;ALLE M&Uuml;NZEN VERLIEREN&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -236,7 +236,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation>WICHTIG: Alle fr&uuml;heren Backups, die Sie von Ihrer Wallet-Datei gemacht haben, sollten durch die neu erstellte, verschl&uuml;sselte Wallet-Datei ersetzt werden. Aus Sicherheitsgr&uuml;nden werden fr&uuml;here Backups der unverschl&uuml;sselten Wallet-Datei unbrauchbar, sobald Sie die neue, verschl&uuml;sselte Wallet-Datei verwenden.</translation>
+        <translation>WICHTIG: Alle fr&uuml;heren Backups, die Sie von Ihrer Wallet-Datei erstellt haben, sollten durch die neu erstellte, verschl&uuml;sselte Wallet-Datei ersetzt werden. Aus Sicherheitsgr&uuml;nden werden fr&uuml;here Backups der unverschl&uuml;sselten Wallet-Datei unbrauchbar, sobald Sie die neue, verschl&uuml;sselte Wallet-Datei verwenden.</translation>
     </message>
     <message>
         <location line="+100"/>
@@ -253,7 +253,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="-56"/>
         <source>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>VERGE wird nun geschlossen, um den Verschl&uuml;sselungsprozess abzuschließen. Denken Sie daran, dass die Verschl&uuml;sselung Ihrer Wallet Ihre M&uuml;nzen nicht vollst&auml;ndig vor Diebstahl durch Malware, die Ihren Computer infiziert, sch&uuml;tzen kann.</translation>
+        <translation>VERGE wird nun geschlossen, um den Verschl&uuml;sselungsprozess abzuschlie&szlig;en. Denken Sie daran, dass die Verschl&uuml;sselung Ihrer Wallet Ihre M&uuml;nzen nicht vollst&auml;ndig vor Diebstahl durch Malware, die Ihren Computer infiziert, sch&uuml;tzen kann.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -266,7 +266,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Die Wallet-Verschl&uuml;sselung ist aufgrund eines internen Fehlers fehlgeschlagen. Ihre Brieftasche war nicht verschl&uuml;sselt.</translation>
+        <translation>Die Wallet-Verschl&uuml;sselung ist aufgrund eines internen Fehlers fehlgeschlagen. Ihre Wallet wurde nicht verschl&uuml;sselt.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -342,7 +342,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="-13"/>
         <source>&amp;Receive coins</source>
-        <translation>&amp;M&uuml;nzen erhalten</translation>
+        <translation>&amp;M&uuml;nzen empfangen</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -392,7 +392,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+3"/>
         <source>&amp;Backup Wallet...</source>
-        <translation>&amp;Backup Wallet...</translation>
+        <translation>&amp;Wallet sichern...</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -410,12 +410,12 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+6"/>
         <source>Downloaded %1 of %2 blocks of transaction history (%3% done).</source>
-        <translation>%1 von %2 Bl&ouml;cke der Transaktionshistorie heruntergeladen (%3% erledigt).</translation>
+        <translation>%1 von %2 Bl&ouml;cken der Transaktionshistorie heruntergeladen (%3% abgeschlossen).</translation>
     </message>
     <message>
         <location line="-242"/>
         <source>&amp;Export...</source>
-        <translation>&amp;Export...</translation>
+        <translation>&amp;Exportieren...</translation>
     </message>
     <message>
         <location line="-58"/>
@@ -440,12 +440,12 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Sicherung des Wallets an einem anderen Ort</translation>
+        <translation>Sicherung der Wallet an einem anderen Ort</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>&Auml;ndern des aktuellen Passworts, das f&uuml;r die Verschl&uuml;sselung des Wallets verwendet wird.</translation>
+        <translation>Aktuelles Passwort &auml;ndern, das f&uuml;r die Verschl&uuml;sselung der Wallets verwendet wird.</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -480,7 +480,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+9"/>
         <source>&amp;Show / Hide</source>
-        <translation>&amp;Einblenden / Hide</translation>
+        <translation>&amp;Anzeigen / Ausblenden</translation>
     </message>
     <message>
         <location line="+39"/>
@@ -530,7 +530,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+40"/>
         <source>Downloaded %1 blocks of transaction history.</source>
-        <translation>Heruntergeladene %1 Bl&ouml;cke der Transaktionshistorie.</translation>
+        <translation>%1 Bl&ouml;cke der Transaktionshistorie wurden heruntergeladen.</translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
@@ -582,7 +582,7 @@ Dieses Produkt enth&auml;lt Software, die vom OpenSSL-Projekt f&uuml;r die Verwe
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation>Sie k&ouml;nnen es trotzdem gegen eine Geb&uuml;hr von %1 versenden, die an die Nodes geht, die Ihre Transaktion bearbeiten und zur Unterst&uuml;tzung des Netzwerks beitr&auml;gt.  Wollen Sie die Geb&uuml;hr bezahlen?</translation>
+        <translation>Die Transaktion &uuml;berschreitet die zul&auml;ssige Gr&ouml;&szlig;enbeschr&auml;nkung. Sie k&ouml;nnen trotzdem gegen eine Geb&uuml;hr von %1 versenden, welche an die Nodes geht, die Ihre Transaktion bearbeiten und zur Unterst&uuml;tzung des Netzwerks beitr&auml;gt.  Wollen Sie die Geb&uuml;hr bezahlen?</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -637,7 +637,7 @@ Address: %4
     <message>
         <location line="+23"/>
         <source>Backup Wallet</source>
-        <translation>Backup Wallet</translation>
+        <translation>Wallet sichern</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -647,12 +647,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Backup Failed</source>
-        <translation>Backup fehlgeschlagen</translation>
+        <translation>Sicherung fehlgeschlagen</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>Es gab einen Fehler beim Versuch, die Daten des Wallets am neuen Ort zu speichern.</translation>
+        <translation>Es gab einen Fehler beim Versuch, die Daten der Wallets am neuen Ort zu speichern.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
@@ -732,7 +732,7 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>New key generation failed.</source>
-        <translation>Neue Schl&uuml;sselgeneration fehlgeschlagen.</translation>
+        <translation>Neue Schl&uuml;sselgenerierung fehlgeschlagen.</translation>
     </message>
 </context>
 <context>
@@ -794,12 +794,12 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Optionale Transaktionsgeb&uuml;hr pro kB, die Ihnen hilft, Ihre Transaktionen schnell abzuwickeln. Die meisten Transaktionen sind 1 kB groß. Geb&uuml;hr 0,01 empfohlen.</translation>
+        <translation>Optionale Transaktionsgeb&uuml;hr pro kB, die Ihnen hilft, Ihre Transaktionen schnell abzuwickeln. Die meisten Transaktionen sind 1 kB gro&szlig;. Geb&uuml;hr 0,01 empfohlen.</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Zahlungsabwicklungs &amp;Geb&uuml;hr</translation>
+        <translation>&amp;Transaktionsgeb&uuml;hr bezahlen</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -834,12 +834,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Map port using &amp;UPnP</source>
-        <translation>Karten-Port mit Hilfe von &amp;UPnP</translation>
+        <translation>Port mit Hilfe von &amp;UPnP zuweisen</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Verbinde mit dem VERGE-Netzwerk &uuml;ber einen SOCKS-Proxy (z.B. bei einer Verbindung &uuml;ber Tor)..</translation>
+        <translation>Verbindung zum VERGE-Netzwerk &uuml;ber einen SOCKS-Proxy herstellen (z.B. bei einer Verbindung &uuml;ber Tor)..</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -884,7 +884,7 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>Nur das Taskleistensymbol anzeigen, nachdem das Fenster verkleinert wurde.</translation>
+        <translation>Nur das Taskleistensymbol anzeigen, nachdem das Fenster minimiert wurde.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -899,7 +899,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>M&amp;inimieren beim Schließen</translation>
+        <translation>M&amp;inimieren beim Schlie&szlig;en</translation>
     </message>
     <message>
         <location line="+21"/>
@@ -924,7 +924,7 @@ Address: %4
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>W&auml;hlen Sie die standardm&auml;ßige Unterteilungseinheit, die in der Schnittstelle und beim Versenden von M&uuml;nzen angezeigt werden soll.</translation>
+        <translation>W&auml;hlen Sie die standardm&auml;&szlig;ige Oberfl&auml;che, die in der Schnittstelle und beim Versenden von M&uuml;nzen angezeigt werden soll.</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -985,7 +985,7 @@ Address: %4
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</source>
-        <translation>Die angezeigten Informationen k&ouml;nnen veraltet sein. Ihr Portemonnaie synchronisiert sich automatisch mit dem VERGE-Netzwerk, nachdem eine Verbindung hergestellt wurde, aber dieser Vorgang ist noch nicht abgeschlossen.</translation>
+        <translation>Die angezeigten Informationen k&ouml;nnen veraltet sein. Ihr Wallet synchronisiert sich automatisch mit dem VERGE-Netzwerk, nachdem eine Verbindung hergestellt wurde, jedoch ist Vorgang ist noch nicht abgeschlossen.</translation>
     </message>
     <message>
         <location line="-141"/>
@@ -1211,7 +1211,7 @@ Address: %4
     <message>
         <location line="+24"/>
         <source>&amp;Console</source>
-        <translation>&amp;Console</translation>
+        <translation>&amp;Konsole</translation>
     </message>
     <message>
         <location line="-260"/>
@@ -1236,7 +1236,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>&Ouml;ffnen der VERGE-Debug-Log-Datei aus dem aktuellen Datenverzeichnis. Dies kann bei großen Protokolldateien einige Sekunden dauern.</translation>
+        <translation>&Ouml;ffnen der VERGE-Debug-Log-Datei aus dem aktuellen Datenverzeichnis. Dies kann bei gro&szlig;en Protokolldateien einige Sekunden dauern.</translation>
     </message>
     <message>
         <location line="+102"/>
@@ -1306,7 +1306,7 @@ Address: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>Best&auml;tigen Sie die Versandvorgang</translation>
+        <translation>Best&auml;tigen Sie den Versandvorgang</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1341,7 +1341,7 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>Der zu zahlende Betrag muss gr&ouml;ßer als 0 sein..</translation>
+        <translation>Der zu zahlende Betrag muss gr&ouml;&szlig;er als 0 sein..</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1356,7 +1356,7 @@ Address: %4
     <message>
         <location line="+6"/>
         <source>Duplicate address found, can only send to each address once per send operation.</source>
-        <translation>Doppelte Adresse gefunden, kann nur einmal pro Sendevorgang an jede Adresse gesendet werden.</translation>
+        <translation>Doppelte Adresse gefunden, es kann nur einmal pro Sendevorgang an jede Adresse gesendet werden.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1366,7 +1366,7 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Fehler: Die Transaktion wurde abgelehnt. Dies kann passieren, wenn einige der M&uuml;nzen in Ihrer Wallet bereits ausgegeben wurden, z.B. wenn Sie eine Kopie von wallet.dat verwendet haben und M&uuml;nzen in der Kopie ausgegeben wurden, aber nicht hier als ausgegeben markiert wurden.</translation>
+        <translation>Fehler: Die Transaktion wurde abgelehnt. Dies kann passieren, wenn einige der M&uuml;nzen in Ihrer Wallet bereits ausgegeben wurden, z.B. wenn Sie eine Kopie von wallet.dat verwendet haben und M&uuml;nzen in der Kopie ausgegeben wurden, aber hier nicht als ausgegeben markiert wurden.</translation>
     </message>
 </context>
 <context>
@@ -1569,7 +1569,7 @@ Address: %4
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>Die Freischaltung der Wallet wurde abgebrochen.</translation>
+        <translation>Das Entsperren der Wallet wurde abgebrochen.</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -2170,12 +2170,12 @@ Address: %4
     <message>
         <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
-        <translation>Datenbank-Cache-Gr&ouml;ße in Megabyte festlegen (Standard: 25)</translation>
+        <translation>Datenbank-Cache-Gr&ouml;&szlig;e in Megabyte festlegen (Standard: 25)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set database disk log size in megabytes (default: 100)</source>
-        <translation>Festlegen der Gr&ouml;ße des Datenbankfestplattenprotokolls in Megabyte (Standard: 100)</translation>
+        <translation>Festlegen der Gr&ouml;&szlig;e des Datenbankfestplattenprotokolls in Megabyte (Standard: 100)</translation>
     </message>
     <message>
         <location line="-26"/>
@@ -2275,7 +2275,7 @@ Address: %4
     <message>
         <location line="-93"/>
         <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>
-        <translation>Akzeptieren von Verbindungen von außen (Standard: 1, wenn kein -proxy oder -connect vorhanden ist.)</translation>
+        <translation>Akzeptieren von Verbindungen von au&szlig;en (Standard: 1, wenn kein -proxy oder -connect vorhanden ist.)</translation>
     </message>
     <message>
         <location line="-53"/>
@@ -2285,12 +2285,12 @@ Address: %4
     <message>
         <location line="+8"/>
         <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation>Fehler beim Initialisieren der Datenbankumgebung %s! Um wiederherzustellen, DIESES VERZEICHNIS SICHERN, dann entfernen Sie alles vom Verzeichnis außer wallet.dat.</translation>
+        <translation>Fehler beim Initialisieren der Datenbankumgebung %s! Um wiederherzustellen, DIESES VERZEICHNIS SICHERN, dann alles au&szlig;er der wallet.dat aus dem Verzeichnis entfernen.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</source>
-        <translation>Maximale Gr&ouml;ße von Transaktionen mit hoher Priorit&auml;t/niedriger Geb&uuml;hr in Bytes festlegen (Standard: 27000)</translation>
+        <translation>Maximale Gr&ouml;&szlig;e von Transaktionen mit hoher Priorit&auml;t/niedriger Geb&uuml;hr in Bytes festlegen (Standard: 27000)</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -2315,7 +2315,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
-        <translation>Warnung: wallet.dat korrupt, Daten gerettet! Original wallet.dat gespeichert als wallet.{timestamp}.bak in %s; wenn Ihr Kontostand oder Ihre Transaktionen nicht korrekt sind, sollten Sie die Daten aus einem Backup wiederherstellen.</translation>
+        <translation>Warnung: wallet.dat besch&auml;digt, Daten gerettet! Original wallet.dat gespeichert als wallet.{timestamp}.bak in %s; wenn Ihr Kontostand oder Ihre Transaktionen nicht korrekt sind, sollten Sie die Daten aus einer Sicherung wiederherstellen.</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -2405,12 +2405,12 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Set maximum block size in bytes (default: 250000)</source>
-        <translation>Maximale Blockgr&ouml;ße in Bytes einstellen (Standard: 250000)</translation>
+        <translation>Maximale Blockgr&ouml;&szlig;e in Bytes einstellen (Standard: 250000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set minimum block size in bytes (default: 0)</source>
-        <translation>Minimale Blockgr&ouml;ße in Bytes einstellen (Standard: 0)</translation>
+        <translation>Minimale Blockgr&ouml;&szlig;e in Bytes einstellen (Standard: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2490,7 +2490,7 @@ Address: %4
     <message>
         <location line="-15"/>
         <source>Set key pool size to &lt;n&gt; (default: 100)</source>
-        <translation>Setzen Sie die Gr&ouml;ße des Schl&uuml;sselpools auf (Standard: 100)</translation>
+        <translation>Setzen der Gr&ouml;&szlig;e des Schl&uuml;sselpools auf &lt;n&gt; (Standard: 100)</translation>
     </message>
     <message>
         <location line="-14"/>
@@ -2585,7 +2585,7 @@ Address: %4
     <message>
         <location line="+73"/>
         <source>Wallet needed to be rewritten: restart VERGE to complete</source>
-        <translation>Das Wallet musste neu geschrieben werden: Starten Sie VERGE neu, um den Vorgang abzuschließen.</translation>
+        <translation>Das Wallet musste neu geschrieben werden: Starten Sie VERGE neu, um den Vorgang abzuschlie&szlig;en.</translation>
     </message>
     <message>
         <location line="-75"/>
