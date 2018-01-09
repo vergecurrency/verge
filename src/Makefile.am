@@ -23,6 +23,7 @@ BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPP
 LIBBITCOIN_SERVER=libbitcoin_server.a
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
+
 LIBBITCOIN_UTIL=libbitcoin_util.a
 if HAVE_SSE2
 LIBBITCOIN_SSE2=libbitcoin_sse2.a
@@ -229,7 +230,6 @@ libbitcoin_util_a_SOURCES += compat/glibcxx_compat.cpp
 endif
 
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
-
 # bitcoind binary #
 VERGEd_LDADD = \
   $(LIBBITCOIN_SERVER) \
@@ -249,8 +249,24 @@ VERGEd_LDADD += libbitcoin_wallet.a
 endif
 VERGEd_SOURCES = daemon.cpp
 
-VERGEd_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
-VERGEd_CPPFLAGS = $(BITCOIN_INCLUDES)
+VERGEd_LDADD += \
+  ../tor/src/or/libtor.a \
+  ../tor/src/common/libor.a \
+  ../tor/src/common/libor-ctime.a \
+  ../tor/src/common/libor-crypto.a \
+  ../tor/src/common/libor-event.a \
+  ../tor/src/trunnel/libor-trunnel.a \
+  ../tor/src/common/libcurve25519_donna.a \
+  ../tor/src/ext/ed25519/donna/libed25519_donna.a \
+  ../tor/src/ext/ed25519/ref10/libed25519_ref10.a \
+  ../tor/src/ext/keccak-tiny/libkeccak-tiny.a \
+  $(LIBEVENT_LIBS) \
+  $(LIBSECCOMP_LIBS) \
+  $(LIBCAP_LIBS) \
+  $(ZLIB_LIBS)
+
+VERGEd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(LIBCAP_LDFLAGS) $(ZLIB_LDFLAGS)
+VERGEd_CPPFLAGS = $(BITCOIN_INCLUDES) $(LIBEVENT_CFLAGS) $(LIBSECCOMP_CFLAGS) $(LIBCAP_CFLAGS) $(ZLIB_CFLAGS)
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 

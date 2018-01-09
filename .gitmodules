@@ -1,0 +1,4 @@
+[submodule "tor"]
+	path = tor
+	url = https://github.com/torproject/tor.git
+	branch = maint-0.3.2
