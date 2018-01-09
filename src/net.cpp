@@ -27,6 +27,8 @@
 // Dump addresses to peers.dat every 15 minutes (900s)
 #define DUMP_ADDRESSES_INTERVAL 900
 
+#define MSG_NOSIGNAL 0
+
 using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
