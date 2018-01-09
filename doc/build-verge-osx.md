@@ -2,10 +2,10 @@
 
 > **Note:** This has only been confirmed to work on OS X Sierra (10.12) and OS X High Sierra (10.13) with XCode 9.2 and `Apple LLVM version 9.0.0 (clang-900.0.39.2)`.
 
-1. Ensure you have mysql and boost installed.
+1. Ensure you have mysql installed.
     
     ```shell
-    brew install mysql boost
+    brew install mysql
     ```
 
 2. Ensure you have python 2.7 installed and in your path (OS X comes with this by default)

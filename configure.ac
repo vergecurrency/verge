@@ -6,7 +6,7 @@ define(_CLIENT_VERSION_REVISION, 1)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
 define(_COPYRIGHT_YEAR, 2018)
-AC_INIT([VERGE Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/vergecurrency/VERGE/issues],[verge],[http://VERGEcurrency.com/])
+AC_INIT([VERGE Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/vergecurrency/VERGE/issues],[verge],[https://vergecurrency.com/])
 AC_CONFIG_AUX_DIR([src/build-aux])
 AC_CONFIG_MACRO_DIR([src/m4])
 AC_CANONICAL_HOST
@@ -19,7 +19,7 @@ AX_SUBDIRS_CONFIGURE([tor], [[--disable-unittests], [--disable-system-torrc], [-
 # This m4 will only be used if a system copy cannot be found. This is helpful
 # on systems where autotools are installed but the pkg-config macros are not in
 # a default location. It is currently used for building on OSX where autotools
-# are preinstalled but pkg-config comes from macports or homebrew. It should
+# are preinstalled but pkg-config comes from homebrew. It should
 # probably be removed when building on <= 10.6 is no longer supported.
 m4_include([pkg.m4])
 
@@ -245,39 +245,27 @@ case $host in
      AC_SUBST(WINDOWS_BITS)
      ;;
   *darwin*)
-     TARGET_OS=darwin
-     LEVELDB_TARGET_FLAGS="TARGET_OS=Darwin"
-     if  test x$cross_compiling != xyes; then
-       BUILD_OS=darwin
-       AC_CHECK_PROG([PORT],port, port)
-       if test x$PORT = xport; then
-         dnl add default macports paths
-         CPPFLAGS="$CPPFLAGS -isystem /opt/local/include -I/opt/local/include/db48"
-         LIBS="$LIBS -L/opt/local/lib -L/opt/local/lib/db48"
-       fi
+    TARGET_OS=darwin
+    BUILD_OS=darwin
+    LEVELDB_TARGET_FLAGS="TARGET_OS=Darwin"
+    AC_CHECK_PROG([BREW], brew, brew)
+    
+    if test x$BREW = xbrew; then
+      dnl add default homebrew paths
+      openssl_prefix=`$BREW --prefix openssl`
+      bdb_prefix=`$BREW --prefix berkeley-db4`
+      boost_prefix=`$BREW --prefix boost@1.60`
+      export PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
+      CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include -I$boost_prefix/include"
+      LIBS="$LIBS -L$bdb_prefix/lib -L$boost_prefix/lib"
+    fi
 
-       AC_CHECK_PROG([BREW],brew, brew)
-       if test x$BREW = xbrew; then
-         dnl add default homebrew paths
-         openssl_prefix=`$BREW --prefix openssl`
-         bdb_prefix=`$BREW --prefix berkeley-db4`
-         export PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
-         CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
-         LIBS="$LIBS -L$bdb_prefix/lib"
-       fi
-     else
-       case $build_os in
-         *darwin*)
-           BUILD_OS=darwin
-           ;;
-         *)
-           AC_PATH_TOOL([INSTALLNAMETOOL], [install_name_tool], install_name_tool)
-           AC_PATH_TOOL([OTOOL], [otool], otool)
-           AC_PATH_PROGS([GENISOIMAGE], [genisoimage mkisofs],genisoimage)
-           ;;
-       esac
-     fi
+    AC_PATH_TOOL([INSTALLNAMETOOL], [install_name_tool], install_name_tool)
+    AC_PATH_TOOL([OTOOL], [otool], otool)
+    AC_PATH_PROGS([GENISOIMAGE], [genisoimage mkisofs],genisoimage)
 
+     # Enable c++11 on OS X
+     CXXFLAGS="$CXXFLAGS -std=c++11 -stdlib=libc++"
      CPPFLAGS="$CPPFLAGS -DMAC_OSX"
      ;;
    *)
