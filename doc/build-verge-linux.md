@@ -19,7 +19,7 @@ The _slightly_ longer version:
         libtool autotools-dev automake pkg-config libssl-dev zlib1g-dev libz-dev libevent-dev \
         bsdmainutils git libboost-all-dev libseccomp-dev libncap-dev libminiupnpc-dev libqt5gui5 \
         libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev \
-        qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+        qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev libseccomp-dev libcap-dev
     ```
 
 2. Clone the git repository and compile the daemon and gui wallet:
