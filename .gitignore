@@ -20,6 +20,10 @@ src/qt/VERGE-qt
 VERGEd
 VERGE-qt
 
+release_windows.zip
+release_mac.zip
+release_linux.zip
+
 Makefile.in
 aclocal.m4
 autom4te.cache/
