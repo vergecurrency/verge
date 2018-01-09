@@ -4,7 +4,12 @@ noinst_LIBRARIES += qt/libbitcoinqt.a
 # bitcoin qt core #
 QT_TS = \
   qt/locale/bitcoin_en.ts \
-  qt/locale/bitcoin_ru.ts
+  qt/locale/bitcoin_es.ts \
+  qt/locale/bitcoin_fr.ts \
+  qt/locale/bitcoin_nb.ts \
+  qt/locale/bitcoin_nl.ts \
+  qt/locale/bitcoin_ru.ts \
+  qt/locale/bitcoin_tr.ts
 
 QT_FORMS_UI = \
   qt/forms/aboutdialog.ui \
@@ -65,6 +70,9 @@ QT_MOC = \
 
 QT_QRC_CPP = qt/qrc_bitcoin.cpp
 QT_QRC = qt/bitcoin.qrc
+QT_QRC_LOCALE_CPP = qt/qrc_bitcoin_locale.cpp
+QT_QRC_LOCALE = qt/bitcoin_locale.qrc
+
 
 BITCOIN_QT_H = \
   qt/aboutdialog.h \
@@ -246,7 +254,22 @@ if ENABLE_WALLET
  qt_VERGE_qt_LDADD += $(LIBBITCOIN_WALLET)
 endif
 qt_VERGE_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_SSE2) $(LIBLEVELDB) $(LIBMEMENV) \
-  $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS)
+  $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS) \
+  ../tor/src/or/libtor.a \
+	../tor/src/common/libor.a \
+	../tor/src/common/libor-ctime.a \
+	../tor/src/common/libor-crypto.a \
+	../tor/src/common/libor-event.a \
+	../tor/src/trunnel/libor-trunnel.a \
+	../tor/src/common/libcurve25519_donna.a \
+	../tor/src/ext/ed25519/donna/libed25519_donna.a \
+	../tor/src/ext/ed25519/ref10/libed25519_ref10.a \
+	../tor/src/ext/keccak-tiny/libkeccak-tiny.a \
+  $(ZLIB_LIBS) \
+  $(LIBEVENT_LIBS) \
+  $(LIBCAP_LIBS) \
+  $(LIBSECCOMP_LIBS)
+
 if TARGET_LINUX
   qt_VERGE_qt_LDADD += -lrt
 endif
@@ -267,16 +290,17 @@ translate: qt/bitcoinstrings.cpp $(QT_FORMS_UI) $(QT_FORMS_UI) $(BITCOIN_QT_CPP)
 
 $(QT_QRC_LOCALE_CPP): $(QT_QRC_LOCALE) $(QT_QM)
 	@test -f $(RCC)
-	@test -f $(@D)/$(<F) || cp -f $< $(@D)
-	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -name bitcoin_locale $(@D)/$(<F) | \
+	@cp -f $< $(@D)/temp_$(<F)
+	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -name bitcoin_locale $(@D)/temp_$(<F) | \
 	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@
+	@rm $(@D)/temp_$(<F)
 
 $(QT_QRC_CPP): $(QT_QRC) $(QT_FORMS_H) $(RES_ICONS) $(RES_IMAGES) $(RES_MOVIES) $(PROTOBUF_H)
 	@test -f $(RCC)
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -name bitcoin $< | \
 	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@
 
-CLEAN_QT = $(nodist_qt_libbitcoinqt_a_SOURCES) $(QT_QM) $(QT_FORMS_H) qt/*.gcda qt/*.gcno
+CLEAN_QT = $(nodist_qt_libbitcoinqt_a_SOURCES) $(QT_QM) $(QT_FORMS_H) qt/*.gcda qt/*.gcno qt/temp_bitcoin_locale.qrc
 
 CLEANFILES += $(CLEAN_QT)
 

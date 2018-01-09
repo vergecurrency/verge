@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>700</width>
-    <height>401</height>
+    <height>405</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,12 +51,7 @@
             <string>The address to sign the message with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;</string>
            </property>
            <property name="maxLength">
@@ -80,8 +75,8 @@ border-bottom-right-radius: 5px;
             <string/>
            </property>
            <property name="icon">
-            <iconset>
-             <normaloff>:/icons/address-book</normaloff>:/icons/address-book</iconset>
+            <iconset resource="../bitcoin.qrc">
+             <normaloff>:/icons/address-book_filled</normaloff>:/icons/address-book_filled</iconset>
            </property>
            <property name="shortcut">
             <string>Alt+A</string>
@@ -106,7 +101,7 @@ border-bottom-right-radius: 5px;</string>
             <string/>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../bitcoin.qrc">
              <normaloff>:/icons/editpaste</normaloff>:/icons/editpaste</iconset>
            </property>
            <property name="shortcut">
@@ -125,12 +120,7 @@ border-bottom-right-radius: 5px;</string>
           <string>Enter the message you want to sign here</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 150px;
+          <string notr="true">min-height: 150px;
 max-height: 150px;</string>
          </property>
         </widget>
@@ -148,12 +138,7 @@ max-height: 150px;</string>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;</string>
            </property>
            <property name="readOnly">
@@ -179,7 +164,7 @@ border-bottom-right-radius: 5px;
             <string/>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../bitcoin.qrc">
              <normaloff>:/icons/editcopy</normaloff>:/icons/editcopy</iconset>
            </property>
            <property name="autoDefault">
@@ -209,7 +194,7 @@ border-bottom-right-radius: 5px;
             <string>&amp;Sign Message</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../bitcoin.qrc">
              <normaloff>:/icons/edit</normaloff>:/icons/edit</iconset>
            </property>
            <property name="autoDefault">
@@ -238,7 +223,7 @@ border-bottom-right-radius: 5px;
             <string>Clear &amp;All</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../bitcoin.qrc">
              <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
            <property name="autoDefault">
@@ -327,12 +312,7 @@ border-bottom-right-radius: 5px;
             <string>The address the message was signed with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+            <string notr="true">min-height: 25px;
 max-height: 25px;
 </string>
            </property>
@@ -359,8 +339,8 @@ border-bottom-right-radius: 5px;
             <string/>
            </property>
            <property name="icon">
-            <iconset>
-             <normaloff>:/icons/address-book</normaloff>:/icons/address-book</iconset>
+            <iconset resource="../bitcoin.qrc">
+             <normaloff>:/icons/address-book_filled</normaloff>:/icons/address-book_filled</iconset>
            </property>
            <property name="shortcut">
             <string>Alt+A</string>
@@ -375,12 +355,7 @@ border-bottom-right-radius: 5px;
        <item>
         <widget class="QPlainTextEdit" name="messageIn_VM">
          <property name="styleSheet">
-          <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 150px;
+          <string notr="true">min-height: 150px;
 max-height: 150px;</string>
          </property>
         </widget>
@@ -388,12 +363,7 @@ max-height: 150px;</string>
        <item>
         <widget class="QValidatedLineEdit" name="signatureIn_VM">
          <property name="styleSheet">
-          <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
+          <string notr="true">min-height: 25px;
 max-height: 25px;</string>
          </property>
         </widget>
@@ -418,7 +388,7 @@ max-height: 25px;</string>
             <string>&amp;Verify Message</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../bitcoin.qrc">
              <normaloff>:/icons/transaction_0</normaloff>:/icons/transaction_0</iconset>
            </property>
            <property name="autoDefault">
@@ -447,7 +417,7 @@ max-height: 25px;</string>
             <string>Clear &amp;All</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../bitcoin.qrc">
              <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
            <property name="autoDefault">
@@ -518,6 +488,8 @@ max-height: 25px;</string>
    <header>qvalidatedlineedit.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../bitcoin.qrc"/>
+ </resources>
  <connections/>
 </ui>

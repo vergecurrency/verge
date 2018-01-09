@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>760</width>
+    <width>969</width>
     <height>380</height>
    </rect>
   </property>
@@ -36,12 +36,7 @@
       <string>Double-click to edit address or label</string>
      </property>
      <property name="styleSheet">
-      <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #000000;</string>
+      <string notr="true"/>
      </property>
      <property name="tabKeyNavigation">
       <bool>false</bool>
@@ -71,18 +66,7 @@ border: 1px solid #000000;</string>
         <string>Create a new address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 3px;
-border-top-right-radius: 3px;
-border-bottom-left-radius: 3px;
-border-bottom-right-radius: 3px;
-border: 1px solid #10829F;
-color: #ffffff;
-background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
-min-height: 30px;
-max-height: 30px;</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string>New Address</string>
@@ -95,18 +79,7 @@ max-height: 30px;</string>
         <string>Copy the currently selected address to the system clipboard</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 3px;
-border-top-right-radius: 3px;
-border-bottom-left-radius: 3px;
-border-bottom-right-radius: 3px;
-border: 1px solid #10829F;
-color: #ffffff;
-background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
-min-height: 30px;
-max-height: 30px;</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string>Copy Address</string>
@@ -116,18 +89,7 @@ max-height: 30px;</string>
      <item>
       <widget class="QPushButton" name="showQRCode">
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 3px;
-border-top-right-radius: 3px;
-border-bottom-left-radius: 3px;
-border-bottom-right-radius: 3px;
-border: 1px solid #10829F;
-color: #ffffff;
-background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
-min-height: 30px;
-max-height: 30px;</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string>Show &amp;QR Code</string>
@@ -140,18 +102,7 @@ max-height: 30px;</string>
         <string>Sign a message to prove you own a VERGE address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 3px;
-border-top-right-radius: 3px;
-border-bottom-left-radius: 3px;
-border-bottom-right-radius: 3px;
-border: 1px solid #10829F;
-color: #ffffff;
-background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
-min-height: 30px;
-max-height: 30px;</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string>Sign &amp;Message</string>
@@ -164,18 +115,7 @@ max-height: 30px;</string>
         <string>Verify a message to ensure it was signed with a specified VERGE address</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 3px;
-border-top-right-radius: 3px;
-border-bottom-left-radius: 3px;
-border-bottom-right-radius: 3px;
-border: 1px solid #10829F;
-color: #ffffff;
-background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
-min-height: 30px;
-max-height: 30px;</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string>Verify Message</string>
@@ -188,23 +128,10 @@ max-height: 30px;</string>
         <string>Delete the currently selected address from the list</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 3px;
-border-top-right-radius: 3px;
-border-bottom-left-radius: 3px;
-border-bottom-right-radius: 3px;
-border: 1px solid #10829F;
-color: #ffffff;
-background: #00C2F3;
-min-width: 125px;
-max-width: 125px;
-min-height: 30px;
-max-height: 30px;</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string>Delete</string>
-       </property>
-       <property name="icon">
        </property>
       </widget>
      </item>
@@ -230,14 +157,7 @@ max-height: 30px;</string>
         </sizepolicy>
        </property>
        <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #000000;
-min-width: 85px;
-max-width: 85px;</string>
+        <string notr="true"/>
        </property>
        <property name="standardButtons">
         <set>QDialogButtonBox::Ok</set>

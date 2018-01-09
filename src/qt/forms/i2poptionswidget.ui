@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>549</width>
-    <height>371</height>
+    <width>557</width>
+    <height>470</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -75,11 +75,7 @@
         </sizepolicy>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+        <string notr="true">
 min-height: 25px;
 max-height: 25px;
 min-width: 125px;
@@ -144,16 +140,12 @@ max-width: 125px;</string>
        </property>
        <property name="minimumSize">
         <size>
-         <width>129</width>
-         <height>29</height>
+         <width>127</width>
+         <height>27</height>
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
+        <string notr="true">
 min-height: 25px;
 max-height: 25px;
 min-width: 125px;
