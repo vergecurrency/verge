@@ -89,7 +89,7 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 > **Note:** It may look like it is frozen or hung while it is indexing and syncing the blockchain. It's not. It's chugging away, but currently the UI doesn't give you a lot of feedback on status. We're working to fix that. Syncing takes a while to complete (ie. > 10 minutes or more) so just be patient.
 
-> **Note:** If you want to change your configuration you can create a `~/Library/Application\ Support/VERGE/VERGE.conf` file with your options. If you don, make sure to restart Verge. This isn't required and so there is no `VERGE.conf` file created by default.
+> **Note:** If you want to change your configuration you can create a `~/Library/Application\ Support/VERGE/VERGE.conf` file with your options. If you do, make sure to restart Verge. This isn't required and so there is no `VERGE.conf` file created by default.
 
 ### Linux Wallet
 
