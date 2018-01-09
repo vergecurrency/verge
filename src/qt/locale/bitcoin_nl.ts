@@ -1642,7 +1642,7 @@ Address: %4
     <message>
         <location line="+2"/>
         <source>%1 confirmations</source>
-        <translation>%1 bevestigingen/translation>
+        <translation>%1 bevestigingen</translation>
     </message>
     <message>
         <location line="+18"/>
@@ -1754,12 +1754,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Gegenereerde munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in & quot; niet geaccepteerd & quot; en het zal niet te besteden zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na jou een blok genereert.</translation>
+        <translation>Gegenereerde munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in &quot; niet geaccepteerd &quot; en het zal niet te besteden zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na jou een blok genereert.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>Ingezette munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in & quot; niet geaccepteerd & quot; en het zal niet besteedbaar zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na de jouwe een blok genereert.</translation>
+        <translation>Ingezette munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in &quot; niet geaccepteerd &quot; en het zal niet besteedbaar zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na de jouwe een blok genereert.</translation>
     </message>
     <message>
         <location line="+7"/>

@@ -823,7 +823,7 @@ Tarifa de 0.01 recomendada.</translation>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Pagar tari&ampfa de transacción</translation>
+        <translation>Pagar tari&amp;fa de transacción</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -2255,7 +2255,7 @@ válido.  Estoy puede ocurrir ocasionalmente si otro nodo genera un bloque POS c
     <message>
         <location line="+4"/>
         <source> Maintain at most &lt;n&gt; connections to peers (Por defecto: 125)</source>
-        <translation> Mantener un máximo de &lt;n&gt; conexiones a pares (Por defecto: 125)</ translation>
+        <translation> Mantener un máximo de &lt;n&gt; conexiones a pares (Por defecto: 125)</translation>
     </message>
     <message>
         <location line="-33"/>
@@ -2727,7 +2727,7 @@ balance o transacciones son incorrectas deberías restaurar desde un respaldo.</
     <message>
         <location line="+8"/>
         <source>Loading block index...</source>
-        <translation>Cargando índice de bloquestranslation>
+        <translation>Cargando índice de bloquestranslation</translation>
     </message>
     <message>
         <location line="-46"/>

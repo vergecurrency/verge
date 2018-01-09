@@ -1,11 +1,11 @@
-<RCC>
+<!DOCTYPE RCC><RCC version="1.0">
     <qresource prefix="/icons">
         <file alias="bitcoin">res/icons/verge.png</file>
         <file alias="address-book">res/icons/address-book.png</file>
         <file alias="address-book_filled">res/icons/address-book_filled.png</file>
         <file alias="quit">res/icons/quit.png</file>
         <file alias="send">res/icons/send.png</file>
-		<file alias="block">res/icons/block.png</file>
+	<file alias="block">res/icons/block.png</file>
         <file alias="toolbar">res/icons/toolbar_verge.png</file>
         <file alias="connect_0">res/icons/connect0_16.png</file>
         <file alias="connect_1">res/icons/connect1_16.png</file>
@@ -88,9 +88,5 @@
         <file alias="spinner-032">res/movies/spinner-032.png</file>
         <file alias="spinner-033">res/movies/spinner-033.png</file>
         <file alias="spinner-034">res/movies/spinner-034.png</file>
-    </qresource>
-    <qresource prefix="/translations">
-        <file alias="en">locale/bitcoin_en.ts</file>
-        <file alias="ru">locale/bitcoin_ru.ts</file>
     </qresource>
 </RCC>
