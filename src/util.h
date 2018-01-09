@@ -120,7 +120,6 @@ T* alignup(T* p)
 
 #ifdef __APPLE__
 #define MSG_NOSIGNAL        0
-#define MSG_DONTWAIT        0
 #endif
 
 inline void MilliSleep(int64_t n)
