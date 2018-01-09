@@ -262,7 +262,7 @@ case $host in
          openssl_prefix=`$BREW --prefix openssl`
          bdb_prefix=`$BREW --prefix berkeley-db4`
          export PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
-         CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
+         CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include -lstdc++"
          LIBS="$LIBS -L$bdb_prefix/lib"
        fi
      else
@@ -552,10 +552,6 @@ if test x$use_pkgconfig = xyes; then
     [
       PKG_CHECK_MODULES(LIBEVENT, [libevent], [], [AC_MSG_ERROR([libevent not found])])
       PKG_CHECK_MODULES(ZLIB, [zlib], [], [AC_MSG_ERROR([zlib not found])])
-      if test x$TARGET_OS = xlinux; then
-        PKG_CHECK_MODULES(LIBSECCOMP, [libseccomp], [], [AC_MSG_ERROR([libseccomp not found])])
-        PKG_CHECK_MODULES(LIBCAP, [libcap], [], [AC_MSG_ERROR([libcap not found])])
-      fi
       PKG_CHECK_MODULES([SSL], [libssl], [INCLUDES="$INCLUDES $SSL_CFLAGS"; LIBS="$LIBS $SSL_LIBS"], [AC_MSG_ERROR(openssl  not found.)])
       PKG_CHECK_MODULES([CRYPTO], [libcrypto], [INCLUDES="$INCLUDES $CRYPTO_CFLAGS"; LIBS="$LIBS $CRYPTO_LIBS"], [AC_MSG_ERROR(libcrypto  not found.)])
       BITCOIN_QT_CHECK([PKG_CHECK_MODULES([PROTOBUF], [protobuf], [have_protobuf=yes], [BITCOIN_QT_FAIL(libprotobuf not found)])])

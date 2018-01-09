@@ -118,6 +118,11 @@ T* alignup(T* p)
 #define MAX_PATH            1024
 #endif
 
+#ifdef __APPLE__
+#define MSG_NOSIGNAL        0
+#define MSG_DONTWAIT        0
+#endif
+
 inline void MilliSleep(int64_t n)
 {
 #if BOOST_VERSION >= 105000
