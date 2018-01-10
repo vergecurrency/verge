@@ -4,7 +4,9 @@ Here is a quick short hand way:
 
 ```shell
 sudo rm -Rf ~/VERGE  #(if you already have it)
-sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
+sudo apt-get -y install git && cd ~ && \
+         git clone --recurse-submodules https://github.com/vergecurrency/VERGE \
+         && cd VERGE && sh go.sh
 ```
 
 The _slightly_ longer version:
@@ -25,7 +27,8 @@ The _slightly_ longer version:
 2. Clone the git repository and compile the daemon and gui wallet:
 
     ```shell
-    git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
+    git clone --recurse-submodules https://github.com/vergecurrency/verge && cd verge \
+        && ./autogen.sh && ./configure && make
     ```
 
 > **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
@@ -41,7 +44,7 @@ sudo dnf install git automake boost-devel qt5-devel qrencode-devel libdb4-cxx-de
 ```
 2. Clone source and build
 ```
-git clone https://github.com/vergecurrency/VERGE.git
+git clone --recurse-submodules https://github.com/vergecurrency/VERGE.git
 cd VERGE
 ./autogen.sh
 ./configure --with-gui=qt5
