@@ -2818,7 +2818,7 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
     return NULL;
 }
 
-bool LoadBlockIndex(bool fAllowNew)
+bool LoadBlockIndex(bool fAllowNew,CClientUIInterface* uiInterface)
 {
     if (fTestNet)
     {
@@ -2839,7 +2839,7 @@ bool LoadBlockIndex(bool fAllowNew)
     // Load block index
     //
     CTxDB txdb("cr");
-    if (!txdb.LoadBlockIndex())
+    if (!txdb.LoadBlockIndex(uiInterface))
         return false;
 
     //
@@ -2851,12 +2851,12 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis Block:
-//CBlock(hash=0000068e0b99f3db472b, ver=1, hashPrevBlock=00000000000000000000,
-// hashMerkleRoot=ea6fed5e25, nTime=1368496587, nBits=1e0fffff, nNonce=578618, vtx=1, vchBlockSig=)
-//  Coinbase(hash=ea6fed5e25, nTime=1368496567, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-//    CTxIn(COutPoint(0000000000, 4294967295), coinbase 04ffff001d020f2706787878787878)
-//    CTxOut(empty)
-//vMerkleTree: ea6fed5e2
+        //CBlock(hash=0000068e0b99f3db472b, ver=1, hashPrevBlock=00000000000000000000,
+        // hashMerkleRoot=ea6fed5e25, nTime=1368496587, nBits=1e0fffff, nNonce=578618, vtx=1, vchBlockSig=)
+        //  Coinbase(hash=ea6fed5e25, nTime=1368496567, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+        //    CTxIn(COutPoint(0000000000, 4294967295), coinbase 04ffff001d020f2706787878787878)
+        //    CTxOut(empty)
+        //vMerkleTree: ea6fed5e2
         // Genesis block
         const char* pszTimestamp = "Name: Dogecoin Dark";
 				if(fTestNet)
