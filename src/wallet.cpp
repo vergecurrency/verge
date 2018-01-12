@@ -1926,14 +1926,6 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
             // no change
             return true;
         };
-        
-        it->label = label; // update in .stealthAddresses
-        
-        if (sxFound.scan_secret.size() == ec_secret_size)
-        {
-            printf("UpdateStealthAddress: todo - update owned stealth address.\n");
-            return false;
-        };
     };
     
     sxFound.label = label;
