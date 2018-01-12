@@ -14,6 +14,7 @@
 
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
+#include "ui_interface.h"
 
 // Class that provides access to a LevelDB. Note that this class is frequently
 // instantiated on the stack and then destroyed again, so instantiation has to
@@ -201,7 +202,7 @@ public:
     bool WriteSyncCheckpoint(uint256 hashCheckpoint);
     bool ReadCheckpointPubKey(std::string& strPubKey);
     bool WriteCheckpointPubKey(const std::string& strPubKey);
-    bool LoadBlockIndex();
+    bool LoadBlockIndex(CClientUIInterface* uiInterface=NULL);
 private:
     bool LoadBlockIndexGuts();
 };

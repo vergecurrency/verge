@@ -9,6 +9,7 @@
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/format.hpp>
 
 #include <leveldb/env.h>
 #include <leveldb/cache.h>
@@ -318,24 +319,54 @@ static CBlockIndex *InsertBlockIndex(uint256 hash)
     return pindexNew;
 }
 
-bool CTxDB::LoadBlockIndex()
+bool CTxDB::LoadBlockIndex(CClientUIInterface* uiInterface)
 {
     if (mapBlockIndex.size() > 0) {
         // Already loaded once in this session. It can happen during migration
         // from BDB.
         return true;
     }
+
     // The block index is an in-memory structure that maps hashes to on-disk
     // locations where the contents of the block can be found. Here, we scan it
     // out of the DB and into mapBlockIndex.
     leveldb::Iterator *iterator = pdb->NewIterator(leveldb::ReadOptions());
+    
     // Seek to start key.
+    // and count the full index size of the currently
+    // loaded block chain.
     CDataStream ssStartKey(SER_DISK, CLIENT_VERSION);
     ssStartKey << make_pair(string("blockindex"), uint256(0));
     iterator->Seek(ssStartKey.str());
+    long full_count = 0;    
+    while (iterator->Valid())
+    {
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        ssKey.write(iterator->key().data(), iterator->key().size());
+        string strType;
+        ssKey >> strType;
+        // Did we reach the end of the data to read?
+        if (strType != "blockindex")
+            break;
+        
+        iterator->Next();
+        full_count++;
+    }
+
+    iterator = pdb->NewIterator(leveldb::ReadOptions());
+    ssStartKey << make_pair(string("blockindex"), uint256(0));
+    iterator->Seek(ssStartKey.str());
+    
+    long count = 0;
     // Now read each entry.
     while (iterator->Valid())
     {
+        count++;
+        // check if UI is given so update the percentage count by every percentage reached.
+        if(uiInterface != NULL && count % (full_count / 100) == 0){
+            const std::string & str = (boost::format("Loading indices: %1.0f%% ...") % ((double(count) * 100)/ full_count)).str();
+            uiInterface->InitMessage(str);
+        }
         boost::this_thread::interruption_point();
         // Unpack keys and values.
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -371,7 +402,7 @@ bool CTxDB::LoadBlockIndex()
         pindexNew->nTime            = diskindex.nTime;
         pindexNew->nBits            = diskindex.nBits;
         pindexNew->nNonce           = diskindex.nNonce;
-
+            
         // Watch for genesis block
         if (pindexGenesisBlock == NULL && blockHash == hashGenesisBlock)
             pindexGenesisBlock = pindexNew;
@@ -447,6 +478,7 @@ bool CTxDB::LoadBlockIndex()
         if (pindex->nHeight < nBestHeight-nCheckDepth)
             break;
         CBlock block;
+
         if (!block.ReadFromDisk(pindex))
             return error("LoadBlockIndex() : block.ReadFromDisk failed");
         // check level 1: verify block validity
