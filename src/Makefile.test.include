@@ -17,49 +17,42 @@ JSON_TEST_FILES = \
 
 BUILT_SOURCES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.raw.h)
 
-# test_bitcoin binary #
+#TODO: needs updating
+#test/base58_tests.cpp
+#test/key_tests.cpp
+#test/miner_tests.cpp
+#test/multisig_tests.cpp
+#test/wallet_tests.cpp
+#test/rpc_tests.cpp
+#test/DoS_tests.cpp
+#test/Checkpoints_tests.cpp
+#test/script_tests.cpp
+#test/transaction_tests.cpp
 
-# TODO: add
-#test/base58_tests.cpp 
-#test/key_tests.cpp 
-#test/miner_tests.cpp 
-#test/multisig_tests.cpp 
-#test/wallet_tests.cpp 
-#test/accounting_tests.cpp \
-test/allocator_tests.cpp \
-test/base32_tests.cpp \
-test/base64_tests.cpp \
-test/bignum_tests.cpp \
-test/Checkpoints_tests.cpp \
-test/DoS_tests.cpp \
-test/getarg_tests.cpp \
-test/mruset_tests.cpp \
-test/netbase_tests.cpp \
-test/rpc_tests.cpp \
-test/script_P2SH_tests.cpp \
-test/script_tests.cpp \
-test/sigopcount_tests.cpp \
-test/test_bitcoin.cpp \
-test/transaction_tests.cpp \
-test/uint160_tests.cpp \
-test/uint256_tests.cpp 
 
 test_bitcoin_SOURCES = \
-  test/test_bitcoin.cpp \
-  test/util_tests.cpp \
-  $(JSON_TEST_FILES) $(RAW_TEST_FILES)
+					   test/test_bitcoin.cpp \
+					   test/uint160_tests.cpp \
+					   test/uint256_tests.cpp \
+					   test/sigopcount_tests.cpp \
+					   test/netbase_tests.cpp \
+					   test/mruset_tests.cpp \
+					   test/getarg_tests.cpp \
+					   test/bignum_tests.cpp \
+					   test/base64_tests.cpp \
+					   test/base32_tests.cpp \
+					   test/allocator_tests.cpp \
+					   test/script_P2SH_tests.cpp \
+					   $(JSON_TEST_FILES) $(RAW_TEST_FILES)
 
 if ENABLE_WALLET
 test_bitcoin_SOURCES += \
-   #test/accounting_tests.cpp
+					   test/accounting_tests.cpp
 endif
 
 
-test_bitcoin_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -I$(builddir)/test $(TESTDEFS) \
-						$(EVENT_CFLAGS)
-#test_bitcoin_CPPFLAGS += $(LIBEVENT_CFLAGS) $(LIBSECCOMP_CFLAGS) $(LIBCAP_CFLAGS) $(ZLIB_CFLAGS)
+test_bitcoin_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -I$(builddir)/test $(TESTDEFS) $(EVENT_CFLAGS)
 test_bitcoin_LDADD =
-
 
 if ENABLE_WALLET
 test_bitcoin_LDADD += $(LIBBITCOIN_WALLET)
@@ -84,7 +77,6 @@ test_bitcoin_LDADD  += $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(L
 					   $(ZLIB_LDFLAGS)
 test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 test_bitcoin_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-
 
 nodist_test_bitcoin_SOURCES = $(BUILT_SOURCES)
 
