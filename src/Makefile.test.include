@@ -1,7 +1,7 @@
-bin_PROGRAMS += test_bitcoin
-TESTS += test_bitcoin
+bin_PROGRAMS += test_verge
+TESTS += test_verge
 TEST_SRCDIR = test
-TEST_BINARY=test/test_bitcoin$(EXEEXT)
+TEST_BINARY=test/test_verge$(EXEEXT)
 
 
 JSON_TEST_FILES = \
@@ -30,8 +30,8 @@ BUILT_SOURCES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.raw.h)
 #test/transaction_tests.cpp
 
 
-test_bitcoin_SOURCES = \
-					   test/test_bitcoin.cpp \
+test_verge_SOURCES = \
+					   test/test_verge.cpp \
 					   test/uint160_tests.cpp \
 					   test/uint256_tests.cpp \
 					   test/sigopcount_tests.cpp \
@@ -46,53 +46,53 @@ test_bitcoin_SOURCES = \
 					   $(JSON_TEST_FILES) $(RAW_TEST_FILES)
 
 if ENABLE_WALLET
-test_bitcoin_SOURCES += \
+test_verge_SOURCES += \
 					   test/accounting_tests.cpp
 endif
 
 
-test_bitcoin_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -I$(builddir)/test $(TESTDEFS) $(EVENT_CFLAGS)
-test_bitcoin_LDADD =
+test_verge_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -I$(builddir)/test $(TESTDEFS) $(EVENT_CFLAGS)
+test_verge_LDADD =
 
 if ENABLE_WALLET
-test_bitcoin_LDADD += $(LIBBITCOIN_WALLET)
+test_verge_LDADD += $(LIBBITCOIN_WALLET)
 endif
 
-test_bitcoin_LDADD += $(LIBBITCOIN_SERVER) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
+test_verge_LDADD += $(LIBBITCOIN_SERVER) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
 					 $(LIBLEVELDB) $(LIBMEMENV)  \
 					 $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
 
 
 if HAVE_SSE2
-test_bitcoin_LDADD += $(LIBBITCOIN_SSE2)
+test_verge_LDADD += $(LIBBITCOIN_SSE2)
 endif
 
-test_bitcoin_LDADD += $(TOR_LIBS) \
+test_verge_LDADD += $(TOR_LIBS) \
   $(LIBEVENT_LIBS) \
   $(LIBSECCOMP_LIBS) \
   $(LIBCAP_LIBS) \
   $(ZLIB_LIBS)
 
-test_bitcoin_LDADD  += $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(LIBCAP_LDFLAGS) \
+test_verge_LDADD  += $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(LIBCAP_LDFLAGS) \
 					   $(ZLIB_LDFLAGS)
-test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-test_bitcoin_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+test_verge_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+test_verge_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
-nodist_test_bitcoin_SOURCES = $(BUILT_SOURCES)
+nodist_test_verge_SOURCES = $(BUILT_SOURCES)
 
 $(BITCOIN_TESTS): $(BUILT_SOURCES)
 
-CLEAN_BITCOIN_TEST = test/*.gcda test/*.gcno $(BUILT_SOURCES)
+CLEAN_VERGE_TEST = test/*.gcda test/*.gcno $(BUILT_SOURCES)
 
-CLEANFILES += $(CLEAN_BITCOIN_TEST)
+CLEANFILES += $(CLEAN_VERGE_TEST)
 
-bitcoin_test: $(TEST_BINARY)
+verge_test: $(TEST_BINARY)
 
-bitcoin_test_check: $(TEST_BINARY) FORCE
+verge_test_check: $(TEST_BINARY) FORCE
 		$(MAKE) check-TESTS TESTS=$^
 
-bitcoin_test_clean : FORCE
-		rm -f $(CLEAN_BITCOIN_TEST) $(test_test_bitcoin_OBJECTS) $(TEST_BINARY)
+verge_test_clean : FORCE
+		rm -f $(CLEAN_VERGE_TEST) $(test_test_verge_OBJECTS) $(TEST_BINARY)
 	
 %.json.h: %.json
 	@$(MKDIR_P) $(@D)
