@@ -568,11 +568,17 @@ bool CTransaction::CheckTransaction() const
         if (txout.IsEmpty() && !IsCoinBase() && !IsCoinStake())
             return DoS(100, error("CTransaction::CheckTransaction() : txout empty for user transaction"));
 
-        // ppcoin: enforce minimum output amount
-        if (txout.nValue < 0) {
+        if (nBestHeight < 1807000L && !txout.IsEmpty() && txout.nValue < MIN_TXOUT_AMOUNT)
+        {
+            printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
+            return DoS(100, error("CTransaction::CheckTransaction() : rejecting, stealth tx disabled until block 1807000"));
+        }
+        else if (txout.nValue < 0)
+        {
             printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
         }
+
 
         if (txout.nValue > MAX_MONEY)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue too high"));
