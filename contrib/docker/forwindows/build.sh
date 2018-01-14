@@ -13,6 +13,6 @@ export BOOST_ROOT=/tmp/boost_1_55_0
 ./configure --host=i686-w64-mingw32.static 
 #./configure --host=i686-w64-mingw32.static --with-gui=qt5
 
-make
+make check
 
 echo "done"
