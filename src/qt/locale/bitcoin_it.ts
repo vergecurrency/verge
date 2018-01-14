@@ -30,9 +30,9 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>
 Questo &egrave; un software sperimentale.
 
-Distributo sotto licenza MIT/X11, vedere il file COPYING correlato o  http://www.opensource.org/licenses/mit-license.php.
+Distributo sotto licenza MIT/X11, vedi il file COPYING correlato o  http://www.opensource.org/licenses/mit-license.php.
 
-Questo prodotto include software sviluppato dal OpenSSL Project per uso in the OpenSSL Toolkit (http://www.openssl.org/) e software cryptografico scritto da Eric Young (eay@cryptsoft.com) e UPnP software scritto da Thomas Bernard.
+Questo prodotto include software sviluppato dal progetto OpenSSL per uso in OpenSSL Toolkit (http://www.openssl.org/), software criptografico scritto da Eric Young (eay@cryptsoft.com) e software UPnP scritto da Thomas Bernard.
         </translation>
     </message>
 </context>
@@ -41,12 +41,12 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location filename="../forms/addressbookpage.ui" line="+14"/>
         <source>Address Book</source>
-        <translation>Contatti</translation>
+        <translation>Rubrica</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Doppio click per editare indirizzo o etichetta</translation>
+        <translation>Doppio click per editare l&apos;indirizzo o l&apos;etichetta</translation>
     </message>
     <message>
         <location line="+27"/>
@@ -56,7 +56,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Copiare indrizzo selezionato nella clipboard del sistema</translation>
+        <translation>Copiare l&apos;indrizzo selezionato nella clipboard del sistema</translation>
     </message>
     <message>
         <location line="-11"/>
@@ -81,7 +81,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own a VERGE address</source>
-        <translation>Firma un messaggio per verificare che possiedi un indirizzo VERGE</translation>
+        <translation>Firma il messaggio per verificare che sei il possessore dell&apos;indirizzo VERGE</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -96,7 +96,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified VERGE address</source>
-        <translation>Verifica un message per assicurre che &egrave; stato firmato con un indirizzo VERGE specificato</translation>
+        <translation>Verifica il messaggio per assicurarti che sia stato firmato con uno specifico indirizzo VERGE</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -121,7 +121,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Esporta dati dei contatti</translation>
+        <translation>Esporta rubrica</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -182,7 +182,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Digita nuova passphrase per il wallet.&lt;br/&gt;Per favore usa una passphrase di &lt;b&gt;10 o pi&ugrave; caratteri random&lt;/b&gt;, o &lt;b&gt;otto o pi&ugrave; parole&lt;/b&gt;.</translation>
+        <translation>Digita una nuova passphrase per il wallet.&lt;br/&gt;Per favore usa una passphrase di &lt;b&gt;10 o pi&ugrave; caratteri casuali&lt;/b&gt;, o &lt;b&gt;otto o pi&ugrave; parole&lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -192,7 +192,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Questa operaizione richiede il tuo wallet passphrase per sbloccare il wallet.</translation>
+        <translation>Questa operazione richiede la passphrase del tuo wallet per sbloccarlo</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -202,7 +202,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Questa operazione richiede il tuo wallet passphrase per decifrare il wallet.</translation>
+        <translation>Questa operazione richiede la passphrase del tuo wallet per decifrarlo.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -222,7 +222,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>Conferma wallet encryption</translation>
+        <translation>Conferma cifratura del wallet</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -237,13 +237,13 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation>IMPORTANTE: Qualsiasi backup precedente tu abbia fatto del tuo wallet file dovrebbe essere rimpiazzato con il nuovo file del wallet generato e cifrato. Per ragioni di sicurezza, precendti backup di un file wallet non cifrato diventa inutilizzabile nel mio momento in cui viene usato il nuovo wallet cifrato.</translation>
+        <translation>IMPORTANTE: Qualsiasi backup precedente tu abbia fatto del tuo wallet dovrebbe essere rimpiazzato con il nuovo file del wallet generato e cifrato. Per ragioni di sicurezza, i precedenti backup del wallet non cifrati diventano inutilizzabili nel momento in cui viene usato quello nuovo.</translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+24"/>
         <source>Warning: The Caps Lock key is on!</source>
-        <translation>Attenzione: Il tasto Caps Lock &egrave; attivo!</translation>
+        <translation>Attenzione: blocco maiuscole attivo!</translation>
     </message>
     <message>
         <location line="-130"/>
@@ -254,7 +254,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="-56"/>
         <source>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>VERGE ora si chiuder&agrave; per cifrare il processo. Ricorda che cifrare il tuo wallet non pu&ograve; proteggere i tuoi coins da essere rubati da malware che infettano il tuo computer.</translation>
+        <translation>VERGE ora si chiuder&agrave; finire il processo di cifratura. Ricorda che cifrare il tuo wallet non pu&ograve; proteggere i tuoi coins dal essere rubati tramite malware che infettano il tuo computer.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -262,12 +262,12 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>Cifratura wallet fallita</translation>
+        <translation>Cifratura del wallet fallita</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>Cifratura wallet fallita dovuto a un errore interno. Il tuo wallet non &egrave; stato cifrato.</translation>
+        <translation>Errore interno, cifratura del wallet fallita. Il tuo wallet non &egrave; stato cifrato.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -295,7 +295,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>Passphrase del wallet cambiatata correttamente.</translation>
+        <translation>Passphrase del wallet cambiatata con successo.</translation>
     </message>
 </context>
 <context>
@@ -308,7 +308,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+237"/>
         <source>Synchronizing with network...</source>
-        <translation>Sincronizzazione con il network...</translation>
+        <translation>Sto sincronizzando il network...</translation>
     </message>
     <message>
         <location line="-299"/>
@@ -333,12 +333,12 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+5"/>
         <source>&amp;Address Book</source>
-        <translation>&amp;Contatti</translation>
+        <translation>&amp;Rubrica</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit the list of stored addresses and labels</source>
-        <translation>Edita la lista dei contatti e etichette salvati</translation>
+        <translation>Edita la lista degli indirizzi e delle etichette salvati</translation>
     </message>
     <message>
         <location line="-13"/>
@@ -348,7 +348,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+1"/>
         <source>Show the list of addresses for receiving payments</source>
-        <translation>Mostra lista dei contatti per ricevere pagamenti</translation>
+        <translation>Mostra lista degli indirizzi per ricevere pagamenti</translation>
     </message>
     <message>
         <location line="-7"/>
@@ -378,7 +378,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+1"/>
         <source>Show information about Qt</source>
-        <translation>Mostra informazioni about Qt</translation>
+        <translation>Mostra informazioni su Qt</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -421,7 +421,7 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="-58"/>
         <source>Send coins to a VERGE address</source>
-        <translation>Invia coins a un indirizzo VERGE</translation>
+        <translation>Invia coins ad un indirizzo VERGE</translation>
     </message>
     <message>
         <location line="+45"/>
@@ -441,17 +441,17 @@ Questo prodotto include software sviluppato dal OpenSSL Project per uso in the O
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Backup wallet a un altra locazione</translation>
+        <translation>Backup wallet in un&apos;altra posizione</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Cambia la passphrase usata per la cifrazione del wallet</translation>
+        <translation>Cambia la passphrase usata per cifrare il wallet</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Debug window</source>
-        <translation>&amp;Debug window</translation>
+        <translation>&amp;Finestra di debug</translation>
     </message>
     <message>
         <location line="+1"/>
