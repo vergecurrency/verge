@@ -15,4 +15,7 @@ export BOOST_ROOT=/tmp/boost_1_55_0
 
 make check
 
+# For debugging purposes
+cat src/test-suite.log
+
 echo "done"
