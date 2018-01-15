@@ -2825,7 +2825,7 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
     return NULL;
 }
 
-bool LoadBlockIndex(bool fAllowNew,CClientUIInterface* uiInterface)
+bool LoadBlockIndex(bool fAllowNew, CClientUIInterface* uiInterface)
 {
     if (fTestNet)
     {
