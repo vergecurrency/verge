@@ -593,6 +593,7 @@ Value getbalance(const Array& params, bool fHelp)
                 nBalance -= r.second;
             nBalance -= allFee;
             nBalance += allGeneratedMature;
+            nBalance -= allGeneratedImmature;
         }
         return  ValueFromAmount(nBalance);
     }
