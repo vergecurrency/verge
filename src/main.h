@@ -30,6 +30,7 @@ class CRequestTracker;
 class CNode;
 
 static const int MULTI_ALGO_SWITCH_BLOCK = 340000;
+static const int STEALTH_TX_SWITCH_BLOCK = 1824150;
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
