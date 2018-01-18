@@ -571,7 +571,7 @@ bool CTransaction::CheckTransaction() const
         if (nBestHeight < STEALTH_TX_SWITCH_BLOCK && !txout.IsEmpty() && txout.nValue < MIN_TXOUT_AMOUNT)
         {
             printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
-            return DoS(100, error("CTransaction::CheckTransaction() : rejecting, stealth tx disabled until block 1807000"));
+            return DoS(100, error("CTransaction::CheckTransaction() : rejecting, stealth tx disabled until block 1824150"));
         }
         else if (txout.nValue < 0)
         {
@@ -893,7 +893,7 @@ bool CMerkleTx::AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs)
             return false;
         return CTransaction::AcceptToMemoryPool(txdb, false);
     }
-    
+
     return CTransaction::AcceptToMemoryPool(txdb, fCheckInputs);
 }
 
@@ -2239,11 +2239,11 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     for (unsigned int i = 2; i < vtx.size(); i++)
         if (vtx[i].IsCoinStake())
             return DoS(100, error("CheckBlock() : coinstake in wrong position"));
-	
+
 	// ppcoin: coinbase output should be empty if proof-of-stake block
     if (IsProofOfStake() && (vtx[0].vout.size() != 1 || !vtx[0].vout[0].IsEmpty()))
         return error("CheckBlock() : coinbase output not empty for proof-of-stake block");
-	
+
 	// Check coinbase timestamp
     if (GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
         return DoS(50, error("CheckBlock() : coinbase timestamp is too early"));
@@ -2871,7 +2871,7 @@ bool LoadBlockIndex(bool fAllowNew,CClientUIInterface* uiInterface)
         txNew.nTime = nChainStartTime;
 				if(fTestNet)
 					txNew.nTime = 1462058066;
-				
+
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
@@ -2890,7 +2890,7 @@ bool LoadBlockIndex(bool fAllowNew,CClientUIInterface* uiInterface)
 			block.nTime = 1462058066;
 			block.nNonce = 2;
 		}
-						
+
 
 				if(fTestNet) {
            assert(block.hashMerkleRoot == uint256("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
@@ -2935,13 +2935,13 @@ bool LoadBlockIndex(bool fAllowNew,CClientUIInterface* uiInterface)
                 return error("LoadBlockIndex() : failed to commit new checkpoint master key to db");
             if ((!fTestNet) && !Checkpoints::ResetSyncCheckpoint())
                 return error("LoadBlockIndex() : failed to reset sync-checkpoint");
-        } 
+        }
 
          if (Checkpoints::GetHackReload()) {
             printf("%s\n", "Invalid blockchain, resetting sync checkpoint");
             Checkpoints::SetHackReload(false);
             Checkpoints::ResetSyncCheckpoint();
-        } 
+        }
 
     }
 
@@ -3483,7 +3483,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         if (fDebugNet || (vInv.size() != 1))
             printf("received getdata (%" PRIszu" invsz)\n", vInv.size());
-		
+
 		vector<CInv> vNotFound;
 
         BOOST_FOREACH(const CInv& inv, vInv)
@@ -3568,7 +3568,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             // Track requests for our stuff
             Inventory(inv.hash);
         }
-		
+
         if (!vNotFound.empty()) {
             // Let the peer know that we didn't find what it asked for, so it doesn't
             // have to wait around forever. Currently only SPV clients actually care
@@ -3899,7 +3899,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         return error("peer %s attempted to set a bloom filter even though we do not advertise that service",
                      pfrom->addr.ToString().c_str());
     }
-	
+
 	else if (strCommand == "filterload")
     {
         CBloomFilter filter;
@@ -3967,7 +3967,7 @@ bool ProcessMessages(CNode* pfrom)
     CDataStream& vRecv = pfrom->vRecv;
     if (vRecv.empty())
         return true;
-    
+
     printf("ProcessMessages(%u bytes)\n", vRecv.size());
 
     //
