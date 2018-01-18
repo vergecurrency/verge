@@ -146,7 +146,7 @@ enum
 {
     // primary version
     BLOCK_VERSION_DEFAULT        = 2,
-
+    BLOCK_VERSION_STEALTH        = 4,
     // algo
     BLOCK_VERSION_ALGO_BROKEN    = (10 << 11),
     BLOCK_VERSION_ALGO           = (15 << 11),
@@ -904,7 +904,6 @@ class CBlockHeader
 {
 public:
     // header
-    static const int CURRENT_VERSION = BLOCK_VERSION_DEFAULT;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -930,7 +929,7 @@ public:
 
     void SetNull()
     {
-        nVersion = CBlockHeader::CURRENT_VERSION;
+        nVersion = nBestHeight >= STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
         hashPrevBlock = 0;
         hashMerkleRoot = 0;
         nTime = 0;

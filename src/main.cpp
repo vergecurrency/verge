@@ -2040,12 +2040,12 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         const CBlockIndex* pindex = pindexBest;
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            if (pindex->nVersion > (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
+            if (pindex->nVersion > (BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
+            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
         if (nUpgraded > 100/2)
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
@@ -2336,15 +2336,24 @@ bool CBlock::AcceptBlock()
         }
     }
 
-    // Reject block.nVersion not BLOCK_VERSION_DEFAULT or BLOCK_VERSION_GROESTL or BLOCK_VERSION_SHA256D and is not genesis block
     if (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_SCRYPT  | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_GROESTL | BLOCK_VERSION_DEFAULT) &&
-	nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_DEFAULT) &&
-	nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_DEFAULT) &&
-    	nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK)
-
-        return error("CheckBlock() : rejected nVersion");
+        nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_DEFAULT) &&
+        nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_DEFAULT) &&
+        nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK)
+    {
+        if (nHeight <= STEALTH_TX_SWITCH_BLOCK ||
+            (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_SCRYPT  | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_GROESTL | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_STEALTH) &&
+            nVersion != BLOCK_VERSION_STEALTH))
+        {
+            return error("CheckBlock() : rejected nVersion");
+        }    
+    }
 
     // Enforce rule that the coinbase starts with serialized block height
     CScript expect = CScript() << nHeight;
@@ -4359,7 +4368,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int algo)
     if (!pblock.get())
         return NULL;
 
-    pblock->nVersion = BLOCK_VERSION_DEFAULT;
+    pblock->nVersion = nBestHeight >= STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
     switch (algo)
     {
 	case ALGO_LYRA2RE:
