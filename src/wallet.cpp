@@ -681,8 +681,9 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
 
     if (IsCoinBase() || IsCoinStake())
     {
-        if (GetBlocksToMaturity() > 0)
-            nGeneratedImmature = pwallet->GetCredit(*this);
+        if (GetBlocksToMaturity() > 0) {
+            nGeneratedImmature = pwallet->GetCredit(*this) - pwallet->GetChange(*this);
+        }
         else
             nGeneratedMature = GetCredit();
         return;
