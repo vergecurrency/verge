@@ -567,8 +567,14 @@ bool CTransaction::CheckTransaction() const
         const CTxOut& txout = vout[i];
         if (txout.IsEmpty() && !IsCoinBase() && !IsCoinStake())
             return DoS(100, error("CTransaction::CheckTransaction() : txout empty for user transaction"));
-	
-	if (txout.nValue < 0) {
+
+        if (nBestHeight < STEALTH_TX_SWITCH_BLOCK && !txout.IsEmpty() && txout.nValue < MIN_TXOUT_AMOUNT)
+        {
+            printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
+            return DoS(100, error("CTransaction::CheckTransaction() : rejecting, stealth tx disabled until block 1824150"));
+        }
+        else if (txout.nValue < 0)
+        {
             printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
         }
