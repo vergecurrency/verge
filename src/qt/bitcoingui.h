@@ -91,6 +91,7 @@ private:
     QAction *exportAction;
     QAction *encryptWalletAction;
     QAction *unlockWalletAction;
+    QAction *lockWalletAction;
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
     QAction *aboutQtAction;

@@ -1499,7 +1499,7 @@ Value walletlock(const Array& params, bool fHelp)
 
     {
         LOCK(cs_nWalletUnlockTime);
-        //pwalletMain->Lock();
+        pwalletMain->Lock();
         nWalletUnlockTime = 0;
     }
 
