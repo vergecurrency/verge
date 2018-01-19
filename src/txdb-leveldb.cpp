@@ -360,7 +360,7 @@ bool CTxDB::LoadBlockIndex(CClientUIInterface* uiInterface)
     ssStartKey << make_pair(string("blockindex"), uint256(0));
     iterator->Seek(ssStartKey.str());
 
-    boost::format percentage_update("Loading indicies %2.f%% ...");
+    boost::format percentage_update("Loading block index %2.f%% ...");
     // Now read each entry.
     while (iterator->Valid())
     {
