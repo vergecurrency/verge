@@ -568,8 +568,13 @@ bool CTransaction::CheckTransaction() const
         if (txout.IsEmpty() && !IsCoinBase() && !IsCoinStake())
             return DoS(100, error("CTransaction::CheckTransaction() : txout empty for user transaction"));
 
-        // ppcoin: enforce minimum output amount
-        if (txout.nValue < 0) {
+        if (nBestHeight < STEALTH_TX_SWITCH_BLOCK && !txout.IsEmpty() && txout.nValue < MIN_TXOUT_AMOUNT)
+        {
+            printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
+            return DoS(100, error("CTransaction::CheckTransaction() : rejecting, stealth tx disabled until block 1824150"));
+        }
+        else if (txout.nValue < 0)
+        {
             printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
         }
@@ -2034,12 +2039,12 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         const CBlockIndex* pindex = pindexBest;
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            if (pindex->nVersion > (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
+			if (pindex->nVersion > (BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
+            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
         if (nUpgraded > 100/2)
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
@@ -2334,11 +2339,21 @@ bool CBlock::AcceptBlock()
     if (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_SCRYPT  | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_GROESTL | BLOCK_VERSION_DEFAULT) &&
-	nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_DEFAULT) &&
-	nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_DEFAULT) &&
-    	nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK)
-
-        return error("CheckBlock() : rejected nVersion");
+		nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_DEFAULT) &&
+        nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_DEFAULT) &&
+        nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK)
+    {
+        if (nHeight <= STEALTH_TX_SWITCH_BLOCK ||
+            (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_SCRYPT  | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_GROESTL | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_STEALTH) &&
+            nVersion != BLOCK_VERSION_STEALTH))
+        {
+            return error("CheckBlock() : rejected nVersion");
+        }    
+    }
 
     // Enforce rule that the coinbase starts with serialized block height
     CScript expect = CScript() << nHeight;
@@ -4353,7 +4368,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int algo)
     if (!pblock.get())
         return NULL;
 
-    pblock->nVersion = BLOCK_VERSION_DEFAULT;
+    pblock->nVersion = nBestHeight >= STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
     switch (algo)
     {
 	case ALGO_LYRA2RE:
