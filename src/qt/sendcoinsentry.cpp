@@ -97,6 +97,14 @@ void SendCoinsEntry::on_deleteButton_clicked()
     emit removeEntry(this);
 }
 
+void SendCoinsEntry::on_donateButton_clicked()
+{
+    // Verge(XVG) development donation address
+    QString addr = "DDd1pVWr8PPAw1z7DRwoUW6maWh5SsnCcp";
+    ui->payTo->setText(addr);
+    setFocus();
+}
+
 bool SendCoinsEntry::validate()
 {
     // Check input validity
