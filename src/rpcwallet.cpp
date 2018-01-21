@@ -550,6 +550,15 @@ int64 GetAccountBalance(const string& strAccount, int nMinDepth)
     return GetAccountBalance(walletdb, strAccount, nMinDepth);
 }
 
+Value getbalanceall(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "getbalanceall\n"
+            "Returns total balance including unconfirmed transactions.");
+
+    return  ValueFromAmount(pwalletMain->GetBalance() + pwalletMain->GetUnconfirmedBalance());
+}
 
 Value getbalance(const Array& params, bool fHelp)
 {
@@ -593,7 +602,6 @@ Value getbalance(const Array& params, bool fHelp)
                 nBalance -= r.second;
             nBalance -= allFee;
             nBalance += allGeneratedMature;
-            nBalance -= allGeneratedImmature;
         }
         return  ValueFromAmount(nBalance);
     }
