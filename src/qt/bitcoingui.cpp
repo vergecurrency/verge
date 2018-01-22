@@ -11,6 +11,7 @@
 #include "signverifymessagedialog.h"
 #include "optionsdialog.h"
 #include "aboutdialog.h"
+#include "faqdialog.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "editaddressdialog.h"
@@ -75,6 +76,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     lockWalletAction(0),
     changePassphraseAction(0),
     aboutQtAction(0),
+    faqAction(0),
     trayIcon(0),
     notificator(0),
     rpcConsole(0)
@@ -263,6 +265,9 @@ void BitcoinGUI::createActions()
     quitAction->setToolTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
+    faqAction = new QAction(QIcon(":/icons/block"), tr("&FAQ"), this);
+    faqAction->setToolTip(tr("Frequently Asked Questions"));
+    faqAction->setMenuRole(QAction::AboutRole);
     aboutAction = new QAction(QIcon(":/icons/bitcoin"), tr("&About VERGE"), this);
     aboutAction->setToolTip(tr("Show information about VERGE"));
     aboutAction->setMenuRole(QAction::AboutRole);
@@ -287,6 +292,7 @@ void BitcoinGUI::createActions()
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
+    connect(faqAction, SIGNAL(triggered()), this, SLOT(faqClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
@@ -331,6 +337,7 @@ void BitcoinGUI::createMenuBar()
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
     help->addAction(openRPCConsoleAction);
     help->addSeparator();
+    help->addAction(faqAction);
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
 }
@@ -499,6 +506,12 @@ void BitcoinGUI::aboutClicked()
     dlg.setModel(clientModel);
     if(clientModel && clientModel->isTestNet())
         dlg.setTestnetLogo();
+    dlg.exec();
+}
+
+void BitcoinGUI::faqClicked()
+{
+    FaqDialog dlg;
     dlg.exec();
 }
 
