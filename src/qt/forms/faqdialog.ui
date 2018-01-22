@@ -89,7 +89,7 @@ margin-right: 0px;</string>
             <string>
                    Q: The wallet is taking a very long time to load the blockchain. Can I do something about this?
                    A: You can reduce the blockchain syncing time by downloading a nightly snapshot.
-                        However, we recommended letting it load from the start as it is the safest and most reliable approach.
+                        However, we recommend letting it load from the start as it is the safest and most reliable approach.
 
                    Q: All blocks have been loaded but it still says wallet is out of sync?
                    A: Be patient, it is processing in the background. Check again in 5-20 min.
