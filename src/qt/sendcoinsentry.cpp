@@ -103,6 +103,11 @@ void SendCoinsEntry::on_donateButton_clicked()
     QString addr = "DDd1pVWr8PPAw1z7DRwoUW6maWh5SsnCcp";
     ui->payTo->setText(addr);
     setFocus();
+    QMessageBox::information(this, tr("Donate"),
+        tr("We believe in keeping Verge free and open."
+           " Any donations to help fuel the development effort are greatly appreciated!"
+           "\n\nThe VERGE (XVG) donation address has been filled in."),
+        QMessageBox::Ok, QMessageBox::Ok);
 }
 
 bool SendCoinsEntry::validate()
