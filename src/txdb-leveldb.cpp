@@ -330,42 +330,46 @@ bool CTxDB::LoadBlockIndex(CClientUIInterface* uiInterface)
     // The block index is an in-memory structure that maps hashes to on-disk
     // locations where the contents of the block can be found. Here, we scan it
     // out of the DB and into mapBlockIndex.
-    leveldb::Iterator *iterator = pdb->NewIterator(leveldb::ReadOptions());
+    leveldb::Iterator *it = pdb->NewIterator(leveldb::ReadOptions());
     
     // Seek to start key.
     // and count the full index size of the currently
     // loaded block chain.
     CDataStream ssStartKey(SER_DISK, CLIENT_VERSION);
     ssStartKey << make_pair(string("blockindex"), uint256(0));
-    iterator->Seek(ssStartKey.str());
-    long full_count = 0;    
-    while (iterator->Valid())
+    it->Seek(ssStartKey.str());
+    static long full_count = 1;   
+    static long count = 0;
+
+    while (it->Valid())
     {
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.write(iterator->key().data(), iterator->key().size());
+        ssKey.write(it->key().data(), it->key().size());
         string strType;
         ssKey >> strType;
         // Did we reach the end of the data to read?
         if (strType != "blockindex")
             break;
-        
-        iterator->Next();
-        full_count++;
+        else
+            full_count += 1;
+
+        it->Next();
     }
 
-    iterator = pdb->NewIterator(leveldb::ReadOptions());
+    leveldb::Iterator *iterator = pdb->NewIterator(leveldb::ReadOptions());
     ssStartKey << make_pair(string("blockindex"), uint256(0));
     iterator->Seek(ssStartKey.str());
-    
-    long count = 0;
+
+    boost::format percentage_update("Loading block index %2.f%% ...");
     // Now read each entry.
     while (iterator->Valid())
     {
-        count++;
+        count += 1;
         // check if UI is given so update the percentage count by every percentage reached.
-        if(uiInterface != NULL && count % (full_count / 100) == 0){
-            const std::string & str = (boost::format("Loading indices: %1.0f%% ...") % ((double(count) * 100)/ full_count)).str();
-            uiInterface->InitMessage(str);
+        if(uiInterface != NULL && full_count != 0 && count % 1000 == 0){
+            uiInterface->InitMessage(
+                boost::str(percentage_update % ((count * 100.0) / full_count))
+            );
         }
         boost::this_thread::interruption_point();
         // Unpack keys and values.
@@ -419,6 +423,7 @@ bool CTxDB::LoadBlockIndex(CClientUIInterface* uiInterface)
         iterator->Next();
     }
     delete iterator;
+    delete it;
 
     boost::this_thread::interruption_point();
 

@@ -141,6 +141,16 @@
               </property>
             </widget>
           </item>
+         <item>
+          <widget class="QPushButton" name="donateButton">
+           <property name="toolTip">
+            <string>Support the development</string>
+           </property>
+           <property name="text">
+            <string>Donate</string>
+           </property>
+          </widget>
+         </item>
           <item>
             <widget class="QToolButton" name="addressBookButton">
               <property name="toolTip">

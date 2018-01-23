@@ -593,6 +593,7 @@ Value getbalance(const Array& params, bool fHelp)
                 nBalance -= r.second;
             nBalance -= allFee;
             nBalance += allGeneratedMature;
+            nBalance -= allGeneratedImmature;
         }
         return  ValueFromAmount(nBalance);
     }
@@ -1498,7 +1499,7 @@ Value walletlock(const Array& params, bool fHelp)
 
     {
         LOCK(cs_nWalletUnlockTime);
-        //pwalletMain->Lock();
+        pwalletMain->Lock();
         nWalletUnlockTime = 0;
     }
 
