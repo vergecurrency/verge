@@ -2329,13 +2329,13 @@ bool CBlock::AcceptBlock()
         }
     }
 
-    // Reject block.nVersion not BLOCK_VERSION_DEFAULT or BLOCK_VERSION_GROESTL or BLOCK_VERSION_SHA256D and is not genesis block
-    if (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_DEFAULT) &&
+    if (nHeight > STEALTH_TX_SWITCH_BLOCK ||
+        (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_SCRYPT  | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_GROESTL | BLOCK_VERSION_DEFAULT) &&
 		nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_DEFAULT) &&
-        nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK)
+        nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK))
     {
         if (nHeight <= STEALTH_TX_SWITCH_BLOCK ||
             (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_STEALTH) &&
