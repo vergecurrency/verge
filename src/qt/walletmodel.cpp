@@ -56,13 +56,15 @@ qint64 WalletModel::getImmatureBalance() const
 qint64 WalletModel::getAvailableAmount(int parts) const
 {
     qint64 balance = getBalance();
-    if(parts <= 0 || !MoneyRange(balance)){
+    if(parts <= 0 || !MoneyRange(balance))
+    {
         return 0;
     }
 
     qint64 transaction_amount = (balance / parts) - nTransactionFee;
 
-    if(parts <= 0 || !MoneyRange(transaction_amount)){
+    if(parts <= 0 || !MoneyRange(transaction_amount))
+    {
         std::cout << "Out of range error after calculation" << std::endl;
         return 0;
     }

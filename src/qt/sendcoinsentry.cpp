@@ -44,21 +44,24 @@ void SendCoinsEntry::on_pasteButton_clicked()
     ui->payTo->setText(QApplication::clipboard()->text());
 }
 
-void SendCoinsEntry::on_fullamount_clicked(){
+void SendCoinsEntry::on_fullamount_clicked()
+{
     if(!model)
         return;
 
     ui->payAmount->setValueWithoutComma(model->getAvailableAmount(1));
 }
 
-void SendCoinsEntry::on_halfamount_clicked(){
+void SendCoinsEntry::on_halfamount_clicked()
+{
     if(!model)
         return;
 
     ui->payAmount->setValueWithoutComma(model->getAvailableAmount(2));
 }
 
-void SendCoinsEntry::on_quarteramount_clicked(){
+void SendCoinsEntry::on_quarteramount_clicked()
+{
     if(!model)
         return;
     
