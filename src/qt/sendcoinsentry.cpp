@@ -48,21 +48,21 @@ void SendCoinsEntry::on_fullamount_clicked(){
     if(!model)
         return;
 
-    ui->payAmount->setValue(model->getAvailableAmount(1));
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(1));
 }
 
 void SendCoinsEntry::on_halfamount_clicked(){
     if(!model)
         return;
-    
-    ui->payAmount->setValue(model->getAvailableAmount(2));
+
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(2));
 }
 
 void SendCoinsEntry::on_quarteramount_clicked(){
     if(!model)
         return;
     
-    ui->payAmount->setValue(model->getAvailableAmount(4));
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(4));
 }
 
 void SendCoinsEntry::on_addressBookButton_clicked()
