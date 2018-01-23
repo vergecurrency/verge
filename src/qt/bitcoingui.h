@@ -95,6 +95,7 @@ private:
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
     QAction *aboutQtAction;
+    QAction *faqAction;
     QAction *openRPCConsoleAction;
 
     QSystemTrayIcon *trayIcon;
@@ -158,6 +159,8 @@ private slots:
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
 
+    /** Show FAQ dialog */
+    void faqClicked();
     /** Show configuration dialog */
     void optionsClicked();
     /** Show about dialog */
