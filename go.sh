@@ -66,6 +66,8 @@ sudo apt-get -y install libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qt
 
 sudo apt-get -y install libminiupnpc-dev
 
+sudo apt-get -y install libseccomp-dev libcap-dev
+
 # Keep current version of libboost if already present
 results=$(find /usr/ -name libboost_chrono.so)
 if [ -z $results ]; then
