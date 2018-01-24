@@ -54,17 +54,21 @@ sudo apt-get -y install libcanberra-gtk-module
 # Dont need to check if bd is already installed, will override or pass by
 #results=$(find /usr/ -name libdb_cxx.so)
 #if [ -z $results ]; then
-sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
+sudo apt-get -y install libdb4.8-dev libdb4.8++-dev build-essential
 #else
 #grep DB_VERSION_STRING $(find /usr/ -name db.h)
 #echo "BerkeleyDb will not be installed its already there...."
 #fi
 
-sudo apt-get -y install git build-essential libtool autotools-dev autoconf automake pkg-config libssl-dev libevent-dev bsdmainutils git libprotobuf-dev protobuf-compiler libqrencode-dev
+sudo apt-get -y install libtool autotools-dev automake pkg-config libssl-dev libevent-dev
 
-sudo apt-get -y install libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev qttools5-dev-tools
+sudo apt-get -y install bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5
 
-sudo apt-get -y install libminiupnpc-dev
+sudo apt-get -y install libqt5core5a libqt5dbus5 libevent-dev qttools5-dev
+
+sudo apt-get -y install qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+
+sudo apt-get -y install libseccomp-dev libcap-dev
 
 # Keep current version of libboost if already present
 results=$(find /usr/ -name libboost_chrono.so)
@@ -129,12 +133,11 @@ fi
 #// Clone files from repo, Permissions and make
 
 git clone --recurse-submodules https://github.com/vergecurrency/VERGE
+cd ~
 cd VERGE
-sudo sh autogen.sh
+sudo ./autogen.sh
 chmod 777 ~/VERGE/share/genbuild.sh
 chmod 777 ~/VERGE/src/leveldb/build_detect_platform
-
-
 
 grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
 
@@ -160,11 +163,15 @@ fi
 
 echo "You have choosen $answer"
 
+cd ~
+
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
+cd VERGE
 ./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)")
 echo "Using Berkeley Generic..."
 else
+cd VERGE
 ./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)")
 echo "Using default system Berkeley..."
 fi
