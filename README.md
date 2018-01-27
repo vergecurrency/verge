@@ -150,6 +150,10 @@ You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.co
 
 ## Developer Notes
 
+The Easy Method:
+
+> **Note**: Sometimes linux user permissions are not set up properly, and causes failed compiling in linux. Please ensure your user has access or do the install from root if these problems arise.
+
 ```shell
 sudo rm -Rf ~/VERGE  #(if you already have it)
 sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
