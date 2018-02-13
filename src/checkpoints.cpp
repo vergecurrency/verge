@@ -46,6 +46,7 @@ namespace Checkpoints
 	( 1000000, uint256("0x000000000049eaba3d6c29d9f45bc2a944b46eec005e2b038f1ee924f2f9c029"))
 	( 1100000, uint256("0xc766387a2e0cd6af995ea432518614824fe313e988598ea8b26f58efb99ebcdc"))
 	( 1145029, uint256("0x04def2ba205c1e5f4b33873bc9e5b0a54311370e823686aeb4d5aab0bf021899"))
+	( 1824425, uint256("0x2f30b9c1d6e624c4a01f1309df5149ce32f77da4e71418429dc8ae50ee527a0f")) //first after stealth fork!
         ;
 
     static MapCheckpoints mapCheckpointsTestnet =

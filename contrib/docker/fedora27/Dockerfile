@@ -1,6 +1,6 @@
-FROM fedora:23
+FROM fedora:27
 
-MAINTAINER Mike Kinney <mike.kinney@gmail.com>
+MAINTAINER Blpoing <blpoing@users.noreply.github.com>
 
 RUN dnf upgrade -y
 RUN dnf install -y autoconf automake gcc-c++ libdb4-cxx libdb4-cxx-devel boost-devel openssl-devel git bzip2 make file sudo tar patch findutils libevent-devel libseccomp-devel libcap-devel
@@ -13,7 +13,7 @@ RUN git clone https://github.com/vergecurrency/verge /coin/git
 
 WORKDIR /coin/git
 
-RUN ./autogen.sh && ./configure --with-gui=qt5 && make && mv src/VERGEd /coin/VERGEd
+RUN ./autogen.sh && ./configure --with-incompatible-bdb --with-gui=qt5 && make && mv src/VERGEd /coin/VERGEd
 
 WORKDIR /coin
 VOLUME ["/coin/home"]
