@@ -1,6 +1,8 @@
 ### Building Linux Wallet on Ubuntu/Debian
 
-Here is a quick short hand way:
+The Easy Method:
+
+> **Note**: Sometimes linux user permissions are not set up properly, and causes failed compiling in linux. Please ensure your user has access or do the install from root if these problems arise.
 
 ```shell
 sudo rm -Rf ~/VERGE  #(if you already have it)
