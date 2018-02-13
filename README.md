@@ -101,8 +101,8 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 ### Linux Wallet
 
-1. Download the pre-compiled software.
-2. Unpack it. The wallet GUI is in `./verge/src/qt` and the daemon in `./verge/src`.
+1. Compile using [linux instructions](doc/build-verge-linux.md).
+2. The wallet GUI is in `./verge/src/qt` and the daemon in `./verge/src`.
 3. **Optional** - the binaries to your favorite location. for use by all users, run the following commands:
 
     ```shell

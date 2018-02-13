@@ -8,6 +8,8 @@ BITCOIND_BIN=$(top_builddir)/src/VERGEd$(EXEEXT)
 BITCOIN_QT_BIN=$(top_builddir)/src/qt/VERGE-qt$(EXEEXT)
 BITCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EXEEXT)
 
+VERGE_QT_APP=VERGE-qt
+VERGE_DAEMON=VERGEd
 OSX_APP=VERGE-Qt.app
 OSX_DMG=VERGE-Qt.dmg
 OSX_DEPLOY_SCRIPT=$(top_srcdir)/contrib/macdeploy/macdeployqtplus
@@ -80,7 +82,7 @@ OSX_APP_BUILT=$(OSX_APP)/Contents/PkgInfo $(OSX_APP)/Contents/Resources/empty.lp
 
 if BUILD_DARWIN
 $(OSX_DMG): $(OSX_APP_BUILT) $(OSX_PACKAGING)
-	$(OSX_DEPLOY_SCRIPT) $(OSX_APP) -add-qt-tr $(OSX_QT_TRANSLATIONS) -dmg -fancy $(OSX_FANCY_PLIST) -verbose 2
+	$(OSX_DEPLOY_SCRIPT) $(OSX_APP) -add-qt-tr $(OSX_QT_TRANSLATIONS) -dmg -fancy $(OSX_FANCY_PLIST) -verbose 2 -add-resources contrib/macdeploy/libs/libboost_system-mt.dylib
 
 else
 $(OSX_DMG): $(OSX_APP_BUILT) $(OSX_PACKAGING)
@@ -167,4 +169,5 @@ CLEANFILES = $(OSX_DMG) $(BITCOIN_WIN_INSTALLER)
 .INTERMEDIATE: $(COVERAGE_INFO)
 
 clean-local:
-	rm -rf test_bitcoin.coverage/ total.coverage/ $(OSX_APP)
+	rm -rf test_bitcoin.coverage/ total.coverage/ $(OSX_APP) $(VERGE_QT_APP) $(VERGE_DAEMON) release_$(VERGE_PLATFORM).zip
+	

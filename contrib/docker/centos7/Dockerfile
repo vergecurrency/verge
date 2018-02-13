@@ -5,7 +5,7 @@ MAINTAINER Mike Kinney <mike.kinney@gmail.com>
 RUN yum upgrade -y 
 RUN yum install -y wget 
 RUN yum install -y epel-release
-RUN yum install -y autoconf automake gcc-c++ libdb4-cxx libdb4-cxx-devel boost-devel openssl-devel git bzip2 make file sudo
+RUN yum install -y autoconf automake gcc-c++ libdb4-cxx libdb4-cxx-devel boost-devel openssl-devel git bzip2 make file sudo patch libevent-devel libseccomp-devel libcap-devel
 
 RUN cd /tmp && \
         wget https://github.com/google/protobuf/releases/download/v2.6.0/protobuf-2.6.0.tar.bz2 && \
