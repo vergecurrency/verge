@@ -250,6 +250,11 @@ algo=lyra
 algo=blake
 ```
 
+## TestNet
+
+Here is a list of active testnet nodes:
+ddvnucmtvyiemiuk.onion (sunerok)
+
 ## Donations
 
 We believe in keeping Verge free and open. Any donations to help fuel the development effort are greatly appreciated! :smile:
