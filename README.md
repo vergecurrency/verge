@@ -84,16 +84,8 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 1. Download the pre-compiled software.
 2. Double click the DMG
 3. Drag the Verge-Qt to your Applications folder
-4. Install required `boost` dependency via homebrew
-
-    ```shell
-    xcode-select --install
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    brew doctor
-    brew install boost
-    ```
-5. Double click the Verge-Qt application to open it.
-6. Go grab a :coffee: while it syncs with the blockchain
+4. Double click the Verge-Qt application to open it.
+5. Go grab a :coffee: while it syncs with the blockchain
 
 > **Note:** It may look like it is frozen or hung while it is indexing and syncing the blockchain. It's not. It's chugging away, but currently the UI doesn't give you a lot of feedback on status. We're working to fix that. Syncing takes a while to complete (ie. > 10 minutes or more) so just be patient.
 
