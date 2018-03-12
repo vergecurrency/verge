@@ -1,5 +1,7 @@
-AM_CPPFLAGS =  $(INCLUDES) 
-AM_LDFLAGS = $(PTHREAD_CFLAGS)
+#AM_CPPFLAGS =  $(INCLUDES) 
+AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
+AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
+AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
 
 
 if EMBEDDED_LEVELDB
@@ -19,12 +21,23 @@ endif
 
 BITCOIN_CONFIG_INCLUDES=-I$(builddir)/config
 BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS)
+TOR_LIBS=../tor/src/or/libtor.a \
+  ../tor/src/common/libor.a \
+  ../tor/src/common/libor-ctime.a \
+  ../tor/src/common/libor-crypto.a \
+  ../tor/src/common/libor-event.a \
+  ../tor/src/trunnel/libor-trunnel.a \
+  ../tor/src/common/libcurve25519_donna.a \
+  ../tor/src/ext/ed25519/donna/libed25519_donna.a \
+  ../tor/src/ext/ed25519/ref10/libed25519_ref10.a \
+  ../tor/src/ext/keccak-tiny/libkeccak-tiny.a
+
 
 LIBBITCOIN_SERVER=libbitcoin_server.a
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
-
 LIBBITCOIN_UTIL=libbitcoin_util.a
+
 if HAVE_SSE2
 LIBBITCOIN_SSE2=libbitcoin_sse2.a
 endif
@@ -139,7 +152,8 @@ obj/build.h: FORCE
 libbitcoin_util_a-version.$(OBJEXT): obj/build.h
 
 # server: shared between bitcoind and bitcoin-qt
-libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
@@ -163,7 +177,8 @@ libbitcoin_server_a_SOURCES = \
 
 # wallet: shared between bitcoind and bitcoin-qt, but only linked
 # when wallet enabled
-libbitcoin_wallet_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
   crypter.cpp \
   rpcdump.cpp \
@@ -175,7 +190,8 @@ libbitcoin_wallet_a_SOURCES = \
   $(BITCOIN_CORE_H)
 
 # common: shared between bitcoind, and bitcoin-qt and non-server tools
-libbitcoin_common_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
   key.cpp \
   netbase.cpp \
@@ -216,7 +232,8 @@ libbitcoin_common_a_SOURCES = \
 # util: shared between all executables.
 # This library *must* be included to make sure that the glibc
 # backward-compatibility objects and their sanity checks are linked.
-libbitcoin_util_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+libbitcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_util_a_SOURCES = \
   util.cpp \
   version.cpp \
@@ -250,16 +267,7 @@ endif
 VERGEd_SOURCES = daemon.cpp
 
 VERGEd_LDADD += \
-  ../tor/src/or/libtor.a \
-  ../tor/src/common/libor.a \
-  ../tor/src/common/libor-ctime.a \
-  ../tor/src/common/libor-crypto.a \
-  ../tor/src/common/libor-event.a \
-  ../tor/src/trunnel/libor-trunnel.a \
-  ../tor/src/common/libcurve25519_donna.a \
-  ../tor/src/ext/ed25519/donna/libed25519_donna.a \
-  ../tor/src/ext/ed25519/ref10/libed25519_ref10.a \
-  ../tor/src/ext/keccak-tiny/libkeccak-tiny.a \
+  $(TOR_LIBS) \
   $(LIBEVENT_LIBS) \
   $(LIBSECCOMP_LIBS) \
   $(LIBCAP_LIBS) \
@@ -290,6 +298,11 @@ clean-local:
 %.pb.cc %.pb.h: %.proto
 	@test -f $(PROTOC)
 	$(AM_V_GEN) $(PROTOC) --cpp_out=$(@D) --proto_path=$(abspath $(<D) $<)
+
+
+if ENABLE_TESTS
+include Makefile.test.include
+endif
 
 if ENABLE_QT
 include Makefile.qt.include

@@ -1,4 +1,6 @@
 ./autogen.sh
 ./configure --with-gui=qt5
 make clean
-make
+make check
+# For debugging purposes
+cat src/test-suite.log

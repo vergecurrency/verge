@@ -7,4 +7,7 @@ export QT_LIBS="-F/usr/local/opt/qt@5.5/lib -framework QtWidgets -framework QtGu
 
 ./autogen.sh
 ./configure --with-gui=qt5 --with-boost=$(brew --prefix boost@1.60)
-make
+make check
+
+# For debugging purposes
+cat src/test-suite.log
