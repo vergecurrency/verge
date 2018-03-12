@@ -19,6 +19,7 @@ public:
 
     qint64 value(bool *valid=0) const;
     void setValue(qint64 value);
+    void setValueWithoutComma(qint64 value);
 
     /** Mark current value as invalid in UI. */
     void setValid(bool valid);

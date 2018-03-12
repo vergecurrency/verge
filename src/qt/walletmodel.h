@@ -69,6 +69,7 @@ public:
     qint64 getBalance() const;
     qint64 getUnconfirmedBalance() const;
     qint64 getImmatureBalance() const;
+    qint64 getAvailableAmount(int parts) const;
     int getNumTransactions() const;
     EncryptionStatus getEncryptionStatus() const;
 

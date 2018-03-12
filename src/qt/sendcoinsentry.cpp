@@ -44,6 +44,30 @@ void SendCoinsEntry::on_pasteButton_clicked()
     ui->payTo->setText(QApplication::clipboard()->text());
 }
 
+void SendCoinsEntry::on_fullamount_clicked()
+{
+    if(!model)
+        return;
+
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(1));
+}
+
+void SendCoinsEntry::on_halfamount_clicked()
+{
+    if(!model)
+        return;
+
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(2));
+}
+
+void SendCoinsEntry::on_quarteramount_clicked()
+{
+    if(!model)
+        return;
+    
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(4));
+}
+
 void SendCoinsEntry::on_addressBookButton_clicked()
 {
     if(!model)
@@ -147,7 +171,7 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     rv.label = ui->addAsLabel->text();
     rv.amount = ui->payAmount->value();
 
- if (rv.address.length() > 75 
+    if (rv.address.length() > 75 
         && IsStealthAddress(rv.address.toStdString()))
         rv.typeInd = AddressTableModel::AT_Stealth;
     else
