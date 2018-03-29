@@ -1,12 +1,12 @@
 <!DOCTYPE RCC><RCC version="1.0">
     <qresource prefix="/translations">
         <file alias="cn">locale/bitcoin_cn.qm</file>
-    <!--  <file alias="de">locale/bitcoin_de.qm</file>  leaving out for now / special chars  -->
+        <file alias="de">locale/bitcoin_de.qm</file>
         <file alias="el">locale/bitcoin_el.qm</file>
         <file alias="en">locale/bitcoin_en.qm</file>
         <file alias="es">locale/bitcoin_es.qm</file>
         <file alias="fr">locale/bitcoin_fr.qm</file>
-    <!--    <file alias="it">locale/bitcoin_it.qm</file>  leaving out for now / special chars -->
+        <file alias="it">locale/bitcoin_it.qm</file>
         <file alias="nb">locale/bitcoin_nb.qm</file>
         <file alias="nl">locale/bitcoin_nl.qm</file>
         <file alias="pl">locale/bitcoin_pl.qm</file>
