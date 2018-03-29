@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="cn">
+<TS version="2.0" language="pt-BR" sourcelanguage="en">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About Verge</source>
-        <translation>关于Verge</translation>
+        <source>About VERGE</source>
+        <translation>Sobre a VERGE</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;Verge&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;Verge&lt;/b&gt; 版本</translation>
+        <source>&lt;b&gt;VERGE&lt;/b&gt; version</source>
+        <translation>Versão &lt;b&gt;VERGE&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+41"/>
@@ -28,11 +28,11 @@ Distributed under the MIT/X11 software license, see the accompanying file COPYIN
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
         <translation>
-这是一个实验性的软件.
+Esse é um software experimental.
 
-根据MIT / X11软件许可分发，请参阅随附的文件 LICENSE 或访问 http://www.opensource.org/licenses/mit-license.php.
+Distribuído sob a licença do software MIT / X11, veja o arquivo que acompanha COPYING ou http://www.opensource.org/licenses/mit-license.php.
 
-本产品包含由OpenSSL Project开发的用于OpenSSL Toolkit（http://www.openssl.org/）的软件，由Eric Young（eay@cryptsoft.com）编写的加密软件和由Thomas Bernard编写的UPnP软件.</translation>
+Este produto inclui o software desenvolvido pelo OpenSSL Project para uso no OpenSSL Toolkit (http://www.openssl.org/) e software criptográfico escrito por Eric Young (eay@cryptsoft.com) e software UPnP escrito por Thomas Bernard.</translation>
     </message>
 </context>
 <context>
@@ -40,102 +40,102 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../forms/addressbookpage.ui" line="+14"/>
         <source>Address Book</source>
-        <translation>地址簿</translation>
+        <translation>Livro de Endereços</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>双击来编辑地址或标签</translation>
+        <translation>Clique duas vezes para editar o endereço ou a legenda</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Create a new address</source>
-        <translation>新建地址</translation>
+        <translation>Criar um novo endereço</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>将当前选定的地址复制到系统剪贴板</translation>
+        <translation>Copie o endereço selecionado para a área de transferência do sistema</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>&amp;New Address</source>
-        <translation>&amp;新地址</translation>
+        <translation>&amp;Novo Endereço</translation>
     </message>
     <message>
         <location line="-46"/>
-        <source>These are your Verge addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>这些是你用于接受付款的Verge地址.您可能想要给每个发送人分配一个不同的地址,以便跟踪谁付款给您.</translation>
+        <source>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
+        <translation>Estes são os seus endereços VERGE para receber pagamentos. Você pode querer dar um endereço diferente para cada remetente, para que você possa acompanhar quem está pagando para você.</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>&amp;Copy Address</source>
-        <translation>&amp;复制地址</translation>
+        <translation>&amp;Copiar Endereço</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Show &amp;QR Code</source>
-        <translation>显示 &amp;QR 码</translation>
+        <translation>Mostrar &amp;QR Code</translation>
     </message>
     <message>
         <location line="+11"/>
-        <source>Sign a message to prove you own a Verge address</source>
-        <translation>签名一条消息以证明您拥有一个Verge地址</translation>
+        <source>Sign a message to prove you own a VERGE address</source>
+        <translation>Assine uma mensagem para provar que você possui um endereço VERGE</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sign &amp;Message</source>
-        <translation>&amp;签名消息</translation>
+        <translation>Assinar &amp;Mensagem</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Delete the currently selected address from the list</source>
-        <translation>从列表中删除当前选中的地址</translation>
+        <translation>Deletar o endereço atualmente selecionado da lista</translation>
     </message>
     <message>
         <location line="-14"/>
-        <source>Verify a message to ensure it was signed with a specified Verge address</source>
-        <translation>验证消息以确保它是使用指定的Verge地址进行签名的</translation>
+        <source>Verify a message to ensure it was signed with a specified VERGE address</source>
+        <translation>Verifique uma mensagem para garantir que foi assinado com o endereço VERGE especificado</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;验证消息</translation>
+        <translation>&amp;Verificar Mensagem</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>&amp;Delete</source>
-        <translation>&amp;删除</translation>
+        <translation>&amp;Deletar</translation>
     </message>
     <message>
         <location filename="../addressbookpage.cpp" line="+65"/>
         <source>Copy &amp;Label</source>
-        <translation>复制 &amp;标签</translation>
+        <translation>Copiar &amp;Legenda</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Edit</source>
-        <translation>&amp;编辑</translation>
+        <translation>&amp;Editar</translation>
     </message>
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>导出地址簿数据</translation>
+        <translation>Exportar dados do catálogo de endereços</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>逗号分隔符文件 (*.csv)</translation>
+        <translation>Arquivo separado por vírgula (*.csv)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Error exporting</source>
-        <translation>导出错误</translation>
+        <translation>Erro ao exportar</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>无法写入文件 %1.</translation>
+        <translation>Não foi possivel escrever no arquivo %1.</translation>
     </message>
 </context>
 <context>
@@ -143,17 +143,17 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../addresstablemodel.cpp" line="+142"/>
         <source>Label</source>
-        <translation>标签</translation>
+        <translation>Legenda</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>地址</translation>
+        <translation>Endereço</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>(no label)</source>
-        <translation>[无标签]</translation>
+        <translation>(sem legenda)</translation>
     </message>
 </context>
 <context>
@@ -161,99 +161,99 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../forms/askpassphrasedialog.ui" line="+26"/>
         <source>Passphrase Dialog</source>
-        <translation>密码对话框</translation>
+        <translation>Caixa de diálogo de Frase Secreta</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>输入密码</translation>
+        <translation>Digite a frase secreta (senha)</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>New passphrase</source>
-        <translation>新密码</translation>
+        <translation>Nova frase secreta (senha)</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Repeat new passphrase</source>
-        <translation>重复新密码</translation>
+        <translation>Repita a nova frase secreta (senha)</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>输入新的密码到钱包. &lt;br/&gt; 请输入 &lt;b&gt;10个或更多的随机字符,&lt;/b&gt; 或 &lt;b&gt;8个或更多的单词.&lt;/b&gt;</translation>
+        <translation>Digite a nova frase secreta (senha) na carteira.&lt;br/&gt;Use uma frase secreta de &lt;b&gt;10 ou mais caracteres aleatórios&lt;/b&gt;, ou &lt;b&gt;oito ou mais palavras&lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Encrypt wallet</source>
-        <translation>加密钱包</translation>
+        <translation>Encriptar carteira</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>该操作需要您的钱包密码才能解锁钱包.</translation>
+        <translation>Esta operação precisa da frase secreta (senha) de sua carteira para desbloquear a carteira.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Unlock wallet</source>
-        <translation>解锁钱包</translation>
+        <translation>Desbloquear carteira</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>该操作需要您的钱包密码才能解密钱包.</translation>
+        <translation>Esta operação precisa da frase secreta (senha) de sua carteira para descriptografar a carteira.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Decrypt wallet</source>
-        <translation>解密钱包</translation>
+        <translation>Decriptar carteira</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Change passphrase</source>
-        <translation>修改密码</translation>
+        <translation>Modificar frase secreta (senha)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>输入钱包的新老密码.</translation>
+        <translation>Insira a frase secreta (senha) antiga e nova para a carteira.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>确认加密钱包</translation>
+        <translation>Confirme a encriptação da carteira</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>警告: 如果您加密了您的钱包并丢失了密码, 您将 &lt;b&gt; 失去您所有的货币 &lt;/b&gt;!</translation>
+        <translation>Atenção: se você criptografar sua carteira e perder sua senha, você irá &lt;b&gt;PERDER TODAS AS SUAS MOEDAS&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Are you sure you wish to encrypt your wallet?</source>
-        <translation>您确定想加密您的钱包吗?</translation>
+        <translation>Tem certeza de que deseja criptografar sua carteira?</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation>重要提示：任何过去备份的钱包文件应该用新生成的加密钱包文件替换. 出于安全原因, 只要您开始使用新的加密钱包, 先前的未加密钱包文件的备份将失效.</translation>
+        <translation>IMPORTANTE: Quaisquer backups anteriores que você fez de sua carteiram deve ser substituído com o recém-gerado arquivo criptografado de carteira. Por razões de segurança, arquivos de backups anteriores da carteira, não criptografados, vão se tornar inúteis, assim que você começar a usar a nova carteira criptografada.</translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+24"/>
         <source>Warning: The Caps Lock key is on!</source>
-        <translation>警告: 大写锁定键已打开!</translation>
+        <translation>Atenção: a tecla Caps Lock está ativada!</translation>
     </message>
     <message>
         <location line="-130"/>
         <location line="+58"/>
         <source>Wallet encrypted</source>
-        <translation>钱包已加密</translation>
+        <translation>Carteira encriptada</translation>
     </message>
     <message>
         <location line="-56"/>
-        <source>Verge will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>Verge现在将关闭以完成加密过程. 请记住,加密您的钱包不能完全保护您的硬币免受感染您计算机的恶意软件盗取.</translation>
+        <source>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
+        <translation>VERGE fechará agora para terminar o processo de criptografia. Lembre-se de que criptografar sua carteira pode não proteger completamente suas moedas de serem roubadas por um malware infectando seu computador.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -261,40 +261,40 @@ This product includes software developed by the OpenSSL Project for use in the O
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>钱包加密失败</translation>
+        <translation>A criptografia da carteira falhou</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>由于内部错误, 电子钱包加密失败. 您的钱包没有加密.</translation>
+        <translation>A criptografia da carteira falhou devido a um erro interno. Sua carteira não foi criptografada.</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>输入的密码不匹配.</translation>
+        <translation>As senhas fornecidas não correspondem.</translation>
     </message>
     <message>
         <location line="-37"/>
         <source>Wallet unlock failed</source>
-        <translation>钱包解锁失败</translation>
+        <translation>Desbloqueio de carteira falhou</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+11"/>
         <location line="+19"/>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>为钱包解密输入的密码不正确.</translation>
+        <translation>A senha passada para decodificar a carteira estava incorreta.</translation>
     </message>
     <message>
         <location line="-20"/>
         <source>Wallet decryption failed</source>
-        <translation>钱包解密失败</translation>
+        <translation>Falha na decripção da carteira</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>钱包密码修改成功.</translation>
+        <translation>A senha da carteira foi alterada com sucesso.</translation>
     </message>
 </context>
 <context>
@@ -302,296 +302,302 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location filename="../bitcoingui.cpp" line="+257"/>
         <source>Sign &amp;message...</source>
-        <translation>&amp;签名消息</translation>
+        <translation>Assinar &amp;mensagem...</translation>
     </message>
     <message>
         <location line="+237"/>
         <source>Synchronizing with network...</source>
-        <translation>正在与网络同步...</translation>
+        <translation>Sincronizando com a rede...</translation>
     </message>
     <message>
         <location line="-299"/>
         <source>&amp;Overview</source>
-        <translation>О&amp;概览</translation>
+        <translation>&amp;Visão geral</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show general overview of wallet</source>
-        <translation>显示钱包概览</translation>
+        <translation>Mostrar visão geral da carteira</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>&amp;Transactions</source>
-        <translation>&amp;交易</translation>
+        <translation>&amp;Transações</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Browse transaction history</source>
-        <translation>浏览交易历史</translation>
+        <translation>Navegar pelo histórico de transações</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>&amp;Address Book</source>
-        <translation>&amp;地址簿</translation>
+        <translation>&amp;Livro de endereços</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit the list of stored addresses and labels</source>
-        <translation>编辑存储的地址和标签列表</translation>
+        <translation>Editar a lista de endereços e legendas armazenadas</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>&amp;Receive coins</source>
-        <translation>&amp;接收货币</translation>
+        <translation>&amp;Receber moedas</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show the list of addresses for receiving payments</source>
-        <translation>显示接收付款的地址清单</translation>
+        <translation>Mostrar a lista de endereços para receber pagamentos</translation>
     </message>
     <message>
         <location line="-7"/>
         <source>&amp;Send coins</source>
-        <translation>Отп&amp;发送货币</translation>
+        <translation>&amp;Enviar moedas</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>E&amp;xit</source>
-        <translation>退出&amp;</translation>
+        <translation>S&amp;air</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Quit application</source>
-        <translation>退出程序</translation>
+        <translation>Deixar aplicação</translation>
     </message>
     <message>
         <location line="+4"/>
-        <source>Show information about Verge</source>
-        <translation>显示Verge信息</translation>
+        <source>Show information about VERGE</source>
+        <translation>Mostrar informação sobre VERGE</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>About &amp;Qt</source>
-        <translation>关于 &amp;Qt</translation>
+        <translation>Sobre &amp;Qt</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show information about Qt</source>
-        <translation>显示Qt信息</translation>
+        <translation>Mostrar informação sobre Qt</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Options...</source>
-        <translation>&amp;选项...</translation>
+        <translation>&amp;Opções...</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>&amp;Encrypt Wallet...</source>
-        <translation>&amp;加密钱包...</translation>
+        <translation>&amp;Encriptar Carteira...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Backup Wallet...</source>
-        <translation>&amp;备份钱包</translation>
+        <translation>&amp;Backup da Carteira...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Change Passphrase...</source>
-        <translation>&amp;修改密码...</translation>
+        <translation>&amp;Modificar frase secreta (senha)...</translation>
     </message>
     <message numerus="yes">
         <location line="+241"/>
         <source>~%n block(s) remaining</source>
         <translation>
-            <numerusform> ~%n 块剩余</numerusform>
+            <numerusform>~%n bloco restante</numerusform>
+            <numerusform>~%n blocos restantes</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Downloaded %1 of %2 blocks of transaction history (%3% done).</source>
-        <translation>已下载 %2 笔交易记录的 %1 (%3% 已完成).</translation>
+        <translation>Baixado %1 de %2 blocos de histórico de transações (%3% finalizado).</translation>
     </message>
     <message>
         <location line="-242"/>
         <source>&amp;Export...</source>
-        <translation>&amp;导出...</translation>
+        <translation>&amp;Exportar...</translation>
     </message>
     <message>
         <location line="-58"/>
-        <source>Send coins to a Verge address</source>
-        <translation>向一个Verge地址发送货币</translation>
+        <source>Send coins to a VERGE address</source>
+        <translation>Enviar moedas para um endereço VERGE</translation>
     </message>
     <message>
         <location line="+45"/>
-        <source>Modify configuration options for Verge</source>
-        <translation>修改Verge的配置选项</translation>
+        <source>Modify configuration options for VERGE</source>
+        <translation>Modificar opções de configuração para VERGE</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Export the data in the current tab to a file</source>
-        <translation>将当前选项卡中的数据导出到文件</translation>
+        <translation>Exportar os dados na guia atual para um arquivo</translation>
     </message>
     <message>
         <location line="-10"/>
         <source>Encrypt or decrypt wallet</source>
-        <translation>加密或解密钱包</translation>
+        <translation>Encriptar ou descriptografar carteira</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>备份钱包到另一个位置</translation>
+        <translation>Fazer backup da carteira em outro local</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>修改用于钱包加密的密码</translation>
+        <translation>Altere a frase-senha utilizada para criptografia de carteira</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Debug window</source>
-        <translation>&amp;调试窗口</translation>
+        <translation>&amp;Janela de depuração</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Open debugging and diagnostic console</source>
-        <translation>打开调试和诊断控制台</translation>
+        <translation>Abrir depuração e console de diagnóstico</translation>
     </message>
     <message>
         <location line="-5"/>
         <source>&amp;Verify message...</source>
-        <translation>&amp;验证消息...</translation>
+        <translation>&amp;Verificar mensagem...</translation>
     </message>
     <message>
         <location line="-186"/>
-        <source>Verge</source>
-        <translation>Verge</translation>
+        <source>VERGE</source>
+        <translation>VERGE</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Wallet</source>
-        <translation>钱包</translation>
+        <translation>Carteira</translation>
     </message>
     <message>
         <location line="+168"/>
-        <source>&amp;About Verge</source>
-        <translation>&amp;关于 Verge</translation>
+        <source>&amp;About VERGE</source>
+        <translation>&amp;Sobre VERGE</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Show / Hide</source>
-        <translation>&amp;显示 / 隐藏</translation>
+        <translation>&amp;Mostrar / Esconder</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>&amp;File</source>
-        <translation>&amp;文件</translation>
+        <translation>&amp;Arquivo</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>&amp;Settings</source>
-        <translation>&amp;设置</translation>
+        <translation>&amp;Configurações</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Help</source>
-        <translation>&amp;帮助</translation>
+        <translation>&amp;Ajuda</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Tabs toolbar</source>
-        <translation>标签工具栏</translation>
+        <translation>Barra de ferramentas de abas</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Actions toolbar</source>
-        <translation>操作工具栏</translation>
+        <translation>Barra de ferramentas de ações</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+9"/>
         <source>[testnet]</source>
-        <translation>[测试网络]</translation>
+        <translation>[testnet]</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+60"/>
-        <source>Verge client</source>
-        <translation>Verge 客户端</translation>
+        <source>VERGE client</source>
+        <translation>cliente VERGE</translation>
     </message>
     <message numerus="yes">
         <location line="+69"/>
-        <source>%n active connection(s) to Verge network</source>
+        <source>%n active connection(s) to VERGE network</source>
         <translation>
-            <numerusform>%n 个到Verge网络的活跃连接</numerusform>
+            <numerusform>%n conexão ativa com a rede VERGE</numerusform>
+            <numerusform>%n conexões ativas com a rede VERGE</numerusform>
         </translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Downloaded %1 blocks of transaction history.</source>
-        <translation>已下载交易历史 %1 的块.</translation>
+        <translation>Baixado %1 blocos do histórico de transações.</translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
         <source>%n second(s) ago</source>
         <translation>
-            <numerusform>%n 秒前</numerusform>
+            <numerusform>%n segundo atrás</numerusform>
+            <numerusform>%n segundos atrás</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n minute(s) ago</source>
         <translation>
-            <numerusform>%n 分钟前</numerusform>
+            <numerusform>%n minuto atrás</numerusform>
+            <numerusform>%n minutos atrás</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n hour(s) ago</source>
         <translation>
-            <numerusform>%n 小时前</numerusform>
+            <numerusform>%n hora atrás</numerusform>
+            <numerusform>%n horas atrás</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n day(s) ago</source>
         <translation>
-            <numerusform>%n 天前</numerusform>
+            <numerusform>%n dia atrás</numerusform>
+            <numerusform>%n dias atrás</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Up to date</source>
-        <translation>最新</translation>
+        <translation>Atualizado</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Catching up...</source>
-        <translation>获取中...</translation>
+        <translation>Recuperando atraso...</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>最后收到的块已经处理 %1.</translation>
+        <translation>O último bloco recebido foi gerado %1.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation>这笔交易超过了大小限制. 您仍然可以发送费用为 %1 的费用, 该费用将转至处理您的交易的节点, 并有助于支持网络. 您想支付这笔费用吗?</translation>
+        <translation>Essa transação está acima do limite permitido. Você ainda pode enviá-lo com uma taxa de %1, que vai para os nós, que processam sua transação e ajuda a suportar a rede. Você deseja pagar a taxa?</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm transaction fee</source>
-        <translation>确认交易费用</translation>
+        <translation>Confirmar taxa de transação</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Sent transaction</source>
-        <translation>已发送交易</translation>
+        <translation>Transação enviada</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>传入交易</translation>
+        <translation>Transação recebida</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -600,58 +606,58 @@ Amount: %2
 Type: %3
 Address: %4
 </source>
-        <translation>时间: %1
-数量: %2
-类型: %3
-地址: %4
+        <translation>Data: %1
+Montante: %2
+Tipo: %3
+Endereço: %4
 </translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+15"/>
         <source>URI handling</source>
-        <translation>URI 处理</translation>
+        <translation>Manipulação de URI</translation>
     </message>
     <message>
         <location line="-15"/>
         <location line="+15"/>
-        <source>URI can not be parsed! This can be caused by an invalid Verge address or malformed URI parameters.</source>
-        <translation>URI无法解析! 这可能是由无效的Verge地址或格式错误的URI参数引起的.</translation>
+        <source>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</source>
+        <translation>O URI não pode ser analisado! Isso pode ser causado por um endereço VERGE inválido ou por parâmetros URI malformados.</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
-        <translation>钱包已 &lt;b&gt;加密&lt;/b&gt; 并且目前处于 &lt;b&gt;解锁&lt;/b&gt;状态</translation>
+        <translation>Carteira está &lt;b&gt;encriptada&lt;/b&gt; e atualmente &lt;b&gt;desbloqueada&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
-        <translation>钱包已 &lt;b&gt;加密&lt;/b&gt; 并且目前处于 &lt;b&gt;锁定&lt;/b&gt;状态</translation>
+        <translation>Carteira está &lt;b&gt;encriptada&lt;/b&gt; e atualmente &lt;b&gt;bloqueada&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Backup Wallet</source>
-        <translation>备份钱包</translation>
+        <translation>Backup da Carteira</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Wallet Data (*.dat)</source>
-        <translation>钱包数据 (*.dat)</translation>
+        <translation>Dados da Carteira (*.dat)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup Failed</source>
-        <translation>备份失败</translation>
+        <translation>Backup Falhou</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>尝试将钱包数据保存到新位置时出错.</translation>
+        <translation>Ocorreu um erro ao tentar salvar os dados da carteira na nova localização.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
-        <source>A fatal error occurred. Verge can no longer continue safely and will quit.</source>
-        <translation>发生致命错误. Verge将不能继续安全运行并退出.</translation>
+        <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
+        <translation>Ocorreu um erro fatal. VERGE não pode mais continuar com segurança e irá sair.</translation>
     </message>
 </context>
 <context>
@@ -659,7 +665,7 @@ Address: %4
     <message>
         <location filename="../clientmodel.cpp" line="+87"/>
         <source>Network Alert</source>
-        <translation>网络警报</translation>
+        <translation>Alerta de Rede</translation>
     </message>
 </context>
 <context>
@@ -667,67 +673,67 @@ Address: %4
     <message>
         <location filename="../forms/editaddressdialog.ui" line="+14"/>
         <source>Edit Address</source>
-        <translation>编辑地址</translation>
+        <translation>Editar Endereço</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Label</source>
-        <translation>&amp;标签</translation>
+        <translation>&amp;Legenda</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>与此地址簿条目相关联的标签</translation>
+        <translation>A legenda associada a esta entrada do catálogo de endereços</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Address</source>
-        <translation>&amp;地址</translation>
+        <translation>&amp;Endereço</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>该地址与地址簿条目相关联. 只有发送地址可以修改该项.</translation>
+        <translation>O endereço associado a esta entrada do catálogo de endereços. Isso só pode ser modificado para endereços de envio.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
         <source>New receiving address</source>
-        <translation>新接收地址</translation>
+        <translation>Novo endereço de recepção</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>New sending address</source>
-        <translation>新发送地址</translation>
+        <translation>Novo endereço de envio</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Edit receiving address</source>
-        <translation>编辑接收地址</translation>
+        <translation>Editar endereço de recepção</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Edit sending address</source>
-        <translation>编辑发送地址</translation>
+        <translation>Editar endereço de envio</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>输入的地址 &quot;%1&quot; 已在地址簿中.</translation>
+        <translation>O endereço inserido &quot;%1&quot; já está no livro de endereços.</translation>
     </message>
     <message>
         <location line="+5"/>
-        <source>The entered address &quot;%1&quot; is not a valid Verge address.</source>
-        <translation>输入的地址 &quot;%1&quot; 不是一个有效的Verge地址.</translation>
+        <source>The entered address &quot;%1&quot; is not a valid VERGE address.</source>
+        <translation>O endereço inserido &quot;%1&quot; não é um endereço VERGE valido.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Could not unlock wallet.</source>
-        <translation>无法解锁钱包.</translation>
+        <translation>Não foi possível desbloquear carteira.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>New key generation failed.</source>
-        <translation>新密钥生成失败.</translation>
+        <translation>Falha na nova geração de chaves.</translation>
     </message>
 </context>
 <context>
@@ -735,43 +741,43 @@ Address: %4
     <message>
         <location filename="../guiutil.cpp" line="+419"/>
         <location line="+12"/>
-        <source>Verge-Qt</source>
-        <translation>Verge-Qt</translation>
+        <source>VERGE-Qt</source>
+        <translation>VERGE-Qt</translation>
     </message>
     <message>
         <location line="-12"/>
         <source>version</source>
-        <translation>版本</translation>
+        <translation>versão</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Usage:</source>
-        <translation>使用量:</translation>
+        <translation>Uso:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>command-line options</source>
-        <translation>命令行选项</translation>
+        <translation>opções de linha de comando</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>UI options</source>
-        <translation>UI选项</translation>
+        <translation>Opções de UI</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set language, for example &quot;de_DE&quot; (default: system locale)</source>
-        <translation>设置语言, 如 &quot;de_DE&quot; (默认: 系统区域设置)</translation>
+        <translation>Definir idioma, por exemplo &quot;de_DE&quot; (padrão: sistema local)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Start minimized</source>
-        <translation>开始最小化</translation>
+        <translation>Iniciar minimizado</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>启动时显示启动画面 (默认: 1)</translation>
+        <translation>Mostrar tela inicial na inicialização (padrão: 1)</translation>
     </message>
 </context>
 <context>
@@ -779,194 +785,194 @@ Address: %4
     <message>
         <location filename="../forms/optionsdialog.ui" line="+14"/>
         <source>Options</source>
-        <translation>选项</translation>
+        <translation>Opções</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>&amp;Main</source>
-        <translation>&amp;主要</translation>
+        <translation>&amp;Principal</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>每千字节的可选交易费用有助于确保您的交易快速处理. 大多数交易大小为1 kB. 建议费用0.01.</translation>
+        <translation>Taxa de transação opcional por kB, que ajuda a garantir, que suas transações sejam processadas rapidamente. A maioria das transações são de 1 kB. Taxa de 0.01 recomendada.</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>支付交易 &amp;费用</translation>
+        <translation>Taxa de transação de pagamento &amp;(taxa)</translation>
     </message>
     <message>
         <location line="+31"/>
-        <source>Automatically start Verge after logging in to the system.</source>
-        <translation>登录到系统后自动启动Verge</translation>
+        <source>Automatically start VERGE after logging in to the system.</source>
+        <translation>Inicie automaticamente a VERGE depois de efetuar o login no sistema</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Start Verge on system login</source>
-        <translation>&amp;系统登录时启动Verge</translation>
+        <source>&amp;Start VERGE on system login</source>
+        <translation>&amp;Iniciar VERGE no login do sistema</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>在关闭时分离块和地址数据库. 这意味着它们可以被移动到另一个数据目录，但是会减慢关闭速度. 钱包已分离块和地址数据库.</translation>
+        <translation>Desanexar bloco e banco de dados de endereço no desligamento. Isso significa que eles podem ser movidos para outro diretório de dados, mas retarda o desligamento. A carteira sempre é destacada.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Detach databases at shutdown</source>
-        <translation>&amp;在关闭时分离数据库</translation>
+        <translation>&amp;Desanexar bases de dados no desligamento</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Network</source>
-        <translation>&amp;网络</translation>
+        <translation>&amp;Rede</translation>
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the Verge client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>自动打开路由器上的Verge客户端端口. 这只适用于您的路由器支持UPnP并且已启用.</translation>
+        <source>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Abra automaticamente a porta do cliente VERGE no roteador. Isso só funciona quando o roteador suporta UPnP e está habilitado.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Map port using &amp;UPnP</source>
-        <translation>使用&amp;UPnP 映射端口</translation>
+        <translation>Mapear porta usando &amp;UPnP</translation>
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the Verge network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>通过SOCKS代理连接到Verge网络(例如通过Tor连接时).</translation>
+        <source>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</source>
+        <translation>Conecte-se à rede VERGE através de um proxy SOCKS (por exemplo, quando estiver conectado através de Tor).</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Connect through SOCKS proxy:</source>
-        <translation>&amp;通过SOCKS代理连接:</translation>
+        <translation>&amp;Conecte-se através do proxy SOCKS:</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Proxy &amp;IP:</source>
-        <translation>代理 &amp;IP: </translation>
+        <translation>Proxy &amp;IP:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>IP address of the proxy (e.g. 127.0.0.1)</source>
-        <translation>代理的IP地址 (例如 127.0.0.1)</translation>
+        <translation>Endereço IP do proxy (por exemplo, 127.0.0.1)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Port:</source>
-        <translation>По&amp;端口: </translation>
+        <translation>&amp;Porta:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Port of the proxy (e.g. 9050)</source>
-        <translation>代理端口 (例如 9050)</translation>
+        <translation>Porta do proxy (por exemplo, 9050)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SOCKS &amp;Version:</source>
-        <translation>&amp;SOCKS 版本:</translation>
+        <translation>SOCKS &amp;Versão:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>SOCKS version of the proxy (e.g. 5)</source>
-        <translation>代理的 SOCKS 版本 (例如 5)</translation>
+        <translation>Versão SOCKS do proxy (por exemplo, 5)</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>&amp;Window</source>
-        <translation>&amp;窗口</translation>
+        <translation>&amp;Janela</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>最小化窗口后只显示托盘图标.</translation>
+        <translation>Mostre apenas um ícone de bandeja depois de minimizar a janela.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Minimize to the tray instead of the taskbar</source>
-        <translation>&amp;最小化到托盘而不是任务栏</translation>
+        <translation>&amp;Minimizar para a bandeja em vez da barra de tarefas</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>窗口关闭时最小化而不是退出应用程序. 启用此选项后, 只有在菜单中选择退出后, 应用程序才会关闭.</translation>
+        <translation>Minimize em vez de sair do aplicativo quando a janela for fechada. Quando esta opção está habilitada, o aplicativo será fechado somente depois de selecionar Sair no menu.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>&amp;最小化关闭</translation>
+        <translation>M&amp;inimizar no fechamento</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>О&amp;显示</translation>
+        <translation>&amp;Exibição</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>User Interface &amp;language:</source>
-        <translation>&amp;用户界面语言:</translation>
+        <translation>Linguagem da Interface de Usuário &amp;(linguagem):</translation>
     </message>
     <message>
         <location line="+13"/>
-        <source>The user interface language can be set here. This setting will take effect after restarting Verge.</source>
-        <translation>用户界面语言可以在这里设置. 此设置将在重新启动Verge后生效.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting VERGE.</source>
+        <translation>O idioma da interface do usuário pode ser configurado aqui. Esta configuração entrará em vigor após o reinício da VERGE.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Unit to show amounts in:</source>
-        <translation>&amp;显示金额的单位: </translation>
+        <translation>&amp;Unidade para mostrar montantes em:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>选择在界面和发送货币时显示的默认细分单位.</translation>
+        <translation>Escolha a unidade de subdivisão padrão para mostrar na interface e ao enviar moedas.</translation>
     </message>
     <message>
         <location line="+9"/>
-        <source>Whether to show Verge addresses in the transaction list or not.</source>
-        <translation>是否显示交易列表中的Verge地址.</translation>
+        <source>Whether to show VERGE addresses in the transaction list or not.</source>
+        <translation>Seja para mostrar os endereços VERGE na lista de transações ou não.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;在交易列表中显示地址</translation>
+        <translation>&amp;Exibir endereços na lista de transações</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;OK</source>
-        <translation>&amp;确定</translation>
+        <translation>&amp;OK</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;取消</translation>
+        <translation>&amp;Cancelar</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>&amp;Apply</source>
-        <translation>&amp;应用</translation>
+        <translation>&amp;Aplicar</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>默认</translation>
+        <translation>padrão</translation>
     </message>
     <message>
         <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
-        <translation>警告</translation>
+        <translation>Atenção</translation>
     </message>
     <message>
         <location line="-9"/>
         <location line="+9"/>
-        <source>This setting will take effect after restarting Verge.</source>
-        <translation>此设置将在重新启动Verge后生效.</translation>
+        <source>This setting will take effect after restarting VERGE.</source>
+        <translation>Esta configuração entrará em vigor após o reinício da VERGE.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The supplied proxy address is invalid.</source>
-        <translation>提供的代理地址无效.</translation>
+        <translation>O endereço de proxy fornecido é inválido.</translation>
     </message>
 </context>
 <context>
@@ -974,79 +980,79 @@ Address: %4
     <message>
         <location filename="../forms/overviewpage.ui" line="+14"/>
         <source>Form</source>
-        <translation>表格</translation>
+        <translation>Formulário</translation>
     </message>
     <message>
         <location line="+33"/>
         <location line="+183"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Verge network after a connection is established, but this process has not completed yet.</source>
-        <translation>显示的信息可能已过时. 建立连接后，您的钱包将自动与Verge网络同步，但此过程尚未完成.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</source>
+        <translation>As informações exibidas podem estar desatualizadas. Sua carteira sincroniza automaticamente com a rede VERGE depois que uma conexão é estabelecida, mas esse processo ainda não foi concluído.</translation>
     </message>
     <message>
         <location line="-141"/>
         <source>Balance:</source>
-        <translation>余额:</translation>
+        <translation>Balanço:</translation>
     </message>
     <message>
         <location line="+118"/>
         <source>Stake:</source>
-        <translation>赌注:</translation>
+        <translation>Bolada:</translation>
     </message>
     <message>
         <location line="+58"/>
         <source>Number of transactions:</source>
-        <translation>交易数量:</translation>
+        <translation>Número de transações:</translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Unconfirmed:</source>
-        <translation>未确认:</translation>
+        <translation>Não confirmada:</translation>
     </message>
     <message>
         <location line="-78"/>
         <source>Wallet</source>
-        <translation>钱包</translation>
+        <translation>Carteira</translation>
     </message>
     <message>
         <location line="+124"/>
         <source>Immature:</source>
-        <translation>未完成:</translation>
+        <translation>Imaturo:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>尚未完成的已挖矿余额</translation>
+        <translation>Saldo minerado que ainda não amadureceu</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;近期交易&lt;/b&gt;</translation>
+        <translation>&lt;b&gt;Transações recentes&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>Your current balance</source>
-        <translation>您当前余额</translation>
+        <translation>Seu saldo atual</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>所有交易尚未确认完成，未计入当前余额</translation>
+        <translation>Total de transações que ainda não foram confirmadas e ainda não contam para o saldo atual</translation>
     </message>
     <message>
         <location line="+134"/>
         <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>被放样的硬币总数，尚未计入当前余额</translation>
+        <translation>Total de moedas que foram apostadas e ainda não contam para o saldo atual</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>钱包中的交易总数</translation>
+        <translation>Número total de transações na carteira</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
-        <translation>不同步</translation>
+        <translation>fora de sincronia</translation>
     </message>
 </context>
 <context>
@@ -1054,57 +1060,57 @@ Address: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation>QR码对话框</translation>
+        <translation>Diálogo QR Code</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Request Payment</source>
-        <translation>请求付款</translation>
+        <translation>Solicitar pagamento</translation>
     </message>
     <message>
         <location line="+56"/>
         <source>Amount:</source>
-        <translation>数量:</translation>
+        <translation>Montante:</translation>
     </message>
     <message>
         <location line="-44"/>
         <source>Label:</source>
-        <translation>标签:</translation>
+        <translation>Legenda:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Message:</source>
-        <translation>消息:</translation>
+        <translation>Mensagem:</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;Save As...</source>
-        <translation>&amp;另存为...</translation>
+        <translation>&amp;Salvar como...</translation>
     </message>
     <message>
         <location filename="../qrcodedialog.cpp" line="+62"/>
         <source>Error encoding URI into QR Code.</source>
-        <translation>将URI编码为QR码时发生错误.</translation>
+        <translation>Erro ao codificar o URI no QR Code.</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>The entered amount is invalid, please check.</source>
-        <translation>输入的数量无效, 请检查.</translation>
+        <translation>O valor inserido é inválido, por favor verifique.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>得到的URI太长, 试减少标签/消息的文本.</translation>
+        <translation>URI resultante muito longo, tente reduzir o texto para a legenda / mensagem.</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>保存QR码</translation>
+        <translation>Salvar QR Code</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>PNG Images (*.png)</source>
-        <translation>PNG 图片 (*.png)</translation>
+        <translation>Imagem PNG (*.png)</translation>
     </message>
 </context>
 <context>
@@ -1112,7 +1118,7 @@ Address: %4
     <message>
         <location filename="../forms/rpcconsole.ui" line="+46"/>
         <source>Client name</source>
-        <translation>客户端名称</translation>
+        <translation>Nome do cliente</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1131,127 +1137,127 @@ Address: %4
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation>客户端版本</translation>
+        <translation>Versão do cliente</translation>
     </message>
     <message>
         <location line="-45"/>
         <source>&amp;Information</source>
-        <translation>&amp;信息</translation>
+        <translation>&amp;Informação</translation>
     </message>
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation>使用OpenSSL版本</translation>
+        <translation>Usando a versão OpenSSL</translation>
     </message>
     <message>
         <location line="+49"/>
         <source>Startup time</source>
-        <translation>启动时间</translation>
+        <translation>Tempo de inicialização</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Network</source>
-        <translation>网络</translation>
+        <translation>Rede</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Number of connections</source>
-        <translation>连接数量</translation>
+        <translation>Número de conexões</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>在测试网络上</translation>
+        <translation>No testnet</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>区块链</translation>
+        <translation>Block chain</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>当前区块数</translation>
+        <translation>Número atual de blocos</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Estimated total blocks</source>
-        <translation>估计的总区块数</translation>
+        <translation>Total de blocos estimados</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>最后的区块时间</translation>
+        <translation>Hora do último bloco</translation>
     </message>
     <message>
         <location line="+52"/>
         <source>&amp;Open</source>
-        <translation>&amp;打开</translation>
+        <translation>&amp;Abrir</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Command-line options</source>
-        <translation>命令行选项</translation>
+        <translation>Opções de linha de comando</translation>
     </message>
     <message>
         <location line="+7"/>
-        <source>Show the Verge-Qt help message to get a list with possible Verge command-line options.</source>
-        <translation>显示Verge-Qt帮助消息以获得可能的Verge命令行选项列表.</translation>
+        <source>Show the VERGE-Qt help message to get a list with possible VERGE command-line options.</source>
+        <translation>Mostre a mensagem de ajuda VERGE-Qt para obter uma lista com possíveis opções de linha de comando VERGE.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Show</source>
-        <translation>&amp;显示</translation>
+        <translation>&amp;Mostrar</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>&amp;Console</source>
-        <translation>控制台</translation>
+        <translation>&amp;Console</translation>
     </message>
     <message>
         <location line="-260"/>
         <source>Build date</source>
-        <translation>构建时间</translation>
+        <translation>Data de Build</translation>
     </message>
     <message>
         <location line="-104"/>
-        <source>Verge - Debug window</source>
-        <translation>Verge - 调试窗口</translation>
+        <source>VERGE - Debug window</source>
+        <translation>VERGE - Debug window</translation>
     </message>
     <message>
         <location line="+25"/>
-        <source>Verge Core</source>
-        <translation>Verge核心</translation>
+        <source>VERGE Core</source>
+        <translation>VERGE Core</translation>
     </message>
     <message>
         <location line="+279"/>
         <source>Debug log file</source>
-        <translation>调试日志文件</translation>
+        <translation>Arquivo de log de depuração</translation>
     </message>
     <message>
         <location line="+7"/>
-        <source>Open the Verge debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>从当前数据目录打开Verge调试日志文件. 大型日志文件可能需要几秒钟的时间.</translation>
+        <source>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <translation>Abrir o arquivo de log de depuração VERGE a partir do diretório de dados atual. Isso pode levar alguns segundos para arquivos de log grandes.</translation>
     </message>
     <message>
         <location line="+102"/>
         <source>Clear console</source>
-        <translation>清除控制台</translation>
+        <translation>Limpar console</translation>
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
-        <source>Welcome to the Verge RPC console.</source>
-        <translation>欢迎来到Verge RPC控制台.</translation>
+        <source>Welcome to the VERGE RPC console.</source>
+        <translation>Bem-vindo ao console VERGE RPC.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>使用向上和向下箭头浏览历史记录, 并使用 &lt;b&gt;Ctrl-L&lt;/b&gt; 清除屏幕.</translation>
+        <translation>Utilize as setas para cima e para baixo para navegar no histórico, e &lt;b&gt;Ctrl-L&lt;/b&gt; para limpar tela.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>输入 &lt;b&gt;help&lt;/b&gt; 了解可用命令的概览.</translation>
+        <translation>Digite &lt;b&gt;help&lt;/b&gt; para uma visão geral dos comandos disponíveis.</translation>
     </message>
 </context>
 <context>
@@ -1266,32 +1272,32 @@ Address: %4
         <location line="+5"/>
         <location line="+5"/>
         <source>Send Coins</source>
-        <translation>发送货币</translation>
+        <translation>Enviar Moedas</translation>
     </message>
     <message>
         <location line="+50"/>
         <source>Send to multiple recipients at once</source>
-        <translation>一次发送给多个接收人</translation>
+        <translation>Enviar para múltiplos destinatários de uma só vez</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation>&amp;添加接收人</translation>
+        <translation>Adicionar &amp;Destinatário</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Remove all transaction fields</source>
-        <translation>删除所有交易字段</translation>
+        <translation>Remova todos os campos de transação</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Clear &amp;All</source>
-        <translation>清除 &amp;全部</translation>
+        <translation>Limpar &amp;Todos</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Balance:</source>
-        <translation>余额:</translation>
+        <translation>Balanço:</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1301,67 +1307,67 @@ Address: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>确认发送操作</translation>
+        <translation>Confirme a ação de envio</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation>&amp;发送</translation>
+        <translation>E&amp;nviar</translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
         <source>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; para %2 (%3)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm send coins</source>
-        <translation>确认发送</translation>
+        <translation>Confirmar envio moedas</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>你确定要发送 %1 吗?</translation>
+        <translation>Tem certeza que deseja enviar %1?</translation>
     </message>
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> 和 </translation>
+        <translation> e </translation>
     </message>
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>收件人地址无效，请重新检查.</translation>
+        <translation>O endereço do destinatário não é válido, verifique novamente.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>支付的金额必须大于0.</translation>
+        <translation>O valor a ser pago deve ser maior que 0.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount exceeds your balance.</source>
-        <translation>数额超过您的余额</translation>
+        <translation>O valor excede seu saldo.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>包含 %1 交易费用时，总额超过您的余额.</translation>
+        <translation>O total excede seu saldo quando a taxa de transação %1 está incluída.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Duplicate address found, can only send to each address once per send operation.</source>
-        <translation>发现重复地址, 每次只能给每个地址发送一次.</translation>
+        <translation>Endereço duplicado encontrado, só pode enviar para cada endereço uma vez por operação de envio.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>错误: 交易创建失败.</translation>
+        <translation>Erro: A criação da transação falhou.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>错误：交易被拒绝。 如果您的钱包中的某些货币已使用，可能会发生这种情况，例如，如果您使用了wallet.dat的副本，并且货币在副本中使用了但未标记为已在此处使用.</translation>
+        <translation>Erro: a transação foi rejeitada. Isso pode acontecer se algumas das moedas da sua carteira já haviam sido gastas, como se você usasse uma cópia de wallet.dat e as moedas foram gastas na cópia, mas não marcadas como gastadas aqui.</translation>
     </message>
 </context>
 <context>
@@ -1369,38 +1375,38 @@ Address: %4
     <message>
         <location filename="../forms/sendcoinsentry.ui" line="+14"/>
         <source>Form</source>
-        <translation>表格</translation>
+        <translation>Formulário</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>数&amp;量:</translation>
+        <translation>M&amp;ontante:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Pay &amp;To:</source>
-        <translation>支付&amp;给:</translation>
+        <translation>Pagar &amp;Para:</translation>
     </message>
     <message>
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>为此地址输入一个标签, 将其添加到您的地址簿中</translation>
+        <translation>Digite uma legenda para este endereço, para adicioná-la ao seu catálogo de endereços</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Label:</source>
-        <translation>&amp;标签:</translation>
+        <translation>&amp;Legenda:</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>付款地址 (例如 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>O endereço para enviar o pagamento para (por exemplo, 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Choose address from address book</source>
-        <translation>从地址簿中选择地址</translation>
+        <translation>Escolha o endereço do livro de endereços</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1410,7 +1416,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Paste address from clipboard</source>
-        <translation>从剪贴板粘贴地址</translation>
+        <translation>Cole o endereço da área de transferência</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1420,12 +1426,12 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Remove this recipient</source>
-        <translation>删除此收件人</translation>
+        <translation>Remova esse destinatário</translation>
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
-        <source>Enter a Verge address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>输入一个Verge地址 (例如 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter a valid VERGE address</source>
+        <translation>Digite um endereço VERGE válido</translation>
     </message>
 </context>
 <context>
@@ -1433,29 +1439,29 @@ Address: %4
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>签名 - 签署/验证消息</translation>
+        <translation>Assinaturas - Assinar / Verificar uma mensagem</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+124"/>
         <source>&amp;Sign Message</source>
-        <translation>&amp;签署消息</translation>
+        <translation>&amp;Assinar mensagem</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>您可以用您的地址签署消息来证明您拥有它们. 注意不要签署任何模糊的内容，因为钓鱼式攻击可能会试图欺骗您将自己的身份签署给他们. 只签署您同意的全面详细的陈述.</translation>
+        <translation>Você pode assinar mensagens com seus endereços para provar que você é dono delas. Tenha cuidado para não assinar qualquer coisa vaga, pois ataques de phishing podem tentar enganá-lo, e fazer você assinar sua identidade para eles. Apenas assine declarações completamente detalhadas que você concorda.</translation>
     </message>
     <message>
         <location line="+18"/>
-        <source>The address to sign the message with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>用来签名消息的地址  (例如 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>The address to sign the message with </source>
+        <translation>O endereço para assinar a mensagem com </translation>
     </message>
     <message>
         <location line="+10"/>
         <location line="+203"/>
         <source>Choose an address from the address book</source>
-        <translation>从地址簿中选择一个地址</translation>
+        <translation>Escolha um endereço no catálogo de endereços</translation>
     </message>
     <message>
         <location line="-193"/>
@@ -1466,7 +1472,7 @@ Address: %4
     <message>
         <location line="-193"/>
         <source>Paste address from clipboard</source>
-        <translation>从剪贴板粘贴地址</translation>
+        <translation>Colar o endereço da área de transferência</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1476,76 +1482,76 @@ Address: %4
     <message>
         <location line="+12"/>
         <source>Enter the message you want to sign here</source>
-        <translation>在此处输入您要签名的讯息</translation>
+        <translation>Digite a mensagem que deseja assinar aqui</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Copy the current signature to the system clipboard</source>
-        <translation>将当前签名复制到系统剪贴板</translation>
+        <translation>Copie a assinatura atual para a área de transferência do sistema</translation>
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this Verge address</source>
-        <translation>签署消息证明你拥有这个Verge地址</translation>
+        <source>Sign the message to prove you own this VERGE address</source>
+        <translation>Assine a mensagem para provar que você possui este endereço VERGE</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all sign message fields</source>
-        <translation>重置所有签署消息字段</translation>
+        <translation>Redefinir todos os campos da mensagem de sinal</translation>
     </message>
     <message>
         <location line="+3"/>
         <location line="+146"/>
         <source>Clear &amp;All</source>
-        <translation>清除 &amp;全部</translation>
+        <translation>Limpar &amp;Tudo</translation>
     </message>
     <message>
         <location line="-87"/>
         <location line="+70"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;验证消息</translation>
+        <translation>&amp;Verificar Mensagem</translation>
     </message>
     <message>
         <location line="-64"/>
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>输入签名地址, 消息(确保您完全复制换行符, 空格, 制表符等)和签名以验证消息. 小心不要过分解读已签名的消息本身, 避免被中间人攻击所欺骗.</translation>
+        <translation>Digite o endereço de assinatura, a mensagem (certifique-se de copiar as quebras de linha, espaços, guias, etc., exatamente) e a assinatura abaixo para verificar a mensagem. Tenha cuidado para não ler mais na assinatura do que o que está na própria mensagem assinada, para evitar ser enganado por um ataque do homem no meio.</translation>
     </message>
     <message>
         <location line="+21"/>
-        <source>The address the message was signed with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>消息的签名地址 (例如 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>The address the message was signed with </source>
+        <translation>O endereço da mensagem foi assinado com </translation>
     </message>
     <message>
         <location line="+40"/>
-        <source>Verify the message to ensure it was signed with the specified Verge address</source>
-        <translation>验证消息以确保它是使用指定的Verge地址进行签名的</translation>
+        <source>Verify the message to ensure it was signed with the specified VERGE address</source>
+        <translation>Verifique a mensagem para garantir que foi assinado com o endereço VERGE especificado</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all verify message fields</source>
-        <translation>重置所有验证消息字段</translation>
+        <translation>Redefinir todos os campos de verificação de mensagens</translation>
     </message>
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
-        <source>Enter a Verge address (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>输入一个Verge地址 (例如 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <source>Enter a valid VERGE address</source>
+        <translation>Digite um endereço VERGE válido</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Click &quot;Sign Message&quot; to generate signature</source>
-        <translation>点击 &quot;签署消息&quot; 生成签名</translation>
+        <translation>Clique &quot;Assinar Mensagem&quot; para gerar assinatura</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>Enter Verge signature</source>
-        <translation>输入Verge签名</translation>
+        <source>Enter VERGE signature</source>
+        <translation>Digite assinatura VERGE</translation>
     </message>
     <message>
         <location line="+82"/>
         <location line="+81"/>
         <source>The entered address is invalid.</source>
-        <translation>输入的地址无效.</translation>
+        <translation>O endereço inserido é inválido.</translation>
     </message>
     <message>
         <location line="-81"/>
@@ -1553,59 +1559,59 @@ Address: %4
         <location line="+73"/>
         <location line="+8"/>
         <source>Please check the address and try again.</source>
-        <translation>请检查地址并再试一次.</translation>
+        <translation>Por favor, verifique o endereço e tente novamente.</translation>
     </message>
     <message>
         <location line="-81"/>
         <location line="+81"/>
         <source>The entered address does not refer to a key.</source>
-        <translation>输入的地址未与密钥相关联。</translation>
+        <translation>O endereço inserido não se refere a uma chave.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>钱包解锁已取消.</translation>
+        <translation>O desbloqueio da carteira foi cancelado.</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Private key for the entered address is not available.</source>
-        <translation>输入地址的私钥不可用.</translation>
+        <translation>A chave privada para o endereço inserido não está disponível.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Message signing failed.</source>
-        <translation>消息签名失败.</translation>
+        <translation>A assinatura de mensagens falhou.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message signed.</source>
-        <translation>消息已签名.</translation>
+        <translation>Mensagem assinada.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>The signature could not be decoded.</source>
-        <translation>该签名无法解码.</translation>
+        <translation>A assinatura não pôde ser decodificada.</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Please check the signature and try again.</source>
-        <translation>请检查签名并重试.</translation>
+        <translation>Verifique a assinatura e tente novamente.</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>The signature did not match the message digest.</source>
-        <translation>签名与消息摘要不匹配.</translation>
+        <translation>A assinatura não corresponde ao resumo da mensagem.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Message verification failed.</source>
-        <translation>消息验证失败.</translation>
+        <translation>A verificação da mensagem falhou.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message verified.</source>
-        <translation>消息已验证.</translation>
+        <translation>Mensagem verificada.</translation>
     </message>
 </context>
 <context>
@@ -1613,80 +1619,82 @@ Address: %4
     <message>
         <location filename="../transactiondesc.cpp" line="+19"/>
         <source>Open until %1</source>
-        <translation>打开到 %1</translation>
+        <translation>Aberta até %1</translation>
     </message>
     <message numerus="yes">
         <location line="-2"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>打开 %n 区块</numerusform>
+            <numerusform>Aberto para %n bloco</numerusform>
+            <numerusform>Aberto para %n blocos</numerusform>
         </translation>
     </message>
     <message>
         <location line="+8"/>
         <source>%1/offline</source>
-        <translation>%1/离线</translation>
+        <translation>%1/offline</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1/unconfirmed</source>
-        <translation>%1/未确认</translation>
+        <translation>%1/não confirmado</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1 confirmations</source>
-        <translation>%1 确认</translation>
+        <translation>%1 confirmações</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Status</source>
-        <translation>状态</translation>
+        <translation>Status</translation>
     </message>
     <message numerus="yes">
         <location line="+7"/>
         <source>, broadcast through %n node(s)</source>
         <translation>
-            <numerusform>, 已广播 %n 节点</numerusform>
+            <numerusform>, transmitido através de %n nó</numerusform>
+            <numerusform>, transmitido através de %n nós</numerusform>
         </translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Date</source>
-        <translation>日期</translation>
+        <translation>Data</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Source</source>
-        <translation>来源</translation>
+        <translation>Fonte</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Generated</source>
-        <translation>已处理</translation>
+        <translation>Gerado</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+17"/>
         <source>From</source>
-        <translation>来自</translation>
+        <translation>De</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+22"/>
         <location line="+58"/>
         <source>To</source>
-        <translation>至</translation>
+        <translation>Para</translation>
     </message>
     <message>
         <location line="-77"/>
         <location line="+2"/>
         <source>own address</source>
-        <translation>自己的地址</translation>
+        <translation>endereço próprio</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>label</source>
-        <translation>标签</translation>
+        <translation>legenda</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -1695,19 +1703,20 @@ Address: %4
         <location line="+17"/>
         <location line="+30"/>
         <source>Credit</source>
-        <translation>信用</translation>
+        <translation>Crédito</translation>
     </message>
     <message numerus="yes">
         <location line="-102"/>
         <source>matures in %n more block(s)</source>
         <translation>
-            <numerusform>在 %n 区块后成熟</numerusform>
+            <numerusform>amadurece em %n bloco a mais</numerusform>
+            <numerusform>amadurece em %n blocos a mais</numerusform>
         </translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not accepted</source>
-        <translation>未接受</translation>
+        <translation>não aceito</translation>
     </message>
     <message>
         <location line="+44"/>
@@ -1715,82 +1724,82 @@ Address: %4
         <location line="+15"/>
         <location line="+30"/>
         <source>Debit</source>
-        <translation>借方</translation>
+        <translation>Debito</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Transaction fee</source>
-        <translation>交易费用</translation>
+        <translation>Taxa de transação</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Net amount</source>
-        <translation>净值</translation>
+        <translation>Valor líquido</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Message</source>
-        <translation>消息</translation>
+        <translation>Mensagem</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Comment</source>
-        <translation>评论</translation>
+        <translation>Comentário</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Transaction ID</source>
-        <translation>交易ID</translation>
+        <translation>ID da Transação</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>生成的硬币必须先成熟25块, 然后才能使用. 当你生成这个区块时, 它被广播到网络上被添加到区块链中. 如果不能进入区块链, 其状态将变成&quot;未接受&quot; 并无法被花费. 如果另一个节点在几秒钟之内生成一个区块,这可能偶尔会发生.</translation>
+        <translation>Moedas geradas devem amadurecer 25 blocos antes que possam ser gastos. Quando você gerou esse bloco, foi transmitido para a rede para ser adicionado à cadeia de blocos. Se não conseguir entrar na cadeia, seu estado mudará para &quot;não aceitado&quot; e não poderá ser gasto. Isso pode acontecer, ocasionalmente, se outro nó gera um bloco dentro de alguns segundos do seu.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>在抵押证明中使用的货币必须等待25个区块直到他们被退回余额并可以使用. 当你生成该抵押证明区块时, 它被广播到网络中并添加到区块链. 如果该过程失败, 它将变为&quot;未接受&quot; 并无法被花费. 如果另一个节点在几秒钟之内生成一个抵押证明区块,这可能偶尔会发生</translation>
+        <translation>As moedas amontoadas devem aguardar 25 blocos antes de poderem retornar ao equilíbrio e serem gastos. Quando você gerou esse bloco de prova de participação, foi transmitido para a rede para ser adicionado à cadeia de blocos. Se não conseguir entrar na cadeia, ele mudará para \ "não aceito \" e não será uma participação válida. Isso ocasionalmente pode acontecer se outro nó gera um bloco de prova de queda dentro de alguns segundos do seu.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Debug information</source>
-        <translation>调试信息</translation>
+        <translation>Informação de Debug</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Transaction</source>
-        <translation>交易</translation>
+        <translation>Transação</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Inputs</source>
-        <translation>输入</translation>
+        <translation>Entradas</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Amount</source>
-        <translation>数量</translation>
+        <translation>Montante</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>true</source>
-        <translation>真</translation>
+        <translation>verdadeiro</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>false</source>
-        <translation>假</translation>
+        <translation>falso</translation>
     </message>
     <message>
         <location line="-211"/>
         <source>, has not been successfully broadcast yet</source>
-        <translation>, 尚未成功广播</translation>
+        <translation>, ainda não foi transmitido com sucesso</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>unknown</source>
-        <translation>未知</translation>
+        <translation>desconhecido</translation>
     </message>
 </context>
 <context>
@@ -1798,12 +1807,12 @@ Address: %4
     <message>
         <location filename="../forms/transactiondescdialog.ui" line="+14"/>
         <source>Transaction details</source>
-        <translation>交易细节</translation>
+        <translation>Detalhes da transação</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>该窗格显示交易的详细说明</translation>
+        <translation>Este painel mostra uma descrição detalhada da transação</translation>
     </message>
 </context>
 <context>
@@ -1811,91 +1820,93 @@ Address: %4
     <message>
         <location filename="../transactiontablemodel.cpp" line="+226"/>
         <source>Date</source>
-        <translation>日期</translation>
+        <translation>Data</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type</source>
-        <translation>类型</translation>
+        <translation>Tipo</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>地址</translation>
+        <translation>Endereço</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Amount</source>
-        <translation>数量</translation>
+        <translation>Montante</translation>
     </message>
     <message numerus="yes">
         <location line="+57"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>打开 %n 区块</numerusform>
+            <numerusform>Aberto para %n bloco</numerusform>
+            <numerusform>Aberto para %n blocos</numerusform>
         </translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open until %1</source>
-        <translation>打开至 %1</translation>
+        <translation>Aberto até %1</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Offline (%1 confirmations)</source>
-        <translation>离线 (%1 确认)</translation>
+        <translation>Offline (%1 confirmações)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Unconfirmed (%1 of %2 confirmations)</source>
-        <translation>未确认 (%1 of %2 确认)</translation>
+        <translation>Não confirmado (%1 de %2 confirmações)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Confirmed (%1 confirmations)</source>
-        <translation>已确认 (%1 确认)</translation>
+        <translation>Confirmed (%1 confirmations)</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
         <source>Mined balance will be available when it matures in %n more block(s)</source>
         <translation>
-            <numerusform>挖矿余额将在 %n 个区块后成熟并可用</numerusform>
+            <numerusform>O saldo ministrado estará disponível quando amadurecer %n bloco a mais</numerusform>
+            <numerusform>O saldo ministrado estará disponível quando amadurecer %n blocos a mais</numerusform>
         </translation>
     </message>
     <message>
         <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>这个区块没有被任何其他节点接收, 可能不会被接受!</translation>
+        <translation>Este bloco não foi recebido por nenhum outro nó e provavelmente não será aceito!</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated but not accepted</source>
-        <translation>已处理但未接受</translation>
+        <translation>Gerado mas não aceito</translation>
     </message>
     <message>
         <location line="+43"/>
         <source>Received with</source>
-        <translation>接收</translation>
+        <translation>Recebido com</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Received from</source>
-        <translation>接收自</translation>
+        <translation>Recebido de</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sent to</source>
-        <translation>发送至</translation>
+        <translation>Enviado para</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Payment to yourself</source>
-        <translation>发送给自己的款项</translation>
+        <translation>Pagamento para você</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Mined</source>
-        <translation>已挖掘</translation>
+        <translation>Minerado</translation>
     </message>
     <message>
         <location line="+38"/>
@@ -1905,27 +1916,27 @@ Address: %4
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>交易状态. 将鼠标悬停在此字段上以显示确认数量.</translation>
+        <translation>Status da transação. Passe o mouse sobre este campo para mostrar o número de confirmações.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Date and time that the transaction was received.</source>
-        <translation>收到交易的日期和时间.</translation>
+        <translation>Data e hora em que a transação foi recebida.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Type of transaction.</source>
-        <translation>交易类型.</translation>
+        <translation>Tipo de transação.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Destination address of transaction.</source>
-        <translation>交易目的地地址.</translation>
+        <translation>Endereço de destino da transação.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Amount removed from or added to balance.</source>
-        <translation>从余额中添加或删除的金额.</translation>
+        <translation>Montante removido ou adicionado ao saldo.</translation>
     </message>
 </context>
 <context>
@@ -1934,137 +1945,137 @@ Address: %4
         <location filename="../transactionview.cpp" line="+55"/>
         <location line="+16"/>
         <source>All</source>
-        <translation>全部</translation>
+        <translation>Todos</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Today</source>
-        <translation>今天</translation>
+        <translation>Hoje</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This week</source>
-        <translation>本周</translation>
+        <translation>Essa semana</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This month</source>
-        <translation>本月</translation>
+        <translation>Esse mês</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Last month</source>
-        <translation>上月</translation>
+        <translation>Mês passado</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This year</source>
-        <translation>今年</translation>
+        <translation>Esse ano</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Range...</source>
-        <translation>范围...</translation>
+        <translation>Intervalo...</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received with</source>
-        <translation>接收</translation>
+        <translation>Recebido com</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Sent to</source>
-        <translation>发送至</translation>
+        <translation>Enviado para</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>To yourself</source>
-        <translation>向自己</translation>
+        <translation>Para você</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Mined</source>
-        <translation>已挖掘</translation>
+        <translation>Ministrado</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Other</source>
-        <translation>其他</translation>
+        <translation>Outros</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>输入地址或标签来搜索</translation>
+        <translation>Digite o endereço ou a legenda para pesquisar</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Min amount</source>
-        <translation>最小金额</translation>
+        <translation>Valor mínimo</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Copy address</source>
-        <translation>复制地址</translation>
+        <translation>Copiar endereço</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy label</source>
-        <translation>复制标签</translation>
+        <translation>Copiar legenda</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy amount</source>
-        <translation>复制金额</translation>
+        <translation>Valor da cópia</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit label</source>
-        <translation>编辑标签</translation>
+        <translation>Editar legenda</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show transaction details</source>
-        <translation>显示交易详情</translation>
+        <translation>Mostrar detalhes da transação</translation>
     </message>
     <message>
         <location line="+142"/>
         <source>Export Transaction Data</source>
-        <translation>导出交易数据</translation>
+        <translation>Exportar dados da transação</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>逗号分隔符文件 (*.csv)</translation>
+        <translation>Arquivo separado por vírgula (*.csv)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Confirmed</source>
-        <translation>已确认</translation>
+        <translation>Confirmado</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date</source>
-        <translation>日期</translation>
+        <translation>Data</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type</source>
-        <translation>类型</translation>
+        <translation>Tipo</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Label</source>
-        <translation>标签</translation>
+        <translation>Legenda</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Address</source>
-        <translation>地址</translation>
+        <translation>Endereço</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Amount</source>
-        <translation>金额</translation>
+        <translation>Montante</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2074,22 +2085,22 @@ Address: %4
     <message>
         <location line="+4"/>
         <source>Error exporting</source>
-        <translation>导出错误</translation>
+        <translation>Erro ao exportar</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>无法写入文件 %1.</translation>
+        <translation>Não foi possível escrever no arquivo %1.</translation>
     </message>
     <message>
         <location line="+95"/>
         <source>Range:</source>
-        <translation>范围:</translation>
+        <translation>Intervalo:</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>to</source>
-        <translation>至</translation>
+        <translation>para</translation>
     </message>
 </context>
 <context>
@@ -2097,601 +2108,600 @@ Address: %4
     <message>
         <location filename="../walletmodel.cpp" line="+192"/>
         <source>Sending...</source>
-        <translation>发送中....</translation>
+        <translation>Enviando...</translation>
     </message>
 </context>
 <context>
     <name>bitcoin-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="+82"/>
-        <source>Verge version</source>
-        <translation>Verge版本</translation>
+        <source>VERGE version</source>
+        <translation>Versãoo da VERGE</translation>
     </message>
     <message>
         <location line="+82"/>
         <source>Usage:</source>
-        <translation>使用量:</translation>
+        <translation>Uso:</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Send command to -server or bitcoind</source>
-        <translation>发送指令至 -server 或 bitcoind</translation>
+        <translation>Enviar comando para -server ou bitcoind</translation>
     </message>
     <message>
         <location line="-19"/>
         <source>List commands</source>
-        <translation>命令列表
-</translation>
+        <translation>Lista de comandos</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>Get help for a command</source>
-        <translation>获取命令帮助</translation>
+        <translation>Obter ajuda para um comando</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Options:</source>
-        <translation>选项:</translation>
+        <translation>Opções:</translation>
     </message>
     <message>
         <location line="+23"/>
-        <source>Specify configuration file (default: Verge.conf)</source>
-        <translation>指定配置文件 (默认: Verge.conf)</translation>
+        <source>Specify configuration file (default: VERGE.conf)</source>
+        <translation>Especifique o arquivo de configuração (padrão: VERGE.conf)</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>Specify pid file (default: Verged.pid)</source>
-        <translation>指定 pid 文件 (默认: Verge.pid)</translation>
+        <source>Specify pid file (default: VERGEd.pid)</source>
+        <translation>Especifique o arquivo pid (padrão: VERGEd.pid)</translation>
     </message>
     <message>
         <location line="-47"/>
         <source>Generate coins</source>
-        <translation>处理货币</translation>
+        <translation>Gerar moedas</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Don&apos;t generate coins</source>
-        <translation>不处理货币</translation>
+        <translation>Não gerar moedas</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Specify data directory</source>
-        <translation>指定数据目录</translation>
+        <translation>Especificar o diretório de dados</translation>
     </message>
     <message>
         <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
-        <translation>设定数据库缓存大小(megabytes) (默认: 25)</translation>
+        <translation>Defina o tamanho do cache do banco de dados em megabytes (padrão: 25)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set database disk log size in megabytes (default: 100)</source>
-        <translation>设定数据库磁盘日志大小(megabytes) (默认: 100)</translation>
+        <translation>Defina o tamanho do log do disco do banco de dados em megabytes (padrão: 100)</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>监听连接 &lt;端口&gt; (默认: 7777 或 testnet: 17777 )</translation>
+        <translation>Ouça as conexões em &lt;porta&gt; (padrão: 7777 ou testnet: 17777)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Maintain at most &lt;n&gt; connections to peers (default: 125)</source>
-        <translation>保持到节点的最多连接数 (默认: 125)</translation>
+        <translation>Mantenha no máximo &lt;n&gt; conexões para pares (padrão: 125)</translation>
     </message>
     <message>
         <location line="-33"/>
         <source>Connect to a node to retrieve peer addresses, and disconnect</source>
-        <translation>连接到节点以检索对等地址, 然后断开连接</translation>
+        <translation>Conecte-se a um nó para recuperar os endereços dos pares e desconecte</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>Specify your own public address</source>
-        <translation>指定您自己的公共地址</translation>
+        <translation>Especifique seu próprio endereço público</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Bind to given address. Use [host]:port notation for IPv6</source>
-        <translation>绑定到给定的地址. 对于IPv6使用[主机]: 端口标记</translation>
+        <translation>Vincular ao endereço dado. Use [host]:port para notação de porta para IPv6</translation>
     </message>
     <message>
         <location line="+77"/>
         <source>Threshold for disconnecting misbehaving peers (default: 100)</source>
-        <translation>与节点断开的异常行为阈值 (默认: 100)</translation>
+        <translation>Limite para desconectar pares de comportamento incorreto (padrão: 100)</translation>
     </message>
     <message>
         <location line="-112"/>
         <source>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</source>
-        <translation>保持与异常节点不连接的秒数 (默认: 86400)</translation>
+        <translation>Número de segundos para evitar reconfiguração de pares negativos (padrão: 86400)</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation>设置RPC端口 %u 以侦听IPv4：%s 时发生错误</translation>
+        <translation>Ocorreu um erro ao configurar a porta RPC %u para ouvir no IPv4: %s</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
-        <translation>设置用于侦听IPv6的RPC端口 %u 时出现错误, 返回到侦听IPv4: %s</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+8"/>
         <source>Detach block and address databases. Increases shutdown time (default: 0)</source>
-        <translation>分离块和地址数据库. 增加关机时间 (默认: 0)</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation>初始化数据库环境 %s 时出错! 请备份目录, 然后删除 wallet.dat 以外的所有内容来恢复.</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
-        <translation>在&lt;端口&gt; 上监听JSON-RPC连接 (默认: 8344 或 testnet: 18344)</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</source>
-        <translation>警告: wallet.dat读取出错! 所有密钥读取正确, 但交易数据或地址簿条目可能会丢失或不正确.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
-        <translation>警告：wallet.dat损坏，数据被抢救！ 原始wallet.dat已另存为 wallet.{timestamp}.bak 在 %s; 如果你的余额或交易不正确，你应该从备份恢复.</translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>Accept command line and JSON-RPC commands</source>
-        <translation>接受命令行和JSON-RPC命令</translation>
+        <translation>Desanexar bancos de dados de blocos e endereços. Aumenta o tempo de desligamento (padrão: 0)</translation>
     </message>
     <message>
         <location line="+5"/>
-        <source>Attempt to recover private keys from a corrupt wallet.dat</source>
-        <translation>尝试从损坏的wallet.dat中恢复私钥</translation>
-    </message>
-    <message>
-        <location line="+32"/>
-        <source>Importing blockchain data file.</source>
-        <translation>导入区块链数据文件.</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Importing bootstrap blockchain data file.</source>
-        <translation>导入引导区块链bootstrap数据文件.</translation>
-    </message>
-    <message>
-        <location line="+23"/>
-        <source>Run in the background as a daemon and accept commands</source>
-        <translation>作为守护进程在后台运行并接受命令</translation>
-    </message>
-    <message>
-        <location line="+33"/>
-        <source>Use the test network</source>
-        <translation>使用测试网络</translation>
-    </message>
-    <message>
-        <location line="-93"/>
-        <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>
-        <translation>接受来自外部的连接(默认: 1, 如果没有 -proxy或 -connect)</translation>
-    </message>
-    <message>
-        <location line="-42"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>错误: 交易被拒绝. 如果您的钱包中的某些货币已经用完了, 可能会发生这种情况, 例如, 如果您使用了wallet.dat的副本, 并且货币已在副本中使用, 但未标记为已在此处使用.</translation>
+        <translation>Erro: a transação foi rejeitada. Isso pode acontecer se algumas das moedas da sua carteira já haviam sido gastas, como se você usasse uma cópia de wallet.dat e as moedas foram gastas na cópia, mas não marcadas como gastadas aqui.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation>错误: 由于数量, 复杂性或最近收到的资金的使用, 此交易至少需要交易费用 %s  </translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</source>
-        <translation>以字节为单位设置高优先级/低费用事务的最大大小 (默认: 27000)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
-        <translation>警告: -paytxfee设置得非常高! 这是您发送交易时的交易费用.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</source>
-        <translation>警告: 显示的交易可能不正确! 您可能需要升级, 或者其他节点可能需要升级.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Verge will not work properly.</source>
-        <translation>警告: 请检查您的电脑的日期和时间是否正确! 如果你的时钟是错误的, Verge将无法正常工作.</translation>
-    </message>
-    <message>
-        <location line="+24"/>
-        <source>Block creation options:</source>
-        <translation>区块创建选项:</translation>
+        <translation>Erro: esta transação requer uma taxa de transação de pelo menos %s por causa de seu valor, complexidade ou uso de fundos recém-recebidos  </translation>
     </message>
     <message>
         <location line="+6"/>
-        <source>Connect only to the specified node(s)</source>
-        <translation>只连接到指定的节点</translation>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
+        <translation>Ouvir conexões JSON-RPC na &lt;porta&gt; (padrão: 8344 or testnet: 18344)</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Discover own IP address (default: 1 when listening and no -externalip)</source>
-        <translation>发现自己的IP地址 (默认: 1 当监听且没有 -externalip时)</translation>
+        <location line="+31"/>
+        <source>Accept command line and JSON-RPC commands</source>
+        <translation>Aceitar linha de comando e comandos JSON-RPC</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+26"/>
         <source>Error: Transaction creation failed  </source>
-        <translation>错误: 交易创建失败  </translation>
+        <translation>Erro: a criação da transação falhou  </translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation>错误: 电子钱包被锁定, 无法创建交易 </translation>
+        <translation>Erro: Carteira bloqueada, incapaz de criar transação  </translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+10"/>
+        <source>Importing blockchain data file.</source>
+        <translation>Importando arquivo de dados blockchain.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Importing bootstrap blockchain data file.</source>
+        <translation>Importando o arquivo de dados do bootstrap blockchain.</translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Run in the background as a daemon and accept commands</source>
+        <translation>Executar em segundo plano como um daemon e aceitar comandos</translation>
+    </message>
+    <message>
+        <location line="+33"/>
+        <source>Use the test network</source>
+        <translation>Use a rede de teste</translation>
+    </message>
+    <message>
+        <location line="-93"/>
+        <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>
+        <translation>Aceitar conexões de fora (padrão: 1 se não -proxy ou -connect)</translation>
+    </message>
+    <message>
+        <location line="-53"/>
+        <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
+        <translation>Ocorreu um erro ao configurar a porta RPC %u para ouvir no IPv6, voltando ao IPv4: %s</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
+        <translation>Erro ao inicializar o ambiente do banco de dados %s! Para recuperar, FAÇA BACKUP DESSE DIRETÓRIO E, em seguida, remova tudo dele, exceto wallet.dat.</translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</source>
+        <translation>Defina o tamanho máximo de transações de alta prioridade/taxa bakxa em bytes (padrão: 27000)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
+        <translation>Atenção: -paytxfee está definido muito alto! Esta é a taxa de transação que você pagará se você enviar uma transação.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</source>
+        <translation>Atenção: as transações exibidas podem não estar corretas. Talvez seja necessário atualizar, ou outros nós precisam atualizar.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong VERGE will not work properly.</source>
+        <translation>Atenção: Verifique se a data e a hora do seu computador estão corretas. Se o seu relógio estiver errado, VERGE não funcionará corretamente.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</source>
+        <translation>Atenção: erro ao ler wallet.dat! Todas as chaves foram lidas corretamente, mas os dados da transação ou as entradas do catálogo de endereços podem estar faltando ou incorretas.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
+        <translation>Atenção: wallet.dat corrompido, dados recuperados! Original wallet.dat salvo como wallet.{timestamp}.bak em %s; se o seu saldo ou transações estiverem incorretas, você deve restaurar a partir de um backup.</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Attempt to recover private keys from a corrupt wallet.dat</source>
+        <translation>Tentativa de recuperar chaves privadas de um wallet.dat corrompido</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Block creation options:</source>
+        <translation>Opções de criação de blocos:</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Connect only to the specified node(s)</source>
+        <translation>Conecte-se apenas ao(s) nó(s) especificado(s)</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Discover own IP address (default: 1 when listening and no -externalip)</source>
+        <translation>Descubra seu próprio endereço IP (padrão: 1 quando estiver ouvindo e não -externalip)</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
-        <translation>无法侦听任何端口. 如果您需要，请使用 -listen=0 .</translation>
+        <translation>Falha ao ouvir em qualquer porta. Use -listen=0 se você quiser isso.</translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>Find peers using DNS lookup (default: 0 unless -connect)</source>
-        <translation>使用DNS查找查找对等点 (默认: 0, 除非 -connect)</translation>
+        <source>Find peers using DNS lookup (default: 0)</source>
+        <translation>Encontre pares usando a pesquisa de DNS (padrão: 0)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Invalid -tor address: &apos;%s&apos;</source>
-        <translation>无效的 -tor 地址: &apos;%s&apos;</translation>
+        <translation>Endereço -tor inválido: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</source>
-        <translation>Максимальный размер буфера приёма на соединение, &lt;n&gt;*1000 байт (по умолчанию: 5000)</translation>
+        <translation>O buffer de recebimento máximo por conexão, &lt;n&gt;*1000 bytes (padrão: 5000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: 1000)</source>
-        <translation>每个连接的最大接收缓存, &lt;n&gt;*1000 字节 (默认: 1000)</translation>
+        <translation>O buffer de envio máximo por conexão, &lt;n&gt;*1000 bytes (padrão: 1000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</source>
-        <translation>只连接到网络中的节点 &lt;net&gt; (IPv4, IPv6 或 Tor)</translation>
+        <translation>Apenas conecte-se a nós na rede &lt;net&gt; (IPv4, IPv6 or Tor)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Output extra debugging information. Implies all other -debug* options</source>
-        <translation>输出额外的调试信息. 意味着所有其他的-debug *选项</translation>
+        <translation>Coloque informações extras de depuração. Implica todas as outras opções -debug*</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Output extra network debugging information</source>
-        <translation>输出额外的网络调试信息</translation>
+        <translation>Saída de informações extra de depuração em rede</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Prepend debug output with timestamp</source>
-        <translation>用时间戳预先调试输出</translation>
+        <translation>Prependa saída de depuração com timestamp</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</source>
-        <translation>SSL选项:(请参阅比特币维基的SSL设置说明）</translation>
+        <translation>Opções de SSL: (veja as instruções de configuração no Bitcoin Wiki para SSL)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Select the version of socks proxy to use (4-5, default: 5)</source>
-        <translation>选择要使用的SOCKS代理的版本 (4-5, 默认: 5)</translation>
+        <translation>Selecione a versão do proxy socks para usar (4-5, padrão: 5)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Send trace/debug info to console instead of debug.log file</source>
-        <translation>将跟踪/调试信息发送到控制台而不是debug.log文件</translation>
+        <translation>Enviar informações de rastreamento/depuração ao console em vez do arquivo debug.log</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Send trace/debug info to debugger</source>
-        <translation>将跟踪/调试信息发送给调试器</translation>
+        <translation>Enviar informações de rastreamento/depuração para o depurador</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Set maximum block size in bytes (default: 250000)</source>
-        <translation>以字节为单位设置最大块大小 (默认: 250000)</translation>
+        <translation>Defina o tamanho máximo do bloco em bytes (padrão: 250000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set minimum block size in bytes (default: 0)</source>
-        <translation>以字节为单位设置最小块大小 (默认: 0)</translation>
+        <translation>Definir tamanho de bloco mínimo em bytes (padrão: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Shrink debug.log file on client startup (default: 1 when no -debug)</source>
-        <translation>在客户端启动时压缩debug.log文件 (默认: 1, 当没有 -debug 选项时)</translation>
+        <translation>Encolher debug.log na inicialização do cliente (padrão: 1 quando não -debug)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Specify connection timeout in milliseconds (default: 5000)</source>
-        <translation>指定连接超时时间(以毫秒为单位) (默认: 5000)</translation>
+        <translation>Especifique o tempo limite de conexão em milissegundos (padrão: 5000)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Use UPnP to map the listening port (default: 0)</source>
-        <translation>使用UPnP来映射侦听端口 (默认: 0)</translation>
+        <translation>Usar UPnP para mapear a porta de escuta (padrão: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use UPnP to map the listening port (default: 1 when listening)</source>
-        <translation>使用UPnP来映射侦听端口 (默认: 1, 当侦听时)</translation>
+        <translation>Usar UPnP para mapear a porta de escuta (padrão: 1 ao ouvir)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use proxy to reach tor hidden services (default: same as -proxy)</source>
-        <translation>使用代理来达到隐藏的tor服务 (默认: 与 -proxy 相同)</translation>
+        <translation>Use o proxy para alcançar os serviços ocultos (padrão: o mesmo que -proxy)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Username for JSON-RPC connections</source>
-        <translation>JSON-RPC连接的用户名</translation>
+        <translation>Nome de usuário para conexões JSON-RPC</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Verifying database integrity...</source>
-        <translation>验证数据库完整性</translation>
+        <translation>Verificando integridade do banco de dados...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Warning: Disk space is low!</source>
-        <translation>警告: 磁盘空间不足!</translation>
+        <translation>Atenção: o espaço em disco está baixo!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: This version is obsolete, upgrade required!</source>
-        <translation>警告: 此版本已过时, 需要升级!</translation>
+        <translation>Atenção: esta versão está obsoleta, é necessária uma atualização!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>wallet.dat corrupt, salvage failed</source>
-        <translation>wallet.dat损坏, 恢复失败</translation>
+        <translation>wallet.data corrompido, salvamento falhou</translation>
     </message>
     <message>
         <location line="-43"/>
         <source>Password for JSON-RPC connections</source>
-        <translation>JSON-RPC连接的密码</translation>
+        <translation>Senha para conexões JSON-RPC</translation>
     </message>
     <message>
         <location line="-53"/>
         <source>Allow JSON-RPC connections from specified IP address</source>
-        <translation>允许来自指定IP地址的JSON-RPC连接</translation>
+        <translation>Permitir conexões JSON-RPC a partir do endereço IP especificado</translation>
     </message>
     <message>
         <location line="+61"/>
         <source>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</source>
-        <translation>发送命令给运行的节点 &lt;ip&gt; (默认: 127.0.0.1)</translation>
+        <translation>Enviar comandos ao nó em execução &lt;ip&gt; (padrão: 127.0.0.1)</translation>
     </message>
     <message>
         <location line="-99"/>
         <source>Execute command when the best block changes (%s in cmd is replaced by block hash)</source>
-        <translation>当最好的块改变时执行命令 (cmd中的 %s 被区块哈希代替)</translation>
+        <translation>Execute o comando quando o melhor bloco muda (%s no cmd é substituído por hash de bloco)</translation>
     </message>
     <message>
         <location line="+122"/>
         <source>Upgrade wallet to latest format</source>
-        <translation>升级钱包到最新的格式</translation>
+        <translation>Atualize a carteira para o formato mais recente</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Set key pool size to &lt;n&gt; (default: 100)</source>
-        <translation>将密钥池大小设置为 &lt;n&gt; (默认: 100)</translation>
+        <translation>Defina o tamanho do pool de chaves para &lt;n&gt; (padrão: 100)</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Rescan the block chain for missing wallet transactions</source>
-        <translation>为缺失的钱包交易重新扫描区块链</translation>
+        <translation>Reescanear o blockchain para as transações de carteira em falta</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>How many blocks to check at startup (default: 2500, 0 = all)</source>
-        <translation>启动时要检查多少个块 (默认: 2500, 0 = 全部)</translation>
+        <translation>Quantos blocos verificar na inicialização (padrão: 2500, 0 = tudo)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>How thorough the block verification is (0-6, default: 1)</source>
-        <translation>块验证有多彻底 (0-6, 默认: 1)</translation>
+        <translation>Quão completa é a verificação do bloco (0-6, padrão: 1)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Imports blocks from external blk000?.dat file</source>
-        <translation>从外部blk000?.dat文件导入块</translation>
+        <translation>Importa blocos do arquivo externo blk000?.dat</translation>
     </message>
     <message>
         <location line="+51"/>
         <source>Use OpenSSL (https) for JSON-RPC connections</source>
-        <translation>使用OpenSSL (https) 进行JSON-RPC连接</translation>
+        <translation>Use OpenSSL (https) para conexões JSON-RPC</translation>
     </message>
     <message>
         <location line="-21"/>
         <source>Server certificate file (default: server.cert)</source>
-        <translation>Файл серверного сертификата (по умолчанию: server.cert)</translation>
+        <translation>Arquivo do certificado do servidor (padrão: server.cert)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Server private key (default: server.pem)</source>
-        <translation>服务器证书文件 (默认: server.pem)</translation>
+        <translation>Chave privada do servidor (padrão: server.pem)</translation>
     </message>
     <message>
         <location line="-127"/>
         <source>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</source>
-        <translation>可接受的密码 (默认: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
+        <translation>Cifras aceitáveis (padrão: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
     </message>
     <message>
         <location line="+139"/>
         <source>This help message</source>
-        <translation>这条帮助信息</translation>
+        <translation>Esta mensagem de ajuda</translation>
     </message>
     <message>
         <location line="-131"/>
-        <source>Cannot obtain a lock on data directory %s.  Verge is probably already running.</source>
-        <translation>无法锁定数据目录 %s . Verge可能已经在运行.</translation>
+        <source>Cannot obtain a lock on data directory %s.  VERGE is probably already running.</source>
+        <translation>Não é possível obter um bloqueio no diretório de dados %s. A VERGE provavelmente já está em execução.</translation>
     </message>
     <message>
         <location line="+57"/>
-        <source>Verge</source>
-        <translation>Verge</translation>
+        <source>VERGE</source>
+        <translation>VERGE</translation>
     </message>
     <message>
         <location line="+77"/>
         <source>Unable to bind to %s on this computer (bind returned error %d, %s)</source>
-        <translation>无法绑定到此计算机上的 %s (绑定返回错误%d, %s)</translation>
+        <translation>Não é possível ligar a %s neste computador (o link retornou erro %d, %s)</translation>
     </message>
     <message>
         <location line="-69"/>
         <source>Connect through socks proxy</source>
-        <translation>通过SOCKS代理连接</translation>
+        <translation>Conecte-se através do proxy SOCKS</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>Allow DNS lookups for -addnode, -seednode and -connect</source>
-        <translation>允许-addnode, -seednode 和 -connect 使用DNS查找</translation>
+        <translation>Permitir pesquisas de DNS para -addnode, -seednode e -connect</translation>
     </message>
     <message>
         <location line="+44"/>
         <source>Loading addresses...</source>
-        <translation>加载地址...</translation>
+        <translation>Carregando endereços...</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Error loading blkindex.dat</source>
-        <translation>加载 blkindex.dat 时出错</translation>
+        <translation>Erro ao carregar blkindex.dat</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Error loading wallet.dat: Wallet corrupted</source>
-        <translation>加载 wallet.dat 时出错: 钱包损坏</translation>
+        <translation>Erro ao carregar wallet.dat: Carteira corrompida</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of Verge</source>
-        <translation>加载 wallet.dat 时出错: 电子钱包需要较新版本的Verge</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of VERGE</source>
+        <translation>Erro ao carregar wallet.dat: Carteira requer uma versão mais recente da VERGE</translation>
     </message>
     <message>
         <location line="+73"/>
-        <source>Wallet needed to be rewritten: restart Verge to complete</source>
-        <translation>电子钱包需要重写: 重新启动 Verge 来完成.</translation>
+        <source>Wallet needed to be rewritten: restart VERGE to complete</source>
+        <translation>Carteira necessária para ser reescrita: reinicie a VERGE para concluir</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Error loading wallet.dat</source>
-        <translation>加载 wallet.dat 时出错</translation>
+        <translation>Erro ao carregar wallet.dat</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Invalid -proxy address: &apos;%s&apos;</source>
-        <translation>无效的 -proxy 地址: &apos;%s&apos;</translation>
+        <translation>Endereço de -proxy inválido: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Unknown network specified in -onlynet: &apos;%s&apos;</source>
-        <translation>在 -onlynet 指定的未知网络: &apos;%s&apos;</translation>
+        <translation>Rede desconhecida especificada em -onlynet: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="-1"/>
         <source>Unknown -socks proxy version requested: %i</source>
-        <translation>未知的 -socks 代理版本请求: %i</translation>
+        <translation>Versão do proxy -socks solicitada desconhecido: %i</translation>
     </message>
     <message>
         <location line="-74"/>
         <source>Cannot resolve -bind address: &apos;%s&apos;</source>
-        <translation>无法解析 -bind 地址: &apos;%s&apos;</translation>
+        <translation>Não pode resolver o endereço -bind: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot resolve -externalip address: &apos;%s&apos;</source>
-        <translation>Не удаётся разрешить адрес в параметре -externalip: &apos;%s&apos;</translation>
+        <translation>Não é possível resolver o endereço -externalip: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</source>
-        <translation>无效的 -paytxfee 金额=&lt;金额&gt;: &apos;%s&apos;</translation>
+        <translation>Valor inválido para -paytxfee=&lt;montante&gt;: &apos;%s&apos;</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Error: could not start node</source>
-        <translation>错误: 无法开始节点</translation>
+        <translation>Erro: não foi possível iniciar o nó</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Sending...</source>
-        <translation>发送中...</translation>
+        <translation>Enviando...</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>Invalid amount</source>
-        <translation>无效的金额</translation>
+        <translation>Montante inválido</translation>
     </message>
     <message>
         <location line="-4"/>
         <source>Insufficient funds</source>
-        <translation>资金不足</translation>
+        <translation>Fundos insuficientes</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Loading block index...</source>
-        <translation>加载区块索引...</translation>
+        <translation>Carregando índices de blocos...</translation>
     </message>
     <message>
         <location line="-46"/>
         <source>Add a node to connect to and attempt to keep the connection open</source>
-        <translation>添加一个节点连接并尝试保持连接打开</translation>
+        <translation>Adicione um nó para se conectar e tentar manter a conexão aberta</translation>
     </message>
     <message>
         <location line="-25"/>
-        <source>Unable to bind to %s on this computer. Verge is probably already running.</source>
-        <translation>无法绑定到此计算机上的 %s . Verge可能已经在运行.</translation>
+        <source>Unable to bind to %s on this computer. VERGE is probably already running.</source>
+        <translation>Não é possível ligar a %s neste computador. A VERGE provavelmente já está em execução.</translation>
     </message>
     <message>
         <location line="+55"/>
         <source>Find peers using internet relay chat (default: 1)</source>
-        <translation>使用 IRC 寻找节点 (默认: 1)</translation>
+        <translation>Encontre pares usando o bate-bapo de retransmissão de internet (padrão: 1)</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Fee per KB to add to transactions you send</source>
-        <translation>添加到您发送的交易的每KB费用</translation>
+        <translation>Taxa por KB para adicionar as transações que você envia</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Loading wallet...</source>
-        <translation>载入钱包...</translation>
+        <translation>Carregando carteira...</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Cannot downgrade wallet</source>
-        <translation>无法降级钱包</translation>
+        <translation>Não é possível fazer o downgrade da carteira</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot initialize keypool</source>
-        <translation>无法初始化密钥池</translation>
+        <translation>Não é possível inicializar o keypool</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Cannot write default address</source>
-        <translation>无法写入默认地址</translation>
+        <translation>Não é possível escrever o endereço padrão</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Rescanning...</source>
-        <translation>重新扫描...</translation>
+        <translation>Reescaneando...</translation>
     </message>
     <message>
         <location line="-40"/>
         <source>Done loading</source>
-        <translation>下载完成</translation>
+        <translation>Carregamento completo</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>To use the %s option</source>
-        <translation>要使用 %s 功能</translation>
+        <translation>Para usar a %s opção</translation>
     </message>
     <message>
         <location line="-150"/>
@@ -2703,26 +2713,28 @@ rpcpassword=%s
 (you do not need to remember this password)
 If the file does not exist, create it with owner-readable-only file permissions.
 </source>
-        <translation>%s, 您必须在配置文件:
- %s 中设置 rpcpassword
-建议您使用以下随机密码:
+        <translation>%s, você deve configurar uma palavra rpc no arquivo de configuração:
+ %s
+É recomendável que você use a seguinte senha aleatória:
 rpcuser=bitcoinrpc
 rpcpassword=%s
-(您不需要记住这个密码)
-如果配置文件不存在, 请使用拥有者只读权限来创建它.
+(você não precisa se lembrar dessa senha)
+Se o arquivo não existir, crie-o com permissões de arquivo somente legíveis pelo proprietário.
 </translation>
     </message>
     <message>
         <location line="+91"/>
         <source>Error</source>
-        <translation>错误</translation>
+        <translation>Erro</translation>
     </message>
     <message>
         <location line="-30"/>
         <source>You must set rpcpassword=&lt;password&gt; in the configuration file:
 %s
 If the file does not exist, create it with owner-readable-only file permissions.</source>
-        <translation>您必须在配置文件 %s 中设置rpcpassword=&lt;password&gt;. 如果配置文件不存在, 请使用拥有者只读权限来创建它.</translation>
+        <translation>Você deve configurar rpcpassword=&lt;senha&gt; no arquivo de configuração:
+%s
+Se o arquivo não existir, crie-o com permissões de arquivo somente legíveis pelo proprietário.</translation>
     </message>
 </context>
 </TS>

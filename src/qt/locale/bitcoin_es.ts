@@ -17,7 +17,7 @@
     <message>
         <location line="+41"/>
         <source>Copyright © 2014-2016 The Verge developers</source>
-        <translation>Derechos Reservados © 2014-2016 The Verge developers</translation>
+        <translation>Derechos Reservados © 2018 Verge </translation>
     </message>
     <message>
         <location line="+13"/>
@@ -2727,7 +2727,7 @@ balance o transacciones son incorrectas deberías restaurar desde un respaldo.</
     <message>
         <location line="+8"/>
         <source>Loading block index...</source>
-        <translation>Cargando índice de bloquestranslation</translation>
+        <translation>Cargando índice de bloques</translation>
     </message>
     <message>
         <location line="-46"/>

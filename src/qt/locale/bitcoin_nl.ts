@@ -85,12 +85,12 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+3"/>
         <source>Sign &amp;Message</source>
-        <translation type="unfinished"></translation>
+        <translation type="Teken&amp;Bericht"></translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Delete the currently selected address from the list</source>
-        <translation type="unfinished"></translation>
+        <translation type="Verwijder het geselecteerde address van de lijst"></translation>
     </message>
     <message>
         <location line="-14"/>
@@ -236,7 +236,8 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation type="unfinished"></translation>
+        <translation type="BELANGRIJK: iedere reeds gemaakte backup moet vervangen worden met het nieuwe gegenereerde versleutelde bestand. Deze niet versleutelde bestanden worden uit veiligheidsoverwegingen
+onbruikbaar nadat u voor het eerst uw nieuwe versleutelde wallet in gebruik neemt."></translation>
     </message>
     <message>
         <location line="+100"/>
@@ -581,8 +582,8 @@ Dit product bevat software ontwikkeld door OpenSSL Project voor gebruik in de Op
     </message>
     <message>
         <location line="+59"/>
-        <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation type="unfinished"></translation>
+        <source>This transaction is over the size limit. You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
+        <translation type="Deze transactie overschreidt het verzendlimiet. U kunt deze alsnog versturen voor een honorarium van %1, welke gegeven wordt aan de nodes welke uw transactie goedkeuren. Wilt u dit honorarium betalen?"></translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1282,7 +1283,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation type="unfinished"></translation>
+        <translation type="Voeg ontvanger toe"></translation>
     </message>
     <message>
         <location line="+20"/>
@@ -1312,7 +1313,7 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation type="unfinished"></translation>
+        <translation type="S&amp;einde"></translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
@@ -1401,7 +1402,7 @@ Address: %4
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation type="unfinished"></translation>
+        <translation type="Het ontvangstadres: (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)"></translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1754,12 +1755,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Gegenereerde munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in &quot; niet geaccepteerd &quot; en het zal niet te besteden zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na jou een blok genereert.</translation>
+        <translation>Gegenereerde munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in &amp; quot; niet geaccepteerd &amp; quot; en het zal niet te besteden zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na jou een blok genereert.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>Ingezette munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in &quot; niet geaccepteerd &quot; en het zal niet besteedbaar zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na de jouwe een blok genereert.</translation>
+        <translation>Ingezette munten moeten 25 blokken rijpen voordat ze kunnen worden uitgegeven. Toen u dit blok genereerde, werd het naar het netwerk uitgezonden om aan de blokketting te worden toegevoegd. Als het niet lukt om in de keten te komen, verandert de status in &amp; quot; niet geaccepteerd &amp; quot; en het zal niet besteedbaar zijn. Dit kan af en toe gebeuren als een ander knooppunt binnen enkele seconden na de jouwe een blok genereert.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2216,7 +2217,7 @@ Address: %4
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation type="Fout opgetreden bij het opzetten van de RCP poort %u voor luisteren op IPv4: %s"></translation>
     </message>
     <message>
         <location line="+8"/>
@@ -2226,17 +2227,18 @@ Address: %4
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation type="unfinished"></translation>
+        <translation type="Fout: de transactie is geweigerd. Dit kan optreden indien coins in uw wallet al uitgegeven zijn, zoals in de situatie waar u een kopie van de wallet.dat heeft gebruikt
+waarin u coins heeft uitgegeven, maar hier niet zodanig zijn gemarkeerd."></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation type="unfinished"></translation>
+        <translation type="Fout: deze transactie vereist een honorarium van tenminste %s vanwege de hoeveelheid, complexiteit of gebruik van onlangs ontvangen tegoeden."></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
-        <translation type="unfinished"></translation>
+        <translation type="Luister voor JSON-RPC connecties op &lt;poort&gt; (default: 8344 of testnet: 18344)"></translation>
     </message>
     <message>
         <location line="+31"/>
@@ -2246,22 +2248,22 @@ Address: %4
     <message>
         <location line="+26"/>
         <source>Error: Transaction creation failed  </source>
-        <translation type="unfinished"></translation>
+        <translation type="Fout, aanmaken transactie mislukt"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation type="unfinished"></translation>
+        <source>Error: Wallet locked, unable to create transaction</source>
+        <translation type="Fout: walletbestand op slot, kan geen transactie aanmaken"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Importing blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation type="Importeren blockchain data bestand"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Importing bootstrap blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation type="Importeren bootstrap blockchain data bestand."></translation>
     </message>
     <message>
         <location line="+23"/>
@@ -2281,12 +2283,12 @@ Address: %4
     <message>
         <location line="-53"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation type="Fout bij het luisteren op RCP poort %u op IPv6, terugschakeling naar IPv4: %s"></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation type="unfinished"></translation>
+        <translation type="Fout bij initialisatie van de database omgeving %s!, voor herstel, BACKUP de directory en verwijder alle bestanden behalve de wallet.dat."></translation>
     </message>
     <message>
         <location line="+18"/>
@@ -2446,7 +2448,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>Verifying database integrity...</source>
-        <translation type="unfinished"></translation>
+        <translation type="Verifieren database integriteit..."></translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2461,7 +2463,7 @@ Address: %4
     <message>
         <location line="+1"/>
         <source>wallet.dat corrupt, salvage failed</source>
-        <translation type="unfinished"></translation>
+        <translation type="wallet.dat corrupt, herstel mislukt"></translation>
     </message>
     <message>
         <location line="-43"/>
@@ -2738,6 +2740,3 @@ Als het bestand niet bestaat, creëer het dan met eigenaar-alleen lezen bestandr
     </message>
 </context>
 </TS>
-
-
-

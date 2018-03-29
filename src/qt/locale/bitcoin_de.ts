@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
+<!DOCTYPE TS [
+    <!ENTITY Uuml "&#220;">
+    <!ENTITY uuml "&#252;">
+    <!ENTITY Auml "&#196;">
+    <!ENTITY auml "&#228;">
+    <!ENTITY Ouml "&#214;">
+    <!ENTITY ouml "&#246;">
+    <!ENTITY Euml "&#201;">
+    <!ENTITY euml "&#233;">
+    <!ENTITY szlig "&#223;">
+]>
 <TS version="2.0" language="de">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
@@ -16,8 +26,8 @@
     </message>
     <message>
         <location line="+41"/>
-        <source>Copyright © 2014-2018 The Verge developers</source>
-        <translation>Copyright © 2014-2018 Die Verge Entwickler</translation>
+        <source>Copyright Â© 2014-2018 The Verge developers</source>
+        <translation>Copyright Â© 2014-2018 Die Verge Entwickler</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -1438,7 +1448,7 @@ Address: %4
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>Signaturen - signieren / verifizieren einer Nachricht/translation>
+        <translation>Signaturen - signieren / verifizieren einer Nachricht</translation>
     </message>
     <message>
         <location line="+13"/>
