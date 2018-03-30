@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="fr">
+<TS version="2.0" language="en">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
         <source>About VERGE</source>
-        <translation>A propos de VERGE</translation>
+        <translation>Σχετικά με το VERGE</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>&lt;b&gt;VERGE&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;VERGE&lt;/b&gt; version</translation>
+        <translation>&lt;b&gt;VERGE&lt;/b&gt; έκδοση</translation>
     </message>
     <message>
         <location line="+41"/>
-        <source>Copyright © 2014-2016 The Verge developers</source>
-        <translation>Copyright © 2018 Verge </translation>
+        <source>Copyright © 2014-2018 The Verge developers</source>
+        <translation>Copyright © 2014-2018 Οι προγραμματιστές της Verge</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -27,12 +27,11 @@ This is experimental software.
 Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
-        <translation>
-Il s&apos;agit d&apos;un logiciel expérimental.
+        <translation>Πρόκειται για πειραματικό λογισμικό.
 
-Distribué sous license logicielle MIT/X11, voir le fichier inclus COPYING ou http://www.opensource.org/licenses/mit-license.php.
+Διανέμεται υπό την άδεια χρήσης του λογισμικού MIT/X11, δείτε το συνοδευτικό αρχείο COPYING ή http://www.opensource.org/licenses/mit-license.php.
 
-Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation dans le OpenSSL Toolkit (http://www.openssl.org/) et cryptographic software par Eric Young (eay@cryptsoft.com) et UPnP software par Thomas Bernard.</translation>
+Αυτό το προϊόν περιλαμβάνει το λογισμικό που αναπτύχθηκε από το OpenSSL Project για χρήση στο OpenSSL Toolkit (http://www.openssl.org/) και το κρυπτογραφικό λογισμικό που έγραψε ο Eric Young (eay@cryptsoft.com) και το λογισμικό UPnP που έγραψε ο Thomas Bernard.</translation>
     </message>
 </context>
 <context>
@@ -40,102 +39,102 @@ Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation
     <message>
         <location filename="../forms/addressbookpage.ui" line="+14"/>
         <source>Address Book</source>
-        <translation>Répertoire d&apos;adresses</translation>
+        <translation>Βιβλίο διευθύνσεων</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Double-click pour éditer une adresse ou un label</translation>
+        <translation>Κάντε διπλό κλικ για να επεξεργαστείτε τη διεύθυνση ή την ετικέτα</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Create a new address</source>
-        <translation>Créer une nouvelle adresse</translation>
+        <translation>Δημιουργία νέας διεύθυνσης</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Copier l&apos;adresse sélectionnée dans le presse papier</translation>
+        <translation>Αντιγράψτε την τρέχουσα επιλεγμένη διεύθυνση στο πρόχειρο του συστήματος</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>&amp;New Address</source>
-        <translation>&amp;Nouvelle Adresse</translation>
+        <translation>&amp;Νέα διεύθυνση</translation>
     </message>
     <message>
         <location line="-46"/>
         <source>These are your VERGE addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>Voici vos adresses VERGE addresses pour recevoir des paiements. Vous pouvez en fournir une différente pour chaque émetteur, afin de suivre qui vous a payé.</translation>
+        <translation>Αυτές είναι οι VERGE διευθύνσεις σας για τη λήψη πληρωμών. Μπορεί να θέλετε να δώσετε μια διαφορετική σε κάθε αποστολέα, ώστε να μπορείτε να παρακολουθείτε ποιος σας πληρώνει.</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>&amp;Copy Address</source>
-        <translation>&amp;Copier l&apos;Adresse</translation>
+        <translation>&amp;Αντιγραφή Διεύθυνσης</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Show &amp;QR Code</source>
-        <translation>Montrer &amp;QR Code</translation>
+        <translation>Εμφάνιση &amp;QR κώδικα</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Sign a message to prove you own a VERGE address</source>
-        <translation>Signer un message pour prouver que vous avez une adresse VERGE</translation>
+        <translation>Υπογράψτε ένα μήνυμα για να αποδείξετε ότι είστε ιδιοκτήτης μια διεύθυνσης VERGE</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sign &amp;Message</source>
-        <translation> Signer Message</translation>
+        <translation>Υπόγραφη &amp;Μηνύματος</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Delete the currently selected address from the list</source>
-        <translation>Supprimer l&apos;Adresse sélectionnée de la lise</translation>
+        <translation>Διαγραφή της επιλεγμένης διεύθυνσης από την λίστα</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Verify a message to ensure it was signed with a specified VERGE address</source>
-        <translation>Vérifier un message pour s&apos;assurer qu&apos;il a été signé avec une adresse VERGE spécifiée</translation>
+        <translation>Επαληθεύστε ένα μήνυμα για να βεβαιωθείτε ότι έχει υπογραφεί με μια συγκεκριμένη διεύθυνση VERGE</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Verifier le Message</translation>
+        <translation>&amp;Επαλήθευση Μηνύματος</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>&amp;Delete</source>
-        <translation>&amp;Supprimer</translation>
+        <translation>&amp;Διαγραφή</translation>
     </message>
     <message>
         <location filename="../addressbookpage.cpp" line="+65"/>
         <source>Copy &amp;Label</source>
-        <translation>Copier &amp;Label</translation>
+        <translation>Αντιγραφή &amp;Ετικέτας</translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>&amp;Editer</source>
-        <translation>&amp;Editer</translation>
+        <source>&amp;Edit</source>
+        <translation>&amp;Επεξεργασία</translation>
     </message>
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Exporter le Répertoire d&apos;Adresses</translation>
+        <translation>Εξαγωγή Δεδομένων Βιβλίου Διευθύνσεων</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Comma separated file (*.csv)</translation>
+        <translation>Αρχείο διαχωρισμένο με κόμμα (*.csv)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Error exporting</source>
-        <translation>Erreur d&apos;exportation</translation>
+        <translation>Σφάλμα εξαγωγής</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Impossible d&apos;écrire dans le fichier %1.</translation>
+        <translation>Δεν ήταν δυνατή η εγγραφή στο αρχείο %1.</translation>
     </message>
 </context>
 <context>
@@ -143,17 +142,17 @@ Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation
     <message>
         <location filename="../addresstablemodel.cpp" line="+142"/>
         <source>Label</source>
-        <translation>Label</translation>
+        <translation>Ετικέτα</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>Addresse</translation>
+        <translation>Διεύθυνση</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>(no label)</source>
-        <translation>(pas de label)</translation>
+        <translation>(χωρίς ετικέτα)</translation>
     </message>
 </context>
 <context>
@@ -161,99 +160,99 @@ Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation
     <message>
         <location filename="../forms/askpassphrasedialog.ui" line="+26"/>
         <source>Passphrase Dialog</source>
-        <translation>Passphrase Dialog</translation>
+        <translation>Παράθυρο Φράση Πρόσβασης </translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Entrer la passphrase</translation>
+        <translation>Εισάγετε τη φράση πρόσβασης</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>New passphrase</source>
-        <translation>Nouvelle passphrase</translation>
+        <translation>Νέα φράση πρόσβασης</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Repeat new passphrase</source>
-        <translation>Répéter la nouvelle passphrase</translation>
+        <translation>Επαναλάβετε τη νέα φράση πρόσβασης</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;10 or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Entrer la nouvelle passphrase dans le wallet.&lt;br/&gt;Merci d&apos;utiliser une passphrase de &lt;b&gt;10 caractères aléatoires ou plus &lt;/b&gt;, ou &lt;b&gt;huit mots ou plus&lt;/b&gt;.</translation>
+        <translation>Εισάγετε τη νέα φράση πρόσβασης στο πορτοφόλι. &lt;br/&gt; Παρακαλώ χρησιμοποιήστε μια φράση πρόσβασης &lt;b&gt; 10 ή περισσότερων τυχαίων χαρακτήρων &lt;/b&gt; ή &lt;b&gt; οκτώ ή περισσότερες λέξεις &lt;/b&gt;.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Encrypt wallet</source>
-        <translation>Encrypter le wallet</translation>
+        <translation>Κρυπτογράφηση πορτοφολιού</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Cette opération necéssite votre passphrase de wallet pour dévérouiller votre wallet.</translation>
+        <translation>Αυτή η λειτουργία χρειάζεται τη φράση πρόσβασης του πορτοφολιού σας για να ξεκλειδώσετε το πορτοφόλι.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Unlock wallet</source>
-        <translation>Dévérouiller wallet</translation>
+        <translation>Ξεκλειδώστε το πορτοφόλι</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Cette opération necéssite votre passphrase de wallet pour décrypter le wallet.</translation>
+        <translation>Αυτή η λειτουργία χρειάζεται τη φράση πρόσβασης για να αποκρυπτογραφήσει το πορτοφόλι.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Decrypt wallet</source>
-        <translation>Decrypter wallet</translation>
+        <translation>Αποκρυπτογράφηση πορτοφολιού</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Change passphrase</source>
-        <translation>Changer passphrase</translation>
+        <translation>Αλλάξτε τη φράση πρόσβασης</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Enter the old and new passphrase to the wallet.</source>
-        <translation>Entrer l&apos;ancienne and la nouvelle passphrase dans le wallet.</translation>
+        <translation>Εισάγετε την παλιά και τη νέα φράση πρόσβασης στο πορτοφόλι.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Confirm wallet encryption</source>
-        <translation>Confirmer l&apos;encryption du wallet</translation>
+        <translation>Επιβεβαιώστε την κρυπτογράφηση του πορτοφολιού</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Attention: si vous encryptez votre wallet et perdez votre passphrase, vous allez &lt;b&gt;PERDRE TOUS VOS COINS&lt;/b&gt;!</translation>
+        <translation>Προειδοποίηση: Εάν κρυπτογραφήσετε το πορτοφόλι σας και χάσετε τη φράση πρόσβασης, θα &lt;b&gt; ΧΑΣΕΤΕ ΟΛΑ ΤΑ ΝΟΜΙΣΜΑΤΑ ΣΑΣ &lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Are you sure you wish to encrypt your wallet?</source>
-        <translation>Etes vous sûr de vouloir encrypter votre wallet?</translation>
+        <translation>Είστε βέβαιοι ότι θέλετε να κρυπτογραφήσετε το πορτοφόλι σας;</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation>IMPORTANT: touts sauvegarde antérieure de votre wallet devrait être remplacée par la nouvelle version générée et enccryptée. Pour des raisons de sécurité, les sauvegardes précédentes du wallet non crypté vont devenir inutilisables dès lors que vous commencerez à utiliser le nouveau wallet encrypté.</translation>
+        <translation>ΣΗΜΑΝΤΙΚΟ: Όλα τα προηγούμενα αντίγραφα ασφαλείας που έχετε δημιουργήσει από το αρχείο πορτοφολιού σας θα πρέπει να αντικατασταθούν με το πρόσφατα δημιουργημένο, κρυπτογραφημένο αρχείο πορτοφολιού. Για λόγους ασφαλείας, τα προηγούμενα αντίγραφα ασφαλείας του μη κρυπτογραφημένου αρχείου πορτοφολιού θα καταστούν άχρηστα μόλις αρχίσετε να χρησιμοποιείτε το νέο κρυπτογραφημένο πορτοφόλι.</translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+24"/>
         <source>Warning: The Caps Lock key is on!</source>
-        <translation>Attention: La touche Caps Lock (Majuscules) est active!</translation>
+        <translation>Προειδοποίηση: Το πλήκτρο Caps Lock είναι ενεργοποιημένο!</translation>
     </message>
     <message>
         <location line="-130"/>
         <location line="+58"/>
         <source>Wallet encrypted</source>
-        <translation>Wallet encrypté</translation>
+        <translation>Πορτοφόλι κρυπτογραφημένο</translation>
     </message>
     <message>
         <location line="-56"/>
         <source>VERGE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>VERGE va bientôt finir le processus d&apos;encryption. Rappelez-vous qu&apos;encrypter votre waller ne peut pas protéger totalement contre le vol par malwares pouvant infecter votre ordinateur.</translation>
+        <translation>Το VERGE θα κλείσει τώρα για να ολοκληρωθεί η διαδικασία κρυπτογράφησης. Θυμηθείτε ότι η κρυπτογράφηση του πορτοφολιού σας δεν μπορεί να προστατεύσει πλήρως τα κέρματά σας από το να κλαπούν από κάποιο κακόβουλο λογισμικό που έχει μολύνει τον υπολογιστή σας.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -261,40 +260,40 @@ Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation
         <location line="+42"/>
         <location line="+6"/>
         <source>Wallet encryption failed</source>
-        <translation>L&apos;encryption du wallet a échouée</translation>
+        <translation>Η κρυπτογράφηση του πορτοφολιού απέτυχε</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Wallet encryption failed due to an internal error. Your wallet was not encrypted.</source>
-        <translation>L&apos;encryption du wallet a échouée à cause d&apos;une erreur interne. Votre wallet n&apos;est pas encrypté.</translation>
+        <translation>Η κρυπτογράφηση του πορτοφολιού απέτυχε λόγω εσωτερικού σφάλματος. Το πορτοφόλι σας δεν έχει κρυπτογραφήθει.</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>La passphrase fournie ne correspond pas.</translation>
+        <translation>Οι παρεχόμενες φράσεις πρόσβασης δεν ταιριάζουν.</translation>
     </message>
     <message>
         <location line="-37"/>
         <source>Wallet unlock failed</source>
-        <translation>Echec du dévérouillage de wallet</translation>
+        <translation>Το ξεκλείδωμα πορτοφολιού απέτυχε</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+11"/>
         <location line="+19"/>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>la passphrase fournie pour le décryptage du wallet est incorrecte</translation>
+        <translation>Η φράση πρόσβασης που εισήχθη για την αποκρυπτογράφηση του πορτοφολιού ήταν λανθασμένη.</translation>
     </message>
     <message>
         <location line="-20"/>
         <source>Wallet decryption failed</source>
-        <translation>Echec du décryptage du wallet</translation>
+        <translation>Η αποκρυπτογράφηση του πορτοφολιού απέτυχε</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>La passphrase du wallet a été changée avec succès</translation>
+        <translation>Η φράση πρόσβασης του πορτοφολιού άλλαξε με επιτυχία.</translation>
     </message>
 </context>
 <context>
@@ -302,165 +301,165 @@ Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation
     <message>
         <location filename="../bitcoingui.cpp" line="+257"/>
         <source>Sign &amp;message...</source>
-        <translation>Signer &amp;message...</translation>
+        <translation>Υπογραφή &amp;μηνύματος...</translation>
     </message>
     <message>
         <location line="+237"/>
         <source>Synchronizing with network...</source>
-        <translation>Synchronisation avec le réseau...</translation>
+        <translation>Συγχρονισμός με δίκτυο...</translation>
     </message>
     <message>
         <location line="-299"/>
         <source>&amp;Overview</source>
-        <translation>&amp;Aperçu</translation>
+        <translation>&amp;Επισκόπηση</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show general overview of wallet</source>
-        <translation>Montrer un aperçu général du wallet</translation>
+        <translation>Εμφάνιση γενικής επισκόπησης του πορτοφολιού</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>&amp;Transactions</source>
-        <translation>&amp;Transactions</translation>
+        <translation>&amp;Συναλλαγές</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Browse transaction history</source>
-        <translation>Parcourir l&apos;historique de transactions</translation>
+        <translation>Περιήγηση ιστορικού συναλλαγών</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>&amp;Address Book</source>
-        <translation>&amp;Répertoire d&apos;adresses</translation>
+        <translation>&amp;Βιβλίο Διευθύνσεων</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit the list of stored addresses and labels</source>
-        <translation>Editer la liste d&apos;adresses et de labels enregistrés</translation>
+        <translation>Επεξεργαστείτε τη λίστα αποθηκευμένων διευθύνσεων και ετικετών</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>&amp;Receive coins</source>
-        <translation>&amp;Recevoir des coins</translation>
+        <translation>&amp;Λήψη νομισμάτων</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show the list of addresses for receiving payments</source>
-        <translation>Montrer la liste d&apos;adresses pour recevoir des paiements</translation>
+        <translation>Εμφάνιση της λίστας διευθύνσεων για τη λήψη πληρωμών</translation>
     </message>
     <message>
         <location line="-7"/>
         <source>&amp;Send coins</source>
-        <translation>&amp;Envoyer des coins</translation>
+        <translation>&amp;Αποστολή νομισμάτων</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>E&amp;xit</source>
-        <translation>E&amp;xit</translation>
+        <translation>Ε&amp;ξοδος</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Quit application</source>
-        <translation>Quitter l&apos;application</translation>
+        <translation>Κλείστε την εφαρμογή</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Show information about VERGE</source>
-        <translation>Montrer les informations à propos de VERGE</translation>
+        <translation>Εμφάνιση πληροφοριών σχετικά με το VERGE</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>About &amp;Qt</source>
-        <translation>A propos de &amp;Qt</translation>
+        <translation>Σχετικά &amp;Qt</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show information about Qt</source>
-        <translation>Montrer les informations à propos de Qt</translation>
+        <translation>Εμφάνιση πληροφοριών σχετικά με το Qt</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Options...</source>
-        <translation>&amp;Options...</translation>
+        <translation>&amp;Επιλογές...</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>&amp;Encrypt Wallet...</source>
-        <translation>&amp;Encrypter le Wallet...</translation>
+        <translation>&amp;Κρυπτογράφηση πορτοφολιού...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Backup Wallet...</source>
-        <translation>&amp;Sauvegarde du Wallet...</translation>
+        <translation>&amp;Αντιγράφο ασφαλείας πορτοφολιού...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>&amp;Change Passphrase...</source>
-        <translation>&amp;Changer la Passphrase...</translation>
+        <translation>&amp;Αλλαγή Φράσης Πρόσβασης...</translation>
     </message>
     <message numerus="yes">
         <location line="+241"/>
         <source>~%n block(s) remaining</source>
         <translation>
-            <numerusform>~%n block restant</numerusform>
-            <numerusform>~%n blocks restants</numerusform>
+            <numerusform>~%n block απομένουν</numerusform>
+            <numerusform>~%n blocks απομένουν</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Downloaded %1 of %2 blocks of transaction history (%3% done).</source>
-        <translation>%1 des %2 blocks de l&apos;historique de transactions ont été téléchargés (%3% effectués).</translation>
+        <translation>Λήψη του %1 από %2 blocks ιστορικού συναλλαγών (%3% έγινε).</translation>
     </message>
     <message>
         <location line="-242"/>
         <source>&amp;Export...</source>
-        <translation>&amp;Exporter...</translation>
+        <translation>&amp;Εξαγωγή...</translation>
     </message>
     <message>
         <location line="-58"/>
         <source>Send coins to a VERGE address</source>
-        <translation>Envoyer des coins à une adresse VERGE</translation>
+        <translation>Στείλτε νομίσματα σε μια διεύθυνση VERGE</translation>
     </message>
     <message>
         <location line="+45"/>
         <source>Modify configuration options for VERGE</source>
-        <translation>Modifier les options de configuration de VERGE</translation>
+        <translation>Τροποποιήστε τις επιλογές διαμόρφωσης για το VERGE</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Export the data in the current tab to a file</source>
-        <translation>Exporter les données courrantes (Tab) dans un fichier</translation>
+        <translation>Εξάγετε τα δεδομένα της τρέχουσας καρτέλας σε αρχείο</translation>
     </message>
     <message>
         <location line="-10"/>
         <source>Encrypt or decrypt wallet</source>
-        <translation>Encrypter ou decrypter wallet</translation>
+        <translation>Κρυπτογράφηση ή αποκρυπτογράφηση πορτοφολιού</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup wallet to another location</source>
-        <translation>Sauvegrader le wallet à un autre endroit</translation>
+        <translation>Δημιουργία αντιγράφων ασφαλείας πορτοφολιού σε άλλη τοποθεσία</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Changer la passphrase utilisée pour encrypter le wallet</translation>
+        <translation>Αλλάξτε τη φράση πρόσβασης που χρησιμοποιείται για την κρυπτογράφηση πορτοφολιού</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Debug window</source>
-        <translation>Fenêtre de &amp;Debuggage</translation>
+        <translation>&amp;Παράθυρο εντοπισμού σφαλμάτων</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Open debugging and diagnostic console</source>
-        <translation>ouvrir la console de debugging et diagnostic</translation>
+        <translation>Άνοιγμα κονσόλας εντοπισμού σφαλμάτων και διάγνωσης</translation>
     </message>
     <message>
         <location line="-5"/>
         <source>&amp;Verify message...</source>
-        <translation>&amp;Verifier message...</translation>
+        <translation>&amp;Επαλήθευση μηνύματος...</translation>
     </message>
     <message>
         <location line="-186"/>
@@ -470,42 +469,42 @@ Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation
     <message>
         <location line="+0"/>
         <source>Wallet</source>
-        <translation>Wallet</translation>
+        <translation>Πορτοφόλι</translation>
     </message>
     <message>
         <location line="+168"/>
         <source>&amp;About VERGE</source>
-        <translation>&amp;A propos de VERGE</translation>
+        <translation>&amp;Σχετικά με το VERGE</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Show / Hide</source>
-        <translation>&amp;Montrer / Cacher</translation>
+        <translation>&amp;Εμφάνιση / Απόκρυψη</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>&amp;File</source>
-        <translation>&amp;Fichier</translation>
+        <translation>&amp;Αρχείο</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>&amp;Settings</source>
-        <translation>&amp;Paramètres</translation>
+        <translation>&amp;Ρυθμίσεις</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>&amp;Help</source>
-        <translation>&amp;Aide</translation>
+        <translation>&amp;Βοήθεια</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Tabs toolbar</source>
-        <translation>Tabs toolbar</translation>
+        <translation>Γραμμή εργαλείων καρτελών</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Actions toolbar</source>
-        <translation>Actions toolbar</translation>
+        <translation>Γραμμή εργαλείων ενεργειών</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -517,147 +516,146 @@ Ce produit inclut des logiciel développés par OpenSSL Project pour utilisation
         <location line="+0"/>
         <location line="+60"/>
         <source>VERGE client</source>
-        <translation>client VERGE</translation>
+        <translation>VERGE client</translation>
     </message>
     <message numerus="yes">
         <location line="+69"/>
         <source>%n active connection(s) to VERGE network</source>
         <translation>
-            <numerusform>%n connexions active au réseau VERGE</numerusform>
-            <numerusform>%n connexions actives au réseau VERGE</numerusform>
+            <numerusform>%n ενεργές συνδέσεις στο VERGE network</numerusform>
+            <numerusform>%n ενεργές συνδέσεις στο VERGE network</numerusform>
         </translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Downloaded %1 blocks of transaction history.</source>
-        <translation>%1 blocks de l&apos;historique de transactions a été téléchargé.</translation>
+        <translation>Λήψη %1 block ιστορικού συναλλαγών.</translation>
     </message>
     <message numerus="yes">
         <location line="+22"/>
         <source>%n second(s) ago</source>
         <translation>
-            <numerusform>il y a %n seconde</numerusform>
-            <numerusform>il y a %n secondes</numerusform>
+            <numerusform>%n δεπτερόλεπτο πριν</numerusform>
+            <numerusform>%n δεπτερόλεπτα πριν</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n minute(s) ago</source>
         <translation>
-            <numerusform>il y a %n minute</numerusform>
-            <numerusform>il y a %n minutes</numerusform>
+            <numerusform>%n λεπτό πριν</numerusform>
+            <numerusform>%n λεπτά πριντ</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n hour(s) ago</source>
         <translation>
-            <numerusform>il y a %n heure</numerusform>
-            <numerusform>il y a %n heures</numerusform>
+            <numerusform>%n ώρα πριν</numerusform>
+            <numerusform>%n ώρες πριν</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n day(s) ago</source>
         <translation>
-            <numerusform>il y a %n jour</numerusform>
-            <numerusform>il y a %n jours</numerusform>
+            <numerusform>%n ημέρα πριν</numerusform>
+            <numerusform>%n ημέρες πριν</numerusform>
         </translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Up to date</source>
-        <translation>A jour</translation>
+        <translation>Ενημερωμένο</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Catching up...</source>
-        <translation>Rattrapage en cours...</translation>
+        <translation>Πλησιάζει...</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>Le dernier bloc reçu a été généré %1.</translation>
+        <translation>Το τελευταίο block που ελήφθη δημιουργήθηκε %1.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation>Cette transaction est plus grande que la taille limite2 Vous pouvez toutefois l&apos;envoyer avec des frais de %1, qui iront aux noeuds qui vont exécuter votre transaction et aider à support le réseau. Voulez-vous payer les frais ?</translation>
+        <translation>Αυτή η συναλλαγή υπερβαίνει το όριο μεγέθους. Μπορείτε ακόμα να το στείλετε έναντι αμοιβής %1, το οποίο πηγαίνει στους κόμβους που επεξεργάζονται τη συναλλαγή και βοηθά στην υποστήριξη του δικτύου. Θέλετε να πληρώσετε το τέλος;</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm transaction fee</source>
-        <translation>Confirmer les frais de transaction</translation>
+        <translation>Επιβεβαίωση τελών συναλλαγής</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Sent transaction</source>
-        <translation>Transaction envoyée</translation>
+        <translation>Απεσταλμένη συναλλαγή</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incoming transaction</source>
-        <translation>Transaction entrante</translation>
+        <translation>Εισερχόμενη συναλλαγή</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date: %1
-Quantité: %2
+Amount: %2
 Type: %3
-Addresse: %4
+Address: %4
 </source>
-        <translation>Date: %1
-Quantité: %2
-Type: %3
-Addresse: %4
-</translation>
+        <translation>Ημερομηνία: %1
+Ποσό: %2
+Τύπος: %3
+Διεύθυνση: %4</translation>
     </message>
     <message>
         <location line="+100"/>
         <location line="+15"/>
         <source>URI handling</source>
-        <translation>URI handling</translation>
+        <translation>Διαχείριση URI</translation>
     </message>
     <message>
         <location line="-15"/>
         <location line="+15"/>
         <source>URI can not be parsed! This can be caused by an invalid VERGE address or malformed URI parameters.</source>
-        <translation>URI ne peut pas être analysée! Celà peut être dû à une adresse VERGE invalide ou des paramêtres URI malformés.</translation>
+        <translation>Δεν είναι δυνατή η ανάλυση του URI! Αυτό μπορεί να οφείλεται σε μη έγκυρη διεύθυνση VERGE ή σε παραμορφωμένες παραμέτρους URI.</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
-        <translation>Le portefeuille est &lt;b&gt;encrypté&lt;/b&gt; et actuellement &lt;b&gt;dévérouillé&lt;/b&gt;</translation>
+        <translation>Το πορτοφόλι είναι &lt;b&gt; κρυπτογραφημένο &lt;/b&gt; και προς το παρόν &lt;b&gt; ξεκλειδωμένο &lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
-        <translation>Le portefeuille est &lt;b&gt;encrypté&lt;/b&gt; et actuellement &lt;b&gt;vérouillé&lt;/b&gt;</translation>
+        <translation>Το Πορτοφόλι είναι &lt;b&gt; κρυπτογραφημένο &lt;/b&gt; και προς το παρόν &lt;b&gt; είναι κλειδωμένο &lt;/b&gt;</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Backup Wallet</source>
-        <translation>Sauvegrade portefeuille</translation>
+        <translation>Αντιγράφο ασφαλείας Πορτοφολιού</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Wallet Data (*.dat)</source>
-        <translation>Données de portefeuille (*.dat)</translation>
+        <translation>Δεδομένα Πορτοφολιού (*.dat)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Backup Failed</source>
-        <translation>Sauvegade échouée</translation>
+        <translation>Η δημιουργία αντιγράφου ασφαλείας απέτυχε</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>il y a eu une erreur lors de la sauvegarde du portefeuille vers une nouvelle destination.</translation>
+        <translation>Παρουσιάστηκε σφάλμα κατά την αποθήκευση των δεδομένων πορτοφολιού στη νέα τοποθεσία.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
         <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
-        <translation>Erreur fatale. VERGE ne peut plus continuer à être exécuté et va s&apos;arrêter.</translation>
+        <translation>Εμφανίστηκε ένα καίριο σφάλμα. Το VERGE δεν μπορεί πλέον να συνεχίσει με ασφάλεια και θα σταματήσει.</translation>
     </message>
 </context>
 <context>
@@ -665,7 +663,7 @@ Addresse: %4
     <message>
         <location filename="../clientmodel.cpp" line="+87"/>
         <source>Network Alert</source>
-        <translation>Alerte Réseau</translation>
+        <translation>Ειδοποίηση Δικτύου</translation>
     </message>
 </context>
 <context>
@@ -673,67 +671,67 @@ Addresse: %4
     <message>
         <location filename="../forms/editaddressdialog.ui" line="+14"/>
         <source>Edit Address</source>
-        <translation>Editer Adresse</translation>
+        <translation>Επεξεργασία Διεύθυνσης</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Label</source>
-        <translation>&amp;Label</translation>
+        <translation>&amp;Ετικέτα</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The label associated with this address book entry</source>
-        <translation>Label associé avec cette entrée du répertoire d&apos;adresses</translation>
+        <translation>Η ετικέτα που σχετίζεται με αυτήν την καταχώρηση του βιβλίου διευθύνσεων</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Address</source>
-        <translation>&amp;Adresse</translation>
+        <translation>&amp;Διεύθυνση</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The address associated with this address book entry. This can only be modified for sending addresses.</source>
-        <translation>Label associé avec cette entrée du répertoire d&apos;adresses. Ne peut être modifié que pour les adresses d&apos;envoi.</translation>
+        <translation>Η διεύθυνση που σχετίζεται με αυτήν την καταχώριση βιβλίου διευθύνσεων. Αυτό μπορεί να τροποποιηθεί μόνο για την διευθύνσεις αποστολής.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="+20"/>
         <source>New receiving address</source>
-        <translation>Nouvelle adresse de réception</translation>
+        <translation>Νέα διεύθυνση λήψης</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>New sending address</source>
-        <translation>Nouvelle adresse d&apos;envoi</translation>
+        <translation>Νέα διεύθυνση αποστολής</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Edit receiving address</source>
-        <translation>Editer l&apos;adresse de réception</translation>
+        <translation>Επεξεργασία διεύθυνσης λήψης</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Edit sending address</source>
-        <translation>Editer l&apos;adresse d&apos;envoi</translation>
+        <translation>Επεξεργασία διεύθυνσης αποστολής</translation>
     </message>
     <message>
         <location line="+60"/>
-        <source>The entered address &quot;%1&quot; is already in the address book.</source>
-        <translation>L&apos;adresse entrée &quot;%1&quot; existe déjà dans le répertoire d&apos;adresses.</translation>
+        <source>The entered address "%1" is already in the address book.</source>
+        <translation>Η καταχωρημένη διεύθυνση "%1" βρίσκεται ήδη στο βιβλίο διευθύνσεων.</translation>
     </message>
     <message>
         <location line="+5"/>
-        <source>The entered address &quot;%1&quot; is not a valid VERGE address.</source>
-        <translation>L&apos;adresse entrée &quot;%1&quot; n&apos;est pas une adresse VERGE valide.</translation>
+        <source>The entered address "%1" is not a valid VERGE address.</source>
+        <translation>Η καταχωρημένη διεύθυνση "%1" δεν είναι έγκυρη διεύθυνση VERGE.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Could not unlock wallet.</source>
-        <translation>Impossible de dévérouiller le portefeuille.</translation>
+        <translation>Δεν ήταν δυνατό το ξεκλείδωμα του πορτοφολιού.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>New key generation failed.</source>
-        <translation>la génération d&apos;une nouvelle clé a échouée</translation>
+        <translation>Η δημιουργία νέων κλειδιών απέτυχε.</translation>
     </message>
 </context>
 <context>
@@ -747,37 +745,37 @@ Addresse: %4
     <message>
         <location line="-12"/>
         <source>version</source>
-        <translation>version</translation>
+        <translation>έκδοση</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Usage:</source>
-        <translation>Utilisation:</translation>
+        <translation>Χρήση:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>command-line options</source>
-        <translation>Options de ligne de commandes</translation>
+        <translation>επιλογές γραμμής εντολών</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>UI options</source>
-        <translation>Options d&apos;interface Utilisateur</translation>
+        <translation>UI επιλογές</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Set language, for example &quot;de_DE&quot; (default: system locale)</source>
-        <translation>Définir la langue, par exemple &quot;de_DE&quot; (default: system locale)</translation>
+        <source>Set language, for example "de_DE" (default: system locale)</source>
+        <translation>Ορίστε γλώσσα, για παράδειγμα "de_DE" (προεπιλογή: τοπική ρύθμιση συστήματος)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Start minimized</source>
-        <translation>Démarrer réduit</translation>
+        <translation>Ελαχιστοποιειμένο κατά την εκκίνηση</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show splash screen on startup (default: 1)</source>
-        <translation>Montrer le l&apos;écran de démarrage (default: 1)</translation>
+        <translation>Εμφάνιση αρχικής οθόνης κατά την εκκίνηση (προεπιλογή: 1)</translation>
     </message>
 </context>
 <context>
@@ -785,194 +783,194 @@ Addresse: %4
     <message>
         <location filename="../forms/optionsdialog.ui" line="+14"/>
         <source>Options</source>
-        <translation>Options</translation>
+        <translation>Επιλογές</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>&amp;Main</source>
-        <translation>&amp;Général</translation>
+        <translation>&amp;Κύριο</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Optional transaction fee per kB that helps make sure your transactions are processed quickly. Most transactions are 1 kB. Fee 0.01 recommended.</source>
-        <translation>Frais de transactions optionnels par kB, qui aideront à assurer un traitement rapide de votre transaction. La plupart des transactions font 1 kB. Frais de 0.01 recommendés.</translation>
+        <translation>Προαιρετική χρέωση συναλλαγής ανά kB που σας βοηθά να σιγουρευτείτε ότι οι συναλλαγές σας υποβάλλονται σε επεξεργασία γρήγορα. Οι περισσότερες συναλλαγές είναι 1 kB. Συνιστώμενη χρέωση 0,01.</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Payer &amp;les frais de transaction</translation>
+        <translation>Πληρωμή αμοιβής &amp;συναλλαγής</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Automatically start VERGE after logging in to the system.</source>
-        <translation>Démarrer automatiquementVERGE après l&apos;authentification sur le système.</translation>
+        <translation>Αυτόματη εκκίνηση του VERGE μετά τη σύνδεση στο σύστημα.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Start VERGE on system login</source>
-        <translation>&amp;Démarrer VERGE lors de l&apos;authentification sur le système</translation>
+        <translation>&amp;Έναρξη VERGE κατά την σύνδεση στο σύστημα</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Detach block and address databases at shutdown. This means they can be moved to another data directory, but it slows down shutdown. The wallet is always detached.</source>
-        <translation>Détacher les bases de données de blocs et d&apos;addresses lors de l&apos;arrêt. Celà signifie qu&apos;ils pourront être déplacés vers un autre emplacement, mais celà ralentit l&apos;arrêt. Le portefeuille est toujours détaché.</translation>
+        <translation>Αποσύνδεση block και βάσεων δεδομένων διευθύνσεων κατά τον τερματισμό. Αυτό σημαίνει ότι μπορούν να μεταφερθούν σε άλλο κατάλογο δεδομένων, αλλά επιβραδύνει τον τερματισμό. Το πορτοφόλι αποσπάται πάντα.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Detach databases at shutdown</source>
-        <translation>&amp;Détacher les bases de données lors de l&apos;arrêt</translation>
+        <translation>&amp;Αποσύνδεση βάσεων δεδομένων κατά τον τερματισμό</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Network</source>
-        <translation>&amp;Réseau</translation>
+        <translation>&amp;Δίκτυο</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Automatically open the VERGE client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Ouvrir automatiquement le port du client VERGE sur le routeur. Celà ne marche que si votre routeur supporte UPnP et qu&apos;il est activé.</translation>
+        <translation>Ανοίξτε αυτόματα τη θύρα πελάτη VERGE στο δρομολογητή. Αυτό λειτουργεί μόνο όταν ο δρομολογητής σας υποστηρίζει UPnP και είναι ενεργοποιημένο.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Map port using &amp;UPnP</source>
-        <translation>Mapper le port en utilisant &amp;UPnP</translation>
+        <translation>Αντιστοίχηση πόρτας με &amp;UPnP</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Connect to the VERGE network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Se connecter au réseau VERGE à travers un proxy SOCKS (ex: lors d&apos;une connexion via TOR).</translation>
+        <translation>Συνδεθείτε στο δίκτυο VERGE μέσω ενός SOCKS proxy (π.χ. όταν συνδέεστε μέσω του Tor).</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Connect through SOCKS proxy:</source>
-        <translation>&amp;Se connecter à travers un proxy SOCKS:</translation>
+        <translation>&amp;Σύνδεση μέσω του SOCKS proxy:</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Proxy &amp;IP:</source>
-        <translation>&amp;IP du Proxy</translation>
+        <translation>Proxy &amp;IP:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>IP address of the proxy (e.g. 127.0.0.1)</source>
-        <translation>Adresse IP du proxy (ex: 127.0.0.1)</translation>
+        <translation>Η διεύθυνση IP του proxy (π.χ. 127.0.0.1)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Port:</source>
-        <translation>&amp;Port:</translation>
+        <translation>&amp;Θύρα:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Port of the proxy (e.g. 9050)</source>
-        <translation>Port du Proxy (ex: 9050)</translation>
+        <translation>Θύρα του proxy (π.χ. 9050)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SOCKS &amp;Version:</source>
-        <translation>&amp;Version SOCKS:</translation>
+        <translation>SOCKS &amp;Έκδοση:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>SOCKS version of the proxy (e.g. 5)</source>
-        <translation>Version SOCKS du proxy (e.g. 5)</translation>
+        <translation>Έκδοση SOCKS του proxy (π.χ. 5)</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>&amp;Window</source>
-        <translation>&amp;Fenêtre</translation>
+        <translation>&amp;Παράθυρο</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Show only a tray icon after minimizing the window.</source>
-        <translation>Ne montrer une icône dans la barre de tâche qu&apos;une fois la fenêtre minimisée</translation>
+        <translation>Εμφάνιση μόνο tray εικονίδιου μετά την ελαχιστοποίηση του παραθύρου.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Minimize to the tray instead of the taskbar</source>
-        <translation>&amp;Minimiser dans la zone de notifications plutôt que dans la barre des tâches</translation>
+        <translation>&amp;Ελαχιστοποίηση στο tray αντί της γραμμής εργασιών</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>Minimiser au lieu de fermer l&apos;application lors de la fermeture de la fenêtre. Lorsque cette option est activée, l&apos;application sera fermée uniquement après avoir sélectionné Quitter dans le menu.</translation>
+        <translation>Ελαχιστοποιήστε αντί να κλείσετε την εφαρμογή όταν το παράθυρο είναι κλειστό. Όταν αυτή η επιλογή είναι ενεργοποιημένη, η εφαρμογή θα κλείσει μόνο αφού επιλέξετε την Έξοδος στο μενού.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>M&amp;inimiser sur fermeture</translation>
+        <translation>Ελαχιστοποίηση στο κλείσιμο</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>&amp;Affichage</translation>
+        <translation>&amp;Εμφάνιση</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>User Interface &amp;language:</source>
-        <translation>&amp;Langue d&apos;interface utilisateur:</translation>
+        <translation>Γλώσσα &amp;εμφάνισης UI:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The user interface language can be set here. This setting will take effect after restarting VERGE.</source>
-        <translation>La langue de l&apos;interface utilisateur peut ête définie ici. Ce paramêtre sera pris en compte après un redémarrage de VERGE.</translation>
+        <translation>Η γλώσσα εμφάνισης UI μπορεί να οριστεί εδώ. Αυτή η ρύθμιση θα τεθεί σε ισχύ μετά την επανεκκίνηση του VERGE.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&amp;Unit to show amounts in:</source>
-        <translation>&amp;Unité des montants:</translation>
+        <translation>&amp;Μονάδα εμφανίσης ποσών:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Choisir la subdivision par défaut à montrer dans l&apos;interface et lors de l&apos;envoi des pièces.</translation>
+        <translation>Επιλέξτε την προεπιλεγμένη μονάδα υποδιαίρεσης που θα εμφανίζεται στη εφαρμογή και κατά την αποστολή νομισμάτων.</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Whether to show VERGE addresses in the transaction list or not.</source>
-        <translation>Montrer ou non les adresses VERGE dans la liste de transactions.</translation>
+        <translation>Αν θα εμφανίζονται VERGE διευθύνσεις στη λίστα συναλλαγών ή όχι.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>&amp;Afficher les adresses dans la liste de transactions</translation>
+        <translation>&amp;Εμφάνιση διευθύνσεων στη λίστα συναλλαγών</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;OK</source>
-        <translation>&amp;OK</translation>
+        <translation>&amp;ΟΚ</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;Annuler</translation>
+        <translation>&amp;Ακύρωση</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>&amp;Apply</source>
-        <translation>&amp;Appliquer</translation>
+        <translation>&amp;Εφαρμογή</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="+55"/>
         <source>default</source>
-        <translation>Défaut</translation>
+        <translation>προκαθορισμένο</translation>
     </message>
     <message>
         <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
-        <translation>Attention</translation>
+        <translation>Προειδοποίηση</translation>
     </message>
     <message>
         <location line="-9"/>
         <location line="+9"/>
         <source>This setting will take effect after restarting VERGE.</source>
-        <translation>ce paramètre sera pris en compte après redémarrage de VERGE.</translation>
+        <translation>Αυτή η ρύθμιση θα τεθεί σε ισχύ μετά την επανεκκίνηση του VERGE.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>The supplied proxy address is invalid.</source>
-        <translation>L&apos;adresse de proxy fournie est invalide</translation>
+        <translation>Η παρεχόμενη διεύθυνση proxy δεν είναι έγκυρη.</translation>
     </message>
 </context>
 <context>
@@ -980,79 +978,79 @@ Addresse: %4
     <message>
         <location filename="../forms/overviewpage.ui" line="+14"/>
         <source>Form</source>
-        <translation>formulaire</translation>
+        <translation>Μορφή</translation>
     </message>
     <message>
         <location line="+33"/>
         <location line="+183"/>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the VERGE network after a connection is established, but this process has not completed yet.</source>
-        <translation>L&apos;information affichée peut être périmée. Votre portefeuille se synchronise automatiquement avec le réseau VERGE dès qu&apos;une connexion est établie, mais ce processus n&apos;a pas encore abouti.</translation>
+        <translation>Οι πληροφορίες που εμφανίζονται ενδέχεται να έχουν αλλάξει. Το πορτοφόλι σας συγχρονίζεται αυτόματα με το δίκτυο VERGE αφού σύνδεθει, αλλά αυτή η διαδικασία δεν έχει ολοκληρωθεί ακόμα.</translation>
     </message>
     <message>
         <location line="-141"/>
         <source>Balance:</source>
-        <translation>Balance:</translation>
+        <translation>Υπόλοιπο:</translation>
     </message>
     <message>
         <location line="+118"/>
         <source>Stake:</source>
-        <translation>Stake:</translation>
+        <translation>Χρηματοδότηση:</translation>
     </message>
     <message>
         <location line="+58"/>
         <source>Number of transactions:</source>
-        <translation>Nombre de transactions:</translation>
+        <translation>Αριθμός συναλλαγών:</translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Unconfirmed:</source>
-        <translation>Non confirmées:</translation>
+        <translation>Ανεπιβεβαίωτα:</translation>
     </message>
     <message>
         <location line="-78"/>
         <source>Wallet</source>
-        <translation>Portefeuille</translation>
+        <translation>Πορτοφόλι</translation>
     </message>
     <message>
         <location line="+124"/>
         <source>Immature:</source>
-        <translation>Immature:</translation>
+        <translation>Ανώριμος:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>Balance minée mais non encore mature</translation>
+        <translation>Υπόλοιπο από εξόρυξη που δεν έχει ακόμη ωριμάσει</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
-        <translation>&lt;b&gt;transactions récentes&lt;/b&gt;</translation>
+        <translation>&lt;b&gt;Πρόσφατες συναλλαγές&lt;/b&gt;</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>Your current balance</source>
-        <translation>Votre balance actuelle</translation>
+        <translation>Το σημερινό σας υπόλοιπο</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
-        <translation>Nombre de transaction restant à confirmer, et non encore comptabilisées pour l&apos;instant dans la balance.</translation>
+        <translation>Συνολο συναλλαγών που δεν έχουν ακόμη επιβεβαιωθεί και δεν έχουν ακόμη υπολογιστεί για το τρέχον υπόλοιπο</translation>
     </message>
     <message>
         <location line="+134"/>
         <source>Total of coins that was staked, and do not yet count toward the current balance</source>
-        <translation>Nombre de pièces jalonnées, et non encore comptabilisées pour l&apos;instant dans la balance.</translation>
+        <translation>Σύνολο νομισμάτων που έχουν στοιβαχτεί και δεν υπολογίζονται ακόμη στο τρέχον υπόλοιπο</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Total number of transactions in wallet</source>
-        <translation>Nombre total de transactions dans le portefeuille</translation>
+        <translation>Συνολικός αριθμός συναλλαγών στο πορτοφόλι</translation>
     </message>
     <message>
         <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
-        <translation>Non synchronisé</translation>
+        <translation>εκτός συγχρονισμού</translation>
     </message>
 </context>
 <context>
@@ -1060,57 +1058,57 @@ Addresse: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation>Fenêtre QR Code</translation>
+        <translation>Παράθυρο QR Code</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Request Payment</source>
-        <translation>Demander Paiement</translation>
+        <translation>Αίτημα πληρωμής</translation>
     </message>
     <message>
         <location line="+56"/>
         <source>Amount:</source>
-        <translation>Quantité:</translation>
+        <translation>Ποσό:</translation>
     </message>
     <message>
         <location line="-44"/>
         <source>Label:</source>
-        <translation>Label:</translation>
+        <translation>Ετικέτα:</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Message:</source>
-        <translation>Message:</translation>
+        <translation>Μήνυμα:</translation>
     </message>
     <message>
         <location line="+71"/>
         <source>&amp;Save As...</source>
-        <translation>&amp;Enregistrer sous...</translation>
+        <translation>&amp;Αποθήκευση Ως...</translation>
     </message>
     <message>
         <location filename="../qrcodedialog.cpp" line="+62"/>
         <source>Error encoding URI into QR Code.</source>
-        <translation>Erreur lors de l&apos;encodage de l&apos;URI en QR Code.</translation>
+        <translation>Σφάλμα κωδικοποίησης URI σε κώδικα QR.</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>The entered amount is invalid, please check.</source>
-        <translation>Le montant entré est invalide, merci de vérifier.</translation>
+        <translation>Το ποσό που καταχωρίσατε είναι άκυρο, παρακαλώ ελέγξτε το.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
-        <translation>L&apos;URI resultante est trop longue, essayez de réduire le texte du label / message.</translation>
+        <translation>Το προκύπτον URI είναι πολύ μεγάλο, προσπαθήστε να μειώσετε το κείμενο της ετικέτας / μήνυματος.</translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Save QR Code</source>
-        <translation>Sauvegarder QR Code</translation>
+        <translation>Αποθήκευση κωδικού QR</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>PNG Images (*.png)</source>
-        <translation>PNG Images (*.png)</translation>
+        <translation>Εικόνες PNG (*.png)</translation>
     </message>
 </context>
 <context>
@@ -1118,7 +1116,7 @@ Addresse: %4
     <message>
         <location filename="../forms/rpcconsole.ui" line="+46"/>
         <source>Client name</source>
-        <translation>Nom du client</translation>
+        <translation>Όνομα πελάτη</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1137,92 +1135,92 @@ Addresse: %4
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation>Version du Client</translation>
+        <translation>Έκδοση πελάτη</translation>
     </message>
     <message>
         <location line="-45"/>
         <source>&amp;Information</source>
-        <translation>&amp;Information</translation>
+        <translation>&amp;Πληροφορίες</translation>
     </message>
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation>Usilise la version OpenSSL</translation>
+        <translation>Έκδοση OpenSSL σε χρήση</translation>
     </message>
     <message>
         <location line="+49"/>
         <source>Startup time</source>
-        <translation>Temps de démarrage</translation>
+        <translation>Ώρα εκκίνησης</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Network</source>
-        <translation>Réseau</translation>
+        <translation>Δίκτυο</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Number of connections</source>
-        <translation>Nombre de connexions</translation>
+        <translation>Αριθμός συνδέσεων</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>On testnet</source>
-        <translation>Sur testnet</translation>
+        <translation>Στο testnet</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Block chain</source>
-        <translation>Chaine de blocs</translation>
+        <translation>Block chain</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Current number of blocks</source>
-        <translation>Nombre actuel de blocs</translation>
+        <translation>Τρέχων αριθμός blocks</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Estimated total blocks</source>
-        <translation>Nombre total estimé de blocs</translation>
+        <translation>Εκτιμώμενα συνολικά blocks</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Last block time</source>
-        <translation>Temps du dernier bloc</translation>
+        <translation>Τελευταία ώρα block</translation>
     </message>
     <message>
         <location line="+52"/>
         <source>&amp;Open</source>
-        <translation>&amp;Ouvert</translation>
+        <translation>&amp;Άνοιγμα</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Command-line options</source>
-        <translation>Options de ligne de commande</translation>
+        <translation>Επιλογές γραμμής εντολών</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Show the VERGE-Qt help message to get a list with possible VERGE command-line options.</source>
-        <translation>Montrer les messages d&apos;aide VERGE-Qt pour avoir une liste des options de ligne de commande VERGE possibles.</translation>
+        <translation>Εμφανίστε το μήνυμα βοήθειας VERGE-Qt για να πάρετε μια λίστα με πιθανές επιλογές γραμμής εντολών VERGE.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Show</source>
-        <translation>&amp;Montrer</translation>
+        <translation>&amp;Προβολή</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>&amp;Console</source>
-        <translation>&amp;Console</translation>
+        <translation>&amp;Κονσόλα</translation>
     </message>
     <message>
         <location line="-260"/>
         <source>Build date</source>
-        <translation>Date de Build</translation>
+        <translation>Ημερομηνία build</translation>
     </message>
     <message>
         <location line="-104"/>
         <source>VERGE - Debug window</source>
-        <translation>VERGE - Fenêtre de Debug</translation>
+        <translation>VERGE - Παράθυρο εντοπισμού σφαλμάτων</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1232,32 +1230,32 @@ Addresse: %4
     <message>
         <location line="+279"/>
         <source>Debug log file</source>
-        <translation>Fichier de log Debug</translation>
+        <translation>Αρχείο καταγραφής εντοπισμού σφαλμάτων</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Ouvrir le fichier log de debug VERGE depuis le répertoire courant des données. Celà peut prendre quelques secondes pour les gros fichiers de logs.</translation>
+        <translation>Ανοίξτε το αρχείο καταγραφής εντοπισμού σφαλμάτων VERGE από τον τρέχοντα κατάλογο δεδομένων. Αυτό μπορεί να διαρκέσει μερικά δευτερόλεπτα για μεγάλα αρχεία καταγραφής.</translation>
     </message>
     <message>
         <location line="+102"/>
         <source>Clear console</source>
-        <translation>Vider la console</translation>
+        <translation>Καθαρισμός κονσόλας</translation>
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
         <source>Welcome to the VERGE RPC console.</source>
-        <translation>Bienvenue dans la console RPC VERGE.</translation>
+        <translation>Καλώς ήλθατε στην κονσόλα VERGE RPC.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
-        <translation>Utiliser les flèches haut et bas pour naviguer dans l&apos;historique, et &lt;b&gt;Ctrl-L&lt;/b&gt; pour effacer l&apos;écran.</translation>
+        <translation>Χρησιμοποιήστε τα πάνω και κάτω βέλη για να περιηγηθείτε στο ιστορικό και &lt;b&gt;Ctrl-L&lt;/b&gt; για να καθαρίσετε την οθόνη.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type &lt;b&gt;help&lt;/b&gt; for an overview of available commands.</source>
-        <translation>Tapper &lt;b&gt;help&lt;/b&gt; pour un aperçu des commandes disponibless.</translation>
+        <translation>Πληκτρολογήστε &lt;b&gt;help&lt;/b&gt; για μια επισκόπηση των διαθέσιμων εντολών.</translation>
     </message>
 </context>
 <context>
@@ -1272,32 +1270,32 @@ Addresse: %4
         <location line="+5"/>
         <location line="+5"/>
         <source>Send Coins</source>
-        <translation>Envoyer des pièces</translation>
+        <translation>Αποστολή Nομισμάτων</translation>
     </message>
     <message>
         <location line="+50"/>
         <source>Send to multiple recipients at once</source>
-        <translation>Envoyer à plusieurs destinataires à la fois</translation>
+        <translation>Αποστολή σε πολλούς παραλήπτες ταυτόχρονα</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation>Ajouter &amp;Destinataire</translation>
+        <translation>Προσθήκη &amp;Παραλήπτη</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Remove all transaction fields</source>
-        <translation>Retirer tous les champs de transactions</translation>
+        <translation>Καταργήστε όλα τα πεδία συναλλαγών</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Clear &amp;All</source>
-        <translation>Effacer &amp;Tout</translation>
+        <translation>Καθαρισμός &amp;Όλων</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Balance:</source>
-        <translation>Balance:</translation>
+        <translation>Υπόλοιπο:</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1307,67 +1305,67 @@ Addresse: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>Confirmer l&apos;action d&apos;envoi</translation>
+        <translation>Επιβεβαιώστε την αποστολή</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>S&amp;end</source>
-        <translation>E&amp;nvoyer</translation>
+        <translation>&amp;Aποστολή</translation>
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-59"/>
         <source>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; vers %2 (%3)</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; σε %2 (%3)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm send coins</source>
-        <translation>Confirmer l&apos;envoi des pièces</translation>
+        <translation>Επιβεβαιώστε την αποστολή νομισμάτων</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>Etes vous sûr de vouloir envoyer %1?</translation>
+        <translation>Είστε βέβαιοι ότι θέλετε να στείλετε %1;</translation>
     </message>
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> et </translation>
+        <translation> και </translation>
     </message>
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>L&apos;adresse du destinataie est invalide, merci de re-vérifier.</translation>
+        <translation>Η διεύθυνση παραλήπτη δεν είναι έγκυρη, παρακαλώ ελέγξτε ξανά.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount to pay must be larger than 0.</source>
-        <translation>Le montant à payer doit être supérieur à 0.</translation>
+        <translation>Το ποσό πληρωμής πρέπει να είναι μεγαλύτερο από το 0.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The amount exceeds your balance.</source>
-        <translation>Le montant est supérieur à votre balance.</translation>
+        <translation>Το ποσό υπερβαίνει το υπόλοιπό σας.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>The total exceeds your balance when the %1 transaction fee is included.</source>
-        <translation>Le total est supérieur à votre balance avec les frais de transaction %1 inclus.</translation>
+        <translation>Το σύνολο υπερβαίνει το υπόλοιπό σας όταν περιληφθεί και το τέλος συναλλαγής %1.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Duplicate address found, can only send to each address once per send operation.</source>
-        <translation>Deux adresses sont identiques, il n&apos;est possible d&apos;envoyer vers chaque adresse une seule fois par opération</translation>
+        <translation>Βρέθηκε διπλή διεύθυνση, μπορείτε να στείλετε μία φορά σε κάθε διεύθυνση ανά λειτουργία αποστολής.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: Transaction creation failed.</source>
-        <translation>Erreur: création de la transaction échouée.</translation>
+        <translation>Σφάλμα: Η δημιουργία συναλλαγής απέτυχε.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-       <translation>Erreur: la transation a été rejectée. Celà peut arriver si certaines de vos pièces ont été déjà dépensées, par exemple si vous avez utilisé une copie de wallet.dat, et que vos pièces ont été utilisée dans la copie mais non marquées comme dépensées ici.</translation>
+        <translation>Σφάλμα: Η συναλλαγή απορρίφθηκε. Αυτό μπορεί να συμβεί αν κάποια από τα νομίσματα στο πορτοφόλι σας έχουν ήδη δαπανηθεί, όπως εάν χρησιμοποιούσατε ένα αντίγραφο του wallet.dat και τα νομίσματα δαπανήθηκαν στο αντίγραφο αλλά δεν σημειώθηκαν όπως δαπανήθηκαν εδώ.</translation>
     </message>
 </context>
 <context>
@@ -1375,38 +1373,38 @@ Addresse: %4
     <message>
         <location filename="../forms/sendcoinsentry.ui" line="+14"/>
         <source>Form</source>
-        <translation>Formulaire</translation>
+        <translation>Μορφή</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>Q&amp;uantité:</translation>
+        <translation>Π&amp;οσό:</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Pay &amp;To:</source>
-        <translation>Payer &amp;à:</translation>
+        <translation>Πληρωμή &amp;Προς:</translation>
     </message>
     <message>
         <location line="+24"/>
         <location filename="../sendcoinsentry.cpp" line="+25"/>
         <source>Enter a label for this address to add it to your address book</source>
-        <translation>Entrer un label pour cette address pour l&apos;ajouter à votre carnet d&apos;adresses</translation>
+        <translation>Καταχωρίστε μια ετικέτα για αυτήν τη διεύθυνση για το βιβλίο διευθύνσεών σας</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>&amp;Label:</source>
-        <translation>&amp;Label:</translation>
+        <translation>&amp;Ετικέτα:</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
-        <translation>Adresse vers laquelle envoyer le paiement (ex: 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
+        <translation>Η διεύθυνση για την αποστολή της πληρωμής σε (π.χ. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Choose address from address book</source>
-        <translation>Choisir une adresse depuis le carnet d&apos;adresses</translation>
+        <translation>Επιλέξτε διεύθυνση από το βιβλίο διευθύνσεων</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1416,7 +1414,7 @@ Addresse: %4
     <message>
         <location line="+7"/>
         <source>Paste address from clipboard</source>
-        <translation>Coller l&apos;adresse depuis le Presse-Papier</translation>
+        <translation>Επικολλήση της διεύθυνσης από το πρόχειρο</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1426,12 +1424,12 @@ Addresse: %4
     <message>
         <location line="+7"/>
         <source>Remove this recipient</source>
-        <translation>Supprimer ce destinataire</translation>
+        <translation>Καταργήστε αυτόν τον παραλήπτη</translation>
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Entrer une adresse VERGE valide </translation>
+        <translation>Δώστε μια έγκυρη διεύθυνση VERGE</translation>
     </message>
 </context>
 <context>
@@ -1439,29 +1437,29 @@ Addresse: %4
     <message>
         <location filename="../forms/signverifymessagedialog.ui" line="+14"/>
         <source>Signatures - Sign / Verify a Message</source>
-        <translation>Signatures - Signer / Verifier un Message</translation>
+        <translation>Υπογραφές - Υπογραφή / Επαλήθευση Μηνύματος</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+124"/>
         <source>&amp;Sign Message</source>
-        <translation>&amp;Signer Message</translation>
+        <translation>&amp;Υπογραφή Μηνύματος</translation>
     </message>
     <message>
         <location line="-118"/>
         <source>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Vous pouvez signer les messages avec votre adresse pour prouver que vous les reconnaissez. Soyez attentif de ne pas signer quelque chose de vague, car des attaques de Phishing pourraient tenter de vous berner et vous faire signer. Signez uniquement des déclaration très détaillées avec lesquelles vous êtes en accord.</translation>
+        <translation>Μπορείτε να υπογράψετε μηνύματα με τις διευθύνσεις σας για να αποδείξετε ότι είστε κύριοι. Προσέξτε να μην υπογράψετε τίποτα ασαφές, καθώς οι επιθέσεις ηλεκτρονικού "ψαρέματος" ενδέχεται να σας εξαπατήσουν να υπογράψετε την ταυτότητά σας σε αυτούς. Υπογράψτε μόνο πλήρως λεπτομερείς δηλώσεις που συμφωνείτε.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>The address to sign the message with </source>
-        <translation>L&apos;adresse avec laquelle signer le message </translation>
+        <translation>Η διεύθυνση για να υπογράψετε το μήνυμα με</translation>
     </message>
     <message>
         <location line="+10"/>
         <location line="+203"/>
         <source>Choose an address from the address book</source>
-        <translation>Choisir une adresse depuis le carnet d&apos;adresse</translation>
+        <translation>Επιλέξτε μια διεύθυνση από το βιβλίο διευθύνσεων</translation>
     </message>
     <message>
         <location line="-193"/>
@@ -1472,7 +1470,7 @@ Addresse: %4
     <message>
         <location line="-193"/>
         <source>Paste address from clipboard</source>
-        <translation>Coller l&apos;adresse depuis le Presse-Papier</translation>
+        <translation>Επικολλήστε τη διεύθυνση από το πρόχειρο</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1482,76 +1480,76 @@ Addresse: %4
     <message>
         <location line="+12"/>
         <source>Enter the message you want to sign here</source>
-        <translation>Entrez le message que vous voulez signer ici</translation>
+        <translation>Εισαγάγετε το μήνυμα που θέλετε να υπογράψετε εδώ</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Copy the current signature to the system clipboard</source>
-        <translation>Copier la signature courante dans le Presse-Papier</translation>
+        <translation>Αντιγράψτε την τρέχουσα υπογραφή στο πρόχειρο του συστήματος</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Sign the message to prove you own this VERGE address</source>
-        <translation>Signer le message pour prouver que vous possédez cette adresse VERGE</translation>
+        <translation>Υπογράψτε το μήνυμα για να αποδείξετε ότι είστε ο ιδιοκτήτης αυτής της διεύθυνσης VERGE</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all sign message fields</source>
-        <translation>Réinitialiser tous les champs de signature du message</translation>
+        <translation>Επαναφέρετε όλα τα πεδία υπογραφών μηνυμάτων</translation>
     </message>
     <message>
         <location line="+3"/>
         <location line="+146"/>
         <source>Clear &amp;All</source>
-        <translation>Effacer &amp;Tout</translation>
+        <translation>Καθαρισμός όλων</translation>
     </message>
     <message>
         <location line="-87"/>
         <location line="+70"/>
         <source>&amp;Verify Message</source>
-        <translation>&amp;Verifier Message</translation>
+        <translation>&amp;Επαλήθευση Μηνύματος</translation>
     </message>
     <message>
         <location line="-64"/>
         <source>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</source>
-        <translation>Entrer l&apos;adresse de signature, message (Assurez vous de copier les retours à la ligne, espaces, tabulations, etc. exactement), et la signature ci-dessous pour vérifier le message. Attention de ne pas lire plus dans la signature qu&apos;il n&apos;y avait dans le message signé, pour éviter une attaque de l&apos;homme du milieu.</translation>
+        <translation>Εισαγάγετε τη διεύθυνση υπογραφής, το μήνυμα (βεβαιωθείτε ότι αντιγράφετε σωστά τις αλλαγές γραμμής, τα κενά, τις καρτέλες κλπ.) και την υπογραφή παρακάτω για να επαληθεύσετε το μήνυμα. Προσέξτε να μην διαβάσετε περισσότερα στην υπογραφή από ό,τι είναι στο ίδιο το υπογεγραμμένο μήνυμα, για να αποφύγετε να εξαπατήθητε από μια επίθεση man-in-the-middle.</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>The address the message was signed with </source>
-        <translation>Adresse avec laquelle le message a été signé </translation>
+        <translation>Η διεύθυνση με την οποία υπογράφηκε το μήνυμα</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Verify the message to ensure it was signed with the specified VERGE address</source>
-        <translation>Vérifier le message pour s&apos;assurer qu&apos;il a été signé avec l&apos;adresse VERGE spécifiée</translation>
+        <translation>Επαληθεύστε το μήνυμα για να βεβαιωθείτε ότι υπογράφηκε με την καθορισμένη διεύθυνση VERGE</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Reset all verify message fields</source>
-        <translation>Réinitialiser tous les champs de vérification de message</translation>
+        <translation>Επαναφέρετε όλα τα πεδία επαλήθευσης μηνυμάτων</translation>
     </message>
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Entrer une adresse VERGE valide</translation>
+        <translation>Εισαγάγετε μια έγκυρη διεύθυνση VERGE</translation>
     </message>
     <message>
         <location line="-2"/>
-        <source>Click &quot;Sign Message&quot; to generate signature</source>
-        <translation>Clicker &quot;Signer Message&quot; pour générer la signature</translation>
+        <source>Click "Sign Message" to generate signature</source>
+        <translation>Κάντε κλικ στην επιλογή "Υπογραφή Mηνύματος" για να δημιουργήσετε υπογραφή</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Enter VERGE signature</source>
-        <translation>Entrer la signature VERGE</translation>
+        <translation>Εισαγάγετε την υπογραφή VERGE</translation>
     </message>
     <message>
         <location line="+82"/>
         <location line="+81"/>
         <source>The entered address is invalid.</source>
-        <translation>L&apos;adresse entrée est invalide.</translation>
+        <translation>Η καταχωρημένη διεύθυνση δεν είναι έγκυρη.</translation>
     </message>
     <message>
         <location line="-81"/>
@@ -1559,59 +1557,59 @@ Addresse: %4
         <location line="+73"/>
         <location line="+8"/>
         <source>Please check the address and try again.</source>
-        <translation>Merci de vérifier l&apos;adresse et d&apos;essayer à nouveau.</translation>
+        <translation>Ελέγξτε τη διεύθυνση και δοκιμάστε ξανά.</translation>
     </message>
     <message>
         <location line="-81"/>
         <location line="+81"/>
         <source>The entered address does not refer to a key.</source>
-        <translation>L&apos;adresse entrée ne correspond pas à une clé.</translation>
+        <translation>Η καταχωρημένη διεύθυνση δεν αναφέρεται σε κάποιο κλειδί.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Wallet unlock was cancelled.</source>
-        <translation>Le dévérouillage du portefeuille a été annulé.</translation>
+        <translation>Το ξεκλείδωμα του πορτοφολιού ακυρώθηκε.</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Private key for the entered address is not available.</source>
-        <translation>La clé privée pour l&apos;adresse entrée n&apos;est pas disponible.</translation>
+        <translation>Το ιδιωτικό κλειδί για την καταχωρημένη διεύθυνση δεν είναι διαθέσιμο.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Message signing failed.</source>
-        <translation>Echec de la signature du message.</translation>
+        <translation>Η υπογραφή μηνυμάτων απέτυχε.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message signed.</source>
-        <translation>Message signé.</translation>
+        <translation>Το μήνυμα έχει υπογραφεί.</translation>
     </message>
     <message>
         <location line="+59"/>
         <source>The signature could not be decoded.</source>
-        <translation>La signature n&apos;a pas pu être décodée.</translation>
+        <translation>Δεν ήταν δυνατή η αποκωδικοποίηση της υπογραφής.</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Please check the signature and try again.</source>
-        <translation>Merci de vérifier la signature et d&apos;essayer à nouveau.</translation>
+        <translation>Ελέγξτε την υπογραφή και δοκιμάστε ξανά.</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>The signature did not match the message digest.</source>
-        <translation>La signature ne correspond pas au digest du message.</translation>
+        <translation>Η υπογραφή δεν ταιριάζει με το σύνοψη του μήνυματος.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Message verification failed.</source>
-        <translation>Echec de la vérification du message.</translation>
+        <translation>Η επαλήθευση μηνύματος απέτυχε.</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Message verified.</source>
-        <translation>Message verifié.</translation>
+        <translation>Το μήνυμα επαληθεύτηκε.</translation>
     </message>
 </context>
 <context>
@@ -1619,82 +1617,82 @@ Addresse: %4
     <message>
         <location filename="../transactiondesc.cpp" line="+19"/>
         <source>Open until %1</source>
-        <translation>Ouvert jusqu&apos;à %1</translation>
+        <translation>Ανοίξτε έως %1</translation>
     </message>
     <message numerus="yes">
         <location line="-2"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Ouvert pour %n bloc</numerusform>
-            <numerusform>Ouvert pour %n blocs</numerusform>
+            <numerusform>Άνοιγμα για %n block</numerusform>
+            <numerusform>Άνοιγμα για %n blocks</numerusform>
         </translation>
     </message>
     <message>
         <location line="+8"/>
         <source>%1/offline</source>
-        <translation>%1/déconnecté</translation>
+        <translation>%1/εκτός σύνδεσης</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1/unconfirmed</source>
-        <translation>%1/non confirmé</translation>
+        <translation>%1/μη επιβεβαιωμένο</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>%1 confirmations</source>
-        <translation>%1 confirmations</translation>
+        <translation>%1 επιβεβαιώσεις</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Status</source>
-        <translation>Status</translation>
+        <translation>Κατάσταση</translation>
     </message>
     <message numerus="yes">
         <location line="+7"/>
         <source>, broadcast through %n node(s)</source>
         <translation>
-            <numerusform>, diffusion via %n noeud</numerusform>
-            <numerusform>, diffusion via %n noeuds</numerusform>
+            <numerusform>, μετάδοση μέσω %n node</numerusform>
+            <numerusform>, μετάφοση μέσω %n nodes</numerusform>
         </translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Date</source>
-        <translation>Date</translation>
+        <translation>Ημερομηνία</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Source</source>
-        <translation>Source</translation>
+        <translation>Πηγή</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Generated</source>
-        <translation>Généré</translation>
+        <translation>Δημιουργήθηκαν</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+17"/>
         <source>From</source>
-        <translation>De</translation>
+        <translation>Από</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+22"/>
         <location line="+58"/>
         <source>To</source>
-        <translation>à</translation>
+        <translation>Προς</translation>
     </message>
     <message>
         <location line="-77"/>
         <location line="+2"/>
         <source>own address</source>
-        <translation>Mon adresse</translation>
+        <translation>δική σας διεύθυνση</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>label</source>
-        <translation>label</translation>
+        <translation>ετικέτα</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -1703,20 +1701,20 @@ Addresse: %4
         <location line="+17"/>
         <location line="+30"/>
         <source>Credit</source>
-        <translation>Crédit</translation>
+        <translation>Πίστωση</translation>
     </message>
     <message numerus="yes">
         <location line="-102"/>
         <source>matures in %n more block(s)</source>
         <translation>
-            <numerusform>maturation dans %n bloc supplémentaire</numerusform>
-            <numerusform>maturation dans %n blocs supplémentaires</numerusform>
+            <numerusform>matures in %n more block</numerusform>
+            <numerusform>matures in %n more blocks</numerusform>
         </translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not accepted</source>
-        <translation>non accepté</translation>
+        <translation>μη αποδεκτη</translation>
     </message>
     <message>
         <location line="+44"/>
@@ -1724,82 +1722,82 @@ Addresse: %4
         <location line="+15"/>
         <location line="+30"/>
         <source>Debit</source>
-        <translation>Débit</translation>
+        <translation>Χρέωση</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Transaction fee</source>
-        <translation>Frais de transaction</translation>
+        <translation>Τέλος συναλλαγής</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Net amount</source>
-        <translation>Montant net</translation>
+        <translation>Καθαρό ποσό</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Message</source>
-        <translation>Message</translation>
+        <translation>Μήνυμα</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Comment</source>
-        <translation>Commentaire</translation>
+        <translation>Σχόλιο</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Transaction ID</source>
-        <translation>ID de Transaction</translation>
+        <translation>Ταυτότητα συναλλαγής (ID)</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Les pièces générées doivent murir 25 blocs avant de pouvoir être dépensées. Lorsque vous avez généré ce bloc, il a été diffusé au réseau pour être ajouté à la chaîne de blocs. Si l&apos;ajout dans la chaîne échoue, son statut va changer en &quot;non accepté&quot; et il ne pourra pas être dépensé. Celà peut arriver occasionellement si un autre noeud génère un bloc dans les quelques secondes suivant le vôtre.</translation>
+        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to "not accepted" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <translation>Τα παραγόμενα νομίσματα πρέπει να ωριμάσουν 25 block πριν ξοδέφτούν. Όταν δημιουργήσατε αυτό το block, μεταδόθηκε στο δίκτυο για να προστεθεί στην αλυσίδα block. Εάν δεν καταφέρει να εισέλθει στην αλυσίδα, η κατάστασή της θα αλλάξει σε "μη αποδεκτή" και δεν θα είναι δυνατόν να ξοδεφτεί. Αυτό μπορεί περιστασιακά να συμβεί αν ένας άλλος κόμβος παράγει ένα block μέσα σε λίγα δευτερόλεπτα από το δικό σας.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Staked coins must wait 25 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation>Les pièces d&apos;enjeu divent attendre 25 blocks avant de retourner dans la balance et être dépensées.  Lorsque vous avez généré ce bloc de preuve d&apos;enjeu, il a été diffusé au réseau pour être ajouté à la chaîne de blocs. Si l&apos;ajout dans la chaîne échoue, son statut va changer en &quot;non accepté&quot; et il ne pourra pas être dépensé. Celà peut arriver occasionellement si un autre noeud génère un bloc avec preuve d&apos;enjeu dans les quelques secondes suivant le vôtre.</translation>
+        <translation>Τα staked νομίσματα πρέπει να περιμένουν 25 block πριν μπορέσουν να επιστρέψουν στο υπόλοιπο και να δαπανηθούν. Όταν δημιουργήσατε αυτό το block proof-of-stake, μεταδόθηκε στο δίκτυο για να προστεθεί στην αλυσίδα block. Εάν αποτύχει να εισέλθει στην αλυσίδα, θα αλλάξει σε \"μη αποδεκτό\" και δεν είναι έγκυρο ποντάρισμα. Αυτό μπορεί περιστασιακά να συμβεί αν κάποιος άλλος κόμβος παράγει ένα block από απόδειξη συμμετοχής μέσα σε λίγα δευτερόλεπτα από το δικό σας.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Debug information</source>
-        <translation>Informations de Debug</translation>
+        <translation>Πληροφορίες σφαλμάτων</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Transaction</source>
-        <translation>Transaction</translation>
+        <translation>Συναλλαγή</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Inputs</source>
-        <translation>Entrées</translation>
+        <translation>Είσοδοι</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Amount</source>
-        <translation>Quantité</translation>
+        <translation>Ποσό</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>true</source>
-        <translation>vrai</translation>
+        <translation>αληθής</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>false</source>
-        <translation>faux</translation>
+        <translation>ψευδής</translation>
     </message>
     <message>
         <location line="-211"/>
         <source>, has not been successfully broadcast yet</source>
-        <translation>, n&apos;a pas été diffusé avec succès pour l&apos;instant</translation>
+        <translation>, δεν έχει ακόμη μεταδοθεί με επιτυχία</translation>
     </message>
     <message>
         <location line="+35"/>
         <source>unknown</source>
-        <translation>inconnu</translation>
+        <translation>άγνωστος</translation>
     </message>
 </context>
 <context>
@@ -1807,12 +1805,12 @@ Addresse: %4
     <message>
         <location filename="../forms/transactiondescdialog.ui" line="+14"/>
         <source>Transaction details</source>
-        <translation>Détails de transaction</translation>
+        <translation>Λεπτομέρειες Συναλλαγής</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>This pane shows a detailed description of the transaction</source>
-        <translation>Cet écran montre une description détaillée de la transaction</translation>
+        <translation>Αυτό το παράθυρο παρουσιάζει μια λεπτομερή περιγραφή της συναλλαγής</translation>
     </message>
 </context>
 <context>
@@ -1820,93 +1818,93 @@ Addresse: %4
     <message>
         <location filename="../transactiontablemodel.cpp" line="+226"/>
         <source>Date</source>
-        <translation>Date</translation>
+        <translation>Ημερομηνία</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type</source>
-        <translation>Type</translation>
+        <translation>Τύπος</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
-        <translation>Adresse</translation>
+        <translation>Διεύθυνση</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Amount</source>
-        <translation>Quantité</translation>
+        <translation>Ποσό</translation>
     </message>
     <message numerus="yes">
         <location line="+57"/>
         <source>Open for %n block(s)</source>
         <translation>
-            <numerusform>Ouvert pour %n bloc</numerusform>
-            <numerusform>Ouvert pour %n blocs</numerusform>
+            <numerusform>Ανοικτό για %n block</numerusform>
+            <numerusform>Ανοικτό για %n blocks</numerusform>
         </translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open until %1</source>
-        <translation>Ouvert jusque %1</translation>
+        <translation>Ανοίξτε μέχρι %1</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Offline (%1 confirmations)</source>
-        <translation>Déconnecté (%1 confirmations)</translation>
+        <translation>Εκτός σύνδεσης (%1 επιβεβαιώσεις)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Unconfirmed (%1 of %2 confirmations)</source>
-        <translation>Non confirmé (%1 of %2 confirmations)</translation>
+        <translation>Μη επιβεβαιωμένο (%1 από %2 επιβεβαιώσεις)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Confirmed (%1 confirmations)</source>
-        <translation>Confirmé (%1 confirmations)</translation>
+        <translation>Επιβεβαιωμένο (%1 επιβεβαιώσεις)</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
         <source>Mined balance will be available when it matures in %n more block(s)</source>
         <translation>
-            <numerusform>Mined balance will be available when it matures in %n more block</numerusform>
-            <numerusform>La balance minée sera disponible lorsque elle aura muri dans %n bloc</numerusform>
+            <numerusform>Το mined υπόλοιπο θα είναι διαθέσιμο μόλις οριμάσει σε %n more block</numerusform>
+            <numerusform>To mined υπόλοιπο θα είναι διαθέσιμο μόλις οριμάσει σε %n more blocks</numerusform>
         </translation>
     </message>
     <message>
         <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>Ce bloc n&apos;a été reçu par aucun autre noeud et ne sera probablement pas accepté!</translation>
+        <translation>Αυτό το block δεν παρελήφθη από κάποιο node και πιθανότατα δεν θα γίνει αποδεκτό!</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Generated but not accepted</source>
-        <translation>Généré mais non accepté</translation>
+        <translation>Δημιουργήθηκε αλλά δεν έγινε αποδεκτή</translation>
     </message>
     <message>
         <location line="+43"/>
         <source>Received with</source>
-        <translation>Reçu avec</translation>
+        <translation>Λήψη με</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Received from</source>
-        <translation>Reçu de</translation>
+        <translation>Λήψη από</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sent to</source>
-        <translation>Envoyé à</translation>
+        <translation>Αποστολή προς</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Payment to yourself</source>
-        <translation>Paiement à vous-même</translation>
+        <translation>Πληρωμή στον εαυτό σας</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Mined</source>
-        <translation>Miné</translation>
+        <translation>Εξόρυξη</translation>
     </message>
     <message>
         <location line="+38"/>
@@ -1916,27 +1914,27 @@ Addresse: %4
     <message>
         <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>Statut de Transaction. Passer au dessus de ce champ pour afficher le nombre de confirmations.</translation>
+        <translation>Κατάσταση συναλλαγής. Τοποθετήστε το δείκτη του ποντικιού πάνω από το πεδίο για να δείτε τον αριθμό των επιβεβαιώσεων.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Date and time that the transaction was received.</source>
-        <translation>Date et heure à laquelle la transaction a été reçue.</translation>
+        <translation>Ημερομηνία και ώρα λήψης της συναλλαγής.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Type of transaction.</source>
-        <translation>Type de transaction.</translation>
+        <translation>Είδος συναλλαγής.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Destination address of transaction.</source>
-        <translation>Adresse de destination de la transaction.</translation>
+        <translation>Διεύθυνση προορισμού της συναλλαγής.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Amount removed from or added to balance.</source>
-        <translation>Quantité retirée ou ajoutée à la balance.</translation>
+        <translation>Ποσό που αφαιρέθηκε ή προστέθηκε στo υπόλοιπο.</translation>
     </message>
 </context>
 <context>
@@ -1945,162 +1943,162 @@ Addresse: %4
         <location filename="../transactionview.cpp" line="+55"/>
         <location line="+16"/>
         <source>All</source>
-        <translation>Tout</translation>
+        <translation>Όλα</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Today</source>
-        <translation>Aujourd&apos;hui</translation>
+        <translation>Σήμερα</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This week</source>
-        <translation>Cette semaine</translation>
+        <translation>Αυτή την εβδομάδα</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This month</source>
-        <translation>Ce mois</translation>
+        <translation>Αυτο το μηνα</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Last month</source>
-        <translation>Mois dernier</translation>
+        <translation>Τον προηγούμενο μήνα</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>This year</source>
-        <translation>Cette année</translation>
+        <translation>Τρέχων έτος</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Range...</source>
-        <translation>Range...</translation>
+        <translation>Εύρος...</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received with</source>
-        <translation>Reçu avec</translation>
+        <translation>Λήψη με</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Sent to</source>
-        <translation>Envoyé à</translation>
+        <translation>Αποστολή πρός</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>To yourself</source>
-        <translation>A vous-même</translation>
+        <translation>Στον εαυτό σου</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Mined</source>
-        <translation>Miné</translation>
+        <translation>Εξόρυξη</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Other</source>
-        <translation>Autre</translation>
+        <translation>Αλλα</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter address or label to search</source>
-        <translation>Entrer l&apos;adresse ou le label à chercher</translation>
+        <translation>Καταχωρίστε διεύθυνση ή ετικέτα για αναζήτηση</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Min amount</source>
-        <translation>Quantité minimum</translation>
+        <translation>Ελάχιστο ποσό</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Copy address</source>
-        <translation>Copier adresse</translation>
+        <translation>Αντιγραφή διεύθυνσης</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy label</source>
-        <translation>Copier label</translation>
+        <translation>Αντιγραφή ετικέτας</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy amount</source>
-        <translation>Copier quantité</translation>
+        <translation>Αντίγραφη ποσού</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit label</source>
-        <translation>Editer label</translation>
+        <translation>Επεξεργασία ετικέτας</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show transaction details</source>
-        <translation>Montrer les détails de transaction</translation>
+        <translation>Εμφάνιση λεπτομερειών συναλλαγής</translation>
     </message>
     <message>
         <location line="+142"/>
         <source>Export Transaction Data</source>
-        <translation>Exporter les données de transaction</translation>
+        <translation>Εξαγωγή δεδομένων συναλλαγών</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comma separated file (*.csv)</source>
-        <translation>Comma separated file (*.csv)</translation>
+        <translation>Αρχείο διαχωρισμένο με κόμματα (*.csv)</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Confirmed</source>
-        <translation>Confirmé</translation>
+        <translation>Επιβεβαιωμένη</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date</source>
-        <translation>Date</translation>
+        <translation>Ημερομηνία</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type</source>
-        <translation>Type</translation>
+        <translation>Τύπος</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Label</source>
-        <translation>Label</translation>
+        <translation>Ετικέτα</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Address</source>
-        <translation>Adresse</translation>
+        <translation>Διεύθυνση</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Amount</source>
-        <translation>Quantité</translation>
+        <translation>Ποσό</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>ID</source>
-        <translation>ID</translation>
+        <translation>Ταυτότητα (ID)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Error exporting</source>
-        <translation>Error d&apos;exportation</translation>
+        <translation>Σφάλμα εξαγωγής</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Could not write to file %1.</source>
-        <translation>Impossible d&apos;écrire dans le fichier %1.</translation>
+        <translation>Δεν ήταν δυνατή η εγγραφή στο αρχείο %1.</translation>
     </message>
     <message>
         <location line="+95"/>
         <source>Range:</source>
-        <translation>Range:</translation>
+        <translation>Εύρος:</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>to</source>
-        <translation>à</translation>
+        <translation>προς</translation>
     </message>
 </context>
 <context>
@@ -2108,7 +2106,7 @@ Addresse: %4
     <message>
         <location filename="../walletmodel.cpp" line="+192"/>
         <source>Sending...</source>
-        <translation>Envoi en cours...</translation>
+        <translation>Αποστολή...</translation>
     </message>
 </context>
 <context>
@@ -2116,432 +2114,432 @@ Addresse: %4
     <message>
         <location filename="../bitcoinstrings.cpp" line="+82"/>
         <source>VERGE version</source>
-        <translation>Version VERGE</translation>
+        <translation>Έκδοση VERGE</translation>
     </message>
     <message>
         <location line="+82"/>
         <source>Usage:</source>
-        <translation>Utilisation:</translation>
+        <translation>Χρήση:</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Send command to -server or bitcoind</source>
-        <translation>Envoie la commande à -server ou bitcoind</translation>
+        <translation>Αποστολή εντολής σε -server ή bitcoind</translation>
     </message>
     <message>
         <location line="-19"/>
         <source>List commands</source>
-        <translation>Lister commandes</translation>
+        <translation>Λίστα εντολών</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>Get help for a command</source>
-        <translation>Obtenir de l&apos;aide pour une commande</translation>
+        <translation>Λάβετε βοήθεια για μια εντολή</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Options:</source>
-        <translation>Options:</translation>
+        <translation>Επιλογές:</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Specify configuration file (default: VERGE.conf)</source>
-        <translation>Spécifier le fichier de configuration (defaut: VERGE.conf)</translation>
+        <translation>Ορισμός αρχείου ρυθμίσεων (προεπιλογή: VERGE.conf)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Specify pid file (default: VERGEd.pid)</source>
-        <translation>Specifier le fichier pid (defalt: VERGEd.pid)</translation>
+        <translation>Ορισμός αρχείου pid (προεπιλογή: VERGEd.pid)</translation>
     </message>
     <message>
         <location line="-47"/>
         <source>Generate coins</source>
-        <translation>Générer pièces</translation>
+        <translation>Δημιουργία νομισμάτων</translation>
     </message>
     <message>
         <location line="-14"/>
-        <source>Don&apos;t generate coins</source>
-        <translation>Ne pas générer de pièces</translation>
+        <source>Don't generate coins</source>
+        <translation>Μην δημιουργείτε κέρματα</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Specify data directory</source>
-        <translation>Spécifier le répertoire de donnée</translation>
+        <translation>Ορισμός του καταλόγου δεδομένων</translation>
     </message>
     <message>
         <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
-        <translation>Définir la taille du cache en megabytes (defaut: 25)</translation>
+        <translation>Ορίστε το μέγεθος προσωρινής μνήμης της βάσης δεδομένων σε megabytes (προεπιλογή: 25)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set database disk log size in megabytes (default: 100)</source>
-        <translation>Définir la taille du log disque de la base de donnée en megabytes (default: 100)</translation>
+        <translation>Ορισμός μεγέθους του αρχείου καταγραφής της βάσης δεδομένων σε megabytes (προεπιλογή: 100)</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Ecouter les connexion sur &lt;port&gt; (defaut: 21102 ou testnet: 18333)</translation>
+        <translation>Αναμονή για συνδέσεις στην &lt;θύρα&gt; (default: 21102 or testnet: 18333)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Maintain at most &lt;n&gt; connections to peers (default: 125)</source>
-        <translation>Maintenir au moins &lt;n&gt; connexions avec les pairs (defaut: 125)</translation>
+        <translation>Διατηρήση μεγίστo &lt;n&gt; συνδέσεις στους peers (προεπιλογή: 125)</translation>
     </message>
     <message>
         <location line="-33"/>
         <source>Connect to a node to retrieve peer addresses, and disconnect</source>
-        <translation>Connecter pour retrouver les adresses des pairs, et déconnecter</translation>
+        <translation>Συνδεθείτε σε έναν κόμβο για να ανακτήσετε τις διευθύνσεις peers, και αποσυνδεθείτε</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>Specify your own public address</source>
-        <translation>Spécifier votre adresse publique</translation>
+        <translation>Καθορίστε τη δική σας δημόσια διεύθυνση</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Bind to given address. Use [host]:port notation for IPv6</source>
-        <translation>Utiliser une adresse spécifique. Utiliser la notation [host]:port pour IPv6</translation>
+        <translation>Δέσμευση σε δοτή διεύθυνση. Χρησιμοποιήστε την [host]:port σημειογραφία για το IPv6</translation>
     </message>
     <message>
         <location line="+77"/>
         <source>Threshold for disconnecting misbehaving peers (default: 100)</source>
-        <translation>Seuil pour déconnecter les pairs avec un mauvais comportement (defaut: 100)</translation>
+        <translation>Όριο για την αποσύνδεση των ενοχλητικών peers (προεπιλογή: 100)</translation>
     </message>
     <message>
         <location line="-112"/>
         <source>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</source>
-        <translation>Nombre de secondes avant reconnexion des pair avec mauvais comportement (defaut: 86400)</translation>
+        <translation>Αριθμός δευτερολέπτων για να αποφύγετε την επανασύνδεση των ενοχλητικών peers (προεπιλογή: 86400)</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation>Erreur lors de la configuration du port RPC %u pour écouter sur IPv4: %s</translation>
+        <translation>Παρουσιάστηκε σφάλμα κατά τη ρύθμιση της θύρας RPC %u για ακρόαση στο IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Detach block and address databases. Increases shutdown time (default: 0)</source>
-        <translation>Détachement des bases de données de blocs et d'adresses. Augmente le temps d'arrêt (defaut: 0)</translation>
+        <translation>Αποσύνδεση βάσεων δεδομένων block και διευθύνσεων. Αυξάνει τον χρόνο τερματισμού (προεπιλογή: 0)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Erreur: la transaction a été rejetée. Celà peut arriver si certaines de vos pièces ont été déjà dépensées, par exemple si vous avez utilisé une copie de wallet.dat, et que vos pièces ont été utilisée dans la copie mais non marquées comme dépensées ici.</translation>
+        <translation>Σφάλμα: Η συναλλαγή απορρίφθηκε. Αυτό μπορεί να συμβεί αν κάποια από τα νομίσματα στο πορτοφόλι σας έχουν ήδη δαπανηθεί, όπως εάν χρησιμοποιούσατε αντίγραφο wallet.dat και νομίσματα δαπανήθηκαν στο αντίγραφο αλλά δεν σημειώθηκαν όπως δαπανήθηκαν εδώ.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation type="unfinished"></translation>
+        <translation>Σφάλμα: Αυτή η συναλλαγή απαιτεί τέλος συναλλαγής τουλάχιστον %s λόγω του ποσού, της πολυπλοκότητάς ή χρήση των πρόσφατων κεφαλαίων</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
-        <translation type="unfinished"></translation>
+        <translation>Αναμονή σύνδεσης JSON-RPC στη &lt;θύρα&gt; (προεπιλογή: 8344 ή testnet: 18344)</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Accept command line and JSON-RPC commands</source>
-        <translation>Accept command line and JSON-RPC commands</translation>
+        <translation>Αποδοχή εντολών και εντολών JSON-RPC</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>Error: Transaction creation failed  </source>
-        <translation type="unfinished"></translation>
+        <translation>Σφάλμα: Η δημιουργία συναλλαγής απέτυχε  </translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation type="unfinished"></translation>
+        <translation>Σφάλμα: Το πορτοφόλι είναι κλειδωμένο, δεν μπορεί να δημιουργήθει συναλλαγή  </translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Importing blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Εισαγωγή αρχείου δεδομένων blockchain</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Importing bootstrap blockchain data file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Εισαγωγή bootstrap αρχείου δεδομένων blockchain</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Run in the background as a daemon and accept commands</source>
-        <translation>Run in the background as a daemon and accept commands</translation>
+        <translation>Εκτελέστε στο παρασκήνιο ως daemon και αποδεχτείτε εντολές</translation>
     </message>
     <message>
         <location line="+33"/>
         <source>Use the test network</source>
-        <translation>Use the test network</translation>
+        <translation>Χρησιμοποιήστε το δοκιμαστικό δίκτυο</translation>
     </message>
     <message>
         <location line="-93"/>
         <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>
-        <translation>Accept connections from outside (default: 1 if no -proxy or -connect)</translation>
+        <translation>Αποδοχή συνδέσεων από το εξωτερικό (προεπιλογή: 1 εάν δεν υπάρχει -proxy ή -connect)</translation>
     </message>
     <message>
         <location line="-53"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Παρουσιάστηκε σφάλμα κατά τη ρύθμιση της θύρας RPC %u για ακρόαση σε IPv6, μετάπτωση σε IPv4: %s</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation type="unfinished"></translation>
+        <translation>Σφάλμα αρχικοποίησης του περιβάλλοντος βάσης δεδομένων %s! Για να ανακτήσετε, ΚΑΝΤΕ ΑΝΤΙΓΡΑΦΟ ΑΣΦΑΛΕΙΑΣ ΤΟΥ ΦΑΚΕΛΟΥ, στη συνέχεια αφαιρέστε τα πάντα εκτός από το wallet.dat.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</source>
-        <translation>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</translation>
+        <translation>Ορισμός μέγιστου μεγέθους συναλλαγών υψηλής προτεραιότητας/χαμηλού τέλους σε bytes (προεπιλογή: 27000)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
-        <translation>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</translation>
+        <translation>Προειδοποίηση: -paytxfee είναι πολύ υψηλό! Αυτή είναι η χρέωση συναλλαγής που θα πληρώσετε εάν στείλετε μια συναλλαγή.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</source>
-        <translation>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</translation>
+        <translation>Προειδοποίηση: Οι εμφανιζόμενες συναλλαγές ενδέχεται να μην είναι σωστές! Ίσως χρειαστεί να κάνετε αναβάθμιση ή ίσως άλλοι κόμβοι χρειάζονται αναβάθμιση.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong VERGE will not work properly.</source>
-        <translation>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong VERGE will not work properly.</translation>
+        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong VERGE will not work properly.</source>
+        <translation>Προειδοποίηση: Ελέγξτε ότι η ημερομηνία και η ώρα του υπολογιστή σας είναι σωστές! Αν το ρολόι σας είναι λάθος, το VERGE δεν θα λειτουργήσει σωστά.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</source>
-        <translation>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</translation>
+        <translation>Προειδοποίηση: Σφάλμα ανάγνωσης wallet.dat! Όλα τα κλειδιά διαβάζονται σωστά, αλλά τα δεδομένα συναλλαγών ή οι καταχωρίσεις βιβλίων διευθύνσεων ενδέχεται να λείπουν ή να είναι εσφαλμένα.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
-        <translation>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</translation>
+        <translation>Προειδοποίηση: Κατεστραμένο wallet.dat, δεδομένα διασώθηκαν! Το πρωτότυπο wallet.dat αποθηκεύτηκε ως πορτοφόλι. {Timestamp} .bak στο %s; εάν το υπόλοιπο ή οι συναλλαγές σας είναι εσφαλμένες, θα πρέπει να επαναφέρετε από ένα αντίγραφο ασφαλείας.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Attempt to recover private keys from a corrupt wallet.dat</source>
-        <translation>Attempt to recover private keys from a corrupt wallet.dat</translation>
+        <translation>Προσπαθήστε να ανακτήσετε ιδιωτικά κλειδιά από ένα κατεστραμένο wallet.dat</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Block creation options:</source>
-        <translation>Block creation options:</translation>
+        <translation>Επιλογές δημιουργίας block:</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Connect only to the specified node(s)</source>
-        <translation>Connect only to the specified node(s)</translation>
+        <translation>Συνδέση μόνο σε προκαθορισμένο κόμβο(υς)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Discover own IP address (default: 1 when listening and no -externalip)</source>
-        <translation>Discover own IP address (default: 1 when listening and no -externalip)</translation>
+        <translation>Ανακαλύψτε τη δική σας διεύθυνση IP (προεπιλογή: 1 όταν ακούτε και όχι -externalip)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
-        <translation>Failed to listen on any port. Use -listen=0 if you want this.</translation>
+        <translation>Αποτυχία ακρόασης σε οποιαδήποτε θύρα. Χρησιμοποιήστε -listen=0 αν το θέλετε αυτό.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Find peers using DNS lookup (default: 0)</source>
-        <translation>Find peers using DNS lookup (default: 0)</translation>
+        <translation>Βρείτε peers μέσω αναζήτηση DNS (προεπιλογή: 0)</translation>
     </message>
     <message>
         <location line="+11"/>
-        <source>Invalid -tor address: &apos;%s&apos;</source>
-        <translation>Invalid -tor address: &apos;%s&apos;</translation>
+        <source>Invalid -tor address: '%s'</source>
+        <translation>Μη έγκυρη διεύθυνση -tor: '%s'</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</source>
-        <translation>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</translation>
+        <translation>Μέγιστη μνήμη buffer λήψης ανά σύνδεση, &lt;n&gt;* 1000 bytes (προεπιλογή: 5000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: 1000)</source>
-        <translation>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: 1000)</translation>
+        <translation>Μέγιστο buffer αποστολής ανά σύνδεση, &lt;n&gt; * 1000 bytes (προεπιλογή: 1000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</source>
-        <translation>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</translation>
+        <translation>Συνδέση μόνο σε κόμβους στο δίκτυο &lt;net&gt; (IPv4, IPv6 ή Tor)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Output extra debugging information. Implies all other -debug* options</source>
-        <translation>Output extra debugging information. Implies all other -debug* options</translation>
+        <translation>Έξαγωγή επιπλέον πληροφορίων αποσφαλμάτωσης. Υπονοεί όλες τις άλλες επιλογές -debug*</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Output extra network debugging information</source>
-        <translation>Output extra network debugging information</translation>
+        <translation>Εξαγωγή πρόσθετων πληροφορίων εντοπισμού σφαλμάτων δικτύου</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Prepend debug output with timestamp</source>
-        <translation>Prepend debug output with timestamp</translation>
+        <translation>Εμφάνιση χρονικής σήμανση στην εξόδου αποσφαλμάτωσης</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</source>
-        <translation>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</translation>
+        <translation>Επιλογές SSL: (ανατρέξτε στις οδηγίες εγκατάστασης του Bitcoin Wiki για τις ρυθμίσεις SSL)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Select the version of socks proxy to use (4-5, default: 5)</source>
-        <translation>Select the version of socks proxy to use (4-5, default: 5)</translation>
+        <translation>Επιλέξτε την έκδοση του socks proxy (4-5, προεπιλογή: 5)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Send trace/debug info to console instead of debug.log file</source>
-        <translation>Send trace/debug info to console instead of debug.log file</translation>
+        <translation>Αποστολή πληροφοριών παρακολούθησης/εντοπισμού σφαλμάτων στην κονσόλα αντί του αρχείου debug.log</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Send trace/debug info to debugger</source>
-        <translation>Send trace/debug info to debugger</translation>
+        <translation>Αποστολή πληροφοριών εντοπισμού/εντοπισμού σφαλμάτων στο πρόγραμμα εντοπισμού σφαλμάτων</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Set maximum block size in bytes (default: 250000)</source>
-        <translation>Set maximum block size in bytes (default: 250000)</translation>
+        <translation>Ορισμός μέγιστου μεγέθους block σε bytes (προεπιλογή: 250000)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set minimum block size in bytes (default: 0)</source>
-        <translation>Set minimum block size in bytes (default: 0)</translation>
+        <translation>Ορισμός ελάχιστου μεγέθους block σε bytes (προεπιλογή: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Shrink debug.log file on client startup (default: 1 when no -debug)</source>
-        <translation>Shrink debug.log file on client startup (default: 1 when no -debug)</translation>
+        <translation>Συρρίκνωση αρχείου debug.log κατά την εκκίνηση του προγράμματος-πελάτη (προεπιλογή: 1 όταν δεν υπάρχει -debug)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Specify connection timeout in milliseconds (default: 5000)</source>
-        <translation>Specify connection timeout in milliseconds (default: 5000)</translation>
+        <translation>Καθορίστε το χρονικό όριο σύνδεσης σε χιλιοστά του δευτερολέπτου (προεπιλογή: 5000)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Use UPnP to map the listening port (default: 0)</source>
-        <translation>Use UPnP to map the listening port (default: 0)</translation>
+        <translation>Χρησιμοποιήστε το UPnP για να αντιστοιχίσετε τη θύρα ακρόασης (προεπιλογή: 0)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use UPnP to map the listening port (default: 1 when listening)</source>
-        <translation>Use UPnP to map the listening port (default: 1 when listening)</translation>
+        <translation>Χρησιμοποιήστε το UPnP για να αντιστοιχίσετε τη θύρα ακρόασης (προεπιλογή: 1 όταν ακούτε)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Use proxy to reach tor hidden services (default: same as -proxy)</source>
-        <translation>Use proxy to reach tor hidden services (default: same as -proxy)</translation>
+        <translation>Χρησιμοποιήστε τον proxy για να αποκτήσετε πρόσβαση σε κρυφές υπηρεσίες (προεπιλεγμένη: ίδια με -proxy)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Username for JSON-RPC connections</source>
-        <translation>Username for JSON-RPC connections</translation>
+        <translation>Όνομα χρήστη για JSON-RPC συνδέσεις</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Verifying database integrity...</source>
-        <translation type="unfinished"></translation>
+        <translation>Επαλήθευση της ακεραιότητας βάσης δεδομένων</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Warning: Disk space is low!</source>
-        <translation>Warning: Disk space is low!</translation>
+        <translation>Προειδοποίηση: Ο χώρος στο δίσκο είναι χαμηλός!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Warning: This version is obsolete, upgrade required!</source>
-        <translation>Warning: This version is obsolete, upgrade required!</translation>
+        <translation>Προειδοποίηση: Αυτή η έκδοση είναι ξεπερασμένη, απαιτείται αναβάθμιση!</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>wallet.dat corrupt, salvage failed</source>
-        <translation type="unfinished"></translation>
+        <translation>κατεστραμένο wallet.dat, αποτυχία ανάκτησης</translation>
     </message>
     <message>
         <location line="-43"/>
         <source>Password for JSON-RPC connections</source>
-        <translation>Password for JSON-RPC connections</translation>
+        <translation>Κωδικός πρόσβασης για συνδέσεις JSON-RPC</translation>
     </message>
     <message>
         <location line="-53"/>
         <source>Allow JSON-RPC connections from specified IP address</source>
-        <translation>Allow JSON-RPC connections from specified IP address</translation>
+        <translation>Επιτρέψτε τις συνδέσεις JSON-RPC από συγκεκριμένη διεύθυνση IP</translation>
     </message>
     <message>
         <location line="+61"/>
         <source>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</source>
-        <translation>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</translation>
+        <translation>Αποστολή εντολών στον κόμβο που εκτελείται στο &lt;ip&gt; (προεπιλογή: 127.0.0.1)</translation>
     </message>
     <message>
         <location line="-99"/>
         <source>Execute command when the best block changes (%s in cmd is replaced by block hash)</source>
-        <translation>Execute command when the best block changes (%s in cmd is replaced by block hash)</translation>
+        <translation>Εκτελέστε την εντολή όταν αλλάζει το καλύτερο block (%s σε cmd αντικαθίσταται από block hash)</translation>
     </message>
     <message>
         <location line="+122"/>
         <source>Upgrade wallet to latest format</source>
-        <translation>Upgrade wallet to latest format</translation>
+        <translation>Αναβαθμίστε το πορτοφόλι στην πιο πρόσφατη μορφή</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Set key pool size to &lt;n&gt; (default: 100)</source>
-        <translation>Set key pool size to &lt;n&gt; (default: 100)</translation>
+        <translation>Ρυθμίστε το μέγεθος του key pool σε &lt;n&gt; (προεπιλογή: 100)</translation>
     </message>
     <message>
         <location line="-14"/>
         <source>Rescan the block chain for missing wallet transactions</source>
-        <translation>Rescan the block chain for missing wallet transactions</translation>
+        <translation>Επανέλεγχος του block chain για συναλλαγές που λείπουν από το πορτοφόλι</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>How many blocks to check at startup (default: 2500, 0 = all)</source>
-        <translation>How many blocks to check at startup (default: 2500, 0 = all)</translation>
+        <translation>Πόσα block να έλεγχοντεαικατά την εκκίνηση (προεπιλογή: 2500, 0 = όλα)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>How thorough the block verification is (0-6, default: 1)</source>
-        <translation>How thorough the block verification is (0-6, default: 1)</translation>
+        <translation>Πόσο λεπτομερής να είναι η επαλήθευση του block (0-6, προεπιλογή: 1)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Imports blocks from external blk000?.dat file</source>
-        <translation>Imports blocks from external blk000?.dat file</translation>
+        <translation>Εισαγωγή block από το εξωτερικό αρχείο blk000?.dat</translation>
     </message>
     <message>
         <location line="+51"/>
         <source>Use OpenSSL (https) for JSON-RPC connections</source>
-        <translation>Use OpenSSL (https) for JSON-RPC connections</translation>
+        <translation>Χρήση OpenSSL (https) για συνδέσεις JSON-RPC</translation>
     </message>
     <message>
         <location line="-21"/>
         <source>Server certificate file (default: server.cert)</source>
-        <translation>Server certificate file (default: server.cert)</translation>
+        <translation>Αρχείο πιστοποιητικού διακομιστή (προεπιλογή: server.cert)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Server private key (default: server.pem)</source>
-        <translation>Server private key (default: server.pem)</translation>
+        <translation>Το ιδιωτικό κλειδί του διακομιστή (προεπιλογή: server.pem)</translation>
     </message>
     <message>
         <location line="-127"/>
         <source>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</source>
-        <translation>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
+        <translation>Αποδεκτοί ciphers (default: TLSv1 + HIGH:! SSLv2:! ANULL:! ENULL:! AH:! 3DES: @STRENGTH)</translation>
     </message>
     <message>
         <location line="+139"/>
         <source>This help message</source>
-        <translation>This help message</translation>
+        <translation>Αυτό το μήνυμα βοήθειας</translation>
     </message>
     <message>
         <location line="-131"/>
         <source>Cannot obtain a lock on data directory %s.  VERGE is probably already running.</source>
-        <translation>Cannot obtain a lock on data directory %s.  VERGE is probably already running.</translation>
+        <translation>Δεν είναι δυνατή η λήψη κλειδώματος στον κατάλογο δεδομένων %s. Το VERGE πιθανότατα λειτουργεί ήδη.</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -2551,142 +2549,142 @@ Addresse: %4
     <message>
         <location line="+77"/>
         <source>Unable to bind to %s on this computer (bind returned error %d, %s)</source>
-        <translation>Unable to bind to %s on this computer (bind returned error %d, %s)</translation>
+        <translation>Δεν είναι δυνατή η δέσμευση του %s σε αυτόν τον υπολογιστή (επιστρεφόμενο σφάλμα %d, %s)</translation>
     </message>
     <message>
         <location line="-69"/>
         <source>Connect through socks proxy</source>
-        <translation>Connect through socks proxy</translation>
+        <translation>Συνδεθείτε μέσω socks proxy</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>Allow DNS lookups for -addnode, -seednode and -connect</source>
-        <translation>Allow DNS lookups for -addnode, -seednode and -connect</translation>
+        <translation>Να επιτρέπονται αναζητήσεις DNS για -addnode, -seednode και -connect</translation>
     </message>
     <message>
         <location line="+44"/>
         <source>Loading addresses...</source>
-        <translation>Loading addresses...</translation>
+        <translation>Φόρτωση διευθύνσεων...</translation>
     </message>
     <message>
         <location line="-26"/>
         <source>Error loading blkindex.dat</source>
-        <translation>Error loading blkindex.dat</translation>
+        <translation>Σφάλμα κατά τη φόρτωση του blkindex.dat</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Error loading wallet.dat: Wallet corrupted</source>
-        <translation>Error loading wallet.dat: Wallet corrupted</translation>
+        <translation>Σφάλμα κατά τη φόρτωση του wallet.dat: Το πορτοφόλι είναι κατεστραμμένο</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error loading wallet.dat: Wallet requires newer version of VERGE</source>
-        <translation>Error loading wallet.dat: Wallet requires newer version of VERGE</translation>
+        <translation>Σφάλμα κατά τη φόρτωση wallet.dat: Το πορτοφόλι απαιτεί νεότερη έκδοση του VERGE</translation>
     </message>
     <message>
         <location line="+73"/>
         <source>Wallet needed to be rewritten: restart VERGE to complete</source>
-        <translation>Wallet needed to be rewritten: restart VERGE to complete</translation>
+        <translation>Το πορτοφόλι χρειάζεται να ξαναγραφεί: κάντε επανεκκίνηση του VERGE για να ολοκληρωθεί</translation>
     </message>
     <message>
         <location line="-75"/>
         <source>Error loading wallet.dat</source>
-        <translation>Error loading wallet.dat</translation>
+        <translation>Σφάλμα κατά τη φόρτωση του wallet.dat</translation>
     </message>
     <message>
         <location line="+19"/>
-        <source>Invalid -proxy address: &apos;%s&apos;</source>
-        <translation>Invalid -proxy address: &apos;%s&apos;</translation>
+        <source>Invalid -proxy address: '%s'</source>
+        <translation>Μη έγκυρη διεύθυνση -proxy: '%s'</translation>
     </message>
     <message>
         <location line="+46"/>
-        <source>Unknown network specified in -onlynet: &apos;%s&apos;</source>
-        <translation>Unknown network specified in -onlynet: &apos;%s&apos;</translation>
+        <source>Unknown network specified in -onlynet: '%s'</source>
+        <translation>Άγνωστο δίκτυο έχει καθορίστει στο -onlynet: '%s'</translation>
     </message>
     <message>
         <location line="-1"/>
         <source>Unknown -socks proxy version requested: %i</source>
-        <translation>Unknown -socks proxy version requested: %i</translation>
+        <translation>Άγνωστη έκδοση -socks proxy: %i</translation>
     </message>
     <message>
         <location line="-74"/>
-        <source>Cannot resolve -bind address: &apos;%s&apos;</source>
-        <translation>Cannot resolve -bind address: &apos;%s&apos;</translation>
+        <source>Cannot resolve -bind address: '%s'</source>
+        <translation>Δεν είναι δυνατό το resolve της -bind διεύθυνσης: '%s'</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Cannot resolve -externalip address: &apos;%s&apos;</source>
-        <translation>Cannot resolve -externalip address: &apos;%s&apos;</translation>
+        <source>Cannot resolve -externalip address: '%s'</source>
+        <translation>Δεν είναι δυνατή η resolve της -externalip διεύθυνσης: '%s'</translation>
     </message>
     <message>
         <location line="+30"/>
-        <source>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</source>
-        <translation>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</translation>
+        <source>Invalid amount for -paytxfee=&lt;amount&gt;: '%s'</source>
+        <translation>Μη έγκυρο ποσό για το -paytxfee=&lt;ποσό&gt;: '%s'</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Error: could not start node</source>
-        <translation>Error: could not start node</translation>
+        <translation>Σφάλμα: δεν ήταν δυνατή η εκκίνηση του node</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Sending...</source>
-        <translation>Sending...</translation>
+        <translation>Αποστολή ...</translation>
     </message>
     <message>
         <location line="-24"/>
         <source>Invalid amount</source>
-        <translation>Invalid amount</translation>
+        <translation>Μη έγκυρο ποσό</translation>
     </message>
     <message>
         <location line="-4"/>
         <source>Insufficient funds</source>
-        <translation>Insufficient funds</translation>
+        <translation>Ανεπαρκές κεφάλαιο</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Loading block index...</source>
-        <translation>Loading block index...</translation>
+        <translation>Φόρτωση block index...</translation>
     </message>
     <message>
         <location line="-46"/>
         <source>Add a node to connect to and attempt to keep the connection open</source>
-        <translation>Add a node to connect to and attempt to keep the connection open</translation>
+        <translation>Προσθέστε έναν node για να συνδεθείτε και προσπαθήστε να διατηρήσετε ανοικτή τη σύνδεση</translation>
     </message>
     <message>
         <location line="-25"/>
         <source>Unable to bind to %s on this computer. VERGE is probably already running.</source>
-        <translation>Unable to bind to %s on this computer. VERGE is probably already running.</translation>
+        <translation>Δεν είναι δυνατή η δέσμευση του %s σε αυτόν τον υπολογιστή. Το VERGE πιθανότατα λειτουργεί ήδη.</translation>
     </message>
     <message>
         <location line="+55"/>
         <source>Find peers using internet relay chat (default: 1)</source>
-        <translation>Find peers using internet relay chat (default: 1)</translation>
+        <translation>Βρείτε peers που χρησιμοποιούν internet chat (προεπιλογή: 1)</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Fee per KB to add to transactions you send</source>
-        <translation>Fee per KB to add to transactions you send</translation>
+        <translation>Χρέωση ανά KB στις συναλλαγές που στέλνετε</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Loading wallet...</source>
-        <translation>Loading wallet...</translation>
+        <translation>Φόρτωση πορτοφολιού...</translation>
     </message>
     <message>
         <location line="-39"/>
         <source>Cannot downgrade wallet</source>
-        <translation>Cannot downgrade wallet</translation>
+        <translation>Δεν είναι δυνατή η υποβάθμιση του πορτοφολιού</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cannot initialize keypool</source>
-        <translation>Cannot initialize keypool</translation>
+        <translation>Δεν είναι δυνατή η προετοιμασία της ομάδας κλειδιών</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Cannot write default address</source>
-        <translation>Cannot write default address</translation>
+        <translation>Δεν είναι δυνατή η εγγραφή προεπιλεγμένης διεύθυνσης</translation>
     </message>
     <message>
         <location line="+46"/>
@@ -2696,12 +2694,12 @@ Addresse: %4
     <message>
         <location line="-40"/>
         <source>Done loading</source>
-        <translation>Done loading</translation>
+        <translation>Η φόρτωση ολοκληρώθηκε</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>To use the %s option</source>
-        <translation>To use the %s option</translation>
+        <translation>Για να χρησιμοποιήσετε την επιλογή %s</translation>
     </message>
     <message>
         <location line="-150"/>
@@ -2713,28 +2711,27 @@ rpcpassword=%s
 (you do not need to remember this password)
 If the file does not exist, create it with owner-readable-only file permissions.
 </source>
-        <translation>%s, you must set a rpcpassword in the configuration file:
- %s
-It is recommended you use the following random password:
-rpcuser=bitcoinrpc
-rpcpassword=%s
-(you do not need to remember this password)
-If the file does not exist, create it with owner-readable-only file permissions.
-</translation>
+        <translation>%s, πρέπει να ορίσετε ένα rpcpassword στο αρχείο ρυθμίσεων:
+ %s
+Συνιστάται να χρησιμοποιήσετε τον ακόλουθο τυχαίο κωδικό πρόσβασης:
+rpcuser = bitcoinrpc
+rpcpassword =%s
+(δεν χρειάζεται να θυμάστε αυτόν τον κωδικό πρόσβασης)
+Εάν το αρχείο δεν υπάρχει, δημιουργήστε το με δικαιώματα αρχείων μόνο για ανάγνωση από τον ιδιοκτήτη.</translation>
     </message>
     <message>
         <location line="+91"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation>Σφάλμα</translation>
     </message>
     <message>
         <location line="-30"/>
         <source>You must set rpcpassword=&lt;password&gt; in the configuration file:
 %s
 If the file does not exist, create it with owner-readable-only file permissions.</source>
-        <translation>You must set rpcpassword=&lt;password&gt; in the configuration file:
+        <translation>Πρέπει να ορίσετε το rpcpassword=&lt;password&gt; στο αρχείο ρυθμίσεων:
 %s
-If the file does not exist, create it with owner-readable-only file permissions.</translation>
+Εάν το αρχείο δεν υπάρχει, δημιουργήστε το με δικαιώματα αρχείων μόνο για αναγνώση από τον ιδιοκτήτη.</translation>
     </message>
 </context>
 </TS>

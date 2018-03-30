@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
+<!DOCTYPE TS [
+    <!ENTITY egrave "&#232;">
+    <!ENTITY Egrave "&#200;">
+    <!ENTITY ugrave "&#249;">
+    <!ENTITY Ugrave "&#217;">
+    <!ENTITY agrave "&#224;">
+    <!ENTITY Agrave "&#192;">
+    <!ENTITY ograve "&#242;">
+    <!ENTITY Ograve "&#210;">
+    <!ENTITY igrave "&#236;">
+    <!ENTITY igrave "&#204;">
+]>
 <TS version="2.0" language="it">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
@@ -896,7 +907,7 @@ Indirizzo: %4
     <message>
         <location line="+7"/>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Quit in the menu.</source>
-        <translation>Minimizza invece di uscire dall&apos;applicazione cuando la finestra &egrave' chiusa. Quando questa opzione &egrave; attiva, l&apos;applicaione verr&agrave; chiusa solo dopo aver selezionato Chiudi nel menu.</translation>
+        <translation>Minimizza invece di uscire dall&apos;applicazione cuando la finestra &egrave; chiusa. Quando questa opzione &egrave; attiva, l&apos;applicaione verr&agrave; chiusa solo dopo aver selezionato Chiudi nel menu.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1022,7 +1033,7 @@ Indirizzo: %4
     <message>
         <location line="+13"/>
         <source>Mined balance that has not yet matured</source>
-        <translation>Bilancio minato che non &grave; ancora maturato</translation>
+        <translation>Bilancio minato che non &agrave; ancora maturato</translation>
     </message>
     <message>
         <location line="+46"/>
@@ -1338,7 +1349,7 @@ Indirizzo: %4
     <message>
         <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
-        <translation>L&apos;indirizzo del ricevente non &egrave' valido, per favore controlla.</translation>
+        <translation>L&apos;indirizzo del ricevente non &egrave; valido, per favore controlla.</translation>
     </message>
     <message>
         <location line="+5"/>
