@@ -44,6 +44,30 @@ void SendCoinsEntry::on_pasteButton_clicked()
     ui->payTo->setText(QApplication::clipboard()->text());
 }
 
+void SendCoinsEntry::on_fullamount_clicked()
+{
+    if(!model)
+        return;
+
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(1));
+}
+
+void SendCoinsEntry::on_halfamount_clicked()
+{
+    if(!model)
+        return;
+
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(2));
+}
+
+void SendCoinsEntry::on_quarteramount_clicked()
+{
+    if(!model)
+        return;
+    
+    ui->payAmount->setValueWithoutComma(model->getAvailableAmount(4));
+}
+
 void SendCoinsEntry::on_addressBookButton_clicked()
 {
     if(!model)
@@ -97,6 +121,19 @@ void SendCoinsEntry::on_deleteButton_clicked()
     emit removeEntry(this);
 }
 
+void SendCoinsEntry::on_donateButton_clicked()
+{
+    // Verge(XVG) development donation address
+    QString addr = "DDd1pVWr8PPAw1z7DRwoUW6maWh5SsnCcp";
+    ui->payTo->setText(addr);
+    setFocus();
+    QMessageBox::information(this, tr("Donate"),
+        tr("We believe in keeping Verge free and open."
+           " Any donations to help fuel the development effort are greatly appreciated!"
+           "\n\nThe VERGE (XVG) donation address has been filled in."),
+        QMessageBox::Ok, QMessageBox::Ok);
+}
+
 bool SendCoinsEntry::validate()
 {
     // Check input validity
@@ -134,7 +171,7 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     rv.label = ui->addAsLabel->text();
     rv.amount = ui->payAmount->value();
 
- if (rv.address.length() > 75 
+    if (rv.address.length() > 75 
         && IsStealthAddress(rv.address.toStdString()))
         rv.typeInd = AddressTableModel::AT_Stealth;
     else

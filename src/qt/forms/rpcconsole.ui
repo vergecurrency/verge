@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>740</width>
-    <height>450</height>
+    <height>546</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_info">
       <attribute name="title">
@@ -325,12 +325,7 @@
           <string>Open the VERGE debug log file from the current data directory. This can take a few seconds for large log files.</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #0b3b47;
-min-height: 25px;
+          <string notr="true">min-height: 25px;
 max-height: 25px;</string>
          </property>
          <property name="text">

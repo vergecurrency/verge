@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="en">
+<TS version="2.0" language="Romanian">
 <defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutDialog</name>
@@ -819,7 +819,7 @@ Taxa de 0.01 recomandată.</translation>
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Plătește taxa&ampfa de tranzacție</translation>
+        <translation>Plătește taxa &amp; fa de tranzacție</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -2240,7 +2240,7 @@ lucru se poate întampla ocazional dacă un alt nod generează un bloc POS la c�
     <message>
         <location line="+4"/>
         <source> Maintain at most &lt;n&gt; connections to peers (Por defecto: 125)</source>
-        <translation> Menține un maxim de&lt;n&gt; conexiuni către peers (implicit: 125)</ translation>
+        <translation> Menține un maxim de&lt;n&gt; conexiuni către peers (implicit: 125)</translation>
     </message>
     <message>
         <location line="-33"/>
@@ -2510,7 +2510,7 @@ tranzacțiilor este incorect, ar trebui să restaurați dintr-un backup.</transl
     <message>
         <location line="+1"/>
         <source>Verifying database integrity...</source>
-        <translation type>Verificare integritate bază de date...</translation>
+        <translation>Verificare integritate bază de date...</translation>
     </message>
     <message>
         <location line="+2"/>

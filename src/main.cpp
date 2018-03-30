@@ -377,24 +377,36 @@ bool CTransaction::ReadFromDisk(COutPoint prevout)
 
 bool CTransaction::IsStandard() const
 {
-    if (nVersion > CTransaction::CURRENT_VERSION)
+    if (nVersion > CTransaction::CURRENT_VERSION) {
+	printf("CTransaction::IsStandard() : nVersion > CTransaction::CURRENT_VERSION \n");
         return false;
+    }
 
     BOOST_FOREACH(const CTxIn& txin, vin)
     {
         // Biggest 'standard' txin is a 3-signature 3-of-3 CHECKMULTISIG
         // pay-to-script-hash, which is 3 ~80-byte signatures, 3
         // ~65-byte public keys, plus a few script ops.
-        if (txin.scriptSig.size() > 500)
+        if (txin.scriptSig.size() > 500) {
+            printf("CTransaction::IsStandard() : txin Script Size > 500 \n");
             return false;
-        if (!txin.scriptSig.IsPushOnly())
+	}
+        if (!txin.scriptSig.IsPushOnly()) {
+            printf("CTransaction::IsStandard() : txin Script Sig is not push only \n");
             return false;
+	}
     }
+
+    txnouttype whichType;
     BOOST_FOREACH(const CTxOut& txout, vout) {
-        if (!::IsStandard(txout.scriptPubKey))
+        if (!::IsStandard(txout.scriptPubKey, whichType)) {
+            printf("CTransaction::IsStandard() : Vout is non standard\n");
             return false;
-        if (txout.nValue == 0)
+	}
+        if (whichType != TX_NULL_DATA && txout.nValue == 0) {
+            printf("CTransaction::IsStandard() : txout nValue is 0 and tx is of non-null data \n");
             return false;
+	}
     }
     return true;
 }
@@ -555,9 +567,8 @@ bool CTransaction::CheckTransaction() const
         const CTxOut& txout = vout[i];
         if (txout.IsEmpty() && !IsCoinBase() && !IsCoinStake())
             return DoS(100, error("CTransaction::CheckTransaction() : txout empty for user transaction"));
-
-        // ppcoin: enforce minimum output amount
-        if ((!txout.IsEmpty()) && txout.nValue < MIN_TXOUT_AMOUNT) {
+	
+	if (txout.nValue < 0) {
             printf("minamount: %s      nValue: %s", FormatMoney(MIN_TXOUT_AMOUNT).c_str(), FormatMoney(txout.nValue).c_str());
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue below minimum"));
         }
@@ -875,10 +886,8 @@ bool CMerkleTx::AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs)
             return false;
         return CTransaction::AcceptToMemoryPool(txdb, false);
     }
-    else
-    {
-        return CTransaction::AcceptToMemoryPool(txdb, fCheckInputs);
-    }
+    
+    return CTransaction::AcceptToMemoryPool(txdb, fCheckInputs);
 }
 
 bool CMerkleTx::AcceptToMemoryPool()
@@ -2024,12 +2033,12 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         const CBlockIndex* pindex = pindexBest;
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            if (pindex->nVersion > (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
+			if (pindex->nVersion > (BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_GROESTL | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE))
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_DEFAULT | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
+            printf("SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT | BLOCK_VERSION_X17 | BLOCK_VERSION_BLAKE | BLOCK_VERSION_LYRA2RE));
         if (nUpgraded > 100/2)
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
@@ -2320,15 +2329,25 @@ bool CBlock::AcceptBlock()
         }
     }
 
-    // Reject block.nVersion not BLOCK_VERSION_DEFAULT or BLOCK_VERSION_GROESTL or BLOCK_VERSION_SHA256D and is not genesis block
-    if (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_DEFAULT) &&
+    if (nHeight > STEALTH_TX_SWITCH_BLOCK ||
+        (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_SCRYPT  | BLOCK_VERSION_DEFAULT) &&
         nVersion != (BLOCK_VERSION_GROESTL | BLOCK_VERSION_DEFAULT) &&
-	nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_DEFAULT) &&
-	nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_DEFAULT) &&
-    	nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK)
-
-        return error("CheckBlock() : rejected nVersion");
+		nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_DEFAULT) &&
+        nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_DEFAULT) &&
+        nVersion != BLOCK_VERSION_DEFAULT && nHeight > MULTI_ALGO_SWITCH_BLOCK))
+    {
+        if (nHeight <= STEALTH_TX_SWITCH_BLOCK ||
+            (nVersion != (BLOCK_VERSION_LYRA2RE | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_SCRYPT  | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_GROESTL | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_X17     | BLOCK_VERSION_STEALTH) &&
+            nVersion != (BLOCK_VERSION_BLAKE   | BLOCK_VERSION_STEALTH) &&
+            nVersion != BLOCK_VERSION_STEALTH))
+        {
+            return error("CheckBlock() : rejected nVersion");
+        }    
+    }
 
     // Enforce rule that the coinbase starts with serialized block height
     CScript expect = CScript() << nHeight;
@@ -2351,7 +2370,7 @@ bool CBlock::AcceptBlock()
     {
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes)
-            if (nBestHeight > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
+            if (nBestHeight > (pnode->nChainHeight != -1 ? pnode->nChainHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
 
@@ -2614,7 +2633,7 @@ CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter& filter)
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
         uint256 hash = block.vtx[i].GetHash();
-        if (filter.IsRelevantAndUpdate(block.vtx[i], hash))
+        if (filter.IsRelevantAndUpdate(block.vtx[i]))
         {
             vMatch.push_back(true);
             vMatchedTxn.push_back(make_pair(i, hash));
@@ -2808,7 +2827,7 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
     return NULL;
 }
 
-bool LoadBlockIndex(bool fAllowNew)
+bool LoadBlockIndex(bool fAllowNew, CClientUIInterface* uiInterface)
 {
     if (fTestNet)
     {
@@ -2829,7 +2848,7 @@ bool LoadBlockIndex(bool fAllowNew)
     // Load block index
     //
     CTxDB txdb("cr");
-    if (!txdb.LoadBlockIndex())
+    if (!txdb.LoadBlockIndex(uiInterface))
         return false;
 
     //
@@ -2841,12 +2860,12 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis Block:
-//CBlock(hash=0000068e0b99f3db472b, ver=1, hashPrevBlock=00000000000000000000,
-// hashMerkleRoot=ea6fed5e25, nTime=1368496587, nBits=1e0fffff, nNonce=578618, vtx=1, vchBlockSig=)
-//  Coinbase(hash=ea6fed5e25, nTime=1368496567, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-//    CTxIn(COutPoint(0000000000, 4294967295), coinbase 04ffff001d020f2706787878787878)
-//    CTxOut(empty)
-//vMerkleTree: ea6fed5e2
+        //CBlock(hash=0000068e0b99f3db472b, ver=1, hashPrevBlock=00000000000000000000,
+        // hashMerkleRoot=ea6fed5e25, nTime=1368496587, nBits=1e0fffff, nNonce=578618, vtx=1, vchBlockSig=)
+        //  Coinbase(hash=ea6fed5e25, nTime=1368496567, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+        //    CTxIn(COutPoint(0000000000, 4294967295), coinbase 04ffff001d020f2706787878787878)
+        //    CTxOut(empty)
+        //vMerkleTree: ea6fed5e2
         // Genesis block
         const char* pszTimestamp = "Name: Dogecoin Dark";
 				if(fTestNet)
@@ -3227,7 +3246,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         if (!vRecv.empty())
             vRecv >> pfrom->strSubVer;
         if (!vRecv.empty())
-            vRecv >> pfrom->nStartingHeight;
+            vRecv >> pfrom->nChainHeight;
 		if (!vRecv.empty())
             vRecv >> pfrom->fRelayTxes; // set to true after we get the first filter* message
         else
@@ -3291,7 +3310,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         // Ask the first connected node for block updates
         static int nAskedForBlocks = 0;
         if (!pfrom->fClient && !pfrom->fOneShot &&
-            (pfrom->nStartingHeight > (nBestHeight - 144)) &&
+            (pfrom->nChainHeight > (nBestHeight - 144)) &&
             (nAskedForBlocks < 1 || vNodes.size() <= 1))
         {
             nAskedForBlocks++;
@@ -3314,9 +3333,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         pfrom->fSuccessfullyConnected = true;
 
-        printf("receive version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString().c_str(), addrFrom.ToString().c_str(), pfrom->addr.ToString().c_str());
+        printf("receive version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pfrom->nVersion, pfrom->nChainHeight, addrMe.ToString().c_str(), addrFrom.ToString().c_str(), pfrom->addr.ToString().c_str());
 
-        cPeerBlockCounts.input(pfrom->nStartingHeight);
+        cPeerBlockCounts.input(pfrom->nChainHeight);
 
         // ppcoin: ask for pending sync-checkpoint if any
         if (!IsInitialBlockDownload())
@@ -3767,7 +3786,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         vector<CInv> vInv;
         BOOST_FOREACH(uint256& hash, vtxid) {
             CInv inv(MSG_TX, hash);
-            if ((pfrom->pfilter && pfrom->pfilter->IsRelevantAndUpdate(mempool.lookup(hash), hash)) ||
+            if ((pfrom->pfilter && pfrom->pfilter->IsRelevantAndUpdate(mempool.lookup(hash))) ||
                (!pfrom->pfilter))
                 vInv.push_back(inv);
             if (vInv.size() == MAX_INV_SZ)
@@ -3951,8 +3970,8 @@ bool ProcessMessages(CNode* pfrom)
     CDataStream& vRecv = pfrom->vRecv;
     if (vRecv.empty())
         return true;
-    //if (fDebug)
-    //    printf("ProcessMessages(%u bytes)\n", vRecv.size());
+    
+    printf("ProcessMessages(%u bytes)\n", vRecv.size());
 
     //
     // Message format
@@ -4343,7 +4362,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int algo)
     if (!pblock.get())
         return NULL;
 
-    pblock->nVersion = BLOCK_VERSION_DEFAULT;
+    pblock->nVersion = nBestHeight >= STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
     switch (algo)
     {
 	case ALGO_LYRA2RE:

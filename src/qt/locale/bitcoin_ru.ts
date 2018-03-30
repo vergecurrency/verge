@@ -45,7 +45,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+22"/>
         <source>Double-click to edit address or label</source>
-        <translation>Для того, чтобы изменить адрес или метку давжды кликните по изменяемому объекту</translation>
+        <translation>Для того, чтобы изменить адрес или метку дважды кликните по изменяемому объекту</translation>
     </message>
     <message>
         <location line="+27"/>
@@ -312,7 +312,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-299"/>
         <source>&amp;Overview</source>
-        <translation>О&amp;бзор</translation>
+        <translation>&amp;Обзор</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -352,7 +352,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-7"/>
         <source>&amp;Send coins</source>
-        <translation>Отп&amp;равка монет</translation>
+        <translation>&amp;Отправка монет</translation>
     </message>
     <message>
         <location line="+35"/>
@@ -382,7 +382,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+2"/>
         <source>&amp;Options...</source>
-        <translation>Оп&amp;ции...</translation>
+        <translation>&amp;Опции...</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -806,7 +806,7 @@ Address: %4
     <message>
         <location line="+15"/>
         <source>Pay transaction &amp;fee</source>
-        <translation>Заплатить ко&amp;миссию</translation>
+        <translation>Заплатить &amp;комиссию</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -866,7 +866,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>&amp;Port:</source>
-        <translation>По&amp;рт: </translation>
+        <translation>&amp;Порт: </translation>
     </message>
     <message>
         <location line="+19"/>
@@ -906,12 +906,12 @@ Address: %4
     <message>
         <location line="+3"/>
         <source>M&amp;inimize on close</source>
-        <translation>С&amp;ворачивать при закрытии</translation>
+        <translation>&amp;Сворачивать при закрытии</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>&amp;Display</source>
-        <translation>О&amp;тображение</translation>
+        <translation>&amp;Отображение</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -946,7 +946,7 @@ Address: %4
     <message>
         <location line="+71"/>
         <source>&amp;OK</source>
-        <translation>О&amp;К</translation>
+        <translation>&amp;OK</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1386,7 +1386,7 @@ Address: %4
     <message>
         <location line="+15"/>
         <source>A&amp;mount:</source>
-        <translation>Ко&amp;личество:</translation>
+        <translation>&amp;Количество:</translation>
     </message>
     <message>
         <location line="+13"/>

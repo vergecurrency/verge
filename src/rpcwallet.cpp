@@ -62,19 +62,27 @@ string AccountFromValue(const Value& value)
 
 Value getinfo(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
+    if (fHelp || params.size() > 1)
         throw runtime_error(
-            "getinfo\n"
-            "Returns an object containing various state info.");
+            "getinfo [include_unconfirmed=false]\n"
+            "Returns an object containing various state info."
+            "include_unconfirmed - if true balance will include unconfirmed transactions");
 
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
+    bool include_unconfirmed = false;
+    if (params.size() == 1)
+        include_unconfirmed = params[0].get_bool();
+    
     Object obj;
     obj.push_back(Pair("version",       FormatFullVersion()));
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
+    if (include_unconfirmed)
+        obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance() + pwalletMain->GetUnconfirmedBalance())));
+    else
+        obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
     obj.push_back(Pair("newmint",       ValueFromAmount(pwalletMain->GetNewMint())));
     obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetStake())));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
@@ -593,6 +601,7 @@ Value getbalance(const Array& params, bool fHelp)
                 nBalance -= r.second;
             nBalance -= allFee;
             nBalance += allGeneratedMature;
+            nBalance -= allGeneratedImmature;
         }
         return  ValueFromAmount(nBalance);
     }
@@ -1498,7 +1507,7 @@ Value walletlock(const Array& params, bool fHelp)
 
     {
         LOCK(cs_nWalletUnlockTime);
-        //pwalletMain->Lock();
+        pwalletMain->Lock();
         nWalletUnlockTime = 0;
     }
 

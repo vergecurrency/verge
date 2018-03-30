@@ -191,7 +191,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
         case MapPortUPnP:
             fUseUPnP = value.toBool();
             settings.setValue("fUseUPnP", fUseUPnP);
-            MapPort();
+            MapPort(fUseUPnP);
             break;
         case MinimizeOnClose:
             fMinimizeOnClose = value.toBool();

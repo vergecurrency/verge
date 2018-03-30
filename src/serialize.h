@@ -718,6 +718,8 @@ inline unsigned int SerReadWrite(Stream& s, T& obj, int nType, int nVersion, CSe
     return 0;
 }
 
+typedef std::vector<char, zero_after_free_allocator<char> > CSerializeData;
+
 struct ser_streamplaceholder
 {
     int nType;
@@ -743,7 +745,7 @@ struct ser_streamplaceholder
 class CDataStream
 {
 protected:
-    typedef std::vector<char, zero_after_free_allocator<char> > vector_type;
+    typedef CSerializeData vector_type;
     vector_type vch;
     unsigned int nReadPos;
     short state;
@@ -1040,6 +1042,11 @@ public:
         // Unserialize from this stream
         ::Unserialize(*this, obj, nType, nVersion);
         return (*this);
+    }
+    
+    void GetAndClear(CSerializeData &data) {
+	data.insert(data.end(), begin(), end());
+	clear();
     }
 };
 
