@@ -2734,4 +2734,4 @@ If the file does not exist, create it with owner-readable-only file permissions.
 Εάν το αρχείο δεν υπάρχει, δημιουργήστε το με δικαιώματα αρχείων μόνο για αναγνώση από τον ιδιοκτήτη.</translation>
     </message>
 </context>
-</TS
+</TS>
