@@ -2712,7 +2712,7 @@ rpcpassword=%s
 If the file does not exist, create it with owner-readable-only file permissions.
 </source>
         <translation>%s, πρέπει να ορίσετε ένα rpcpassword στο αρχείο ρυθμίσεων:
- %s
+ %s
 Συνιστάται να χρησιμοποιήσετε τον ακόλουθο τυχαίο κωδικό πρόσβασης:
 rpcuser = bitcoinrpc
 rpcpassword =%s
