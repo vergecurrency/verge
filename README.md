@@ -84,16 +84,8 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 1. Download the pre-compiled software.
 2. Double click the DMG
 3. Drag the Verge-Qt to your Applications folder
-4. Install required `boost` dependency via homebrew
-
-    ```shell
-    xcode-select --install
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    brew doctor
-    brew install boost
-    ```
-5. Double click the Verge-Qt application to open it.
-6. Go grab a :coffee: while it syncs with the blockchain
+4. Double click the Verge-Qt application to open it.
+5. Go grab a :coffee: while it syncs with the blockchain
 
 > **Note:** It may look like it is frozen or hung while it is indexing and syncing the blockchain. It's not. It's chugging away, but currently the UI doesn't give you a lot of feedback on status. We're working to fix that. Syncing takes a while to complete (ie. > 10 minutes or more) so just be patient.
 
@@ -101,8 +93,8 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 ### Linux Wallet
 
-1. Download the pre-compiled software.
-2. Unpack it. The wallet GUI is in `./verge/src/qt` and the daemon in `./verge/src`.
+1. Compile using [linux instructions](doc/build-verge-linux.md).
+2. The wallet GUI is in `./verge/src/qt` and the daemon in `./verge/src`.
 3. **Optional** - the binaries to your favorite location. for use by all users, run the following commands:
 
     ```shell
@@ -149,6 +141,10 @@ You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.co
 * [Windows Instructions](doc/build-verge-win.md)
 
 ## Developer Notes
+
+The Easy Method:
+
+> **Note**: Sometimes linux user permissions are not set up properly, and causes failed compiling in linux. Please ensure your user has access or do the install from root if these problems arise.
 
 ```shell
 sudo rm -Rf ~/VERGE  #(if you already have it)
@@ -245,6 +241,11 @@ algo=groestl
 algo=lyra
 algo=blake
 ```
+
+## TestNet
+
+Here is a list of active testnet nodes:
+ddvnucmtvyiemiuk.onion (sunerok)
 
 ## Donations
 

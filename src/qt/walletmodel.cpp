@@ -9,11 +9,12 @@
 #include "walletdb.h" // for BackupWallet
 #include "base58.h"
 #include "smessage.h"
+#include "util.h"
 
 #include <QSet>
 #include <QTimer>
 
-WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
+WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) : 
     QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
     transactionTableModel(0),
     cachedBalance(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
@@ -50,6 +51,25 @@ qint64 WalletModel::getUnconfirmedBalance() const
 qint64 WalletModel::getImmatureBalance() const
 {
     return wallet->GetImmatureBalance();
+}
+
+qint64 WalletModel::getAvailableAmount(int parts) const
+{
+    qint64 balance = getBalance();
+    if(parts <= 0 || !MoneyRange(balance))
+    {
+        return 0;
+    }
+
+    qint64 transaction_amount = (balance / parts) - nTransactionFee;
+
+    if(parts <= 0 || !MoneyRange(transaction_amount))
+    {
+        std::cout << "Out of range error after calculation" << std::endl;
+        return 0;
+    }
+
+    return transaction_amount;
 }
 
 int WalletModel::getNumTransactions() const

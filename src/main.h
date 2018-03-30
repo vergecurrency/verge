@@ -15,6 +15,7 @@
 #include "hashx17.h"
 #include "Lyra2RE.h"
 #include <list>
+#include "ui_interface.h"
 
 class CWallet;
 class CBlock;
@@ -29,6 +30,7 @@ class CRequestTracker;
 class CNode;
 
 static const int MULTI_ALGO_SWITCH_BLOCK = 340000;
+static const int STEALTH_TX_SWITCH_BLOCK = 1824150;
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
@@ -104,7 +106,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock);
 bool CheckDiskSpace(uint64 nAdditionalBytes=0);
 FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
 FILE* AppendBlockFile(unsigned int& nFileRet);
-bool LoadBlockIndex(bool fAllowNew=true);
+bool LoadBlockIndex(bool fAllowNew=true, CClientUIInterface* uiInterface=NULL);
 void PrintBlockTree();
 CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
@@ -144,6 +146,7 @@ enum
 {
     // primary version
     BLOCK_VERSION_DEFAULT        = 2,
+	BLOCK_VERSION_STEALTH        = 4,
 
     // algo
     BLOCK_VERSION_ALGO_BROKEN    = (10 << 11),
@@ -902,7 +905,6 @@ class CBlockHeader
 {
 public:
     // header
-    static const int CURRENT_VERSION = BLOCK_VERSION_DEFAULT;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -928,7 +930,7 @@ public:
 
     void SetNull()
     {
-        nVersion = CBlockHeader::CURRENT_VERSION;
+        nVersion = nBestHeight >= STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
         hashPrevBlock = 0;
         hashMerkleRoot = 0;
         nTime = 0;

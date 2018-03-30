@@ -131,6 +131,11 @@ void BitcoinAmountField::setValue(qint64 value)
     setText(BitcoinUnits::format(currentUnit, value));
 }
 
+void BitcoinAmountField::setValueWithoutComma(qint64 value)
+{
+    setText(BitcoinUnits::format(currentUnit, value, false, true));
+}
+
 void BitcoinAmountField::unitChanged(int idx)
 {
     // Use description tooltip for current unit for the combobox

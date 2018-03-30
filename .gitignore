@@ -19,6 +19,7 @@ src/qt/VERGE-qt
 
 VERGEd
 VERGE-qt
+test_verge
 
 Makefile.in
 aclocal.m4

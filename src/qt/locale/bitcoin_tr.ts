@@ -11,13 +11,13 @@
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;VERGE&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;VERGE&lt;/b&gt; versiyon</translation>
+        <source>&lt;b&gt;VERGE&lt;/b&gt; sürüm</source>
+        <translation>&lt;b&gt;VERGE&lt;/b&gt; sürüm</translation>
     </message>
     <message>
         <location line="+41"/>
-        <source>Copyright © 2014-2016 The Verge geliştiricileri</source>
-        <translation>Copyright © 2014-2016 The Verge geliştiricileri</translation>
+        <source>Copyright © 2014-2018 The Verge developers</source>
+        <translation>Copyright © 2014-2018 Verge geliştiricileri</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -120,7 +120,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+250"/>
         <source>Export Address Book Data</source>
-        <translation>Adres Defteri Kayıtları Dışarı Çıkart</translation>
+        <translation>Adres Defteri Kayıtlarını Dışarı Çıkart</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -161,12 +161,12 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location filename="../forms/askpassphrasedialog.ui" line="+26"/>
         <source>Passphrase Dialog</source>
-        <translation>Anahtar Parola Dialoğu</translation>
+        <translation>Anahtar Parola Diyaloğu</translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Enter passphrase</source>
-        <translation>Anahtar paralo giriniz</translation>
+        <translation>Anahtar parola giriniz</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -176,7 +176,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+14"/>
         <source>Repeat new passphrase</source>
-        <translation>Anahtar paralo tekrarı</translation>
+        <translation>Anahtar parola tekrarı</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="+33"/>
@@ -191,7 +191,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+3"/>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Bu aksiyon için cüzdanınızın kilidinin anahtar paralonanızla açılması gerekmektedir.</translation>
+        <translation>Bu aksiyon için cüzdanınızın kilidinin anahtar parolananızla açılması gerekmektedir.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -272,7 +272,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
         <location line="+7"/>
         <location line="+48"/>
         <source>The supplied passphrases do not match.</source>
-        <translation>Anahtar paralo uyuşmadı.</translation>
+        <translation>Anahtar parola uyuşmadı.</translation>
     </message>
     <message>
         <location line="-37"/>
@@ -294,7 +294,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+14"/>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>Anahtar paralo başarıyla değiştirildi</translation>
+        <translation>Anahtar parola başarıyla değiştirildi</translation>
     </message>
 </context>
 <context>
@@ -444,7 +444,7 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+2"/>
         <source>Change the passphrase used for wallet encryption</source>
-        <translation>Cüzdan şifrelemesinde kullanılan anahtar parolayı değştir</translation>
+        <translation>Cüzdan şifrelemesinde kullanılan anahtar parolayı değiştir</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -566,12 +566,12 @@ Bu yazılım OpenSSL kütüphanesinden OpenSSL araç gereçlerini kullanmak içi
     <message>
         <location line="+7"/>
         <source>Catching up...</source>
-        <translation>Günceleniyor</translation>
+        <translation>Günceleniyor...</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Last received block was generated %1.</source>
-        <translation>En üretilen blok %1.</translation>
+        <translation>Son alınan blok üretildi %1.</translation>
     </message>
     <message>
         <location line="+59"/>
@@ -646,12 +646,12 @@ Adres: %4
     <message>
         <location line="+0"/>
         <source>There was an error trying to save the wallet data to the new location.</source>
-        <translation>Cüzdan verisi lokasyona yazılırken hata oluştur.</translation>
+        <translation>Cüzdan verisi lokasyona yazılırken hata oluştu.</translation>
     </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
         <source>A fatal error occurred. VERGE can no longer continue safely and will quit.</source>
-        <translation>Kritik hata oluştu. Verge güvenli bir şekilde çalışamayacağına karar verdiği için kendini kapatacak.</translation>
+        <translation>Kritik hata oluştu. VERGE güvenli bir şekilde çalışamayacağına karar verdiği için kendini kapatacak.</translation>
     </message>
 </context>
 <context>
@@ -741,7 +741,7 @@ Adres: %4
     <message>
         <location line="-12"/>
         <source>version</source>
-        <translation>versiyon</translation>
+        <translation>sürümn</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -1054,7 +1054,7 @@ Adres: %4
     <message>
         <location filename="../forms/qrcodedialog.ui" line="+14"/>
         <source>QR Code Dialog</source>
-        <translation type="unfinished">QR Kod Dialogu</translation>
+        <translation type="unfinished">QR Kod Diyaloğu</translation>
     </message>
     <message>
         <location line="+59"/>
@@ -1131,7 +1131,7 @@ Adres: %4
     <message>
         <location line="-217"/>
         <source>Client version</source>
-        <translation type="unfinished">İstemci versiyonu</translation>
+        <translation type="unfinished">İstemci sürümü</translation>
     </message>
     <message>
         <location line="-45"/>
@@ -1141,7 +1141,7 @@ Adres: %4
     <message>
         <location line="+68"/>
         <source>Using OpenSSL version</source>
-        <translation type="unfinished">OpenSSL versiyonu kullanarak</translation>
+        <translation type="unfinished">OpenSSL sürümünü kullanarak</translation>
     </message>
     <message>
         <location line="+49"/>
@@ -1236,7 +1236,7 @@ Adres: %4
     <message>
         <location line="+102"/>
         <source>Clear console</source>
-        <translation>Clear console</translation>
+        <translation>Konsolu temizle</translation>
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
@@ -1276,7 +1276,7 @@ Adres: %4
     <message>
         <location line="+3"/>
         <source>Add &amp;Recipient</source>
-        <translation></translation>
+        <translation>Alıcıyı &amp;Ekle</translation>
     </message>
     <message>
         <location line="+20"/>
@@ -1286,7 +1286,7 @@ Adres: %4
     <message>
         <location line="+3"/>
         <source>Clear &amp;All</source>
-        <translation>Clear &amp;All</translation>
+        <translation>Hepsini &amp;Temizle</translation>
     </message>
     <message>
         <location line="+22"/>
@@ -1301,7 +1301,7 @@ Adres: %4
     <message>
         <location line="+31"/>
         <source>Confirm the send action</source>
-        <translation>Confirm the send action</translation>
+        <translation>Gönderim işlemini onayla</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1321,12 +1321,12 @@ Adres: %4
     <message>
         <location line="+1"/>
         <source>Are you sure you want to send %1?</source>
-        <translation>Are you sure you want to send %1?</translation>
+        <translation>%1 göndermek istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <location line="+0"/>
         <source> and </source>
-        <translation> and </translation>
+        <translation> ve </translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1420,12 +1420,12 @@ Adres: %4
     <message>
         <location line="+7"/>
         <source>Remove this recipient</source>
-        <translation>Remove this recipient</translation>
+        <translation>Bu alıcıyı sil</translation>
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Enter a valid VERGE address </translation>
+        <translation>Geçerli bir VERGE adresi gir</translation>
     </message>
 </context>
 <context>
@@ -1529,7 +1529,7 @@ Adres: %4
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
         <source>Enter a valid VERGE address</source>
-        <translation>Enter a valid VERGE address</translation>
+        <translation>Geçerli bir VERGE adresi gir</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -1654,7 +1654,7 @@ Adres: %4
     <message>
         <location line="+4"/>
         <source>Date</source>
-        <translation>Date</translation>
+        <translation>Tarih</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1670,25 +1670,25 @@ Adres: %4
         <location line="+5"/>
         <location line="+17"/>
         <source>From</source>
-        <translation>From</translation>
+        <translation>Gönderen</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+22"/>
         <location line="+58"/>
         <source>To</source>
-        <translation>To</translation>
+        <translation>Gönderilen</translation>
     </message>
     <message>
         <location line="-77"/>
         <location line="+2"/>
         <source>own address</source>
-        <translation>own address</translation>
+        <translation>Adresiniz</translation>
     </message>
     <message>
         <location line="-2"/>
         <source>label</source>
-        <translation>label</translation>
+        <translation>etiket</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -1723,7 +1723,7 @@ Adres: %4
     <message>
         <location line="-39"/>
         <source>Transaction fee</source>
-        <translation>Transaction fee</translation>
+        <translation>İşlem ücreti</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -1733,7 +1733,7 @@ Adres: %4
     <message>
         <location line="+6"/>
         <source>Message</source>
-        <translation>Message</translation>
+        <translation>Mesaj</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -1743,7 +1743,7 @@ Adres: %4
     <message>
         <location line="+2"/>
         <source>Transaction ID</source>
-        <translation>Transaction ID</translation>
+        <translation>İşlem ID</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1778,12 +1778,12 @@ Adres: %4
     <message>
         <location line="+1"/>
         <source>true</source>
-        <translation>true</translation>
+        <translation>doğru</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>false</source>
-        <translation>false</translation>
+        <translation>yanlış</translation>
     </message>
     <message>
         <location line="-211"/>
@@ -1793,7 +1793,7 @@ Adres: %4
     <message>
         <location line="+35"/>
         <source>unknown</source>
-        <translation>unknown</translation>
+        <translation>bilinmiyor</translation>
     </message>
 </context>
 <context>
@@ -1879,7 +1879,7 @@ Adres: %4
     <message>
         <location line="+43"/>
         <source>Received with</source>
-        <translation>Alındı ile</translation>
+        <translation>Alındı, ile</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2109,12 +2109,12 @@ Adres: %4
     <message>
         <location filename="../bitcoinstrings.cpp" line="+82"/>
         <source>VERGE version</source>
-        <translation>VERGE version</translation>
+        <translation>VERGE sürüm</translation>
     </message>
     <message>
         <location line="+82"/>
         <source>Usage:</source>
-        <translation>Usage:</translation>
+        <translation>Kullanım:</translation>
     </message>
     <message>
         <location line="-25"/>
@@ -2124,17 +2124,17 @@ Adres: %4
     <message>
         <location line="-19"/>
         <source>List commands</source>
-        <translation>List commands</translation>
+        <translation>Komut listesi</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>Get help for a command</source>
-        <translation>Get help for a command</translation>
+        <translation>Bir komut hakkında yardım al</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Options:</source>
-        <translation>Options:</translation>
+        <translation>Seçenekler:</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -2624,7 +2624,7 @@ Adres: %4
     <message>
         <location line="+40"/>
         <source>Sending...</source>
-        <translation>Sending...</translation>
+        <translation>Gönderiyor...</translation>
     </message>
     <message>
         <location line="-24"/>
@@ -2664,7 +2664,7 @@ Adres: %4
     <message>
         <location line="+19"/>
         <source>Loading wallet...</source>
-        <translation>Loading wallet...</translation>
+        <translation>Cüzdan yükleniyor...</translation>
     </message>
     <message>
         <location line="-39"/>
@@ -2718,7 +2718,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     <message>
         <location line="+91"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation>Hata</translation>
     </message>
     <message>
         <location line="-30"/>
