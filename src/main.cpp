@@ -2304,8 +2304,20 @@ bool CBlock::AcceptBlock()
         return DoS(100, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev
-    if (GetBlockTime() <= pindexPrev->GetMedianTimePast() || GetBlockTime() + nMaxClockDrift < pindexPrev->GetBlockTime())
-        return error("AcceptBlock() : block's timestamp is too early");
+    if (nHeight <= TIMESTAMP_RULES_SWITCH_BLOCK)
+    {
+        const unsigned oldMaxDrift = 7200; //2 hours
+        if (GetBlockTime() <= pindexPrev->GetMedianTimePast() || GetBlockTime() + oldMaxDrift < pindexPrev->GetBlockTime())
+            return error("AcceptBlock() : block's timestamp is too early");
+    }
+    else
+    {
+        if (GetBlockTime() < pindexPrev->GetBlockTime())
+            return error("AcceptBlock() : block's timestamp is too early");
+
+        if (GetBlockTime() > GetAdjustedTime() + nMaxClockDrift)
+            return error("AcceptBlock() : block too much in the future");
+    }
 
     // Check that all transactions are finalized
     BOOST_FOREACH(const CTransaction& tx, vtx)
