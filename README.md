@@ -36,8 +36,8 @@ ____   _________________________   ________ ___________
 ## Resources
 
 * [Blockchain Explorer](https://verge-blockchain.info/)
-* [Mining Pool List](http://vergecurrency.com/pools/)
-* [Black Paper](https://vergecurrency.com/assets/Verge-Anonymity-Centric-CryptoCurrency.pdf)
+* [Mining Pool List](https://vergecurrency.com/community/xvg-mining-pools/)
+* [Black Paper](https://vergecurrency.com/static/blackpaper/Verge-Anonymity-Centric-CryptoCurrency.pdf)
 
 ### Community
 
