@@ -2285,6 +2285,26 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     return true;
 }
 
+bool CBlock::CheckPrevAlgo(CBlockIndex* pIndex)
+{
+    unsigned checkedBlocks = 0;
+    unsigned sameAlgoBlocks = 0;
+
+    while (pIndex && checkedBlocks != 2*SAME_ALGO_MAX_COUNT)
+    {
+        if (::GetAlgo(pIndex->nVersion) == GetAlgo())
+            ++sameAlgoBlocks;
+        
+        ++checkedBlocks;
+        pIndex = pIndex->pprev;
+    }
+
+    if (sameAlgoBlocks > SAME_ALGO_MAX_COUNT)
+        return false;
+
+    return true;
+}
+
 bool CBlock::AcceptBlock()
 {
     // Check for duplicate
@@ -2299,25 +2319,19 @@ bool CBlock::AcceptBlock()
     CBlockIndex* pindexPrev = (*mi).second;
     int nHeight = pindexPrev->nHeight+1;
 
+    if (nHeight > ALGO_RULES_SWITCH_BLOCK)
+    {
+        if (!CheckPrevAlgo(pindexPrev))
+           return error("AcceptBlock() : too many blocks found using same algorithm");
+    }
+
     // Check proof-of-work or proof-of-stake
     if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake(), GetAlgo()))
         return DoS(100, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev
-    if (nHeight <= TIMESTAMP_RULES_SWITCH_BLOCK)
-    {
-        const unsigned oldMaxDrift = 7200; //2 hours
-        if (GetBlockTime() <= pindexPrev->GetMedianTimePast() || GetBlockTime() + oldMaxDrift < pindexPrev->GetBlockTime())
-            return error("AcceptBlock() : block's timestamp is too early");
-    }
-    else
-    {
-        if (GetBlockTime() < pindexPrev->GetBlockTime())
-            return error("AcceptBlock() : block's timestamp is too early");
-
-        if (GetBlockTime() > GetAdjustedTime() + nMaxClockDrift)
-            return error("AcceptBlock() : block too much in the future");
-    }
+    if (GetBlockTime() <= pindexPrev->GetMedianTimePast() || GetBlockTime() + nMaxClockDrift < pindexPrev->GetBlockTime())
+        return error("AcceptBlock() : block's timestamp is too early");
 
     // Check that all transactions are finalized
     BOOST_FOREACH(const CTransaction& tx, vtx)
