@@ -274,6 +274,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getnewstealthaddress",   &getnewstealthaddress,   false,  false},
     { "liststealthaddresses",   &liststealthaddresses,   false,  false},
     { "importstealthaddress",   &importstealthaddress,   false,  false},
+    { "exportstealthaddress",   &exportstealthaddress,   false,  false},
     { "sendtostealthaddress",   &sendtostealthaddress,   false,  false},
     { "scanforalltxns",         &scanforalltxns,         false,  false},
     { "scanforstealthtxns",     &scanforstealthtxns,     false,  false},
