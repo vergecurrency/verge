@@ -207,6 +207,7 @@ extern json_spirit::Value getcheckpoint(const json_spirit::Array& params, bool f
 extern json_spirit::Value getnewstealthaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value liststealthaddresses(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value importstealthaddress(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value exportstealthaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtostealthaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value clearwallettransactions(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value scanforalltxns(const json_spirit::Array& params, bool fHelp);
