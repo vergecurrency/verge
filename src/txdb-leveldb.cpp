@@ -370,6 +370,9 @@ bool CTxDB::LoadBlockIndex(CClientUIInterface* uiInterface)
             uiInterface->InitMessage(
                 boost::str(percentage_update % ((count * 100.0) / full_count))
             );
+
+            // prints the block index percentage to the console if -printtoconsole is given
+            printf("Loading block index %2.f%% ...\n",((count * 100.0) / full_count));
         }
         boost::this_thread::interruption_point();
         // Unpack keys and values.
