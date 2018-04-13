@@ -276,7 +276,7 @@ VERGEd_LDADD += \
 VERGEd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(LIBCAP_LDFLAGS) $(ZLIB_LDFLAGS)
 VERGEd_CPPFLAGS = $(BITCOIN_INCLUDES) $(LIBEVENT_CFLAGS) $(LIBSECCOMP_CFLAGS) $(LIBCAP_CFLAGS) $(ZLIB_CFLAGS)
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = leveldb/out-static/libleveldb.a leveldb/out-static/libmemenv.a *.gcda *.gcno
 
 DISTCLEANFILES = obj/build.h
 

@@ -59,14 +59,10 @@
 #define fflush_unlocked fflush
 #endif
 
-#if defined(OS_FREEBSD) ||\
+#if defined(OS_MACOSX) || defined(OS_FREEBSD) ||\
     defined(OS_OPENBSD) || defined(OS_DRAGONFLYBSD)
 // Use fsync() on platforms without fdatasync()
 #define fdatasync fsync
-#endif
-
-#if defined(OS_MACOSX)
-#define fdatasync(fd) fcntl(fd, F_FULLFSYNC, 0)
 #endif
 
 #if defined(OS_ANDROID) && __ANDROID_API__ < 9
@@ -151,6 +147,8 @@ inline bool Snappy_Uncompress(const char* input, size_t length,
 inline bool GetHeapProfile(void (*func)(void*, const char*, int), void* arg) {
   return false;
 }
+
+uint32_t AcceleratedCRC32C(uint32_t crc, const char* buf, size_t size);
 
 } // namespace port
 } // namespace leveldb
