@@ -1,4 +1,4 @@
-#AM_CPPFLAGS =  $(INCLUDES) 
+# AM_CPPFLAGS =  $(INCLUDES) 
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
@@ -7,15 +7,18 @@ AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
 if EMBEDDED_LEVELDB
 LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/include
 LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/helpers/memenv
-LIBLEVELDB += $(builddir)/leveldb/libleveldb.a
-LIBMEMENV  += $(builddir)/leveldb/libmemenv.a
+LIBLEVELDB += $(builddir)/leveldb/out-static/libleveldb.a
+LIBMEMENV  += $(builddir)/leveldb/out-static/libmemenv.a
 
-# NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
+# NOTE: This dependency is not strictly necessary, 
+# but without it make may try to build both in parallel, 
+# which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
 
 $(LIBLEVELDB) $(LIBMEMENV):
-	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \
-	  CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
+	@echo "Building LevelDB ... Executes: $(MAKE) -C leveldb all" && \
+    $(MAKE) -C leveldb all CXX="$(CXX)" \
+	    CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
           OPT="$(CXXFLAGS) $(CPPFLAGS)"
 endif
 
@@ -276,7 +279,7 @@ VERGEd_LDADD += \
 VERGEd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(LIBCAP_LDFLAGS) $(ZLIB_LDFLAGS)
 VERGEd_CPPFLAGS = $(BITCOIN_INCLUDES) $(LIBEVENT_CFLAGS) $(LIBSECCOMP_CFLAGS) $(LIBCAP_CFLAGS) $(ZLIB_CFLAGS)
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = leveldb/out-static/libleveldb.a leveldb/out-static/libmemenv.a *.gcda *.gcno
 
 DISTCLEANFILES = obj/build.h
 
