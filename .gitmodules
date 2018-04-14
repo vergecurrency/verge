@@ -2,8 +2,7 @@
 	path = tor
 	url = https://github.com/torproject/tor.git
 	branch = maint-0.3.2
-
-[submodule "leveldb"]
+[submodule "src/leveldb"]
 	path = src/leveldb
 	url = https://github.com/google/leveldb.git
 	branch = 803d69203a62faf50f1b77897310a3a1fcae712b
