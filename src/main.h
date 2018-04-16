@@ -42,6 +42,7 @@ static const int64 MIN_TX_FEE = 10 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 10 * CENT;
 static const int64 MAX_MONEY = 16555000000 * COIN; //
 static const int DISABLE_POS_BLOCK = 1;
+static const unsigned short DEFAULT_TOR_PORT = 9089;
 
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 

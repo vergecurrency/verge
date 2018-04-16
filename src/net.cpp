@@ -1659,13 +1659,20 @@ static void run_tor() {
     fs::path tor_dir = GetDataDir() / "tor";
     fs::create_directory(tor_dir);
     fs::path log_file = tor_dir / "tor.log";
-
+    
     std::vector<std::string> argv;
     argv.push_back("tor");
     argv.push_back("--Log");
     argv.push_back("notice file " + log_file.string());
     argv.push_back("--SocksPort");
-    argv.push_back("9089");
+
+    std::string onion_port = std::to_string(DEFAULT_TOR_PORT);
+    if (mapArgs.count("-torsocksport") && mapArgs["-torsocksport"] != "0")
+    {
+        onion_port = mapArgs["-torsocksport"];
+    }
+
+    argv.push_back(onion_port.c_str());
     argv.push_back("--ignore-missing-torrc");
     argv.push_back("-f");
     argv.push_back((tor_dir / "torrc").string());

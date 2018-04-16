@@ -38,8 +38,6 @@ enum BindFlags {
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 CService addrOnion;
-unsigned short const onion_port = 9089;
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // Shutdown
@@ -549,13 +547,21 @@ bool AppInit2()
     } while (false);
 
 	CService addrOnion;
+    unsigned short onion_port = DEFAULT_TOR_PORT;
+    if (mapArgs.count("-torsocksport") && mapArgs["-torsocksport"] != "0")
+    {
+        onion_port = std::stoi(mapArgs["-torsocksport"]);
+    }
 
-    if (mapArgs.count("-tor") && mapArgs["-tor"] != "0") {
+    if (mapArgs.count("-tor") && mapArgs["-tor"] != "0")
+    {
         addrOnion = CService(mapArgs["-tor"], onion_port);
 
         if (!addrOnion.IsValid())
             return InitError(strprintf(_("Invalid -tor address: '%s'"), mapArgs["-tor"].c_str()));
-		} else {
+	}
+    else
+    {
         addrOnion = CService("127.0.0.1", onion_port);
     }
 
