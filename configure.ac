@@ -22,9 +22,12 @@ AX_SUBDIRS_CONFIGURE([tor], [[--disable-unittests], [--disable-system-torrc], [-
 # are preinstalled but pkg-config comes from macports or homebrew. It should
 # probably be removed when building on <= 10.6 is no longer supported.
 m4_include([pkg.m4])
-
 dnl faketime breaks configure and is only needed for make. Disable it here.
 unset FAKETIME
+
+dnl Require C++14 compiler (no GNU extensions)
+AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory], [nodefault])
+
 
 if test "x${CXXFLAGS+set}" = "xset"; then
   CXXFLAGS_overridden=yes
