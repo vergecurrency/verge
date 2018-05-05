@@ -283,6 +283,24 @@ Value getrawblockbynumber(const Array& params, bool fHelp)
     return strHex;
 }
 
+Value getblockchaininfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getblockchaininfo\n"
+            "Returns an object containing various state info regarding block chain processing.\n");
+
+    proxyType proxy;
+    GetProxy(NET_IPV4, proxy);
+
+    Object obj;
+    std::string chain = (fTestNet ? "test" : "main");
+    obj.push_back(Pair("chain",         chain));
+    obj.push_back(Pair("blocks",        (int)nBestHeight));
+    obj.push_back(Pair("difficulty",    (double)GetDifficulty(NULL, miningAlgo)));
+    return obj;
+}
+
 // ppcoin: get information of sync-checkpoint
 Value getcheckpoint(const Array& params, bool fHelp)
 {
