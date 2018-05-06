@@ -208,12 +208,14 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockcount",          &getblockcount,          true,   false },
     { "getconnectioncount",     &getconnectioncount,     true,   false },
     { "getpeerinfo",            &getpeerinfo,            true,   false },
+    { "getnetworkinfo",         &getnetworkinfo,         true,   false },
     { "getdifficulty",          &getdifficulty,          true,   false },
     { "getgenerate",            &getgenerate,            true,   false },
     { "setgenerate",            &setgenerate,            true,   false },
     { "gethashespersec",        &gethashespersec,        true,   false },
     { "getinfo",                &getinfo,                true,   false },
     { "getmininginfo",          &getmininginfo,          true,   false },
+    { "getblockchaininfo",      &getblockchaininfo,      true,   false },
     { "getnewaddress",          &getnewaddress,          true,   false },
     { "getnewpubkey",           &getnewpubkey,           true,   false },
     { "getaccountaddress",      &getaccountaddress,      true,   false },
@@ -1190,6 +1192,8 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "getblockbynumber"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "getblockbynumber"       && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getinfo"                && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "getnetworkinfo"         && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "getblockchaininfo"      && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getrawblockbynumber"    && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "getblockhash"           && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "move"                   && n > 2) ConvertTo<double>(params[2]);
