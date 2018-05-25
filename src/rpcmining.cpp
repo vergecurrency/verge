@@ -140,7 +140,7 @@ Value getworkex(const Array& params, bool fHelp)
 
         // if difficulty is high and nobody else is mining coinbase time stamp
         // will eventually expire
-        if (pblock->GetBlockTime() > (int64)pblock->vtx[0].nTime + nMaxClockDrift) {
+        if (pblock->GetBlockTime() > (int64)pblock->vtx[0].nTime + GetMaxClockDrift()) {
             int oldTime = pblock->vtx[0].nTime;
             pblock->vtx[0].nTime = GetAdjustedTime();
             pblock->hashMerkleRoot = pblock->BuildMerkleTree();
@@ -290,7 +290,7 @@ Value getwork(const Array& params, bool fHelp)
 
         // if difficulty is high and nobody else is mining coinbase time stamp
         // will eventually expire
-        if (pblock->GetBlockTime() > (int64)pblock->vtx[0].nTime + nMaxClockDrift) {
+        if (pblock->GetBlockTime() > (int64)pblock->vtx[0].nTime + GetMaxClockDrift()) {
             int oldTime = pblock->vtx[0].nTime;
             pblock->vtx[0].nTime = GetAdjustedTime();
             pblock->hashMerkleRoot = pblock->BuildMerkleTree();
@@ -434,7 +434,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     // if difficulty is high and nobody else is mining coinbase time stamp
     // will eventually expire
-    if (pblock->GetBlockTime() > (int64)pblock->vtx[0].nTime + nMaxClockDrift) {
+    if (pblock->GetBlockTime() > (int64)pblock->vtx[0].nTime + GetMaxClockDrift()) {
         int oldTime = pblock->vtx[0].nTime;
         pblock->vtx[0].nTime = GetAdjustedTime();
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
