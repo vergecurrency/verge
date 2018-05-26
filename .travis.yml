@@ -7,9 +7,6 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
-      addons: 
-        apt: 
-          update: false
       env: VERGE_PLATFORM='linux'
       compiler: gcc
       file: 'release_linux.zip'
