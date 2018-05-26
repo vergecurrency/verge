@@ -1,4 +1,4 @@
-
+sudo rm /var/lib/dpkg/lock
 sudo apt-get --yes -qq install software-properties-common > /dev/null
 sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa > /dev/null
 sudo add-apt-repository --yes ppa:bitcoin/bitcoin > /dev/null
