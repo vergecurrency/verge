@@ -18,7 +18,7 @@ Specification | Value
 Protocol | PoW (proof of Work)
 Algorithms | scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 Blocktime | 30 seconds
-Total Supply | 16.5 Billion XVG
+Total Supply | 16,500,000,000 XVG
 RPC port | 20102
 P2P port | 21102
 pre-mine | N/A
