@@ -13,25 +13,29 @@ ____   _________________________   ________ ___________
 # VERGE [XVG] Source Code
 
 ## Specifications
+Specification | Value
+--- | ---
+Protocol | PoW (proof of Work)
+Algorithms | scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
+Blocktime | 30 seconds
+Total Supply | 16.5 Billion XVG
+RPC port | 20102
+P2P port | 21102
+pre-mine | N/A
+ICO | N/A
 
-* PoW (proof of work)
-* Algorithms: scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
-* Blocktime: 30 seconds
-* Total Supply: 16.5 Billion XVG
-* No pre-mine
-* No ICO
-* Blockreward:
-  * Block 0 to 14,000 : 200,000 coins
-  * 14,000 to 28,000 : 100,000 coins
-  * 28,000 to 42,000: 50,000 coins
-  * 42,000 to 210,000: 25,000 coins
-  * 210,000 to 378,000: 12,500 coins
-  * 378,000 to 546,000: 6,250 coins
-  * 546,000 to 714,000: 3,125 coins
-  * 714,000 to 2,124,000: 1,560 coins
-  * 2,124,000 to 4,248,000: 730 coins
-* RPC port: `20102`
-* P2P port: `21102`
+## Blockrewards
+Block Number | Reward
+--- | ---
+0 to 14,000 | 200,000 coins
+14,000 to 28,000 | 100,000 coins
+28,000 to 42,000 | 50,000 coins
+42,000 to 210,000 | 25,000 coins
+210,000 to 378,000 | 12,500 coins
+378,000 to 546,000 | 6,250 coins
+546,000 to 714,000 | 3,125 coins
+714,000 to 2,124,000 | 1,560 coins
+2,124,000 to 4,248,000 | 730 coins
 
 ## Resources
 
