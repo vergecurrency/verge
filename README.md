@@ -264,3 +264,26 @@ Special thanks to the following people that have helped make Verge possible. :ra
 
 Sunerok, CryptoRekt, MKinney, BearSylla, Hypermist, Pallas1, FuzzBawls, BuZz, glodfinch, InfernoMan, AhmedBodi, BitSpill, MentalCollatz, ekryski and the **entire** #VERGE community!
 
+
+
+
+# Bug Reporting
+
+If you think you've found a bug or a problem with VERGE, please let us know! First, search our issue tracker to search to see if someone has already reported the problem. If they haven't, click here to open a new issue, and fill out the template with as much information as possible. The more you can tell us about the problem and how it occurred, the more likely we are to fix it.
+
+## _Please do not report security vulnerabilities publicly._
+
+
+## How to report a bug
+
+### Code issues
+
+Since we are a 100% open-source project we strongly prefer if you create a pull-request on Github in the proper repository with the necessary fix.
+
+Alternatively, If you would like to make a suggestion regarding a potential fix please send an email to contact@vergecurrency.com
+
+
+### Security-related issues
+
+Contact the developers privately by sending an e-mail to contact@vergecurrency.com with the details of the issue. Do not post the issue on github or anywhere else until the issue has been resolved.
+
