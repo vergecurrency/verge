@@ -1744,7 +1744,7 @@ Address: %4
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <source>Generated coins must mature 140 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
         <translation>生成的硬币必须先成熟25块, 然后才能使用. 当你生成这个区块时, 它被广播到网络上被添加到区块链中. 如果不能进入区块链, 其状态将变成&quot;未接受&quot; 并无法被花费. 如果另一个节点在几秒钟之内生成一个区块,这可能偶尔会发生.</translation>
     </message>
     <message>
