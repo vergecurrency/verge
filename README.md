@@ -13,25 +13,29 @@ ____   _________________________   ________ ___________
 # VERGE [XVG] Source Code
 
 ## Specifications
+Specification | Value
+--- | ---
+Protocol | PoW (proof of Work)
+Algorithms | scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
+Blocktime | 30 seconds
+Total Supply | 16,500,000,000 XVG
+RPC port | 20102
+P2P port | 21102
+pre-mine | N/A
+ICO | N/A
 
-* PoW (proof of work)
-* Algorithms: scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
-* Blocktime: 30 seconds
-* Total Supply: 16.5 Billion XVG
-* No pre-mine
-* No ICO
-* Blockreward:
-  * Block 0 to 14,000 : 200,000 coins
-  * 14,000 to 28,000 : 100,000 coins
-  * 28,000 to 42,000: 50,000 coins
-  * 42,000 to 210,000: 25,000 coins
-  * 210,000 to 378,000: 12,500 coins
-  * 378,000 to 546,000: 6,250 coins
-  * 546,000 to 714,000: 3,125 coins
-  * 714,000 to 2,124,000: 1,560 coins
-  * 2,124,000 to 4,248,000: 730 coins
-* RPC port: `20102`
-* P2P port: `21102`
+## Blockrewards
+Block Number | Reward
+--- | ---
+0 to 14,000 | 200,000 coins
+14,000 to 28,000 | 100,000 coins
+28,000 to 42,000 | 50,000 coins
+42,000 to 210,000 | 25,000 coins
+210,000 to 378,000 | 12,500 coins
+378,000 to 546,000 | 6,250 coins
+546,000 to 714,000 | 3,125 coins
+714,000 to 2,124,000 | 1,560 coins
+2,124,000 to 4,248,000 | 730 coins
 
 ## Resources
 
@@ -259,4 +263,27 @@ We believe in keeping Verge free and open. Any donations to help fuel the develo
 Special thanks to the following people that have helped make Verge possible. :raised_hands:
 
 Sunerok, CryptoRekt, MKinney, BearSylla, Hypermist, Pallas1, FuzzBawls, BuZz, glodfinch, InfernoMan, AhmedBodi, BitSpill, MentalCollatz, ekryski and the **entire** #VERGE community!
+
+
+
+
+# Bug Reporting
+
+If you think you've found a bug or a problem with VERGE, please let us know! First, search our issue tracker to search to see if someone has already reported the problem. If they haven't, click here to open a new issue, and fill out the template with as much information as possible. The more you can tell us about the problem and how it occurred, the more likely we are to fix it.
+
+## _Please do not report security vulnerabilities publicly._
+
+
+## How to report a bug
+
+### Code issues
+
+Since we are a 100% open-source project we strongly prefer if you create a pull-request on Github in the proper repository with the necessary fix.
+
+Alternatively, If you would like to make a suggestion regarding a potential fix please send an email to contact@vergecurrency.com
+
+
+### Security-related issues
+
+Contact the developers privately by sending an e-mail to contact@vergecurrency.com with the details of the issue. Do not post the issue on github or anywhere else until the issue has been resolved.
 
