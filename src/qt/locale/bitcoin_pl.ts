@@ -1757,8 +1757,8 @@ Wybierz standardową jednostkę podziału w interfejsie i przy wysyłaniu monet 
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Wygenerowane monety muszą dojrzewać przez 25 bloków zanim zostaną wydane. Gdy wygenerowałeś ten block, został on wysłany do sieci aby dodać go do łańcucha bloków(blockchain). Jeśli nie dotrze do łańcucha, jego stan się zmieni na „nie zaakceptowane” i nie będzie można go wydać. Może się tak również czasami stać jeśli inny węzeł wygeneruje blok w kilka sekund po Twoim.</translation>
+        <source>Generated coins must mature 140 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <translation>Wygenerowane monety muszą dojrzewać przez 140 bloków zanim zostaną wydane. Gdy wygenerowałeś ten block, został on wysłany do sieci aby dodać go do łańcucha bloków(blockchain). Jeśli nie dotrze do łańcucha, jego stan się zmieni na „nie zaakceptowane” i nie będzie można go wydać. Może się tak również czasami stać jeśli inny węzeł wygeneruje blok w kilka sekund po Twoim.</translation>
     </message>
     <message>
         <location line="+4"/>

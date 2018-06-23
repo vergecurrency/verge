@@ -1791,12 +1791,12 @@ careful not to read more into the signature than what is in the signed message i
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the
+        <source>Generated coins must mature 140 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the
 
 block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if
 
 another node generates a block within a few seconds of yours.</source>
-        <translation>Pentru a putea cheltui monedele generate, trebuie așteptat 25 de blocuri. Când ai generat acest bloc, a fost emis către rețea
+        <translation>Pentru a putea cheltui monedele generate, trebuie așteptat 140 de blocuri. Când ai generat acest bloc, a fost emis către rețea
 
 pentru a fi adăugat block chainului. Dacă nu se poate integra în chain, starea sa se va schimba  &quot;neacceptat&quot; și nu va putea fi cheltuit. Acest lucru se poate întâmpla ocazional
 

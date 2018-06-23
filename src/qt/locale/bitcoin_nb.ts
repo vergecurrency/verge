@@ -1753,8 +1753,8 @@ Adresse: %4
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Genererte mynter må modnes i 25 blokker før de kan brukes. Når du genererte denne blokken ble den kringkastet til nettverket for å bli lagt til i blokk-kjeden. Hvis den feiler i å bli en del av blokk-kjeden, så vil statusen endres til &quot;ikke akseptert&quot; og den vil ikke kunne brukes. Dette kan av og til skje dersom en annen node genererer en blokk innen et par sekunder av når din ble generert.</translation>
+        <source>Generated coins must mature 140 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <translation>Genererte mynter må modnes i 140 blokker før de kan brukes. Når du genererte denne blokken ble den kringkastet til nettverket for å bli lagt til i blokk-kjeden. Hvis den feiler i å bli en del av blokk-kjeden, så vil statusen endres til &quot;ikke akseptert&quot; og den vil ikke kunne brukes. Dette kan av og til skje dersom en annen node genererer en blokk innen et par sekunder av når din ble generert.</translation>
     </message>
     <message>
         <location line="+4"/>
