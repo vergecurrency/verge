@@ -1753,8 +1753,8 @@ Addresse: %4
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Les pièces générées doivent murir 25 blocs avant de pouvoir être dépensées. Lorsque vous avez généré ce bloc, il a été diffusé au réseau pour être ajouté à la chaîne de blocs. Si l&apos;ajout dans la chaîne échoue, son statut va changer en &quot;non accepté&quot; et il ne pourra pas être dépensé. Celà peut arriver occasionellement si un autre noeud génère un bloc dans les quelques secondes suivant le vôtre.</translation>
+        <source>Generated coins must mature 140 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <translation>Les pièces générées doivent murir 140 blocs avant de pouvoir être dépensées. Lorsque vous avez généré ce bloc, il a été diffusé au réseau pour être ajouté à la chaîne de blocs. Si l&apos;ajout dans la chaîne échoue, son statut va changer en &quot;non accepté&quot; et il ne pourra pas être dépensé. Celà peut arriver occasionellement si un autre noeud génère un bloc dans les quelques secondes suivant le vôtre.</translation>
     </message>
     <message>
         <location line="+4"/>
