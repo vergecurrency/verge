@@ -1751,8 +1751,8 @@ Address: %4
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to "not accepted" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Τα παραγόμενα νομίσματα πρέπει να ωριμάσουν 25 block πριν ξοδέφτούν. Όταν δημιουργήσατε αυτό το block, μεταδόθηκε στο δίκτυο για να προστεθεί στην αλυσίδα block. Εάν δεν καταφέρει να εισέλθει στην αλυσίδα, η κατάστασή της θα αλλάξει σε "μη αποδεκτή" και δεν θα είναι δυνατόν να ξοδεφτεί. Αυτό μπορεί περιστασιακά να συμβεί αν ένας άλλος κόμβος παράγει ένα block μέσα σε λίγα δευτερόλεπτα από το δικό σας.</translation>
+        <source>Generated coins must mature 140 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to "not accepted" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <translation>Τα παραγόμενα νομίσματα πρέπει να ωριμάσουν 140 block πριν ξοδέφτούν. Όταν δημιουργήσατε αυτό το block, μεταδόθηκε στο δίκτυο για να προστεθεί στην αλυσίδα block. Εάν δεν καταφέρει να εισέλθει στην αλυσίδα, η κατάστασή της θα αλλάξει σε "μη αποδεκτή" και δεν θα είναι δυνατόν να ξοδεφτεί. Αυτό μπορεί περιστασιακά να συμβεί αν ένας άλλος κόμβος παράγει ένα block μέσα σε λίγα δευτερόλεπτα από το δικό σας.</translation>
     </message>
     <message>
         <location line="+4"/>
