@@ -1762,8 +1762,8 @@ Address: %4
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 25 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Die generierten M&uuml;nzen m&uuml;ssen 25 Bl&ouml;cke umfassen, bevor sie ausgegeben werden k&ouml;nnen. Wenn Sie diesen Block erzeugt haben, wurde er an das Netzwerk gesendet, um ihn der Blockkette hinzuzuf&uuml;gen. Wenn es nicht in die Kette kommt, &auml;ndert sich sein Zustand in &quot;nicht akzeptiert&quot; und er wird nicht ausgegeben werden k&ouml;nnen. Dies kann gelegentlich vorkommen, wenn ein anderer Knoten innerhalb weniger Sekunden einen Block erzeugt.</translation>
+        <source>Generated coins must mature 140 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <translation>Die generierten M&uuml;nzen m&uuml;ssen 140 Bl&ouml;cke umfassen, bevor sie ausgegeben werden k&ouml;nnen. Wenn Sie diesen Block erzeugt haben, wurde er an das Netzwerk gesendet, um ihn der Blockkette hinzuzuf&uuml;gen. Wenn es nicht in die Kette kommt, &auml;ndert sich sein Zustand in &quot;nicht akzeptiert&quot; und er wird nicht ausgegeben werden k&ouml;nnen. Dies kann gelegentlich vorkommen, wenn ein anderer Knoten innerhalb weniger Sekunden einen Block erzeugt.</translation>
     </message>
     <message>
         <location line="+4"/>
