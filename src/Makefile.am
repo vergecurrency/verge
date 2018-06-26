@@ -110,6 +110,7 @@ BITCOIN_CORE_H = \
   Sponge.h \
   blake2.h \
   blake2-impl.h \
+  core.h \
   db.h \
   hash.h \
   txdb-leveldb.h \
@@ -167,6 +168,7 @@ libbitcoin_server_a_SOURCES = \
   txdb-leveldb.cpp \
   bitcoinrpc.cpp \
   keystore.cpp \
+  core.cpp \
   main.cpp \
   noui.cpp \
   net.cpp \
