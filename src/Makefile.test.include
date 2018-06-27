@@ -43,7 +43,6 @@ test_verge_SOURCES = \
 					   test/base32_tests.cpp \
 					   test/allocator_tests.cpp \
 					   test/script_P2SH_tests.cpp \
-					   test/canonical_tests.cpp \
 					   test/DoS_tests.cpp \
 					   test/stealth_tests.cpp \
 					   $(JSON_TEST_FILES) $(RAW_TEST_FILES)
