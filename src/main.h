@@ -822,8 +822,8 @@ public:
     )
 };
 
-// bool IsStandardTx(const CTransaction& tx);
-// bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime);
+bool IsStandardTx(const CTransaction& tx);
+bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime);
 
 /** pruned version of CTransaction: only retains metadata and unspent transaction outputs
  *
