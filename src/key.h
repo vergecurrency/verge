@@ -114,7 +114,7 @@ protected:
     bool fCompressedPubKey;
 
 public:
-    void SetCompressedPubKey();
+    void SetCompressedPubKey(bool fCompressed = true);
 
     void Reset();
 
