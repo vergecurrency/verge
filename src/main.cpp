@@ -3255,13 +3255,8 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
     return true;
 }
 
-static bool NodeRecentlyStarted()
-{
-    extern int64 nTimeNodeStart;
-    int64 timediff = GetTime() - nTimeNodeStart;
 
-    return (timediff < (2 * 60 * 60));
-}
+
 
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
@@ -3365,12 +3360,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
 
-		// Trigger download of remote node's memory pool
-        if (!IsInitialBlockDownload() && !pfrom->fInbound &&
-            !pfrom->fClient && NodeRecentlyStarted() &&
-            pfrom->nVersion >= MEMPOOL_GD_VERSION)
-            pfrom->PushMessage("mempool");
-		
         // Ask the first connected node for block updates
         static int nAskedForBlocks = 0;
         if (!pfrom->fClient && !pfrom->fOneShot && !fImporting &&
