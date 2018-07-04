@@ -38,6 +38,7 @@ enum BindFlags {
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 CService addrOnion;
+int64 nTimeNodeStart;
 //////////////////////////////////////////////////////////////////////////////
 //
 // Shutdown
@@ -475,10 +476,11 @@ bool AppInit2()
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("VERGE version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
+    printf("VergeCore version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+	nTimeNodeStart = GetTime();
     if (!fLogTimestamps)
-        printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
+        printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", nTimeNodeStart).c_str());
     printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
     printf("Default mining hash algorithm: %s\n", GetAlgoName(miningAlgo).c_str());
     printf("Used data directory %s\n", strDataDir.c_str());
