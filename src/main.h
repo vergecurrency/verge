@@ -26,7 +26,6 @@ class COutPoint;
 
 class CAddress;
 class CInv;
-class CRequestTracker;
 class CNode;
 
 static const int MULTI_ALGO_SWITCH_BLOCK = 340000;
