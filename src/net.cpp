@@ -12,6 +12,8 @@
 #include "ui_interface.h"
 #include "util.h"
 #include <sys/stat.h>
+#include <regex>
+#include <fstream>
 
 #ifdef WIN32
 #include <string.h>
@@ -1641,21 +1643,42 @@ static char *convert_str(const std::string &s) {
 }
 
 static void run_tor() {
-    printf("TOR thread started.\n");
-
-    boost::optional<std::string> clientTransportPlugin;
+    std::string clientTransportPlugin;
     struct stat sb;
-    if ((stat("obfs4proxy", &sb) == 0 && sb.st_mode & S_IXUSR) || !std::system("which obfs4proxy")) {
-      clientTransportPlugin = "obfs4 exec obfs4proxy";
-    }
-    else if (stat("obfs4proxy.exe", &sb) == 0 && sb.st_mode & S_IXUSR) {
-      clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
-    }
-
     fs::path tor_dir = GetDataDir() / "tor";
     fs::create_directory(tor_dir);
     fs::path log_file = tor_dir / "tor.log";
+    fs::path torrc_file = tor_dir / "torrc";
+    std::regex bridge_regex("^Bridge obfs4");
+    int bridgeNum = 0;
+    std::ifstream torrc_stream;
+    std::string line;
+    std::string obfs4proxy_path;
+
+    printf("TOR thread started.\n");
     
+    torrc_stream.open(torrc_file.string().c_str());
+    while (getline(torrc_stream, line)) {
+        if (regex_search (line, bridge_regex)) {
+            ++bridgeNum;
+        }
+    }
+    torrc_stream.close();
+
+    if (stat("/usr/bin/obfs4proxy", &sb) == 0 && sb.st_mode & S_IXUSR) {
+        obfs4proxy_path = "/usr/bin/obfs4proxy";
+    }
+    if (stat("/usr/local/bin/obfs4proxy", &sb) == 0 && sb.st_mode & S_IXUSR) {
+        obfs4proxy_path = "/usr/local/bin/obfs4proxy";
+    }
+    if (stat("c:\\bin\\obfs4proxy.exe", &sb) == 0 && sb.st_mode & S_IXUSR) {
+        obfs4proxy_path = "c:\\bin\\obfs4proxy.exe";
+    }
+
+    if ((bridgeNum > 0) && (!obfs4proxy_path.empty())) {
+            clientTransportPlugin = "obfs4 exec " + obfs4proxy_path;
+    }
+
     std::vector<std::string> argv;
     argv.push_back("tor");
     argv.push_back("--Log");
@@ -1677,10 +1700,10 @@ static void run_tor() {
     argv.push_back("--HiddenServicePort");
     argv.push_back("21102");
 
-    if (clientTransportPlugin) {
+    if(!clientTransportPlugin.empty()){
       printf("Using OBFS4.\n");
       argv.push_back("--ClientTransportPlugin");
-      argv.push_back(*clientTransportPlugin);
+      argv.push_back(clientTransportPlugin);
       argv.push_back("--UseBridges");
       argv.push_back("1");
     }
