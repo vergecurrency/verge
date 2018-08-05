@@ -1,33 +1,6 @@
 #!/bin/bash
 #// full deployement : run sh go.sh
 
-# generating entropy make it harder to guess the randomness!.
-echo "Initializing random number generator..."
-random_seed=/var/run/random-seed
-# Carry a random seed from start-up to start-up
-# Load and then save the whole entropy pool
-if [ -f $random_seed ]; then
-    sudo cat $random_seed >/dev/urandom
-else
-    sudo touch $random_seed
-fi
-sudo chmod 600 $random_seed
-poolfile=/proc/sys/kernel/random/poolsize
-[ -r $poolfile ] && bytes=`sudo cat $poolfile` || bytes=512
-sudo dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
-
-#Also, add the following lines in an appropriate script which is run during the$
-
-# Carry a random seed from shut-down to start-up
-# Save the whole entropy pool
-echo "Saving random seed..."
-random_seed=/var/run/random-seed
-sudo touch $random_seed
-sudo chmod 600 $random_seed
-poolfile=/proc/sys/kernel/random/poolsize
-[ -r $poolfile ] && bytes=`sudo cat $poolfile` || bytes=512
-sudo dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
-
 # Create a swap file
 
 cd ~
