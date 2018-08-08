@@ -12,6 +12,23 @@ ____   _________________________   ________ ___________
 
 # VERGE [XVG] Source Code
 
+## License
+
+VERGE is released under the terms of the MIT license. See [LICENSE](LICENSE) for more
+information or see https://opensource.org/licenses/MIT.
+
+## Development Process
+
+The `master` branch is regularly built and tested, but is not guaranteed to be
+completely stable. [Tags](https://github.com/vergecurrency/VERGE/tags) are created
+regularly to indicate new official, stable release versions of VERGE.
+
+The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Testing
+
+Testing and code review is the bottleneck for development; we get more pull requests than we can review and test on short notice. Please be patient and remember this is a security-critical project where any mistake might cost people lots of money.
+
 ## Specifications
 Specification | Value
 --- | ---
@@ -269,7 +286,7 @@ Sunerok, CryptoRekt, MKinney, BearSylla, Hypermist, Pallas1, FuzzBawls, BuZz, gl
 
 # Bug Reporting
 
-If you think you've found a bug or a problem with VERGE, please let us know! First, search our issue tracker to search to see if someone has already reported the problem. If they haven't, click here to open a new issue, and fill out the template with as much information as possible. The more you can tell us about the problem and how it occurred, the more likely we are to fix it.
+If you think you've found a bug or a problem with VERGE, please let us know! First, search our [issue](https://github.com/vergecurrency/VERGE/issues) tracker to see if someone has already reported the problem. If they haven't, click [here](https://github.com/vergecurrency/VERGE/issues/new) to open a new issue, and fill out the template with as much information as possible. The more you can tell us about the problem and how it occurred, the more likely we are to fix it.
 
 ## _Please do not report security vulnerabilities publicly._
 
