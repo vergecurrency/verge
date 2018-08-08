@@ -177,17 +177,6 @@ workload on reviewing.
 "Decision Making" Process
 -------------------------
 
-The following applies to code changes to the VERGE project (and related
-projects such as libsecp256k1), and is not to be confused with overall Bitcoin
-Network Protocol consensus changes.
-
-Whether a pull request is merged into VERGE rests with the project merge
-maintainers and ultimately the project lead.
-
-Maintainers will take into consideration if a patch is in line with the general
-principles of the project; meets the minimum standards for inclusion; and will
-judge the general consensus of contributors.
-
 In general, all pull requests must:
 
   - Have a clear use case, fix a demonstrable bug or serve the greater good of
@@ -198,14 +187,6 @@ In general, all pull requests must:
   - Not break the existing test suite;
   - Where bugs are fixed, where possible, there should be unit tests
     demonstrating the bug and also proving the fix. This helps prevent regression.
-
-Patches that change VERGE consensus rules are considerably more involved than
-normal because they affect the entire ecosystem and so must be preceded by
-extensive mailing list discussions and have a numbered BIP. While each case will
-be different, one should be prepared to expend more time and effort than for
-other kinds of patches because of increased peer review and consensus building
-requirements.
-
 
 ### Peer Review
 
