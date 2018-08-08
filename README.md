@@ -286,7 +286,7 @@ Sunerok, CryptoRekt, MKinney, BearSylla, Hypermist, Pallas1, FuzzBawls, BuZz, gl
 
 # Bug Reporting
 
-If you think you've found a bug or a problem with VERGE, please let us know! First, search our issue tracker to search to see if someone has already reported the problem. If they haven't, click here to open a new issue, and fill out the template with as much information as possible. The more you can tell us about the problem and how it occurred, the more likely we are to fix it.
+If you think you've found a bug or a problem with VERGE, please let us know! First, search our [issue](https://github.com/vergecurrency/VERGE/issues) tracker to see if someone has already reported the problem. If they haven't, click [here](https://github.com/vergecurrency/VERGE/issues/new) to open a new issue, and fill out the template with as much information as possible. The more you can tell us about the problem and how it occurred, the more likely we are to fix it.
 
 ## _Please do not report security vulnerabilities publicly._
 
