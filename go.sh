@@ -205,7 +205,7 @@ else
 		read CONFIRM
 		if [ "$CONFIRM" = "1" ]; then
 			rm -f $HOME/.VERGE/go.sh-Verge-Blockchain*.zip
-			#Ignore all notifications about self-signed/letsencrypt certificates or lynx
+			#Ignore all notifications about self-signed/letsencrypt certificates for lynx
 			printf "FORCE_SSL_PROMPT:yes\n">lynx.cfg
 			wget --no-check-certificate -O $HOME/.VERGE/go.sh-Verge-Blockchain$DATE.zip $(lynx -cfg=lynx.cfg -dump -listonly $VERGE_BLOCKCHAIN_ZIPS_LOCATION | grep -o $VERGE_BLOCKCHAIN_ZIP_00)
 			rc=$?
@@ -214,9 +214,8 @@ else
 
 			fi
 			if [ -e go.sh-Verge-Blockchain*.zip]; then
-				unzip $HOME/.VERGE/go.sh-Verge-Blockchain*.zip -d ~/.VERGE
+				unzip $HOME/.VERGE/go.sh-Verge-Blockchain*.zip -d $HOME/.VERGE
 				rm go.sh-Verge-Blockchain*.zip
-			fi
 			else
 				printf "\nCan't download VERGE Blockchain zip\n"
 			fi
