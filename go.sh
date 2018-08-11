@@ -2,13 +2,14 @@
 #// full deployement : run ./go.sh
 
 VERGEPWD=$PWD
-DATE="_$(date +%d-%m-%Y)"
 DISTR=$(lsb_release -si)
 IFSWAP=$(cat /proc/swaps | wc -l)
 #If zips location is changed, just modify these links accordingly
-VERGE_BLOCKCHAIN_ZIPS_LOCATION="https://verge-blockchain.com"
+VERGE_BLOCKCHAIN_ZIP_00_LOCATION="https://verge-blockchain.com"
+VERGE_BLOCKCHAIN_ZIP_01_LOCATION="https://s1.verge-blockchain.com"
 VERGE_BLOCKCHAIN_ZIP_00="https://verge-blockchain*.*zip"
 VERGE_BLOCKCHAIN_ZIP_01="https://s1.verge-blockchain*.*zip"
+VERGE_REGEX="Verge-Blockchain"
 #If torrent location is changed, just modify these links accordingly
 VERGE_BLOCKCHAIN_TORRENT_LOCATION="https://verge-blockchain.com/torrent1"
 VERGE_BLOCKCHAIN_TORRENT_00="https://verge-blockchain*.*zip.torrent"
@@ -119,7 +120,6 @@ else
 	BOOST_ARG="/usr/local/lib/"
 fi
 
-
 # Check if BerkeleyDb 4.8 has been already installed
 printf "\nChecking BerkeleyDB...\n"
 BERKELEY_LIB=$(find /usr/lib -name libdb_cxx-4.8.so | wc -l)
@@ -166,7 +166,6 @@ printf "\n"
 
 #https://github.com/google/leveldb/issues/556
 #make -j$(nproc)
-
 make
 rc=$?
 if [ -e /swapfile ]; then
@@ -189,7 +188,6 @@ else
 	printf "[Desktop Entry]\nType=Application\nName=VERGE\nGenericName=VERGE Qt Wallet\nIcon=/usr/share/icons/verge.png\nCategories=Network;Internet;\nExec=VERGE-qt\nTerminal=false" > $HOME/Desktop/VERGE.desktop
 	sudo cp -f src/qt/res/icons/verge.png /usr/share/icons/
 	sudo cp -f $HOME/Desktop/VERGE.desktop /usr/share/applications/
-
 	#// Create the config file with random user and password
 	mkdir -p $HOME/.VERGE
 	if [ -e $HOME/.VERGE/VERGE.conf ]; then
@@ -201,23 +199,40 @@ else
 	read -p "Do you want to download current VERGE Blockchain, y/n? (default: n) " CONFIRM
 	if [ "$CONFIRM" = "y" ]; then
 		printf "\n1 - zip file"
-		printf "\n2 - torrent file\n"
+		printf "\n2 - torrent file\n\n"
 		read CONFIRM
 		if [ "$CONFIRM" = "1" ]; then
-			rm -f $HOME/.VERGE/go.sh-Verge-Blockchain*.zip
-			#Ignore all notifications about self-signed/letsencrypt certificates for lynx
+			# To ensure that no "go-sh"-named archives remained
+			rm -f $HOME/.VERGE/go.sh-$VERGE_REGEX*.zip
+			# Temporarily ignore all notifications about self-signed/letsencrypt certificates for lynx. But better solution would be to fix the certificate problem.
 			printf "FORCE_SSL_PROMPT:yes\n">lynx.cfg
-			wget --no-check-certificate -O $HOME/.VERGE/go.sh-Verge-Blockchain$DATE.zip $(lynx -cfg=lynx.cfg -dump -listonly $VERGE_BLOCKCHAIN_ZIPS_LOCATION | grep -o $VERGE_BLOCKCHAIN_ZIP_00)
-			rc=$?
-			if [ $rc != 0 ]; then
-				wget --no-check-certificate -O $HOME/.VERGE/go.sh-Verge-Blockchain$DATE.zip $(lynx -cfg=lynx.cfg -dump -listonly $VERGE_BLOCKCHAIN_ZIPS_LOCATION | grep -o $VERGE_BLOCKCHAIN_ZIP_01)
-
-			fi
-			if [ -e go.sh-Verge-Blockchain*.zip]; then
-				unzip $HOME/.VERGE/go.sh-Verge-Blockchain*.zip -d $HOME/.VERGE
-				rm go.sh-Verge-Blockchain*.zip
+			VERGE_BLOCKCHAIN_ZIP_NAME_OLD=$(find $HOME/.VERGE -name *$VERGE_REGEX*.zip | sed 's/.*\///g')
+			VERGE_BLOCKCHAIN_ZIP_NAME_NEW_00=$(lynx -cfg=lynx.cfg -dump -listonly $VERGE_BLOCKCHAIN_ZIP_00_LOCATION | grep -o $VERGE_BLOCKCHAIN_ZIP_00 | sed 's/.*\///g')
+			if [ -z "$VERGE_BLOCKCHAIN_ZIP_NAME_NEW_00" ]; then
+				printf "\nCan't download VERGE Blockchain zip from $VERGE_BLOCKCHAIN_ZIP_00_LOCATION, will try $VERGE_BLOCKCHAIN_ZIP_01_LOCATION\n"
+				VERGE_BLOCKCHAIN_ZIP_NAME_NEW_01=$(lynx -cfg=lynx.cfg -dump -listonly $VERGE_BLOCKCHAIN_ZIP_01_LOCATION | grep -o $VERGE_BLOCKCHAIN_ZIP_01 | sed 's/.*\///g')
+				if [ -z "$VERGE_BLOCKCHAIN_ZIP_NAME_NEW_01" ]; then
+					printf "\nCan't download VERGE Blockchain zip from $VERGE_BLOCKCHAIN_ZIP_01_LOCATION\n"
+				else
+					if [ ! -z "$VERGE_BLOCKCHAIN_ZIP_NAME_OLD" ] && [ "$VERGE_BLOCKCHAIN_ZIP_NAME_OLD" != "$VERGE_BLOCKCHAIN_ZIP_NAME_NEW_01" ]; then
+						rm -f $HOME/.VERGE/$VERGE_BLOCKCHAIN_ZIP_NAME_OLD
+					fi
+					wget -c --no-check-certificate -O $HOME/.VERGE/$VERGE_BLOCKCHAIN_ZIP_NAME_NEW_01 $(lynx -cfg=lynx.cfg -dump -listonly $VERGE_BLOCKCHAIN_ZIP_01_LOCATION | grep -o $VERGE_BLOCKCHAIN_ZIP_01)
+				fi
 			else
-				printf "\nCan't download VERGE Blockchain zip\n"
+				if [ ! -z "$VERGE_BLOCKCHAIN_ZIP_NAME_OLD" ] && [ "$VERGE_BLOCKCHAIN_ZIP_NAME_OLD" != "$VERGE_BLOCKCHAIN_ZIP_NAME_NEW_00" ]; then
+					rm -f $HOME/.VERGE/$VERGE_BLOCKCHAIN_ZIP_NAME_OLD
+				fi
+				wget -c --no-check-certificate -O $HOME/.VERGE/$VERGE_BLOCKCHAIN_ZIP_NAME_NEW_00 $(lynx -cfg=lynx.cfg -dump -listonly $VERGE_BLOCKCHAIN_ZIP_00_LOCATION | grep -o $VERGE_BLOCKCHAIN_ZIP_00)
+			fi
+			if [ -e $HOME/.VERGE/*$VERGE_REGEX*.zip ]; then
+				unzip $HOME/.VERGE/*$VERGE_REGEX*.zip -d $HOME/.VERGE
+				rc=$?
+				if [ $rc != 0 ]; then
+					printf "\nVERGE Blockchain zip download has not been completed\n"
+				fi
+			else
+				printf "\nVERGE Blockchain zip download was not successful\n"
 			fi
 		fi
 		if [ "$CONFIRM" = "2" ]; then
