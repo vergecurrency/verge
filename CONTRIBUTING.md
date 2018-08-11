@@ -39,8 +39,8 @@ The codebase is maintained using the "contributor workflow" where everyone witho
 To contribute a patch, the workflow is as follows:
 
   1. Fork repository
-  1. Create topic branch
-  1. Commit patches
+  2. Create topic branch
+  3. Commit patches
 
 The project coding conventions in the [developer notes](doc/developer-notes.md)
 must be adhered to.
