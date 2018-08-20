@@ -89,8 +89,8 @@ Or compile BerkeleyDB-4.8 manually, e.g:
 
 ```shell
 wget -O $HOME/db-4.8.30.NC.tar.gz https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz && \
-         tar -xzvf $HOME/db-4.8.30.NC.tar.gz && \
-         sudo sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' $HOME/db-4.8.30.NC/dbinc/atomic.h && \
+         tar -C $HOME -xzvf $HOME/db-4.8.30.NC.tar.gz && \
+         sudo sed -i 's/__atomic_compare_exchange(/__atomic_compare_exchange_db(/g' $HOME/db-4.8.30.NC/dbinc/atomic.h && \
          cd $HOME/db-4.8.30.NC/build_unix && \
          ../dist/configure --enable-cxx && \
          make && sudo make install && \
