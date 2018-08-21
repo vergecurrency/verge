@@ -68,7 +68,7 @@ As it is stated <a href="https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin"
 
          No longer supports precise, due to its ancient gcc and Boost versions.
 
-But you can install Trusty repository, e.g.:
+But you can install BerkeleyDB-4.8 from Trusty repository, e.g.:
 
 ```shell
 sudo apt-get -y install dirmngr && \
@@ -77,12 +77,8 @@ sudo apt-get -y install dirmngr && \
          TEMP_APT_KEY=$(cat /tmp/temp_apt_key.txt | cut -d":" -f6 | cut -d" " -f3) && \
          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $TEMP_APT_KEY && \
          sudo rm -f /tmp/temp_apt_key.txt && \
-         BERKELEY_ARG="/usr"
-```
-
-and then:
-```shell
-sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
+         sudo apt-get -y install libdb4.8-dev libdb4.8++-dev && \
+         BERKELEY_ARG="/usr"      
 ```
 
 Or compile BerkeleyDB-4.8 manually, e.g:
