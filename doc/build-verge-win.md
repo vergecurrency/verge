@@ -1,5 +1,7 @@
 ### Building Windows Wallet
 
+# WORK IN PROGRESS !!!
+
 WINDOWS BUILD NOTES
 ====================
 
