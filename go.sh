@@ -118,46 +118,46 @@ fi
 
 printf "\nChecking BerkeleyDB...\n"
 BERKELEY_LIB=$(find /usr/lib -name libdb_cxx-4.8.so)
-if [ -e $BERKELEY_LIB ]; then
-	if [ ! -L $BERKELEY_LIB ]; then
-		# BerkeleyDB-4.8 has been successfully installed from Bitcoin repo's
-		BERKELEY_ARG="/usr"
-		printf "\nWill use installed BerkeleyDB-4.8\n"
-		sleep 2
-	else
-		# BerkeleyDB-4.8 has been successfully compiled earlier
-		BERKELEY_ARG="/usr/local/BerkeleyDB.4.8"
-		printf "\nWill use compiled BerkeleyDB-4.8\n"
-		sleep 2
-	fi
+BERKELEY_LIB_LOCAL=$(find /usr/local/BerkeleyDB.4.8/lib -name libdb_cxx-4.8.so)
+if [ ! -z "$BERKELEY_LIB" ] && [ ! -L $BERKELEY_LIB ]; then
+    # BerkeleyDB-4.8 has been successfully installed from Bitcoin repo's
+    BERKELEY_ARG="/usr"
+    printf "\nWill use installed BerkeleyDB-4.8\n"
+    sleep 2
 else
-	# There is no BerkeleyDB-4.8 compiled or installed
-	BERKELEY_ARG="/usr/local/BerkeleyDB.4.8"
-	printf "\nWill compile BerkeleyDB-4.8...\n"
-	sleep 2
-	# Check if berkeley-db-4.8.30.NC.tar.gz has been already downloaded
-	BERKELEYDB=$(find $HOME -name db-4.8.30.NC.tar.gz | head -n 1)
-	if [ -z "$BERKELEYDB" ]; then
-		wget -O $HOME/db-4.8.30.NC.tar.gz https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
-		rc=$?
-		if [ $rc != 0 ]; then
-			printf "\nFailed to get BerkeleyDB-4.8 from https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz\n"
-			exit $rc
-		fi
-		sleep 2
-		BERKELEYDB=$HOME/db-4.8.30.NC.tar.gz
-	fi
-	tar -xzvf $BERKELEYDB
-	# Fixing "atomic.h.. warning: conflicting types for built-in function" error during compilation
-	sudo sed -i 's/__atomic_compare_exchange(/__atomic_compare_exchange_db(/g' db-4.8.30.NC/dbinc/atomic.h
-	cd db-4.8.30.NC/build_unix
-	../dist/configure --enable-cxx
-	make
-	sudo make install
-	sudo ln -sf /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
-	sudo ln -sf /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
-	cd $VERGEPWD
-	rm -rf db-4.8.30.NC
+    BERKELEY_ARG="/usr/local/BerkeleyDB.4.8"
+    if [ ! -z "$BERKELEY_LIB_LOCAL" ]; then
+        printf "\nWill use compiled BerkeleyDB-4.8. Recreating symlinks.\n"
+        sleep 2
+        sudo ln -sf /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
+        sudo ln -sf /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
+    else
+        printf "\nWill compile BerkeleyDB-4.8...\n"
+        sleep 2
+        # Check if berkeley-db-4.8.30.NC.tar.gz has been already downloaded
+        BERKELEYDB=$(find $HOME -name db-4.8.30.NC.tar.gz | head -n 1)
+        if [ -z "$BERKELEYDB" ]; then
+            wget -O $HOME/db-4.8.30.NC.tar.gz https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
+            rc=$?
+            if [ $rc != 0 ]; then
+                printf "\nFailed to get BerkeleyDB-4.8 from https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz\n"
+                exit $rc
+            fi
+            sleep 2
+            BERKELEYDB=$HOME/db-4.8.30.NC.tar.gz
+        fi
+        tar -xzvf $BERKELEYDB
+        # Fixing "atomic.h.. warning: conflicting types for built-in function" error during compilation
+        sudo sed -i 's/__atomic_compare_exchange(/__atomic_compare_exchange_db(/g' db-4.8.30.NC/dbinc/atomic.h
+        cd db-4.8.30.NC/build_unix
+        ../dist/configure --enable-cxx
+        make
+        sudo make install
+        sudo ln -sf /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
+        sudo ln -sf /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
+        cd $VERGEPWD
+        rm -rf db-4.8.30.NC
+    fi
 fi
 
 printf "\n"
