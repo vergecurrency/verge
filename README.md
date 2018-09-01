@@ -76,7 +76,17 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 > **Note:** For a fresh wallet install you can reduce the blockchain syncing time by downloading [a nightly snapshot](https://verge-blockchain.com/down) and following the [setup instructions](https://verge-blockchain.com/howto).
 
-### Windows Wallet Usage
+## Building From Source
+
+* [Linux Instructions](doc/build-verge-linux.md)
+* [OS X Instructions](doc/build-verge-osx.md)
+* [Windows Instructions](doc/build-verge-win.md)
+
+## Docker Images
+
+Check out the [`contrib/readme`](https://github.com/vergecurrency/VERGE/tree/master/contrib/docker) for more information.
+
+### Windows Wallet
 
 1. Download the pre-compiled software.
 2. Install
@@ -115,22 +125,26 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 ### Linux Wallet
 
 1. Compile using [linux instructions](doc/build-verge-linux.md).
-2. The wallet GUI is in `./verge/src/qt` and the daemon in `./verge/src`.
-3. **Optional** - the binaries to your favorite location. for use by all users, run the following commands:
+
+    If compilation was successful, the wallet GUI and the daemon binaries are `~/VERGE/src/qt/VERGE-qt` and `~/VERGE/src/VERGEd`respectively.
+
+    After full installation, they are also in `/usr/local/bin/` directory.
+
+    **Optional**: Copy binaries to your favourite location, e.g.:
 
     ```shell
-    sudo cp src/VERGEd /usr/bin/
-    sudo cp src/qt/VERGE-qt /usr/bin/
+    sudo cp ~/VERGE/src/VERGEd /path_to_VERGEd/VERGEd
+    sudo cp ~/VERGE/src/qt/VERGE-qt /path_to_VERGE-qt/VERGE-qt
     ```
+2. Start Verge daemon by running `VERGEd` or `/path_to_VERGEd/VERGEd`.
 
-4. Run `./VERGEd` from wherever you put it. The output from this command will tell you that you need to make a `VERGE.conf` file and will suggest some good starting values.
-5.  Open up your new config file that was created in your home directory in your favorite text editor
+3. Redact ~/.VERGE/VERGE.conf, e.g.:
 
     ```shell
     nano ~/.VERGE/VERGE.conf
     ```
 
-6. Paste the output from the `VERGEd` command into the VERGE.conf like this: (It is recommended to change the password to something unique.)
+    Using this example, set your specific parameters (**Don't forget to change default rpcuser/rpcpassword**):
 
     ```
     rpcuser=vergerpcusername
@@ -141,109 +155,13 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
     algo=groestl
     ```
 
-7. Save the file and exit your editor. If using `nano` type `ctrl + x` on your keyboard and the `y` and hitting enter. This should have created a `VERGE.conf` file with what you just added.
+4. Start Verge daemon again.
 
-8. Start the Verge daemon again
-
-    ```shell
-    ./path/to/VERGEd
-    ```
-
-> **Note:** To check the status of how much of the blockchain has been downloaded (aka synced) type `./path/to/VERGEd getinfo`.
+> **Note:** To check the status of how much of the blockchain has been downloaded (aka synced) type `VERGEd getinfo` or `/path_to_VERGEd/VERGEd getinfo`.
 
 > **Note**: If you see something like 'Killed (program cc1plus)' run ```dmesg``` to see the error(s)/problems(s). This is most likely caused by running out of resources. You may need to add some RAM or add some swap space.
 
 You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.com/watch?v=WYe75b6RWes).
-
-## Building From Source
-
-* [Linux Instructions](doc/build-verge-linux.md)
-* [OS X Instructions](doc/build-verge-osx.md)
-* [Windows Instructions](doc/build-verge-win.md)
-
-## Developer Notes
-
-The Easy Method:
-
-> **Note**: Sometimes linux user permissions are not set up properly, and causes failed compiling in linux. Please ensure your user has access or do the install from root if these problems arise.
-
-```shell
-sudo rm -Rf ~/VERGE  #(if you already have it)
-sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
-```
-
-The _slightly_ longer version:
-
-1. Install the dependencies. **Note**: If you are on debian, you will also need to `apt-get install libcanberra-gtk-module`.
-
-    ```shell
-    sudo add-apt-repository ppa:bitcoin/bitcoin
-    sudo apt-get update
-    sudo apt-get install \
-        libdb4.8-dev libdb4.8++-dev build-essential \
-        libtool autotools-dev automake pkg-config libssl-dev libevent-dev \
-        bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 \
-        libqt5core5a libqt5dbus5 libevent-dev qttools5-dev \
-        qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev \
-        libseccomp-dev libcap-dev
-    ```
-
-2. Clone the git repository and compile the daemon and gui wallet:
-
-    ```shell
-    git clone https://github.com/vergecurrency/verge && cd verge && ./autogen.sh && ./configure && make
-    ```
-
-> **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
-
-
-### Mac OS X Wallet
-
-> **Note:** This has only been confirmed to work on OS X Sierra (10.12) and OS X High Sierra (10.13) with XCode 9.2 and `Apple LLVM version 9.0.0 (clang-900.0.39.2)`.
-
-1. Ensure you have mysql and boost installed.
-    
-    ```shell
-    brew install mysql boost
-    ```
-
-2. Ensure you have python 2.7 installed and in your path (OS X comes with this by default)
-
-    ```shell
-    python --version
-    ```
-
-3. Export the required environment variables
-
-    ```shell
-    export VERGE_PLATFORM='mac'
-    export CXX=clang++
-    export CC=clang
-    ```
-
-4. Run your build commands
-
-    ```shell
-    ./building/common.sh
-    ./building/mac/requirements.sh
-    ./building/mac/build.sh
-    ```
-
-5. Grab a :coffee: and wait it out
-
-6. Create the `.dmg` file
-
-    ```shell
-    ./building/mac/dist.sh
-    ```
-
-### Windows Wallet
-
-TODO. Take a look as [building/windows](./building/windows).
-
-## Docker Images
-
-Check out the [`contrib/readme`](https://github.com/vergecurrency/VERGE/tree/master/contrib/docker) for more information.
 
 ## Mining
 
