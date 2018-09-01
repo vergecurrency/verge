@@ -1,5 +1,6 @@
 ### Building Windows Wallet
 
+<<<<<<< HEAD
 # WORK IN PROGRESS !!!
 
 WINDOWS BUILD NOTES
@@ -51,3 +52,6 @@ To install WSL on Windows 10 with Fall Creators Update installed (version >= 162
 After the bash shell is active, you can follow the instructions below, starting
 with the "Cross-compilation" section. Compiling the 64-bit version is
 recommended, but it is possible to compile the 32-bit version.
+=======
+TODO. Take a look at [building/windows](./../building/windows).
+>>>>>>> parent of 724b17b... *doc* beginning of windows instructions
