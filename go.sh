@@ -13,7 +13,7 @@ VERGE_BLOCKCHAIN_ZIP_REGEXP_01="https://s1.verge-blockchain*.*zip"
 VERGE_BLOCKCHAIN_TORRENT_LOCATION="https://verge-blockchain.com/torrent1"
 VERGE_BLOCKCHAIN_TORRENT_REGEXP="https://verge-blockchain*.*zip.torrent"
 
-<<EOF 
+<<EOF
 	If you want to ensure "unpredictability at system startup" (provided that start-ups do not 
 	involve much interaction with a human operator) - these parts
 	need to be put in an appropriate start-up and shut-down scripts of your server:
@@ -118,15 +118,15 @@ fi
 
 printf "\nChecking BerkeleyDB...\n"
 BERKELEY_LIB=$(find /usr/lib -name libdb_cxx-4.8.so)
-BERKELEY_LIB_LOCAL=$(find /usr/local/BerkeleyDB.4.8/lib -name libdb_cxx-4.8.so)
 if [ ! -z "$BERKELEY_LIB" ] && [ ! -L $BERKELEY_LIB ]; then
     # BerkeleyDB-4.8 has been successfully installed from Bitcoin repo's
     BERKELEY_ARG="/usr"
     printf "\nWill use installed BerkeleyDB-4.8\n"
     sleep 2
 else
+    BERKELEY_LIB="/usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so"
     BERKELEY_ARG="/usr/local/BerkeleyDB.4.8"
-    if [ ! -z "$BERKELEY_LIB_LOCAL" ]; then
+    if [ -e $BERKELEY_LIB ]; then
         printf "\nWill use compiled BerkeleyDB-4.8. Recreating symlinks.\n"
         sleep 2
         sudo ln -sf /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
@@ -143,7 +143,6 @@ else
                 printf "\nFailed to get BerkeleyDB-4.8 from https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz\n"
                 exit $rc
             fi
-            sleep 2
             BERKELEYDB=$HOME/db-4.8.30.NC.tar.gz
         fi
         tar -xzvf $BERKELEYDB
@@ -158,6 +157,30 @@ else
         cd $VERGEPWD
         rm -rf db-4.8.30.NC
     fi
+    ## If you want to build static berkeley libs, just use these 161-183 lines instead of the 127-159
+    #BERKELEY_ARG="$VERGEPWD/berkeley-db"
+    #mkdir -p $BERKELEY_ARG
+    ## Check if berkeley-db-4.8.30.NC.tar.gz has been already downloaded
+    #BERKELEYDB=$(find $HOME -name db-4.8.30.NC.tar.gz | head -n 1)
+    #if [ -z "$BERKELEYDB" ]; then
+    #    wget -O $HOME/db-4.8.30.NC.tar.gz https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
+    #    rc=$?
+    #    if [ $rc != 0 ]; then
+    #        printf "\nFailed to get BerkeleyDB-4.8 from https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz\n"
+    #        sleep 2
+    #        exit $rc
+    #    fi
+    #    BERKELEYDB=$HOME/db-4.8.30.NC.tar.gz
+    #fi
+    #tar -xzvf $BERKELEYDB
+    ## Fixing "atomic.h.. warning: conflicting types for built-in function" error during compilation
+    #sudo sed -i 's/__atomic_compare_exchange(/__atomic_compare_exchange_db(/g' db-4.8.30.NC/dbinc/atomic.h
+    #cd db-4.8.30.NC/build_unix
+    #./dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BERKELEY_ARG
+    #make
+    #make install
+    #cd $VERGEPWD
+    #rm -rf db-4.8.30.NC
 fi
 
 printf "\n"
