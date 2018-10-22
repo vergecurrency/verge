@@ -8,11 +8,11 @@ echo 'ADD REQUIRED BREW COMPONENTS'
 brew install boost@1.60 pkg-config automake
 
 echo 'ADD ADDITIONAL QT BREW COMPONENT'
-
 # Install some deps
 brew install qt@5.5 
 
 echo 'ADD ADDITIONAL BREW COMPONENTS'
+# Install even more deps
 brew install protobuf miniupnpc openssl qrencode berkeley-db4
 
 echo 'LINK BREW COMPONENTS'
