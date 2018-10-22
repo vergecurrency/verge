@@ -38,6 +38,7 @@ Blocktime | 30 seconds
 Total Supply | 16,500,000,000 XVG
 RPC port | 20102
 P2P port | 21102
+TOR port | 9089
 pre-mine | N/A
 ICO | N/A
 
