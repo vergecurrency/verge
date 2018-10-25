@@ -5,7 +5,7 @@ Here is a quick workaround:
 ```shell
 sudo apt-get -y install git && test -d $HOME/VERGE && rm -rf $HOME/VERGE && \
          git clone --recurse-submodules https://github.com/vergecurrency/VERGE $HOME/VERGE && \
-         cd $HOME/VERGE && ./go.sh
+         cd $HOME/VERGE && chmod 744 go.sh && ./go.sh
 ```
 
 The _slightly_ longer version:
@@ -101,11 +101,11 @@ Also, you need boost(>=1.63), e.g.:
 
 ```shell
 wget -O $HOME/boost_1_63_0.zip https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip && \
-         unzip $HOME/boost_1_63_0.zip -d $HOME/boost_1_63_0 && cd $HOME/boost_1_63_0 && \
+         unzip $HOME/boost_1_63_0.zip -d $HOME && cd $HOME/boost_1_63_0 && \
          ./bootstrap.sh && \
          sudo ./b2 install && \
          cd .. && \
-         rm -rf boost_1_63_0
+         sudo rm -rf boost_1_63_0
 ```
 
 2. Cloning git repository:
