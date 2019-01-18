@@ -1,10 +1,13 @@
 // Copyright (c) 2014 The ShadowCoin developers
+// Copyright (c) 2018 Verge
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
 #include "stealth.h"
 #include "base58.h"
-
+#include "uint256.h"
+#include "crypto/sha256.h"
+#include "arith_uint256.h"
 
 #include <openssl/rand.h>
 #include <openssl/ec.h>
@@ -15,28 +18,27 @@
 const uint8_t stealth_version_byte = 0x28;
 
 
+
 bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
 {
     data_chunk raw;
     
     if (!DecodeBase58(encodedAddress, raw))
     {
-        if (fDebug)
-            printf("CStealthAddress::SetEncoded DecodeBase58 failed.\n");
+        LogPrintf("CStealthAddress::SetEncoded DecodeBase58 failed.\n");
         return false;
     };
     
     if (!VerifyChecksum(raw))
     {
-        if (fDebug)
-            printf("CStealthAddress::SetEncoded verify_checksum failed.\n");
+
+        LogPrintf("CStealthAddress::SetEncoded verify_checksum failed.\n");
         return false;
     };
     
     if (raw.size() < 1 + 1 + 33 + 1 + 33 + 1 + 1 + 4)
     {
-        if (fDebug)
-            printf("CStealthAddress::SetEncoded() too few bytes provided.\n");
+        LogPrintf("CStealthAddress::SetEncoded() too few bytes provided.\n");
         return false;
     };
     
@@ -46,7 +48,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     
     if (version != stealth_version_byte)
     {
-        printf("CStealthAddress::SetEncoded version mismatch 0x%x != 0x%x.\n", version, stealth_version_byte);
+        LogPrintf("CStealthAddress::SetEncoded version mismatch 0x%x != 0x%x.\n", version, stealth_version_byte);
         return false;
     };
     
@@ -92,9 +94,12 @@ uint32_t BitcoinChecksum(uint8_t* p, uint32_t nBytes)
         return 0;
     
     uint8_t hash1[32];
-    SHA256(p, nBytes, (uint8_t*)hash1);
+    CSHA256().Write(p, nBytes).Finalize((uint8_t*)hash1);
+    // SHA256(p, nBytes, (uint8_t*)hash1);
+
     uint8_t hash2[32];
-    SHA256((uint8_t*)hash1, sizeof(hash1), (uint8_t*)hash2);
+    CSHA256().Write((uint8_t*)hash1, sizeof(hash1)).Finalize((uint8_t*)hash2);
+    // SHA256((uint8_t*)hash1, sizeof(hash1), (uint8_t*)hash2);
     
     // -- checksum is the 1st 4 bytes of the hash
     uint32_t checksum = from_little_endian<uint32_t>(&hash2[0]);
@@ -134,8 +139,8 @@ int GenerateRandomSecret(ec_secret& out)
 {
     RandAddSeedPerfmon();
     
-    static uint256 max("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140");
-    static uint256 min(16000); // increase? min valid key is 1
+    static arith_uint256 max = arith_uint256("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140");
+    static arith_uint256 min = arith_uint256(16000); // increase? min valid key is 1
     
     uint256 test;
     
@@ -144,7 +149,7 @@ int GenerateRandomSecret(ec_secret& out)
     for (i = 0; i < 32; ++i)
     {
         RAND_bytes((unsigned char*) test.begin(), 32);
-        if (test > min && test < max)
+        if (UintToArith256(test) > min && UintToArith256(test) < max)
         {
             memcpy(&out.e[0], test.begin(), 32);
             break;
@@ -322,7 +327,8 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         goto End;
     };
     
-    SHA256(&vchOutQ[0], vchOutQ.size(), &sharedSOut.e[0]);
+    // SHA256(&vchOutQ[0], vchOutQ.size(), &sharedSOut.e[0]);
+    CSHA256().Write(&vchOutQ[0], vchOutQ.size()).Finalize(&sharedSOut.e[0]);
     
     if (!(bnc = BN_bin2bn(&sharedSOut.e[0], ec_secret_size, BN_new())))
     {
@@ -501,7 +507,8 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     };
     
     uint8_t hash1[32];
-    SHA256(&vchOutP[0], vchOutP.size(), (uint8_t*)hash1);
+    CSHA256().Write(&vchOutP[0], vchOutP.size()).Finalize((uint8_t*)hash1);
+    // SHA256(&vchOutP[0], vchOutP.size(), (uint8_t*)hash1);
     
     
     if (!(bnc = BN_bin2bn(&hash1[0], 32, BN_new())))
@@ -681,3 +688,54 @@ bool IsStealthAddress(const std::string& encodedAddress)
     
     return true;
 };
+
+bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr) {
+    ec_secret scan_secret;
+    ec_secret spend_secret;
+    
+    if (GenerateRandomSecret(scan_secret) != 0
+        || GenerateRandomSecret(spend_secret) != 0)
+    {
+        sError = "GenerateRandomSecret failed.";
+        LogPrintf("Error CWallet::NewStealthAddress - %s\n", sError.c_str());
+        return false;
+    };
+    
+    ec_point scan_pubkey, spend_pubkey;
+    if (SecretToPublicKey(scan_secret, scan_pubkey) != 0)
+    {
+        sError = "Could not get scan public key.";
+        LogPrintf("Error CWallet::NewStealthAddress - %s\n", sError.c_str());
+        return false;
+    };
+    
+    if (SecretToPublicKey(spend_secret, spend_pubkey) != 0)
+    {
+        sError = "Could not get spend public key.";
+        LogPrintf("Error CWallet::NewStealthAddress - %s\n", sError.c_str());
+        return false;
+    };
+    
+    // leaving  Log Prints for debugging reasons.
+    LogPrintf("getnewstealthaddress: ");
+    LogPrintf("scan_pubkey ");
+    for (uint32_t i = 0; i < scan_pubkey.size(); ++i)
+        LogPrintf("%02x", scan_pubkey[i]);
+    LogPrintf("\n");
+    
+    LogPrintf("spend_pubkey ");
+    for (uint32_t i = 0; i < spend_pubkey.size(); ++i)
+        LogPrintf("%02x", spend_pubkey[i]);
+    LogPrintf("\n");
+    
+    sxAddr.label = sLabel;
+    sxAddr.scan_pubkey = scan_pubkey;
+    sxAddr.spend_pubkey = spend_pubkey;
+    
+    sxAddr.scan_secret.resize(32);
+    memcpy(&sxAddr.scan_secret[0], &scan_secret.e[0], 32);
+    sxAddr.spend_secret.resize(32);
+    memcpy(&sxAddr.spend_secret[0], &spend_secret.e[0], 32);
+    
+    return true;
+}

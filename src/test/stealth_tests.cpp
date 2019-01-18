@@ -18,10 +18,7 @@ BOOST_AUTO_TEST_CASE(stealth_key)
     BOOST_CHECK(HexStr(sxAddr.spend_pubkey.begin(), sxAddr.spend_pubkey.end()) == "02f0e2f682c8a07fdba7a3a97f823261008c7f53156c311d20216af0b6cc8148c3");
     
     BOOST_CHECK(sxAddr.Encoded() == testAddr);
-    
-    
-    
-    
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

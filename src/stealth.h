@@ -1,12 +1,14 @@
 // Copyright (c) 2014 The ShadowCoin developers
+// Copyright (c) 2018 Verge
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_STEALTH_H
 #define BITCOIN_STEALTH_H
 
-#include "util.h"
 #include "serialize.h"
+#include "logging.h"
+#include "random.h"
 
 #include <stdlib.h> 
 #include <stdio.h> 
@@ -79,9 +81,17 @@ public:
     {
         return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], ec_compressed_size) < 0;
     }
+
+    bool operator ==(const CStealthAddress& y) const
+    {
+        return &scan_pubkey == &y.scan_pubkey &&  &scan_secret == &y.scan_secret && 
+                &spend_pubkey == &y.spend_pubkey &&  &spend_secret == &y.spend_secret;
+    }
     
-    IMPLEMENT_SERIALIZE
-    (
+    ADD_SERIALIZE_METHODS;
+    
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(this->options);
         READWRITE(this->scan_pubkey);
         READWRITE(this->spend_pubkey);
@@ -89,9 +99,7 @@ public:
         
         READWRITE(this->scan_secret);
         READWRITE(this->spend_secret);
-    );
-    
-    
+    }
 
 };
 
@@ -108,7 +116,6 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
 int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_secret& secretOut);
 
 bool IsStealthAddress(const std::string& encodedAddress);
-
+bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr);
 
 #endif  // BITCOIN_STEALTH_H
-

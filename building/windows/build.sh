@@ -1,1 +1,0 @@
-../../contrib/docker/forwindows/build.sh

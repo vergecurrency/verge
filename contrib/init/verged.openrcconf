@@ -1,0 +1,33 @@
+# /etc/conf.d/verged: config file for /etc/init.d/verged
+
+# Config file location
+#VERGED_CONFIGFILE="/etc/verge/verge.conf"
+
+# What directory to write pidfile to?  (created and owned by $VERGED_USER)
+#VERGED_PIDDIR="/var/run/verged"
+
+# What filename to give the pidfile
+#VERGED_PIDFILE="${VERGED_PIDDIR}/verged.pid"
+
+# Where to write verged data (be mindful that the blockchain is large)
+#VERGED_DATADIR="/var/lib/verged"
+
+# User and group to own verged process
+#VERGED_USER="verge"
+#VERGED_GROUP="verge"
+
+# Path to verged executable
+#VERGED_BIN="/usr/bin/verged"
+
+# Nice value to run verged under
+#VERGED_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+#VERGED_OPTS=""
+
+# The timeout in seconds OpenRC will wait for verged to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+VERGED_SIGTERM_TIMEOUT=60

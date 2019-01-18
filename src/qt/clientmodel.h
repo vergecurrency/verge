@@ -1,73 +1,120 @@
-#ifndef CLIENTMODEL_H
-#define CLIENTMODEL_H
+// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2018-2018 The VERGE Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef VERGE_QT_CLIENTMODEL_H
+#define VERGE_QT_CLIENTMODEL_H
 
 #include <QObject>
+#include <QDateTime>
 
+#include <atomic>
+#include <memory>
+
+class BanTableModel;
 class OptionsModel;
-class AddressTableModel;
-class TransactionTableModel;
-class CWallet;
+class PeerTableModel;
+
+class CBlockIndex;
+
+namespace interfaces {
+class Handler;
+class Node;
+}
 
 QT_BEGIN_NAMESPACE
-class QDateTime;
 class QTimer;
 QT_END_NAMESPACE
 
-/** Model for Bitcoin network client. */
+enum class BlockSource {
+    NONE,
+    REINDEX,
+    DISK,
+    NETWORK
+};
+
+enum NumConnections {
+    CONNECTIONS_NONE = 0,
+    CONNECTIONS_IN   = (1U << 0),
+    CONNECTIONS_OUT  = (1U << 1),
+    CONNECTIONS_ALL  = (CONNECTIONS_IN | CONNECTIONS_OUT),
+};
+
+/** Model for VERGE network client. */
 class ClientModel : public QObject
 {
     Q_OBJECT
+
 public:
-    explicit ClientModel(OptionsModel *optionsModel, QObject *parent = 0);
+    explicit ClientModel(interfaces::Node& node, OptionsModel *optionsModel, QObject *parent = 0);
     ~ClientModel();
 
+    interfaces::Node& node() const { return m_node; }
     OptionsModel *getOptionsModel();
+    PeerTableModel *getPeerTableModel();
+    BanTableModel *getBanTableModel();
 
-    int getNumConnections() const;
-    int getNumBlocks() const;
-    int getNumBlocksAtStartup();
+    //! Return number of connections, default is in- and outbound (total)
+    int getNumConnections(unsigned int flags = CONNECTIONS_ALL) const;
+    int getHeaderTipHeight() const;
+    int64_t getHeaderTipTime() const;
 
-    QDateTime getLastBlockDate() const;
-
-    //! Return true if client connected to testnet
-    bool isTestNet() const;
-    //! Return true if core is doing initial block download
-    bool inInitialBlockDownload() const;
-	//! Return true if core is importing blocks
-    bool isImporting() const;
-    //! Return conservative estimate of total number of blocks, or 0 if unknown
-    int getNumBlocksOfPeers() const;
+    //! Returns enum BlockSource of the current importing/syncing state
+    enum BlockSource getBlockSource() const;
     //! Return warnings to be displayed in status bar
     QString getStatusBarWarnings() const;
 
     QString formatFullVersion() const;
-    QString formatBuildDate() const;
-    QString clientName() const;
+    QString formatSubVersion() const;
+    bool isReleaseVersion() const;
     QString formatClientStartupTime() const;
+    QString dataDir() const;
+
+    bool getProxyInfo(std::string& ip_port) const;
+
+    // caches for the best header
+    mutable std::atomic<int> cachedBestHeaderHeight;
+    mutable std::atomic<int64_t> cachedBestHeaderTime;
 
 private:
+    interfaces::Node& m_node;
+    std::unique_ptr<interfaces::Handler> m_handler_show_progress;
+    std::unique_ptr<interfaces::Handler> m_handler_notify_num_connections_changed;
+    std::unique_ptr<interfaces::Handler> m_handler_notify_network_active_changed;
+    std::unique_ptr<interfaces::Handler> m_handler_notify_alert_changed;
+    std::unique_ptr<interfaces::Handler> m_handler_banned_list_changed;
+    std::unique_ptr<interfaces::Handler> m_handler_notify_block_tip;
+    std::unique_ptr<interfaces::Handler> m_handler_notify_header_tip;
     OptionsModel *optionsModel;
-
-    int cachedNumBlocks;
-    int cachedNumBlocksOfPeers;
-
-    int numBlocksAtStartup;
+    PeerTableModel *peerTableModel;
+    BanTableModel *banTableModel;
 
     QTimer *pollTimer;
 
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
-signals:
+
+Q_SIGNALS:
     void numConnectionsChanged(int count);
-    void numBlocksChanged(int count, int countOfPeers);
+    void numBlocksChanged(int count, const QDateTime& blockDate, double nVerificationProgress, bool header);
+    void mempoolSizeChanged(long count, size_t mempoolSizeInBytes);
+    void networkActiveChanged(bool networkActive);
+    void alertsChanged(const QString &warnings);
+    void bytesChanged(quint64 totalBytesIn, quint64 totalBytesOut);
 
-    //! Asynchronous error notification
-    void error(const QString &title, const QString &message, bool modal);
+    //! Fired when a message should be reported to the user
+    void message(const QString &title, const QString &message, unsigned int style);
 
-public slots:
+    // Show progress dialog e.g. for verifychain
+    void showProgress(const QString &title, int nProgress);
+
+public Q_SLOTS:
     void updateTimer();
     void updateNumConnections(int numConnections);
-    void updateAlert(const QString &hash, int status);
+    void updateNetworkActive(bool networkActive);
+    void updateAlert();
+    void updateBanlist();
 };
 
-#endif // CLIENTMODEL_H
+#endif // VERGE_QT_CLIENTMODEL_H

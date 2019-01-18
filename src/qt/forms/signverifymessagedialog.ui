@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>700</width>
-    <height>405</height>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
        <item>
         <widget class="QLabel" name="infoLabel_SM">
          <property name="text">
-          <string>You can sign messages with your addresses to prove you own them. Be careful not to sign anything vague, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</string>
+          <string>You can sign messages/agreements with your addresses to prove you can receive VERGE sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>
@@ -48,35 +48,21 @@
          <item>
           <widget class="QValidatedLineEdit" name="addressIn_SM">
            <property name="toolTip">
-            <string>The address to sign the message with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">min-height: 25px;
-max-height: 25px;</string>
-           </property>
-           <property name="maxLength">
-            <number>34</number>
+            <string>The VERGE address to sign the message with</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="addressBookButton_SM">
            <property name="toolTip">
-            <string>Choose an address from the address book</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-</string>
+            <string>Choose previously used address</string>
            </property>
            <property name="text">
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
-             <normaloff>:/icons/address-book_filled</normaloff>:/icons/address-book_filled</iconset>
+            <iconset resource="../verge.qrc">
+             <normaloff>:/icons/address-book</normaloff>:/icons/address-book</iconset>
            </property>
            <property name="shortcut">
             <string>Alt+A</string>
@@ -91,17 +77,11 @@ border-bottom-right-radius: 5px;
            <property name="toolTip">
             <string>Paste address from clipboard</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;</string>
-           </property>
            <property name="text">
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
+            <iconset resource="../verge.qrc">
              <normaloff>:/icons/editpaste</normaloff>:/icons/editpaste</iconset>
            </property>
            <property name="shortcut">
@@ -119,9 +99,15 @@ border-bottom-right-radius: 5px;</string>
          <property name="toolTip">
           <string>Enter the message you want to sign here</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">min-height: 150px;
-max-height: 150px;</string>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="signatureLabel_SM">
+         <property name="text">
+          <string>Signature</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
          </property>
         </widget>
        </item>
@@ -137,10 +123,6 @@ max-height: 150px;</string>
              <italic>true</italic>
             </font>
            </property>
-           <property name="styleSheet">
-            <string notr="true">min-height: 25px;
-max-height: 25px;</string>
-           </property>
            <property name="readOnly">
             <bool>true</bool>
            </property>
@@ -151,20 +133,11 @@ max-height: 25px;</string>
            <property name="toolTip">
             <string>Copy the current signature to the system clipboard</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-
-
-</string>
-           </property>
            <property name="text">
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
+            <iconset resource="../verge.qrc">
              <normaloff>:/icons/editcopy</normaloff>:/icons/editcopy</iconset>
            </property>
            <property name="autoDefault">
@@ -178,58 +151,34 @@ border-bottom-right-radius: 5px;
         <layout class="QHBoxLayout" name="horizontalLayout_3_SM">
          <item>
           <widget class="QPushButton" name="signMessageButton_SM">
-           <property name="minimumSize">
-            <size>
-             <width>110</width>
-             <height>0</height>
-            </size>
-           </property>
            <property name="toolTip">
             <string>Sign the message to prove you own this VERGE address</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
            <property name="text">
-            <string>&amp;Sign Message</string>
+            <string>Sign &amp;Message</string>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
+            <iconset resource="../verge.qrc">
              <normaloff>:/icons/edit</normaloff>:/icons/edit</iconset>
            </property>
            <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="default">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="clearButton_SM">
-           <property name="minimumSize">
-            <size>
-             <width>110</width>
-             <height>0</height>
-            </size>
-           </property>
            <property name="toolTip">
             <string>Reset all sign message fields</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
+            <iconset resource="../verge.qrc">
              <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
            <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="default">
             <bool>false</bool>
            </property>
           </widget>
@@ -288,7 +237,7 @@ border-bottom-right-radius: 5px;
        <item>
         <widget class="QLabel" name="infoLabel_VM">
          <property name="text">
-          <string>Enter the signing address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack.</string>
+          <string>Enter the receiver's address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack. Note that this only proves the signing party receives with the address, it cannot prove sendership of any transaction!</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>
@@ -309,38 +258,21 @@ border-bottom-right-radius: 5px;
          <item>
           <widget class="QValidatedLineEdit" name="addressIn_VM">
            <property name="toolTip">
-            <string>The address the message was signed with (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">min-height: 25px;
-max-height: 25px;
-</string>
-           </property>
-           <property name="maxLength">
-            <number>34</number>
+            <string>The VERGE address the message was signed with</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="addressBookButton_VM">
            <property name="toolTip">
-            <string>Choose an address from the address book</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-
-
-</string>
+            <string>Choose previously used address</string>
            </property>
            <property name="text">
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
-             <normaloff>:/icons/address-book_filled</normaloff>:/icons/address-book_filled</iconset>
+            <iconset resource="../verge.qrc">
+             <normaloff>:/icons/address-book</normaloff>:/icons/address-book</iconset>
            </property>
            <property name="shortcut">
             <string>Alt+A</string>
@@ -353,80 +285,43 @@ border-bottom-right-radius: 5px;
         </layout>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="messageIn_VM">
-         <property name="styleSheet">
-          <string notr="true">min-height: 150px;
-max-height: 150px;</string>
-         </property>
-        </widget>
+        <widget class="QPlainTextEdit" name="messageIn_VM"/>
        </item>
        <item>
-        <widget class="QValidatedLineEdit" name="signatureIn_VM">
-         <property name="styleSheet">
-          <string notr="true">min-height: 25px;
-max-height: 25px;</string>
-         </property>
-        </widget>
+        <widget class="QValidatedLineEdit" name="signatureIn_VM"/>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2_VM">
          <item>
           <widget class="QPushButton" name="verifyMessageButton_VM">
-           <property name="minimumSize">
-            <size>
-             <width>120</width>
-             <height>0</height>
-            </size>
-           </property>
            <property name="toolTip">
             <string>Verify the message to ensure it was signed with the specified VERGE address</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
            <property name="text">
-            <string>&amp;Verify Message</string>
+            <string>Verify &amp;Message</string>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
+            <iconset resource="../verge.qrc">
              <normaloff>:/icons/transaction_0</normaloff>:/icons/transaction_0</iconset>
            </property>
            <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="default">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="clearButton_VM">
-           <property name="minimumSize">
-            <size>
-             <width>120</width>
-             <height>0</height>
-            </size>
-           </property>
            <property name="toolTip">
             <string>Reset all verify message fields</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
            </property>
            <property name="icon">
-            <iconset resource="../bitcoin.qrc">
+            <iconset resource="../verge.qrc">
              <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
            <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="default">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
             <bool>false</bool>
            </property>
           </widget>
@@ -485,11 +380,11 @@ max-height: 25px;</string>
   <customwidget>
    <class>QValidatedLineEdit</class>
    <extends>QLineEdit</extends>
-   <header>qvalidatedlineedit.h</header>
+   <header>qt/qvalidatedlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../bitcoin.qrc"/>
+  <include location="../verge.qrc"/>
  </resources>
  <connections/>
 </ui>

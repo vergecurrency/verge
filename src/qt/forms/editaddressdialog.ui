@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>457</width>
-    <height>173</height>
+    <height>126</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,29 +32,12 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="labelEdit">
        <property name="toolTip">
-        <string>The label associated with this address book entry</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">
-min-height: 25px;
-max-height: 25px;</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="addressEdit">
-       <property name="toolTip">
-        <string>The address associated with this address book entry. This can only be modified for sending addresses.</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">
-min-height: 25px;
-max-height: 25px;</string>
+        <string>The label associated with this address list entry</string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="addressEditLabel">
+      <widget class="QLabel" name="label_2">
        <property name="text">
         <string>&amp;Address</string>
        </property>
@@ -63,15 +46,10 @@ max-height: 25px;</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QCheckBox" name="stealthCB">
-       <property name="styleSheet">
-        <string notr="true">
-min-height: 25px;
-max-height: 25px;</string>
-       </property>
-       <property name="text">
-        <string>Stealth Address</string>
+     <item row="1" column="1">
+      <widget class="QValidatedLineEdit" name="addressEdit">
+       <property name="toolTip">
+        <string>The address associated with this address list entry. This can only be modified for sending addresses.</string>
        </property>
       </widget>
      </item>
@@ -89,6 +67,13 @@ max-height: 25px;</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qt/qvalidatedlineedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
@@ -98,12 +83,12 @@ max-height: 25px;</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>
@@ -114,12 +99,12 @@ max-height: 25px;</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>

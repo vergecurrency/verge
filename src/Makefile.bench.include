@@ -1,0 +1,85 @@
+# Copyright (c) 2015-2016 The Bitcoin Core developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+bin_PROGRAMS += bench/bench_verge
+BENCH_SRCDIR = bench
+BENCH_BINARY = bench/bench_verge$(EXEEXT)
+
+RAW_BENCH_FILES = \
+  bench/data/block413567.raw
+GENERATED_BENCH_FILES = $(RAW_BENCH_FILES:.raw=.raw.h)
+
+bench_bench_verge_SOURCES = \
+  $(RAW_BENCH_FILES) \
+  bench/bench_verge.cpp \
+  bench/bench.cpp \
+  bench/bench.h \
+  bench/checkblock.cpp \
+  bench/checkqueue.cpp \
+  bench/examples.cpp \
+  bench/rollingbloom.cpp \
+  bench/crypto_hash.cpp \
+  bench/ccoins_caching.cpp \
+  bench/merkle_root.cpp \
+  bench/mempool_eviction.cpp \
+  bench/verify_script.cpp \
+  bench/base58.cpp \
+  bench/lockedpool.cpp \
+  bench/prevector.cpp
+
+nodist_bench_bench_verge_SOURCES = $(GENERATED_BENCH_FILES)
+
+bench_bench_verge_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(EVENT_CLFAGS) $(EVENT_PTHREADS_CFLAGS) -I$(builddir)/bench/
+bench_bench_verge_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+bench_bench_verge_LDADD = \
+  $(libverge_WALLET) \
+  $(libverge_SERVER) \
+  $(libverge_COMMON) \
+  $(libverge_UTIL) \
+  $(libverge_CONSENSUS) \
+  $(libverge_CRYPTO) \
+  $(TOR_LIBS) \
+  $(LIBLEVELDB) \
+  $(LIBLEVELDB_SSE42) \
+  $(LIBMEMENV) \
+  $(LIBSECP256K1) \
+  $(LIBUNIVALUE)  \
+  $(LIBEVENT_LIBS) \
+  $(LIBSECCOMP_LIBS) \
+  $(LIBCAP_LIBS) \
+  $(ZLIB_LIBS)
+
+if ENABLE_ZMQ
+bench_bench_verge_LDADD += $(libverge_ZMQ) $(ZMQ_LIBS)
+endif
+
+if ENABLE_WALLET
+bench_bench_verge_SOURCES += bench/coin_selection.cpp
+endif
+
+bench_bench_verge_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
+bench_bench_verge_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+
+CLEAN_VERGE_BENCH = bench/*.gcda bench/*.gcno $(GENERATED_BENCH_FILES)
+
+CLEANFILES += $(CLEAN_VERGE_BENCH)
+
+bench/checkblock.cpp: bench/data/block413567.raw.h
+
+verge_bench: $(BENCH_BINARY)
+
+bench: $(BENCH_BINARY) FORCE
+	$(BENCH_BINARY)
+
+verge_bench_clean : FORCE
+	rm -f $(CLEAN_VERGE_BENCH) $(bench_bench_verge_OBJECTS) $(BENCH_BINARY)
+
+%.raw.h: %.raw
+	@$(MKDIR_P) $(@D)
+	@{ \
+	 echo "static unsigned const char $(*F)[] = {" && \
+	 $(HEXDUMP) -v -e '8/1 "0x%02x, "' -e '"\n"' $< | $(SED) -e 's/0x  ,//g' && \
+	 echo "};"; \
+	} > "$@.new" && mv -f "$@.new" "$@"
+	@echo "Generated $@"

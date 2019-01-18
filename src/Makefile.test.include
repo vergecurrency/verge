@@ -1,105 +1,184 @@
-bin_PROGRAMS += test_verge
-TESTS += test_verge
+# Copyright (c) 2013-2016 The Bitcoin Core developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+bin_PROGRAMS += test/test_verge
+noinst_PROGRAMS += test/test_verge_fuzzy
 TEST_SRCDIR = test
 TEST_BINARY=test/test_verge$(EXEEXT)
 
-
 JSON_TEST_FILES = \
   test/data/base58_encode_decode.json \
-  test/data/base58_keys_invalid.json \
-  test/data/base58_keys_valid.json \
-  test/data/script_invalid.json \
-  test/data/script_valid.json \
+  test/data/key_io_valid.json \
+  test/data/key_io_invalid.json \
+  test/data/script_tests.json \
+  test/data/sighash.json \
   test/data/tx_invalid.json \
-  test/data/tx_valid.json 
+  test/data/tx_valid.json
 
-#RAW_TEST_FILES = data/alertTests.raw
+RAW_TEST_FILES =
 
-BUILT_SOURCES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.raw.h)
+GENERATED_TEST_FILES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.raw.h)
 
-#TODO: needs updating
-#test/base58_tests.cpp
-#test/key_tests.cpp
-#test/miner_tests.cpp
-#test/multisig_tests.cpp
-#test/wallet_tests.cpp
-#test/rpc_tests.cpp
-#test/DoS_tests.cpp
-#test/Checkpoints_tests.cpp
-#test/script_tests.cpp
-#test/transaction_tests.cpp
+VERGE_TEST_SUITE = \
+  test/test_verge_main.cpp \
+  test/test_verge.h \
+  test/test_verge.cpp
 
-
-test_verge_SOURCES = \
-					   test/test_verge.cpp \
-					   test/uint160_tests.cpp \
-					   test/uint256_tests.cpp \
-					   test/sigopcount_tests.cpp \
-					   test/netbase_tests.cpp \
-					   test/mruset_tests.cpp \
-					   test/getarg_tests.cpp \
-					   test/bignum_tests.cpp \
-					   test/base64_tests.cpp \
-					   test/base32_tests.cpp \
-					   test/allocator_tests.cpp \
-					   test/script_P2SH_tests.cpp \
-					   test/DoS_tests.cpp \
-					   test/stealth_tests.cpp \
-					   $(JSON_TEST_FILES) $(RAW_TEST_FILES)
+# test_verge binary #
+VERGE_TESTS =\
+  test/arith_uint256_tests.cpp \
+  test/scriptnum10.h \
+  test/addrman_tests.cpp \
+  test/amount_tests.cpp \
+  test/allocator_tests.cpp \
+  test/base32_tests.cpp \
+  test/base58_tests.cpp \
+  test/base64_tests.cpp \
+  test/bech32_tests.cpp \
+  test/bip32_tests.cpp \
+  test/blockchain_tests.cpp \
+  test/blockencodings_tests.cpp \
+  test/bloom_tests.cpp \
+  test/bswap_tests.cpp \
+  test/checkqueue_tests.cpp \
+  test/coins_tests.cpp \
+  test/compress_tests.cpp \
+  test/crypto_tests.cpp \
+  test/cuckoocache_tests.cpp \
+  test/denialofservice_tests.cpp \
+  test/getarg_tests.cpp \
+  test/hash_tests.cpp \
+  test/key_io_tests.cpp \
+  test/key_tests.cpp \
+  test/limitedmap_tests.cpp \
+  test/dbwrapper_tests.cpp \
+  test/main_tests.cpp \
+  test/mempool_tests.cpp \
+  test/merkle_tests.cpp \
+  test/merkleblock_tests.cpp \
+  test/miner_tests.cpp \
+  test/multisig_tests.cpp \
+  test/net_tests.cpp \
+  test/netbase_tests.cpp \
+  test/pmt_tests.cpp \
+  test/policyestimator_tests.cpp \
+  test/pow_tests.cpp \
+  test/prevector_tests.cpp \
+  test/raii_event_tests.cpp \
+  test/random_tests.cpp \
+  test/reverselock_tests.cpp \
+  test/rpc_tests.cpp \
+  test/sanity_tests.cpp \
+  test/scheduler_tests.cpp \
+  test/script_p2sh_tests.cpp \
+  test/script_tests.cpp \
+  test/script_standard_tests.cpp \
+  test/scriptnum_tests.cpp \
+  test/serialize_tests.cpp \
+  test/sighash_tests.cpp \
+  test/sigopcount_tests.cpp \
+  test/skiplist_tests.cpp \
+  test/streams_tests.cpp \
+  test/sync_tests.cpp \
+  test/timedata_tests.cpp \
+  test/torcontrol_tests.cpp \
+  test/transaction_tests.cpp \
+  test/txindex_tests.cpp \
+  test/txvalidation_tests.cpp \
+  test/txvalidationcache_tests.cpp \
+  test/uint256_tests.cpp \
+  test/util_tests.cpp \
+  test/validation_block_tests.cpp \
+  test/versionbits_tests.cpp
 
 if ENABLE_WALLET
-test_verge_SOURCES += \
-					   test/accounting_tests.cpp
+VERGE_TESTS += \
+  wallet/test/accounting_tests.cpp \
+  wallet/test/wallet_tests.cpp \
+  wallet/test/wallet_crypto_tests.cpp \
+  wallet/test/coinselector_tests.cpp
+
+VERGE_TEST_SUITE += \
+  wallet/test/wallet_test_fixture.cpp \
+  wallet/test/wallet_test_fixture.h
 endif
 
-
-test_verge_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -I$(builddir)/test $(TESTDEFS) $(EVENT_CFLAGS)
-test_verge_LDADD =
-
+test_test_verge_SOURCES = $(VERGE_TEST_SUITE) $(VERGE_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
+test_test_verge_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(TESTDEFS) $(EVENT_CFLAGS)
+test_test_verge_LDADD =
 if ENABLE_WALLET
-test_verge_LDADD += $(LIBBITCOIN_WALLET)
+test_test_verge_LDADD += $(libverge_WALLET)
 endif
 
-test_verge_LDADD += $(LIBBITCOIN_SERVER) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
-					 $(LIBLEVELDB) $(LIBMEMENV)  \
-					 $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
+test_test_verge_LDADD += $(libverge_SERVER) $(libverge_CLI) $(libverge_COMMON) $(libverge_UTIL) $(libverge_CONSENSUS) $(libverge_CRYPTO) $(LIBUNIVALUE) \
+  $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS)
+test_test_verge_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
+test_test_verge_LDADD += $(libverge_CONSENSUS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
+test_test_verge_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 
-if HAVE_SSE2
-test_verge_LDADD += $(LIBBITCOIN_SSE2)
+if ENABLE_ZMQ
+test_test_verge_LDADD += $(ZMQ_LIBS)
 endif
+#
 
-test_verge_LDADD += $(TOR_LIBS) \
-  $(LIBEVENT_LIBS) \
-  $(LIBSECCOMP_LIBS) \
-  $(LIBCAP_LIBS) \
-  $(ZLIB_LIBS)
+# test_verge_fuzzy binary #
+test_test_verge_fuzzy_SOURCES = test/test_verge_fuzzy.cpp
+test_test_verge_fuzzy_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES)
+test_test_verge_fuzzy_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+test_test_verge_fuzzy_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
-test_verge_LDADD  += $(BDB_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(LIBCAP_LDFLAGS) \
-					   $(ZLIB_LDFLAGS)
-test_verge_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-test_verge_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+test_test_verge_fuzzy_LDADD = \
+  $(LIBUNIVALUE) \
+  $(libverge_SERVER) \
+  $(libverge_COMMON) \
+  $(libverge_UTIL) \
+  $(libverge_CONSENSUS) \
+  $(libverge_CRYPTO) \
+  $(libverge_CRYPTO_SSE41) \
+  $(libverge_CRYPTO_AVX2) \
+  $(LIBSECP256K1)
 
-nodist_test_verge_SOURCES = $(BUILT_SOURCES)
+test_test_verge_fuzzy_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
+#
 
-$(BITCOIN_TESTS): $(BUILT_SOURCES)
+nodist_test_test_verge_SOURCES = $(GENERATED_TEST_FILES)
 
-CLEAN_VERGE_TEST = test/*.gcda test/*.gcno $(BUILT_SOURCES)
+$(VERGE_TESTS): $(GENERATED_TEST_FILES)
+
+CLEAN_VERGE_TEST = test/*.gcda test/*.gcno $(GENERATED_TEST_FILES)
 
 CLEANFILES += $(CLEAN_VERGE_TEST)
 
 verge_test: $(TEST_BINARY)
 
 verge_test_check: $(TEST_BINARY) FORCE
-		$(MAKE) check-TESTS TESTS=$^
+	$(MAKE) check-TESTS TESTS=$^
 
 verge_test_clean : FORCE
-		rm -f $(CLEAN_VERGE_TEST) $(test_test_verge_OBJECTS) $(TEST_BINARY)
-	
+	rm -f $(CLEAN_VERGE_TEST) $(test_test_verge_OBJECTS) $(TEST_BINARY)
+
+check-local: $(VERGE_TESTS:.cpp=.cpp.test)
+	@echo "Running test/util/verge-util-test.py..."
+	$(PYTHON) $(top_builddir)/test/util/verge-util-test.py
+	@echo "Running test/util/rpcauth-test.py..."
+	$(PYTHON) $(top_builddir)/test/util/rpcauth-test.py
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C secp256k1 check
+if EMBEDDED_UNIVALUE
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C univalue check
+endif
+
+%.cpp.test: %.cpp
+	@echo Running tests: `cat $< | grep -E "(BOOST_FIXTURE_TEST_SUITE\\(|BOOST_AUTO_TEST_SUITE\\()" | cut -d '(' -f 2 | cut -d ',' -f 1 | cut -d ')' -f 1` from $<
+	$(AM_V_at)$(TEST_BINARY) -l test_suite -t "`cat $< | grep -E "(BOOST_FIXTURE_TEST_SUITE\\(|BOOST_AUTO_TEST_SUITE\\()" | cut -d '(' -f 2 | cut -d ',' -f 1 | cut -d ')' -f 1`" > $<.log 2>&1 || (cat $<.log && false)
+
 %.json.h: %.json
 	@$(MKDIR_P) $(@D)
-	@echo "namespace json_tests{" > $@
-	@echo "static unsigned const char $(*F)[] = {" >> $@
-	@$(HEXDUMP) -v -e '8/1 "0x%02x, "' -e '"\n"' $< | $(SED) -e 's/0x  ,//g' >> $@
-	@echo "};};" >> $@
+	@{ \
+	 echo "namespace json_tests{" && \
+	 echo "static unsigned const char $(*F)[] = {" && \
+	 $(HEXDUMP) -v -e '8/1 "0x%02x, "' -e '"\n"' $< | $(SED) -e 's/0x  ,//g' && \
+	 echo "};};"; \
+	} > "$@.new" && mv -f "$@.new" "$@"
 	@echo "Generated $@"

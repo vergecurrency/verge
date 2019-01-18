@@ -1,45 +1,54 @@
+sudo: true
 language: cpp
 
 matrix:
-
   include:
-
     - os: linux
       dist: xenial
-      sudo: required
-      env: VERGE_PLATFORM='linux'
-      compiler: gcc
-      file: 'release_linux.zip'
-
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: VERGE_PLATFORM='windows'
-      compiler: gcc
-      file: 'release_windows.zip'
-
     - os: osx
-      osx_image: xcode9.2
-      env: VERGE_PLATFORM='mac'
-      compiler: clang
-      file: 'release_mac.zip'
+      osx_image: xcode10.1
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.8
+    packages:
+    - g++-6
+    - clang-3.8
+    - build-essential
+    - libtool 
+    - autotools-dev
+    - automake
+    - pkg-config
+    - bsdmainutils
+    - python3
+    - libssl-dev
+    - libevent-dev
+    - libboost-all-dev
+    - zlib1g-dev
+    - libseccomp-dev
+    - libcap-dev
+    - libncap-dev
+    - libdb-dev
+    - libdb++-dev
+    - libminiupnpc-dev
+    - libzmq3-dev
+    - libqt5gui5
+    - libqt5core5a
+    - libqt5dbus5
+    - qttools5-dev
+    - qttools5-dev-tools
+    - libprotobuf-dev
+    - protobuf-compiler
+    - libqrencode-dev
 
 before_install:
-  - ./building/common.sh
-  - ./building/${VERGE_PLATFORM}/requirements.sh
-
-install:
-  - ./building/${VERGE_PLATFORM}/build.sh
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  # openssl and boost are already pre-installed on travis
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install automake berkeley-db4 libtool miniupnpc pkg-config protobuf python qt libevent qrencode; fi
 
 script:
-  - ./building/${VERGE_PLATFORM}/dist.sh
-
-deploy:
-  provider: releases
-  api_key:
-    secure: "V7l/O3E2rpi0Y4AMBadMII7BS5HNx8zoJZeca+dYxBqKMgIhxkzpBiSio4gQBBlAmnI071J+xWm50wMFRLJzctTJvQWkSfmstM15TFg4PkdPi1XBzKV2lbc4/dsFtH0ODsTb8kY09oqAwdNDUlu0wMCIuO7fte/HK0J4Cghs456Ker3VHEnswexnprtYlRaeGHOLJvBe2rThBX3J1NdpfMvbBF6KQ4ZElKSTUz7FWeAk7ozQA8N5oe7J9irNrenBqN/pfDWr7PL531W2DXaHEA0gABwz49pbUyximoxzW9coyAdoaawGzQY4KufInTTMAGkxOED0DpC2SyKxIYnI6BB2M+TSILJ7s94MA6whPcJq5OCiRqiyQWfampnzSkuEcOfHRDWaDeM/IW9xTvXFKjwxaaIxv3X/XTAmQuhqjKjNbI85Q07KChrVIc6R74rDrAaDOxRjLvywygcPMDaqbdqLpnFb21JGHEMjo87V1C5YmHrlv4t0Wb0agAyrxH2ZtC/Rqd8tuqbESuFRRmOB2lG8utrxwNLm7qozZABvZhyomxMBFW3WzoTQLTpWqBev13sT7ZadkgyNl0AFkHpduWugo/hDCpIYiBQ4XyzW5mVk+/fd1upR9VOhjSbIJzTuzid0+ONBqL4Iah3aGk4wT2EeR27VJm7aHCZMPdWOnVo="
-  skip_cleanup: true
-  on:
-    repo: vergecurrency/VERGE
-    tags: true
-    all_branches: true
+  - ./autogen.sh # prepare all build-aux and update submodules
+  - ./configure --with-incompatible-bdb --disable-bench # configure all sources for the compiling process
+  - make -j3 # make sources 

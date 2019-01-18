@@ -1,7 +1,4 @@
-[submodule "tor"]
-	path = tor
+[submodule "src/tor"]
+	path = src/tor
 	url = https://github.com/torproject/tor.git
-	branch = maint-0.3.2
-[submodule "src/leveldb"]
-	path = src/leveldb
-	url = https://github.com/google/leveldb.git
+	branch = tor-0.3.4.9
