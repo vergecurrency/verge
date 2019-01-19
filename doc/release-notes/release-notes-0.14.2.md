@@ -1,31 +1,33 @@
-Bitcoin Core version 0.14.2 is now available from:
+---
+# This file is licensed under the MIT License (MIT) available on
+# http://opensource.org/licenses/MIT.
+# Text originally from Bitcoin Core project
+# Metadata and small formatting changes from Bitcoin.org project
 
-  <https://bitcoin.org/bin/bitcoin-core-0.14.2/>
+## Required value below populates the %v variable (note: % needs to be escaped in YAML if it starts a value)
+required_version: 0.14.2
+## Required title.
+title: Bitcoin Core version 0.14.2 released
+## Optional release date.  May be filled in hours/days after a release
+optional_date: 2017-06-17
 
-This is a new minor version release, including various bugfixes and
-performance improvements, as well as updated translations.
+---
+
+<div class="post-content" markdown="1">
+
+Important Notice
+==============
+
+The information contained in this document originated from the Bitcoin Core project. 
+
+This document is to serve as a reference to the changes that where implemented during the most recent VERGE code base migration. 
+
+---
 
 Please report bugs using the issue tracker at github:
 
-  <https://github.com/bitcoin/bitcoin/issues>
+  <https://github.com/vergecurrency/VERGE/issues>
 
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
-
-Compatibility
-==============
-
-Bitcoin Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later.
-
-Microsoft ended support for Windows XP on [April 8th, 2014](https://www.microsoft.com/en-us/WindowsForBusiness/end-of-xp-support),
-No attempt is made to prevent installing or running the software on Windows XP, you
-can still do so at your own risk but be aware that there are known instabilities and issues.
-Please do not report issues about Windows XP to the issue tracker.
-
-Bitcoin Core should also work on most other Unix-like systems but is not
-frequently tested on them.
 
 Notable changes
 ===============
@@ -40,19 +42,21 @@ other impact.
 
 This only affects users that have explicitly enabled UPnP through the GUI
 setting or through the `-upnp` option, as since the last UPnP vulnerability
-(in Bitcoin Core 0.10.3) it has been disabled by default.
+(in VERGE 0.10.3) it has been disabled by default.
 
 If you use this option, it is recommended to upgrade to this version as soon as
 possible.
 
+
 Known Bugs
 ==========
 
-Since 0.14.0 the approximate transaction fee shown in Bitcoin-Qt when using coin
+Since 0.14.0 the approximate transaction fee shown in VERGE-Qt when using coin
 control and smart fee estimation does not reflect any change in target from the
 smart fee slider. It will only present an approximate fee calculated using the
 default target. The fee calculated using the correct target is still applied to
 the transaction and shown in the final send confirmation dialog.
+
 
 0.14.2 Change log
 =================
@@ -83,6 +87,7 @@ git merge commit are mentioned.
 ### Wallet
 - #10294 `1847642` Unset change position when there is no change (instagibbs)
 
+
 Credits
 =======
 
@@ -99,4 +104,5 @@ Thanks to everyone who directly contributed to this release:
 - Wladimir J. van der Laan
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
-
+{% endgithubify %}
+</div>

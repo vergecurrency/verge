@@ -1,31 +1,33 @@
-Bitcoin Core version 0.14.1 is now available from:
+---
+# This file is licensed under the MIT License (MIT) available on
+# http://opensource.org/licenses/MIT.
+# Text originally from Bitcoin Core project
+# Metadata and small formatting changes from Bitcoin.org project
 
-  <https://bitcoin.org/bin/bitcoin-core-0.14.1/>
+## Required value below populates the %v variable (note: % needs to be escaped in YAML if it starts a value)
+required_version: 0.14.1
+## Required title.
+title: Bitcoin Core version 0.14.1 released
+## Optional release date.  May be filled in hours/days after a release
+optional_date: 2017-04-22
 
-This is a new minor version release, including various bugfixes and
-performance improvements, as well as updated translations.
+---
+
+<div class="post-content" markdown="1">
+
+Important Note
+==============
+
+The information contained in this document originated from the Bitcoin Core project. 
+
+This document is to serve as a reference to the changes that where implemented during the most recent VERGE code base migration. 
+
+---
 
 Please report bugs using the issue tracker at github:
 
-  <https://github.com/bitcoin/bitcoin/issues>
+  <https://github.com/vergecurrency/VERGE/issues>
 
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
-
-Compatibility
-==============
-
-Bitcoin Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later.
-
-Microsoft ended support for Windows XP on [April 8th, 2014](https://www.microsoft.com/en-us/WindowsForBusiness/end-of-xp-support),
-No attempt is made to prevent installing or running the software on Windows XP, you
-can still do so at your own risk but be aware that there are known instabilities and issues.
-Please do not report issues about Windows XP to the issue tracker.
-
-Bitcoin Core should also work on most other Unix-like systems but is not
-frequently tested on them.
 
 Notable changes
 ===============
@@ -42,21 +44,6 @@ These interface changes break compatibility with 0.14.0, when the named
 arguments functionality, introduced in 0.14.0, is used. Client software
 using these calls with named arguments needs to be updated.
 
-Mining
-------
-
-In previous versions, getblocktemplate required segwit support from downstream
-clients/miners once the feature activated on the network. In this version, it
-now supports non-segwit clients even after activation, by removing all segwit
-transactions from the returned block template. This allows non-segwit miners to
-continue functioning correctly even after segwit has activated.
-
-Due to the limitations in previous versions, getblocktemplate also recommended
-non-segwit clients to not signal for the segwit version-bit. Since this is no
-longer an issue, getblocktemplate now always recommends signalling segwit for
-all miners. This is safe because ability to enforce the rule is the only
-required criteria for safe activation, not actually producing segwit-enabled
-blocks.
 
 UTXO memory accounting
 ----------------------
@@ -75,7 +62,8 @@ this parameter.
 
 Additional information relating to running on low-memory systems can be found
 here:
-[reducing-bitcoind-memory-usage.md](https://gist.github.com/laanwj/efe29c7661ce9b6620a7).
+[reducing-verged-memory-usage.md](https://gist.github.com/laanwj/efe29c7661ce9b6620a7).
+
 
 0.14.1 Change log
 =================
@@ -94,7 +82,6 @@ git merge commit are mentioned.
 
 ### Block and transaction handling
 - #10126 `0b5e162` Compensate for memory peak at flush time (sipa)
-- #9912 `fc3d7db` Optimize GetWitnessHash() for non-segwit transactions (sdaftuar)
 - #10133 `ab864d3` Clean up calculations of pcoinsTip memory usage (morcos)
 
 ### P2P protocol and network code
@@ -108,7 +95,6 @@ git merge commit are mentioned.
 - #10060 `ddc2dd1` Ensure an item exists on the rpcconsole stack before adding (achow101)
 
 ### Mining
-- #9955/#10006 `569596c` Don't require segwit in getblocktemplate for segwit signalling or mining (sdaftuar)
 - #9959/#10127 `b5c3440` Prevent slowdown in CreateNewBlock on large mempools (sdaftuar)
 
 ### Tests and QA
@@ -118,6 +104,7 @@ git merge commit are mentioned.
 - #10037 `4d8e660` Trivial: Fix typo in help getrawtransaction RPC (keystrike)
 - #10120 `e4c9a90` util: Work around (virtual) memory exhaustion on 32-bit w/ glibc (laanwj)
 - #10130 `ecc5232` bitcoin-tx input verification (awemany, jnewbery)
+
 
 Credits
 =======
@@ -141,3 +128,5 @@ Thanks to everyone who directly contributed to this release:
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
 
+{% endgithubify %}
+</div>

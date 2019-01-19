@@ -1,79 +1,39 @@
-Bitcoin Core version 0.16.0 is now available from:
+---
+# This file is licensed under the MIT License (MIT) available on
+# http://opensource.org/licenses/MIT.
+# Text originally from Bitcoin Core project
+# Metadata and small formatting changes from Bitcoin.org project
 
-  <https://bitcoincore.org/bin/bitcoin-core-0.16.0/>
+## Required value below populates the %v variable (note: % needs to be escaped in YAML if it starts a value)
+required_version: 0.16.0
+## Required title.
+title: Bitcoin Core version 0.16.0 released
+## Optional release date.  May be filled in hours/days after a release
+optional_date: 2018-02-26
 
-This is a new major version release, including new features, various bugfixes
-and performance improvements, as well as updated translations.
+---
 
-Please report bugs using the issue tracker at GitHub:
+<div class="post-content" markdown="1">
 
-  <https://github.com/bitcoin/bitcoin/issues>
-
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
-
-How to Upgrade
+Important Notice
 ==============
 
-If you are running an older version, shut it down. Wait until it has completely
-shut down (which might take a few minutes for older versions), then run the
-installer (on Windows) or just copy over `/Applications/Bitcoin-Qt` (on Mac)
-or `bitcoind`/`bitcoin-qt` (on Linux).
+The information contained in this document originated from the Bitcoin Core project. 
 
-The first time you run version 0.15.0 or newer, your chainstate database will be converted to a
-new format, which will take anywhere from a few minutes to half an hour,
-depending on the speed of your machine.
+This document is to serve as a reference to the changes that where implemented during the most recent VERGE code base migration. 
 
-Note that the block database format also changed in version 0.8.0 and there is no
-automatic upgrade code from before version 0.8 to version 0.15.0 or higher. Upgrading
-directly from 0.7.x and earlier without re-downloading the blockchain is not supported.
-However, as usual, old wallet versions are still supported.
+---
 
-Downgrading warning
--------------------
+Please report bugs using the issue tracker at github:
 
-Wallets created in 0.16 and later are not compatible with versions prior to 0.16
-and will not work if you try to use newly created wallets in older versions. Existing
-wallets that were created with older versions are not affected by this.
+  <https://github.com/vergecurrency/VERGE/issues>
 
-Compatibility
-==============
-
-Bitcoin Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later. Windows XP is not supported.
-
-Bitcoin Core should also work on most other Unix-like systems but is not
-frequently tested on them.
 
 Notable changes
 ===============
 
 Wallet changes
 ---------------
-
-### Segwit Wallet
-
-Bitcoin Core 0.16.0 introduces full support for segwit in the wallet and user interfaces. A new `-addresstype` argument has been added, which supports `legacy`, `p2sh-segwit` (default), and `bech32` addresses. It controls what kind of addresses are produced by `getnewaddress`, `getaccountaddress`, and `createmultisigaddress`. A `-changetype` argument has also been added, with the same options, and by default equal to `-addresstype`, to control which kind of change is used.
-
-A new `address_type` parameter has been added to the `getnewaddress` and `addmultisigaddress` RPCs to specify which type of address to generate.
-A `change_type` argument has been added to the `fundrawtransaction` RPC to override the `-changetype` argument for specific transactions.
-
-- All segwit addresses created through `getnewaddress` or `*multisig` RPCs explicitly get their redeemscripts added to the wallet file. This means that downgrading after creating a segwit address will work, as long as the wallet file is up to date.
-- All segwit keys in the wallet get an implicit redeemscript added, without it being written to the file. This means recovery of an old backup will work, as long as you use new software.
-- All keypool keys that are seen used in transactions explicitly get their redeemscripts added to the wallet files. This means that downgrading after recovering from a backup that includes a segwit address will work
-
-Note that some RPCs do not yet support segwit addresses. Notably, `signmessage`/`verifymessage` doesn't support segwit addresses, nor does `importmulti` at this time. Support for segwit in those RPCs will continue to be added in future versions.
-
-P2WPKH change outputs are now used by default if any destination in the transaction is a P2WPKH or P2WSH output. This is done to ensure the change output is as indistinguishable from the other outputs as possible in either case.
-
-### BIP173 (Bech32) Address support ("bc1..." addresses)
-
-Full support for native segwit addresses (BIP173 / Bech32) has now been added.
-This includes the ability to send to BIP173 addresses (including non-v0 ones), and generating these
-addresses (including as default new addresses, see above).
-
-A checkbox has been added to the GUI to select whether a Bech32 address or P2SH-wrapped address should be generated when using segwit addresses. When launched with `-addresstype=bech32` it is checked by default. When launched with `-addresstype=legacy` it is unchecked and disabled.
 
 ### HD-wallets by default
 
@@ -121,18 +81,6 @@ Support for signalling pruned nodes (BIP159)
 Pruned nodes can now signal BIP159's NODE_NETWORK_LIMITED using service bits, in preparation for
 full BIP159 support in later versions. This would allow pruned nodes to serve the most recent blocks. However, the current change does not yet include support for connecting to these pruned peers.
 
-Performance: SHA256 assembly enabled by default
--------------------------------------------------
-The SHA256 hashing optimizations for architectures supporting SSE4, which lead to ~50% speedups in SHA256 on supported hardware (~5% faster synchronization and block validation), have now been enabled by default. In previous versions they were enabled using the `--enable-experimental-asm` flag when building, but are now the default and no longer deemed experimental.
-
-GUI changes
------------
-- Uses of "µBTC" in the GUI now also show the more colloquial term "bits", specified in BIP176.
-- The option to reuse a previous address has now been removed. This was justified by the need to "resend" an invoice, but now that we have the request history, that need should be gone.
-- Support for searching by TXID has been added, rather than just address and label.
-- A "Use available balance" option has been added to the send coins dialog, to add the remaining available wallet balance to a transaction output.
-- A toggle for unblinding the password fields on the password dialog has been added.
-
 RPC changes
 ------------
 
@@ -157,12 +105,9 @@ used to create `rpcauth` credentials for a JSON-RPC user.
 
 ### Validateaddress improvements
 
-The `validateaddress` RPC output has been extended with a few new fields, and support for segwit addresses (both P2SH and Bech32). Specifically:
-* A new field `iswitness` is True for P2WPKH and P2WSH addresses ("bc1..." addresses), but not for P2SH-wrapped segwit addresses (see below).
-* The existing field `isscript` will now also report True for P2WSH addresses.
-* A new field `embedded` is present for all script addresses where the script is known and matches something that can be interpreted as a known address. This is particularly true for P2SH-P2WPKH and P2SH-P2WSH addresses. The value for `embedded` includes much of the information `validateaddress` would report if invoked directly on the embedded address.
-* For multisig scripts a new `pubkeys` field was added that reports the full public keys involved in the script (if known). This is a replacement for the existing `addresses` field (which reports the same information but encoded as P2PKH addresses), represented in a more useful and less confusing way. The `addresses` field remains present for non-segwit addresses for backward compatibility.
-* For all single-key addresses with known key (even when wrapped in P2SH or P2WSH), the `pubkey` field will be present. In particular, this means that invoking `validateaddress` on the output of `getnewaddress` will always report the `pubkey`, even when the address type is P2SH-P2WPKH.
+The `validateaddress` RPC output has been extended with a few new fields. 
+* For multisig scripts a new `pubkeys` field was added that reports the full public keys involved in the script (if known). This is a replacement for the existing `addresses` field represented in a more useful and less confusing way. The `addresses` field remains present for non-segwit addresses for backward compatibility.
+* For all single-key addresses with known key, the `pubkey` field will be present. In particular, this means that invoking `validateaddress` on the output of `getnewaddress` will always report the `pubkey`.
 
 ### Low-level changes
 
@@ -172,15 +117,11 @@ The `validateaddress` RPC output has been extended with a few new fields, and su
   * `getwalletinfo`
   * `getmininginfo`
 - The wallet RPC `getreceivedbyaddress` will return an error if called with an address not in the wallet.
-- The wallet RPC `addwitnessaddress` was deprecated and will be removed in version 0.17,
-  set the `address_type` argument of `getnewaddress`, or option `-addresstype=[bech32|p2sh-segwit]` instead.
 - `dumpwallet` now includes hex-encoded scripts from the wallet in the dumpfile, and
   `importwallet` now imports these scripts, but corresponding addresses may not be added
   correctly or a manual rescan may be required to find relevant transactions.
 - The RPC `getblockchaininfo` now includes an `errors` field.
 - A new `blockhash` parameter has been added to the `getrawtransaction` RPC which allows for a raw transaction to be fetched from a specific block if known, even without `-txindex` enabled.
-- The `decoderawtransaction` and `fundrawtransaction` RPCs now have optional `iswitness` parameters to override the
-  heuristic witness checks if necessary.
 - The `walletpassphrase` timeout is now clamped to 2^30 seconds.
 - Using addresses with the `createmultisig` RPC is now deprecated, and will be removed in a later version. Public keys should be used instead.
 - Blockchain rescans now no longer lock the wallet for the entire rescan process, so other RPCs can now be used at the same time (although results of balances / transactions may be incorrect or incomplete until the rescan is complete).
@@ -198,7 +139,7 @@ Other changed command-line options
 Testing changes
 ----------------
 - The default regtest JSON-RPC port has been changed to 18443 to avoid conflict with testnet's default of 18332.
-- Segwit is now always active in regtest mode by default. Thus, if you upgrade a regtest node you will need to either -reindex or use the old rules by adding `vbparams=segwit:0:999999999999` to your regtest bitcoin.conf. Failure to do this will result in a CheckBlockIndex() assertion failure that will look like: Assertion `(pindexFirstNeverProcessed != nullptr) == (pindex->nChainTx == 0)' failed.
+
 
 0.16.0 change log
 ------------------
@@ -267,7 +208,6 @@ Testing changes
 - #11886 `df71819` Clarify getbalance meaning a tiny bit in response to questions (TheBlueMatt)
 - #11923 `81c89e9` Remove unused fNoncriticalErrors variable from CWalletDB::FindWalletTx (PierreRochard)
 - #11726 `604e08c` Cleanups + nit fixes for walletdir PR (MeshCollider)
-- #11403 `d889c03` Segwit wallet support (sipa)
 - #11970 `b7450cd` Add test coverage for bitcoin-cli multiwallet calls (ryanofsky)
 - #11904 `66e3af7` Add a lock to the wallet directory (MeshCollider)
 - #12101 `c7978be` Clamp walletpassphrase timeout to 2^30 seconds and check its bounds (achow101)
@@ -314,7 +254,7 @@ Testing changes
 - #11362 `c6223b3` Remove nBlockMaxSize from miner opt struct as it is no longer used (gmaxwell)
 - #10825 `28485c7` Set regtest JSON-RPC port to 18443 to avoid conflict with testnet 18332 (fametrano)
 - #11303 `e542728` Fix estimatesmartfee rounding display issue (TheBlueMatt)
-- #7061 `8c2de82` Add RPC call "rescanblockchain <startheight> <stopheight>" (jonasschnelli)
+- #7061 `8c2de82` Add RPC call `rescanblockchain <startheight> <stopheight>` (jonasschnelli)
 - #11055 `95e14dc` RPC getreceivedbyaddress should return error if called with address not owned by the wallet (jnewbery)
 - #12366 `93de37a` http: Join worker threads before deleting work queue (laanwj)
 - #12315 `758a41e` Bech32 addresses in dumpwallet (fivepiece)
@@ -404,7 +344,6 @@ Testing changes
 - #11486 `2ca518d` Add uacomment tests (mess110)
 - #11452 `02ac8c8` Improve ZMQ functional test (promag)
 - #10409 `b5545d8` Add fuzz testing for BlockTransactions and BlockTransactionsRequest (practicalswift)
-- #11389 `dd56166` Support having segwit always active in regtest (sipa, ajtowns, jnewbery)
 - #11562 `5776582` bench: use std::chrono rather than gettimeofday (theuni)
 - #11182 `f7388e9` Add P2P interface to TestNode (jnewbery)
 - #11552 `b5f9f02` Improve wallet-accounts test (ryanofsky)
@@ -442,7 +381,6 @@ Testing changes
 - #11997 `ddff344` util_tests.cpp: actually check ignored args (ajtowns)
 - #12079 `45173fa` Improve prioritisetransaction test coverage (promag)
 - #12150 `92a810d` Fix ListCoins test failure due to unset g_address_type, g_change_type (ryanofsky)
-- #12133 `1d2eaba` Fix rare failure in p2p-segwit.py (sdaftuar)
 - #12082 `0910cbe` Adding test case for SINGLE|ANYONECANPAY hash type in tx_valid.json (Christewart)
 - #11796 `4db16ec` Functional test naming convention (ajtowns)
 - #12227 `b987ca4` test_runner: Readable output if create_cache.py fails (ryanofsky)
@@ -527,7 +465,7 @@ Testing changes
 - #10969 `4afb5aa` Declare single-argument (non-converting) constructors "explicit" (practicalswift)
 - #11071 `dbf6bd6` Use static_assert(…, …) (C++11) instead of assert(…) where appropriate (practicalswift)
 - #10809 `c559884` optim: mark a few classes final (theuni)
-- #10843 `2ab7c63` Add attribute [[noreturn]] (C++11) to functions that will not return (practicalswift)
+- #10843 `2ab7c63` Add attribute [[noreturn]](C++11) to functions that will not return (practicalswift)
 - #11151 `7fd49d0` Fix header guards using reserved identifiers (danra)
 - #11138 `2982511` Compat: Simplify bswap_16 implementation (danra)
 - #11161 `745bbdc` Remove redundant explicitly defined copy ctors (danra)
@@ -549,7 +487,6 @@ Testing changes
 - #11301 `8776787` add m_added_nodes to connman options (benma)
 - #11432 `058c0f9` Remove unused fTry from push_lock (promag)
 - #11107 `e93fff1` Fix races in AppInitMain and others with lock and atomic bools (MeshCollider)
-- #9572 `17f2ace` Skip witness sighash cache for non-segwit transactions (jl2012)
 - #10961 `da0478e` Improve readability of DecodeBase58Check(...) (practicalswift)
 - #11133 `a865b38` Document assumptions that are being made to avoid division by zero (practicalswift)
 - #11073 `3bb77eb` Remove dead store in ecdsa_signature_parse_der_lax (BitonicEelis)
@@ -718,3 +655,6 @@ Thanks to everyone who directly contributed to this release:
 - Wladimir J. van der Laan
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
+{% endgithubify %}
+
+</div>

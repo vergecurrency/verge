@@ -1,31 +1,33 @@
-Bitcoin Core version 0.14.0 is now available from:
+---
+# This file is licensed under the MIT License (MIT) available on
+# http://opensource.org/licenses/MIT.
+# Text originally from Bitcoin Core project
+# Metadata and small formatting changes from Bitcoin.org project
 
-  <https://bitcoin.org/bin/bitcoin-core-0.14.0/>
+## Required value below populates the %v variable (note: % needs to be escaped in YAML if it starts a value)
+required_version: 0.14.0
+## Required title.
+title: Bitcoin Core version 0.14.0 released
+## Optional release date.  May be filled in hours/days after a release
+optional_date: 2017-03-08
 
-This is a new major version release, including new features, various bugfixes
-and performance improvements, as well as updated translations.
+---
+
+<div class="post-content" markdown="1">
+
+Important Notice
+==============
+
+The information contained in this document originated from the Bitcoin Core project. 
+
+This document is to serve as a reference to the changes that where implemented during the most recent VERGE code base migration. 
+
+---
 
 Please report bugs using the issue tracker at github:
 
-  <https://github.com/bitcoin/bitcoin/issues>
+  <https://github.com/vergecurrency/VERGE/issues>
 
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
-
-Compatibility
-==============
-
-Bitcoin Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later.
-
-Microsoft ended support for Windows XP on [April 8th, 2014](https://www.microsoft.com/en-us/WindowsForBusiness/end-of-xp-support),
-No attempt is made to prevent installing or running the software on Windows XP, you
-can still do so at your own risk but be aware that there are known instabilities and issues.
-Please do not report issues about Windows XP to the issue tracker.
-
-Bitcoin Core should also work on most other Unix-like systems but is not
-frequently tested on them.
 
 Notable changes
 ===============
@@ -55,7 +57,7 @@ improved, leading to much shorter sync and initial block download times.
 Manual Pruning
 --------------
 
-Bitcoin Core has supported automatically pruning the blockchain since 0.11. Pruning
+VERGE has supported automatically pruning the blockchain since 0.11. Pruning
 the blockchain allows for significant storage space savings as the vast majority of
 the downloaded data can be discarded after processing so very little of it remains
 on the disk.
@@ -81,7 +83,7 @@ shows where each field has been moved to:
 `"blocks"`	   | `getblockchaininfo()["blocks"]`
 `"timeoffset"`	   | `getnetworkinfo()["timeoffset"]`
 `"connections"`	   | `getnetworkinfo()["connections"]`
-`"proxy"`	   | `getnetworkinfo()["networks"][0]["proxy"]`
+`"proxy"`	   | `getnetworkinfo()["networks"]&#91;0&#93;["proxy"]`
 `"difficulty"`	   | `getblockchaininfo()["difficulty"]`
 `"testnet"`	   | `getblockchaininfo()["chain"] == "test"`
 `"keypoololdest"`  | `getwalletinfo()["keypoololdest"]`
@@ -109,7 +111,7 @@ command without running the commands separately.
 The nested RPC commands use bracket syntax (i.e. `getwalletinfo()`) and can
 be nested (i.e. `getblock(getblockhash(1))`). Simple queries can be
 done with square brackets where object values are accessed with either an 
-array index or a non-quoted string (i.e. `listunspent()[0][txid]`). Both
+array index or a non-quoted string (i.e. `listunspent()&#91;0&#93;[txid]`). Both
 commas and spaces can be used to separate parameters in both the bracket syntax
 and normal RPC command syntax.
 
@@ -129,7 +131,7 @@ the same thing as the GUI icon. The command takes one boolean parameter,
 Out-of-sync Modal Info Layer
 ----------------------------
 
-When Bitcoin Core is out-of-sync on startup, a semi-transparent information
+When VERGE is out-of-sync on startup, a semi-transparent information
 layer will be shown over top of the normal display. This layer contains
 details about the current sync progress and estimates the amount of time
 remaining to finish syncing. This layer can also be hidden and subsequently
@@ -138,19 +140,19 @@ unhidden by clicking on the progress bar at the bottom of the window.
 Support for JSON-RPC Named Arguments
 ------------------------------------
 
-Commands sent over the JSON-RPC interface and through the `bitcoin-cli` binary
+Commands sent over the JSON-RPC interface and through the `verge-cli` binary
 can now use named arguments. This follows the [JSON-RPC specification](http://www.jsonrpc.org/specification)
 for passing parameters by-name with an object.
 
-`bitcoin-cli` has been updated to support this by parsing `name=value` arguments
+`verge-cli` has been updated to support this by parsing `name=value` arguments
 when the `-named` option is given.
 
 Some examples:
 
-    src/bitcoin-cli -named help command="help"
-    src/bitcoin-cli -named getblockhash height=0
-    src/bitcoin-cli -named getblock blockhash=000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
-    src/bitcoin-cli -named sendtoaddress address="(snip)" amount="1.0" subtractfeefromamount=true
+    src/verge-cli -named help command="help"
+    src/verge-cli -named getblockhash height=0
+    src/verge-cli -named getblock blockhash=000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+    src/verge-cli -named sendtoaddress address="(snip)" amount="1.0" subtractfeefromamount=true
 
 The order of arguments doesn't matter in this case. Named arguments are also
 useful to leave out arguments that should stay at their default value. The
@@ -186,33 +188,6 @@ restarts the mempool can be filled with transactions without waiting for new tra
 to be created. This will also preserve any changes made to a transaction through
 commands such as `prioritisetransaction` so that those changes will not be lost.
 
-Final Alert
------------
-
-The Alert System was [disabled and deprecated](https://bitcoin.org/en/alert/2016-11-01-alert-retirement) in Bitcoin Core 0.12.1 and removed in 0.13.0. 
-The Alert System was retired with a maximum sequence final alert which causes any nodes
-supporting the Alert System to display a static hard-coded "Alert Key Compromised" message which also
-prevents any other alerts from overriding it. This final alert is hard-coded into this release
-so that all old nodes receive the final alert.
-
-GUI Changes
------------
-
- - After resetting the options by clicking the `Reset Options` button 
-   in the options dialog or with the `-resetguioptions` startup option, 
-   the user will be prompted to choose the data directory again. This 
-   is to ensure that custom data directories will be kept after the 
-   option reset which clears the custom data directory set via the choose 
-   datadir dialog.
-
- - Multiple peers can now be selected in the list of peers in the debug 
-   window. This allows for users to ban or disconnect multiple peers 
-   simultaneously instead of banning them one at a time.
-
- - An indicator has been added to the bottom right hand corner of the main
-   window to indicate whether the wallet being used is a HD wallet. This
-   icon will be grayed out with an X on top of it if the wallet is not a
-   HD wallet.
 
 Low-level RPC changes
 ----------------------
@@ -241,8 +216,8 @@ Low-level RPC changes
    the mempool or if `txindex` is enabled.
 
  - A new RPC command `getmemoryinfo` has been added which will return information
-   about the memory usage of Bitcoin Core. This was added in conjunction with
-   optimizations to memory management. See [Pull #8753](https://github.com/bitcoin/bitcoin/pull/8753)
+   about the memory usage of VERGE. This was added in conjunction with
+   optimizations to memory management. See #8753.
    for more information.
 
  - A new RPC command `bumpfee` has been added which allows replacing an
@@ -355,6 +330,7 @@ Unused mempool memory used by coincache
   memory usage during IBD for those previously relying on only the `-dbcache`
   option to limit memory during that time.
 
+
 0.14.0 Change log
 =================
 
@@ -388,7 +364,6 @@ and git merge commit are mentioned.
 - #9778 `ad168ef` Add two hour buffer to manual pruning (morcos)
 - #9761 `9828f9a` Use 2 hour grace period for key timestamps in importmulti rescans (ryanofsky)
 - #9474 `48d7e0d` Mark the minconf parameter to move as ignored (sipa)
-- #9619 `861cb0c` Bugfix: RPC/Mining: GBT should return 1 MB sizelimit before segwit activates (luke-jr)
 - #9773 `9072395` Return errors from importmulti if complete rescans are not successful (ryanofsky)
 
 ### Block and transaction handling
@@ -628,7 +603,6 @@ and git merge commit are mentioned.
 - #8810 `14e8f99` tests: Add exception error message for JSONRPCException (laanwj)
 - #8830 `ef0801b` test: Add option to run bitcoin-util-test.py manually (jnewbery)
 - #8881 `e66cc1d` Add some verbose logging to bitcoin-util-test.py (jnewbery)
-- #8922 `0329511` Send segwit-encoded blocktxn messages in p2p-compactblocks (TheBlueMatt)
 - #8873 `74dc388` Add microbenchmarks to profile more code paths (ryanofsky)
 - #9032 `6a8be7b` test: Add format-dependent comparison to bctest (laanwj)
 - #9023 `774db92` Add logging to bitcoin-util-test.py (jnewbery)
@@ -763,6 +737,7 @@ and git merge commit are mentioned.
 - #9798 `e22c067` Fix Issue #9775 (Check returned value of fopen) (kirit93)
 - #9856 `69832aa` Terminate immediately when allocation fails (theuni)
 
+
 Credits
 =======
 
@@ -871,3 +846,5 @@ Thanks to everyone who directly contributed to this release:
 - Zak Wilcox
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
+{% endgithubify %}
+</div>
