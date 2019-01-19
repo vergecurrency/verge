@@ -527,7 +527,7 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
 
         // Now that we know Tor is running setup the proxy for onion addresses
         // if -onion isn't set to something else.
-        if (gArgs.GetArg("-onion", "") == "" || !gArgs.GetBoolArg("-without-tor", false)) {
+        if (gArgs.GetArg("-onion", "") != "" || !gArgs.IsArgSet("-without-tor")) {
             CService resolved(LookupNumeric("127.0.0.1", DEFAULT_TOR_PORT));
             proxyType addrOnion = proxyType(resolved, true);
             SetProxy(NET_TOR, addrOnion);

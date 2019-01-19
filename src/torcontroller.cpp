@@ -133,7 +133,7 @@ void run_tor() {
     tor_main(argv_c.size(), &argv_c[0]);
 }
 
-void StartTor(void* parg)
+void StartTor()
 {
     // Make this thread recognisable as the tor thread
     RenameThread("onion");
