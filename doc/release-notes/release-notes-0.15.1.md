@@ -1,62 +1,32 @@
-Bitcoin Core version *0.15.1* is now available from:
+---
+# This file is licensed under the MIT License (MIT) available on
+# http://opensource.org/licenses/MIT.
+# Text originally from Bitcoin Core project
+# Metadata and small formatting changes from Bitcoin.org project
 
-  <https://bitcoincore.org/bin/bitcoin-core-0.15.1/>
+## Required value below populates the %v variable (note: % needs to be escaped in YAML if it starts a value)
+required_version: 0.15.1
+## Required title.
+title: Bitcoin Core version 0.15.1 released
+## Optional release date.  May be filled in hours/days after a release
+optional_date: 2017-11-11
 
-or
+---
 
-  <https://bitcoin.org/bin/bitcoin-core-0.15.1/>
+<div class="post-content" markdown="1">
 
-This is a new minor version release, including various bugfixes and
-performance improvements, as well as updated translations.
-
-Please report bugs using the issue tracker at GitHub:
-
-  <https://github.com/bitcoin/bitcoin/issues>
-
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
-
-How to Upgrade
+Important Notice
 ==============
 
-If you are running an older version, shut it down. Wait until it has completely
-shut down (which might take a few minutes for older versions), then run the 
-installer (on Windows) or just copy over `/Applications/Bitcoin-Qt` (on Mac)
-or `bitcoind`/`bitcoin-qt` (on Linux).
+The information contained in this document originated from the Bitcoin Core project. 
 
-The first time you run version 0.15.0 or higher, your chainstate database will
-be converted to a new format, which will take anywhere from a few minutes to
-half an hour, depending on the speed of your machine.
+This document is to serve as a reference to the changes that where implemented during the most recent VERGE code base migration. 
 
-The file format of `fee_estimates.dat` changed in version 0.15.0. Hence, a
-downgrade from version 0.15 or upgrade to version 0.15 will cause all fee
-estimates to be discarded.
+---
 
-Note that the block database format also changed in version 0.8.0 and there is no
-automatic upgrade code from before version 0.8 to version 0.15.0. Upgrading
-directly from 0.7.x and earlier without redownloading the blockchain is not supported.
-However, as usual, old wallet versions are still supported.
+Please report bugs using the issue tracker at github:
 
-Downgrading warning
--------------------
-
-The chainstate database for this release is not compatible with previous
-releases, so if you run 0.15 and then decide to switch back to any
-older version, you will need to run the old release with the `-reindex-chainstate`
-option to rebuild the chainstate data structures in the old format.
-
-If your node has pruning enabled, this will entail re-downloading and
-processing the entire blockchain.
-
-Compatibility
-==============
-
-Bitcoin Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later. Windows XP is not supported.
-
-Bitcoin Core should also work on most other Unix-like systems but is not
-frequently tested on them.
+  <https://github.com/vergecurrency/VERGE/issues>
 
 
 Notable changes
@@ -143,6 +113,7 @@ Low-level RPC changes
 - `listsinceblock` will now throw an error if an unknown `blockhash` argument
   value is passed, instead of returning a list of all wallet transactions since
   the genesis block. The behaviour is unchanged when an empty string is provided.
+
 
 0.15.1 Change log
 =================
@@ -275,3 +246,7 @@ Thanks to everyone who directly contributed to this release:
 - Wladimir J. van der Laan
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
+
+{% endgithubify %}
+
+</div>

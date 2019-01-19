@@ -1,50 +1,33 @@
-Bitcoin Core version 0.16.1 is now available from:
+---
+# This file is licensed under the MIT License (MIT) available on
+# http://opensource.org/licenses/MIT.
+# Text originally from Bitcoin Core project
+# Metadata and small formatting changes from Bitcoin.org project
 
-  <https://bitcoincore.org/bin/bitcoin-core-0.16.1/>
+## Required value below populates the %v variable (note: % needs to be escaped in YAML if it starts a value)
+required_version: 0.16.1
+## Required title.
+title: Bitcoin Core version 0.16.1 released
+## Optional release date.  May be filled in hours/days after a release
+optional_date: 2018-06-15
 
-This is a new minor version release, with various bugfixes
-as well as updated translations.
+---
 
-Please report bugs using the issue tracker at GitHub:
+<div class="post-content" markdown="1">
 
-  <https://github.com/bitcoin/bitcoin/issues>
-
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
-
-How to Upgrade
+Important Notice
 ==============
 
-If you are running an older version, shut it down. Wait until it has completely
-shut down (which might take a few minutes for older versions), then run the
-installer (on Windows) or just copy over `/Applications/Bitcoin-Qt` (on Mac)
-or `bitcoind`/`bitcoin-qt` (on Linux).
+The information contained in this document originated from the Bitcoin Core project. 
 
-The first time you run version 0.15.0 or newer, your chainstate database will be converted to a
-new format, which will take anywhere from a few minutes to half an hour,
-depending on the speed of your machine.
+This document is to serve as a reference to the changes that where implemented during the most recent VERGE code base migration. 
 
-Note that the block database format also changed in version 0.8.0 and there is no
-automatic upgrade code from before version 0.8 to version 0.15.0 or higher. Upgrading
-directly from 0.7.x and earlier without re-downloading the blockchain is not supported.
-However, as usual, old wallet versions are still supported.
+---
 
-Downgrading warning
--------------------
+Please report bugs using the issue tracker at github:
 
-Wallets created in 0.16 and later are not compatible with versions prior to 0.16
-and will not work if you try to use newly created wallets in older versions. Existing
-wallets that were created with older versions are not affected by this.
+  <https://github.com/vergecurrency/VERGE/issues>
 
-Compatibility
-==============
-
-Bitcoin Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later. Windows XP is not supported.
-
-Bitcoin Core should also work on most other Unix-like systems but is not
-frequently tested on them.
 
 Notable changes
 ===============
@@ -76,11 +59,6 @@ weights.
 ### Wallet
 - #13265 `5d8de76` Exit SyncMetaData if there are no transactions to sync (laanwj)
 - #13030 `5ff571e` Fix zapwallettxes/multiwallet interaction. (jnewbery)
-
-### GUI
-- #12999 `1720eb3` Show the Window when double clicking the taskbar icon (ken2812221)
-- #12650 `f118a7a` Fix issue: "default port not shown correctly in settings dialog" (251Labs)
-- #13251 `ea487f9` Rephrase Bech32 checkbox texts, and enable it with legacy address default (fanquake)
 
 ### Build system
 - #12474 `b0f692f` Allow depends system to support armv7l (hkjn)
@@ -143,3 +121,6 @@ Thanks to everyone who directly contributed to this release:
 - Wladimir J. van der Laan
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
+{% endgithubify %}
+
+</div>

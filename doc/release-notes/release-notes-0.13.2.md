@@ -1,43 +1,33 @@
-Bitcoin Core version 0.13.2 is now available from:
+---
+# This file is licensed under the MIT License (MIT) available on
+# http://opensource.org/licenses/MIT.
+# Text originally from Bitcoin Core project
+# Metadata and small formatting changes from Bitcoin.org project
 
-  <https://bitcoin.org/bin/bitcoin-core-0.13.2/>
+## Required value below populates the %v variable (note: % needs to be escaped in YAML if it starts a value)
+required_version: 0.13.2
+## Required title.
+title: Bitcoin Core version 0.13.2 released
+## Optional release date.  May be filled in hours/days after a release
+optional_date: 2017-01-03
 
-This is a new minor version release, including various bugfixes and
-performance improvements, as well as updated translations.
+---
+
+<div class="post-content" markdown="1">
+
+Important Notice
+==============
+
+The information contained in this document originated from the Bitcoin Core project. 
+
+This document is to serve as a reference to the changes that where implemented during the most recent VERGE code base migration. 
+
+
+---
 
 Please report bugs using the issue tracker at github:
 
-  <https://github.com/bitcoin/bitcoin/issues>
-
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
-
-Compatibility
-==============
-
-Microsoft ended support for Windows XP on [April 8th, 2014](https://www.microsoft.com/en-us/WindowsForBusiness/end-of-xp-support),
-an OS initially released in 2001. This means that not even critical security
-updates will be released anymore. Without security updates, using a bitcoin
-wallet on a XP machine is irresponsible at least.
-
-In addition to that, with 0.12.x there have been varied reports of Bitcoin Core
-randomly crashing on Windows XP. It is [not clear](https://github.com/bitcoin/bitcoin/issues/7681#issuecomment-217439891)
-what the source of these crashes is, but it is likely that upstream
-libraries such as Qt are no longer being tested on XP.
-
-We do not have time nor resources to provide support for an OS that is
-end-of-life. From 0.13.0 on, Windows XP is no longer supported. Users are
-suggested to upgrade to a newer version of Windows, or install an alternative OS
-that is supported.
-
-No attempt is made to prevent installing or running the software on Windows XP,
-you can still do so at your own risk, but do not expect it to work: do not
-report issues about Windows XP to the issue tracker.
-
-From 0.13.1 onwards OS X 10.7 is no longer supported. 0.13.0 was intended to work on 10.7+, 
-but severe issues with the libc++ version on 10.7.x keep it from running reliably. 
-0.13.1 now requires 10.8+, and will communicate that to 10.7 users, rather than crashing unexpectedly.
+  <https://github.com/vergecurrency/VERGE/issues>
 
 Notable changes
 ===============
@@ -77,7 +67,6 @@ git merge commit are mentioned.
 - #9041 `87fbced` keypoololdest denote Unix epoch, not GMT (s-matthew-english)
 - #9122 `f82c81b` fix getnettotals RPC description about timemillis (visvirial)
 - #9042 `5bcb05d` [rpc] ParseHash: Fail when length is not 64 (MarcoFalke)
-- #9194 `f26dab7` Add option to return non-segwit serialization via rpc (instagibbs)
 - #9347 `b711390` [0.13.2] wallet/rpc backports (MarcoFalke)
 - #9292 `c365556` Complain when unknown rpcserialversion is specified (sipa)
 - #9322 `49a612f` [qa] Don't set unknown rpcserialversion (MarcoFalke)
@@ -127,7 +116,6 @@ git merge commit are mentioned.
 - #9191 `29435db` 0.13.2 Backports (MarcoFalke)
 - #9077 `1d4c884` Increase wallet-dump RPC timeout (ryanofsky)
 - #9098 `ecd7db5` Handle zombies and cluttered tmpdirs (MarcoFalke)
-- #8927 `387ec9d` Add script tests for FindAndDelete in pre-segwit and segwit scripts (jl2012)
 - #9200 `eebc699` bench: Fix subtle counting issue when rescaling iteration count (laanwj)
 
 ### Miscellaneous
@@ -140,6 +128,7 @@ git merge commit are mentioned.
 - #9067 `f85ee01` Fix exit codes (UdjinM6)
 - #9340 `fb987b3` [0.13] Update secp256k1 subtree (MarcoFalke)
 - #9229 `b172377` Remove calls to getaddrinfo_a (TheBlueMatt)
+
 
 Credits
 =======
@@ -176,3 +165,6 @@ Thanks to everyone who directly contributed to this release:
 - wodry
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
+
+{% endgithubify %}
+</div>
