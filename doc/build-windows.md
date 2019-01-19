@@ -65,11 +65,15 @@ A host toolchain (`build-essential`) is necessary because some dependency
 packages (such as `protobuf`) need to build host utilities that are used in the
 build process.
 
-See also: [dependencies.md](dependencies.md).
+See [dependencies.md](dependencies.md) for a complete overview.
+
+If you want to build the windows installer with `make deploy` you need [NSIS](https://nsis.sourceforge.io/Main_Page):
+
+    sudo apt install nsis
 
 ## Building for 64-bit Windows
 
-The first step is to install the mingw-w64 cross-compilation tool chain.
+The first step is to install the mingw-w64 cross-compilation tool chain:
 
     sudo apt install g++-mingw-w64-x86-64
 
@@ -77,7 +81,7 @@ Ubuntu Bionic 18.04 <sup>[1](#footnote1)</sup>:
 
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
 
-Once the tool chain is installed the build steps are common:
+Once the toolchain is installed the build steps are common:
 
 Note that for WSL the Verge Core source path MUST be somewhere in the default mount file system, for
 example /usr/src/verge, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
@@ -91,6 +95,8 @@ Once the source code is ready the build steps are below.
 
     PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
     cd depends
+    chmod 764  ./config.guess
+    chmod 764  ./config.sub
     make HOST=x86_64-w64-mingw32
     cd ..
     ./autogen.sh # not required when building from tarball
@@ -119,6 +125,8 @@ Then build using:
 
     PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
     cd depends
+    chmod 764  ./config.guess
+    chmod 764  ./config.sub
     make HOST=i686-w64-mingw32
     cd ..
     ./autogen.sh # not required when building from tarball
