@@ -36,15 +36,15 @@ bench_bench_verge_LDADD = \
   $(libverge_WALLET) \
   $(libverge_SERVER) \
   $(libverge_COMMON) \
-  $(LIBUNIVALUE) \
   $(libverge_UTIL) \
-  $(libverge_ZMQ) \
   $(libverge_CONSENSUS) \
   $(libverge_CRYPTO) \
+  $(libverge_ZMQ) \
   $(LIBLEVELDB) \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
+  $(LIBUNIVALUE) \
   $(TOR_LIBS) \
   $(LIBEVENT_LIBS) \
   $(LIBSECCOMP_LIBS) \
