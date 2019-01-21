@@ -1,16 +1,11 @@
-[![Build Status](https://travis-ci.org/vergecurrency/VERGE.svg?branch=master)](https://travis-ci.org/vergecurrency/VERGE)
+<p align="center"><img src="https://raw.githubusercontent.com/vergecurrency/VERGE/master/readme-header.png" alt="Verge Source Code"></p>
+<p align="center">
+  <a href="https://travis-ci.org/vergecurrency/VERGE" target="_blank"><img src="https://travis-ci.org/vergecurrency/VERGE.svg?branch=master"></a>
+  <img src="https://img.shields.io/badge/status-alpha-red.svg">
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+</p>
 
-
-```
-____   _________________________   ________ ___________
-\   \ /   /\_   _____/\______   \ /  _____/ \_   _____/
- \   Y   /  |    __)_  |       _//   \   __  |    __)_
-  \     /   |        \ |    |   \\    \_(  \ |        \ 2019 VERGE/XVG
-   \___/   /_______  / |____|_  / \______  //_______  /
-                   \/         \/         \/         \/
-```
-
-# VERGE [XVG] Source Code
+# VERGE Source Code [XVG]
 
 ## Specifications
 Specification | Value
