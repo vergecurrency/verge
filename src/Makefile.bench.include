@@ -33,8 +33,8 @@ nodist_bench_bench_verge_SOURCES = $(GENERATED_BENCH_FILES)
 bench_bench_verge_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(EVENT_CLFAGS) $(EVENT_PTHREADS_CFLAGS) -I$(builddir)/bench/
 bench_bench_verge_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bench_bench_verge_LDADD = \
-  $(libverge_SERVER) \
   $(libverge_WALLET) \
+  $(libverge_SERVER) \
   $(libverge_COMMON) \
   $(LIBUNIVALUE) \
   $(libverge_UTIL) \
