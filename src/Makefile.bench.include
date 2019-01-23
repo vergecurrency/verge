@@ -39,12 +39,13 @@ bench_bench_verge_LDADD = \
   $(libverge_UTIL) \
   $(libverge_CONSENSUS) \
   $(libverge_CRYPTO) \
-  $(TOR_LIBS) \
+  $(libverge_ZMQ) \
   $(LIBLEVELDB) \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
-  $(LIBUNIVALUE)  \
+  $(LIBUNIVALUE) \
+  $(TOR_LIBS) \
   $(LIBEVENT_LIBS) \
   $(LIBSECCOMP_LIBS) \
   $(LIBCAP_LIBS) \
@@ -58,7 +59,7 @@ if ENABLE_WALLET
 bench_bench_verge_SOURCES += bench/coin_selection.cpp
 endif
 
-bench_bench_verge_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
+bench_bench_verge_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(LIBEVENT_LDFLAGS) $(LIBSECCOMP_LDFLAGS) $(LIBCAP_LDFLAGS) -lz
 bench_bench_verge_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 CLEAN_VERGE_BENCH = bench/*.gcda bench/*.gcno $(GENERATED_BENCH_FILES)

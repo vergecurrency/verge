@@ -12,7 +12,7 @@
 #include <scheduler.h>
 
 extern const std::string DEFAULT_TOR_CONTROL;
-static const bool DEFAULT_LISTEN_ONION = true;
+static const bool DEFAULT_LISTEN_ONION = false;
 
 void StartTorControl();
 void InterruptTorControl();

@@ -57,6 +57,6 @@ static const unsigned int DEFAULT_TOR_CONTROL_PORT = 9051;
 
 char *convert_str(const std::string &s);
 void run_tor();
-void StartTor(void* parg);
+void StartTor();
 
 #endif /* VERGE_TORCONTROLLER_H */

@@ -1310,9 +1310,8 @@ bool AppInitMain()
     // is not yet setup and may end up being set up twice if we
     // need to reindex later.
 
-    if (!gArgs.GetBoolArg("-without-tor", false)) {
-        if (!NewThread(StartTor, NULL))
-                InitError(_("Error: could not start tor node"));
+    if (!gArgs.IsArgSet("-without-tor")) {
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "torcontroller", &StartTor));
         
         SetLimited(NET_TOR);
         SetLimited(NET_IPV4);
@@ -1328,30 +1327,15 @@ bool AppInitMain()
         if (!addrOnion.IsValid())
             return InitError(strprintf(_("Invalid -onion address or hostname: '127.0.0.1:9050'")));
 
-        // CService controlService;
-        // if (!Lookup("127.0.0.1:9051", controlService, 9051 /*default port*/, true/*name lookup*/)) {
-        //     return InitError(strprintf(_("Invalid -onion address or hostname: '127.0.0.1:9051'")));
-        // }
-
-        // proxyType controlAddr = proxyType(controlService, false);
-        // if (!controlAddr.IsValid())
-        //     return InitError(strprintf(_("Invalid -onion address or hostname: '127.0.0.1:9051'")));
-
         SetProxy(NET_TOR, addrOnion);
         SetProxy(NET_IPV4, addrOnion);
         SetProxy(NET_IPV6, addrOnion);
 
-        // SetNameProxy(addrOnion);
-
         SetLimited(NET_TOR, false);
-        // SetLimited(NET_IPV4, false);
-        // SetLimited(NET_IPV6, false);
 
         LogPrintf("Tor Successfully bound ...\n");
 	} else {
         SetLimited(NET_TOR);
-        SetLimited(NET_IPV4, false);
-        SetLimited(NET_IPV6, false);
         LogPrintf("Tor disabled, Socks Proxy not initialized.\n");
     }
 
@@ -1743,7 +1727,7 @@ bool AppInitMain()
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);
 
-    if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION) || !gArgs.GetBoolArg("-without-tor", false))
+    if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION) || !gArgs.IsArgSet("-without-tor"))
         StartTorControl();
 
     Discover();

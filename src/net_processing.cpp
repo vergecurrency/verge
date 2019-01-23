@@ -1296,9 +1296,9 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
 
 static uint32_t GetFetchFlags(CNode* pfrom) {
     uint32_t nFetchFlags = 0;
-    if ((pfrom->GetLocalServices() & NODE_WITNESS) && State(pfrom->GetId())->fHaveWitness) {
+    /*if ((pfrom->GetLocalServices() & NODE_WITNESS) && State(pfrom->GetId())->fHaveWitness) {
         nFetchFlags |= MSG_WITNESS_FLAG;
-    }
+    }*/
     return nFetchFlags;
 }
 
