@@ -1565,6 +1565,20 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
     return true;
 }
 
+std::string deprecatedVersions[] = {"XVG:2", "VVraith:2"};
+
+bool IsDeprecatedVersionNumber(std::string strSubVer){
+    for(const std::string &versionStr : deprecatedVersions){
+        std::size_t iFoundPosition = strSubVer.find(versionStr);
+        if(iFoundPosition != std::string::npos)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, int64_t nTimeReceived, const CChainParams& chainparams, CConnman* connman, const std::atomic<bool>& interruptMsgProc)
 {
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->GetId());
@@ -1688,6 +1702,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (!vRecv.empty()) {
             vRecv >> LIMITED_STRING(strSubVer, MAX_SUBVERSION_LENGTH);
             cleanSubVer = SanitizeString(strSubVer);
+            if(IsDeprecatedVersionNumber(cleanSubVer)){
+                LogPrintf("bad peer: peer's connecting subver is %s, which is too old! - disconnecting!\n", pfrom->strSubVer.c_str());
+                pfrom->fDisconnect = true;
+            }
         }
         if (!vRecv.empty()) {
             vRecv >> nStartingHeight;
