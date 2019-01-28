@@ -6,8 +6,7 @@
 #define VERGE_RINGSIG_H
 
 #include "stealth.h"
-#include "state.h"
-#include "types.h"
+#include "logging.h"
 
 class CPubKey;
 

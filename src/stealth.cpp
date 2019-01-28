@@ -7,7 +7,6 @@
 #include "base58.h"
 #include "uint256.h"
 #include "crypto/sha256.h"
-#include "arith_uint256.h"
 
 #include <openssl/rand.h>
 #include <openssl/ec.h>
@@ -139,9 +138,6 @@ int GenerateRandomSecret(ec_secret& out)
 {
     RandAddSeedPerfmon();
     
-    static arith_uint256 max = arith_uint256("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140");
-    static arith_uint256 min = arith_uint256(16000); // increase? min valid key is 1
-    
     uint256 test;
     
     int i;
@@ -149,7 +145,7 @@ int GenerateRandomSecret(ec_secret& out)
     for (i = 0; i < 32; ++i)
     {
         RAND_bytes((unsigned char*) test.begin(), 32);
-        if (UintToArith256(test) > min && UintToArith256(test) < max)
+        if (UintToArith256(test) > MIN_SECRET && UintToArith256(test) < MAX_SECRET)
         {
             memcpy(&out.e[0], test.begin(), 32);
             break;

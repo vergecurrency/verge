@@ -9,6 +9,7 @@
 #include "serialize.h"
 #include "logging.h"
 #include "random.h"
+#include "arith_uint256.h"
 
 #include <stdlib.h> 
 #include <stdio.h> 
@@ -21,6 +22,9 @@ typedef std::vector<uint8_t> data_chunk;
 const size_t ec_secret_size = 32;
 const size_t ec_compressed_size = 33;
 const size_t ec_uncompressed_size = 65;
+
+const arith_uint256 MAX_SECRET("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140");
+const arith_uint256 MIN_SECRET(16000); // increase? min valid key is 1
 
 typedef struct ec_secret { uint8_t e[ec_secret_size]; } ec_secret;
 typedef data_chunk ec_point;

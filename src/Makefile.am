@@ -122,6 +122,7 @@ VERGE_CORE_H = \
   core_memusage.h \
   cuckoocache.h \
   stealth.h \
+  ringsig.h\
   fs.h \
   httprpc.h \
   httpserver.h \
@@ -293,6 +294,7 @@ libverge_wallet_a_SOURCES = \
   wallet/walletutil.cpp \
   wallet/coinselection.cpp \
   stealth.cpp \
+  ringsig.cpp \
   $(VERGE_CORE_H)
 
 # crypto primitives library
