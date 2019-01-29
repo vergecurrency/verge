@@ -3,36 +3,20 @@
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
 #include "ringsig.h"
-#include "base58.h"
-#include "chainparams.h"
-#include "key.h"
-#include "stealth.h"
-
-#include <openssl/bn.h>
-#include <openssl/ec.h>
-#include <openssl/ecdsa.h>
-#include <openssl/err.h>
-#include <openssl/obj_mac.h>
-#include <openssl/rand.h>
 
 
-static EC_GROUP* ecGrp = NULL;
-static BN_CTX* bnCtx = NULL;
-static BIGNUM* bnOrder = NULL;
-
-
-int initialiseRingSigs()
+bool CRingSignature::Initialise()
 {
-    int rv = 0;
-
-    if (!(ecGrp = EC_GROUP_new_by_curve_name(NID_secp256k1))) {
+    ecGrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
+    if (!ecGrp) {
         LogPrintf("initialiseRingSigs(): EC_GROUP_new_by_curve_name failed.");
-        return 1;
+        return false;
     }
 
-    if (!(bnCtx = BN_CTX_new())) {
+    bnCtx = BN_CTX_new();
+    if (!bnCtx) {
         LogPrintf("initialiseRingSigs(): BN_CTX_new failed.");
-        return 1;
+        return false;
     }
 
     BN_CTX_start(bnCtx);
@@ -41,15 +25,15 @@ int initialiseRingSigs()
     bnOrder = BN_new();
     if (!EC_GROUP_get_order(ecGrp, bnOrder, bnCtx)) {
         LogPrintf("initialiseRingSigs(): EC_GROUP_get_order failed.");
-        return 1;
+        return false;
     }
 
     BN_CTX_end(bnCtx);
 
-    return rv;
+    return true;
 }
 
-int finaliseRingSigs()
+int CRingSignature::Finalise()
 {
     BN_free(bnOrder);
     BN_CTX_free(bnCtx);
@@ -63,7 +47,7 @@ int finaliseRingSigs()
 }
 
 
-int splitAmount(int64_t nValue, std::vector<int64_t>& vOut)
+int CRingSignature::SplitAmount(int64_t nValue, std::vector<int64_t>& vOut)
 {
     // First make sure no output bigger than maxAnonOutput is created
     int64_t maxAnonOutput = 10000 * COIN;
@@ -111,7 +95,7 @@ int splitAmount(int64_t nValue, std::vector<int64_t>& vOut)
 }
 
 
-int getOldKeyImage(CPubKey& publicKey, ec_point& keyImage)
+int CRingSignature::GetOldKeyImage(CPubKey& publicKey, ec_point& keyImage)
 {
     // - PublicKey * Hash(PublicKey)
     if (publicKey.size() != ec_compressed_size) {
@@ -175,40 +159,8 @@ End:
     return 0;
 }
 
-static int hashToEC(const uint8_t* p, uint32_t len, BIGNUM* bnTmp, EC_POINT* ptRet, bool fNew = false)
-{
-    // - bn(hash(data)) * (G + bn1)
-    int count = 0;
-    uint256 pkHash = Hash(p, p + len);
-    BIGNUM* bnOne = BN_CTX_get(bnCtx);
-    BN_one(bnOne);
 
-    if (!bnTmp || !BN_bin2bn(pkHash.begin(), ec_secret_size, bnTmp)) {
-        LogPrintf("%s: BN_bin2bn failed.", __func__);
-        return 1;
-    }
-
-    if (fNew)
-        while (!EC_POINT_set_compressed_coordinates_GFp(ecGrp, ptRet, bnTmp, 0, bnCtx) && count < 100) {
-            count += 1;
-
-            if (count == 100) {
-                LogPrintf("%s: Failed to find a valid point for public key.", __func__);
-                return 1;
-            }
-
-            BN_add(bnTmp, bnTmp, bnOne);
-        }
-    else if (!EC_POINT_mul(ecGrp, ptRet, bnTmp, NULL, NULL, bnCtx)) {
-        LogPrintf("%s: EC_POINT_mul failed.", __func__);
-        return 1;
-    }
-
-    return 0;
-}
-
-
-int generateKeyImage(ec_point& publicKey, ec_secret secret, ec_point& keyImage)
+int CRingSignature::GenerateKeyImage(ec_point& publicKey, ec_secret secret, ec_point& keyImage)
 {
     // - keyImage = secret * hash(publicKey) * G
 
@@ -229,9 +181,9 @@ int generateKeyImage(ec_point& publicKey, ec_secret secret, ec_point& keyImage)
         goto End;
     }
 
-    if (hashToEC(&publicKey[0], publicKey.size(), bnTmp, hG, true)) {
+    if (HashToEC(&publicKey[0], publicKey.size(), bnTmp, hG, true)) {
         rv = 1;
-        LogPrintf("%s: hashToEC failed.", __func__);
+        LogPrintf("%s: HashToEC failed.", __func__);
         goto End;
     }
 
@@ -269,7 +221,7 @@ End:
 }
 
 
-int generateRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize, int nSecretOffset, ec_secret secret, const uint8_t* pPubkeys, uint8_t* pSigc, uint8_t* pSigr)
+int CRingSignature::GenerateRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize, int nSecretOffset, ec_secret secret, const uint8_t* pPubkeys, uint8_t* pSigc, uint8_t* pSigr)
 {
     int rv = 0;
     int nBytes;
@@ -348,8 +300,8 @@ int generateRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize,
                 goto End;
             }
 
-            if (hashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT1) != 0) {
-                LogPrintf("%s: hashToEC failed.\n", __func__);
+            if (HashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT1) != 0) {
+                LogPrintf("%s: HashToEC failed.\n", __func__);
                 rv = 1;
                 goto End;
             }
@@ -403,8 +355,8 @@ int generateRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize,
             }
 
             // ptT3 = Hp(Pi)
-            if (hashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT3) != 0) {
-                LogPrintf("%s: hashToEC failed.\n", __func__);
+            if (HashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT3) != 0) {
+                LogPrintf("%s: HashToEC failed.\n", __func__);
                 rv = 1;
                 goto End;
             }
@@ -521,7 +473,7 @@ End:
     return rv;
 }
 
-int verifyRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize, const uint8_t* pPubkeys, const uint8_t* pSigc, const uint8_t* pSigr)
+int CRingSignature::VerifyRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize, const uint8_t* pPubkeys, const uint8_t* pSigc, const uint8_t* pSigr)
 {
     int rv = 0;
 
@@ -605,8 +557,8 @@ int verifyRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize, c
         }
 
         // ptT3 = Hp(Pi)
-        if (hashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT3) != 0) {
-            LogPrintf("%s: hashToEC failed.\n", __func__);
+        if (HashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT3) != 0) {
+            LogPrintf("%s: HashToEC failed.\n", __func__);
             rv = 1;
             goto End;
         }
@@ -692,7 +644,7 @@ End:
 }
 
 
-int generateRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSize, int nSecretOffset, ec_secret secret, const uint8_t* pPubkeys, data_chunk& sigC, uint8_t* pSigS)
+int CRingSignature::GenerateRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSize, int nSecretOffset, ec_secret secret, const uint8_t* pPubkeys, data_chunk& sigC, uint8_t* pSigS)
 {
     // https://bitcointalk.org/index.php?topic=972541.msg10619684
 
@@ -791,8 +743,8 @@ int generateRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSiz
 
     // ptT3 = H(Pj)
 
-    if (hashToEC(&pPubkeys[nSecretOffset * ec_compressed_size], ec_compressed_size, bnT2, ptT3) != 0) {
-        LogPrintf("%s: hashToEC failed.\n", __func__);
+    if (HashToEC(&pPubkeys[nSecretOffset * ec_compressed_size], ec_compressed_size, bnT2, ptT3) != 0) {
+        LogPrintf("%s: HashToEC failed.\n", __func__);
         rv = 1;
         goto End;
     }
@@ -880,8 +832,8 @@ int generateRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSiz
 
         //s_{j+1}*H(P_{j+1})+c_{j+1}*I_j
 
-        if (hashToEC(&pPubkeys[ib * ec_compressed_size], ec_compressed_size, bnT2, ptT2) != 0) {
-            LogPrintf("%s: hashToEC failed.\n", __func__);
+        if (HashToEC(&pPubkeys[ib * ec_compressed_size], ec_compressed_size, bnT2, ptT2) != 0) {
+            LogPrintf("%s: HashToEC failed.\n", __func__);
             rv = 1;
             goto End;
         }
@@ -963,7 +915,7 @@ End:
 }
 
 
-int verifyRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSize, const uint8_t* pPubkeys, const data_chunk& sigC, const uint8_t* pSigS)
+int CRingSignature::VerifyRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSize, const uint8_t* pPubkeys, const data_chunk& sigC, const uint8_t* pSigS)
 {
     // https://bitcointalk.org/index.php?topic=972541.msg10619684
 
@@ -1061,8 +1013,8 @@ int verifyRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSize,
         // ptT2 =E_i=s_i*H(P_i)+c_i*I_j
 
         // ptT2 =H(P_i)
-        if (hashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT2) != 0) {
-            LogPrintf("%s: hashToEC failed.\n", __func__);
+        if (HashToEC(&pPubkeys[i * ec_compressed_size], ec_compressed_size, bnT, ptT2) != 0) {
+            LogPrintf("%s: HashToEC failed.\n", __func__);
             rv = 1;
             goto End;
         }
@@ -1130,4 +1082,36 @@ End:
     EC_POINT_free(ptPk);
 
     return rv;
+}
+
+int CRingSignature::HashToEC(const uint8_t* p, uint32_t len, BIGNUM* bnTmp, EC_POINT* ptRet, bool fNew)
+{
+    // - bn(hash(data)) * (G + bn1)
+    int count = 0;
+    uint256 pkHash = Hash(p, p + len);
+    BIGNUM* bnOne = BN_CTX_get(bnCtx);
+    BN_one(bnOne);
+
+    if (!bnTmp || !BN_bin2bn(pkHash.begin(), ec_secret_size, bnTmp)) {
+        LogPrintf("%s: BN_bin2bn failed.", __func__);
+        return 1;
+    }
+
+    if (fNew)
+        while (!EC_POINT_set_compressed_coordinates_GFp(ecGrp, ptRet, bnTmp, 0, bnCtx) && count < 100) {
+            count += 1;
+
+            if (count == 100) {
+                LogPrintf("%s: Failed to find a valid point for public key.", __func__);
+                return 1;
+            }
+
+            BN_add(bnTmp, bnTmp, bnOne);
+        }
+    else if (!EC_POINT_mul(ecGrp, ptRet, bnTmp, NULL, NULL, bnCtx)) {
+        LogPrintf("%s: EC_POINT_mul failed.", __func__);
+        return 1;
+    }
+
+    return 0;
 }
