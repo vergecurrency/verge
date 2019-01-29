@@ -33,6 +33,7 @@
 #include <rpc/server.h>
 #include <rpc/register.h>
 #include <rpc/blockchain.h>
+#include <ringsig.h>
 #include <script/standard.h>
 #include <script/sigcache.h>
 #include <scheduler.h>
@@ -75,6 +76,7 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
+std::unique_ptr<CRingSignature> g_ring_signature;
 
 #if !(ENABLE_WALLET)
 class DummyWalletInit : public WalletInitInterface {
@@ -1267,6 +1269,15 @@ bool AppInitMain()
 
     InitSignatureCache();
     InitScriptExecutionCache();
+
+    /**
+     * Initialize Ring signature class for future usage
+     **/
+    assert(!g_ring_signature);
+    g_ring_signature = std::unique_ptr<CRingSignature>(new CRingSignature());
+    if(!g_ring_signature->Initialise()){
+        InitError("Error while initializing Ring Signatures");
+    }
 
     LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads);
     if (nScriptCheckThreads) {
