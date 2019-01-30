@@ -30,7 +30,6 @@
 #include <util/moneystr.h>
 #include <wallet/fees.h>
 #include <wallet/walletutil.h>
-#include <stealth.h>
 
 #include <algorithm>
 #include <assert.h>
