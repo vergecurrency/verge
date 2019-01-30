@@ -76,7 +76,6 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
-std::unique_ptr<CRingSignature> g_ring_signature;
 
 #if !(ENABLE_WALLET)
 class DummyWalletInit : public WalletInitInterface {
