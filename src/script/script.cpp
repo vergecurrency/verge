@@ -8,6 +8,7 @@
 
 #include <tinyformat.h>
 #include <util/strencodings.h>
+#include <ringsig.h>
 
 const char* GetOpName(opcodetype opcode)
 {
@@ -129,7 +130,7 @@ const char* GetOpName(opcodetype opcode)
     case OP_CHECKMULTISIGVERIFY    : return "OP_CHECKMULTISIGVERIFY";
 
     // expansion
-    case OP_NOP1                   : return "OP_NOP1";
+    case OP_RING_MARKER            : return "OP_ANON_MARKER";
     case OP_CHECKLOCKTIMEVERIFY    : return "OP_CHECKLOCKTIMEVERIFY";
     case OP_CHECKSEQUENCEVERIFY    : return "OP_CHECKSEQUENCEVERIFY";
     case OP_NOP4                   : return "OP_NOP4";
@@ -202,6 +203,14 @@ bool CScript::IsPayToScriptHash() const
             (*this)[0] == OP_HASH160 &&
             (*this)[1] == 0x14 &&
             (*this)[22] == OP_EQUAL);
+}
+
+bool CScript::IsRingSignatureHash() const
+{
+    // Extra-fast test for ring signature based CScripts:
+    return (this->size() >= MIN_ANON_IN_SIZE
+            && (*this)[0] == OP_RETURN
+            && (*this)[1] == OP_RING_MARKER);
 }
 
 bool CScript::IsPayToWitnessScriptHash() const
