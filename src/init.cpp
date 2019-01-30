@@ -189,6 +189,9 @@ void Interrupt()
     if (g_txindex) {
         g_txindex->Interrupt();
     }
+    if(g_ring_signature){
+        g_ring_signature->Finalise();
+    }
 }
 
 void Shutdown()
@@ -217,8 +220,11 @@ void Shutdown()
     // using the other before destroying them.
     if (peerLogic) UnregisterValidationInterface(peerLogic.get());
     if (g_connman) g_connman->Stop();
+    if (g_ring_signature) g_ring_signature->Finalise();
+
     peerLogic.reset();
     g_connman.reset();
+    
     if (g_txindex) {
         g_txindex.reset();
     }
