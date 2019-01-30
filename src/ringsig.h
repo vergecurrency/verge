@@ -72,6 +72,6 @@ private:
     int HashToEC(const uint8_t* p, uint32_t len, BIGNUM* bnTmp, EC_POINT* ptRet, bool fNew = false);
 };
 
-std::unique_ptr<CRingSignature> g_ring_signature;
+static std::unique_ptr<CRingSignature> g_ring_signature;
 
 #endif  // VERGE_RINGSIG_H
