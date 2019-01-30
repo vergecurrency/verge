@@ -986,6 +986,7 @@ public:
     bool UpdateStealthAddress(std::string &addr, std::string &label, bool addIfNotExist);
 
     bool CreateStealthTransaction(CScript scriptPubKey, int64_t nValue, std::vector<uint8_t>& P, std::vector<uint8_t>& narr, std::string& sNarr, CTransactionRef& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet);
+    bool CreateSplittedOutputsForStealth(CStealthAddress* sxAddress, int64_t nValue, std::string& sNarr, std::vector<std::pair<CScript, int64_t> >& vecSend, CScript& scriptNarration);
     std::string SendStealthMoney(CScript scriptPubKey, int64_t nValue, std::vector<uint8_t>& P, std::vector<uint8_t>& narr, std::string& sNarr, CTransactionRef& wtxNew, bool fAskFee);   
     bool SendStealthMoneyToDestination(CStealthAddress& sxAddress, int64_t nValue, std::string& sNarr, CTransactionRef& txNew, std::string& sError, bool fAskFee=false);
     bool FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNarr);

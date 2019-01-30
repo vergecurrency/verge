@@ -25,6 +25,7 @@
 #include <script/script.h>
 #include <shutdown.h>
 #include <stealth.h>
+#include <ringsig.h>
 #include <timedata.h>
 #include <txmempool.h>
 #include <util/moneystr.h>
@@ -3497,6 +3498,108 @@ std::string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std:
 
     return "";
 }
+
+bool CWallet::CreateSplittedOutputsForStealth(CStealthAddress* sxAddress, int64_t nValue, std::string& sNarr, std::vector<std::pair<CScript, int64_t> >& vecSend, CScript& scriptNarration)
+{
+    ec_secret scEphem;
+    ec_secret scShared;
+    ec_point  pkSendTo;
+    ec_point  pkEphem;
+
+    CPubKey   cpkTo;
+
+    // -- output scripts OP_RETURN ANON_TOKEN pkTo R enarr
+    //    Each outputs split from the amount must go to a unique pk, or the key image would be the same
+    //    Only the first output of the group carries the enarr (if present)
+
+
+    std::vector<int64_t> vOutAmounts;
+    if (g_ring_signature->SplitAmount(nValue, vOutAmounts) != 0)
+    {
+        LogPrintf("splitAmount() failed.\n");
+        return false;
+    };
+
+    for (uint32_t i = 0; i < vOutAmounts.size(); ++i)
+    {
+        if (GenerateRandomSecret(scEphem) != 0)
+        {
+            LogPrintf("GenerateRandomSecret failed.\n");
+            return false;
+        };
+
+        if (sxAddress) // NULL for test only
+        {
+            if (StealthSecret(scEphem, sxAddress->scan_pubkey, sxAddress->spend_pubkey, scShared, pkSendTo) != 0)
+            {
+                LogPrintf("Could not generate receiving public key.\n");
+                return false;
+            };
+
+            cpkTo = CPubKey(pkSendTo);
+            if (!cpkTo.IsValid())
+            {
+                LogPrintf("Invalid public key generated.\n");
+                return false;
+            };
+
+            if (SecretToPublicKey(scEphem, pkEphem) != 0)
+            {
+                LogPrintf("Could not generate ephem public key.\n");
+                return false;
+            };
+        };
+
+        // check if public key is valid before creating a script
+        if (!cpkTo.IsValid())
+        {
+            LogPrintf("Invalid public key generated.");
+            return false;
+        };
+
+    
+        // assign ring sig signature
+        CScript scriptSendTo;
+        scriptSendTo.push_back(OP_RETURN);
+        scriptSendTo.push_back(OP_RING_MARKER);
+
+        // generate script pubkey for script and append it
+        CKeyID ckidTo = cpkTo.GetID();
+        CScript scriptPubKey = GetScriptForDestination(ckidTo);
+        scriptSendTo << scriptPubKey;
+
+        // shared secret added
+        scriptSendTo << pkEphem;
+
+        if (i == 0 && sNarr.length() > 0)
+        {
+            std::vector<unsigned char> vchNarr;
+            // TODO: enable message encrypting!
+            /*SecMsgCrypter crypter;
+            crypter.SetKey(&scShared.e[0], &pkEphem[0]);
+
+            if (!crypter.Encrypt((uint8_t*)&sNarr[0], sNarr.length(), vchNarr))
+            {
+                LogPrintf("Narration encryption failed.\n");
+                return false;
+            };
+
+            if (vchNarr.size() > MAX_STEALTH_NARRATION_SIZE)
+            {
+                LogPrintf("Encrypted narration is too long.\n");
+                return false;
+            };*/
+            scriptSendTo << vchNarr;
+            scriptNarration = scriptSendTo;
+        };
+
+        vecSend.push_back(std::make_pair(scriptSendTo, vOutAmounts[i]));
+    };
+
+    memset(&scShared.e[0], 0, ec_secret_size);
+
+    return true;
+};
 
 bool CWallet::SendStealthMoneyToDestination(CStealthAddress& sxAddress, int64_t nValue, std::string& sNarr, CTransactionRef& wtxNew, std::string& sError, bool fAskFee /*false*/)
 {
