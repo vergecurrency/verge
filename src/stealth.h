@@ -22,6 +22,7 @@ typedef std::vector<uint8_t> data_chunk;
 const size_t ec_secret_size = 32;
 const size_t ec_compressed_size = 33;
 const size_t ec_uncompressed_size = 65;
+const uint32_t MAX_STEALTH_NARRATION_SIZE = 48;
 
 const arith_uint256 MAX_SECRET("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140");
 const arith_uint256 MIN_SECRET(16000); // increase? min valid key is 1
