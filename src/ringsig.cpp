@@ -4,7 +4,6 @@
 
 #include "ringsig.h"
 
-
 bool CRingSignature::Initialise()
 {
     ecGrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
@@ -45,7 +44,6 @@ int CRingSignature::Finalise()
 
     return 0;
 }
-
 
 int CRingSignature::SplitAmount(int64_t nValue, std::vector<int64_t>& vOut)
 {
@@ -93,7 +91,6 @@ int CRingSignature::SplitAmount(int64_t nValue, std::vector<int64_t>& vOut)
 
     return 0;
 }
-
 
 int CRingSignature::GetOldKeyImage(CPubKey& publicKey, ec_point& keyImage)
 {
@@ -159,7 +156,6 @@ End:
     return 0;
 }
 
-
 int CRingSignature::GenerateKeyImage(ec_point& publicKey, ec_secret secret, ec_point& keyImage)
 {
     // - keyImage = secret * hash(publicKey) * G
@@ -219,7 +215,6 @@ End:
 
     return rv;
 }
-
 
 int CRingSignature::GenerateRingSignature(data_chunk& keyImage, uint256& txnHash, int nRingSize, int nSecretOffset, ec_secret secret, const uint8_t* pPubkeys, uint8_t* pSigc, uint8_t* pSigr)
 {
@@ -643,7 +638,6 @@ End:
     return rv;
 }
 
-
 int CRingSignature::GenerateRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSize, int nSecretOffset, ec_secret secret, const uint8_t* pPubkeys, data_chunk& sigC, uint8_t* pSigS)
 {
     // https://bitcointalk.org/index.php?topic=972541.msg10619684
@@ -913,7 +907,6 @@ End:
 
     return rv;
 }
-
 
 int CRingSignature::VerifyRingSignatureAB(data_chunk& keyImage, uint256& txnHash, int nRingSize, const uint8_t* pPubkeys, const data_chunk& sigC, const uint8_t* pSigS)
 {
