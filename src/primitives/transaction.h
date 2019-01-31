@@ -13,6 +13,23 @@
 #include <serialize.h>
 #include <uint256.h>
 
+/**
+ * Transaction Version shall destinct its version. That way we know
+ * which capabilities it supports, i.e. we support stealth within every tx,
+ * but certain tx should be marked as ring signature ones as they require 
+ * more difficult algorithms being operated on top of them.
+ * 
+ * Including those tx versions them we can later on check, 
+ * if we, i.e. have a ring signature based tx as incoming tx: 
+ * 
+ * !(version & TransactionVersions::RING)
+ **/
+enum TransactionVersions {
+    STEALTH = 1 << 0,
+    RING = 1 << 1,
+    ALL = 0b11,
+};
+
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
@@ -225,13 +242,13 @@ class CTransaction
 {
 public:
     // Default transaction version.
-    static const int32_t CURRENT_VERSION=1;
+    static const int32_t CURRENT_VERSION = TransactionVersions::STEALTH;
 
     // Changing the default transaction version requires a two step process: first
     // adapting relay policy by bumping MAX_STANDARD_VERSION, and then later date
     // bumping the default CURRENT_VERSION at which point both CURRENT_VERSION and
     // MAX_STANDARD_VERSION will be equal.
-    static const int32_t MAX_STANDARD_VERSION=4;
+    static const int32_t MAX_STANDARD_VERSION = TransactionVersions::ALL;
 
     // The local variables are made const to prevent unintended modification
     // without updating the cached hash value. However, CTransaction is not
