@@ -65,6 +65,34 @@ public:
     int GenerateRingSignatureAB(data_chunk &keyImage, uint256 &txnHash, int nRingSize, int nSecretOffset, ec_secret secret, const uint8_t *pPubkeys, data_chunk &sigC, uint8_t *pSigS);
     int VerifyRingSignatureAB(data_chunk &keyImage, uint256 &txnHash, int nRingSize, const uint8_t *pPubkeys, const data_chunk &sigC, const uint8_t *pSigS);
 
+    int GetRingSigSize(int rsType, int nRingSize)
+    {
+        switch(rsType)
+        {
+            case RING_SIG_1:
+                return 2 + (ec_compressed_size + ec_secret_size + ec_secret_size) * nRingSize;
+            case RING_SIG_2:
+                return 2 + ec_secret_size + (ec_compressed_size + ec_secret_size) * nRingSize;
+            default:
+                LogPrintf("Unknown ring signature type.\n");
+                return 0;
+        };
+    };
+
+    uint8_t* GetRingSigPkStart(int rsType, int nRingSize, uint8_t *pStart)
+    {
+        switch(rsType)
+        {
+            case RING_SIG_1:
+                return pStart + 2;
+            case RING_SIG_2:
+                return pStart + 2 + ec_secret_size + ec_secret_size * nRingSize;
+            default:
+                LogPrintf("Unknown ring signature type.\n");
+                return 0;
+        };
+    };
+
 private:
     EC_GROUP* ecGrp;
     BN_CTX* bnCtx;
