@@ -182,6 +182,7 @@ void Interrupt()
     InterruptREST();
     InterruptTorControl();
     InterruptMapPort();
+    StopTorController();
     if (g_connman)
         g_connman->Interrupt();
     if (g_txindex) {
@@ -222,6 +223,7 @@ void Shutdown()
     }
 
     StopTorControl();
+    StopTorController();
 
     // After everything has been shut down, but before things get flushed, stop the
     // CScheduler/checkqueue threadGroup
@@ -1311,7 +1313,7 @@ bool AppInitMain()
     // need to reindex later.
 
     if (!gArgs.IsArgSet("-without-tor")) {
-        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "torcontroller", &StartTor));
+        InitalizeTorThread();
         
         SetLimited(NET_TOR);
         SetLimited(NET_IPV4);

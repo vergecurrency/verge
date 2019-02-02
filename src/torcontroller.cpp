@@ -4,49 +4,11 @@
 
 #include <torcontroller.h>
 
-#include <boost/filesystem.hpp>
-#include <util/system.h>
-#include <openssl/crypto.h>
-#include <openssl/ssl.h>
-#include <addrdb.h>
-#include <addrman.h>
-#include <amount.h>
-#include <bloom.h>
-#include <compat.h>
-#include <crypto/siphash.h>
-#include <hash.h>
-#include <limitedmap.h>
-#include <netaddress.h>
-#include <policy/feerate.h>
-#include <protocol.h>
-#include <random.h>
-#include <streams.h>
-#include <sync.h>
-#include <uint256.h>
-#include <threadinterrupt.h>
-#include <crypto/common.h>
-#include <crypto/sha256.h>
-
-#include <atomic>
-#include <deque>
-#include <stdint.h>
-#include <thread>
-#include <memory>
-#include <condition_variable>
-#include <chainparams.h>
-#include <clientversion.h>
-#include <consensus/consensus.h>
-#include <crypto/common.h>
-#include <crypto/sha256.h>
-#include <primitives/transaction.h>
-#include <netbase.h>
-#include <scheduler.h>
-#include <ui_interface.h>
-#include <util/strencodings.h>
-
 extern "C" {
     int tor_main(int argc, char *argv[]);
 }
+
+static boost::thread torControllerThread;
 
 char *convert_str(const std::string &s) {
     char *pc = new char[s.size()+1];
@@ -133,10 +95,20 @@ void run_tor() {
     tor_main(argv_c.size(), &argv_c[0]);
 }
 
-void StartTor()
+void InitalizeTorThread(){
+    torControllerThread = boost::thread(boost::bind(&TraceThread<void (*)()>, "torcontroller", &StartTorController));
+}
+
+void StopTorController()
+{
+    torControllerThread.interrupt();
+    LogPrintf("Tor Controller thread exited.\n");
+}
+
+void StartTorController()
 {
     // Make this thread recognisable as the tor thread
-    RenameThread("onion");
+    RenameThread("TorController");
 
     try
     {
@@ -144,7 +116,5 @@ void StartTor()
     }
     catch (std::exception& e) {
         printf("%s\n", e.what());
-    }
-
-    printf("Onion thread exited.\n");
+    }    
 }
