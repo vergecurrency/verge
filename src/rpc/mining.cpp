@@ -625,7 +625,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
     UniValue aRules(UniValue::VARR);
     UniValue vbavailable(UniValue::VOBJ);
-    /*for (int j = 0; j < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; ++j) {
+    for (int j = 0; j < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; ++j) {
         Consensus::DeploymentPos pos = Consensus::DeploymentPos(j);
         ThresholdState state = VersionBitsState(pindexPrev, consensusParams, pos, versionbitscache);
         switch (state) {
@@ -664,19 +664,19 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
                 break;
             }
         }
-    }*/
+    }
     result.pushKV("version", pindexPrev->nHeight < 3400000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION);
     result.pushKV("rules", aRules);
     result.pushKV("vbavailable", vbavailable);
     result.pushKV("vbrequired", int(0));
 
-    // if (nMaxVersionPreVB >= 2) {
-    //     // If VB is supported by the client, nMaxVersionPreVB is -1, so we won't get here
-    //     // Because BIP 34 changed how the generation transaction is serialized, we can only use version/force back to v2 blocks
-    //     // This is safe to do [otherwise-]unconditionally only because we are throwing an exception above if a non-force deployment gets activated
-    //     // Note that this can probably also be removed entirely after the first BIP9 non-force deployment (ie, probably segwit) gets activated
-    //     aMutable.push_back("version/force");
-    // }
+    if (nMaxVersionPreVB >= 2) {
+        // If VB is supported by the client, nMaxVersionPreVB is -1, so we won't get here
+        // Because BIP 34 changed how the generation transaction is serialized, we can only use version/force back to v2 blocks
+        // This is safe to do [otherwise-]unconditionally only because we are throwing an exception above if a non-force deployment gets activated
+        // Note that this can probably also be removed entirely after the first BIP9 non-force deployment (ie, probably segwit) gets activated
+        aMutable.push_back("version/force");
+    }
 
     result.pushKV("previousblockhash", pblock->hashPrevBlock.GetHex());
     result.pushKV("transactions", transactions);
