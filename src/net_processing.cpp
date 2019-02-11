@@ -2716,9 +2716,11 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             headers.resize(nCount);
             for (unsigned int n = 0; n < nCount; n++) {
                 vRecv >> headers[n];
-                ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
+                ReadCompactSize(vRecv); 
             }
-        }else {
+        } else {
+            // make sure only HEADERS are being parsed and nothing more!
+            vRecv.SetType(vRecv.GetType() | SER_BLOCKHEADERONLY);
             blocks.resize(nCount);
             for (unsigned int n = 0; n < nCount; n++) {
                 vRecv >> blocks[n];
