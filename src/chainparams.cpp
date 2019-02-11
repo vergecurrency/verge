@@ -133,7 +133,7 @@ public:
         // release ASAP to avoid it where possible.
 
         // Adding some nodes in case it works
-        if(!gArgs.GetBoolArg("-without-tor", false)){
+        if(!gArgs.IsArgSet("-without-tor")){
             vSeeds.emplace_back("gasppfoxxedddnme.onion");
             vSeeds.emplace_back("gasppfoxxedddnme.onion");
             vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
@@ -152,16 +152,24 @@ public:
             vSeeds.emplace_back("y2czcambifo2ybdm.onion");
             vSeeds.emplace_back("6telhbsuva4qkff2.onion");
         } else {
+            vSeeds.emplace_back("185.162.9.97");
+            vSeeds.emplace_back("104.131.144.82");
+            vSeeds.emplace_back("192.241.187.222");
+            vSeeds.emplace_back("105.228.198.44");
+            vSeeds.emplace_back("46.127.57.167");
+            vSeeds.emplace_back("98.5.123.15");
+            vSeeds.emplace_back("81.147.68.236");
+            vSeeds.emplace_back("77.67.46.100");
+            vSeeds.emplace_back("95.46.99.96");
+            vSeeds.emplace_back("138.201.91.159");
             vSeeds.emplace_back("159.89.202.56");
-            vSeeds.emplace_back("138.197.68.130");
-            vSeeds.emplace_back("165.227.31.52");
-            vSeeds.emplace_back("159.89.202.56");
-            vSeeds.emplace_back("188.40.78.31");
-            vSeeds.emplace_back("176.9.143.143");
-            vSeeds.emplace_back("198.27.82.41");
-            vSeeds.emplace_back("145.239.0.126");
-            vSeeds.emplace_back("54.36.120.27");
+            vSeeds.emplace_back("163.158.20.118");
+            vSeeds.emplace_back("99.45.88.147");
+            vSeeds.emplace_back("114.145.237.35");
+            vSeeds.emplace_back("73.247.117.99");
+            vSeeds.emplace_back("145.239.0.122");
         }
+    
     
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);

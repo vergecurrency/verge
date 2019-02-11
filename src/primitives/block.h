@@ -191,12 +191,21 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
+        if (!(s.GetType() & (SER_GETHASH|SER_BLOCKHEADERONLY)))
+        {
+            READWRITE(vchBlockSig);
+        }
+        else if (ser_action.ForRead())
+        {
+            const_cast<CBlock*>(this)->vchBlockSig.clear();
+        }
     }
 
     void SetNull()
     {
         CBlockHeader::SetNull();
         vtx.clear();
+        vchBlockSig.clear();
         fChecked = false;
     }
 
