@@ -598,7 +598,9 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string& strDest, int
     if (proxy.randomize_credentials) {
         ProxyCredentials random_auth;
         static std::atomic_int counter(0);
-        random_auth.username = random_auth.password = strprintf("%i", counter++);
+    
+        random_auth.username = GetRandomString();
+        random_auth.password = GetRandomString();
         if (!Socks5(strDest, (unsigned short)port, &random_auth, hSocket)) {
             return false;
         }
