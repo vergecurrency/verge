@@ -33,7 +33,8 @@ enum Network
 class CNetAddr
 {
     protected:
-        unsigned char ip[16]; // in network byte order
+        unsigned char ip[41]; // in network byte order
+        bool usesTorV3 = false;
         uint32_t scopeId; // for scoped/link-local ipv6 addresses
 
     public:
@@ -72,6 +73,7 @@ class CNetAddr
         bool IsRFC6052() const; // IPv6 well-known prefix (64:FF9B::/96)
         bool IsRFC6145() const; // IPv6 IPv4-translated address (::FFFF:0:0:0/96)
         bool IsTor() const;
+        bool IsTorV3() const;
         bool IsLocal() const;
         bool IsRoutable() const;
         bool IsInternal() const;
@@ -168,6 +170,7 @@ class CService : public CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
+            // TODO: Fix parsing
             READWRITE(ip);
             READWRITE(WrapBigEndian(port));
         }
