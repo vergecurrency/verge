@@ -217,7 +217,7 @@ bool AddLocal(const CService& addr, int nScore)
         return false;
 
     bool isTorActived = !gArgs.GetBoolArg("-without-tor", false);
-    if(isTorActived && !addr.IsTor())
+    if((isTorActived && !addr.IsTor()) && (isTorActived && !addr.IsTorV3()))
         return false;
 
     LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
