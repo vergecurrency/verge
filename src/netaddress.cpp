@@ -101,7 +101,7 @@ bool CNetAddr::IsIPv4() const
 
 bool CNetAddr::IsIPv6() const
 {
-    return (!IsIPv4() && !IsTor() && !IsI2P && !IsInternal());
+    return (!IsIPv4() && !IsTor() && !IsI2P() && !IsInternal());
 }
 
 bool CNetAddr::IsRFC1918() const
