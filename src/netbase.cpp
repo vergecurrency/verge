@@ -53,6 +53,7 @@ std::string GetNetworkName(enum Network net) {
     case NET_IPV4: return "ipv4";
     case NET_IPV6: return "ipv6";
     case NET_TOR: return "onion";
+	case NET_I2P: return "i2p";
     default: return "";
     }
 }
