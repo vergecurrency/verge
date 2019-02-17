@@ -13,6 +13,7 @@
 #include <compat.h>
 #include <serialize.h>
 #include <span.h>
+#include <version.h>
 
 #include <stdint.h>
 #include <string>
@@ -33,7 +34,8 @@ enum Network
 class CNetAddr
 {
     protected:
-        unsigned char ip[16]; // in network byte order
+        unsigned char ip[41]; // in network byte order
+        bool usesTorV3 = false;
         uint32_t scopeId; // for scoped/link-local ipv6 addresses
 
     public:
@@ -72,6 +74,7 @@ class CNetAddr
         bool IsRFC6052() const; // IPv6 well-known prefix (64:FF9B::/96)
         bool IsRFC6145() const; // IPv6 IPv4-translated address (::FFFF:0:0:0/96)
         bool IsTor() const;
+        bool IsTorV3() const;
         bool IsLocal() const;
         bool IsRoutable() const;
         bool IsInternal() const;
@@ -96,7 +99,19 @@ class CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            READWRITE(ip);
+            if(s.GetVersion() > TORV3_SERVICES_VERSION) {
+                READWRITE(ip);
+            } else { // backwards compatibility
+                if(ser_action.ForRead()){
+                    unsigned char compatibleIP[16];
+                    READWRITE(compatibleIP);
+                    memcpy(CNetAddr::ip, compatibleIP, sizeof(compatibleIP));
+                } else {
+                    unsigned char compatibleIP[16]; 
+                    memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
+                    READWRITE(compatibleIP);
+                }
+            }    
         }
 
         friend class CSubNet;
@@ -168,7 +183,19 @@ class CService : public CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            READWRITE(ip);
+            if(s.GetVersion() >= TORV3_SERVICES_VERSION) {
+                READWRITE(ip);
+            } else {
+                if(ser_action.ForRead()){
+                    unsigned char compatibleIP[16];
+                    READWRITE(compatibleIP);
+                    memcpy(CNetAddr::ip, compatibleIP, sizeof(compatibleIP));
+                } else {
+                    unsigned char compatibleIP[16]; // backwards compatibility
+                    memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
+                    READWRITE(compatibleIP);
+                }
+            }         
             READWRITE(WrapBigEndian(port));
         }
 };
