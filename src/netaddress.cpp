@@ -69,8 +69,6 @@ bool CNetAddr::SetSpecial(const std::string &strName)
 
         // 56' length - v3 tor addressess
         std::vector<unsigned char> vchAddrV3 = DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
-        printf("V3Address: %s\n", strName.substr(0, strName.size() - 6).c_str());
-        printf("V3size: %lu\n", vchAddrV3.size());
         if (vchAddrV3.size() == 41 - sizeof(pchOnionCat)){
             memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
             for (unsigned int i = 0; i < 41 - sizeof(pchOnionCat); i++)
