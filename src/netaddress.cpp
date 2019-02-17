@@ -57,14 +57,27 @@ bool CNetAddr::SetInternal(const std::string &name)
 
 bool CNetAddr::SetSpecial(const std::string &strName)
 {
-    if (strName.size()>6 && strName.substr(strName.size() - 6, 6) == ".onion") {
+    if (strName.size() > 6 && strName.substr(strName.size() - 6, 6) == ".onion") {
         std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
-        if (vchAddr.size() != 16-sizeof(pchOnionCat))
-            return false;
-        memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
-        for (unsigned int i=0; i<16-sizeof(pchOnionCat); i++)
-            ip[i + sizeof(pchOnionCat)] = vchAddr[i];
-        return true;
+        // 16' length - v2 tor addresses
+        if (vchAddr.size() == 16 - sizeof(pchOnionCat)){
+            memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
+            for (unsigned int i = 0; i < 16 - sizeof(pchOnionCat); i++)
+                ip[i + sizeof(pchOnionCat)] = vchAddr[i];
+            usesTorV3 = false;
+            return true;
+        }
+
+        // 56' length - v3 tor addressess
+        std::vector<unsigned char> vchAddrV3 = DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
+        if (vchAddrV3.size() == 41 - sizeof(pchOnionCat)){
+            memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
+            for (unsigned int i = 0; i < 41 - sizeof(pchOnionCat); i++)
+                ip[i + sizeof(pchOnionCat)] = vchAddrV3[i];
+            usesTorV3 = true;
+            return true;
+        }
+      
     }
 	if (strName.size()>11 && strName.substr(strName.size() - 11, 11) == ".oc.b32.i2p") {
         std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 11).c_str());
@@ -101,7 +114,7 @@ bool CNetAddr::IsIPv4() const
 
 bool CNetAddr::IsIPv6() const
 {
-    return (!IsIPv4() && !IsTor() && !IsI2P() && !IsInternal());
+    return (!IsIPv4() && !IsTor() && !IsI2P() && !IsTorV3() && !IsInternal());
 }
 
 bool CNetAddr::IsRFC1918() const
@@ -179,7 +192,12 @@ bool CNetAddr::IsRFC4843() const
 
 bool CNetAddr::IsTor() const
 {
-    return (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
+    return !usesTorV3 && (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
+}
+
+bool CNetAddr::IsTorV3() const
+{
+    return usesTorV3 && (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
 }
 
 bool CNetAddr::IsI2P() const
@@ -242,7 +260,7 @@ bool CNetAddr::IsValid() const
 
 bool CNetAddr::IsRoutable() const
 {
-    return IsValid() && !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() || IsRFC6598() || IsRFC5737() || (IsRFC4193() && !IsTor() && !IsI2P()) || IsRFC4843() || IsLocal() || IsInternal());
+    return IsValid() && !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() || IsRFC6598() || IsRFC5737() || (IsRFC4193() && (!IsTor() && !IsI2P()) || && !IsTorV3())) || IsRFC4843() || IsLocal() || IsInternal());
 }
 
 bool CNetAddr::IsInternal() const
@@ -261,7 +279,7 @@ enum Network CNetAddr::GetNetwork() const
     if (IsIPv4())
         return NET_IPV4;
 
-    if (IsTor())
+    if (IsTor() || IsTorV3())
         return NET_TOR;
 	
 	if (IsI2P())
@@ -274,8 +292,13 @@ std::string CNetAddr::ToStringIP() const
 {
     if (IsTor())
         return EncodeBase32(&ip[6], 10) + ".onion";
-	if (IsI2P())
+
+	  if (IsI2P())
         return EncodeBase32(&ip[6], 10) + ".oc.b32.i2p";
+
+    if (IsTorV3())
+        return EncodeBase32(&ip[6], 35) + ".onion";
+
     if (IsInternal())
         return EncodeBase32(ip + sizeof(g_internal_prefix), sizeof(ip) - sizeof(g_internal_prefix)) + ".internal";
     CService serv(*this, 0);
@@ -374,7 +397,7 @@ std::vector<unsigned char> CNetAddr::GetGroup() const
         vchRet.push_back(GetByte(2) ^ 0xFF);
         return vchRet;
     }
-    else if (IsTor())
+    else if (IsTor() || IsTorV3())
     {
         nClass = NET_TOR;
         nStartByte = 6;
@@ -594,7 +617,7 @@ std::string CService::ToStringPort() const
 
 std::string CService::ToStringIPPort() const
 {
-    if (IsIPv4() || IsTor() || IsI2P() || IsInternal()) {
+    if (IsIPv4() || IsTor() || IsI2P() || IsTorV3() || IsInternal()) {
         return ToStringIP() + ":" + ToStringPort();
     } else {
         return "[" + ToStringIP() + "]:" + ToStringPort();
