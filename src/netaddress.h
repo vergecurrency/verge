@@ -13,6 +13,7 @@
 #include <compat.h>
 #include <serialize.h>
 #include <span.h>
+#include <version.h>
 
 #include <stdint.h>
 #include <string>
@@ -98,7 +99,19 @@ class CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            READWRITE(ip);
+            if(s.GetVersion() > TORV3_SERVICES_VERSION) {
+                READWRITE(ip);
+            } else { // backwards compatibility
+                if(ser_action.ForRead()){
+                    unsigned char compatibleIP[16];
+                    READWRITE(compatibleIP);
+                    memcpy(CNetAddr::ip, compatibleIP, sizeof(compatibleIP));
+                } else {
+                    unsigned char compatibleIP[16]; 
+                    memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
+                    READWRITE(compatibleIP);
+                }
+            }    
         }
 
         friend class CSubNet;
@@ -170,8 +183,23 @@ class CService : public CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            // TODO: Fix parsing
-            READWRITE(ip);
+            printf("VERSION: %i", s.GetVersion());
+            if(s.GetVersion() >= TORV3_SERVICES_VERSION) {
+                printf("READ/WRITE NEW \n");
+                READWRITE(ip);
+            } else {
+                if(ser_action.ForRead()){
+                    printf("READ OLD\n");
+                    unsigned char compatibleIP[16];
+                    READWRITE(compatibleIP);
+                    memcpy(CNetAddr::ip, compatibleIP, sizeof(compatibleIP));
+                } else {
+                    printf("WRITE OLD\n");
+                    unsigned char compatibleIP[16]; // backwards compatibility
+                    memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
+                    READWRITE(compatibleIP);
+                }
+            }         
             READWRITE(WrapBigEndian(port));
         }
 };
