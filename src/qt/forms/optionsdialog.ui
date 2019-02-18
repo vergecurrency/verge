@@ -441,6 +441,29 @@
            </property>
           </widget>
          </item>
+		 <item>
+          <widget class="QCheckBox" name="proxyReachI2p">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Shows if the supplied default SOCKS5 proxy is used to reach peers via this network type.</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="proxyReachI2pLabel">
+           <property name="text">
+            <string>i2p</string>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::PlainText</enum>
+           </property>
+          </widget>
+         </item>
          <item>
           <spacer name="horizontalSpacer_2_Network">
            <property name="orientation">

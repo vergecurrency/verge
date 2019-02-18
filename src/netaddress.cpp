@@ -11,6 +11,7 @@
 
 static const unsigned char pchIPv4[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };
 static const unsigned char pchOnionCat[] = {0xFD,0x87,0xD8,0x7E,0xEB,0x43};
+static const unsigned char pchGarliCat[] = {0xFD,0x60,0xDB,0x4D,0xDD,0xB5};
 
 // 0xFD + sha256("bitcoin")[0:5]
 static const unsigned char g_internal_prefix[] = { 0xFD, 0x6B, 0x88, 0xC0, 0x87, 0x24 };
@@ -78,6 +79,15 @@ bool CNetAddr::SetSpecial(const std::string &strName)
         }
       
     }
+	if (strName.size()>11 && strName.substr(strName.size() - 11, 11) == ".oc.b32.i2p") {
+        std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 11).c_str());
+        if (vchAddr.size() != 16-sizeof(pchGarliCat))
+            return false;
+        memcpy(ip, pchOnionCat, sizeof(pchGarliCat));
+        for (unsigned int i=0; i<16-sizeof(pchGarliCat); i++)
+            ip[i + sizeof(pchGarliCat)] = vchAddr[i];
+        return true;
+	}
     return false;
 }
 
@@ -104,7 +114,7 @@ bool CNetAddr::IsIPv4() const
 
 bool CNetAddr::IsIPv6() const
 {
-    return (!IsIPv4() && !IsTor() && !IsTorV3() && !IsInternal());
+    return (!IsIPv4() && !IsTor() && !IsI2P() && !IsTorV3() && !IsInternal());
 }
 
 bool CNetAddr::IsRFC1918() const
@@ -190,6 +200,11 @@ bool CNetAddr::IsTorV3() const
     return usesTorV3 && (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
 }
 
+bool CNetAddr::IsI2P() const
+{
+    return (memcmp(ip, pchGarliCat, sizeof(pchGarliCat)) == 0);
+}
+
 bool CNetAddr::IsLocal() const
 {
     // IPv4 loopback
@@ -245,7 +260,7 @@ bool CNetAddr::IsValid() const
 
 bool CNetAddr::IsRoutable() const
 {
-    return IsValid() && !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() || IsRFC6598() || IsRFC5737() || (IsRFC4193() && (!IsTor() && !IsTorV3())) || IsRFC4843() || IsLocal() || IsInternal());
+    return IsValid() && !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() || IsRFC6598() || IsRFC5737() || (IsRFC4193() && (!IsTor() && (!IsI2P()) && (!IsTorV3())) || IsRFC4843() || IsLocal() || IsInternal()));
 }
 
 bool CNetAddr::IsInternal() const
@@ -266,6 +281,9 @@ enum Network CNetAddr::GetNetwork() const
 
     if (IsTor() || IsTorV3())
         return NET_TOR;
+	
+	if (IsI2P())
+        return NET_I2P;
 
     return NET_IPV6;
 }
@@ -274,8 +292,13 @@ std::string CNetAddr::ToStringIP() const
 {
     if (IsTor())
         return EncodeBase32(&ip[6], 10) + ".onion";
+
+	  if (IsI2P())
+        return EncodeBase32(&ip[6], 10) + ".oc.b32.i2p";
+
     if (IsTorV3())
         return EncodeBase32(&ip[6], 35) + ".onion";
+
     if (IsInternal())
         return EncodeBase32(ip + sizeof(g_internal_prefix), sizeof(ip) - sizeof(g_internal_prefix)) + ".internal";
     CService serv(*this, 0);
@@ -380,6 +403,12 @@ std::vector<unsigned char> CNetAddr::GetGroup() const
         nStartByte = 6;
         nBits = 4;
     }
+	else if (IsI2P())
+    {
+        nClass = NET_I2P;
+        nStartByte = 6;
+        nBits = 4;
+    }
     // for he.net, use /36 groups
     else if (GetByte(15) == 0x20 && GetByte(14) == 0x01 && GetByte(13) == 0x04 && GetByte(12) == 0x70)
         nBits = 36;
@@ -460,6 +489,11 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const
         case NET_IPV4:   return REACH_IPV4; // Tor users can connect to IPv4 as well
         case NET_TOR:    return REACH_PRIVATE;
         }
+	case NET_I2P:
+        switch(ourNet) {
+        default:         return REACH_DEFAULT;
+        case NET_I2P:    return REACH_PRIVATE;
+        }
     case NET_TEREDO:
         switch(ourNet) {
         default:          return REACH_DEFAULT;
@@ -475,6 +509,7 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const
         case NET_TEREDO:  return REACH_TEREDO;
         case NET_IPV6:    return REACH_IPV6_WEAK;
         case NET_IPV4:    return REACH_IPV4;
+		case NET_I2P:     return REACH_PRIVATE; // assume connections from unroutable addresses are
         case NET_TOR:     return REACH_PRIVATE; // either from Tor, or don't care about our address
         }
     }
@@ -582,7 +617,7 @@ std::string CService::ToStringPort() const
 
 std::string CService::ToStringIPPort() const
 {
-    if (IsIPv4() || IsTor() || IsTorV3() || IsInternal()) {
+    if (IsIPv4() || IsTor() || IsI2P() || IsTorV3() || IsInternal()) {
         return ToStringIP() + ":" + ToStringPort();
     } else {
         return "[" + ToStringIP() + "]:" + ToStringPort();
