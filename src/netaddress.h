@@ -25,6 +25,7 @@ enum Network
     NET_IPV4,
     NET_IPV6,
     NET_TOR,
+	NET_I2P,
     NET_INTERNAL,
 
     NET_MAX,
@@ -57,9 +58,9 @@ class CNetAddr
          */
         bool SetInternal(const std::string& name);
 
-        bool SetSpecial(const std::string &strName); // for Tor addresses
+        bool SetSpecial(const std::string &strName); // for Tor & i2p addresses
         bool IsIPv4() const;    // IPv4 mapped address (::FFFF:0:0/96, 0.0.0.0/0)
-        bool IsIPv6() const;    // IPv6 address (not mapped IPv4, not Tor)
+        bool IsIPv6() const;    // IPv6 address (not mapped IPv4, not Tor/i2p)
         bool IsRFC1918() const; // IPv4 private networks (10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12)
         bool IsRFC2544() const; // IPv4 inter-network communications (192.18.0.0/15)
         bool IsRFC6598() const; // IPv4 ISP-level NAT (100.64.0.0/10)
@@ -74,6 +75,7 @@ class CNetAddr
         bool IsRFC6052() const; // IPv6 well-known prefix (64:FF9B::/96)
         bool IsRFC6145() const; // IPv6 IPv4-translated address (::FFFF:0:0:0/96)
         bool IsTor() const;
+		    bool IsI2P() const;
         bool IsTorV3() const;
         bool IsLocal() const;
         bool IsRoutable() const;
