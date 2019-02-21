@@ -67,7 +67,9 @@
 #include <openssl/crypto.h>
 
 #if ENABLE_ZMQ
+#include <zmq/zmqabstractnotifier.h>
 #include <zmq/zmqnotificationinterface.h>
+#include <zmq/zmqrpc.h>
 #endif
 
 bool fFeeEstimatesInitialized = false;
