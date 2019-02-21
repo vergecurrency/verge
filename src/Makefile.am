@@ -194,7 +194,6 @@ VERGE_CORE_H = \
   validation.h \
   validationinterface.h \
   versionbits.h \
-  walletinitinterface.h \
   torcontroller.h \
   walletinitinterface.h \
   wallet/coincontrol.h \
