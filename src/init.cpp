@@ -1289,8 +1289,13 @@ bool AppInitMain(InitInterfaces& interfaces)
      * available in the GUI RPC console even if external calls are disabled.
      */
     RegisterAllCoreRPCCommands(tableRPC);
-    g_wallet_init_interface.RegisterRPC(tableRPC);
+    for (const auto& client : interfaces.chain_clients) {
+	client->registerRpcs();
+	}
 	g_rpc_interfaces = &interfaces;
+#if ENABLE_ZMQ
+	RegisterZMQRPCCommands(tableRPC);
+#endif
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections
