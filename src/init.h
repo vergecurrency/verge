@@ -21,7 +21,7 @@ struct InitInterfaces
 {
     std::unique_ptr<interfaces::Chain> chain;
     std::vector<std::unique_ptr<interfaces::ChainClient>> chain_clients;
-}
+};
 
 class WalletInitInterface;
 extern const WalletInitInterface& g_wallet_init_interface;
