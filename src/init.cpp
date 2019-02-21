@@ -20,6 +20,7 @@
 #include <fs.h>
 #include <httpserver.h>
 #include <httprpc.h>
+#include <interfaces/chain.h>
 #include <index/txindex.h>
 #include <key.h>
 #include <validation.h>
