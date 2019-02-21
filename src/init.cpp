@@ -33,6 +33,7 @@
 #include <rpc/server.h>
 #include <rpc/register.h>
 #include <rpc/blockchain.h>
+#include <rpc/util.h>
 #include <script/standard.h>
 #include <script/sigcache.h>
 #include <scheduler.h>
@@ -190,7 +191,7 @@ void Interrupt()
     }
 }
 
-void Shutdown()
+void Shutdown(InitInterfaces& interfaces)
 {
     LogPrintf("%s: In progress...\n", __func__);
     static CCriticalSection cs_Shutdown;
@@ -1232,7 +1233,7 @@ bool AppInitLockDataDirectory()
     return true;
 }
 
-bool AppInitMain()
+bool AppInitMain(InitInterfaces& interfaces)
 {
     const CChainParams& chainparams = Params();
     // ********************************************************* Step 4a: application initialization
@@ -1288,6 +1289,7 @@ bool AppInitMain()
      */
     RegisterAllCoreRPCCommands(tableRPC);
     g_wallet_init_interface.RegisterRPC(tableRPC);
+	g_rpc_interfaces = &interfaces;
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections
@@ -1304,7 +1306,7 @@ bool AppInitMain()
     int64_t nStart;
 
     // ********************************************************* Step 5: verify wallet database integrity
-    if (!g_wallet_init_interface.Verify()) return false;
+    if (!g_wallet_init_interface.Verify(*interfaces.chain)) return false;
 
     // ********************************************************* Step 6: network initialization
     // Note that we absolutely cannot open any actual connections
@@ -1654,7 +1656,7 @@ bool AppInitMain()
     }
 
     // ********************************************************* Step 9: load wallet
-    if (!g_wallet_init_interface.Open()) return false;
+    if (!g_wallet_init_interface.Open(*interfaces.chain)) return false;
 
     // ********************************************************* Step 10: data directory maintenance
 
