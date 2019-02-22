@@ -1402,9 +1402,9 @@ bool AppInitMain(InitInterfaces& interfaces)
     if (!gArgs.IsArgSet("-without-tor")) {
         InitalizeTorThread();
         
-        SetReachable(NET_TOR);
-        SetReachable(NET_IPV4);
-        SetReachable(NET_IPV6);
+        SetReachable(NET_TOR, false);
+        SetReachable(NET_IPV4, true);
+        SetReachable(NET_IPV6, true);
 
         CService onionProxy;
         std::string defaultPort = "127.0.0.1:" + std::to_string(DEFAULT_TOR_PORT);
