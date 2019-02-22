@@ -387,17 +387,18 @@ private:
     std::atomic<bool> fNetworkActive{true};
     bool fAddressesInitialized{false};
     CAddrMan addrman;
-    std::deque<std::string> vOneShots;
-    CCriticalSection cs_vOneShots;
     std::deque<std::string> vOneShots GUARDED_BY(cs_vOneShots);
+    CCriticalSection cs_vOneShots;
+    std::vector<std::string> vAddedNodes GUARDED_BY(cs_vAddedNodes);
     CCriticalSection cs_vAddedNodes;
     std::vector<CNode*> vNodes GUARDED_BY(cs_vNodes);
     std::list<CNode*> vNodesDisconnected;
     mutable CCriticalSection cs_vNodes;
     std::atomic<NodeId> nLastNodeId{0};
-	unsigned int nPrevNodeCount{0};
+    unsigned int nPrevNodeCount{0};
 
     /** Services this instance offers */
+    ServiceFlags nLocalServices;
     ServiceFlags nLocalServices;
 
     std::unique_ptr<CSemaphore> semOutbound;
