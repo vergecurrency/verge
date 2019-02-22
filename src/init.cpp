@@ -1402,9 +1402,9 @@ bool AppInitMain(InitInterfaces& interfaces)
     if (!gArgs.IsArgSet("-without-tor")) {
         InitalizeTorThread();
         
-        SetLimited(NET_TOR);
-        SetLimited(NET_IPV4);
-        SetLimited(NET_IPV6);
+        SetReachable(NET_TOR);
+        SetReachable(NET_IPV4);
+        SetReachable(NET_IPV6);
 
         CService onionProxy;
         std::string defaultPort = "127.0.0.1:" + std::to_string(DEFAULT_TOR_PORT);
@@ -1420,11 +1420,11 @@ bool AppInitMain(InitInterfaces& interfaces)
         SetProxy(NET_IPV4, addrOnion);
         SetProxy(NET_IPV6, addrOnion);
 
-        SetLimited(NET_TOR, false);
+        SetReachable(NET_TOR, false);
 
         LogPrintf("Tor Successfully bound ...\n");
 	} else {
-        SetLimited(NET_TOR);
+        SetReachable(NET_TOR);
         LogPrintf("Tor disabled, Socks Proxy not initialized.\n");
     }
 
@@ -1484,7 +1484,7 @@ bool AppInitMain(InitInterfaces& interfaces)
         SetProxy(NET_IPV6, addrProxy);
         SetProxy(NET_TOR, addrProxy);
         SetNameProxy(addrProxy);
-        SetLimited(NET_TOR, false); // by default, -proxy sets onion as reachable, unless -noonion later
+        SetReachable(NET_TOR, false); // by default, -proxy sets onion as reachable, unless -noonion later
     }
 
     // -onion can be used to set only a proxy for .onion, or override normal proxy for .onion addresses
@@ -1493,7 +1493,7 @@ bool AppInitMain(InitInterfaces& interfaces)
     std::string onionArg = gArgs.GetArg("-onion", "");
     if (onionArg != "") {
         if (onionArg == "0") { // Handle -noonion/-onion=0
-            SetLimited(NET_TOR); // set onions as unreachable
+            SetReachable(NET_TOR); // set onions as unreachable
         } else {
             CService onionProxy;
             if (!Lookup(onionArg.c_str(), onionProxy, 9050, fNameLookup)) {
@@ -1503,7 +1503,7 @@ bool AppInitMain(InitInterfaces& interfaces)
             if (!addrOnion.IsValid())
                 return InitError(strprintf(_("Invalid -onion address or hostname: '%s'"), onionArg));
             SetProxy(NET_TOR, addrOnion);
-            SetLimited(NET_TOR, false);
+            SetReachable(NET_TOR, false);
         }
     }
 
