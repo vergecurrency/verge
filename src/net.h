@@ -399,7 +399,6 @@ private:
 
     /** Services this instance offers */
     ServiceFlags nLocalServices;
-    ServiceFlags nLocalServices;
 
     std::unique_ptr<CSemaphore> semOutbound;
     std::unique_ptr<CSemaphore> semAddnode;
