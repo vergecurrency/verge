@@ -1424,7 +1424,7 @@ bool AppInitMain(InitInterfaces& interfaces)
 
         LogPrintf("Tor Successfully bound ...\n");
 	} else {
-        SetReachable(NET_TOR);
+        SetReachable(NET_TOR, true);
         LogPrintf("Tor disabled, Socks Proxy not initialized.\n");
     }
 
