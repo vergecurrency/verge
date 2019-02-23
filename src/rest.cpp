@@ -107,15 +107,6 @@ static std::string AvailableDataFormatsString()
     return formats;
 }
 
-static bool ParseHashStr(const std::string& strReq, uint256& v)
-{
-    if (!IsHex(strReq) || (strReq.size() != 64))
-        return false;
-
-    v.SetHex(strReq);
-    return true;
-}
-
 static bool CheckWarmup(HTTPRequest* req)
 {
     std::string statusmessage;
@@ -146,10 +137,12 @@ static bool rest_headers(HTTPRequest* req,
     if (!ParseHashStr(hashStr, hash))
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
 
-    std::vector<const CBlockIndex *> headers;
+    const CBlockIndex* tip = nullptr;
+	std::vector<const CBlockIndex *> headers;
     headers.reserve(count);
     {
         LOCK(cs_main);
+		tip = chainActive.Tip();
         const CBlockIndex* pindex = LookupBlockIndex(hash);
         while (pindex != nullptr && chainActive.Contains(pindex)) {
             headers.push_back(pindex);
