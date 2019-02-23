@@ -209,6 +209,7 @@ bool AddLocal(const CService& addr, int nScore)
         return false;
 
     if (!IsReachable(addr))
+		return false;
 
     bool isTorActived = !gArgs.GetBoolArg("-without-tor", false);
     if(isTorActived && !addr.IsTor())
@@ -819,10 +820,11 @@ bool CConnman::AttemptToEvictConnection()
                 continue;
             if (node->fDisconnect)
                 continue;
-			LOCK(node->cs_filter)
+            LOCK(node->cs_filter);
             NodeEvictionCandidate candidate = {node->GetId(), node->nTimeConnected, node->nMinPingUsecTime,
                                                node->nLastBlockTime, node->nLastTXTime,
                                                HasAllDesirableServiceFlags(node->nServices),
+                                               node->fRelayTxes, node->pfilter != nullptr, node->addr, node->nKeyedNetGroup,
                                                node->m_prefer_evict};
             vEvictionCandidates.push_back(candidate);
         }
