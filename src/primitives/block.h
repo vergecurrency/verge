@@ -8,8 +8,15 @@
 #define VERGE_PRIMITIVES_BLOCK_H
 
 #include <primitives/transaction.h>
+#include <script/standard.h>
+#include <key.h>
+#include <keystore.h>
 #include <serialize.h>
 #include <uint256.h>
+#include <util/strencodings.h>
+#include <util/system.h>
+
+typedef std::vector<unsigned char> valtype;
 
 enum
 {
@@ -221,7 +228,109 @@ public:
         return block;
     }
 
-    std::string ToString() const;
+    bool SignBlock(const CKeyStore& keystore)
+    {
+        std::vector<valtype> vSolutions;
+        txnouttype whichType;
+
+        for(unsigned int i = 0; i < vtx[0]->vout.size(); i++)
+        {
+            const CTxOut& txout = vtx[0]->vout[i];
+
+            if (!Solver(txout.scriptPubKey, whichType, vSolutions))
+                continue;
+
+            if (whichType == TX_PUBKEY)
+            {
+                // Sign
+                valtype& vchPubKey = vSolutions[0];
+                CKey key;
+                CPubKey pubKey(vchPubKey);
+
+                if (!keystore.GetKey(pubKey.GetID(), key)){
+                    LogPrintf("[SignBlock] Key not found for singature");
+                    continue;
+                }
+                if (key.GetPubKey() != pubKey){
+                    LogPrintf("[SignBlock] Keys not identical (generated vs found)");
+                    continue;
+                }
+                if(!key.Sign(GetHash(), vchBlockSig)){
+                    LogPrintf("[SignBlock] Could not sign block");
+                    continue;
+                }
+
+                LogPrintf("BlockSign: %s", HexStr(vchBlockSig.begin(), vchBlockSig.end()).c_str());
+                return true;
+            } else if (whichType == TX_PUBKEYHASH) {
+                // Sign
+                valtype& vchPubKey = vSolutions[0];
+                CKey key;
+                CKeyID keyID = CKeyID(uint160(vchPubKey));
+
+                if (!keystore.GetKey(keyID, key)) {
+                    LogPrintf("[SignBlock] Key not found for singature");
+                    continue;
+                }
+                if (key.GetPubKey().GetID() != keyID){
+                    LogPrintf("[SignBlock] Keys not identical (generated vs found)");
+                    continue;
+                }
+                if(!key.Sign(GetHash(), vchBlockSig)){
+                    LogPrintf("[SignBlock] Could not sign block");
+                    continue;
+                }
+
+                LogPrintf("BlockSign: %s", HexStr(vchBlockSig.begin(), vchBlockSig.end()).c_str());
+                return true;
+            } else {
+                LogPrintf("[SignBlock] Unsupported TX type (type: %i)", whichType);
+            }
+        }
+
+        LogPrintf("Sign failed\n");
+        return false;
+    }
+
+    // ppcoin: check block signature
+    bool CheckBlockSignature() const
+    {
+        uint256 genesisBlockHash = uint256S("0x00000fc63692467faeb20cdb3b53200dc601d75bdfa1001463304cc790d77278");
+        uint256 genesisTestBlockHash = uint256S("0xfe98805b5dc9006e41d3219e62e7966dbc350a83dcdc001766d8c64f18231baf");
+        if (GetHash() == (gArgs.IsArgSet("-testnet") ? genesisTestBlockHash : genesisBlockHash))
+            return vchBlockSig.empty();
+
+        std::vector<valtype> vSolutions;
+        txnouttype whichType;
+
+        // check for block signature in Proof Of Work (old shit why we have to do this.)
+        for(unsigned int i = 0; i < vtx[0]->vout.size(); i++)
+        {
+            const CTxOut& txout = vtx[0]->vout[i];
+
+            if (!Solver(txout.scriptPubKey, whichType, vSolutions))
+                return false;
+
+            if (whichType == TX_PUBKEY)
+            {
+                // Verify
+                valtype& vchPubKey = vSolutions[0];
+                CPubKey key(vchPubKey);
+                if (!key.IsFullyValid())
+                    continue;
+                if (vchBlockSig.empty())
+                    continue;
+                if(!key.Verify(GetHash(), vchBlockSig))
+                    continue;
+
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+     std::string ToString() const;
 };
 
 
