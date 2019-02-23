@@ -11,6 +11,7 @@
 #include <primitives/block.h>
 #include <uint256.h>
 #include <util/system.h>
+#include <chainparamsbase.h>
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo, const Consensus::Params& params)
 {
@@ -82,15 +83,13 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     arith_uint256 bnTarget;
 
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-    // LogPrintf("%s > %s\n", params.powLimit.ToString().c_str(), bnTarget.ToString().c_str());
     // Check range
     if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
         return false;
 
-    // LogPrintf("%s > %s\n", hash.ToString().c_str(), bnTarget.ToString().c_str());
     // Check proof of work matches claimed amount
-    if(gArgs.GetChainName() == "test"){
-        if (UintToArith256(hash) > bnTarget && hash != params.hashGenesisBlock)
+    if(gArgs.GetChainName() == CBaseChainParams::TESTNET){
+        if (hash != params.hashGenesisBlock && UintToArith256(hash) > bnTarget) 
             return false;
     } else {
         if (UintToArith256(hash) > bnTarget)
