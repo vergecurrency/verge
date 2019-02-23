@@ -41,9 +41,9 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, uint32_t nTime, uint3
  * transaction cannot be spent since it did not originally exist in the
  * database.
  */
-static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion)
+static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, bool isTestnet = false)
 {
-    const char* pszTimestamp = "Name: Dogecoin Dark";
+    const char* pszTimestamp = isTestnet ? "VERGE TESTNET" : "Name: Dogecoin Dark";
     return CreateGenesisBlock(pszTimestamp, nTime, nNonce, nBits, nVersion);
 }
 
@@ -259,6 +259,9 @@ public:
         // KeyNote: we'll leave testnet as is for now
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
+        consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
+        consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
+        
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
         consensus.BIP66Height = 0; // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
@@ -289,18 +292,18 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"); //also genesis 
 
-        pchMessageStart[0] = 0x0b;
-        pchMessageStart[1] = 0x11;
-        pchMessageStart[2] = 0x09;
-        pchMessageStart[3] = 0x07;
+        pchMessageStart[0] = 0xcd;
+        pchMessageStart[1] = 0xf2;
+        pchMessageStart[2] = 0xc0;
+        pchMessageStart[3] = 0xef;
         nDefaultPort = 21104;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1);
+        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1, true);
         consensus.hashGenesisBlock = genesis.GetHash();
 
-        assert(consensus.hashGenesisBlock == uint256S("0xfe98805b5dc9006e41d3219e62e7966dbc350a83dcdc001766d8c64f18231baf"));
-        assert(genesis.hashMerkleRoot == uint256S("0xa5e0d2348c5f41a05c013afa5e8e9d2bc7e0720b78f4ee9a7bb35b50f86cff3f"));
+        assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
+        assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
