@@ -198,6 +198,7 @@ VERGE_CORE_H = \
   validation.h \
   validationinterface.h \
   versionbits.h \
+  versionbitsinfo.h \
   torcontroller.h \
   walletinitinterface.h \
   wallet/coincontrol.h \
@@ -460,6 +461,7 @@ libverge_common_a_SOURCES = \
   script/ismine.cpp \
   script/sign.cpp \
   script/standard.cpp \
+  versionbitsinfo.cpp \
   warnings.cpp \
   stealth.cpp \
   $(VERGE_CORE_H)
