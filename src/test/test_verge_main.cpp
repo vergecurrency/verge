@@ -5,6 +5,7 @@
 
 #define BOOST_TEST_MODULE VERGE Test Suite
 
+#include <banman.h>
 #include <net.h>
 
 #include <memory>

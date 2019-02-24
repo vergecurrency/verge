@@ -98,6 +98,8 @@ endif
 VERGE_CORE_H = \
   addrdb.h \
   addrman.h \
+  attributes.h \
+  banman.h \
   base58.h \
   bech32.h \
   bloom.h \
@@ -129,6 +131,7 @@ VERGE_CORE_H = \
   index/txindex.h \
   indirectmap.h \
   init.h \
+  interfaces/chain.h \
   interfaces/handler.h \
   interfaces/node.h \
   interfaces/wallet.h \
@@ -146,6 +149,7 @@ VERGE_CORE_H = \
   netaddress.h \
   netbase.h \
   netmessagemaker.h \
+  node/transaction.h \
   noui.h \
   policy/feerate.h \
   policy/fees.h \
@@ -165,6 +169,7 @@ VERGE_CORE_H = \
   rpc/register.h \
   rpc/util.h \
   scheduler.h \
+  script/descriptor.h \
   script/ismine.h \
   script/sigcache.h \
   script/sign.h \
@@ -209,7 +214,8 @@ VERGE_CORE_H = \
   zmq/zmqabstractnotifier.h \
   zmq/zmqconfig.h\
   zmq/zmqnotificationinterface.h \
-  zmq/zmqpublishnotifier.h
+  zmq/zmqpublishnotifier.h \
+  zmq/zmqrpc.h
 
 
 obj/build.h: FORCE
@@ -224,6 +230,7 @@ libverge_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libverge_server_a_SOURCES = \
   addrdb.cpp \
   addrman.cpp \
+  banman.cpp \
   bloom.cpp \
   blockencodings.cpp \
   blockfilter.cpp \
@@ -240,6 +247,7 @@ libverge_server_a_SOURCES = \
   miner.cpp \
   net.cpp \
   net_processing.cpp \
+  node/transaction.cpp \
   noui.cpp \
   policy/fees.cpp \
   policy/policy.cpp \
@@ -271,7 +279,8 @@ libverge_zmq_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libverge_zmq_a_SOURCES = \
   zmq/zmqabstractnotifier.cpp \
   zmq/zmqnotificationinterface.cpp \
-  zmq/zmqpublishnotifier.cpp
+  zmq/zmqpublishnotifier.cpp \
+  zmq/zmqrpc.cpp
 endif
 
 
@@ -447,6 +456,7 @@ libverge_common_a_SOURCES = \
   policy/feerate.cpp \
   protocol.cpp \
   scheduler.cpp \
+  script/descriptor.cpp \
   script/ismine.cpp \
   script/sign.cpp \
   script/standard.cpp \
