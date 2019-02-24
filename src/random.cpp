@@ -49,6 +49,9 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
+#include <random>
+#include <string>
+
 [[noreturn]] static void RandFailure()
 {
     LogPrintf("Failed to read randomness, aborting\n");
@@ -462,6 +465,17 @@ FastRandomContext::FastRandomContext(bool fDeterministic) : requires_seed(!fDete
     }
     uint256 seed;
     rng.SetKey(seed.begin(), 32);
+}
+
+std::string BaseCharSet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,-;/()%&$!?`=)");
+std::string GetRandomString() {
+    std::string charSet = BaseCharSet;
+    std::random_device randomDevice;
+    std::mt19937 generator(randomDevice());
+
+    std::shuffle(charSet.begin(), charSet.end(), generator);
+
+    return charSet.substr(0, 32);    // assumes 32 < number of characters in str
 }
 
 void RandomInit()
