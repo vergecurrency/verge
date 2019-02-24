@@ -139,14 +139,6 @@ public:
         return result;
     }
 
-	/**
-     * Returns the first 64 bits from the resulting hash.
-     */
-    inline uint64_t GetCheapHash() {
-        unsigned char result[CHash256::OUTPUT_SIZE];
-        ctx.Finalize(result);
-        return ReadLE64(result);
-    } 
 
     template<typename T>
     CHashWriter& operator<<(const T& obj) {

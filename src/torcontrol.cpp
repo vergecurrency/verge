@@ -531,7 +531,7 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
             CService resolved(LookupNumeric("127.0.0.1", DEFAULT_TOR_PORT));
             proxyType addrOnion = proxyType(resolved, true);
             SetProxy(NET_TOR, addrOnion);
-            SetReachable(NET_TOR, false);
+            SetLimited(NET_TOR, false);
         }
 
         // Finally - now create the service

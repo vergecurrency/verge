@@ -374,9 +374,9 @@ static void EnableOrDisableLogCategories(UniValue cats, bool enable) {
 
         bool success;
         if (enable) {
-            success = LogInstance().EnableCategory(cat);
+            success = g_logger->EnableCategory(cat);
         } else {
-            success = LogInstance().DisableCategory(cat);
+            success = g_logger->DisableCategory(cat);
         }
 
         if (!success) {
@@ -421,7 +421,7 @@ UniValue logging(const JSONRPCRequest& request)
         );
     }
 
-    uint32_t original_log_categories = LogInstance().GetCategoryMask();
+    uint32_t original_log_categories = g_logger->GetCategoryMask();
     if (request.params[0].isArray()) {
         EnableOrDisableLogCategories(request.params[0], true);
     }

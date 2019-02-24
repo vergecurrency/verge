@@ -11,17 +11,11 @@
 #include <string>
 #include <util/system.h>
 
-namespace interfaces {
-class Chain;
-class ChainClient;
-} // namespace interfaces
+class CScheduler;
+class CWallet;
 
-//! Pointers to interfaces used during init and destroyed on shutdown.
-struct InitInterfaces
-{
-    std::unique_ptr<interfaces::Chain> chain;
-    std::vector<std::unique_ptr<interfaces::ChainClient>> chain_clients;
-};
+class WalletInitInterface;
+extern const WalletInitInterface& g_wallet_init_interface;
 
 namespace boost
 {
@@ -30,7 +24,7 @@ class thread_group;
 
 /** Interrupt threads */
 void Interrupt();
-void Shutdown(InitInterfaces& interfaces);
+void Shutdown();
 //!Initialize the logging infrastructure
 void InitLogging();
 //!Parameter interaction: change current parameters depending on various rules
@@ -64,7 +58,7 @@ bool AppInitLockDataDirectory();
  * @note This should only be done after daemonization. Call Shutdown() if this function fails.
  * @pre Parameters should be parsed and config file should be read, AppInitLockDataDirectory should have been called.
  */
-bool AppInitMain(InitInterfaces& interfaces);
+bool AppInitMain();
 
 /**
  * Setup the arguments for gArgs

@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2018-2018 The VERGE Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -20,7 +21,7 @@ static const std::string SAFE_CHARS[] =
     CHARS_ALPHA_NUM + " .,;-_/:?@()", // SAFE_CHARS_DEFAULT
     CHARS_ALPHA_NUM + " .,;-_?@", // SAFE_CHARS_UA_COMMENT
     CHARS_ALPHA_NUM + ".-_", // SAFE_CHARS_FILENAME
-    CHARS_ALPHA_NUM + "!*'();:@&=+$,/?#[]-_.~%", // SAFE_CHARS_URI
+	CHARS_ALPHA_NUM + "!*'();:@&=+$,/?#[]-_.~%", // SAFE_CHARS_URI
 };
 
 std::string SanitizeString(const std::string& str, int rule)
@@ -73,7 +74,7 @@ bool IsHexNumber(const std::string& str)
     if (str.size() > 2 && *str.begin() == '0' && *(str.begin()+1) == 'x') {
         starting_location = 2;
     }
-    for (const char c : str.substr(starting_location)) {
+    for (auto c : str.substr(starting_location)) {
         if (HexDigit(c) < 0) return false;
     }
     // Return false for empty string or "0x".
@@ -141,7 +142,7 @@ std::string EncodeBase64(const std::string& str)
     return EncodeBase64((const unsigned char*)str.c_str(), str.size());
 }
 
-std::vector<unsigned char> DecodeBase64(const char* p, bool* pf_invalid)
+std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid)
 {
     static const int decode64_table[256] =
     {
@@ -183,14 +184,14 @@ std::vector<unsigned char> DecodeBase64(const char* p, bool* pf_invalid)
         ++p;
     }
     valid = valid && (p - e) % 4 == 0 && p - q < 4;
-    if (pf_invalid) *pf_invalid = !valid;
+    if (pfInvalid) *pfInvalid = !valid;
 
     return ret;
 }
 
-std::string DecodeBase64(const std::string& str, bool* pf_invalid)
+std::string DecodeBase64(const std::string& str)
 {
-    std::vector<unsigned char> vchRet = DecodeBase64(str.c_str(), pf_invalid);
+    std::vector<unsigned char> vchRet = DecodeBase64(str.c_str());
     return std::string((const char*)vchRet.data(), vchRet.size());
 }
 
@@ -210,7 +211,7 @@ std::string EncodeBase32(const std::string& str)
     return EncodeBase32((const unsigned char*)str.c_str(), str.size());
 }
 
-std::vector<unsigned char> DecodeBase32(const char* p, bool* pf_invalid)
+std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
 {
     static const int decode32_table[256] =
     {
@@ -252,18 +253,18 @@ std::vector<unsigned char> DecodeBase32(const char* p, bool* pf_invalid)
         ++p;
     }
     valid = valid && (p - e) % 8 == 0 && p - q < 8;
-    if (pf_invalid) *pf_invalid = !valid;
+    if (pfInvalid) *pfInvalid = !valid;
 
     return ret;
 }
 
-std::string DecodeBase32(const std::string& str, bool* pf_invalid)
+std::string DecodeBase32(const std::string& str)
 {
-    std::vector<unsigned char> vchRet = DecodeBase32(str.c_str(), pf_invalid);
+    std::vector<unsigned char> vchRet = DecodeBase32(str.c_str());
     return std::string((const char*)vchRet.data(), vchRet.size());
 }
 
-NODISCARD static bool ParsePrechecks(const std::string& str)
+static bool ParsePrechecks(const std::string& str)
 {
     if (str.empty()) // No empty string allowed
         return false;
@@ -475,7 +476,7 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
             /* pass single 0 */
             ++ptr;
         } else if (val[ptr] >= '1' && val[ptr] <= '9') {
-            while (ptr < end && IsDigit(val[ptr])) {
+            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
                 if (!ProcessMantissaDigit(val[ptr], mantissa, mantissa_tzeros))
                     return false; /* overflow */
                 ++ptr;
@@ -485,9 +486,9 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
     if (ptr < end && val[ptr] == '.')
     {
         ++ptr;
-        if (ptr < end && IsDigit(val[ptr]))
+        if (ptr < end && val[ptr] >= '0' && val[ptr] <= '9')
         {
-            while (ptr < end && IsDigit(val[ptr])) {
+            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
                 if (!ProcessMantissaDigit(val[ptr], mantissa, mantissa_tzeros))
                     return false; /* overflow */
                 ++ptr;
@@ -504,8 +505,8 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
             exponent_sign = true;
             ++ptr;
         }
-        if (ptr < end && IsDigit(val[ptr])) {
-            while (ptr < end && IsDigit(val[ptr])) {
+        if (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
+            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
                 if (exponent > (UPPER_BOUND / 10LL))
                     return false; /* overflow */
                 exponent = exponent * 10 + val[ptr] - '0';
@@ -548,10 +549,9 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
 
 void Downcase(std::string& str)
 {
-    std::transform(str.begin(), str.end(), str.begin(), [](char c){return ToLower(c);});
+    std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){return ToLower(c);});
 }
-
-std::string Capitalize(std::string str)
+ std::string Capitalize(std::string str)
 {
     if (str.empty()) return str;
     str[0] = ToUpper(str.front());

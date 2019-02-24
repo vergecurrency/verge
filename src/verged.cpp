@@ -12,7 +12,6 @@
 #include <clientversion.h>
 #include <compat.h>
 #include <fs.h>
-#include <interfaces/chain.h>
 #include <rpc/server.h>
 #include <init.h>
 #include <noui.h>
@@ -58,9 +57,6 @@ static void WaitForShutdown()
 //
 static bool AppInit(int argc, char* argv[])
 {
-	InitInterfaces interfaces;
-    interfaces.chain = interfaces::MakeChain();
-	
     bool fRet = false;
 
     //
@@ -169,7 +165,7 @@ static bool AppInit(int argc, char* argv[])
             // If locking the data directory failed, exit immediately
             return false;
         }
-        fRet = AppInitMain(interfaces);
+        fRet = AppInitMain();
     }
     catch (const std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");
@@ -183,7 +179,7 @@ static bool AppInit(int argc, char* argv[])
     } else {
         WaitForShutdown();
     }
-    Shutdown(interfaces);
+    Shutdown();
 
     return fRet;
 }
