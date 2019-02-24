@@ -25,7 +25,6 @@
 #include <util/system.h>
 #include <util/strencodings.h>
 #include <validationinterface.h>
-#include <versionbitsinfo.h>
 #include <warnings.h>
 
 #include <memory>
@@ -831,7 +830,6 @@ static UniValue submitblock(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
     }
 
-    LogPrintf("%s", block.ToString().c_str());
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase()) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
     }
@@ -860,6 +858,8 @@ static UniValue submitblock(const JSONRPCRequest& request)
             UpdateUncommittedBlockStructures(block, pindex, Params().GetConsensus());
         }
     }
+
+    submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
     bool fAccepted = ProcessNewBlock(Params(), blockptr, true, nullptr);
     UnregisterValidationInterface(&sc);
