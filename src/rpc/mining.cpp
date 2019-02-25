@@ -134,92 +134,6 @@ static UniValue getallnetworkhashps(const JSONRPCRequest& request)
     return obj;
 }
 
-UniValue generateBlocks(const JSONRPCRequest& request, std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript)
-{
-    static const int nInnerLoopCount = 0x10000;
-    int nHeightEnd = 0;
-    int nHeight = 0;
-
-    {   // Don't keep cs_main locked
-        LOCK(cs_main);
-        nHeight = chainActive.Height();
-        nHeightEnd = nHeight+nGenerate;
-    }
-    unsigned int nExtraNonce = 0;
-    UniValue blockHashes(UniValue::VARR);
-    while (nHeight < nHeightEnd && !ShutdownRequested())
-    {
-        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
-        if (!pblocktemplate.get())
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
-        CBlock *pblock = &pblocktemplate->block;
-        {
-            LOCK(cs_main);
-            IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
-        }
-        while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetPoWHash(pblock->GetAlgo()), pblock->nBits, Params().GetConsensus())) {
-            ++pblock->nNonce;
-            --nMaxTries;
-        }
-        if (nMaxTries == 0) {
-            break;
-        }
-        if (pblock->nNonce == nInnerLoopCount) {
-            continue;
-        }
-
-        std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-        CWallet* const pwallet = wallet.get();
-        pblock->SignBlock(*pwallet);
-        std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
-        if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
-        ++nHeight;
-        blockHashes.push_back(pblock->GetHash().GetHex());
-
-        //mark script as important because it was used at least for one coinbase output if the script came from the wallet
-        if (keepScript)
-        {
-            coinbaseScript->KeepScript();
-        }
-    }
-    return blockHashes;
-}
-
-static UniValue generatetoaddress(const JSONRPCRequest& request)
-{
-    if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
-        throw std::runtime_error(
-            "generatetoaddress nblocks address (maxtries)\n"
-            "\nMine blocks immediately to a specified address (before the RPC call returns)\n"
-            "\nArguments:\n"
-            "1. nblocks      (numeric, required) How many blocks are generated immediately.\n"
-            "2. address      (string, required) The address to send the newly generated VERGE to.\n"
-            "3. maxtries     (numeric, optional) How many iterations to try (default = 1000000).\n"
-            "\nResult:\n"
-            "[ blockhashes ]     (array) hashes of blocks generated\n"
-            "\nExamples:\n"
-            "\nGenerate 11 blocks to myaddress\n"
-            + HelpExampleCli("generatetoaddress", "11 \"myaddress\"")
-        );
-
-    int nGenerate = request.params[0].get_int();
-    uint64_t nMaxTries = 1000000;
-    if (!request.params[2].isNull()) {
-        nMaxTries = request.params[2].get_int();
-    }
-
-    CTxDestination destination = DecodeDestination(request.params[1].get_str());
-    if (!IsValidDestination(destination)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Error: Invalid address");
-    }
-
-    std::shared_ptr<CReserveScript> coinbaseScript = std::make_shared<CReserveScript>();
-    coinbaseScript->reserveScript = GetScriptForDestination(destination);
-
-    return generateBlocks(request, coinbaseScript, nGenerate, nMaxTries, false);
-}
-
 static UniValue getmininginfo(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 0)
@@ -776,106 +690,6 @@ UniValue reserializeblock(const JSONRPCRequest& request){
     return obj;
 }
 
-class submitblock_StateCatcher : public CValidationInterface
-{
-public:
-    uint256 hash;
-    bool found;
-    CValidationState state;
-
-    explicit submitblock_StateCatcher(const uint256 &hashIn) : hash(hashIn), found(false), state() {}
-
-protected:
-    void BlockChecked(const CBlock& block, const CValidationState& stateIn) override {
-        if (block.GetHash() != hash)
-            return;
-        found = true;
-        state = stateIn;
-    }
-};
-
-static UniValue submitblock(const JSONRPCRequest& request)
-{
-    // We allow 2 arguments for compliance with BIP22. Argument 2 is ignored.
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2) {
-        throw std::runtime_error(
-            "submitblock \"hexdata\"  ( \"dummy\" )\n"
-            "\nAttempts to submit new block to network.\n"
-            "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.\n"
-
-            "\nArguments\n"
-            "1. \"hexdata\"        (string, required) the hex-encoded block data to submit\n"
-            "2. \"dummy\"          (optional) dummy value, for compatibility with BIP22. This value is ignored.\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitblock", "\"mydata\"")
-            + HelpExampleRpc("submitblock", "\"mydata\"")
-        );
-    }
-
-    std::shared_ptr<CBlock> blockptr = std::make_shared<CBlock>();
-    CBlock& block = *blockptr;
-    if (!DecodeHexBlk(block, request.params[0].get_str())) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
-    }
-
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet* const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Wallet has to be available for block signature creation.");
-    }
-
-    if (!blockptr->SignBlock(*pwallet)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
-    }
-
-    LogPrintf("%s", block.ToString().c_str());
-    if (block.vtx.empty() || !block.vtx[0]->IsCoinBase()) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
-    }
-
-    uint256 hash = block.GetHash();
-    bool fBlockPresent = false;
-    {
-        LOCK(cs_main);
-        const CBlockIndex* pindex = LookupBlockIndex(hash);
-        if (pindex) {
-            if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) {
-                return "duplicate";
-            }
-            if (pindex->nStatus & BLOCK_FAILED_MASK) {
-                return "duplicate-invalid";
-            }
-            // Otherwise, we might only have the header - process the block before returning
-            fBlockPresent = true;
-        }
-    }
-
-    {
-        LOCK(cs_main);
-        const CBlockIndex* pindex = LookupBlockIndex(block.hashPrevBlock);
-        if (pindex) {
-            UpdateUncommittedBlockStructures(block, pindex, Params().GetConsensus());
-        }
-    }
-
-    submitblock_StateCatcher sc(block.GetHash());
-    RegisterValidationInterface(&sc);
-    bool fAccepted = ProcessNewBlock(Params(), blockptr, true, nullptr);
-    UnregisterValidationInterface(&sc);
-    if (fBlockPresent) {
-        if (fAccepted && !sc.found) {
-            return "duplicate-inconclusive";
-        }
-        return "duplicate";
-    }
-    if (!sc.found) {
-        return "inconclusive";
-    }
-    return BIP22ValidationResult(sc.state);
-}
-
 static UniValue estimatefee(const JSONRPCRequest& request)
 {
     throw JSONRPCError(RPC_METHOD_DEPRECATED, "estimatefee was removed in v0.17.\n"
@@ -1049,16 +863,12 @@ static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
     { "mining",             "getnetworkhashps",       &getnetworkhashps,       {"nblocks","height"} },
-    { "mining",             "getallnetworkhashps",       &getallnetworkhashps,       {"nblocks","height"} },
+    { "mining",             "getallnetworkhashps",    &getallnetworkhashps,    {"nblocks","height"} },
     { "mining",             "getmininginfo",          &getmininginfo,          {} },
     { "mining",             "prioritisetransaction",  &prioritisetransaction,  {"txid","dummy","fee_delta"} },
     { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request"} },
-    { "mining",             "submitblock",            &submitblock,            {"hexdata","dummy"} },
     { "mining",             "decodeblock",            &decodeblock,            {"hexdata"} },
     { "mining",             "reserializeblock",       &reserializeblock,       {"hexdata"} },
-
-
-    { "generating",         "generatetoaddress",      &generatetoaddress,      {"nblocks","address","maxtries"} },
 
     { "hidden",             "estimatefee",            &estimatefee,            {} },
     { "util",               "estimatesmartfee",       &estimatesmartfee,       {"conf_target", "estimate_mode"} },
