@@ -690,7 +690,6 @@ UniValue reserializeblock(const JSONRPCRequest& request){
     return obj;
 }
 
-<<<<<<< HEAD
 class submitblock_StateCatcher : public CValidationInterface
 {
 public:
