@@ -5,7 +5,7 @@ Setup
 ---------------------
 Verge Core is the original Verge client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Verge transactions (which is currently more than 2 GBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
-To download Verge Core, visit [Verge's Github](https://github.com/vergecurrency/VERGE/releases).
+To download Verge Core, please see our [releases](https://github.com/vergecurrency/VERGE/releases).
 
 Running
 ---------------------
