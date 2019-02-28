@@ -43,6 +43,7 @@ enum Network ParseNetwork(std::string net) {
     if (net == "ipv4") return NET_IPV4;
     if (net == "ipv6") return NET_IPV6;
     if (net == "tor" || net == "onion")  return NET_TOR;
+	if (net == "i2p")  return NET_I2P;
     return NET_UNROUTABLE;
 }
 
@@ -52,6 +53,7 @@ std::string GetNetworkName(enum Network net) {
     case NET_IPV4: return "ipv4";
     case NET_IPV6: return "ipv6";
     case NET_TOR: return "onion";
+	case NET_I2P: return "i2p";
     default: return "";
     }
 }
@@ -597,8 +599,9 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string& strDest, int
     // do socks negotiation
     if (proxy.randomize_credentials) {
         ProxyCredentials random_auth;
-        static std::atomic_int counter(0);
-        random_auth.username = random_auth.password = strprintf("%i", counter++);
+        random_auth.username = GetRandomString();
+        random_auth.password = GetRandomString();
+
         if (!Socks5(strDest, (unsigned short)port, &random_auth, hSocket)) {
             return false;
         }

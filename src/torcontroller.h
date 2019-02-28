@@ -23,7 +23,7 @@
 #include <scheduler.h>
 
 /** Default Port to run tor entry node on **/
-static const unsigned int DEFAULT_TOR_PORT = 9089;
+static const unsigned int DEFAULT_TOR_PORT = 9090;
 
 /** Default Port for handling tor's control port **/
 static const unsigned int DEFAULT_TOR_CONTROL_PORT = 9051;
