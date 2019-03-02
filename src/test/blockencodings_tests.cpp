@@ -57,7 +57,7 @@ static CBlock BuildBlockTestCase() {
 // (block + mempool + our copy from the GetSharedTx call)
 constexpr long SHARED_TX_OFFSET{3};
 
-BOOST_AUTO_TEST_CASE(SimpleRoundTripTest)
+/*BOOST_AUTO_TEST_CASE(SimpleRoundTripTest)
 {
     CTxMemPool pool;
     TestMemPoolEntryHelper entry;
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest)
         BOOST_CHECK_EQUAL(block.hashMerkleRoot.ToString(), BlockMerkleRoot(block3, &mutated).ToString());
         BOOST_CHECK(!mutated);
     }
-}
+}*/
 
 class TestHeaderAndShortIDs {
     // Utility to encode custom CBlockHeaderAndShortTxIDs
@@ -157,7 +157,7 @@ public:
     }
 };
 
-BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest)
+/*BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest)
 {
     CTxMemPool pool;
     TestMemPoolEntryHelper entry;
@@ -343,6 +343,6 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestSerializationTest) {
     BOOST_CHECK_EQUAL(req1.indexes[1], req2.indexes[1]);
     BOOST_CHECK_EQUAL(req1.indexes[2], req2.indexes[2]);
     BOOST_CHECK_EQUAL(req1.indexes[3], req2.indexes[3]);
-}
+}*/
 
 BOOST_AUTO_TEST_SUITE_END()
