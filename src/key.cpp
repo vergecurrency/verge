@@ -322,6 +322,10 @@ bool ECC_InitSanityCheck() {
 }
 
 void ECC_Start() {
+    if(secp256k1_context_sign != nullptr){
+        ECC_Stop();
+    }
+
     assert(secp256k1_context_sign == nullptr);
 
     secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
