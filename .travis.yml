@@ -52,3 +52,4 @@ script:
   - ./autogen.sh # prepare all build-aux and update submodules
   - ./configure --with-incompatible-bdb --disable-bench # configure all sources for the compiling process
   - make -j3 # make sources 
+  - ./src/test/test_verge --log_level=error -c true
