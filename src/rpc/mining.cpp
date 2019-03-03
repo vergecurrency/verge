@@ -236,6 +236,22 @@ static std::string gbt_vb_name(const Consensus::DeploymentPos pos) {
     return s;
 }
 
+static int32_t determineVersionForBlockTemplate(int32_t algo){
+    switch(algo) {
+        case ALGO_X17:
+            return BLOCK_VERSION_X17;
+        case ALGO_LYRA2RE:
+            return BLOCK_VERSION_LYRA2RE;
+        case ALGO_BLAKE:
+            return BLOCK_VERSION_BLAKE;
+        case ALGO_GROESTL:
+            return BLOCK_VERSION_GROESTL;
+        case ALGO_SCRYPT:
+        default:
+            return BLOCK_VERSION_SCRYPT;
+    }
+}
+
 static UniValue getblocktemplate(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() > 1)
@@ -592,27 +608,10 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         if(algorithm.isStr()){
             std::string algorithmStr = algorithm.get_str();
             int32_t algo = GetAlgoByName(algorithmStr);
-            switch(algo) {
-                case ALGO_X17:
-                    version |= BLOCK_VERSION_X17;
-                    break; 
-                case ALGO_LYRA2RE :
-                    version |= BLOCK_VERSION_LYRA2RE;
-                    break; 
-                case ALGO_BLAKE   :
-                    version |= BLOCK_VERSION_BLAKE;
-                    break; 
-                case ALGO_GROESTL:
-                    version |= BLOCK_VERSION_GROESTL;
-                    break; 
-                case ALGO_SCRYPT:
-                default:
-                    version |= BLOCK_VERSION_SCRYPT;
-                    break;
-            }
+            version |= determineVersionForBlockTemplate(algo);
         } else {
-            // defaulting to scrypt if nothing is given 
-            version |= BLOCK_VERSION_SCRYPT;
+            // defaulting to ALGO, this either set via config or default script
+            version |= determineVersionForBlockTemplate(ALGO);
         }
     }
     result.pushKV("version", version);
