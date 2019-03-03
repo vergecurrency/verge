@@ -586,7 +586,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         }
     }
 
-    int32_t version = pindexPrev->nHeight < 340000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION
+    int32_t version = pindexPrev->nHeight < 340000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION;
     if(algorithm.isStr()){
         std::string algorithmStr = algorithm.get_str();
         algo = GetAlgoByName(algorithmStr);
