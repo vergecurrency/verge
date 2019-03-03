@@ -589,7 +589,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     int32_t version = pindexPrev->nHeight < 340000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION;
     if(algorithm.isStr()){
         std::string algorithmStr = algorithm.get_str();
-        algo = GetAlgoByName(algorithmStr);
+        int32_t algo = GetAlgoByName(algorithmStr);
         switch(algo) {
             case ALGO_X17:
                 version |= BLOCK_VERSION_X17;
@@ -609,7 +609,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
                 break;
         }
     }
-    result.pushKV("version", version));
+    result.pushKV("version", version);
     result.pushKV("rules", aRules);
     result.pushKV("vbavailable", vbavailable);
     result.pushKV("vbrequired", int(0));
