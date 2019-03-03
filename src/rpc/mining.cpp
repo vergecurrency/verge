@@ -261,6 +261,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             "           \"support\"          (string) client side supported softfork deployment\n"
             "           ,...\n"
             "       ]\n"
+            "       \"algo\": \"scrypt\"\n"
             "     }\n"
             "\n"
 
@@ -319,6 +320,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
     std::string strMode = "template";
     UniValue lpval = NullUniValue;
+    UniValue algorithm = NullUniValue;
     std::set<std::string> setClientRules;
     int64_t nMaxVersionPreVB = -1;
     if (!request.params[0].isNull())
@@ -334,7 +336,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         else
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
         lpval = find_value(oparam, "longpollid");
-
+        algorithm = find_value(oparam, "algo");
         if (strMode == "proposal")
         {
             const UniValue& dataval = find_value(oparam, "data");
@@ -583,7 +585,31 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             }
         }
     }
-    result.pushKV("version", pindexPrev->nHeight < 3400000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION);
+
+    int32_t version = pindexPrev->nHeight < 340000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION
+    if(algorithm.isStr()){
+        std::string algorithmStr = algorithm.get_str();
+        algo = GetAlgoByName(algorithmStr);
+        switch(algo) {
+            case ALGO_X17:
+                version |= BLOCK_VERSION_X17;
+                break; 
+            case ALGO_LYRA2RE :
+                version |= BLOCK_VERSION_LYRA2RE;
+                break; 
+            case ALGO_BLAKE   :
+                version |= BLOCK_VERSION_BLAKE;
+                break; 
+            case ALGO_GROESTL:
+                version |= BLOCK_VERSION_GROESTL;
+                break; 
+            case ALGO_SCRYPT:
+            default:
+                version |= BLOCK_VERSION_SCRYPT;
+                break;
+        }
+    }
+    result.pushKV("version", version));
     result.pushKV("rules", aRules);
     result.pushKV("vbavailable", vbavailable);
     result.pushKV("vbrequired", int(0));
