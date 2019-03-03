@@ -586,27 +586,33 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         }
     }
 
-    int32_t version = pindexPrev->nHeight < 340000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION;
-    if(algorithm.isStr()){
-        std::string algorithmStr = algorithm.get_str();
-        int32_t algo = GetAlgoByName(algorithmStr);
-        switch(algo) {
-            case ALGO_X17:
-                version |= BLOCK_VERSION_X17;
-                break; 
-            case ALGO_LYRA2RE :
-                version |= BLOCK_VERSION_LYRA2RE;
-                break; 
-            case ALGO_BLAKE   :
-                version |= BLOCK_VERSION_BLAKE;
-                break; 
-            case ALGO_GROESTL:
-                version |= BLOCK_VERSION_GROESTL;
-                break; 
-            case ALGO_SCRYPT:
-            default:
-                version |= BLOCK_VERSION_SCRYPT;
-                break;
+    int32_t version = 2;
+    if((pindexPrev->nHeight + 1) >= 340000){
+        version = VERSIONBITS_LAST_OLD_BLOCK_VERSION;
+        if(algorithm.isStr()){
+            std::string algorithmStr = algorithm.get_str();
+            int32_t algo = GetAlgoByName(algorithmStr);
+            switch(algo) {
+                case ALGO_X17:
+                    version |= BLOCK_VERSION_X17;
+                    break; 
+                case ALGO_LYRA2RE :
+                    version |= BLOCK_VERSION_LYRA2RE;
+                    break; 
+                case ALGO_BLAKE   :
+                    version |= BLOCK_VERSION_BLAKE;
+                    break; 
+                case ALGO_GROESTL:
+                    version |= BLOCK_VERSION_GROESTL;
+                    break; 
+                case ALGO_SCRYPT:
+                default:
+                    version |= BLOCK_VERSION_SCRYPT;
+                    break;
+            }
+        } else {
+            // defaulting to scrypt if nothing is given 
+            version |= BLOCK_VERSION_SCRYPT;
         }
     }
     result.pushKV("version", version);
