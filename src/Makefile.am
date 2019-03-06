@@ -635,9 +635,10 @@ clean-local:
 
 .rc.o:
 	@test -f $(WINDRES)
-	## FIXME: How to get the appropriate modulename_CPPFLAGS in here?
+	## FIXME: How to get the appropriate modulename_CPPFLAGS in here? 
 	$(AM_V_GEN) $(WINDRES) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) -DWINDRES_PREPROC -i $< -o $@
-
+        ## docker forwindows needs the line above this, changed to the one below.
+	## $(AM_V_GEN) $(WINDRES) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) -DWINDRES_PREPROC -i $< -o $@
 check-symbols: $(bin_PROGRAMS)
 if GLIBC_BACK_COMPAT
 	@echo "Checking glibc back compat..."
