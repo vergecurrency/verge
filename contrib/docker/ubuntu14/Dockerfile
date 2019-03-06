@@ -31,6 +31,8 @@ RUN apt-get update --yes > /dev/null && \
        libboost-system-dev \
        libboost-test-dev \
        libboost-thread-dev \
+       libcap-dev \
+       libncap-dev \
        libdb4.8++-dev \
        libdb4.8-dev \
        libevent-dev \
@@ -40,7 +42,7 @@ RUN apt-get update --yes > /dev/null && \
        libqt5core5a \
        libqt5dbus5 \
        libqt5gui5 \
-       libqt5webkit5-dev  \
+       libseccomp-dev \
        libsqlite3-dev \
        libssl-dev \
        libtool \
@@ -51,20 +53,21 @@ RUN apt-get update --yes > /dev/null && \
        qtdeclarative5-dev \
        qttools5-dev \
        qttools5-dev-tools \
+       zlib1g-dev \
       > /dev/null
 
 RUN git clone https://github.com/vergecurrency/VERGE.git /coin/git
 
 WORKDIR /coin/git
 
-RUN ./autogen.sh && ./configure --with-gui=qt5 && make && mv src/VERGEd /coin/VERGEd
+RUN ./autogen.sh && ./configure --with-gui=qt5 && make && mv src/verged /coin/verged
 
 WORKDIR /coin
 VOLUME ["/coin/home"]
 
 ENV HOME /coin/home
 
-CMD ["/coin/VERGEd"]
+CMD ["/coin/verged"]
 
 # P2P, RPC
 EXPOSE 21102 20102
