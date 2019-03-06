@@ -6,9 +6,9 @@
 # https://github.com/vergecurrency/Docker-Verge-Daemon.git
 #  Jeremiah Buddenhagen <bitspill@bitspill.net>
 
-FROM ubuntu:14.04
+FROM ubuntu:18.04
 
-MAINTAINER Mike Kinney <mike.kinney@gmail.com>
+MAINTAINER Mike Kinney <mike.kinney@gmail.com> / Sunerok
 
 ENV DEBIAN_FRONTEND noninteractive
 
