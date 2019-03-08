@@ -1,8 +1,8 @@
 package=libcap
-$(package)_version=2.25
-$(package)_download_path=https://git.kernel.org/pub/scm/libs/libcap/libcap.git/snapshot/
+$(package)_version=2.24
+$(package)_download_path=https://mirrors.edge.kernel.org/pub/linux/libs/security/linux-privs/libcap2/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=be671ebdab7b5203be19cc76f2b4e29cbd962cfc4cf0030519fc39aee6db6d3d
+$(package)_sha256_hash=3a9640e0712d545109cecef83c2614c68951e5fcf0fff4dac4df1a893c52bdbb
 
 define $(package)_set_vars
   $(package)_config_opts=--disable-static
