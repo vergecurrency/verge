@@ -5,7 +5,7 @@ $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=7fc28f4294cc72e61c529bedf97e705c3acf9c479a8f1a3028d4cd2ca9f3b155
 
 define $(package)_set_vars
-$(package)_config_opts=--disable-static
+  $(package)_config_opts=--disable-static
 endef
 
 define $(package)_config_cmds
@@ -13,7 +13,7 @@ define $(package)_config_cmds
 endef
 
 define $(package)_build_cmds
-  $(MAKE) V=1
+  $(MAKE)
 endef
 
 define $(package)_stage_cmds
