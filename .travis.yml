@@ -55,19 +55,16 @@ jobs:
         - set -o errexit; source .travis/lint_06_script.sh
 
     - stage: test
-      name: 'ARM  [GOAL: install]  [no unit or functional tests]'
+      name: 'x86_64 Linux'
       env: >-
-        HOST=arm-linux-gnueabihf
-        PACKAGES="python3 g++-arm-linux-gnueabihf"
-        RUN_UNIT_TESTS=false
-        RUN_FUNCTIONAL_TESTS=false
+        HOST=x86_64-unknown-linux-gnu
+        PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
+        DEP_OPTS="NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
         GOAL="install"
-        # -Wno-psabi is to disable ABI warnings: "note: parameter passing for argument of type ... changed in GCC 7.1"
-        # This could be removed once the ABI change warning does not show up by default
-        BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports CXXFLAGS=-Wno-psabi --disable-bench"
+        BITCOIN_CONFIG="--disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\""
 
-    - stage: test
-      name: 'Win32  [GOAL: deploy]  [no gui or functional tests]'
+    - stage: deploy
+      name: 'Windows 32-bit'
       env: >-
         HOST=i686-w64-mingw32
         DPKG_ADD_ARCH="i386"
@@ -76,8 +73,8 @@ jobs:
         GOAL="deploy"
         BITCOIN_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
 
-    - stage: test
-      name: 'Win64  [GOAL: deploy]  [no gui or functional tests]'
+    - stage: deploy
+      name: 'Windows 64-bit'
       env: >-
         HOST=x86_64-w64-mingw32
         PACKAGES="python3 nsis g++-mingw-w64-x86-64 wine-binfmt wine64"
@@ -85,77 +82,9 @@ jobs:
         GOAL="deploy"
         BITCOIN_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
 
-    - stage: test
-      name: '32-bit + dash  [GOAL: install]  [GUI: no BIP70]'
-      env: >-
-        HOST=i686-pc-linux-gnu
-        PACKAGES="g++-multilib python3-zmq"
-        GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --disable-bip70 --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ --disable-bench"
-        CONFIG_SHELL="/bin/dash"
 
-    - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [uses qt5 dev package instead of depends Qt to speed up build and avoid timeout]'
-      env: >-
-        HOST=x86_64-unknown-linux-gnu
-        PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev"
-        DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
-        GOAL="install"
-        BITCOIN_CONFIG="--disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\""
-
-    - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [trusty]  [no functional tests, no depends, only system libs]'
-      env: >-
-        HOST=x86_64-unknown-linux-gnu
-        DOCKER_NAME_TAG=ubuntu:14.04
-        PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools libicu-dev libpng-dev libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev libdb5.1++-dev libminiupnpc-dev libzmq3-dev libprotobuf-dev protobuf-compiler libqrencode-dev"
-        NO_DEPENDS=1
-        RUN_FUNCTIONAL_TESTS=false
-        GOAL="install"
-        BITCOIN_CONFIG="--disable-bench --enable-zmq --with-incompatible-bdb --with-gui=no"
-
-    - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [xenial]  [no depends, only system libs, sanitizers: thread (TSan), no wallet]'
-      env: >-
-        HOST=x86_64-unknown-linux-gnu
-        DOCKER_NAME_TAG=ubuntu:16.04
-        PACKAGES="clang llvm python3-zmq qtbase5-dev qttools5-dev-tools libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev libprotobuf-dev protobuf-compiler libqrencode-dev"
-        NO_DEPENDS=1
-        GOAL="install"
-        BITCOIN_CONFIG="--disable-bench --enable-zmq --disable-wallet --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=thread --disable-hardening --disable-asm CC=clang CXX=clang++"
-
-    - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [no depends, only system libs, sanitizers: address/leak (ASan + LSan) + undefined (UBSan) + integer]'
-      env: >-
-        HOST=x86_64-unknown-linux-gnu
-        PACKAGES="clang llvm python3-zmq qtbase5-dev qttools5-dev-tools libssl1.0-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev libprotobuf-dev protobuf-compiler libqrencode-dev"
-        NO_DEPENDS=1
-        GOAL="install"
-        BITCOIN_CONFIG="--disable-bench --enable-zmq --with-incompatible-bdb --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=address,integer,undefined CC=clang CXX=clang++"
-
-    - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [no depends, only system libs, sanitizers: fuzzer,address]'
-      env: >-
-        HOST=x86_64-unknown-linux-gnu
-        PACKAGES="clang llvm python3 libssl1.0-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev"
-        NO_DEPENDS=1
-        RUN_UNIT_TESTS=false
-        RUN_FUNCTIONAL_TESTS=false
-        RUN_FUZZ_TESTS=true
-        GOAL="install"
-        BITCOIN_CONFIG="--disable-bench --disable-wallet --disable-bench --with-utils=no --with-daemon=no --with-libs=no --with-gui=no --enable-fuzz --with-sanitizers=fuzzer,address CC=clang CXX=clang++"
-
-    - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [no wallet]'
-      env: >-
-        HOST=x86_64-unknown-linux-gnu
-        PACKAGES="python3-zmq"
-        DEP_OPTS="NO_WALLET=1"
-        GOAL="install"
-        BITCOIN_CONFIG="--disable-bench --enable-glibc-back-compat --enable-reduce-exports"
-
-    - stage: test
-      name: 'macOS 10.10  [GOAL: deploy] [no functional tests]'
+    - stage: deploy
+      name: 'macOS 10.10+'
       env: >-
         HOST=x86_64-apple-darwin14
         PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python3-dev python3-setuptools-git"
