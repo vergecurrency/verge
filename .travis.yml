@@ -60,7 +60,7 @@ jobs:
         HOST=x86_64-unknown-linux-gnu
         PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
         DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
-        BITCOIN_CONFIG="--disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\""
+        VERGE_CONFIG="--disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\""
 
     - stage: deploy
       name: 'Windows 32-bit'
@@ -70,7 +70,7 @@ jobs:
         PACKAGES="python3 nsis g++-mingw-w64-i686 wine-binfmt wine32 libcap-dev libseccomp-dev"
         RUN_FUNCTIONAL_TESTS=false
         GOAL="deploy"
-        BITCOIN_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
+        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
 
     - stage: deploy
       name: 'Windows 64-bit'
@@ -79,7 +79,7 @@ jobs:
         PACKAGES="python3 nsis g++-mingw-w64-x86-64 wine-binfmt wine64 libcap-dev libseccomp-dev"
         RUN_FUNCTIONAL_TESTS=false
         GOAL="deploy"
-        BITCOIN_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
+        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
 
 
     - stage: deploy
@@ -91,4 +91,4 @@ jobs:
         RUN_UNIT_TESTS=false
         RUN_FUNCTIONAL_TESTS=false
         GOAL="deploy"
-        BITCOIN_CONFIG="--disable-bench --enable-gui --enable-reduce-exports --enable-werror"
+        VERGE_CONFIG="--disable-bench --enable-gui --enable-reduce-exports --enable-werror"
