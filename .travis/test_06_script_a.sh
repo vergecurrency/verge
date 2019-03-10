@@ -28,7 +28,6 @@ cd build || (echo "could not enter build directory"; exit 1)
 
 BEGIN_FOLD configure
 DOCKER_EXEC ../configure --cache-file=config.cache $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
-cat config.log
 END_FOLD
 
 BEGIN_FOLD distdir
