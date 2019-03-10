@@ -67,19 +67,19 @@ jobs:
       env: >-
         HOST=i686-w64-mingw32
         DPKG_ADD_ARCH="i386"
-        PACKAGES="python3 nsis g++-mingw-w64-i686 wine-binfmt wine32 libcap-dev libseccomp-dev"
+        PACKAGES="python3 nsis g++-mingw-w64-i686 mingw-w64-i686-dev wine-binfmt wine32 libcap-dev libseccomp-dev"
         RUN_FUNCTIONAL_TESTS=false
         GOAL="deploy"
-        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
+        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench --enable-windows"
 
     - stage: deploy
       name: 'Windows 64-bit'
       env: >-
         HOST=x86_64-w64-mingw32
-        PACKAGES="python3 nsis g++-mingw-w64-x86-64 wine-binfmt wine64 libcap-dev libseccomp-dev"
+        PACKAGES="python3 nsis g++-mingw-w64-x86-64 mingw-w64-x86-64-dev wine-binfmt wine64 libcap-dev libseccomp-dev"
         RUN_FUNCTIONAL_TESTS=false
         GOAL="deploy"
-        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench"
+        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench --enable-windows"
 
 
     - stage: deploy

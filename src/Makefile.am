@@ -633,10 +633,15 @@ clean-local:
 	-rm -f config.h
 	-rm -rf test/__pycache__
 
-.rc.o:
-	@test -f $(WINDRES) 
+.rc.o: @test -f $(WINDRES)
+if WINDOWS
+	$(info >>> Generating windows specifics <<<)
 	$(AM_V_GEN) $(WINDRES) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) -DWINDRES_PREPROC -i $< -o $@
-
+else
+	$(info >>> Defaulting to other systems <<<)
+	$(AM_V_GEN) $(WINDRES) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) -DWINDRES_PREPROC -i $< -o $@
+endif
+	
 check-symbols: $(bin_PROGRAMS)
 if GLIBC_BACK_COMPAT
 	@echo "Checking glibc back compat..."
