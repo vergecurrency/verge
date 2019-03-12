@@ -12,6 +12,7 @@
 #include <qt/recentrequeststablemodel.h>
 #include <qt/sendcoinsdialog.h>
 #include <qt/transactiontablemodel.h>
+#include <stealth.h>
 
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
@@ -177,9 +178,37 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             setAddress.insert(rcp.address);
             ++nAddresses;
 
-            CScript scriptPubKey = GetScriptForDestination(DecodeDestination(rcp.address.toStdString()));
-            CRecipient recipient = {scriptPubKey, rcp.amount, rcp.fSubtractFeeFromAmount};
-            vecSend.push_back(recipient);
+            CTxDestination dest = DecodeDestination(rcp.address.toStdString());
+            if(dest.type() == typeid(CStealthAddress)){
+                CStealthAddress sxAddr = boost::get<CStealthAddress>(dest);
+                ec_secret ephem_secret;
+                ec_secret secretShared;
+                ec_point pkSendTo;
+                ec_point ephem_pubkey;
+                
+                if (GenerateRandomSecret(ephem_secret) == 0)
+                {
+                    if (StealthSecret(ephem_secret, sxAddr.scan_pubkey, sxAddr.spend_pubkey, secretShared, pkSendTo) == 0)
+                    {
+                        CPubKey cpkTo(pkSendTo);
+                        if (cpkTo.IsValid())
+                        {
+                            CKeyID addr = cpkTo.GetID();
+                            // adding address part
+                            CScript scriptAddr = GetScriptForDestination(addr);
+                            CRecipient recipient = {scriptAddr, rcp.amount, rcp.fSubtractFeeFromAmount};
+                            vecSend.push_back(recipient);
+
+                            // adding address part
+                            CScript scriptPubKey = GetScriptForStealthPubKey(cpkTo);
+                            CRecipient recipientTwo = {scriptPubKey, 0, false};
+                            vecSend.push_back(recipientTwo);
+                        }
+                    }
+                }
+                
+
+            }
 
             total += rcp.amount;
         }

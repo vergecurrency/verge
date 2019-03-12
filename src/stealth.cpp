@@ -217,7 +217,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
 };
 
 
-int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, ec_secret& sharedSOut, ec_point& pkOut)
+int StealthSecret(ec_secret& secret, const ec_point& pubkey, const ec_point& pkSpend, ec_secret& sharedSOut, ec_point& pkOut)
 {
     /*
     

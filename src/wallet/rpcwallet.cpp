@@ -617,7 +617,7 @@ UniValue getnewstealthaddress(const JSONRPCRequest& request){
     
     CStealthAddress sxAddr;
     std::string sError;
-    if (GenerateNewStealthAddress(sError, sLabel, sxAddr))
+    if (!GenerateNewStealthAddress(sError, sLabel, sxAddr))
         throw std::runtime_error(std::string("Could get new stealth address: ") + sError);
     
     if (!pwallet->AddStealthAddress(sxAddr))
