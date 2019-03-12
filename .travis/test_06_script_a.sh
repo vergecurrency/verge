@@ -40,6 +40,10 @@ BEGIN_FOLD configure
 DOCKER_EXEC ./configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
 END_FOLD
 
+BEGIN_FOLD configure-tor
+DOCKER_EXEC cd src/tor && rm config.status && ./configure --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-unittests --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc && cd ../../
+END_FOLD
+
 set -o errtrace
 trap 'DOCKER_EXEC "cat ${TRAVIS_BUILD_DIR}/sanitizer-output/* 2> /dev/null"' ERR
 
