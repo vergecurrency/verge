@@ -43,11 +43,11 @@ END_FOLD
 cd "src/tor/" || (echo "could not enter distdir src/tor"; exit 1)
 
 BEGIN_FOLD remove-old-config-tor
-DOCKER_EXEC sudo rm -f config.*
+DOCKER_EXEC rm -f config.*
 END_FOLD
 
 BEGIN_FOLD configure-tor
-DOCKER_EXEC sudo ./configure --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-unittests --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc
+DOCKER_EXEC ./configure --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-unittests --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc
 END_FOLD
 
 cd "../../" || (echo "could not return to verge-$HOST"; exit 1)
