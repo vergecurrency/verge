@@ -86,4 +86,4 @@ jobs:
         OSX_SDK=10.11
         RUN_UNIT_TESTS=false
         RUN_FUNCTIONAL_TESTS=false
-        VERGE_CONFIG="--disable-bench --enable-gui --enable-reduce-exports --enable-werror"
+        VERGE_CONFIG="--disable-bench --enable-gui --enable-reduce-exports"
