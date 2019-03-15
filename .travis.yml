@@ -59,7 +59,7 @@ jobs:
         HOST=x86_64-unknown-linux-gnu
         PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
         DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
-        VERGE_CONFIG="--disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug"
+        VERGE_CONFIG="--disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports"
 
     - stage: test
       name: '[Deploy] Windows 32-bit'
@@ -68,7 +68,7 @@ jobs:
         DPKG_ADD_ARCH="i386"
         PACKAGES="python3 nsis gcc-mingw-w64-i686 g++-mingw-w64-i686 binutils-mingw-w64-i686 wine-binfmt wine32 libcap-dev libseccomp-dev"
         RUN_FUNCTIONAL_TESTS=false
-        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench --enable-windows CXXFLAGS=\"${CXXFLAGS}-g0 -O2\""
+        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench --enable-windows"
 
     - stage: test
       name: '[Deploy] Windows 64-bit'
@@ -76,7 +76,7 @@ jobs:
         HOST=x86_64-w64-mingw32
         PACKAGES="python3 nsis gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 wine-binfmt wine64 libcap-dev libseccomp-dev"
         RUN_FUNCTIONAL_TESTS=false
-        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench --enable-windows CXXFLAGS=\"${CXXFLAGS}-g0 -O2\""
+        VERGE_CONFIG="--enable-reduce-exports --disable-gui-tests --disable-bench --enable-windows"
 
     - stage: test
       name: '[Deploy] macOS 10.10+'
