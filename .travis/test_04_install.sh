@@ -19,9 +19,19 @@ elif [[ $VERGE_CONFIG = *--with-sanitizers=*address* ]]; then # If ran with (ASa
   DOCKER_ADMIN="--cap-add SYS_PTRACE"
 fi
 DOCKER_ID=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR --mount type=bind,src=$CCACHE_DIR,dst=$CCACHE_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env $DOCKER_NAME_TAG)
+DOCKER_ID_WIN32=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env marpme/verge-win32-base:v1)
+DOCKER_ID_WIN64=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env marpme/verge-win64-base:v1)
 
 DOCKER_EXEC () {
   docker exec $DOCKER_ID bash -c "cd $PWD && $*"
+}
+
+DOCKER_EXEC_WIN32 () {
+  docker exec $DOCKER_ID_WIN32 bash -c "$*"
+}
+
+DOCKER_EXEC_WIN64 () {
+  docker exec $DOCKER_ID_WIN64 bash -c "$*"
 }
 
 if [ -n "$DPKG_ADD_ARCH" ]; then

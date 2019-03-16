@@ -15,36 +15,30 @@ if [ -z "$NO_DEPENDS" ]; then
   DOCKER_EXEC ccache --max-size=$CCACHE_SIZE
 fi
 
-BEGIN_FOLD autogen
-if [ -n "$CONFIG_SHELL" ]; then
-  DOCKER_EXEC "$CONFIG_SHELL" -c "./autogen.sh"
+if [[ $HOST = *86-w64-mingw32 ]]; then
+  BEGIN_FOLD docker-build
+    DOCKER_EXEC_WIN32 /tmp/build.sh
+  END_FOLD
+else if [[ $HOST = *64-w64-mingw32 ]]; then
+  BEGIN_FOLD docker-build
+    DOCKER_EXEC_WIN64 /tmp/build.sh
+  END_FOLD
 else
-  DOCKER_EXEC ./autogen.sh
+  BEGIN_FOLD autogen
+  if [ -n "$CONFIG_SHELL" ]; then
+    DOCKER_EXEC "$CONFIG_SHELL" -c "./autogen.sh"
+  else
+    DOCKER_EXEC ./autogen.sh
+  fi
+  END_FOLD
+
+  BEGIN_FOLD configure
+  DOCKER_EXEC ./configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
+  END_FOLD
+
+  BEGIN_FOLD build
+  DOCKER_EXEC make $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && DOCKER_EXEC make $GOAL V=1 ; false )
+  END_FOLD
 fi
-END_FOLD
-
-mkdir build
-cd build || (echo "could not enter build directory"; exit 1)
-
-BEGIN_FOLD configure
-DOCKER_EXEC ../configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
-END_FOLD
-
-# BEGIN_FOLD distdir
-# DOCKER_EXEC make distdir VERSION=$HOST
-# END_FOLD
-
-# cd "verge-$HOST" || (echo "could not enter distdir verge-$HOST"; exit 1)
-
-# BEGIN_FOLD configure
-# DOCKER_EXEC ./configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
-# END_FOLD
-
-# set -o errtrace
-# trap 'DOCKER_EXEC "cat ${TRAVIS_BUILD_DIR}/sanitizer-output/* 2> /dev/null"' ERR
-
-BEGIN_FOLD build
-DOCKER_EXEC make $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && DOCKER_EXEC make $GOAL V=1 ; false )
-END_FOLD
 
 cd ${TRAVIS_BUILD_DIR} || (echo "could not enter travis build dir $TRAVIS_BUILD_DIR"; exit 1)

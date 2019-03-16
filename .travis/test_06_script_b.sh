@@ -6,8 +6,6 @@
 
 export LC_ALL=C.UTF-8
 
-cd "build" || (echo "could not enter distdir build"; exit 1)
-
 if [ "$RUN_UNIT_TESTS" = "true" ]; then
   BEGIN_FOLD unit-tests
   DOCKER_EXEC LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib make $MAKEJOBS check VERBOSE=1
