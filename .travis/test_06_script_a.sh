@@ -15,13 +15,9 @@ if [ -z "$NO_DEPENDS" ]; then
   DOCKER_EXEC ccache --max-size=$CCACHE_SIZE
 fi
 
-if [[ $HOST = *86-w64-mingw32 ]]; then
+if [[ $HOST = *-mingw32 ]]; then
   BEGIN_FOLD docker-build
-    DOCKER_EXEC_WIN32 /tmp/build.sh
-  END_FOLD
-else if [[ $HOST = *64-w64-mingw32 ]]; then
-  BEGIN_FOLD docker-build
-    DOCKER_EXEC_WIN64 /tmp/build.sh
+    DOCKER_EXEC /tmp/build.sh
   END_FOLD
 else
   BEGIN_FOLD autogen
