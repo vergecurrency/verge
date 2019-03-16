@@ -18,20 +18,21 @@ if [[ $HOST = *-mingw32 ]]; then
 elif [[ $VERGE_CONFIG = *--with-sanitizers=*address* ]]; then # If ran with (ASan + LSan), Docker needs access to ptrace (https://github.com/google/sanitizers/issues/764)
   DOCKER_ADMIN="--cap-add SYS_PTRACE"
 fi
-DOCKER_ID=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR --mount type=bind,src=$CCACHE_DIR,dst=$CCACHE_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env $DOCKER_NAME_TAG)
-DOCKER_ID_WIN32=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env marpme/verge-win32-base:v1)
-DOCKER_ID_WIN64=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env marpme/verge-win64-base:v1)
+
+if [[ $HOST = *86-w64-mingw32 ]]; then
+  DOCKER_ID=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env marpme/verge-win32-base:v1)
+else if [[ $HOST = *64-w64-mingw32 ]]; then
+  DOCKER_ID=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env marpme/verge-win64-base:v1)
+else
+  DOCKER_ID=$(docker run $DOCKER_ADMIN -idt --mount type=bind,src=$TRAVIS_BUILD_DIR,dst=$TRAVIS_BUILD_DIR --mount type=bind,src=$CCACHE_DIR,dst=$CCACHE_DIR -w $TRAVIS_BUILD_DIR --env-file /tmp/env $DOCKER_NAME_TAG)
+fi
 
 DOCKER_EXEC () {
-  docker exec $DOCKER_ID bash -c "cd $PWD && $*"
-}
-
-DOCKER_EXEC_WIN32 () {
-  docker exec $DOCKER_ID_WIN32 bash -c "$*"
-}
-
-DOCKER_EXEC_WIN64 () {
-  docker exec $DOCKER_ID_WIN64 bash -c "$*"
+  if [[ $HOST = *-mingw32 ]]; then
+    docker exec $DOCKER_ID bash -c "$*"
+  else
+    docker exec $DOCKER_ID bash -c "cd $PWD && $*"
+  fi
 }
 
 if [ -n "$DPKG_ADD_ARCH" ]; then
