@@ -29,7 +29,7 @@ fi
 
 if [[ $HOST = *-mingw32 ]]; then
   BEGIN_FOLD docker-build
-    DOCKER_EXEC .travis/lint_06_script_prepare_win.sh
+    DOCKER_EXEC ./.travis/test_06_script_prepare_win.sh
   END_FOLD
 fi
 

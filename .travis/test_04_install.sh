@@ -28,11 +28,7 @@ else
 fi
 
 DOCKER_EXEC () {
-  if [[ $HOST = *-mingw32 ]]; then
-    docker exec $DOCKER_ID bash -c "$*"
-  else
-    docker exec $DOCKER_ID bash -c "cd $PWD && $*"
-  fi
+  docker exec $DOCKER_ID bash -c "cd $PWD && $*"
 }
 
 if [ -n "$DPKG_ADD_ARCH" ]; then
