@@ -242,6 +242,7 @@ RES_ICONS = \
   qt/res/icons/address-book.png \
   qt/res/icons/about.png \
   qt/res/icons/about_qt.png \
+  qt/res/icons/splash1.png \
   qt/res/icons/verge.ico \
   qt/res/icons/verge_testnet.ico \
   qt/res/icons/verge.png \
