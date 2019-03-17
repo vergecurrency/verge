@@ -16,7 +16,13 @@ export BOOST_ROOT=/tmp/boost_1_58_0
 
 ./autogen.sh --host=${CROSS}-
 
-./configure --with-gui-qt5 --host=${CROSS} --with-qt-incdir=/usr/local/Qt-5.10.1/include --with-qt-libdir=/usr/local/Qt-5.10.1/lib --with-qt-plugindir=/usr/local/Qt-5.10.1/plugins --with-qt-bindir=/usr/local/Qt-5.10.1/bin --without-tests --disable-tests  --without-bench --disable-bench --without-miniupnpc --disable-asm --includedir=/usr/local/include --includedir=/tmp/zlib-1.2.11 --includedir=/usr/local/Qt-5.10.1/include --includedir=/usr/local/BerkeleyDB.4.8/include --with-boost=/tmp/boost_1_58_0/boost --with-boost-libdir=/tmp/boost_1_58_0/stage/lib && make && make deploy
+mkdir build && cd build
+../configure --with-gui-qt5 --host=${CROSS} --with-qt-incdir=/usr/local/Qt-5.10.1/include --with-qt-libdir=/usr/local/Qt-5.10.1/lib --with-qt-plugindir=/usr/local/Qt-5.10.1/plugins --with-qt-bindir=/usr/local/Qt-5.10.1/bin --without-tests --disable-tests  --without-bench --disable-bench --without-miniupnpc --disable-asm --includedir=/usr/local/include --includedir=/tmp/zlib-1.2.11 --includedir=/usr/local/Qt-5.10.1/include --includedir=/usr/local/BerkeleyDB.4.8/include --with-boost=/tmp/boost_1_58_0/boost --with-boost-libdir=/tmp/boost_1_58_0/stage/lib
+
+make distdir VERSION=$HOST
+
+make
+make deploy
 
 # For debugging purposes
 # cat src/test-suite.log
