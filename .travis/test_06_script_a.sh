@@ -46,6 +46,11 @@ else
   DOCKER_EXEC cp ../../src/crypto/pow/*_helper.c ./src/crypto/pow
   END_FOLD
 
+  
+  BEGIN_FOLD copy-fonts
+  DOCKER_EXEC cp -R ../../src/qt/res/fonts ./src/qt/res/fonts/
+  END_FOLD
+
   BEGIN_FOLD configure
   DOCKER_EXEC ./configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
   END_FOLD
