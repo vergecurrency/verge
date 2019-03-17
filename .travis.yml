@@ -48,7 +48,7 @@ jobs:
   include:
     - stage: lint
       name: lint
-      env: SHOULD_DEPLY=0
+      env: SHOULD_DEPLOY=0
       cache: false
       language: python
       python: "3.5"
@@ -62,7 +62,7 @@ jobs:
     - stage: test
       name: "[Test] Linux 64-bit"
       env: >-
-        SHOULD_DEPLY=1
+        SHOULD_DEPLOY=1
         HOST=x86_64-unknown-linux-gnu
         PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
         DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
@@ -71,7 +71,7 @@ jobs:
     - stage: test
       name: "[Deploy] Windows 32-bit"
       env: >-
-        SHOULD_DEPLY=1
+        SHOULD_DEPLOY=1
         HOST=i686-w64-mingw32
         RUN_FUNCTIONAL_TESTS=false
         NO_DEPENDS=1
@@ -79,7 +79,7 @@ jobs:
     - stage: test
       name: "[Deploy] Windows 64-bit"
       env: >-
-        SHOULD_DEPLY=1
+        SHOULD_DEPLOY=1
         HOST=x86_64-w64-mingw32
         RUN_FUNCTIONAL_TESTS=false
         NO_DEPENDS=1
@@ -87,7 +87,7 @@ jobs:
     - stage: test
       name: "[Deploy] macOS 10.10+"
       env: >-
-        SHOULD_DEPLY=1
+        SHOULD_DEPLOY=1
         HOST=x86_64-apple-darwin14
         PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python3-dev python3-setuptools-git libcap-dev libseccomp-dev"
         OSX_SDK=10.11
@@ -98,8 +98,8 @@ jobs:
 before_deploy:
   - git config --local user.name "marpme"
   - git config --local user.email "marpme@users.noreply.github.com"
-  - if [[ $SHOULD_DEPLY = 1 ]]; then mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/qt/verge-qt $TRAVIS_BUILD_DIR/verge-qt-${$HOST}; fi
-  - if [[ $SHOULD_DEPLY = 1 ]]; then mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/verged $TRAVIS_BUILD_DIR/verged-${$HOST}; fi
+  - if [[ $SHOULD_DEPLOY = 1 ]]; then mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/qt/verge-qt $TRAVIS_BUILD_DIR/verge-qt-${$HOST}; fi
+  - if [[ $SHOULD_DEPLOY = 1 ]]; then mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/verged $TRAVIS_BUILD_DIR/verged-${$HOST}; fi
 
 deploy:
   - provider: releases
@@ -112,4 +112,4 @@ deploy:
     draft: true
     on:
       tags: true
-      condition: $SHOULD_DEPLY = 1
+      condition: $SHOULD_DEPLOY = 1
