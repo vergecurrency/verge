@@ -93,21 +93,17 @@ jobs:
 before_deploy:
   - git config --local user.name "marpme"
   - git config --local user.email "marpme@users.noreply.github.com"
+  - mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/qt/verge-qt $TRAVIS_BUILD_DIR/verge-qt-${$HOST}
+  - mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/verged $TRAVIS_BUILD_DIR/verged-${$HOST}
 
 deploy:
-  provider: releases
-  api_key:
-    secure: HyxoLq2f1iTrvGsqIRzUhw5ILqi+SdtpLCu7n86AXCoGVQIqseKwBKlBCS8RYFv5KQcXAgBTbHiSXj27XZ6nxizKvhh67HMlxIx7I98XFJ5bDrq18SV7tvgcZeg6HDb4cGWWcDXnpnQMRKMF7cl3G+Zj/ZoV3AA2feSzcFlJZDMOM44dknX3yDRESPyE5m369HOpFgz9mxgpOekUOh8VU5QYRznmZyR6Fek0OZ8GY9BePHITYh3p7rvUDhZVoV4NyDsE2de08EC6qUAaYnbBmGYbsFNmttRACFlVUyUKwfVisIh26Jmbb9mTXZqEKzReZ1+ypL4rz4wzwdyglJlrfmuWjSM14tFYrSHgLRKjZHugqQxMBkvWai4hrIwqA1RufP9iriewcIwmffSSCG/gt+wX+qWtHirhhEq4wIKu2GTUxJ79veRT3Sk98/bwF8o9FIyQ2zKnL2hdgdXX8NGqAOSJbZeGzvoDOj9OeFiRn1vFWlMUXoD4VQM3nhmUd7lVl1a9Xt1WyddO8Yi9PWRBm+MzG0Fj2FEyNAMz7tWvgCqVoDrVfXRA93a3uxyRlTrSRiVg6kIvUlfzN6T5vBNteQJEtv/52geR/BNpHUpMIY6x7A52vsBFwcWgodPNkhjXwvH10N5RE+m0n2hVETHrdl3nbXQ2IxXnklYSIRXA418=
-  file:
-    - "$TRAVIS_BUILD_DIR/build/verge-x86_64-w64-mingw32/src/qt/verge-qt"
-    - "$TRAVIS_BUILD_DIR/build/verge-i686-w64-mingw32/src/qt/verge-qt"
-    - "$TRAVIS_BUILD_DIR/build/verge-x86_64-apple-darwin14/src/qt/verge-qt"
-    - "$TRAVIS_BUILD_DIR/build/verge-x86_64-unknown-linux-gnu/src/qt/verge-qt"
-    - "$TRAVIS_BUILD_DIR/build/verge-x86_64-w64-mingw32/src/verged"
-    - "$TRAVIS_BUILD_DIR/build/verge-i686-w64-mingw32/src/verged"
-    - "$TRAVIS_BUILD_DIR/build/verge-x86_64-apple-darwin14/src/verged"
-    - "$TRAVIS_BUILD_DIR/build/verge-x86_64-unknown-linux-gnu/src/verged"
-  skip_cleanup: true
-  draft: true
-  on:
-    tags: true
+  - provider: releases
+    api_key:
+      secure: HyxoLq2f1iTrvGsqIRzUhw5ILqi+SdtpLCu7n86AXCoGVQIqseKwBKlBCS8RYFv5KQcXAgBTbHiSXj27XZ6nxizKvhh67HMlxIx7I98XFJ5bDrq18SV7tvgcZeg6HDb4cGWWcDXnpnQMRKMF7cl3G+Zj/ZoV3AA2feSzcFlJZDMOM44dknX3yDRESPyE5m369HOpFgz9mxgpOekUOh8VU5QYRznmZyR6Fek0OZ8GY9BePHITYh3p7rvUDhZVoV4NyDsE2de08EC6qUAaYnbBmGYbsFNmttRACFlVUyUKwfVisIh26Jmbb9mTXZqEKzReZ1+ypL4rz4wzwdyglJlrfmuWjSM14tFYrSHgLRKjZHugqQxMBkvWai4hrIwqA1RufP9iriewcIwmffSSCG/gt+wX+qWtHirhhEq4wIKu2GTUxJ79veRT3Sk98/bwF8o9FIyQ2zKnL2hdgdXX8NGqAOSJbZeGzvoDOj9OeFiRn1vFWlMUXoD4VQM3nhmUd7lVl1a9Xt1WyddO8Yi9PWRBm+MzG0Fj2FEyNAMz7tWvgCqVoDrVfXRA93a3uxyRlTrSRiVg6kIvUlfzN6T5vBNteQJEtv/52geR/BNpHUpMIY6x7A52vsBFwcWgodPNkhjXwvH10N5RE+m0n2hVETHrdl3nbXQ2IxXnklYSIRXA418=
+    file:
+      - "$TRAVIS_BUILD_DIR/verge-qt-${$HOST}"
+      - "$TRAVIS_BUILD_DIR/verged-${$HOST}"
+    skip_cleanup: true
+    draft: true
+    on:
+      tags: true
