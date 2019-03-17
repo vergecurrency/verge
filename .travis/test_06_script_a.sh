@@ -33,14 +33,18 @@ else
   cd build || (echo "could not enter build directory"; exit 1)
 
   BEGIN_FOLD configure
-    DOCKER_EXEC ../configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
+  DOCKER_EXEC ../configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
   END_FOLD
 
   BEGIN_FOLD distdir
-    DOCKER_EXEC make distdir VERSION=$HOST
+  DOCKER_EXEC make distdir VERSION=$HOST || ( cat config.log && false)
   END_FOLD
 
   cd "verge-$HOST" || (echo "could not enter distdir verge-$HOST"; exit 1)
+
+  BEGIN_FOLD copy-helpers
+  DOCKER_EXEC cp ../../src/crypto/pow/*_helper.c ./src/crypto/pow
+  END_FOLD
 
   BEGIN_FOLD configure
   DOCKER_EXEC ./configure $VERGE_CONFIG_ALL $VERGE_CONFIG || ( cat config.log && false)
