@@ -98,6 +98,7 @@ jobs:
 before_deploy:
   - git config --local user.name "marpme"
   - git config --local user.email "marpme@users.noreply.github.com"
+  - ls $TRAVIS_BUILD_DIR
   - if [[ $SHOULD_DEPLOY = 1 ]]; then mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/qt/verge-qt $TRAVIS_BUILD_DIR/verge-qt-${$HOST}; fi
   - if [[ $SHOULD_DEPLOY = 1 ]]; then mv $TRAVIS_BUILD_DIR/build/verge-${HOST}/src/verged $TRAVIS_BUILD_DIR/verged-${$HOST}; fi
 
