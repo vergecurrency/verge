@@ -1,5 +1,5 @@
-#ifndef SENDMESSAGESDIALOG_H
-#define SENDMESSAGESDIALOG_H
+#ifndef VERGE_QT_SENDMESSAGESDIALOG_H
+#define VERGE_QT_SENDMESSAGESDIALOG_H
  #include <QDialog>
 #include <QString>
  namespace Ui {
@@ -53,4 +53,5 @@ class SendMessagesDialog : public QDialog
     void on_addressBookButton_clicked();
     void on_pasteButton_clicked();
 };
- #endif // SENDMESSAGESDIALOG_H
+
+#endif // VERGE_QT_SENDMESSAGESDIALOG_H

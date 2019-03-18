@@ -3,16 +3,16 @@
 // Copyright (c) 2018-2018 The VERGE Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef HASH_GROESTL
-#define HASH_GROESTL
+#ifndef VERGE_CRYPTO_POW_HASHGROESTL_H
+#define VERGE_CRYPTO_POW_HASHGROESTL_H
 
-#include "uint256.h"
-#include "serialize.h"
-#include "sph_groestl.h"
+#include <uint256.h>
+#include <serialize.h>
+#include <sph_groestl.h>
 
 // #include <openssl/sha.h>
 // #include <openssl/ripemd.h>
-#include "crypto/sha256.h"
+#include <crypto/sha256.h>
 #include <vector>
 
 
@@ -36,5 +36,4 @@ inline uint256 HashGroestl(const T1 pbegin, const T1 pend)
     return hash2;
 }
 
-
-#endif
+#endif // VERGE_CRYPTO_POW_HASHGROESTL_H

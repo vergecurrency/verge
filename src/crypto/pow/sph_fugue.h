@@ -1,8 +1,8 @@
-#ifndef SPH_FUGUE_H__
-#define SPH_FUGUE_H__
+#ifndef VERGE_CRYPTO_POW_SPH_FUGUE_H
+#define VERGE_CRYPTO_POW_SPH_FUGUE_H
 
 #include <stddef.h>
-#include "sph_types.h"
+#include <sph_types.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -78,4 +78,4 @@ void sph_fugue512_addbits_and_close(
 }
 #endif	
 	
-#endif
+#endif // VERGE_CRYPTO_POW_SPH_FUGUE_H

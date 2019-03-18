@@ -33,15 +33,15 @@
  * @author   Thomas Pornin <thomas.pornin@cryptolog.com>
  */
 
-#ifndef SPH_JH_H__
-#define SPH_JH_H__
+#ifndef VERGE_CRYPTO_POW_SPH_JH_H
+#define VERGE_CRYPTO_POW_SPH_JH_H
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
 #include <stddef.h>
-#include "sph_types.h"
+#include <sph_types.h>
 
 /**
  * Output size (in bits) for JH-224.
@@ -295,4 +295,4 @@ void sph_jh512_addbits_and_close(
 }
 #endif
 
-#endif
+#endif // VERGE_CRYPTO_POW_SPH_JH_H
