@@ -5,6 +5,9 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 if [[ $SHOULD_DEPLOY = 1 ]]; then
-    mv $TRAVIS_BUILD_DIR/build/verge-$HOST/src/qt/verge-qt $TRAVIS_BUILD_DIR/verge-qt-$HOST;
-    mv $TRAVIS_BUILD_DIR/build/verge-$HOST/src/qt/verge-qt $TRAVIS_BUILD_DIR/verge-qt-$HOST; 
+    chmod a+xr $TRAVIS_BUILD_DIR/build/verge-$HOST/src/qt/verge-qt
+    chmod a+xr $TRAVIS_BUILD_DIR/build/verge-$HOST/src/qt/verged
+    
+    cp $TRAVIS_BUILD_DIR/build/verge-$HOST/src/qt/verge-qt $TRAVIS_BUILD_DIR/verge-qt-$HOST;
+    cp $TRAVIS_BUILD_DIR/build/verge-$HOST/src/qt/verged $TRAVIS_BUILD_DIR/verged-$HOST; 
 fi
