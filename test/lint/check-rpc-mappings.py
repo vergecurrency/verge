@@ -116,6 +116,10 @@ def main():
             print('ERROR: %s argument %i (named %s in vRPCConvertParams) is not defined in dispatch table' % (cmdname, argidx, argname))
             errors += 1
             continue
+        except:
+            print('ERROR: %s argument %i (named %s in vRPCConvertParams) is not defined in dispatch table' % (cmdname, argidx, argname))
+            errors += 1
+            continue
         if argname not in rargnames:
             print('ERROR: %s argument %i is named %s in vRPCConvertParams but %s in dispatch table' % (cmdname, argidx, argname, rargnames), file=sys.stderr)
             errors += 1
