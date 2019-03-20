@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
-#include <boost/atomic.hpp>
-#include "stealth.h"
+// #include <boost/atomic.hpp>
+#include <stealth.h>
 
 
 BOOST_AUTO_TEST_SUITE(stealth_tests)

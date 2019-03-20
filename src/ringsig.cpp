@@ -2,11 +2,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#include "ringsig.h"
-#include "base58.h"
-#include "key.h"
-#include "main.h"
-#include "chainparams.h"
+#include <ringsig.h>
+#include <base58.h>
+#include <key.h>
+#include <main.h>
+#include <chainparams.h>
 
 #include <openssl/err.h>
 #include <openssl/rand.h>

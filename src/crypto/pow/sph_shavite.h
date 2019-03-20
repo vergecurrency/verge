@@ -35,8 +35,8 @@
  * @author   Thomas Pornin <thomas.pornin@cryptolog.com>
  */
 
-#ifndef SPH_SHAVITE_H__
-#define SPH_SHAVITE_H__
+#ifndef VERGE_CRYPTO_POW_SPH_SHAVITE_H
+#define VERGE_CRYPTO_POW_SPH_SHAVITE_H
 
 #include <stddef.h>
 #include "sph_types.h"
@@ -311,4 +311,4 @@ void sph_shavite512_addbits_and_close(
 }
 #endif	
 	
-#endif
+#endif // VERGE_CRYPTO_POW_SPH_SHAVITE_H

@@ -30,7 +30,6 @@
 #include <util/moneystr.h>
 #include <wallet/fees.h>
 #include <wallet/walletutil.h>
-#include <stealth.h>
 
 #include <algorithm>
 #include <assert.h>
@@ -3469,13 +3468,13 @@ std::string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std:
     if (IsLocked())
     {
         std::string strError = _("Error: Wallet locked, unable to create transaction  ");
-        LogPrintf("SendStealthMoney() : %s", strError.c_str());
+        LogPrintf("SendStealthMoney() : %s \n", strError.c_str());
         return strError;
     }
     /*if (fWalletUnlockMintOnly)
     {
         std::string strError = _("Error: Wallet unlocked for staking only, unable to create transaction.");
-        LogPrintf("SendStealthMoney() : %s", strError.c_str());
+        LogPrintf("SendStealthMoney() : %s\n", strError.c_str());
         return strError;
     }*/
     if (!CreateStealthTransaction(scriptPubKey, nValue, P, narr, sNarr, wtxNew, reservekey, nFeeRequired))
@@ -3485,7 +3484,7 @@ std::string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std:
             strError = strprintf(_("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  "), FormatMoney(nFeeRequired).c_str());
         else
             strError = _("Error: Transaction creation failed  ");
-        LogPrintf("SendStealthMoney() : %s", strError.c_str());
+        LogPrintf("SendStealthMoney() : %s\n", strError.c_str());
         return strError;
     }
 

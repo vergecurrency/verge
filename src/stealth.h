@@ -3,12 +3,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_STEALTH_H
-#define BITCOIN_STEALTH_H
+#ifndef VERGE_STEALTH_H
+#define VERGE_STEALTH_H
 
-#include "serialize.h"
-#include "logging.h"
-#include "random.h"
+#include <serialize.h>
+#include <logging.h>
+#include <random.h>
 
 #include <stdlib.h> 
 #include <stdio.h> 
@@ -118,4 +118,4 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
 bool IsStealthAddress(const std::string& encodedAddress);
 bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr);
 
-#endif  // BITCOIN_STEALTH_H
+#endif // VERGE_STEALTH_H

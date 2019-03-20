@@ -27,7 +27,7 @@
  * online backup system.
  */
 
-#include "config/verge-config.h"
+#include <config/verge-config.h>
 
 #include "scrypt.h"
 #include <stdlib.h>

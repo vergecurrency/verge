@@ -152,6 +152,12 @@ AC_ARG_ENABLE([hardening],
   [use_hardening=$enableval],
   [use_hardening=auto])
 
+AC_ARG_ENABLE([windows],
+  [AS_HELP_STRING([--enable-windows],
+  [implements different compiling standards for windows 32/64bit)])],
+  [use_windows=$enableval],
+  [use_windows=no])
+
 AC_ARG_ENABLE([reduce-exports],
   [AS_HELP_STRING([--enable-reduce-exports],
   [attempt to reduce exported symbols in the resulting executables (default is no)])],
@@ -1305,6 +1311,7 @@ AM_CONDITIONAL([ENABLE_BENCH],[test x$use_bench = xyes])
 AM_CONDITIONAL([USE_QRCODE], [test x$use_qr = xyes])
 AM_CONDITIONAL([USE_LCOV],[test x$use_lcov = xyes])
 AM_CONDITIONAL([GLIBC_BACK_COMPAT],[test x$use_glibc_compat = xyes])
+AM_CONDITIONAL([WINDOWS],[test x$use_windows = xyes])
 AM_CONDITIONAL([HARDEN],[test x$use_hardening = xyes])
 AM_CONDITIONAL([ENABLE_HWCRC32],[test x$enable_hwcrc32 = xyes])
 AM_CONDITIONAL([ENABLE_SSE41],[test x$enable_sse41 = xyes])
@@ -1403,8 +1410,8 @@ if test x$need_bundled_univalue = xyes; then
   AC_CONFIG_SUBDIRS([src/univalue])
 fi
 
-ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-unittests --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc --with-openssl-dir=$($PKG_CONFIG --variable=libdir openssl) CFLAGS=$($PKG_CONFIG --cflags openssl)"
-AC_CONFIG_SUBDIRS([src/secp256k1])
+AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with-bignum=no], [--enable-module-recovery], [--enable-experimental], [--enable-module-ecdh]])
+ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-unittests --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc"
 AC_CONFIG_SUBDIRS([src/tor])
 
 AC_OUTPUT
