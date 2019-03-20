@@ -8,7 +8,7 @@
 
 #include <uint256.h>
 #include <serialize.h>
-#include <blake2.h>
+#include "blake2.h"
 #include <openssl/sha.h>
 #include <openssl/ripemd.h>
 #include <vector>

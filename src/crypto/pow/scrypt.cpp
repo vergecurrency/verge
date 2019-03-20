@@ -29,7 +29,7 @@
 
 #include <config/verge-config.h>
 
-#include <scrypt.h>
+#include "scrypt.h"
 // #include "util.h"
 #include <stdlib.h>
 #include <stdint.h>

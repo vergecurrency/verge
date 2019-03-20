@@ -41,7 +41,7 @@
 #define VERGE_CRYPTO_POW_SPH_SHA2_H
 
 #include <stddef.h>
-#include <sph_types.h>
+#include "sph_types.h"
 
 #ifdef __cplusplus
 extern "C"{

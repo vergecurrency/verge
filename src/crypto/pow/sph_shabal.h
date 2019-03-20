@@ -37,7 +37,7 @@
 #define VERGE_CRYPTO_POW_SPH_SHABAL_H
 
 #include <stddef.h>
-#include <sph_types.h>
+#include "sph_types.h"
 
 #ifdef __cplusplus
 extern "C"{

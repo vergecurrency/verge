@@ -78,12 +78,12 @@ dpkg -l
 # export RANLIB=${CROSS}-ranlib
 # export PKG_CONFIG=${CROSS}-pkg-config
 
-echo "CC: `which $CC`"
-echo "CXX: `which $CXX`"
-echo "LD: `which $LD`"
-echo "AR: `which $AR`"
-echo "RANLIB: `which $RANLIB`"
-echo "PKG_CONFIG: `which $PKG_CONFIG`"
+echo "CC: `command -v $CC`"
+echo "CXX: `command -v $CXX`"
+echo "LD: `command -v $LD`"
+echo "AR: `command -v $AR`"
+echo "RANLIB: `command -v $RANLIB`"
+echo "PKG_CONFIG: `command -v $PKG_CONFIG`"
 
 ./req_openssl.sh
 ./req_dbd.sh
