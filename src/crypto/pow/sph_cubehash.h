@@ -34,8 +34,8 @@
  * @author   Thomas Pornin <thomas.pornin@cryptolog.com>
  */
 
-#ifndef SPH_CUBEHASH_H__
-#define SPH_CUBEHASH_H__
+#ifndef VERGE_CRYPTO_POW_SPH_CUBEHASH_H
+#define VERGE_CRYPTO_POW_SPH_CUBEHASH_H
 
 #ifdef __cplusplus
 extern "C"{
@@ -289,4 +289,4 @@ void sph_cubehash512_addbits_and_close(
 }
 #endif
 
-#endif
+#endif // VERGE_CRYPTO_POW_SPH_CUBEHASH_H

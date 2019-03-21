@@ -242,6 +242,7 @@ RES_ICONS = \
   qt/res/icons/address-book.png \
   qt/res/icons/about.png \
   qt/res/icons/about_qt.png \
+  qt/res/icons/splash1.png \
   qt/res/icons/verge.ico \
   qt/res/icons/verge_testnet.ico \
   qt/res/icons/verge.png \
@@ -409,16 +410,7 @@ if ENABLE_ZMQ
 qt_verge_qt_LDADD += $(libverge_ZMQ) $(ZMQ_LIBS)
 endif
 
-qt_verge_qt_LDADD += tor/src/or/libtor.a \
-	tor/src/common/libor.a \
-	tor/src/common/libor-ctime.a \
-	tor/src/common/libor-crypto.a \
-	tor/src/common/libor-event.a \
-	tor/src/trunnel/libor-trunnel.a \
-	tor/src/common/libcurve25519_donna.a \
-	tor/src/ext/ed25519/donna/libed25519_donna.a \
-	tor/src/ext/ed25519/ref10/libed25519_ref10.a \
-	tor/src/ext/keccak-tiny/libkeccak-tiny.a
+qt_verge_qt_LDADD += $(TOR_LIBS)
 
 qt_verge_qt_LDADD += $(libverge_CLI) $(libverge_COMMON) $(libverge_UTIL) $(libverge_CONSENSUS) $(libverge_CRYPTO) $(LIBUNIVALUE) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(TOR_LIBS) \
   $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(LIBSECP256K1) \

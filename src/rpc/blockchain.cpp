@@ -849,13 +849,18 @@ static UniValue getblock(const JSONRPCRequest& request)
     return blockToJSON(block, pblockindex, verbosity >= 2);
 }
 
-// Value getrawblockbynumber(const Array& params, bool fHelp)
 static UniValue getrawblockbynumber(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "getrawblockbynumber <number>\n"
-            "Returns raw details of a block with given block-number.");
+            "getrawblockbynumber\n"
+            "\nArguments:\n"
+            "1. \"blockindex\" (numeric, required) The block index to search for\n"
+            "\nResult:\n"
+            "n    (string) an raw bdlock undecode \n"
+            "\nExamples:\n"
+            + HelpExampleCli("blockindex", "200000")
+            + HelpExampleRpc("blockindex", "340100"));
     LOCK(cs_main);
     int nHeight = request.params[0].get_int();
     if (nHeight < 0 || nHeight > chainActive.Height())
@@ -864,8 +869,8 @@ static UniValue getrawblockbynumber(const JSONRPCRequest& request)
     const CBlock block = GetBlockChecked(pblockindex);
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << block;
-     std::string strHex = HexStr(ssTx.begin(), ssTx.end());
-     return strHex;
+    std::string strHex = HexStr(ssTx.begin(), ssTx.end());
+    return strHex;
 }
 
 struct CCoinsStats
@@ -945,7 +950,7 @@ static UniValue pruneblockchain(const JSONRPCRequest& request)
         throw std::runtime_error(
             "pruneblockchain\n"
             "\nArguments:\n"
-            "1. \"height\"       (numeric, required) The block height to prune up to. May be set to a discrete height, or a unix timestamp\n"
+            "1. \"blockheight\"       (numeric, required) The block height to prune up to. May be set to a discrete height, or a unix timestamp\n"
             "                  to prune blocks whose block time is at least 2 hours older than the provided timestamp.\n"
             "\nResult:\n"
             "n    (numeric) Height of the last block pruned.\n"

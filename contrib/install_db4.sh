@@ -8,7 +8,7 @@ set -e
 if [ -z "${1}" ]; then
   echo "Usage: ./install_db4.sh <base-dir> [<extra-bdb-configure-flag> ...]"
   echo
-  echo "Must specify a single argument: the directory in which db4 will be built."
+  echo "Must specify a single argument: the directory in command -v db4 will be built."
   echo "This is probably \`pwd\` if you're at the root of the verge repository."
   exit 1
 fi
@@ -23,7 +23,7 @@ BDB_HASH='12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef'
 BDB_URL="https://download.oracle.com/berkeley-db/${BDB_VERSION}.tar.gz"
 
 check_exists() {
-  which "$1" >/dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 sha256_check() {

@@ -3,16 +3,16 @@
 // Copyright (c) 2018-2018 The VERGE Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef HASH_QUARK
-#define HASH_QUARK
+#ifndef VERGE_CRYPTO_POW_HASHQUARK_H
+#define VERGE_CRYPTO_POW_HASHQUARK_H
 
-#include "uint256.h"
-#include "sph_blake.h"
-#include "sph_bmw.h"
-#include "sph_groestl.h"
-#include "sph_jh.h"
-#include "sph_keccak.h"
-#include "sph_skein.h"
+#include <uint256.h>
+#include <sph_blake.h>
+#include <sph_bmw.h>
+#include <sph_groestl.h>
+#include <sph_jh.h>
+#include <sph_keccak.h>
+#include <sph_skein.h>
 
 template<typename T1>
 inline uint256 HashQuark(const T1 pbegin, const T1 pend)
@@ -113,4 +113,4 @@ inline uint256 HashQuark(const T1 pbegin, const T1 pend)
     return uint256(hash[8]);
 }
 
-#endif
+#endif // VERGE_CRYPTO_POW_HASHQUARK_H

@@ -45,7 +45,7 @@ Options:
 -b|--build	Do a Gitian build
 -s|--sign	Make signed binaries for Windows and Mac OSX
 -B|--buildsign	Build both signed and unsigned binaries
--o|--os		Specify which Operating Systems the build is for. Default is lwx. l for linux, w for windows, x for osx
+-o|--os		Specify command -v Operating Systems the build is for. Default is lwx. l for linux, w for windows, x for osx
 -j		Number of processes to use. Default 2
 -m		Memory to allocate in MiB. Default 2000
 --kvm           Use KVM instead of LXC

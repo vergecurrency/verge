@@ -2,16 +2,16 @@
 // Copyright (c) 2018 Verge
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef SEC_MESSAGE_H
-#define SEC_MESSAGE_H
+#ifndef VERGE_SMESSAGE_H
+#define VERGE_SMESSAGE_H
 
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 
-#include "net.h"
-#include "db.h"
-#include "wallet.h"
-#include "lz4/lz4.h"
+#include <net.h>
+#include <db.h>
+#include <wallet.h>
+#include <lz4/lz4.h>
 
 
 const unsigned int SMSG_HDR_LEN         = 104;               // length of unencrypted header, 4 + 2 + 1 + 8 + 16 + 33 + 32 + 4 +4
@@ -375,7 +375,4 @@ int SecureMsgEncrypt(SecureMessage& smsg, std::string& addressFrom, std::string&
 int SecureMsgDecrypt(bool fTestOnly, std::string& address, unsigned char *pHeader, unsigned char *pPayload, uint32_t nPayload, MessageData& msg);
 int SecureMsgDecrypt(bool fTestOnly, std::string& address, SecureMessage& smsg, MessageData& msg);
 
-
-
-#endif // SEC_MESSAGE_H
-
+#endif // VERGE_SMESSAGE_H

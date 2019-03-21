@@ -28,7 +28,7 @@ Notes:
     
 */
 
-#include "smessage.h"
+#include <smessage.h>
 
 #include <stdint.h>
 #include <time.h>
@@ -44,22 +44,21 @@ Notes:
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
-#include "openssl_compat.h"
+#include <openssl_compat.h>
 
-#include <boost/lexical_cast.hpp>
+// #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 
-#include "base58.h"
-#include "db.h"
-#include "init.h" // pwalletMain
-#include "txdb.h"
+#include <base58.h>
+#include <db.h>
+#include <init.h> // pwalletMain
+#include <txdb.h>
 
 
-#include "lz4/lz4.c"
-
-#include "xxhash/xxhash.h"
-#include "xxhash/xxhash.c"
+#include <lz4/lz4.c>
+#include <xxhash/xxhash.h>
+#include <xxhash/xxhash.c>
 
 
 // On 64 bit system ld is 64bits

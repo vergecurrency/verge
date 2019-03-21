@@ -1,148 +1,139 @@
-#include "sendmessagesdialog.h"
-#include "ui_sendmessagesdialog.h"
-//#include "init.h"
-#include "walletmodel.h"
-#include "messagemodel.h"
-#include "addressbookpage.h"
-#include "optionsmodel.h"
-#include "sendmessagesentry.h"
-//#include "guiutil.h"
- #include <QMessageBox>
-#include <QLocale>
-#include <QTextDocument>
-#include <QScrollBar>
+#include <sendmessagesdialog.h>
+#include <ui_sendmessagesdialog.h>
+//#include <init.h>
+#include <addressbookpage.h>
+#include <messagemodel.h>
+#include <optionsmodel.h>
+#include <sendmessagesentry.h>
+#include <walletmodel.h>
+//#include <guiutil.h>
 #include <QClipboard>
 #include <QDataWidgetMapper>
- SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::SendMessagesDialog),
-    model(0),
-    mode(mode),
-    type(type)
+#include <QLocale>
+#include <QMessageBox>
+#include <QScrollBar>
+#include <QTextDocument>
+
+SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : QDialog(parent),
+                                                                                ui(new Ui::SendMessagesDialog),
+                                                                                model(0),
+                                                                                mode(mode),
+                                                                                type(type)
 {
-     ui->setupUi(this);
- #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
+    ui->setupUi(this);
+#ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     ui->addButton->setIcon(QIcon());
     ui->clearButton->setIcon(QIcon());
     ui->sendButton->setIcon(QIcon());
 #endif
- #if QT_VERSION >= 0x040700
-     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    if(mode == SendMessagesDialog::Encrypted)
+#if QT_VERSION >= 0x040700
+    /* Do not move this to the XML file, Qt before 4.7 will choke on it */
+    if (mode == SendMessagesDialog::Encrypted)
         ui->addressFrom->setPlaceholderText(tr("Enter a Verge address (e.g. DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV)"));
- #endif
+#endif
     addEntry();
-     connect(ui->addButton, SIGNAL(clicked()), this, SLOT(addEntry()));
+    connect(ui->addButton, SIGNAL(clicked()), this, SLOT(addEntry()));
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
     connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(reject()));
-     fNewRecipientAllowed = true;
-     if(mode == SendMessagesDialog::Anonymous)
+    fNewRecipientAllowed = true;
+    if (mode == SendMessagesDialog::Anonymous)
         ui->frameAddressFrom->hide();
-     if(type == SendMessagesDialog::Page)
+    if (type == SendMessagesDialog::Page)
         ui->closeButton->hide();
 }
- void SendMessagesDialog::setModel(MessageModel *model)
+void SendMessagesDialog::setModel(MessageModel* model)
 {
     this->model = model;
-     for(int i = 0; i < ui->entries->count(); ++i)
-    {
-        SendMessagesEntry *entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
-         if(entry)
+    for (int i = 0; i < ui->entries->count(); ++i) {
+        SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
+        if (entry)
             entry->setModel(model);
     }
 }
- void SendMessagesDialog::loadRow(int row)
+void SendMessagesDialog::loadRow(int row)
 {
-    if(model->data(model->index(row, model->Type, QModelIndex()), Qt::DisplayRole).toString() == MessageModel::Received)
+    if (model->data(model->index(row, model->Type, QModelIndex()), Qt::DisplayRole).toString() == MessageModel::Received)
         ui->addressFrom->setText(model->data(model->index(row, model->ToAddress, QModelIndex()), Qt::DisplayRole).toString());
     else
         ui->addressFrom->setText(model->data(model->index(row, model->FromAddress, QModelIndex()), Qt::DisplayRole).toString());
-     for(int i = 0; i < ui->entries->count(); ++i)
-    {
-        SendMessagesEntry *entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
-         if(entry)
+    for (int i = 0; i < ui->entries->count(); ++i) {
+        SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
+        if (entry)
             entry->loadRow(row);
     }
 }
- bool SendMessagesDialog::checkMode(Mode mode)
+bool SendMessagesDialog::checkMode(Mode mode)
 {
     return (mode == this->mode);
 }
- bool SendMessagesDialog::validate()
+bool SendMessagesDialog::validate()
 {
-    if(mode == SendMessagesDialog::Encrypted && ui->addressFrom->text() == "")
-    {
+    if (mode == SendMessagesDialog::Encrypted && ui->addressFrom->text() == "") {
         ui->addressFrom->setValid(false);
-         return false;
+        return false;
     }
-     return true;
+    return true;
 }
- SendMessagesDialog::~SendMessagesDialog()
+SendMessagesDialog::~SendMessagesDialog()
 {
     delete ui;
 }
- void SendMessagesDialog::on_pasteButton_clicked()
+void SendMessagesDialog::on_pasteButton_clicked()
 {
     // Paste text from clipboard into recipient field
     ui->addressFrom->setText(QApplication::clipboard()->text());
 }
- void SendMessagesDialog::on_addressBookButton_clicked()
+void SendMessagesDialog::on_addressBookButton_clicked()
 {
-    if(!model)
+    if (!model)
         return;
-     AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::ReceivingTab, this);
-     dlg.setModel(model->getWalletModel()->getAddressTableModel());
-     if(dlg.exec())
-    {
+    AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::ReceivingTab, this);
+    dlg.setModel(model->getWalletModel()->getAddressTableModel());
+    if (dlg.exec()) {
         ui->addressFrom->setText(dlg.getReturnValue());
-        SendMessagesEntry *entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(0)->widget());
+        SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(0)->widget());
         entry->setFocus();
-               // findChild( const QString "sentTo")->setFocus();
+        // findChild( const QString "sentTo")->setFocus();
     }
 }
- void SendMessagesDialog::on_sendButton_clicked()
+void SendMessagesDialog::on_sendButton_clicked()
 {
     QList<SendMessagesRecipient> recipients;
     bool valid = true;
-     if(!model)
+    if (!model)
         return;
-     valid = validate();
-     for(int i = 0; i < ui->entries->count(); ++i)
-    {
-        SendMessagesEntry *entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
-        if(entry)
-        {
-            if(entry->validate())
+    valid = validate();
+    for (int i = 0; i < ui->entries->count(); ++i) {
+        SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
+        if (entry) {
+            if (entry->validate())
                 recipients.append(entry->getValue());
             else
                 valid = false;
         }
     }
-     if(!valid || recipients.isEmpty())
+    if (!valid || recipients.isEmpty())
         return;
-     // Format confirmation message
+    // Format confirmation message
     QStringList formatted;
-    foreach(const SendMessagesRecipient &rcp, recipients)
-    {
+    foreach (const SendMessagesRecipient& rcp, recipients) {
         formatted.append(tr("<b>%1</b> to %2 (%3)").arg(rcp.message, Qt::escape(rcp.label), rcp.address));
     }
-     fNewRecipientAllowed = false;
-     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send messages"),
-                          tr("Are you sure you want to send %1?").arg(formatted.join(tr(" and "))),
-          QMessageBox::Yes|QMessageBox::Cancel,
-          QMessageBox::Cancel);
-     if(retval != QMessageBox::Yes)
-    {
+    fNewRecipientAllowed = false;
+    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send messages"),
+        tr("Are you sure you want to send %1?").arg(formatted.join(tr(" and "))),
+        QMessageBox::Yes | QMessageBox::Cancel,
+        QMessageBox::Cancel);
+    if (retval != QMessageBox::Yes) {
         fNewRecipientAllowed = true;
         return;
     }
-     MessageModel::StatusCode sendstatus;
-     if(mode == SendMessagesDialog::Anonymous)
+    MessageModel::StatusCode sendstatus;
+    if (mode == SendMessagesDialog::Anonymous)
         sendstatus = model->sendMessages(recipients);
     else
         sendstatus = model->sendMessages(recipients, ui->addressFrom->text());
-     switch(sendstatus)
-    {
+    switch (sendstatus) {
     case MessageModel::InvalidAddress:
         QMessageBox::warning(this, tr("Send Message"),
             tr("The recipient address is not valid, please recheck."),
@@ -168,107 +159,103 @@
             tr("Error: The message was rejected."),
             QMessageBox::Ok, QMessageBox::Ok);
         break;
-    case MessageModel::Aborted:             // User aborted, nothing to do
+    case MessageModel::Aborted: // User aborted, nothing to do
         break;
-    case MessageModel::FailedErrorShown:    // Send failed, error message was displayed
+    case MessageModel::FailedErrorShown: // Send failed, error message was displayed
         break;
     case MessageModel::OK:
         accept();
         break;
     }
-     fNewRecipientAllowed = true;
+    fNewRecipientAllowed = true;
 }
- void SendMessagesDialog::clear()
+void SendMessagesDialog::clear()
 {
     // Remove entries until only one left
-    while(ui->entries->count())
+    while (ui->entries->count())
         delete ui->entries->takeAt(0)->widget();
-     addEntry();
-     updateRemoveEnabled();
-     ui->sendButton->setDefault(true);
+    addEntry();
+    updateRemoveEnabled();
+    ui->sendButton->setDefault(true);
 }
- void SendMessagesDialog::reject()
+void SendMessagesDialog::reject()
 {
-    if(type == SendMessagesDialog::Dialog)
+    if (type == SendMessagesDialog::Dialog)
         done(1);
     else
         clear();
 }
- void SendMessagesDialog::accept()
+void SendMessagesDialog::accept()
 {
-    if(type == SendMessagesDialog::Dialog)
+    if (type == SendMessagesDialog::Dialog)
         done(0);
     else
         clear();
- }
- void SendMessagesDialog::done(int retval)
+}
+void SendMessagesDialog::done(int retval)
 {
-    if(type == SendMessagesDialog::Dialog)
+    if (type == SendMessagesDialog::Dialog)
         QDialog::done(retval);
     else
         clear();
 }
- SendMessagesEntry *SendMessagesDialog::addEntry()
+SendMessagesEntry* SendMessagesDialog::addEntry()
 {
-    SendMessagesEntry *entry = new SendMessagesEntry(this);
-     entry->setModel(model);
+    SendMessagesEntry* entry = new SendMessagesEntry(this);
+    entry->setModel(model);
     ui->entries->addWidget(entry);
     connect(entry, SIGNAL(removeEntry(SendMessagesEntry*)), this, SLOT(removeEntry(SendMessagesEntry*)));
     updateRemoveEnabled();
-     // Focus the field, so that entry can start immediately
+    // Focus the field, so that entry can start immediately
     entry->clear();
     entry->setFocus();
-     ui->scrollAreaWidgetContents->resize(ui->scrollAreaWidgetContents->sizeHint());
+    ui->scrollAreaWidgetContents->resize(ui->scrollAreaWidgetContents->sizeHint());
     QCoreApplication::instance()->processEvents();
     QScrollBar* bar = ui->scrollArea->verticalScrollBar();
-     if(bar)
+    if (bar)
         bar->setSliderPosition(bar->maximum());
-     return entry;
+    return entry;
 }
- void SendMessagesDialog::updateRemoveEnabled()
+void SendMessagesDialog::updateRemoveEnabled()
 {
     // Remove buttons are enabled as soon as there is more than one send-entry
     bool enabled = (ui->entries->count() > 1);
-     for(int i = 0; i < ui->entries->count(); ++i)
-    {
-        SendMessagesEntry *entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
-        if(entry)
+    for (int i = 0; i < ui->entries->count(); ++i) {
+        SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
+        if (entry)
             entry->setRemoveEnabled(enabled);
     }
-     setupTabChain(0);
+    setupTabChain(0);
 }
- void SendMessagesDialog::removeEntry(SendMessagesEntry* entry)
+void SendMessagesDialog::removeEntry(SendMessagesEntry* entry)
 {
     delete entry;
-     updateRemoveEnabled();
+    updateRemoveEnabled();
 }
- QWidget *SendMessagesDialog::setupTabChain(QWidget *prev)
+QWidget* SendMessagesDialog::setupTabChain(QWidget* prev)
 {
-    for(int i = 0; i < ui->entries->count(); ++i)
-    {
-        SendMessagesEntry *entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
-        if(entry)
-        {
+    for (int i = 0; i < ui->entries->count(); ++i) {
+        SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
+        if (entry) {
             prev = entry->setupTabChain(prev);
         }
     }
-     QWidget::setTabOrder(prev, ui->addButton);
+    QWidget::setTabOrder(prev, ui->addButton);
     QWidget::setTabOrder(ui->addButton, ui->sendButton);
-     return ui->sendButton;
+    return ui->sendButton;
 }
- void SendMessagesDialog::pasteEntry(const SendMessagesRecipient &rv)
+void SendMessagesDialog::pasteEntry(const SendMessagesRecipient& rv)
 {
-    if(!fNewRecipientAllowed)
+    if (!fNewRecipientAllowed)
         return;
-     SendMessagesEntry *entry = 0;
+    SendMessagesEntry* entry = 0;
     // Replace the first entry if it is still unused
-    if(ui->entries->count() == 1)
-    {
-        SendMessagesEntry *first = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(0)->widget());
-         if(first->isClear())
+    if (ui->entries->count() == 1) {
+        SendMessagesEntry* first = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(0)->widget());
+        if (first->isClear())
             entry = first;
     }
-     if(!entry)
+    if (!entry)
         entry = addEntry();
-     entry->setValue(rv);
+    entry->setValue(rv);
 }

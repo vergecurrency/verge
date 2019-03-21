@@ -3886,7 +3886,7 @@ bool CChainState::LoadBlockIndex(const CChainParams& chainparams, const Consensu
         auto checkpointHash = checkpoints.find(item.first);
         if(checkpointHash != checkpoints.end()){
             if(pindex->GetBlockHash() != checkpointHash->second) {
-                LogPrintf("Validating Height: %i where %s == %s", item.first,pindex->GetBlockHash().GetHex().c_str(), checkpointHash->second.GetHex().c_str());
+                LogPrintf("Validating Height: %i where %s == %s \n", item.first,pindex->GetBlockHash().GetHex().c_str(), checkpointHash->second.GetHex().c_str());
                 return error("Failed while validating POW checks against checkpoints");
             }
         }
