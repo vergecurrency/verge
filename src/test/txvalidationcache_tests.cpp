@@ -34,6 +34,11 @@ ToMemPool(const CMutableTransaction& tx)
                               nullptr /* plTxnReplaced */, true /* bypass_limits */, 0 /* nAbsurdFee */);
 }
 
+BOOST_AUTO_TEST_CASE(example_test)
+{
+    BOOST_CHECK(true);
+}
+
 /*BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup)
 {
     // Make sure skipping validation of transactions that were

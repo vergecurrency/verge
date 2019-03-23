@@ -22,9 +22,14 @@
 
 #include <boost/test/unit_test.hpp>
 
-/*BOOST_FIXTURE_TEST_SUITE(bloom_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(bloom_tests, BasicTestingSetup)
 
-BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize)
+BOOST_AUTO_TEST_CASE(ExampleCase)
+{
+    BOOST_CHECK(true);
+}
+
+/*BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize)
 {
     CBloomFilter filter(3, 0.01, 0, BLOOM_UPDATE_ALL);
 
@@ -533,5 +538,5 @@ BOOST_AUTO_TEST_CASE(rolling_bloom)
         BOOST_CHECK(rb2.contains(data[i]));
     }
 }
-
-BOOST_AUTO_TEST_SUITE_END()*/
+*/
+BOOST_AUTO_TEST_SUITE_END()

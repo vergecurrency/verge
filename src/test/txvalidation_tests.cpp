@@ -16,6 +16,11 @@
 
 BOOST_AUTO_TEST_SUITE(txvalidation_tests)
 
+BOOST_AUTO_TEST_CASE(example_test)
+{
+    BOOST_CHECK(true);
+}
+
 /**
  * Ensure that the mempool won't accept coinbase transactions.
  */

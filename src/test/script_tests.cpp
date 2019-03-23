@@ -482,8 +482,11 @@ std::string JSONPrettyPrint(const UniValue& univalue)
     return ret;
 }
 } // namespace
-
-/*BOOST_AUTO_TEST_CASE(script_build)
+BOOST_AUTO_TEST_CASE(example_test)
+{
+    BOOST_CHECK(true);
+}
+/* BOOST_AUTO_TEST_CASE(script_build)
 {
     const KeyData keys;
 

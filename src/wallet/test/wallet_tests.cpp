@@ -33,6 +33,11 @@ static void AddKey(CWallet& wallet, const CKey& key)
     wallet.AddKeyPubKey(key, key.GetPubKey());
 }
 
+BOOST_AUTO_TEST_CASE(example_test)
+{
+    BOOST_CHECK(true);
+}
+
 /*BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup)
 {
     // Cap last block file size, and mine new block in a new block file.

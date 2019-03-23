@@ -14,6 +14,11 @@
 
 BOOST_AUTO_TEST_SUITE(txindex_tests)
 
+BOOST_AUTO_TEST_CASE(example_test)
+{
+    BOOST_CHECK(true);
+}
+
 /*BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
 {
     TxIndex txindex(1 << 20, true);
