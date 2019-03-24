@@ -64,10 +64,11 @@ jobs:
       env: >-
         SHOULD_DEPLOY=0
         RUN_UNIT_TESTS=true
+        RUN_COV_REPORT=true
         HOST=x86_64-unknown-linux-gnu
-        PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
+        PACKAGES="lcov python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
         DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
-        VERGE_CONFIG="--disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports"
+        VERGE_CONFIG="--enable-lcov --disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports"
 
     - stage: test
       name: "[Deploy] Windows 32-bit"
