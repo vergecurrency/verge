@@ -3204,7 +3204,6 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
     
     if (rv){
         SetAddressBook(sxAddr, sxAddr.label, "");
-        LogPrintf("Wrote %s Address to our address store.", sxAddr.label);
     }
     
     return rv;
