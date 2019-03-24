@@ -3,6 +3,9 @@
   <a href="https://travis-ci.org/vergecurrency/VERGE" target="_blank"><img src="https://travis-ci.org/vergecurrency/VERGE.svg?branch=master"></a>
   <img src="https://img.shields.io/badge/status-alpha-red.svg">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+  <a href="https://codecov.io/gh/vergecurrency/VERGE">
+    <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/develop/graph/badge.svg" />
+  </a>
 </p>
 
 # VERGE Source Code [XVG]

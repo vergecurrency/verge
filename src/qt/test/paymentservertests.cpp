@@ -203,7 +203,7 @@ void PaymentServerTests::paymentServerTests()
     for (const std::pair<CScript, CAmount>& sendingTo : sendingTos) {
         CTxDestination dest;
         if (ExtractDestination(sendingTo.first, dest))
-            QCOMPARE(PaymentServer::verifyAmount(sendingTo.second), false);
+            QCOMPARE(PaymentServer::verifyAmount(sendingTo.second * MAX_MONEY), false);
     }
 
     delete server;
