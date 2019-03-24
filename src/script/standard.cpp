@@ -251,10 +251,9 @@ class CScriptVisitor : public boost::static_visitor<bool>
 {
 private:
     CScript *script;
-    bool shouldStealth;
 public:
     explicit CScriptVisitor(CScript *scriptin) { script = scriptin; }
-    CScriptVisitor(CScript *scriptin, bool shouldStealthIn) { script = scriptin; shouldStealth = shouldStealthIn; }
+    CScriptVisitor(CScript *scriptin, bool shouldStealthIn) { script = scriptin; }
 
     bool operator()(const CNoDestination &dest) const {
         script->clear();
