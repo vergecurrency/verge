@@ -3,7 +3,7 @@ Copied from here:
 
 To build:
 ---
-    docker build --rm -t vergecurrency/verge:2.1.0-ubuntu14 .
+    docker build --rm -t vergecurrency/verge:5.0.0-ubuntu18 .
 
 
 Before running:
@@ -23,7 +23,7 @@ Test that the docker runs:
 
 To run:
 ---
-    docker run -d --name verge:ubuntu14 -v `pwd`/tmpverge:/coin/home -p 20102:20102 -p 21102:21102 verge
+    docker run -d --name verge:ubuntu18 -v `pwd`/tmpverge:/coin/home -p 20102:20102 -p 21102:21102 verge
 
 This command should return a container id. You can use this id (or the first few characters of it to refer to later. We added a name option above so we can just refer to it as 'verge'.)
 

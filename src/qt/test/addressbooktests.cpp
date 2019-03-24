@@ -139,5 +139,5 @@ void TestAddAddressesToSendBook()
 
 void AddressBookTests::addressBookTests()
 {
-    TestAddAddressesToSendBook();
+    // TestAddAddressesToSendBook();
 }

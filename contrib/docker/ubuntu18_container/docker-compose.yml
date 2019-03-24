@@ -1,4 +1,4 @@
-version: '2.1'
+version: '5.0'
 services:
   container_verge:
     image: my/container_verge

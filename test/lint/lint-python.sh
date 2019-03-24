@@ -50,7 +50,7 @@ export LC_ALL=C
 # F602 dictionary key variable name repeated with different values
 # F621 too many expressions in an assignment with star-unpacking
 # F622 two or more starred expressions in an assignment (a, *b, *c = d)
-# F631 assertion test is a tuple, which are always True
+# F631 assertion test is a tuple, command -v are always True
 # F701 a break statement outside of a while or for loop
 # F702 a continue statement outside of a while or for loop
 # F703 a continue statement in a finally block in a loop
@@ -77,4 +77,4 @@ export LC_ALL=C
 # W605 invalid escape sequence "x"
 # W606 'async' and 'await' are reserved keywords starting with Python 3.7
 
-flake8 --ignore=B,C,E,F,I,N,W --select=E101,E112,E113,E115,E116,E125,E129,E131,E133,E223,E224,E242,E266,E271,E272,E273,E274,E275,E304,E306,E401,E402,E502,E701,E702,E703,E714,E721,E741,E742,E743,F401,E901,E902,F402,F404,F406,F407,F601,F602,F621,F622,F631,F701,F702,F703,F704,F705,F706,F707,F811,F812,F821,F822,F823,F831,F841,W191,W291,W292,W293,W504,W601,W602,W603,W604,W605,W606 .
+flake8 --ignore=B,C,E,F,I,N,W --select=E101,E112,E113,E115,E116,E125,E129,E131,E133,E223,E224,E242,E266,E271,E272,E273,E274,E275,E304,E306,E401,E402,E502,E701,E702,E703,E714,E721,E741,E742,E743,F401,E901,E902,F402,F404,F406,F407,F601,F602,F621,F622,F631,F701,F702,F703,F704,F705,F706,F707,F811,F812,F821,F822,F823,F831,F841,W191,W291,W292,W293,W504,W601,W602,W603,W604,W605,W606 --exclude=src/tor,depends,test,contrib --jobs=4 .

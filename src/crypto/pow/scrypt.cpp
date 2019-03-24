@@ -27,7 +27,7 @@
  * online backup system.
  */
 
-#include "config/verge-config.h"
+#include <config/verge-config.h>
 
 #include "scrypt.h"
 // #include "util.h"
@@ -35,7 +35,7 @@
 #include <stdint.h>
 #include <string.h>
 // #include <openssl/sha.h>
-#include "crypto/hmac_sha256.h"
+#include <crypto/hmac_sha256.h>
 
 // #if defined(_MSC_VER)
 // #include <immintrin.h>

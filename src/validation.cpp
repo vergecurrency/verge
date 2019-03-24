@@ -1201,18 +1201,8 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
         return 1560 * COIN;
     if (nHeight<4248001 && nHeight>2124000)
         return 730 * COIN;
-    if (nHeight<6700000 && nHeight>4248000)
-        return 50 * COIN;
-    return 0; // Default
-    // int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // // Force block reward to zero when right shift is undefined.
-    // if (halvings >= 64)
-    //     return 0;
 
-    // CAmount nSubsidy = 50 * COIN;
-    // // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    // nSubsidy >>= halvings;
-    // return nSubsidy;
+    return 0; // Default
 }
 
 bool IsInitialBlockDownload()
@@ -3609,6 +3599,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
         }
         if (!ret) {
             GetMainSignals().BlockChecked(*pblock, state);
+            // std::cout << "AcceptBlock FAILED: " << FormatStateMessage(state) << "\n";
             return error("%s: AcceptBlock FAILED (%s)", __func__, FormatStateMessage(state));
         }
     }
@@ -3896,7 +3887,7 @@ bool CChainState::LoadBlockIndex(const CChainParams& chainparams, const Consensu
         auto checkpointHash = checkpoints.find(item.first);
         if(checkpointHash != checkpoints.end()){
             if(pindex->GetBlockHash() != checkpointHash->second) {
-                LogPrintf("Validating Height: %i where %s == %s", item.first,pindex->GetBlockHash().GetHex().c_str(), checkpointHash->second.GetHex().c_str());
+                LogPrintf("Validating Height: %i where %s == %s \n", item.first,pindex->GetBlockHash().GetHex().c_str(), checkpointHash->second.GetHex().c_str());
                 return error("Failed while validating POW checks against checkpoints");
             }
         }

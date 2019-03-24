@@ -1,21 +1,20 @@
-#include "messagepage.h"
-#include "ui_messagepage.h"
- #include "sendmessagesdialog.h"
-#include "mrichtextedit.h"
-#include "messagemodel.h"
-#include "vergegui.h"
-#include "csvmodelwriter.h"
-#include "guiutil.h"
- #include <QSortFilterProxyModel>
+#include <messagepage.h>
+#include <ui_messagepage.h>
+#include <sendmessagesdialog.h>
+#include <mrichtextedit.h>
+#include <messagemodel.h>
+#include <vergegui.h>
+#include <csvmodelwriter.h>
+#include <guiutil.h>
+#include <QSortFilterProxyModel>
 #include <QClipboard>
 #include <QMessageBox>
-#include <QMenu>
 #include <QStyledItemDelegate>
 #include <QAbstractTextDocumentLayout>
 #include <QPainter>
- #include <QToolBar>
+#include <QToolBar>
 #include <QMenu>
- #define DECORATION_SIZE 64
+#define DECORATION_SIZE 64
 #define NUM_ITEMS 3
  class MessageViewDelegate : public QStyledItemDelegate
 {

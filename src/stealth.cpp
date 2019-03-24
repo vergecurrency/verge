@@ -3,11 +3,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#include "stealth.h"
-#include "base58.h"
-#include "uint256.h"
-#include "crypto/sha256.h"
-#include "arith_uint256.h"
+#include <stealth.h>
+#include <base58.h>
+#include <uint256.h>
+#include <crypto/sha256.h>
+#include <arith_uint256.h>
 
 #include <openssl/rand.h>
 #include <openssl/ec.h>
@@ -717,15 +717,15 @@ bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealt
     };
     
     // leaving  Log Prints for debugging reasons.
-    LogPrintf("getnewstealthaddress: ");
-    LogPrintf("scan_pubkey ");
+    LogPrintf("getnewstealthaddress: \n");
+    LogPrintf("scan_pubkey \n");
     for (uint32_t i = 0; i < scan_pubkey.size(); ++i)
-        LogPrintf("%02x", scan_pubkey[i]);
+        LogPrintf("%02x\n", scan_pubkey[i]);
     LogPrintf("\n");
     
-    LogPrintf("spend_pubkey ");
+    LogPrintf("spend_pubkey \n");
     for (uint32_t i = 0; i < spend_pubkey.size(); ++i)
-        LogPrintf("%02x", spend_pubkey[i]);
+        LogPrintf("%02x\n", spend_pubkey[i]);
     LogPrintf("\n");
     
     sxAddr.label = sLabel;

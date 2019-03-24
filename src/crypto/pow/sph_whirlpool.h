@@ -45,8 +45,8 @@
  * @author   Thomas Pornin <thomas.pornin@cryptolog.com>
  */
 
-#ifndef SPH_WHIRLPOOL_H__
-#define SPH_WHIRLPOOL_H__
+#ifndef VERGE_CRYPTO_POW_SPH_WHIRLPOOL_H
+#define VERGE_CRYPTO_POW_SPH_WHIRLPOOL_H
 
 #include <stddef.h>
 #include "sph_types.h"
@@ -214,5 +214,5 @@ void sph_whirlpool1_close(void *cc, void *dst);
 }
 #endif
 
-#endif
+#endif // VERGE_CRYPTO_POW_SPH_WHIRLPOOL_H
 
