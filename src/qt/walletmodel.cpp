@@ -206,8 +206,10 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
                         }
                     }
                 }
-                
-
+            } else {
+                CScript scriptPubKey = GetScriptForDestination(dest);
+                CRecipient recipient = {scriptPubKey, rcp.amount, rcp.fSubtractFeeFromAmount};
+                vecSend.push_back(recipient);
             }
 
             total += rcp.amount;
