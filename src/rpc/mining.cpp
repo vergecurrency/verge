@@ -63,7 +63,7 @@ static UniValue GetNetworkHashPS(int lookup, int height, int algo = ALGO) {
     int64_t maxTime = minTime;
     arith_uint256 workTotal = GetBlockProof(*pb);
     for (int i = 0; i < lookup; i++) {
-        pb0 = GetLastBlockIndex4Algo(pb0, algo);
+        pb0 = GetLastBlockIndex4Algo(pb0->pprev, algo);
         if (pb0 == nullptr) break;
         workTotal += GetBlockProof(*pb0);
         int64_t time = pb0->GetBlockTime();
@@ -113,7 +113,7 @@ static UniValue getallnetworkhashps(const JSONRPCRequest& request)
             "Pass in [blocks] to override # of blocks, -1 specifies since last difficulty change.\n"
             "Pass in [height] to estimate the network speed at the time when a certain block was found.\n"
             "\nArguments:\n"
-            "1. nblocks     (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change.\n"
+            "1. nblocks     (numeric, optional, default=360) The number of blocks, or -1 for blocks since last difficulty change.\n"
             "2. height      (numeric, optional, default=-1) To estimate at the time of the given height.\n"
             "\nResult:\n"
             "x             (numeric) Hashes per second estimated\n"
@@ -123,7 +123,7 @@ static UniValue getallnetworkhashps(const JSONRPCRequest& request)
        );
 
     LOCK(cs_main);
-    int blocks = !request.params[0].isNull() ? request.params[0].get_int() : 120;
+    int blocks = !request.params[0].isNull() ? request.params[0].get_int() : 360;
     int height =  !request.params[1].isNull() ? request.params[1].get_int() : -1;
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("scrypt", GetNetworkHashPS(blocks, height, ALGO_SCRYPT));
