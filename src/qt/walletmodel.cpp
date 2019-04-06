@@ -194,15 +194,22 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
                         if (cpkTo.IsValid())
                         {
                             CKeyID addr = cpkTo.GetID();
-                            // adding address part
-                            CScript scriptAddr = GetScriptForDestination(addr);
-                            CRecipient recipient = {scriptAddr, rcp.amount, rcp.fSubtractFeeFromAmount};
-                            vecSend.push_back(recipient);
 
-                            // adding address part
-                            CScript scriptPubKey = GetScriptForStealthPubKey(cpkTo);
-                            CRecipient recipientTwo = {scriptPubKey, 0, false};
-                            vecSend.push_back(recipientTwo);
+                            if (SecretToPublicKey(ephem_secret, ephem_pubkey) == 0)
+                            {
+                                // adding address part
+                                CScript scriptAddr = GetScriptForDestination(addr);
+                                CRecipient recipient = {scriptAddr, rcp.amount, rcp.fSubtractFeeFromAmount};
+                                vecSend.push_back(recipient);
+
+                                // adding the ephem key part
+                                CPubKey ephemPubKey(ephem_pubkey);
+                                CScript scriptPubKey = GetScriptForStealthPubKey(ephemPubKey);
+                                CRecipient recipientTwo = {scriptPubKey, 0, false};
+                                vecSend.push_back(recipientTwo);
+                               
+                            }
+
                         }
                     }
                 }
