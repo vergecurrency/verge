@@ -66,7 +66,6 @@ public:
     uint8_t options;
     ec_point scan_pubkey;
     ec_point spend_pubkey;
-    //std::vector<ec_point> spend_pubkeys;
     size_t number_signatures;
     stealth_prefix prefix;
     
@@ -111,7 +110,7 @@ int GenerateRandomSecret(ec_secret& out);
 
 int SecretToPublicKey(const ec_secret& secret, ec_point& out);
 
-int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, ec_secret& sharedSOut, ec_point& pkOut);
+int StealthSecret(ec_secret& secret, const ec_point& pubkey, const ec_point& pkSpend, ec_secret& sharedSOut, ec_point& pkOut);
 int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& spendSecret, ec_secret& secretOut);
 int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_secret& secretOut);
 
