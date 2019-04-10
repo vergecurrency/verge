@@ -1,4 +1,4 @@
-packages:=boost openssl libevent zeromq
+packages:=boost openssl libevent zeromq #libcap libseccomp  
 
 qt_native_packages = native_protobuf
 qt_packages = qrencode protobuf zlib

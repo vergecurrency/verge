@@ -617,7 +617,7 @@ UniValue getnewstealthaddress(const JSONRPCRequest& request){
     
     CStealthAddress sxAddr;
     std::string sError;
-    if (GenerateNewStealthAddress(sError, sLabel, sxAddr))
+    if (!GenerateNewStealthAddress(sError, sLabel, sxAddr))
         throw std::runtime_error(std::string("Could get new stealth address: ") + sError);
     
     if (!pwallet->AddStealthAddress(sxAddr))
@@ -4519,8 +4519,7 @@ static UniValue submitblock(const JSONRPCRequest& request)
     if (!blockptr->SignBlock(*pwallet)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
     }
-
-    LogPrintf("%s", block.ToString().c_str());
+    
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase()) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
     }

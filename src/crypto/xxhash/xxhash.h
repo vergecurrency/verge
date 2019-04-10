@@ -56,6 +56,8 @@ Q.Score is a measure of quality of the hash function.
 It depends on successfully passing SMHasher test set. 
 10 is a perfect score.
 */
+#ifndef VERGE_CRYPTO_XXHASH_XXHASH_H
+#define VERGE_CRYPTO_XXHASH_XXHASH_H
 
 #pragma once
 
@@ -162,3 +164,5 @@ To free memory context, use XXH32_digest(), or free().
 #if defined (__cplusplus)
 }
 #endif
+
+#endif // VERGE_CRYPTO_XXHASH_XXHASH_H

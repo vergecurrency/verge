@@ -1,5 +1,5 @@
-#ifndef MESSAGEPAGE_H
-#define MESSAGEPAGE_H
+#ifndef VERGE_QT_MESSAGEPAGE_H
+#define VERGE_QT_MESSAGEPAGE_H
  #include <QWidget>
  namespace Ui {
     class MessagePage;
@@ -56,4 +56,5 @@ class MessagePage : public QWidget
     void contextualMenu(const QPoint &point);
  signals:
 };
- #endif // MESSAGEPAGE_H
+
+#endif // VERGE_QT_MESSAGEPAGE_H

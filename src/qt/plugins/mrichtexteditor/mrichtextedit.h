@@ -21,11 +21,11 @@
 ** $QT_END_LICENSE$
 */
 
-#ifndef _MRICHTEXTEDIT_H_
-#define _MRICHTEXTEDIT_H_
+#ifndef VERGE_QT_PLUGINS_MRICHTEXTEDITOR_MRICHTEXTEDIT_H
+#define VERGE_QT_PLUGINS_MRICHTEXTEDITOR_MRICHTEXTEDIT_H
 
 #include <QPointer>
-#include "ui_mrichtextedit.h"
+#include <ui_mrichtextedit.h>
 
 /**
  * @Brief A simple rich-text editor
@@ -89,4 +89,4 @@ class MRichTextEdit : public QWidget, protected Ui::MRichTextEdit {
     QPointer<QTextList> m_lastBlockList;
 };
 
-#endif
+#endif // VERGE_QT_PLUGINS_MRICHTEXTEDITOR_MRICHTEXTEDIT_H

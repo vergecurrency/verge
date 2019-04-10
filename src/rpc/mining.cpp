@@ -63,7 +63,7 @@ static UniValue GetNetworkHashPS(int lookup, int height, int algo = ALGO) {
     int64_t maxTime = minTime;
     arith_uint256 workTotal = GetBlockProof(*pb);
     for (int i = 0; i < lookup; i++) {
-        pb0 = GetLastBlockIndex4Algo(pb0, algo);
+        pb0 = GetLastBlockIndex4Algo(pb0->pprev, algo);
         if (pb0 == nullptr) break;
         workTotal += GetBlockProof(*pb0);
         int64_t time = pb0->GetBlockTime();
@@ -113,7 +113,7 @@ static UniValue getallnetworkhashps(const JSONRPCRequest& request)
             "Pass in [blocks] to override # of blocks, -1 specifies since last difficulty change.\n"
             "Pass in [height] to estimate the network speed at the time when a certain block was found.\n"
             "\nArguments:\n"
-            "1. nblocks     (numeric, optional, default=120) The number of blocks, or -1 for blocks since last difficulty change.\n"
+            "1. nblocks     (numeric, optional, default=360) The number of blocks, or -1 for blocks since last difficulty change.\n"
             "2. height      (numeric, optional, default=-1) To estimate at the time of the given height.\n"
             "\nResult:\n"
             "x             (numeric) Hashes per second estimated\n"
@@ -123,7 +123,7 @@ static UniValue getallnetworkhashps(const JSONRPCRequest& request)
        );
 
     LOCK(cs_main);
-    int blocks = !request.params[0].isNull() ? request.params[0].get_int() : 120;
+    int blocks = !request.params[0].isNull() ? request.params[0].get_int() : 360;
     int height =  !request.params[1].isNull() ? request.params[1].get_int() : -1;
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("scrypt", GetNetworkHashPS(blocks, height, ALGO_SCRYPT));
@@ -236,6 +236,22 @@ static std::string gbt_vb_name(const Consensus::DeploymentPos pos) {
     return s;
 }
 
+static int32_t determineVersionForBlockTemplate(int32_t algo){
+    switch(algo) {
+        case ALGO_X17:
+            return BLOCK_VERSION_X17;
+        case ALGO_LYRA2RE:
+            return BLOCK_VERSION_LYRA2RE;
+        case ALGO_BLAKE:
+            return BLOCK_VERSION_BLAKE;
+        case ALGO_GROESTL:
+            return BLOCK_VERSION_GROESTL;
+        case ALGO_SCRYPT:
+        default:
+            return BLOCK_VERSION_SCRYPT;
+    }
+}
+
 static UniValue getblocktemplate(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() > 1)
@@ -261,6 +277,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             "           \"support\"          (string) client side supported softfork deployment\n"
             "           ,...\n"
             "       ]\n"
+            "       \"algo\": \"scrypt\"\n"
             "     }\n"
             "\n"
 
@@ -319,6 +336,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
     std::string strMode = "template";
     UniValue lpval = NullUniValue;
+    UniValue algorithm = NullUniValue;
     std::set<std::string> setClientRules;
     int64_t nMaxVersionPreVB = -1;
     if (!request.params[0].isNull())
@@ -334,7 +352,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         else
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
         lpval = find_value(oparam, "longpollid");
-
+        algorithm = find_value(oparam, "algo");
         if (strMode == "proposal")
         {
             const UniValue& dataval = find_value(oparam, "data");
@@ -583,7 +601,20 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             }
         }
     }
-    result.pushKV("version", pindexPrev->nHeight < 3400000 ? 2 : VERSIONBITS_LAST_OLD_BLOCK_VERSION);
+
+    int32_t version = 2;
+    if((pindexPrev->nHeight + 1) >= 340000){
+        version = VERSIONBITS_LAST_OLD_BLOCK_VERSION;
+        if(algorithm.isStr()){
+            std::string algorithmStr = algorithm.get_str();
+            int32_t algo = GetAlgoByName(algorithmStr);
+            version |= determineVersionForBlockTemplate(algo);
+        } else {
+            // defaulting to ALGO, this either set via config or default script
+            version |= determineVersionForBlockTemplate(ALGO);
+        }
+    }
+    result.pushKV("version", version);
     result.pushKV("rules", aRules);
     result.pushKV("vbavailable", vbavailable);
     result.pushKV("vbrequired", int(0));

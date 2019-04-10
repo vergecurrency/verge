@@ -1,9 +1,9 @@
-#ifndef MESSAGEMODEL_H
-#define MESSAGEMODEL_H
- #include "uint256.h"
- #include <vector>
-#include "allocators.h" /* for SecureString */
-#include "smessage.h"
+#ifndef VERGE_QT_MESSAGEMODEL_H
+#define VERGE_QT_MESSAGEMODEL_H
+#include <uint256.h>
+#include <vector>
+#include <allocators.h> /* for SecureString */
+#include <smessage.h>
 #include <map>
 #include <QSortFilterProxyModel>
 #include <QAbstractTableModel>
@@ -166,4 +166,5 @@ private:
     // Asynchronous error notification
     void error(const QString &title, const QString &message, bool modal);
 };
- #endif // MESSAGEMODEL_H
+
+#endif // VERGE_QT_MESSAGEMODEL_H

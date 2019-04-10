@@ -3,12 +3,12 @@
 // Copyright (c) 2018-2018 The VERGE Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef HASH_SKEIN
-#define HASH_SKEIN
+#ifndef VERGE_CRYPTO_POW_HASHSKEIN_H
+#define VERGE_CRYPTO_POW_HASHSKEIN_H
 
-#include "uint256.h"
-#include "serialize.h"
-#include "sph_skein.h"
+#include <uint256.h>
+#include <serialize.h>
+#include <sph_skein.h>
 
 #include <openssl/sha.h>
 #include <openssl/ripemd.h>
@@ -34,5 +34,4 @@ inline uint256 HashSkein(const T1 pbegin, const T1 pend)
     return hash2;
 }
 
-
-#endif
+#endif // VERGE_CRYPTO_POW_HASHSKEIN_H

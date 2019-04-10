@@ -1,14 +1,14 @@
-#include "guiutil.h"
-#include "guiconstants.h"
-#include "vergeunits.h"
-#include "optionsmodel.h"
-#include "walletmodel.h"
-#include "messagemodel.h"
-#include "addresstablemodel.h"
- #include "ui_interface.h"
-#include "base58.h"
-#include "json_spirit.h"
- #include <QSet>
+#include <guiutil.h>
+#include <guiconstants.h>
+#include <vergeunits.h>
+#include <optionsmodel.h>
+#include <walletmodel.h>
+#include <messagemodel.h>
+#include <addresstablemodel.h>
+#include <ui_interface.h>
+#include <base58.h>
+#include <json_spirit.h>
+#include <QSet>
 #include <QTimer>
 #include <QDateTime>
 #include <QSortFilterProxyModel>

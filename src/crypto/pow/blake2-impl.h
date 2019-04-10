@@ -11,8 +11,8 @@
    this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 #pragma once
-#ifndef __BLAKE2_IMPL_H__
-#define __BLAKE2_IMPL_H__
+#ifndef VERGE_CRYPTO_POW_BLAKE2-IMPL_H
+#define VERGE_CRYPTO_POW_BLAKE2-IMPL_H
 
 #include <stdint.h>
 
@@ -132,5 +132,5 @@ static inline void secure_zero_memory( void *v, size_t n )
   while( n-- ) *p++ = 0;
 }
 
-#endif
+#endif // VERGE_CRYPTO_POW_BLAKE2-IMPL_H
 

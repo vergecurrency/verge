@@ -3,12 +3,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_STEALTH_H
-#define BITCOIN_STEALTH_H
+#ifndef VERGE_STEALTH_H
+#define VERGE_STEALTH_H
 
-#include "serialize.h"
-#include "logging.h"
-#include "random.h"
+#include <serialize.h>
+#include <logging.h>
+#include <random.h>
 
 #include <stdlib.h> 
 #include <stdio.h> 
@@ -66,7 +66,6 @@ public:
     uint8_t options;
     ec_point scan_pubkey;
     ec_point spend_pubkey;
-    //std::vector<ec_point> spend_pubkeys;
     size_t number_signatures;
     stealth_prefix prefix;
     
@@ -111,11 +110,11 @@ int GenerateRandomSecret(ec_secret& out);
 
 int SecretToPublicKey(const ec_secret& secret, ec_point& out);
 
-int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, ec_secret& sharedSOut, ec_point& pkOut);
+int StealthSecret(ec_secret& secret, const ec_point& pubkey, const ec_point& pkSpend, ec_secret& sharedSOut, ec_point& pkOut);
 int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& spendSecret, ec_secret& secretOut);
 int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_secret& secretOut);
 
 bool IsStealthAddress(const std::string& encodedAddress);
 bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr);
 
-#endif  // BITCOIN_STEALTH_H
+#endif // VERGE_STEALTH_H
