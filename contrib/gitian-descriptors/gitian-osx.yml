@@ -1,5 +1,5 @@
 ---
-name: "verge-osx-0.17"
+name: "verge-osx-5.0.0-beta1"
 enable_cache: true
 suites:
 - "trusty"

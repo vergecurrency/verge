@@ -1,5 +1,5 @@
 ---
-name: "verge-linux-0.17"
+name: "verge-linux-5.0.0-beta1"
 enable_cache: true
 suites:
 - "trusty"
@@ -29,7 +29,7 @@ packages:
 - "python"
 remotes:
 - "url": "https://github.com/vergecurrency/VERGE.git"
-  "dir": "VERGE"
+  "dir": "verge"
 files: []
 script: |
 
@@ -79,13 +79,13 @@ script: |
   }
 
   # Faketime for depends so intermediate results are comparable
-  export PATH_orig=${PATH}
-  create_global_faketime_wrappers "2000-01-01 12:00:00"
-  create_per-host_faketime_wrappers "2000-01-01 12:00:00"
-  export PATH=${WRAP_DIR}:${PATH}
+  # export PATH_orig=${PATH}
+  # create_global_faketime_wrappers "2000-01-01 12:00:00"
+  # create_per-host_faketime_wrappers "2000-01-01 12:00:00"
+  # export PATH=${WRAP_DIR}:${PATH}
 
-  EXTRA_INCLUDES_BASE=$WRAP_DIR/extra_includes
-  mkdir -p $EXTRA_INCLUDES_BASE
+  # EXTRA_INCLUDES_BASE=$WRAP_DIR/extra_includes
+  # mkdir -p $EXTRA_INCLUDES_BASE
 
   # x86 needs /usr/include/i386-linux-gnu/asm pointed to /usr/include/x86_64-linux-gnu/asm,
   # but we can't write there. Instead, create a link here and force it to be included in the
@@ -126,10 +126,10 @@ script: |
   done
 
   # Faketime for binaries
-  export PATH=${PATH_orig}
-  create_global_faketime_wrappers "${REFERENCE_DATETIME}"
-  create_per-host_faketime_wrappers "${REFERENCE_DATETIME}"
-  export PATH=${WRAP_DIR}:${PATH}
+  # export PATH=${PATH_orig}
+  # create_global_faketime_wrappers "${REFERENCE_DATETIME}"
+  # create_per-host_faketime_wrappers "${REFERENCE_DATETIME}"
+  # export PATH=${WRAP_DIR}:${PATH}
 
   # Create the release tarball using (arbitrarily) the first host
   ./autogen.sh
