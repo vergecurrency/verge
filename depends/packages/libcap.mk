@@ -9,9 +9,11 @@ define $(package)_set_vars
 endef
 
 define $(package)_build_cmds
-  $(MAKE)
-endef
-
-define $(package)_stage_cmds
-  $(MAKE) DESTDIR=$($(package)_staging_dir) install
+  $(MAKE) DESTDIR=`pwd`/out prefix=/ RAISE_SETFCAP=no lib="lib" install && \
+  mkdir -p $($(package)_staging_dir)$(host_prefix)/bin && \
+  cp -a out/sbin/* $($(package)_staging_dir)$(host_prefix)/bin/ && \
+  \
+  mkdir -p $($(package)_staging_dir)$(host_prefix)/lib && \
+  cp -a out/lib/* $($(package)_staging_dir)$(host_prefix)/lib/ && \
+  cp -a out/lib/pkgconfig/* $($(package)_staging_dir)$(host_prefix)/lib/pkgconfig/
 endef
