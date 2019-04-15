@@ -4,6 +4,8 @@ $(package)_download_path=https://github.com/seccomp/libseccomp/releases/download
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=7fc28f4294cc72e61c529bedf97e705c3acf9c479a8f1a3028d4cd2ca9f3b155
 
+ifneq ($(host_os),mingw32)
+
 define $(package)_set_vars
   $(package)_config_opts=--disable-static
 endef
@@ -19,3 +21,5 @@ endef
 define $(package)_stage_cmds
   $(MAKE) DESTDIR=$($(package)_staging_dir) install
 endef
+
+endif
