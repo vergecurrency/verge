@@ -27,6 +27,8 @@ packages:
 - "bsdmainutils"
 - "ca-certificates"
 - "python"
+- "libattr1-dev"
+
 remotes:
 - "url": "https://github.com/vergecurrency/VERGE.git"
   "dir": "verge"
@@ -79,13 +81,13 @@ script: |
   }
 
   # Faketime for depends so intermediate results are comparable
-  # export PATH_orig=${PATH}
-  # create_global_faketime_wrappers "2000-01-01 12:00:00"
-  # create_per-host_faketime_wrappers "2000-01-01 12:00:00"
-  # export PATH=${WRAP_DIR}:${PATH}
+  export PATH_orig=${PATH}
+  #create_global_faketime_wrappers "2000-01-01 12:00:00"
+  #create_per-host_faketime_wrappers "2000-01-01 12:00:00"
+  export PATH=${WRAP_DIR}:${PATH}
 
-  # EXTRA_INCLUDES_BASE=$WRAP_DIR/extra_includes
-  # mkdir -p $EXTRA_INCLUDES_BASE
+  EXTRA_INCLUDES_BASE=$WRAP_DIR/extra_includes
+  mkdir -p $EXTRA_INCLUDES_BASE
 
   # x86 needs /usr/include/i386-linux-gnu/asm pointed to /usr/include/x86_64-linux-gnu/asm,
   # but we can't write there. Instead, create a link here and force it to be included in the
@@ -113,7 +115,7 @@ script: |
   chmod +x ${WRAP_DIR}/${prog}
   done
 
-  cd VERGE
+  cd verge
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -170,11 +172,11 @@ script: |
     #      Instead, we should investigate why these are popping up.
     #      For aarch64, we'll need to bump up the min GLIBC version, as the abi
     #      support wasn't introduced until 2.17.
-    case $i in
-       aarch64-*) : ;;
-       arm-*) : ;;
-       *) make ${MAKEOPTS} -C src check-symbols ;;
-    esac
+    # case $i in
+    #    aarch64-*) : ;;
+    #    arm-*) : ;;
+    #    *) make ${MAKEOPTS} -C src check-symbols ;;
+    # esac
 
     make install DESTDIR=${INSTALLPATH}
     cd installed
