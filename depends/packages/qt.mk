@@ -1,9 +1,9 @@
 PACKAGE=qt
-$(package)_version=5.9.7
+$(package)_version=5.9.8
 $(package)_download_path=https://download.qt.io/official_releases/qt/5.9/$($(package)_version)/submodules
 $(package)_suffix=opensource-src-$($(package)_version).tar.xz
 $(package)_file_name=qtbase-$($(package)_suffix)
-$(package)_sha256_hash=36dd9574f006eaa1e5af780e4b33d11fe39d09fd7c12f3b9d83294174bd28f00
+$(package)_sha256_hash=9b9dec1f67df1f94bce2955c5604de992d529dde72050239154c56352da0907d
 $(package)_dependencies=openssl zlib
 $(package)_linux_dependencies=freetype fontconfig libxcb libX11 xproto libXext
 $(package)_build_subdir=qtbase
@@ -125,11 +125,11 @@ define $(package)_extract_cmds
   echo "$($(package)_qttools_sha256_hash)  $($(package)_source_dir)/$($(package)_qttools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
-  tar --strip-components=1 -xf $($(package)_source) -C qtbase && \
+  tar --no-same-owner --strip-components=1 -xf $($(package)_source) -C qtbase && \
   mkdir qttranslations && \
-  tar --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttranslations_file_name) -C qttranslations && \
+  tar --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttranslations_file_name) -C qttranslations && \
   mkdir qttools && \
-  tar --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttools_file_name) -C qttools
+  tar --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttools_file_name) -C qttools
 endef
 
 define $(package)_preprocess_cmds
@@ -138,7 +138,7 @@ define $(package)_preprocess_cmds
   sed -i.old "/updateqm.depends =/d" qttranslations/translations/translations.pro && \
   sed -i.old "s/src_plugins.depends = src_sql src_network/src_plugins.depends = src_network/" qtbase/src/src.pro && \
   sed -i.old "s|X11/extensions/XIproto.h|X11/X.h|" qtbase/src/plugins/platforms/xcb/qxcbxsettings.cpp && \
-  sed -i.old 's/if \[ "$$$$XPLATFORM_MAC" = "yes" \]; then xspecvals=$$$$(macSDKify/if \[ "$$$$BUILD_ON_MAC" = "yes" \]; then xspecvals=$$$$(macSDKify/' qtbase/configure && \
+  sed -i.old -e 's/if \[ "$$$$XPLATFORM_MAC" = "yes" \]; then xspecvals=$$$$(macSDKify/if \[ "$$$$BUILD_ON_MAC" = "yes" \]; then xspecvals=$$$$(macSDKify/' -e 's|/bin/pwd|pwd|' qtbase/configure && \
   sed -i.old 's/CGEventCreateMouseEvent(0, kCGEventMouseMoved, pos, 0)/CGEventCreateMouseEvent(0, kCGEventMouseMoved, pos, kCGMouseButtonLeft)/' qtbase/src/plugins/platforms/cocoa/qcocoacursor.mm && \
   mkdir -p qtbase/mkspecs/macx-clang-linux &&\
   cp -f qtbase/mkspecs/macx-clang/Info.plist.lib qtbase/mkspecs/macx-clang-linux/ &&\
