@@ -1,48 +1,83 @@
 version: 2
+
+defaults: &defaults
+  machine:
+      enabled: true
+
+run_apt_packages: &run_apt_packages 
+  name: Prepare VM
+  command: sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3
+
+set_python_version: &set_python_version
+  name: Set Python Version
+  command: pyenv global 3.5.2
+
+run_base_setup: &run_base_setup
+  name: Setup repo and execute VM builder
+  command: ./gitian-build.py --docker --commit --setup marpme master
+
 jobs:
   build:
-    machine:
-      enabled: true
+    <<: *defaults
     steps:
+      - run:
+          <<: *run_apt_packages
       - checkout:
           path: ~/project/verge
-      - run: 
-          name: Prepare VM
-          command: sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3
       - run:
           name: Hardcopy gitian build script
           command: cp ./verge/contrib/gitian-build.py . && chmod u+x gitian-build.py
       - run:
           name: Prepare VM Builder
           command: git clone https://github.com/newroco/vmbuilder.git && cd vmbuilder && sudo chmod u+x setup.py && sudo ./setup.py install
-      - run:
-          name: Set Python Version
-          command: pyenv global 3.5.2
-      - run: 
-          name: Setup repo and execute VM builder
-          command: ./gitian-build.py --docker --commit --setup marpme master
       - run: 
           name: Add OSX SDK
-          command: cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
+          command: mkdir -p gitian-builder && cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
+      - persist_to_workspace:
+          root: "."
+          paths:
+            - "."
+
   windows:
-    machine:
-      enabled: true
+    <<: *defaults
     steps:
+      - attach_workspace:
+          at: .
+      - run:
+          <<: *run_apt_packages
+      - run:
+          <<: *set_python_version
+      - run:
+          <<: *run_base_setup
       - run: 
           name: Gitian Build Windows
           command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme master
 
   macos:
-    machine:
-      enabled: true
+    <<: *defaults
     steps:
+      - attach_workspace:
+          at: .
+      - run: 
+          <<: *run_apt_packages
+      - run:
+          <<: *set_python_version
+      - run:
+          <<: *run_base_setup
       - run: 
           name: Gitian Build Windows
           command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
   linux:
-    machine:
-      enabled: true
+    <<: *defaults
     steps:
+      - attach_workspace:
+          at: .
+      - run: 
+          <<: *run_apt_packages
+      - run:
+          <<: *set_python_version
+      - run:
+          <<: *run_base_setup
       - run: 
           name: Gitian Build Windows
           command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
