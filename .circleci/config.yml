@@ -1,0 +1,72 @@
+version: 2
+jobs:
+  build:
+    machine:
+      enabled: true
+    steps:
+      - checkout:
+          path: ~/project/verge
+      - run: 
+          name: Prepare VM
+          command: sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3
+      - run:
+          name: Hardcopy gitian build script
+          command: cp ./verge/contrib/gitian-build.py . && chmod u+x gitian-build.py
+      - run:
+          name: Prepare VM Builder
+          command: git clone https://github.com/newroco/vmbuilder.git && cd vmbuilder && sudo chmod u+x setup.py && sudo ./setup.py install
+      - run:
+          name: Set Python Version
+          command: pyenv global 3.5.2
+      - run: 
+          name: Setup repo and execute VM builder
+          command: ./gitian-build.py --docker --commit --setup marpme master
+      - run: 
+          name: Add OSX SDK
+          command: cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
+  windows:
+    machine:
+      enabled: true
+    steps:
+      - run: 
+          name: Gitian Build Windows
+          command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme master
+
+  macos:
+    machine:
+      enabled: true
+    steps:
+      - run: 
+          name: Gitian Build Windows
+          command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
+  linux:
+    machine:
+      enabled: true
+    steps:
+      - run: 
+          name: Gitian Build Windows
+          command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
+
+workflows:
+  version: 2
+  build_all:
+    jobs:
+      - build
+      - windows:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - macos:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - linux:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
