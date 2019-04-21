@@ -30,9 +30,6 @@ jobs:
       - run:
           name: Prepare VM Builder
           command: git clone https://github.com/newroco/vmbuilder.git && cd vmbuilder && sudo chmod u+x setup.py && sudo ./setup.py install
-      - run: 
-          name: Add OSX SDK
-          command: mkdir -p gitian-builder && cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
       - persist_to_workspace:
           root: "."
           paths:
@@ -65,7 +62,7 @@ jobs:
       - run:
           <<: *run_base_setup
       - run: 
-          name: Gitian Build Windows
+          name: Gitian Build MacOS
           command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
   linux:
     <<: *defaults
@@ -79,7 +76,10 @@ jobs:
       - run:
           <<: *run_base_setup
       - run: 
-          name: Gitian Build Windows
+          name: Add OSX SDK
+          command: mkdir -p gitian-builder && cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
+      - run: 
+          name: Gitian Build Linux
           command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
 
 workflows:
