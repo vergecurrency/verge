@@ -1,6 +1,7 @@
 ---
 name: "verge-linux-5.0.0-beta1"
 enable_cache: true
+distro: "ubuntu"
 suites:
 - "bionic"
 architectures:
@@ -8,17 +9,21 @@ architectures:
 packages:
 - "curl"
 - "g++-aarch64-linux-gnu"
-- "g++-4.8-aarch64-linux-gnu"
-- "gcc-4.8-aarch64-linux-gnu"
+- "g++-8-aarch64-linux-gnu"
+- "gcc-8-aarch64-linux-gnu"
 - "binutils-aarch64-linux-gnu"
 - "g++-arm-linux-gnueabihf"
-- "g++-4.8-arm-linux-gnueabihf"
-- "gcc-4.8-arm-linux-gnueabihf"
+- "g++-8-arm-linux-gnueabihf"
+- "gcc-8-arm-linux-gnueabihf"
 - "binutils-arm-linux-gnueabihf"
-- "g++-4.8-multilib"
-- "gcc-4.8-multilib"
+- "g++-riscv64-linux-gnu"
+- "g++-8-riscv64-linux-gnu"
+- "gcc-8-riscv64-linux-gnu"
+- "binutils-riscv64-linux-gnu"
+- "g++-8-multilib"
+- "gcc-8-multilib"
 - "binutils-gold"
-- "git-core"
+- "git"
 - "pkg-config"
 - "autoconf"
 - "libtool"
@@ -27,7 +32,6 @@ packages:
 - "bsdmainutils"
 - "ca-certificates"
 - "python3"
-- "rename"
 - "libattr1-dev"
 
 remotes:

@@ -1,6 +1,7 @@
 ---
 name: "verge-osx-5.0.0-beta1"
 enable_cache: true
+distro: "ubuntu"
 suites:
 - "bionic"
 architectures:
@@ -9,7 +10,7 @@ packages:
 - "ca-certificates"
 - "curl"
 - "g++"
-- "git-core"
+- "git"
 - "pkg-config"
 - "autoconf"
 - "librsvg2-bin"
@@ -23,10 +24,9 @@ packages:
 - "libcap-dev"
 - "libz-dev"
 - "libbz2-dev"
-- "python-dev"
-- "python-setuptools"
 - "python3"
-- "rename"
+- "python3-dev"
+- "python3-setuptools"
 - "fonts-tuffy"
 - "libattr1-dev"
 
