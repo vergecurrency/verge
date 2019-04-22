@@ -32,7 +32,7 @@ def setup():
     if not os.path.isdir('bitcoin-detached-sigs'):
         subprocess.check_call(['git', 'clone', 'https://github.com/bitcoin-core/bitcoin-detached-sigs.git'])
     if not os.path.isdir('gitian-builder'):
-        subprocess.check_call(['git', 'clone', 'https://github.com/devrandom/gitian-builder.git'])
+        subprocess.check_call(['git', 'clone', 'https://github.com/marpme/gitian-builder.git'])
     if not os.path.isdir('verge'):
         subprocess.check_call(['git', 'clone', 'https://github.com/vergecurrency/VERGE.git'])
     os.chdir('gitian-builder')
@@ -84,7 +84,7 @@ def build():
 
     os.chdir(workdir)
 
-    if args.commit_files:
+    if args.commit_files and not os.environ.get('CI'):
         print('\nCommitting '+args.version+' Unsigned Sigs\n')
         os.chdir('gitian.sigs')
         subprocess.check_call(['git', 'add', args.version+'-linux/'+args.signer])
