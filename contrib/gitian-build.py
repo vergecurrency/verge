@@ -7,21 +7,26 @@ import sys
 
 def setup():
     global args, workdir
-    programs = ['ruby', 'git', 'apt-cacher-ng', 'make', 'wget']
-    if args.kvm:
-        programs += ['python-vm-builder', 'qemu-kvm', 'qemu-utils']
-    elif args.docker:
-        dockers = ['docker.io', 'docker-ce']
-        for i in dockers:
-            return_code = subprocess.call(['sudo', 'apt-get', 'install', '-qq', i])
-            if return_code == 0:
-                break
-        if return_code != 0:
-            print('Cannot find any way to install docker', file=sys.stderr)
-            exit(1)
-    else:
-        programs += ['lxc', 'debootstrap']
-    subprocess.check_call(['sudo', 'apt-get', 'install', '-qq'] + programs)
+
+    # Assume that the CI has already properly setup all dependencies
+    if os.environ.get('CI') is None:
+        programs = ['ruby', 'git', 'apt-cacher-ng', 'make', 'wget']
+        if args.kvm:
+            programs += ['python-vm-builder', 'qemu-kvm', 'qemu-utils']
+        elif args.docker:
+            dockers = ['docker.io', 'docker-ce']
+            for i in dockers:
+                return_code = subprocess.call(['sudo', 'apt-get', 'install', '-qq', i])
+                if return_code == 0:
+                    break
+            if return_code != 0:
+                print('Cannot find any way to install docker', file=sys.stderr)
+                exit(1)
+        else:
+            programs += ['lxc', 'debootstrap']
+
+        subprocess.check_call(['sudo', 'apt-get', 'install', '-qq'] + programs)
+
     if not os.path.isdir('gitian.sigs'):
         subprocess.check_call(['git', 'clone', 'https://github.com/bitcoin-core/gitian.sigs.git'])
     if not os.path.isdir('bitcoin-detached-sigs'):

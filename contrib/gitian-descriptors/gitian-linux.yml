@@ -2,7 +2,7 @@
 name: "verge-linux-5.0.0-beta1"
 enable_cache: true
 suites:
-- "trusty"
+- "bionic"
 architectures:
 - "amd64"
 packages:
@@ -26,7 +26,8 @@ packages:
 - "faketime"
 - "bsdmainutils"
 - "ca-certificates"
-- "python"
+- "python3"
+- "rename"
 - "libattr1-dev"
 
 remotes:

@@ -2,7 +2,7 @@
 name: "verge-osx-5.0.0-beta1"
 enable_cache: true
 suites:
-- "trusty"
+- "bionic"
 architectures:
 - "amd64"
 packages:
@@ -23,9 +23,10 @@ packages:
 - "libcap-dev"
 - "libz-dev"
 - "libbz2-dev"
-- "python"
 - "python-dev"
 - "python-setuptools"
+- "python3"
+- "rename"
 - "fonts-tuffy"
 - "libattr1-dev"
 
