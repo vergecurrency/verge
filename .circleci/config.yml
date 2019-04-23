@@ -113,7 +113,7 @@ jobs:
             root: "."
             paths:
               - "."
-              
+
   test-create-and-test-build: 
       <<: *defaults-docker
       steps:
@@ -127,7 +127,7 @@ jobs:
             command: ./autogen.sh
         - run:
             name: Configuring code
-            command: ./configure --disable-bench
+            command: ./configure --disable-bench --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
         - run:
             name: Make
             command: make -j4
