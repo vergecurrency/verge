@@ -4,6 +4,11 @@ defaults: &defaults
   machine:
       enabled: true
 
+defaults-docker: &defaults-docker
+  docker: 
+    - image: circleci/buildpack-deps:bionic
+
+
 run_apt_packages: &run_apt_packages 
   name: Prepare VM
   command: sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3
@@ -17,7 +22,7 @@ run_base_setup: &run_base_setup
   command: ./gitian-build.py --docker --commit --setup marpme master
 
 jobs:
-  build:
+  release-prepare-machine:
     <<: *defaults
     steps:
       - run:
@@ -35,7 +40,7 @@ jobs:
           paths:
             - "."
 
-  windows:
+  release-windows:
     <<: *defaults
     steps:
       - attach_workspace:
@@ -50,7 +55,7 @@ jobs:
           name: Gitian Build Windows
           command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme master
 
-  macos:
+  release-macos:
     <<: *defaults
     steps:
       - attach_workspace:
@@ -67,7 +72,8 @@ jobs:
       - run: 
           name: Gitian Build MacOS
           command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
-  linux:
+  
+  release-linux:
     <<: *defaults
     steps:
       - attach_workspace:
@@ -82,29 +88,82 @@ jobs:
           name: Gitian Build Linux
           command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
 
+  test-setup-env: 
+      <<: *defaults-docker
+      steps:
+        - checkout
+        - run: 
+            name: Hash dependencies
+            command: md5sum depends/packages/* > hashes.run
+        - restore_cache:
+            key: source-depends-{{ checksum hashes.run }}
+            paths:
+              - "./depends"
+        - run: 
+            name: Install dependencies
+            command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3
+        - run:
+            name: Creating depends
+            command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+        - save_cache:
+            key: source-depends-{{ checksum hashes.run }}
+            paths:
+              - "./depends"
+        - persist_to_workspace:
+          root: "."
+          paths:
+            - "."
+  test-create-and-test-build: 
+      <<: *defaults-docker
+      steps:
+        - attach_workspace:
+            at: "." 
+        - run: 
+            name: Install dependencies
+            command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev
+        - run:
+            name: Autogen tools
+            command: ./autogen.sh
+        - run:
+            name: Configuring code
+            command: ./configure --disable-bench
+        - run:
+            name: Make
+            command: make -j4
+        - run:
+            name: Check binaries
+            command: make check
+
+
 workflows:
   version: 2
-  build_all:
+  release:
     jobs:
-      - build:
+      - release-prepare-machine:
           filters:
             tags:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
-      - windows:
+      - release-windows:
           requires:
             - build
           filters:
             tags:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
-      - macos:
+      - release-macos:
           requires:
             - build
           filters:
             tags:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
-      - linux:
+      - release-linux:
           requires:
             - build
           filters:
             tags:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
+  testing:
+    jobs:
+      - test-setup-env
+      - test-create-and-test-build:
+          requires:
+            - test-setup-env
