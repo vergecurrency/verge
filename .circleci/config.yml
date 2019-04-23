@@ -145,19 +145,19 @@ workflows:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
       - release-windows:
           requires:
-            - build
+            - release-prepare-machine
           filters:
             tags:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
       - release-macos:
           requires:
-            - build
+            - release-prepare-machine
           filters:
             tags:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
       - release-linux:
           requires:
-            - build
+            - release-prepare-machine
           filters:
             tags:
               only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
