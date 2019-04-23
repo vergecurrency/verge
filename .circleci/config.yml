@@ -96,7 +96,7 @@ jobs:
             name: Hash dependencies
             command: md5sum depends/packages/* > hashes.run
         - restore_cache:
-            key: source-depends-{{ checksum hashes.run }}
+            key: source-depends-{{ checksum "./hashes.run" }}
             paths:
               - "./depends"
         - run: 
@@ -106,13 +106,14 @@ jobs:
             name: Creating depends
             command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
         - save_cache:
-            key: source-depends-{{ checksum hashes.run }}
+            key: source-depends-{{ checksum "./hashes.run" }}
             paths:
               - "./depends"
         - persist_to_workspace:
             root: "."
             paths:
               - "."
+              
   test-create-and-test-build: 
       <<: *defaults-docker
       steps:
