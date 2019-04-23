@@ -110,9 +110,9 @@ jobs:
             paths:
               - "./depends"
         - persist_to_workspace:
-          root: "."
-          paths:
-            - "."
+            root: "."
+            paths:
+              - "."
   test-create-and-test-build: 
       <<: *defaults-docker
       steps:
