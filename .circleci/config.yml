@@ -24,6 +24,9 @@ run_base_setup: &run_base_setup
 jobs:
   release-prepare-machine:
     <<: *defaults
+    filters:
+      tags:
+        only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
     steps:
       - run:
           <<: *run_apt_packages
@@ -42,6 +45,9 @@ jobs:
 
   release-windows:
     <<: *defaults
+    filters:
+      tags:
+        only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
     steps:
       - attach_workspace:
           at: .
@@ -57,6 +63,9 @@ jobs:
 
   release-macos:
     <<: *defaults
+    filters:
+      tags:
+        only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
     steps:
       - attach_workspace:
           at: .
@@ -75,6 +84,9 @@ jobs:
   
   release-linux:
     <<: *defaults
+    filters:
+      tags:
+        only: /v[0-9]+\.[0-9]\.[0-9]-rc[1-9]/
     steps:
       - attach_workspace:
           at: .
