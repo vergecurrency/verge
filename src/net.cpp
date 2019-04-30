@@ -216,8 +216,9 @@ bool AddLocal(const CService& addr, int nScore)
     if (IsLimited(addr))
         return false;
 
-    bool isTorActived = !gArgs.GetBoolArg("-without-tor", false);
-    if((isTorActived && !addr.IsTor()) && (isTorActived && !addr.IsTorV3()))
+    bool isTorActived = !gArgs.GetBoolArg("-disable-tor", false);
+    bool isHybridMode = gArgs.GetBoolArg("-hybrid-net", false);
+    if(isTorActived && !isHybridMode && (!addr.IsTor() || !addr.IsTorV3()))
         return false;
 
     LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);

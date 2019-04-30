@@ -429,7 +429,8 @@ void SetupServerArgs()
     gArgs.AddArg("-proxyrandomize", strprintf("Randomize credentials for every proxy connection. This enables Tor stream isolation (default: %u)", DEFAULT_PROXYRANDOMIZE), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-seednode=<ip>", "Connect to a node to retrieve peer addresses, and disconnect", false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-timeout=<n>", strprintf("Specify connection timeout in milliseconds (minimum: 1, default: %d)", DEFAULT_CONNECT_TIMEOUT), false, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-without-tor", strprintf("Removes the limitation to route all traffic through tor. (default: %s)", false), false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-disable-tor", strprintf("Only uses clearnet to route its packages through. (default: %s)", false), false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-hybrid-net", strprintf("Removes the limitation to also route packages through clearnet. (default: %s)", false), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torsocksport", strprintf("Sets the tor port to a custom socket port. (default: %i)", 9080), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torcontrol=<ip>:<port>", strprintf("Tor control port to use if onion listening enabled (default: %s)", DEFAULT_TOR_CONTROL), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torpassword=<pass>", "Tor control port password (default: empty)", false, OptionsCategory::CONNECTION);
@@ -1313,9 +1314,9 @@ bool AppInitMain()
     // is not yet setup and may end up being set up twice if we
     // need to reindex later.
 
-    if (!gArgs.IsArgSet("-without-tor")) {
+    if(!gArgs.IsArgSet("-disable-tor")){
         InitalizeTorThread();
-        
+    
         SetLimited(NET_TOR);
         SetLimited(NET_IPV4);
         SetLimited(NET_IPV6);
@@ -1333,15 +1334,18 @@ bool AppInitMain()
         SetProxy(NET_TOR, addrOnion);
         SetProxy(NET_IPV4, addrOnion);
         SetProxy(NET_IPV6, addrOnion);
-
+        
         SetLimited(NET_TOR, false);
-
+        if(gArgs.IsArgSet("-hybrid-net")) {
+            SetLimited(NET_IPV4, false);
+            SetLimited(NET_IPV6, false);
+        }      
         LogPrintf("Tor Successfully bound ...\n");
-	} else {
-        SetLimited(NET_TOR);
-        LogPrintf("Tor disabled, Socks Proxy not initialized.\n");
+    } else {
+        SetLimited(NET_TOR, true);
+        LogPrintf("Tor not initialized ...\n");
     }
-
+   
     assert(!g_connman);
     g_connman = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
     CConnman& connman = *g_connman;
@@ -1730,7 +1734,7 @@ bool AppInitMain()
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);
 
-    if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION) || !gArgs.IsArgSet("-without-tor"))
+    if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION) || !gArgs.IsArgSet("-disable-tor"))
         StartTorControl();
 
     Discover();

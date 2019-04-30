@@ -133,45 +133,39 @@ public:
         // release ASAP to avoid it where possible.
 
         // Adding some nodes in case it works
-        if(!gArgs.IsArgSet("-without-tor")){
-            vSeeds.emplace_back("gasppfoxxedddnme.onion");
-            vSeeds.emplace_back("gasppfoxxedddnme.onion");
-            vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
-            vSeeds.emplace_back("bnm5ujfsvexzba4w.onion");
-            vSeeds.emplace_back("sarpou7gsi7nan5m.onion");
-            vSeeds.emplace_back("4j3cz66g4z5o4aso.onion");
-            vSeeds.emplace_back("fqsvfu5gcmjox26m.onion");
-            vSeeds.emplace_back("kte6vpxfpim5lwqv.onion");
-            vSeeds.emplace_back("3z4vuj5k5xymy5su.onion");
-            vSeeds.emplace_back("ruxut6k4a6d4qe53.onion");
-            vSeeds.emplace_back("wfyfkm6j3vcuw2qz.onion");
-            vSeeds.emplace_back("cit2rtwxzwxrmory.onion");
-            vSeeds.emplace_back("vwym36tts7zhm24k.onion");
-            vSeeds.emplace_back("jzo6govpwfeauspf.onion");
-            vSeeds.emplace_back("ngfxjjrrtxteffvt.onion");
-            vSeeds.emplace_back("y2czcambifo2ybdm.onion");
-            vSeeds.emplace_back("6telhbsuva4qkff2.onion");
-        } else {
-            vSeeds.emplace_back("185.162.9.97");
-            vSeeds.emplace_back("104.131.144.82");
-            vSeeds.emplace_back("192.241.187.222");
-            vSeeds.emplace_back("105.228.198.44");
-            vSeeds.emplace_back("46.127.57.167");
-            vSeeds.emplace_back("98.5.123.15");
-            vSeeds.emplace_back("81.147.68.236");
-            vSeeds.emplace_back("77.67.46.100");
-            vSeeds.emplace_back("95.46.99.96");
-            vSeeds.emplace_back("138.201.91.159");
-            vSeeds.emplace_back("159.89.202.56");
-            vSeeds.emplace_back("163.158.20.118");
-            vSeeds.emplace_back("99.45.88.147");
-            vSeeds.emplace_back("114.145.237.35");
-            vSeeds.emplace_back("73.247.117.99");
-            vSeeds.emplace_back("145.239.0.122");
-        }
+        vSeeds.emplace_back("gasppfoxxedddnme.onion");
+        vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
+        vSeeds.emplace_back("bnm5ujfsvexzba4w.onion");
+        vSeeds.emplace_back("sarpou7gsi7nan5m.onion");
+        vSeeds.emplace_back("4j3cz66g4z5o4aso.onion");
+        vSeeds.emplace_back("fqsvfu5gcmjox26m.onion");
+        vSeeds.emplace_back("kte6vpxfpim5lwqv.onion");
+        vSeeds.emplace_back("3z4vuj5k5xymy5su.onion");
+        vSeeds.emplace_back("ruxut6k4a6d4qe53.onion");
+        vSeeds.emplace_back("wfyfkm6j3vcuw2qz.onion");
+        vSeeds.emplace_back("cit2rtwxzwxrmory.onion");
+        vSeeds.emplace_back("vwym36tts7zhm24k.onion");
+        vSeeds.emplace_back("jzo6govpwfeauspf.onion");
+        vSeeds.emplace_back("ngfxjjrrtxteffvt.onion");
+        vSeeds.emplace_back("y2czcambifo2ybdm.onion");
+        vSeeds.emplace_back("6telhbsuva4qkff2.onion");
+        vSeeds.emplace_back("185.162.9.97");
+        vSeeds.emplace_back("104.131.144.82");
+        vSeeds.emplace_back("192.241.187.222");
+        vSeeds.emplace_back("105.228.198.44");
+        vSeeds.emplace_back("46.127.57.167");
+        vSeeds.emplace_back("98.5.123.15");
+        vSeeds.emplace_back("81.147.68.236");
+        vSeeds.emplace_back("77.67.46.100");
+        vSeeds.emplace_back("95.46.99.96");
+        vSeeds.emplace_back("138.201.91.159");
+        vSeeds.emplace_back("159.89.202.56");
+        vSeeds.emplace_back("163.158.20.118");
+        vSeeds.emplace_back("99.45.88.147");
+        vSeeds.emplace_back("114.145.237.35");
+        vSeeds.emplace_back("73.247.117.99");
+        vSeeds.emplace_back("145.239.0.122");
     
-    
-
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,33);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,158); //128 + PUBKEY_ADDRESS
