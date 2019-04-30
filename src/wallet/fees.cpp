@@ -12,25 +12,23 @@
 #include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
+#include <math.h>
 
 
 CAmount GetRequiredFee(const CWallet& wallet, unsigned int nTxBytes)
 {
-    // return GetRequiredFeeRate(wallet).GetFee(nTxBytes);
+    int64_t tenCent = 10 * CENT;
+    int64_t ceiledKiloBytesUsed = ceil(nTxBytes / static_cast<float>(1024));
+
+    CAmount feeForData = tenCent * ceiledKiloBytesUsed;
+    return std::max(feeForData, tenCent);
     return 10 * CENT;
 }
 
 
 CAmount GetMinimumFee(const CWallet& wallet, unsigned int nTxBytes, const CCoinControl& coin_control, const CTxMemPool& pool, const CBlockPolicyEstimator& estimator, FeeCalculation* feeCalc)
 {
-    /*CAmount fee_needed = GetMinimumFeeRate(wallet, coin_control, pool, estimator, feeCalc).GetFee(nTxBytes);
-    // Always obey the maximum
-    if (fee_needed > maxTxFee) {
-        fee_needed = maxTxFee;
-        if (feeCalc) feeCalc->reason = FeeReason::MAXTXFEE;
-    }
-    return fee_needed;*/
-    return 10 * CENT;
+    return GetRequiredFee(wallet, nTxBytes);
 }
 
 CFeeRate GetRequiredFeeRate(const CWallet& wallet)

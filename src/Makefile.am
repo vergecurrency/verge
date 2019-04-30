@@ -23,16 +23,54 @@ VERGE_INCLUDES  = -I$(builddir) $(BDB_CPPFLAGS) $(BOOST_CPPFLAGS) $(LEVELDB_CPPF
 VERGE_INCLUDES += -I$(srcdir)/secp256k1/include
 VERGE_INCLUDES += $(UNIVALUE_CFLAGS)
 
-TOR_LIBS = tor/src/or/libtor.a \
-	tor/src/common/libor.a \
-	tor/src/common/libor-ctime.a \
-	tor/src/common/libor-crypto.a \
-	tor/src/common/libor-event.a \
+# "Common" libraries used to link tor's utility code.
+TOR_UTIL_LIBS = \
+  tor/src/lib/libtor-geoip.a \
+	tor/src/lib/libtor-process.a \
+	tor/src/lib/libtor-time.a \
+	tor/src/lib/libtor-fs.a \
+	tor/src/lib/libtor-encoding.a \
+	tor/src/lib/libtor-sandbox.a \
+	tor/src/lib/libtor-container.a \
+	tor/src/lib/libtor-net.a \
+	tor/src/lib/libtor-thread.a \
+	tor/src/lib/libtor-memarea.a \
+	tor/src/lib/libtor-math.a \
+	tor/src/lib/libtor-meminfo.a \
+	tor/src/lib/libtor-osinfo.a \
+	tor/src/lib/libtor-log.a \
+	tor/src/lib/libtor-lock.a \
+	tor/src/lib/libtor-fdio.a \
+	tor/src/lib/libtor-string.a \
+	tor/src/lib/libtor-term.a \
+	tor/src/lib/libtor-smartlist-core.a \
+	tor/src/lib/libtor-malloc.a \
+	tor/src/lib/libtor-wallclock.a \
+	tor/src/lib/libtor-err.a \
+	tor/src/lib/libtor-intmath.a \
+	tor/src/lib/libtor-ctime.a
+
+LIBED25519_REF10 = tor/src/ext/ed25519/ref10/libed25519_ref10.a
+LIBED25519_DONNA = tor/src/ext/ed25519/donna/libed25519_donna.a
+LIBKECCAK_TINY = tor/src/ext/keccak-tiny/libkeccak-tiny.a
+LIBDONNA = tor/src/lib/libcurve25519_donna.a \
+  $(LIBED25519_REF10) \
+  $(LIBED25519_DONNA)
+
+TOR_CRYPTO_LIBS = \
+	tor/src/lib/libtor-tls.a \
+	tor/src/lib/libtor-crypt-ops.a \
+	$(LIBKECCAK_TINY) \
+	$(LIBDONNA)
+
+TOR_LIBS = \
+	tor/src/core/libtor-app.a \
+	tor/src/lib/libtor-compress.a \
+	tor/src/lib/libtor-evloop.a \
+	$(TOR_CRYPTO_LIBS) \
+	$(TOR_UTIL_LIBS) \
 	tor/src/trunnel/libor-trunnel.a \
-	tor/src/common/libcurve25519_donna.a \
-	tor/src/ext/ed25519/donna/libed25519_donna.a \
-	tor/src/ext/ed25519/ref10/libed25519_ref10.a \
-	tor/src/ext/keccak-tiny/libkeccak-tiny.a
+	tor/src/lib/libtor-trace.a
 
 libverge_SERVER=libverge_server.a
 libverge_COMMON=libverge_common.a
@@ -601,6 +639,12 @@ CTAES_DIST += crypto/ctaes/ctaes.h
 CTAES_DIST += crypto/ctaes/README.md
 CTAES_DIST += crypto/ctaes/test.c
 
+CRYPTO_HELPER_DIST =  crypto/pow/aes_helper.c
+CRYPTO_HELPER_DIST += crypto/pow/hamsi_helper.c
+CRYPTO_HELPER_DIST += crypto/pow/haval_helper.c
+CRYPTO_HELPER_DIST += crypto/pow/md_helper.c
+CRYPTO_HELPER_DIST += crypto/pow/sph_md_helper.c
+
 CLEANFILES = $(EXTRA_LIBRARIES)
 
 CLEANFILES += *.gcda *.gcno
@@ -617,7 +661,7 @@ CLEANFILES += wallet/test/*.gcda wallet/test/*.gcno
 CLEANFILES += zmq/*.gcda zmq/*.gcno
 CLEANFILES += obj/build.h
 
-EXTRA_DIST = $(CTAES_DIST)
+EXTRA_DIST = $(CTAES_DIST) $(CRYPTO_HELPER_DIST)
 
 
 config/verge-config.h: config/stamp-h1
@@ -637,8 +681,7 @@ clean-local:
 
 .rc.o:
 	@test -f $(WINDRES)
-	## FIXME: How to get the appropriate modulename_CPPFLAGS in here?
-	$(AM_V_GEN) $(WINDRES) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) -DWINDRES_PREPROC -i $< -o $@
+	$(AM_V_GEN) $(WINDRES) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) -DWINDRES_PREPROC -i $< -o $@
 
 check-symbols: $(bin_PROGRAMS)
 if GLIBC_BACK_COMPAT

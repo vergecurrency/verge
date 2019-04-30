@@ -84,22 +84,7 @@ CTxDestination DecodeDestination(const std::string& str, const CChainParams& par
         CStealthAddress sxAddr;
         sxAddr.SetEncoded(str);
 
-        ec_secret ephem_secret;
-        ec_secret secretShared;
-        ec_point pkSendTo;
-        ec_point ephem_pubkey;
-        
-        if (GenerateRandomSecret(ephem_secret) == 0)
-        {
-           if (StealthSecret(ephem_secret, sxAddr.scan_pubkey, sxAddr.spend_pubkey, secretShared, pkSendTo) == 0)
-            {
-                CPubKey cpkTo(pkSendTo);
-                if (cpkTo.IsValid())
-                {
-                    return cpkTo.GetID();
-                }
-            }
-        }
+        return sxAddr;
     }
 
     uint160 hash;

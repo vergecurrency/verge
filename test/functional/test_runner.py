@@ -257,17 +257,12 @@ def main():
 
     logging.debug("Temporary test directory at %s" % tmpdir)
 
-    enable_verged = config["components"].getboolean("ENABLE_VERGED")
+    enable_verged = config["components"].getboolean("ENABLE_verged")
 
     if config["environment"]["EXEEXT"] == ".exe" and not args.force:
         # https://github.com/verge/verge/commit/d52802551752140cf41f0d9a225a43e84404d3e9
         # https://github.com/verge/verge/pull/5677#issuecomment-136646964
         print("Tests currently disabled on Windows by default. Use --force option to enable")
-        sys.exit(0)
-
-    if not enable_verged:
-        print("No functional tests to run.")
-        print("Rerun ./configure with --with-daemon and then make")
         sys.exit(0)
 
     # Build list of tests

@@ -150,6 +150,11 @@ void GetOSRand(unsigned char *ent32);
  */
 bool Random_SanityCheck();
 
+/**
+ * Returns an unsecure (kinda) string, with a given charset
+ **/
+std::string GetRandomString();
+
 /** Initialize the RNG. */
 void RandomInit();
 

@@ -183,6 +183,7 @@ void Interrupt()
     InterruptREST();
     InterruptTorControl();
     InterruptMapPort();
+    StopTorController();
     if (g_connman)
         g_connman->Interrupt();
     if (g_txindex) {
@@ -229,6 +230,7 @@ void Shutdown()
     }
 
     StopTorControl();
+    StopTorController();
 
     // After everything has been shut down, but before things get flushed, stop the
     // CScheduler/checkqueue threadGroup
@@ -435,6 +437,7 @@ void SetupServerArgs()
     gArgs.AddArg("-seednode=<ip>", "Connect to a node to retrieve peer addresses, and disconnect", false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-timeout=<n>", strprintf("Specify connection timeout in milliseconds (minimum: 1, default: %d)", DEFAULT_CONNECT_TIMEOUT), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-without-tor", strprintf("Removes the limitation to route all traffic through tor. (default: %s)", false), false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-torsocksport", strprintf("Sets the tor port to a custom socket port. (default: %i)", 9080), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torcontrol=<ip>:<port>", strprintf("Tor control port to use if onion listening enabled (default: %s)", DEFAULT_TOR_CONTROL), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torpassword=<pass>", "Tor control port password (default: empty)", false, OptionsCategory::CONNECTION);
 #ifdef USE_UPNP
@@ -1327,7 +1330,7 @@ bool AppInitMain()
     // need to reindex later.
 
     if (!gArgs.IsArgSet("-without-tor")) {
-        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "torcontroller", &StartTor));
+        InitalizeTorThread();
         
         SetLimited(NET_TOR);
         SetLimited(NET_IPV4);

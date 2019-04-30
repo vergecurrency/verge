@@ -6,12 +6,12 @@
 #ifndef VERGE_RINGSIG_H
 #define VERGE_RINGSIG_H
 
-#include "stealth.h"
-#include "logging.h"
-#include "base58.h"
-#include "chainparams.h"
-#include "key.h"
-#include "stealth.h"
+#include <stealth.h>
+#include <logging.h>
+#include <base58.h>
+#include <chainparams.h>
+#include <key.h>
+#include <stealth.h>
 
 #include <openssl/bn.h>
 #include <openssl/ec.h>

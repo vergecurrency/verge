@@ -27,5 +27,5 @@
 # SC2166: Prefer [ p ] && [ q ] as [ p -a q ] is not well defined.
 # SC2166: Prefer [ p ] || [ q ] as [ p -o q ] is not well defined.
 # SC2181: Check exit code directly with e.g. 'if mycmd;', not indirectly with $?.
-shellcheck -e SC2001,SC2004,SC2005,SC2006,SC2016,SC2028,SC2046,SC2048,SC2066,SC2086,SC2116,SC2148,SC2162,SC2166,SC2181 \
-    $(git ls-files -- "*.sh" | grep -vE 'src/(secp256k1|univalue)/')
+shellcheck -e SC2001,SC2004,SC2005,SC2006,SC2016,SC2028,SC2046,SC2048,SC2066,SC2086,SC2116,SC2140,SC2148,SC2154,SC2162,SC2164,SC2166,SC2181,SC2207 \
+    $(git ls-files -- "*.sh" | grep -vE 'src/(secp256k1|univalue|tor)/')

@@ -380,8 +380,15 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
                 return QString();
             }
         }
-        walletModel->wallet().learnRelatedScripts(newKey, address_type);
-        strAddress = EncodeDestination(GetDestinationForKey(newKey, address_type));
+
+        if(address_type == OutputType::STEALTH) {
+            CStealthAddress sxAddr = boost::get<CStealthAddress>(GetDestinationForKey(newKey, OutputType::STEALTH));
+            walletModel->wallet().addStealthAddress(sxAddr);
+            strAddress = EncodeDestination(sxAddr);
+        } else {
+            walletModel->wallet().learnRelatedScripts(newKey, address_type);
+            strAddress = EncodeDestination(GetDestinationForKey(newKey, address_type));
+        }
     }
     else
     {

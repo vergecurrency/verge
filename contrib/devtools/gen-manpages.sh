@@ -12,7 +12,7 @@ VERGECLI=${VERGECLI:-$BINDIR/verge-cli}
 VERGETX=${VERGETX:-$BINDIR/verge-tx}
 VERGEQT=${VERGEQT:-$BINDIR/qt/verge-qt}
 
-[ ! -x $VERGED ] && echo "$verged not found or not executable." && exit 1
+[ ! -x $VERGED ] && echo "$VERGED not found or not executable." && exit 1
 
 # The autodetected version git tag can screw up manpage output a little bit
 XSHVER=($($VERGECLI --version | head -n1 | awk -F'[ -]' '{ print $6, $7 }'))

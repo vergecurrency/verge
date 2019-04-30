@@ -1,0 +1,25 @@
+From ef03baa1188f411948f99c18d5e9414721996158 Mon Sep 17 00:00:00 2001
+From: Samuli Piippo <samuli.piippo@qt.io>
+Date: Thu, 23 Nov 2017 11:28:47 +0200
+Subject: [PATCH] disable qt_random_cpu
+
+The code caused internal compiler error when compiling for mingw32
+
+Change-Id: Ieba798a9599a6d683c6630c6cd3731b2b909b628
+---
+ qtbase/src/corelib/global/qrandom.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/qtbase/src/corelib/global/qrandom.cpp b/qtbase/src/corelib/global/qrandom.cpp
+index 72ac8d3..10a8390 100644
+--- a/qtbase/src/corelib/global/qrandom.cpp
++++ b/qtbase/src/corelib/global/qrandom.cpp
+@@ -92,7 +92,7 @@ DECLSPEC_IMPORT BOOLEAN WINAPI SystemFunction036(PVOID RandomBuffer, ULONG Rando
+ 
+ QT_BEGIN_NAMESPACE
+ 
+-#if defined(Q_PROCESSOR_X86) && QT_COMPILER_SUPPORTS_HERE(RDRND)
++#if 0
+ static qsizetype qt_random_cpu(void *buffer, qsizetype count) Q_DECL_NOTHROW;
+ 
+ #  ifdef Q_PROCESSOR_X86_64

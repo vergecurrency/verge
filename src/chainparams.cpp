@@ -41,9 +41,9 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, uint32_t nTime, uint3
  * transaction cannot be spent since it did not originally exist in the
  * database.
  */
-static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion)
+static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, bool isTestnet = false)
 {
-    const char* pszTimestamp = "Name: Dogecoin Dark";
+    const char* pszTimestamp = isTestnet ? "VERGE TESTNET" : "Name: Dogecoin Dark";
     return CreateGenesisBlock(pszTimestamp, nTime, nNonce, nBits, nVersion);
 }
 
@@ -121,10 +121,10 @@ public:
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1412878964, 1473191, 0x1e0fffff, 1);
-        consensus.hashGenesisBlock = genesis.GetPoWHash(ALGO_SCRYPT);
-        //printf("%s", genesis.ToString().c_str());
-        //assert(genesis.hashMerkleRoot == uint256S("0x1c83275d9151711eec3aec37d829837cc3c2730b2bdfd00ec5e8e5dce675fd00"));
-        //assert(consensus.hashGenesisBlock == uint256S("0x00000fc63692467faeb20cdb3b53200dc601d75bdfa1001463304cc790d77278"));
+        consensus.hashGenesisBlock = genesis.GetHash();
+        
+        assert(genesis.hashMerkleRoot == uint256S("0x1c83275d9151711eec3aec37d829837cc3c2730b2bdfd00ec5e8e5dce675fd00"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000fc63692467faeb20cdb3b53200dc601d75bdfa1001463304cc790d77278"));
 
         // Note that of those which support the service bits prefix, most only support a subset of
         // possible options.
@@ -133,7 +133,7 @@ public:
         // release ASAP to avoid it where possible.
 
         // Adding some nodes in case it works
-        if(!gArgs.GetBoolArg("-without-tor", false)){
+        if(!gArgs.IsArgSet("-without-tor")){
             vSeeds.emplace_back("gasppfoxxedddnme.onion");
             vSeeds.emplace_back("gasppfoxxedddnme.onion");
             vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
@@ -152,16 +152,24 @@ public:
             vSeeds.emplace_back("y2czcambifo2ybdm.onion");
             vSeeds.emplace_back("6telhbsuva4qkff2.onion");
         } else {
+            vSeeds.emplace_back("185.162.9.97");
+            vSeeds.emplace_back("104.131.144.82");
+            vSeeds.emplace_back("192.241.187.222");
+            vSeeds.emplace_back("105.228.198.44");
+            vSeeds.emplace_back("46.127.57.167");
+            vSeeds.emplace_back("98.5.123.15");
+            vSeeds.emplace_back("81.147.68.236");
+            vSeeds.emplace_back("77.67.46.100");
+            vSeeds.emplace_back("95.46.99.96");
+            vSeeds.emplace_back("138.201.91.159");
             vSeeds.emplace_back("159.89.202.56");
-            vSeeds.emplace_back("138.197.68.130");
-            vSeeds.emplace_back("165.227.31.52");
-            vSeeds.emplace_back("159.89.202.56");
-            vSeeds.emplace_back("188.40.78.31");
-            vSeeds.emplace_back("176.9.143.143");
-            vSeeds.emplace_back("198.27.82.41");
-            vSeeds.emplace_back("145.239.0.126");
-            vSeeds.emplace_back("54.36.120.27");
+            vSeeds.emplace_back("163.158.20.118");
+            vSeeds.emplace_back("99.45.88.147");
+            vSeeds.emplace_back("114.145.237.35");
+            vSeeds.emplace_back("73.247.117.99");
+            vSeeds.emplace_back("145.239.0.122");
         }
+    
     
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
@@ -251,6 +259,9 @@ public:
         // KeyNote: we'll leave testnet as is for now
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
+        consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
+        consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
+        
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
         consensus.BIP66Height = 0; // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
@@ -281,18 +292,18 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"); //also genesis 
 
-        pchMessageStart[0] = 0x0b;
-        pchMessageStart[1] = 0x11;
-        pchMessageStart[2] = 0x09;
-        pchMessageStart[3] = 0x07;
+        pchMessageStart[0] = 0xcd;
+        pchMessageStart[1] = 0xf2;
+        pchMessageStart[2] = 0xc0;
+        pchMessageStart[3] = 0xef;
         nDefaultPort = 21104;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1);
+        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1, true);
         consensus.hashGenesisBlock = genesis.GetHash();
-        // printf("%s", genesis.ToString().c_str());
-        //assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
-        //assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
+
+        assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
+        assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -302,9 +313,9 @@ public:
         vSeeds.emplace_back("seed.testnet.bitcoin.sprovoost.nl");
         vSeeds.emplace_back("testnet-seed.bluematt.me"); // Just a static list of stable node(s), only supports x9
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,115);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,198);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,243); // 128 + PUBKEY_ADDRESS_TEST
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
 

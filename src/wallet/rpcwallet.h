@@ -6,6 +6,8 @@
 #ifndef VERGE_WALLET_RPCWALLET_H
 #define VERGE_WALLET_RPCWALLET_H
 
+#include <script/script.h>
+#include <rpc/server.h>
 #include <string>
 
 class CRPCTable;
@@ -22,6 +24,9 @@ void RegisterWalletRPCCommands(CRPCTable &t);
  * @return nullptr if no wallet should be used, or a pointer to the CWallet
  */
 std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request);
+
+/** Generate blocks (mine) */
+UniValue generateBlocks(const JSONRPCRequest& request, std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript);
 
 std::string HelpRequiringPassphrase(CWallet *);
 void EnsureWalletIsUnlocked(CWallet *);

@@ -10,6 +10,7 @@
 #include <script/script.h>
 #include <util/system.h>
 #include <util/strencodings.h>
+#include <stealth.h>
 
 
 typedef std::vector<unsigned char> valtype;
@@ -252,6 +253,7 @@ private:
     CScript *script;
 public:
     explicit CScriptVisitor(CScript *scriptin) { script = scriptin; }
+    CScriptVisitor(CScript *scriptin, bool shouldStealthIn) { script = scriptin; }
 
     bool operator()(const CNoDestination &dest) const {
         script->clear();
@@ -264,10 +266,32 @@ public:
         return true;
     }
 
-    bool operator()(const CStealthAddress &StealthID) const {
+    bool operator()(const CStealthAddress &stealthID) const {
         script->clear();
-        // TODO: Implement script compabitbility for stealth addressing?
-        // *script << OP_DUP << OP_HASH160 << ToByteVector(keyID) << OP_EQUALVERIFY << OP_CHECKSIG;
+
+        ec_secret ephem_secret;
+        ec_secret secretShared;
+        ec_point pkSendTo;
+        ec_point ephem_pubkey;
+        
+        if (GenerateRandomSecret(ephem_secret) != 0)
+        {
+            return false;
+        };
+        
+        if (StealthSecret(ephem_secret, stealthID.scan_pubkey, stealthID.spend_pubkey, secretShared, pkSendTo) != 0)
+        {
+            return false;
+        };
+        
+        CPubKey cpkTo(pkSendTo);
+        
+        if (!cpkTo.IsValid())
+        {
+            return false;
+        };
+
+        *script << OP_RETURN << std::vector<unsigned char>(cpkTo.begin(), cpkTo.end());
         return false;
     }
 
@@ -306,6 +330,11 @@ CScript GetScriptForDestination(const CTxDestination& dest)
 
     boost::apply_visitor(CScriptVisitor(&script), dest);
     return script;
+}
+
+CScript GetScriptForStealthPubKey(const CPubKey& pubKey)
+{
+    return CScript() << OP_RETURN << std::vector<unsigned char>(pubKey.begin(), pubKey.end());
 }
 
 CScript GetScriptForRawPubKey(const CPubKey& pubKey)

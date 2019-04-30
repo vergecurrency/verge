@@ -1,7 +1,7 @@
-#ifndef HASHX17_H
-#define HASHX17_H
+#ifndef VERGE_CRYPTO_POW_HASHX17_H
+#define VERGE_CRYPTO_POW_HASHX17_H
 
-#include "uint256.h"
+#include <uint256.h>
 #include "sph_blake.h"
 #include "sph_bmw.h"
 #include "sph_groestl.h"
@@ -181,4 +181,4 @@ static unsigned char pblank[1];
     return uint256(hash[16]);
 }
 
-#endif // HASHX17_H
+#endif // VERGE_CRYPTO_POW_HASHX17_H

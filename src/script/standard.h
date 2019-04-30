@@ -173,6 +173,8 @@ CScript GetScriptForDestination(const CTxDestination& dest);
 /** Generate a P2PK script for the given pubkey. */
 CScript GetScriptForRawPubKey(const CPubKey& pubkey);
 
+CScript GetScriptForStealthPubKey(const CPubKey& pubKey);
+
 /** Generate a multisig script. */
 CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
 

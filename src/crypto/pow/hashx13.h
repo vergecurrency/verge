@@ -1,20 +1,20 @@
-#ifndef HASHX13_H
-#define HASHX13_H
+#ifndef VERGE_CRYPTO_POW_HASHX13_H
+#define VERGE_CRYPTO_POW_HASHX13_H
 
-#include "uint256.h"
-#include "sph_blake.h"
-#include "sph_bmw.h"
-#include "sph_groestl.h"
-#include "sph_jh.h"
-#include "sph_keccak.h"
-#include "sph_skein.h"
-#include "sph_luffa.h"
-#include "sph_cubehash.h"
-#include "sph_shavite.h"
-#include "sph_simd.h"
-#include "sph_echo.h"
-#include "sph_hamsi.h"
-#include "sph_fugue.h"
+#include <uint256.h>
+#include <sph_blake.h>
+#include <sph_bmw.h>
+#include <sph_groestl.h>
+#include <sph_jh.h>
+#include <sph_keccak.h>
+#include <sph_skein.h>
+#include <sph_luffa.h>
+#include <sph_cubehash.h>
+#include <sph_shavite.h>
+#include <sph_simd.h>
+#include <sph_echo.h>
+#include <sph_hamsi.h>
+#include <sph_fugue.h>
 
 #ifndef QT_NO_DEBUG
 #include <string>
@@ -147,9 +147,4 @@ inline uint256 HashX13(const T1 pbegin, const T1 pend)
     return uint256(hash[12]);
 }
 
-
-
-
-
-
-#endif // HASHX13_H
+#endif // VERGE_CRYPTO_POW_HASHX13_H
