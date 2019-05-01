@@ -56,6 +56,9 @@ jobs:
       - run: 
           name: Gitian Build Windows
           command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme master
+      - persist_to_workspace: 
+          at: .
+          paths: "verge-binaries/master"
 
   release-macos:
     <<: *defaults
@@ -74,7 +77,10 @@ jobs:
       - run: 
           name: Gitian Build MacOS
           command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
-  
+      - persist_to_workspace: 
+          at: .
+          paths: "verge-binaries/master"
+          
   release-linux:
     <<: *defaults
     steps:
@@ -89,18 +95,22 @@ jobs:
       - run: 
           name: Gitian Build Linux
           command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
+      - persist_to_workspace: 
+          at: .
+          paths: "verge-binaries/master"
 
   upload-github-releases:
     docker:
       - image: cibuilds/github:0.10
     steps:
+      - checkout
       - attach_workspace:
-          at: ./artifacts
+          at: ./verge-binaries/master
       - run:
           name: "Publish Release on GitHub"
           command: |
-            VERSION=$(my-binary --version)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+            VERSION=$(git describe)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./verge-binaries/master
 
   test-setup-env: 
       <<: *defaults-docker
@@ -155,33 +165,33 @@ workflows:
   release:
     jobs:
       - release-prepare-machine:
-          filters:
-            tags:
-              only: *semvers
+          # filters:
+          #   tags:
+          #     only: *semvers
       - release-windows:
           requires:
             - release-prepare-machine
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: *semvers
+          # filters:
+          #   branches:
+          #     ignore: /.*/
+          #   tags:
+          #     only: *semvers
       - release-macos:
           requires:
             - release-prepare-machine
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: *semvers
+          # filters:
+          #   branches:
+          #     ignore: /.*/
+          #   tags:
+          #     only: *semvers
       - release-linux:
           requires:
             - release-prepare-machine
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: *semvers
+          # filters:
+          #   branches:
+          #     ignore: /.*/
+          #   tags:
+          #     only: *semvers
   testing:
     jobs:
       - test-setup-env
