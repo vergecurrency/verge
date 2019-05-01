@@ -165,33 +165,15 @@ workflows:
   release:
     jobs:
       - release-prepare-machine:
-          # filters:
-          #   tags:
-          #     only: *semvers
       - release-windows:
           requires:
             - release-prepare-machine
-          # filters:
-          #   branches:
-          #     ignore: /.*/
-          #   tags:
-          #     only: *semvers
       - release-macos:
           requires:
             - release-prepare-machine
-          # filters:
-          #   branches:
-          #     ignore: /.*/
-          #   tags:
-          #     only: *semvers
       - release-linux:
           requires:
             - release-prepare-machine
-          # filters:
-          #   branches:
-          #     ignore: /.*/
-          #   tags:
-          #     only: *semvers
   testing:
     jobs:
       - test-setup-env
