@@ -167,13 +167,13 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: *semvers
+              only: /^v.*/
       - release-windows:
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: *semvers
+              only: /^v.*/
           requires:
             - release-prepare-machine
       - release-macos:
@@ -181,7 +181,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: *semvers
+              only: /^v.*/
           requires:
             - release-prepare-machine
       - release-linux:
@@ -189,7 +189,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: *semvers
+              only: /^v.*/
           requires:
             - release-prepare-machine
       - upload-github-releases:
@@ -198,7 +198,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: *semvers
+              only: /^v.*/
           requires:
             - release-windows
             - release-macos
