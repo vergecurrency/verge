@@ -164,7 +164,7 @@ workflows:
   version: 2
   release:
     jobs:
-      - release-prepare-machine:
+      - release-prepare-machine
       - release-windows:
           requires:
             - release-prepare-machine
