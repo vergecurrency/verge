@@ -110,7 +110,7 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./verge-binaries/master
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${VERSION} ./verge-binaries/master/verge-binaries/master/
 
   test-setup-env: 
       <<: *defaults-docker
@@ -164,22 +164,46 @@ workflows:
   version: 2
   release:
     jobs:
-      - release-prepare-machine
+      - release-prepare-machine:
+          filters:	
+            tags:	
+              only: *semvers
       - release-windows:
+          filters:	
+            branches:	
+              ignore: /.*/	
+            tags:	
+              only: *semvers
           requires:
             - release-prepare-machine
       - release-macos:
+          filters:	
+            branches:	
+              ignore: /.*/	
+            tags:	
+              only: *semvers
           requires:
             - release-prepare-machine
       - release-linux:
+          filters:	
+            branches:	
+              ignore: /.*/	
+            tags:	
+              only: *semvers
           requires:
             - release-prepare-machine
       - upload-github-releases:
+          context: github-gangster
+          filters:	
+            branches:	
+              ignore: /.*/	
+            tags:	
+              only: *semvers
           requires:
             - release-windows
             - release-macos
             - release-linux
-
+ 
   testing:
     jobs:
       - test-setup-env
