@@ -57,7 +57,7 @@ jobs:
           name: Gitian Build Windows
           command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme master
       - persist_to_workspace: 
-          at: .
+          root: .
           paths: "verge-binaries/master"
 
   release-macos:
@@ -78,7 +78,7 @@ jobs:
           name: Gitian Build MacOS
           command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
       - persist_to_workspace: 
-          at: .
+          root: .
           paths: "verge-binaries/master"
           
   release-linux:
@@ -96,7 +96,7 @@ jobs:
           name: Gitian Build Linux
           command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
       - persist_to_workspace: 
-          at: .
+          root: .
           paths: "verge-binaries/master"
 
   upload-github-releases:
