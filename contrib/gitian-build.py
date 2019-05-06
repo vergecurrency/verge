@@ -7,27 +7,32 @@ import sys
 
 def setup():
     global args, workdir
-    programs = ['ruby', 'git', 'apt-cacher-ng', 'make', 'wget']
-    if args.kvm:
-        programs += ['python-vm-builder', 'qemu-kvm', 'qemu-utils']
-    elif args.docker:
-        dockers = ['docker.io', 'docker-ce']
-        for i in dockers:
-            return_code = subprocess.call(['sudo', 'apt-get', 'install', '-qq', i])
-            if return_code == 0:
-                break
-        if return_code != 0:
-            print('Cannot find any way to install docker', file=sys.stderr)
-            exit(1)
-    else:
-        programs += ['lxc', 'debootstrap']
-    subprocess.check_call(['sudo', 'apt-get', 'install', '-qq'] + programs)
+
+    # Assume that the CI has already properly setup all dependencies
+    if os.environ.get('CI') is None:
+        programs = ['ruby', 'git', 'apt-cacher-ng', 'make', 'wget']
+        if args.kvm:
+            programs += ['python-vm-builder', 'qemu-kvm', 'qemu-utils']
+        elif args.docker:
+            dockers = ['docker.io', 'docker-ce']
+            for i in dockers:
+                return_code = subprocess.call(['sudo', 'apt-get', 'install', '-qq', i])
+                if return_code == 0:
+                    break
+            if return_code != 0:
+                print('Cannot find any way to install docker', file=sys.stderr)
+                exit(1)
+        else:
+            programs += ['lxc', 'debootstrap']
+
+        subprocess.check_call(['sudo', 'apt-get', 'install', '-qq'] + programs)
+
     if not os.path.isdir('gitian.sigs'):
         subprocess.check_call(['git', 'clone', 'https://github.com/bitcoin-core/gitian.sigs.git'])
     if not os.path.isdir('bitcoin-detached-sigs'):
         subprocess.check_call(['git', 'clone', 'https://github.com/bitcoin-core/bitcoin-detached-sigs.git'])
     if not os.path.isdir('gitian-builder'):
-        subprocess.check_call(['git', 'clone', 'https://github.com/devrandom/gitian-builder.git'])
+        subprocess.check_call(['git', 'clone', 'https://github.com/marpme/gitian-builder.git'])
     if not os.path.isdir('verge'):
         subprocess.check_call(['git', 'clone', 'https://github.com/vergecurrency/VERGE.git'])
     os.chdir('gitian-builder')
@@ -79,7 +84,7 @@ def build():
 
     os.chdir(workdir)
 
-    if args.commit_files:
+    if args.commit_files and not os.environ.get('CI'):
         print('\nCommitting '+args.version+' Unsigned Sigs\n')
         os.chdir('gitian.sigs')
         subprocess.check_call(['git', 'add', args.version+'-linux/'+args.signer])
