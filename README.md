@@ -1,6 +1,6 @@
 <p align="center"><img src="https://raw.githubusercontent.com/vergecurrency/VERGE/master/readme-header.png" alt="Verge Source Code"></p>
 <p align="center">
-  <a href="https://travis-ci.org/vergecurrency/VERGE" target="_blank"><img src="https://travis-ci.org/vergecurrency/VERGE.svg?branch=master"></a>
+  <a href="https://circleci.com/gh/vergecurrency/VERGE/tree/master" target="_blank"><img src="https://circleci.com/gh/vergecurrency/VERGE/tree/master.svg?style=svg"></a>
   <img src="https://img.shields.io/badge/status-beta-yellow.svg">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg">
   <a href="https://codecov.io/gh/vergecurrency/VERGE">
