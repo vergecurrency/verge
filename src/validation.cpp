@@ -3307,6 +3307,33 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
     return true;
 }
 
+static bool hasUsedValidMiningAlgorithm(const CBlock& block, const CBlockIndex* pindexPrev)
+{
+    unsigned checkedBlocks = 0;
+    unsigned sameAlgoBlocks = 0;
+
+    while (pindexPrev && checkedBlocks != 2 * SAME_ALGO_MAX_COUNT)
+    {
+        if (pindexPrev->GetBlockHeader().GetAlgo() == block.GetAlgo())
+            ++sameAlgoBlocks;
+
+        ++checkedBlocks;
+        pindexPrev = pindexPrev->pprev;
+    }
+
+    if (sameAlgoBlocks > SAME_ALGO_MAX_COUNT)
+        return false;
+
+    return true;
+}
+
+static int64_t GetMaxClockDrift(int nHeight, const Consensus::Params& consensusParams){
+    if (nHeight < consensusParams.CLOCK_DRIFT_FORK)
+        return 2 * 60 * 60; // old 2 hour drift
+    else
+        return 10 * 60; // new 10 min drift
+}
+
 /** NOTE: This function is not currently invoked by ConnectBlock(), so we
  *  should consider upgrade issues if we change which consensus rules are
  *  enforced in this function (eg by adding a new consensus rule). See comment
@@ -3389,6 +3416,15 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     // failed).
     if (GetBlockWeight(block) > MAX_BLOCK_WEIGHT) {
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-weight", false, strprintf("%s : weight limit failed", __func__));
+    }
+
+    if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() || block.GetBlockTime() + GetMaxClockDrift(nHeight) < pindexPrev->GetBlockTime())
+    {	        
+        state.DoS(100, false, REJECT_INVALID, "bad-blk-time", false, strprintf("%s : blocks timestamp is too early", __func__));
+    }
+
+    if(nHeight > consensusParams.FlexibleMiningAlgorithms && !hasUsedValidMiningAlgorithm(block, pindexPrev)) {
+        return state.DoS(25, false, REJECT_INVALID, "bad-blk-algorithm", false, strprintf("%s : reused a mining algorithm too often", __func__));
     }
 
     return true;
