@@ -328,11 +328,11 @@ def run_tests(*, test_list, src_dir, build_dir, tmpdir, jobs=1, enable_coverage=
     args = args or []
 
     # Warn if verged is already running (unix only)
-    try:
-        if subprocess.check_output(["pidof", "verged"]) is not None:
-            print("%sWARNING!%s There is already a verged process running on this system. Tests may fail unexpectedly due to resource contention!" % (BOLD[1], BOLD[0]))
-    except (OSError, subprocess.SubprocessError):
-        pass
+    # try:
+    #     if subprocess.check_output(["pidof", "verged"]) is not None:
+    #         print("%sWARNING!%s There is already a verged process running on this system. Tests may fail unexpectedly due to resource contention!" % (BOLD[1], BOLD[0]))
+    # except (OSError, subprocess.SubprocessError):
+    #     pass
 
     # Warn if there is a cache directory
     cache_dir = "%s/test/cache" % build_dir
