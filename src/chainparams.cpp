@@ -358,10 +358,14 @@ class CRegTestParams : public CChainParams {
 public:
     CRegTestParams() {
         strNetworkID = "regtest";
-        consensus.nSubsidyHalvingInterval = 150;
         consensus.BIP34Height = 100000000; // BIP34 has not activated on regtest (far in the future so block v1 are not rejected in tests)
         consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251; // BIP66 activated on regtest (Used in rpc activation tests)
+        consensus.nSubsidyHalvingInterval = 210000;
+        consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
+        consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
+        consensus.FlexibleMiningAlgorithms = 2042000;
+        consensus.CLOCK_DRIFT_FORK = 2218500;
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 7 * 24 * 60 * 60; // one week
         consensus.nPowTargetSpacing = 30;
@@ -392,10 +396,12 @@ public:
         nDefaultPort = 8333;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1);
+        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1, true);
         consensus.hashGenesisBlock = genesis.GetHash();
-        //assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
-        //assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
+        // LogPrintf("%s", HexStr(consensus.hashGenesisBlock));
+        // assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
+        // LogPrintf("%s", HexStr(genesis.hashMerkleRoot));
+        // assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.

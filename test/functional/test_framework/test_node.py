@@ -80,6 +80,7 @@ class TestNode():
             "-datadir=" + self.datadir,
             "-logtimemicros",
             "-debug",
+            "-without-tor",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
             "-mocktime=" + str(mocktime),
