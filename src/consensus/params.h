@@ -60,8 +60,11 @@ struct Params {
     int MULTI_ALGO_SWITCH_BLOCK;
     /** Block height at which stealth blocks becomes active */
     int STEALTH_TX_SWITCH_BLOCK;
+    /* Block height at which has been manifested to not reuse mining algos more than 5 times in a row */
+    int FlexibleMiningAlgorithms;
     /** Block height at which VERGE was forked into VERGE v3 */
     int ForkHeight;
+    int CLOCK_DRIFT_FORK;
 
 
     /**

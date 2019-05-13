@@ -72,10 +72,13 @@ public:
         consensus.ForkHeight = 2800000;
         consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
+        consensus.FlexibleMiningAlgorithms = 2042000;
+        consensus.CLOCK_DRIFT_FORK = 2218500;
 		
         consensus.BIP34Height = consensus.ForkHeight;
         consensus.BIP65Height = consensus.ForkHeight;
         consensus.BIP66Height = consensus.ForkHeight; 
+
 
         consensus.powLimit = uint256S("00000fffff000000000000000000000000000000000000000000000000000000"); //ArithToUint256(~arith_uint256(0) >> 20);
         consensus.nPowTargetTimespan = 30; // diff readjusting time
@@ -261,6 +264,8 @@ public:
         consensus.nSubsidyHalvingInterval = 210000;
         consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
+        consensus.FlexibleMiningAlgorithms = 2042000;
+        consensus.CLOCK_DRIFT_FORK = 2218500;
         
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
