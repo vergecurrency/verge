@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2017 The Bitcoin Core developers
+# Copyright (c) 2014-2019 The Verge Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test behavior of headers messages to announce blocks.
@@ -86,11 +86,10 @@ e. Announce one more that doesn't connect.
    Expect: disconnect.
 """
 from test_framework.blocktools import create_block, create_coinbase
+from test_framework.messages import CInv
 from test_framework.mininode import (
     CBlockHeader,
-    CInv,
     NODE_WITNESS,
-    network_thread_start,
     P2PInterface,
     mininode_lock,
     msg_block,
@@ -104,7 +103,6 @@ from test_framework.mininode import (
 from test_framework.test_framework import VergeTestFramework
 from test_framework.util import (
     assert_equal,
-    sync_blocks,
     wait_until,
 )
 
@@ -214,7 +212,7 @@ class SendHeadersTest(VergeTestFramework):
 
         # Clear out block announcements from each p2p listener
         [x.clear_block_announcements() for x in self.nodes[0].p2ps]
-        self.nodes[0].generate(count)
+        self.nodes[0].generatetoaddress(count, self.nodes[0].get_deterministic_priv_key().address)
         return int(self.nodes[0].getbestblockhash(), 16)
 
     def mine_reorg(self, length):
@@ -224,8 +222,9 @@ class SendHeadersTest(VergeTestFramework):
         to-be-reorged-out blocks are mined, so that we don't break later tests.
         return the list of block hashes newly mined."""
 
-        self.nodes[0].generate(length)  # make sure all invalidated blocks are node0's
-        sync_blocks(self.nodes, wait=0.1)
+        # make sure all invalidated blocks are node0's
+        self.nodes[0].generatetoaddress(length, self.nodes[0].get_deterministic_priv_key().address)
+        self.sync_blocks(self.nodes, wait=0.1)
         for x in self.nodes[0].p2ps:
             x.wait_for_block_announcement(int(self.nodes[0].getbestblockhash(), 16))
             x.clear_block_announcements()
@@ -233,22 +232,16 @@ class SendHeadersTest(VergeTestFramework):
         tip_height = self.nodes[1].getblockcount()
         hash_to_invalidate = self.nodes[1].getblockhash(tip_height - (length - 1))
         self.nodes[1].invalidateblock(hash_to_invalidate)
-        all_hashes = self.nodes[1].generate(length + 1)  # Must be longer than the orig chain
-        sync_blocks(self.nodes, wait=0.1)
+        all_hashes = self.nodes[1].generatetoaddress(length + 1, self.nodes[1].get_deterministic_priv_key().address)  # Must be longer than the orig chain
+        self.sync_blocks(self.nodes, wait=0.1)
         return [int(x, 16) for x in all_hashes]
 
     def run_test(self):
-        # Setup the p2p connections and start up the network thread.
+        # Setup the p2p connections
         inv_node = self.nodes[0].add_p2p_connection(BaseNode())
         # Make sure NODE_NETWORK is not set for test_node, so no block download
         # will occur outside of direct fetching
         test_node = self.nodes[0].add_p2p_connection(BaseNode(), services=NODE_WITNESS)
-
-        network_thread_start()
-
-        # Test logic begins here
-        inv_node.wait_for_verack()
-        test_node.wait_for_verack()
 
         # Ensure verack's have been processed by our peer
         inv_node.sync_with_ping()
@@ -258,7 +251,7 @@ class SendHeadersTest(VergeTestFramework):
         self.test_nonnull_locators(test_node, inv_node)
 
     def test_null_locators(self, test_node, inv_node):
-        tip = self.nodes[0].getblockheader(self.nodes[0].generate(1)[0])
+        tip = self.nodes[0].getblockheader(self.nodes[0].generatetoaddress(1, self.nodes[0].get_deterministic_priv_key().address)[0])
         tip_hash = int(tip["hash"], 16)
 
         inv_node.check_last_inv_announcement(inv=[tip_hash])
@@ -306,6 +299,7 @@ class SendHeadersTest(VergeTestFramework):
                 test_node.clear_block_announcements()  # since we requested headers...
             elif i == 2:
                 # this time announce own block via headers
+                inv_node.clear_block_announcements()
                 height = self.nodes[0].getblockcount()
                 last_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time']
                 block_time = last_time + 1
@@ -315,6 +309,7 @@ class SendHeadersTest(VergeTestFramework):
                 test_node.wait_for_getdata([new_block.sha256])
                 test_node.send_message(msg_block(new_block))
                 test_node.sync_with_ping()  # make sure this block is processed
+                wait_until(lambda: inv_node.block_announced, timeout=60, lock=mininode_lock)
                 inv_node.clear_block_announcements()
                 test_node.clear_block_announcements()
 
@@ -406,7 +401,7 @@ class SendHeadersTest(VergeTestFramework):
 
             block_time += 9
 
-            fork_point = self.nodes[0].getblock("%02x" % new_block_hashes[0])["previousblockhash"]
+            fork_point = self.nodes[0].getblock("%064x" % new_block_hashes[0])["previousblockhash"]
             fork_point = int(fork_point, 16)
 
             # Use getblocks/getdata
@@ -494,7 +489,7 @@ class SendHeadersTest(VergeTestFramework):
 
         # Now announce a header that forks the last two blocks
         tip = blocks[0].sha256
-        height -= 1
+        height -= 2
         blocks = []
 
         # Create extra blocks for later

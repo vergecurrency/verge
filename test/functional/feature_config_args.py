@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017 The Bitcoin Core developers
+# Copyright (c) 2017-2019 The Verge Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test various command line arguments and configuration file parameters."""
@@ -14,8 +14,58 @@ class ConfArgsTest(VergeTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
 
+    def test_config_file_parser(self):
+        # Assume node is stopped
+
+        inc_conf_file_path = os.path.join(self.nodes[0].datadir, 'include.conf')
+        with open(os.path.join(self.nodes[0].datadir, 'verge.conf'), 'a', encoding='utf-8') as conf:
+            conf.write('includeconf={}\n'.format(inc_conf_file_path))
+
+        with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
+            conf.write('-dash=1\n')
+        self.nodes[0].assert_start_raises_init_error(expected_msg='Error reading configuration file: parse error on line 1: -dash=1, options in configuration file must be specified without leading -')
+
+        with open(inc_conf_file_path, 'w', encoding='utf8') as conf:
+            conf.write("wallet=foo\n")
+        self.nodes[0].assert_start_raises_init_error(expected_msg='Error: Config setting for -wallet only applied on regtest network when in [regtest] section.')
+
+        with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
+            conf.write('nono\n')
+        self.nodes[0].assert_start_raises_init_error(expected_msg='Error reading configuration file: parse error on line 1: nono, if you intended to specify a negated option, use nono=1 instead')
+
+        with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
+            conf.write('server=1\nrpcuser=someuser\nrpcpassword=some#pass')
+        self.nodes[0].assert_start_raises_init_error(expected_msg='Error reading configuration file: parse error on line 3, using # in rpcpassword can be ambiguous and should be avoided')
+
+        with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
+            conf.write('server=1\nrpcuser=someuser\nmain.rpcpassword=some#pass')
+        self.nodes[0].assert_start_raises_init_error(expected_msg='Error reading configuration file: parse error on line 3, using # in rpcpassword can be ambiguous and should be avoided')
+
+        with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
+            conf.write('server=1\nrpcuser=someuser\n[main]\nrpcpassword=some#pass')
+        self.nodes[0].assert_start_raises_init_error(expected_msg='Error reading configuration file: parse error on line 4, using # in rpcpassword can be ambiguous and should be avoided')
+
+        inc_conf_file2_path = os.path.join(self.nodes[0].datadir, 'include2.conf')
+        with open(os.path.join(self.nodes[0].datadir, 'verge.conf'), 'a', encoding='utf-8') as conf:
+            conf.write('includeconf={}\n'.format(inc_conf_file2_path))
+
+        with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
+            conf.write('testnot.datadir=1\n')
+        with open(inc_conf_file2_path, 'w', encoding='utf-8') as conf:
+            conf.write('[testnet]\n')
+        self.restart_node(0)
+        self.nodes[0].stop_node(expected_stderr='Warning: ' + inc_conf_file_path + ':1 Section [testnot] is not recognized.' + os.linesep + 'Warning: ' + inc_conf_file2_path + ':1 Section [testnet] is not recognized.')
+
+        with open(inc_conf_file_path, 'w', encoding='utf-8') as conf:
+            conf.write('')  # clear
+        with open(inc_conf_file2_path, 'w', encoding='utf-8') as conf:
+            conf.write('')  # clear
+
     def run_test(self):
         self.stop_node(0)
+
+        self.test_config_file_parser()
+
         # Remove the -datadir argument so it doesn't override the config file
         self.nodes[0].args = [arg for arg in self.nodes[0].args if not arg.startswith("-datadir")]
 
@@ -36,19 +86,26 @@ class ConfArgsTest(VergeTestFramework):
             f.write("datadir=" + new_data_dir + "\n")
             f.write(conf_file_contents)
 
-        self.nodes[0].assert_start_raises_init_error(['-conf=' + conf_file], 'Error reading configuration file: specified data directory "' + new_data_dir + '" does not exist.')
+        # Temporarily disabled, because this test would access the user's home dir (~/.verge)
+        #self.nodes[0].assert_start_raises_init_error(['-conf=' + conf_file], 'Error reading configuration file: specified data directory "' + new_data_dir + '" does not exist.')
 
         # Create the directory and ensure the config file now works
         os.mkdir(new_data_dir)
-        self.start_node(0, ['-conf='+conf_file, '-wallet=w1'])
-        self.stop_node(0)
-        assert os.path.exists(os.path.join(new_data_dir, 'regtest', 'wallets', 'w1'))
+        # Temporarily disabled, because this test would access the user's home dir (~/.verge)
+        #self.start_node(0, ['-conf='+conf_file, '-wallet=w1'])
+        #self.stop_node(0)
+        #assert os.path.exists(os.path.join(new_data_dir, 'regtest', 'blocks'))
+        #if self.is_wallet_compiled():
+        #assert os.path.exists(os.path.join(new_data_dir, 'regtest', 'wallets', 'w1'))
 
         # Ensure command line argument overrides datadir in conf
         os.mkdir(new_data_dir_2)
         self.nodes[0].datadir = new_data_dir_2
         self.start_node(0, ['-datadir='+new_data_dir_2, '-conf='+conf_file, '-wallet=w2'])
-        assert os.path.exists(os.path.join(new_data_dir_2, 'regtest', 'wallets', 'w2'))
+        assert os.path.exists(os.path.join(new_data_dir_2, 'regtest', 'blocks'))
+        if self.is_wallet_compiled():
+            assert os.path.exists(os.path.join(new_data_dir_2, 'regtest', 'wallets', 'w2'))
+
 
 if __name__ == '__main__':
     ConfArgsTest().main()

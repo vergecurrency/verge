@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2017 The Bitcoin Core developers
+# Copyright (c) 2014-2019 The Verge Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test running verged with the -rpcbind and -rpcallowip options."""
 
 import sys
 
+from test_framework.netutil import all_interfaces, addr_to_hex, get_bind_addrs, test_ipv6_local
 from test_framework.test_framework import VergeTestFramework, SkipTest
-from test_framework.util import *
-from test_framework.netutil import *
+from test_framework.util import assert_equal, assert_raises_rpc_error, get_rpc_proxy, rpc_port, rpc_url
 
 class RPCBindTest(VergeTestFramework):
     def set_test_params(self):
@@ -20,9 +20,9 @@ class RPCBindTest(VergeTestFramework):
         self.add_nodes(self.num_nodes, None)
 
     def add_options(self, parser):
-        parser.add_option("--ipv4", action='store_true', dest="run_ipv4", help="Run ipv4 tests only", default=False)
-        parser.add_option("--ipv6", action='store_true', dest="run_ipv6", help="Run ipv6 tests only", default=False)
-        parser.add_option("--nonloopback", action='store_true', dest="run_nonloopback", help="Run non-loopback tests only", default=False)
+        parser.add_argument("--ipv4", action='store_true', dest="run_ipv4", help="Run ipv4 tests only", default=False)
+        parser.add_argument("--ipv6", action='store_true', dest="run_ipv6", help="Run ipv6 tests only", default=False)
+        parser.add_argument("--nonloopback", action='store_true', dest="run_nonloopback", help="Run non-loopback tests only", default=False)
 
     def run_bind_test(self, allow_ips, connect_to, addresses, expected):
         '''
@@ -48,9 +48,12 @@ class RPCBindTest(VergeTestFramework):
         at a non-localhost IP.
         '''
         self.log.info("Allow IP test for %s:%d" % (rpchost, rpcport))
-        base_args = ['-disablewallet', '-nolisten'] + ['-rpcallowip='+x for x in allow_ips]
+        node_args = \
+            ['-disablewallet', '-nolisten'] + \
+            ['-rpcallowip='+x for x in allow_ips] + \
+            ['-rpcbind='+addr for addr in ['127.0.0.1', "%s:%d" % (rpchost, rpcport)]] # Bind to localhost as well so start_nodes doesn't hang
         self.nodes[0].rpchost = None
-        self.start_nodes([base_args])
+        self.start_nodes([node_args])
         # connect to node through non-loopback interface
         node = get_rpc_proxy(rpc_url(self.nodes[0].datadir, 0, "%s:%d" % (rpchost, rpcport)), 0, coveragedir=self.options.coveragedir)
         node.getnetworkinfo()
@@ -67,7 +70,7 @@ class RPCBindTest(VergeTestFramework):
 
         self.log.info("Check for ipv6")
         have_ipv6 = test_ipv6_local()
-        if not have_ipv6 and not self.options.run_ipv4:
+        if not have_ipv6 and not (self.options.run_ipv4 or self.options.run_nonloopback):
             raise SkipTest("This test requires ipv6 support.")
 
         self.log.info("Check for non-loopback interface")
@@ -101,9 +104,9 @@ class RPCBindTest(VergeTestFramework):
             # check default without rpcallowip (IPv4 and IPv6 localhost)
             self.run_bind_test(None, '127.0.0.1', [],
                 [('127.0.0.1', self.defaultport), ('::1', self.defaultport)])
-            # check default with rpcallowip (IPv6 any)
+            # check default with rpcallowip (IPv4 and IPv6 localhost)
             self.run_bind_test(['127.0.0.1'], '127.0.0.1', [],
-                [('::0', self.defaultport)])
+                [('127.0.0.1', self.defaultport), ('::1', self.defaultport)])
             # check only IPv6 localhost (explicit)
             self.run_bind_test(['[::1]'], '[::1]', ['[::1]'],
                 [('::1', self.defaultport)])

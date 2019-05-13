@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014-2017 The Bitcoin Core developers
+# Copyright (c) 2014-2019 The Verge Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test RPCs related to blockchainstate.
@@ -35,22 +35,25 @@ from test_framework.util import (
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
+    TIME_GENESIS_BLOCK,
 )
 from test_framework.messages import (
     msg_block,
 )
 from test_framework.mininode import (
     P2PInterface,
-    network_thread_start,
 )
 
 
 class BlockchainTest(VergeTestFramework):
     def set_test_params(self):
+        self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-stopatheight=207', '-prune=1']]
 
     def run_test(self):
+        self.mine_chain()
+        self.restart_node(0, extra_args=['-stopatheight=207', '-prune=1'])  # Set extra args with pruning after rescan is complete
+
         self._test_getblockchaininfo()
         self._test_getchaintxstats()
         self._test_gettxoutsetinfo()
@@ -60,6 +63,15 @@ class BlockchainTest(VergeTestFramework):
         self._test_stopatheight()
         self._test_waitforblockheight()
         assert self.nodes[0].verifychain(4, 0)
+
+    def mine_chain(self):
+        self.log.info('Create some old blocks')
+        address = self.nodes[0].get_deterministic_priv_key().address
+        for t in range(TIME_GENESIS_BLOCK, TIME_GENESIS_BLOCK + 200 * 600, 600):
+            # ten-minute steps from genesis block time
+            self.nodes[0].setmocktime(t)
+            self.nodes[0].generatetoaddress(1, address)
+        assert_equal(self.nodes[0].getblockchaininfo()['blocks'], 200)
 
     def _test_getblockchaininfo(self):
         self.log.info("Test getblockchaininfo")
@@ -125,13 +137,15 @@ class BlockchainTest(VergeTestFramework):
 
         # Test `getchaintxstats` invalid `blockhash`
         assert_raises_rpc_error(-1, "JSON value is not a string as expected", self.nodes[0].getchaintxstats, blockhash=0)
-        assert_raises_rpc_error(-5, "Block not found", self.nodes[0].getchaintxstats, blockhash='0')
+        assert_raises_rpc_error(-8, "blockhash must be of length 64 (not 1, for '0')", self.nodes[0].getchaintxstats, blockhash='0')
+        assert_raises_rpc_error(-8, "blockhash must be hexadecimal string (not 'ZZZ0000000000000000000000000000000000000000000000000000000000000')", self.nodes[0].getchaintxstats, blockhash='ZZZ0000000000000000000000000000000000000000000000000000000000000')
+        assert_raises_rpc_error(-5, "Block not found", self.nodes[0].getchaintxstats, blockhash='0000000000000000000000000000000000000000000000000000000000000000')
         blockhash = self.nodes[0].getblockhash(200)
         self.nodes[0].invalidateblock(blockhash)
         assert_raises_rpc_error(-8, "Block is not in main chain", self.nodes[0].getchaintxstats, blockhash=blockhash)
         self.nodes[0].reconsiderblock(blockhash)
 
-        chaintxstats = self.nodes[0].getchaintxstats(1)
+        chaintxstats = self.nodes[0].getchaintxstats(nblocks=1)
         # 200 txs plus genesis tx
         assert_equal(chaintxstats['txcount'], 201)
         # tx rate should be 1 per 10 minutes, or 1/600
@@ -158,9 +172,9 @@ class BlockchainTest(VergeTestFramework):
         assert_equal(chaintxstats['txcount'], 2)
         assert_equal(chaintxstats['window_final_block_hash'], b1_hash)
         assert_equal(chaintxstats['window_block_count'], 0)
-        assert('window_tx_count' not in chaintxstats)
-        assert('window_interval' not in chaintxstats)
-        assert('txrate' not in chaintxstats)
+        assert 'window_tx_count' not in chaintxstats
+        assert 'window_interval' not in chaintxstats
+        assert 'txrate' not in chaintxstats
 
     def _test_gettxoutsetinfo(self):
         node = self.nodes[0]
@@ -170,7 +184,7 @@ class BlockchainTest(VergeTestFramework):
         assert_equal(res['transactions'], 200)
         assert_equal(res['height'], 200)
         assert_equal(res['txouts'], 200)
-        assert_equal(res['bogosize'], 17000),
+        assert_equal(res['bogosize'], 15000),
         assert_equal(res['bestblock'], node.getblockhash(200))
         size = res['disk_size']
         assert size > 6400
@@ -195,22 +209,21 @@ class BlockchainTest(VergeTestFramework):
         node.reconsiderblock(b1hash)
 
         res3 = node.gettxoutsetinfo()
-        assert_equal(res['total_amount'], res3['total_amount'])
-        assert_equal(res['transactions'], res3['transactions'])
-        assert_equal(res['height'], res3['height'])
-        assert_equal(res['txouts'], res3['txouts'])
-        assert_equal(res['bogosize'], res3['bogosize'])
-        assert_equal(res['bestblock'], res3['bestblock'])
-        assert_equal(res['hash_serialized_2'], res3['hash_serialized_2'])
+        # The field 'disk_size' is non-deterministic and can thus not be
+        # compared between res and res3.  Everything else should be the same.
+        del res['disk_size'], res3['disk_size']
+        assert_equal(res, res3)
 
     def _test_getblockheader(self):
         node = self.nodes[0]
 
-        assert_raises_rpc_error(-5, "Block not found", node.getblockheader, "nonsense")
+        assert_raises_rpc_error(-8, "hash must be of length 64 (not 8, for 'nonsense')", node.getblockheader, "nonsense")
+        assert_raises_rpc_error(-8, "hash must be hexadecimal string (not 'ZZZ7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844')", node.getblockheader, "ZZZ7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844")
+        assert_raises_rpc_error(-5, "Block not found", node.getblockheader, "0cf7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844")
 
         besthash = node.getbestblockhash()
         secondbesthash = node.getblockhash(199)
-        header = node.getblockheader(besthash)
+        header = node.getblockheader(blockhash=besthash)
 
         assert_equal(header['hash'], besthash)
         assert_equal(header['height'], 200)
@@ -242,12 +255,12 @@ class BlockchainTest(VergeTestFramework):
 
     def _test_stopatheight(self):
         assert_equal(self.nodes[0].getblockcount(), 200)
-        self.nodes[0].generate(6)
+        self.nodes[0].generatetoaddress(6, self.nodes[0].get_deterministic_priv_key().address)
         assert_equal(self.nodes[0].getblockcount(), 206)
         self.log.debug('Node should not stop at this height')
         assert_raises(subprocess.TimeoutExpired, lambda: self.nodes[0].process.wait(timeout=3))
         try:
-            self.nodes[0].generate(1)
+            self.nodes[0].generatetoaddress(1, self.nodes[0].get_deterministic_priv_key().address)
         except (ConnectionError, http.client.BadStatusLine):
             pass  # The node already shut down before response
         self.log.debug('Node should stop at this height...')
@@ -257,13 +270,8 @@ class BlockchainTest(VergeTestFramework):
 
     def _test_waitforblockheight(self):
         self.log.info("Test waitforblockheight")
-
         node = self.nodes[0]
-
-        # Start a P2P connection since we'll need to create some blocks.
         node.add_p2p_connection(P2PInterface())
-        network_thread_start()
-        node.p2p.wait_for_verack()
 
         current_height = node.getblock(node.getbestblockhash())['height']
 
@@ -291,7 +299,7 @@ class BlockchainTest(VergeTestFramework):
 
         def assert_waitforheight(height, timeout=2):
             assert_equal(
-                node.waitforblockheight(height, timeout)['height'],
+                node.waitforblockheight(height=height, timeout=timeout)['height'],
                 current_height)
 
         assert_waitforheight(0)

@@ -122,4 +122,6 @@ cmake-build-debug/
 .vscode/
 .idea/
 
+datadir/**
+
 CMakeLists.txt

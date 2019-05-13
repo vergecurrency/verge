@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2015-2017 The Bitcoin Core developers
+# Copyright (c) 2015-2018 The Verge Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test multiple RPC users."""
@@ -18,6 +18,7 @@ import subprocess
 from random import SystemRandom
 import string
 import configparser
+import sys
 
 
 class HTTPBasicsTest(VergeTestFramework):
@@ -36,7 +37,7 @@ class HTTPBasicsTest(VergeTestFramework):
         config = configparser.ConfigParser()
         config.read_file(open(self.options.configfile))
         gen_rpcauth = config['environment']['RPCAUTH']
-        p = subprocess.Popen([gen_rpcauth, self.user], stdout=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen([sys.executable, gen_rpcauth, self.user], stdout=subprocess.PIPE, universal_newlines=True)
         lines = p.stdout.read().splitlines()
         rpcauth3 = lines[1]
         self.password = lines[3]
@@ -59,7 +60,7 @@ class HTTPBasicsTest(VergeTestFramework):
         #Old authpair
         authpair = url.username + ':' + url.password
 
-        #New authpair generated via share/rpcuser tool
+        #New authpair generated via share/rpcauth tool
         password = "cA773lm788buwYe4g4WT+05pKyNruVKjQ25x3n0DQcM="
 
         #Second authpair with different username
