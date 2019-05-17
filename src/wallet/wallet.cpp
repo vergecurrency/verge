@@ -403,11 +403,12 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase)
                 return false;
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey))
                 continue; // try another master key
-            if (CCryptoKeyStore::Unlock(_vMasterKey))
+            if (CCryptoKeyStore::Unlock(_vMasterKey)){
+                UnlockStealthAddresses(_vMasterKey);
                 return true;
+            }
         }
 
-        UnlockStealthAddresses(_vMasterKey);
     }
     return false;
 }
@@ -3200,12 +3201,12 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
         };
     };
     
-    encrypted_batch = new WalletBatch(*database);
-    bool rv = encrypted_batch->WriteStealthAddress(sxAddr);
+    WalletBatch batch(*database);
+    bool rv = batch.WriteStealthAddress(sxAddr);
+
     
-    if (rv){
+    if (rv)
         SetAddressBook(sxAddr, sxAddr.label, "");
-    }
     
     return rv;
 }
@@ -3351,14 +3352,14 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         //     LogPrintf("Adding secret to key %s.\n", coinAddress.ToString().c_str());
         // };
         
-        if (!AddKey(ckey))
+        if (!AddKeyPubKey(ckey, cpkT))
         {
             LogPrintf("AddKey failed.\n");
             continue;
         };
         
-        encrypted_batch = new WalletBatch(*database);
-        if (!encrypted_batch->EraseStealthKeyMeta(ckid))
+        WalletBatch batch(*database);
+        if (!batch.EraseStealthKeyMeta(ckid))
             LogPrintf("EraseStealthKeyMeta failed\n");
     };
     return true;
@@ -3403,10 +3404,8 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
     };
     
     sxFound.label = label;
-    encrypted_batch = new WalletBatch(*database);
-     
-
-    if (!encrypted_batch->WriteStealthAddress(sxFound))
+    WalletBatch batch(*database);
+    if (!batch.WriteStealthAddress(sxFound))
     {
         LogPrintf("UpdateStealthAddress(%s) Write to db failed.\n", addr.c_str());
         return false;
@@ -3504,6 +3503,7 @@ bool CWallet::SendStealthMoneyToDestination(CStealthAddress& sxAddress, int64_t 
         sError = "Invalid amount";
         return false;
     };
+
     if (nValue + MIN_COIN_FEE > GetBalance())
     {
         sError = "Insufficient funds";
@@ -3644,7 +3644,6 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                 continue;
             
             bool txnMatch = false; // only 1 txn will match an ephem pk
-            //printf("txoutB scriptPubKey %s\n",  txoutB.scriptPubKey.ToString().c_str());
             
             CTxDestination address;
             if (!ExtractDestination(txoutB.scriptPubKey, address))
@@ -3699,8 +3698,8 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     CPubKey cpkScan(it->scan_pubkey);
                     CStealthKeyMetadata lockedSkMeta(cpkEphem, cpkScan);
                     
-                    encrypted_batch = new WalletBatch(*database);
-                    if (!encrypted_batch->WriteStealthKeyMeta(keyId, lockedSkMeta))
+                    WalletBatch batch(*database);
+                    if (!batch.WriteStealthKeyMeta(keyId, lockedSkMeta))
                         LogPrintf("WriteStealthKeyMeta failed \n");
                     
                     mapStealthKeyMeta[keyId] = lockedSkMeta;
@@ -3709,19 +3708,12 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                 {
                     if (it->spend_secret.size() != ec_secret_size)
                         continue;
+
                     memcpy(&sSpend.e[0], &it->spend_secret[0], ec_secret_size);
-                    
                     
                     if (StealthSharedToSecretSpend(sShared, sSpend, sSpendR) != 0)
                     {
                         LogPrintf("StealthSharedToSecretSpend() failed.\n");
-                        continue;
-                    };
-                    
-                    ec_point pkTestSpendR;
-                    if (SecretToPublicKey(sSpendR, pkTestSpendR) != 0)
-                    {
-                        LogPrintf("SecretToPublicKey() failed.\n");
                         continue;
                     };
                     
@@ -3753,7 +3745,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     
                     CKeyID keyID = cpkT.GetID();
                     
-                    if (!AddKey(ckey))
+                    if (!AddKeyPubKey(ckey, cpkT))
                     {
                         LogPrintf("AddKey failed.\n");
                         continue;

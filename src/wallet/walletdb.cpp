@@ -328,6 +328,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         {
             CStealthAddress sxAddr;
             ssValue >> sxAddr;
+            LogPrintf("Wallet ReadKeyValue sxAddr: %s\n", sxAddr.Encoded().c_str());
             pwallet->stealthAddresses.insert(sxAddr);
         }
         else if (strType == "acentry")
