@@ -420,6 +420,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
     {
         LOCK(cs_wallet);
         Lock();
+        LockStealthAddresses();
 
         CCrypter crypter;
         CKeyingMaterial _vMasterKey;
@@ -449,8 +450,10 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
                 if (!crypter.Encrypt(_vMasterKey, pMasterKey.second.vchCryptedKey))
                     return false;
                 WalletBatch(*database).WriteMasterKey(pMasterKey.first, pMasterKey.second);
-                if (fWasLocked)
+                if (fWasLocked){
                     Lock();
+                    LockStealthAddresses();
+                }
                 return true;
             }
         }
@@ -732,6 +735,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 
         NewKeyPool();
         Lock();
+        LockStealthAddresses();
 
         // Need to completely rewrite the wallet file; if we don't, bdb might keep
         // bits of the unencrypted private key in slack space in the database file.
@@ -742,6 +746,30 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 
     return true;
 }
+
+void CWallet::LockStealthAddresses() {
+     // -- load encrypted spend_secret of stealth addresses
+    CStealthAddress sxAddrTemp;
+    std::set<CStealthAddress>::iterator it;
+    for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
+    {
+        if (it->scan_secret.size() < 32)
+            continue; // stealth address is not owned
+
+        // -- CStealthAddress are only sorted on spend_pubkey
+        CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
+        LogPrintf("Recrypting stealth key %s\n", sxAddr.Encoded().c_str());
+
+        sxAddrTemp.scan_pubkey = sxAddr.scan_pubkey;
+        WalletBatch batch(*database);
+        if (!batch.ReadStealthAddress(sxAddrTemp))
+        {
+            LogPrintf("Error: Failed to read stealth key from db %s\n", sxAddr.Encoded().c_str());
+            continue;
+        }
+        sxAddr.spend_secret = sxAddrTemp.spend_secret;
+    };
+};
 
 DBErrors CWallet::ReorderTransactions()
 {
