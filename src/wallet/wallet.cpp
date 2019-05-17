@@ -406,6 +406,8 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase)
             if (CCryptoKeyStore::Unlock(_vMasterKey))
                 return true;
         }
+
+        UnlockStealthAddresses(_vMasterKey);
     }
     return false;
 }
@@ -3182,14 +3184,13 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
         
         if (IsCrypted())
         {
-            CKeyingMaterial _vMasterKey;
             std::vector<unsigned char> vchCryptedSecret;
             CKeyingMaterial vchSecret;
             vchSecret.resize(32);
             memcpy(&vchSecret[0], &sxAddr.spend_secret[0], 32);
             
             uint256 iv = Hash(sxAddr.spend_pubkey.begin(), sxAddr.spend_pubkey.end());
-            if (!EncryptSecret(_vMasterKey, vchSecret, iv, vchCryptedSecret))
+            if (!EncryptSecret(vMasterKey, vchSecret, iv, vchCryptedSecret))
             {
                 LogPrintf("Error: Failed encrypting stealth key %s\n", sxAddr.Encoded().c_str());
                 stealthAddresses.erase(sxAddr);
