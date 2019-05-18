@@ -191,11 +191,37 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             const CPubKey &vchPubKey = (*mi).second.first;
             const std::vector<unsigned char> &vchCryptedSecret = (*mi).second.second;
             CKey key;
+
+            if (vchCryptedSecret.size() < 1) // key was recieved from stealth/anon txn with wallet locked, will be expanded after this
+            {
+                LogPrintf("Skipping unexpanded key %s.\n", vchPubKey.GetHash().ToString().c_str());
+                continue;
+            };
+
             if (!DecryptKey(vMasterKeyIn, vchCryptedSecret, vchPubKey, key))
             {
                 keyFail = true;
                 break;
             }
+
+            CKeyingMaterial vchSecret;
+            if (!DecryptSecret(vMasterKeyIn, vchCryptedSecret, vchPubKey.GetHash(), vchSecret))
+            {
+                LogPrintf("DecryptSecret() failed.\n");
+                return false;
+            };
+
+            if (vchSecret.size() != 32)
+                return false;
+
+            key.Set(vchSecret.begin(), vchSecret.end(), vchPubKey.IsCompressed());
+            
+            if (key.GetPubKey() != vchPubKey)
+            {
+                LogPrintf("Unlock failed: PubKey mismatch %s.\n", vchPubKey.GetHash().ToString().c_str());
+                return false;
+            };
+
             keyPass = true;
             if (fDecryptionThoroughlyChecked)
                 break;
