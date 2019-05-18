@@ -747,30 +747,6 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
     return true;
 }
 
-void CWallet::LockStealthAddresses() {
-     // -- load encrypted spend_secret of stealth addresses
-    CStealthAddress sxAddrTemp;
-    std::set<CStealthAddress>::iterator it;
-    for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
-    {
-        if (it->scan_secret.size() < 32)
-            continue; // stealth address is not owned
-
-        // -- CStealthAddress are only sorted on spend_pubkey
-        CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
-        LogPrintf("Recrypting stealth key %s\n", sxAddr.Encoded().c_str());
-
-        sxAddrTemp.scan_pubkey = sxAddr.scan_pubkey;
-        WalletBatch batch(*database);
-        if (!batch.ReadStealthAddress(sxAddrTemp))
-        {
-            LogPrintf("Error: Failed to read stealth key from db %s\n", sxAddr.Encoded().c_str());
-            continue;
-        }
-        sxAddr.spend_secret = sxAddrTemp.spend_secret;
-    };
-};
-
 DBErrors CWallet::ReorderTransactions()
 {
     LOCK(cs_wallet);
@@ -3239,6 +3215,30 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
     return rv;
 }
 
+void CWallet::LockStealthAddresses() {
+     // -- load encrypted spend_secret of stealth addresses
+    CStealthAddress sxAddrTemp;
+    std::set<CStealthAddress>::iterator it;
+    for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
+    {
+        if (it->scan_secret.size() < 32)
+            continue; // stealth address is not owned
+
+        // -- CStealthAddress are only sorted on spend_pubkey
+        CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
+        LogPrintf("Recrypting stealth key %s\n", sxAddr.Encoded().c_str());
+
+        sxAddrTemp.scan_pubkey = sxAddr.scan_pubkey;
+        WalletBatch batch(*database);
+        if (!batch.ReadStealthAddress(sxAddrTemp))
+        {
+            LogPrintf("Error: Failed to read stealth key from db %s\n", sxAddr.Encoded().c_str());
+            continue;
+        }
+        sxAddr.spend_secret = sxAddrTemp.spend_secret;
+    };
+};
+
 bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
 {
     // -- decrypt spend_secret of stealth addresses
@@ -3318,6 +3318,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
             LogPrintf("Stealth address has no secret key\n");
             continue;
         }
+        
         memcpy(&sScan.e[0], &si->scan_secret[0], ec_secret_size);
         memcpy(&sSpend.e[0], &si->spend_secret[0], ec_secret_size);
         
