@@ -467,6 +467,17 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             wss.nKeyMeta++;
             pwallet->LoadKeyMetadata(vchPubKey.GetID(), keyMeta);
         }
+        else if (strType == "sxKeyMeta")
+        {
+            LogPrintf("WalletDB ReadKeyValue sxKeyMeta\n");
+
+            CKeyID keyId;
+            ssKey >> keyId;
+            CStealthKeyMetadata sxKeyMeta;
+            ssValue >> sxKeyMeta;
+
+            pwallet->mapStealthKeyMeta[keyId] = sxKeyMeta;
+        }
         else if (strType == "watchmeta")
         {
             CScript script;
