@@ -362,6 +362,11 @@ public:
         consensus.BIP34Height = 100000000; // BIP34 has not activated on regtest (far in the future so block v1 are not rejected in tests)
         consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251; // BIP66 activated on regtest (Used in rpc activation tests)
+        consensus.nSubsidyHalvingInterval = 210000;
+        consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
+        consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
+        consensus.FlexibleMiningAlgorithms = 2042000;
+        consensus.CLOCK_DRIFT_FORK = 2218500;
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 7 * 24 * 60 * 60; // one week
         consensus.nPowTargetSpacing = 30;
