@@ -76,6 +76,9 @@ public:
     bool SetEncoded(const std::string& encodedAddress);
     std::string Encoded() const;
     
+    std::string Export() const;
+    bool Import(const std::string& stealthSecrets);
+    
     bool operator <(const CStealthAddress& y) const
     {
         return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], ec_compressed_size) < 0;
