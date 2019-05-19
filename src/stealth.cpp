@@ -14,10 +14,67 @@
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
 
-//const uint8_t stealth_version_byte = 0x2a;
 const uint8_t stealth_version_byte = 0x28;
+const uint8_t stealth_dump_version_byte = 0x2b;
 
 
+bool CStealthAddress::Import(const std::string& stealthSecrets)
+{
+    data_chunk raw;
+    
+    if (!DecodeBase58(stealthSecrets, raw))
+    {
+        LogPrintf("CStealthAddress::Import DecodeBase58 failed.\n");
+        return false;
+    };
+    
+    if (!VerifyChecksum(raw))
+    {
+
+        LogPrintf("CStealthAddress::Import verify_checksum failed.\n");
+        return false;
+    };
+    
+    /*
+     * 1. version
+     * 2. scan pubkey
+     * 3. scan secret
+     * 4. spend pubkey
+     * 5. spend privkey 
+    */ 
+    if (raw.size() < 2 + 33 + 32 + 33 + 32)
+    {
+        LogPrintf("CStealthAddress::Import too few bytes provided.\n");
+        return false;
+    };
+    
+    uint8_t* p = &raw[0];
+    uint8_t  version = *p++;
+    
+    if (version != stealth_dump_version_byte)
+    {
+        LogPrintf("CStealthAddress::Import version mismatch 0x%x != 0x%x.\n", version, stealth_version_byte);
+        return false;
+    };
+    
+    scan_pubkey.resize(33);
+    memcpy(&scan_pubkey[0], p, 33);
+    p += 33;
+
+    scan_secret.resize(32);
+    memcpy(&scan_secret[0], p, 32);
+    p += 32;
+    
+    spend_pubkey.resize(33);
+    memcpy(&spend_pubkey[0], p, 33);
+    p += 33;
+
+    spend_secret.resize(32);
+    memcpy(&spend_secret[0], p, 32);
+    p += 32;
+
+    return true;
+};
 
 bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
 {
@@ -87,6 +144,21 @@ std::string CStealthAddress::Encoded() const
     return EncodeBase58(raw);
 };
 
+std::string CStealthAddress::Export() const
+{
+    data_chunk raw;
+
+    raw.push_back(stealth_dump_version_byte);
+    
+    raw.insert(raw.end(), scan_pubkey.begin(), scan_pubkey.end());
+    raw.insert(raw.end(), scan_secret.begin(), scan_secret.end());
+    raw.insert(raw.end(), spend_pubkey.begin(), spend_pubkey.end());
+    raw.insert(raw.end(), spend_secret.begin(), spend_secret.end());
+
+    AppendChecksum(raw);
+    
+    return EncodeBase58(raw);
+};
 
 uint32_t BitcoinChecksum(uint8_t* p, uint32_t nBytes)
 {

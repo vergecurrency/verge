@@ -90,7 +90,8 @@ VERGE_TESTS =\
   test/uint256_tests.cpp \
   test/util_tests.cpp \
   test/validation_block_tests.cpp \
-  test/versionbits_tests.cpp
+  test/versionbits_tests.cpp \
+  test/stealth_tests.cpp
 
 if ENABLE_WALLET
 VERGE_TESTS += \
