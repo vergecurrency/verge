@@ -121,7 +121,6 @@ class CCryptoKeyStore : public CBasicKeyStore
 {
 private:
 
-    CKeyingMaterial vMasterKey;
 
     //! if fUseCrypto is true, mapKeys must be empty
     //! if fUseCrypto is false, vMasterKey must be empty
@@ -140,6 +139,7 @@ protected:
     CryptedKeyMap mapCryptedKeys;
 
 public:
+    CKeyingMaterial vMasterKey;
     CCryptoKeyStore() : fUseCrypto(false), fDecryptionThoroughlyChecked(false)
     {
     }

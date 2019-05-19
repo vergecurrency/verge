@@ -74,7 +74,7 @@ Build requirements:
 
 Now, you can either build from self-compiled [depends](/depends/README.md) or install the required dependencies:
 
-    sudo apt-get install libssl-dev libevent-dev libboost-all-dev
+    sudo apt install libssl-dev libevent-dev libboost-all-dev
 
 To build without Tor, pass `--without-tor` to configure.  These are necessary for building with Tor:
 
