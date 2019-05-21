@@ -459,6 +459,9 @@ static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &
 {
     CAmount curBalance = pwallet->GetBalance();
 
+    if(address.type() == typeid(CStealthAddress))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Stealth address not supported");
+
     // Check amount
     if (nValue <= 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
@@ -4645,6 +4648,10 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
     }
 
     CTxDestination destination = DecodeDestination(request.params[1].get_str());
+    if(destination.type() == typeid(CStealthAddress)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Stealth address not supported");
+    }
+    
     if (!IsValidDestination(destination)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Error: Invalid address");
     }

@@ -279,7 +279,7 @@ static void MutateTxAddOutAddr(CMutableTransaction& tx, const std::string& strIn
     // extract and validate ADDRESS
     std::string strAddr = vStrInputParts[1];
     CTxDestination destination = DecodeDestination(strAddr);
-    if (!IsValidDestination(destination)) {
+    if (!IsValidDestination(destination) || destination.type() == typeid(CStealthAddress)) {
         throw std::runtime_error("invalid TX output address");
     }
     CScript scriptPubKey = GetScriptForDestination(destination);
