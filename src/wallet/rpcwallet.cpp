@@ -545,6 +545,10 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
+    if(dest.type() == typeid(CStealthAddress)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "For sending to stealth addresses please use sendtostealthaddress");
+    }
+
     // Amount
     CAmount nAmount = SafeAmountFromValue(request.params[1]);
     if (nAmount <= 0)

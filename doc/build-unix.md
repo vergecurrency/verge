@@ -76,9 +76,11 @@ Now, you can either build from self-compiled [depends](/depends/README.md) or in
 
     sudo apt install libssl-dev libevent-dev libboost-all-dev
 
-To build without Tor, pass `--without-tor` to configure.  These are necessary for building with Tor:
+These are necessary for building with Tor:  
 
     sudo apt-get install zlib1g-dev libseccomp-dev libcap-dev libncap-dev
+
+To run without Tor after compile, you can pass --without-tor to the binary.
 
 BerkeleyDB is required for the wallet.
 

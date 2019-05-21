@@ -109,7 +109,7 @@ jobs:
           name: 'Publish Release on GitHub'
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete -draft ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
 
   test-setup-env:
     <<: *defaults-docker
