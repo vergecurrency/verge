@@ -600,7 +600,7 @@ UniValue getnewstealthaddress(const JSONRPCRequest& request){
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() < 0 || request.params.size() > 1)
+	 if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
             "getnewstealthaddress (\"label\")\n"
             "\nCreates a new stealth address\n"
