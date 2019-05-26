@@ -107,7 +107,7 @@ if [ $result2 = "19.04" ];
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 else
-echo no
+echo "No patch done for db4.8 should be fine."
 fi
 
 rm db-4.8.30.NC.tar.gz
@@ -125,7 +125,8 @@ fi
 #// Check if libboost is present
 
 results=$(find /usr/ -name libboost_chrono.so)
-if [ -z $results ]; then
+if [ -z $results ];
+then
 sudo rm download
      wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
      unzip -o download
@@ -162,7 +163,8 @@ split -dl 1 --additional-suffix=.txt words wrd
 
 
 
-if [ -e wrd01.txt ]; then
+if [ -e wrd01.txt ];
+then
 echo 0. $(cat wrd00.txt)
 echo 1. $(cat wrd01.txt)
 echo 2. $(cat wrd02.txt)
@@ -191,29 +193,8 @@ fi
 
 make -j$(nproc)
 
-if [ -e ~/VERGE/src/qt/verge-qt ]; then
-#sudo apt-get -y install pulseaudio
-#sudo apt-get -y install portaudio19-dev
-# synthetic voice 
-#cd ~
-#wget https://sourceforge.net/projects/espeak/files/espeak/espeak-1.48/espeak-1.48.04-source.zip/download
-#unzip -o download
-#cd espeak-1.48.04-source/src
-#cp portaudio19.h portaudio.h
-#make
-#cd ~
-for i in 528 1000 1600 2000 3000
-do
-pactl load-module module-sine frequency=$i > /dev/null
-sleep 0.1
-done
-sleep 1
-pactl unload-module module-sine
-pactl upload-sample complet test2
-openssl rand -hex 4096 | padsp tee /dev/audio > /dev/null
-sleep 1.3
-pactl play-sample test2
-#espeak mission,complete
+if [ -e ~/VERGE/src/qt/verge-qt ];
+then
 sudo strip ~/VERGE/src/verged
 sudo strip ~/VERGE/src/qt/verge-qt
 sudo make install
@@ -226,7 +207,8 @@ cd ~
 #// Create the config file with random user and password
 
 mkdir -p ~/.VERGE
-if [ -e ~/.VERGE/VERGE.conf ]; then
+if [ -e ~/.VERGE/VERGE.conf ];
+then
     cp -a ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
 fi
 echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" '\n'"server=1" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'""> ~/.VERGE/VERGE.conf
@@ -238,19 +220,20 @@ sudo echo "FORCE_SSL_PROMPT:YES" >> /etc/lynx/lynx.cfg
 
 echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
 read answer
-if echo "$answer" | grep -iq "^y" ;then
-    sudo rm QT-Wallet*.zip
-    until [ -e QT-Wallet*.zip ]
-    do
-    sleep 1
- echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
-    sleep 1
-    sh link.sh
-    done
-    unzip -o QT-Wallet*.zip -d ~/.VERGE
-    sudo rm QT-Wallet*.zip
+if echo "$answer" | grep -iq "^y" ;
+then
+sudo rm QT-Wallet*.zip
+until [ -e QT-Wallet*.zip ]
+do 
+sleep 1
+echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
+sleep 1
+sh link.sh
+done
+unzip -o QT-Wallet*.zip -d ~/.VERGE
+sudo rm QT-Wallet*.zip
 else
- echo "Blockchain will not be installed sync may be long"
+echo "Blockchain will not be installed sync may be long"
 fi
 
 # Create Icon on Desktop and in menu
