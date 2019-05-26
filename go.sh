@@ -54,7 +54,7 @@ sudo apt-get -y install libcanberra-gtk-module
 # Dont need to check if bd is already installed, will override or pass by
 #results=$(find /usr/ -name libdb_cxx.so)
 #if [ -z $results ]; then
-sudo apt-get -y install libdb4.8-dev libdb4.8++-dev build-essential
+sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
 #else
 #grep DB_VERSION_STRING $(find /usr/ -name db.h)
 #echo "BerkeleyDb will not be installed its already there...."
@@ -70,7 +70,9 @@ sudo apt-get -y install qttools5-dev-tools libprotobuf-dev protobuf-compiler lib
 
 sudo apt-get -y install libseccomp-dev libcap-dev
 
-sudo apt-get -y install libunivalue-dev libzmq3-dev g++
+sudo apt-get -y install libunivalue-dev libzmq3-dev
+
+sudo apt-get -y install g++ build-essential
 
 # Keep current version of libboost if already present
 results=$(find /usr/ -name libboost_chrono.so)
