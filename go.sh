@@ -1,5 +1,5 @@
 #!/bin/bash
-#// full deployement : run sh go.sh
+#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/patch-8/go.sh | bash
 sudo rm -Rf ~/VERGE
 # generating entropy make it harder to guess the randomness!.
 echo "Initializing random number generator..."
@@ -68,7 +68,7 @@ sudo apt-get -y install libqt5core5a libqt5dbus5 libevent-dev qttools5-dev
 
 sudo apt-get -y install qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
 
-sudo apt-get -y install libseccomp-dev libcap-dev
+sudo apt-get -y install zlib1g-dev libseccomp-dev libcap-dev libncap-dev
 
 sudo apt-get -y install libunivalue-dev libzmq3-dev
 
