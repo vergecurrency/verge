@@ -70,7 +70,7 @@ sudo apt-get -y install qttools5-dev-tools libprotobuf-dev protobuf-compiler lib
 
 sudo apt-get -y install libseccomp-dev libcap-dev
 
-sudo apt-get -y install libunivalue-dev libzmq3-dev
+sudo apt-get -y install libunivalue-dev libzmq3-dev g++
 
 # Keep current version of libboost if already present
 results=$(find /usr/ -name libboost_chrono.so)
