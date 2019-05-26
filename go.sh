@@ -1,6 +1,6 @@
 #!/bin/bash
 #// full deployement : run sh go.sh
-
+sudo rm -Rf ~/VERGE
 # generating entropy make it harder to guess the randomness!.
 echo "Initializing random number generator..."
 random_seed=/var/run/random-seed
