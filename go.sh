@@ -100,10 +100,19 @@ then
 echo "BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'DB_VERSION_STRING')" 
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
-tar -xzvf db-4.8.30.NC.tar.gz 
+tar -xzvf db-4.8.30.NC.tar.gz
+result2=$(cat /etc/issue | grep -Po '19.04')
+
+if [ $result2 = "19.04" ];
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
+else
+echo no
+fi
+
 rm db-4.8.30.NC.tar.gz
 cd db-4.8.30.NC/build_unix 
-../dist/configure --enable-cxx 
+../dist/configure --enable-cxx
 make 
 sudo make install 
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
@@ -230,7 +239,7 @@ sudo echo "FORCE_SSL_PROMPT:YES" >> /etc/lynx/lynx.cfg
 echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
 read answer
 if echo "$answer" | grep -iq "^y" ;then
-    sudo rm QT-Wallet*
+    sudo rm QT-Wallet*.zip
     until [ -e QT-Wallet*.zip ]
     do
     sleep 1
@@ -238,20 +247,6 @@ if echo "$answer" | grep -iq "^y" ;then
     sleep 1
     sh link.sh
     done
-# wget --no-check-certificate https://verge-blockchain.com/blockchain5/QT-Wallet_v5.x_Verge-Blockchain_2019-May-22.zip
-# No fixed name need to guess what link is,change every day, AI in the work.
-    #checksum
-    #sudo rm blockchain
-    #wget https://www.vergecurrency.com/checksums/blockchain
-    #md5sum go.sh-Verge-Blockchain.zip > md5
-    #checksum="$(grep $(cat md5) blockchain)"
-    #if [ -z "$checksum" ];
-    #then
-    #echo "Warning: MD5 is not matching"
-    #else
-    #echo "MD5 is matching...Success"
-    #fi
-
     unzip -o QT-Wallet*.zip -d ~/.VERGE
     sudo rm QT-Wallet*.zip
 else
