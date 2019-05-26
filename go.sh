@@ -34,7 +34,7 @@ cd ~
 if [ -e /swapfile1 ]; then
 echo "Swapfile already present"
 else
-sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
+sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=1024288
 sudo mkswap /swapfile1
 sudo chown root:root /swapfile1
 sudo chmod 0600 /swapfile1
