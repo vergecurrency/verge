@@ -6,7 +6,8 @@ echo "Initializing random number generator..."
 random_seed=/var/run/random-seed
 # Carry a random seed from start-up to start-up
 # Load and then save the whole entropy pool
-if [ -f $random_seed ]; then
+if [ -f $random_seed ]
+then
     sudo cat $random_seed >/dev/urandom
 else
     sudo touch $random_seed
@@ -31,7 +32,8 @@ sudo dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
 # Create a swap file
 
 cd ~
-if [ -e /swapfile1 ]; then
+if [ -e /swapfile1 ]
+then
 echo "Swapfile already present"
 else
 sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=1024288
@@ -76,7 +78,8 @@ sudo apt-get -y install g++ build-essential
 
 # Keep current version of libboost if already present
 results=$(find /usr/ -name libboost_chrono.so)
-if [ -z $results ]; then
+if [ -z $results ]
+then
 sudo apt-get -y install libboost-all-dev
 else
 red=`tput setaf 1`
@@ -106,11 +109,9 @@ wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
 tar -xzvf db-4.8.30.NC.tar.gz
 result2=$(cat /etc/issue | grep -Po '19.04')
 
-if [ $result2 = "19.04" ];
+if [ $result2 = "19.04" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
-else
-echo "No patch done for db4.8 should be fine."
 fi
 
 rm db-4.8.30.NC.tar.gz
@@ -128,7 +129,7 @@ fi
 #// Check if libboost is present
 
 results=$(find /usr/ -name libboost_chrono.so)
-if [ -z $results ];
+if [ -z $results ]
 then
 sudo rm download
      wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
@@ -166,7 +167,7 @@ split -dl 1 --additional-suffix=.txt words wrd
 
 
 
-if [ -e wrd01.txt ];
+if [ -e wrd01.txt ]
 then
 echo 0. $(cat wrd00.txt)
 echo 1. $(cat wrd01.txt)
@@ -196,7 +197,7 @@ fi
 
 make -j$(nproc)
 
-if [ -e ~/VERGE/src/qt/verge-qt ];
+if [ -e ~/VERGE/src/qt/verge-qt ]
 then
 sudo strip ~/VERGE/src/verged
 sudo strip ~/VERGE/src/qt/verge-qt
@@ -210,7 +211,7 @@ cd ~
 #// Create the config file with random user and password
 
 mkdir -p ~/.VERGE
-if [ -e ~/.VERGE/VERGE.conf ];
+if [ -e ~/.VERGE/VERGE.conf ]
 then
     cp -a ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
 fi
@@ -238,19 +239,19 @@ cd ~
 
 echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
 read answer
-if [ "$answer" != "${answer#[Yy]}" ]; then
+if [ "$answer" != "${answer#[Yy]}" ]
+then
 sudo rm QT-Wallet*.zip
 echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
 sh link.sh
 unzip -o QT-Wallet*.zip -d ~/.VERGE
 sudo rm QT-Wallet*.zip
-else
-echo "Blockchain will not be installed sync may be long"
 fi
 
 #// Start Verge
 
 VERGE-qt
-if [ -e ~/.VERGE/wallet.dat ]; then
+if [ -e ~/.VERGE/wallet.dat ]
+then
     cp ~/.VERGE/wallet.dat ~/vergewallet.bak
 fi
