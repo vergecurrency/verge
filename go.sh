@@ -221,24 +221,6 @@ echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\
 sudo chmod 777 /etc/lynx/lynx.cfg
 sudo echo "FORCE_SSL_PROMPT:YES" >> /etc/lynx/lynx.cfg
 
-echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
-read answer
-if echo "$answer" | grep -iq "^y" ;
-then
-sudo rm QT-Wallet*.zip
-until [ -e QT-Wallet*.zip ]
-do 
-sleep 1
-echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
-sleep 1
-sh link.sh
-done
-unzip -o QT-Wallet*.zip -d ~/.VERGE
-sudo rm QT-Wallet*.zip
-else
-echo "Blockchain will not be installed sync may be long"
-fi
-
 # Create Icon on Desktop and in menu
 mkdir -p ~/Desktop/
 sudo cp ~/VERGE/src/qt/res/icons/verge.png /usr/share/icons/
@@ -251,6 +233,20 @@ sudo chmod +x /usr/share/applications/VERGE.desktop
 
 cd ~
 #sudo rm -Rf ~/VERGE
+
+# Blockchain
+
+echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
+read answer
+if [ "$answer" != "${answer#[Yy]}" ]; then
+sudo rm QT-Wallet*.zip
+echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
+sh link.sh
+unzip -o QT-Wallet*.zip -d ~/.VERGE
+sudo rm QT-Wallet*.zip
+else
+echo "Blockchain will not be installed sync may be long"
+fi
 
 #// Start Verge
 
