@@ -228,7 +228,7 @@ echo "port=21102" >> ~/.VERGE/VERGE.conf
 echo "daemon=1" >> ~/.VERGE/VERGE.conf
 echo "listen=1" >> ~/.VERGE/VERGE.conf
 echo "server=1" >> ~/.VERGE/VERGE.conf
-"deprecatedrpc=accounts" >> ~/.VERGE/VERGE.conf
+echo "deprecatedrpc=accounts" >> ~/.VERGE/VERGE.conf
 
 #// Extract http link, download blockchain and install it.
 
