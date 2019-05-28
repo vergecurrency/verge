@@ -108,8 +108,8 @@ else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
 result2=$(cat /etc/issue | grep -Po '19.04')
-
-if [ $result2 = "19.04" ]
+result3=$(cat /etc/issue | grep -Po '4.6')
+if [ $result2 = "19.04" ] || [ $result3 = "4.6" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 fi
@@ -233,25 +233,15 @@ sudo chmod +x /usr/share/applications/VERGE.desktop
 # Erase all VERGE compilation directory , cleaning
 
 cd ~
-#sudo rm -Rf ~/VERGE
+sudo rm -Rf ~/VERGE
 
 # Blockchain
 
-echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
-read answer
-if [ "$answer" != "${answer#[Yy]}" ]
-then
+echo -n "Success....Blockchain is now downloading press Ctrl-C to cancel and process to verged or verge-qt"
 sudo rm QT-Wallet*.zip
 echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
 sh link.sh
 unzip -o QT-Wallet*.zip -d ~/.VERGE
 sudo rm QT-Wallet*.zip
-fi
-
 #// Start Verge
-
-VERGE-qt
-if [ -e ~/.VERGE/wallet.dat ]
-then
-    cp ~/.VERGE/wallet.dat ~/vergewallet.bak
-fi
+verge-qt
