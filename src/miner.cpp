@@ -97,7 +97,7 @@ void BlockAssembler::resetBlock()
     nFees = 0;
 }
 
-std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn,  int algo, bool fMineWitnessTx)
+std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn, int algo, bool fMineWitnessTx)
 {
     int64_t nTimeStart = GetTimeMicros();
 
@@ -121,7 +121,9 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     
     // bitcoins version of computing the version based on the deployment status (not yet needed for us)
     // pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
-    pblock->nVersion = pindexPrev->nHeight >= chainparams.GetConsensus().STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
+    pblock->nVersion = pindexPrev->nHeight >= chainparams.GetConsensus().STEALTH_TX_SWITCH_BLOCK 
+        ? BLOCK_VERSION_STEALTH 
+        : BLOCK_VERSION_DEFAULT;
 
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
