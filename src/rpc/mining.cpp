@@ -468,6 +468,13 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     static int64_t nStart;
     static std::unique_ptr<CBlockTemplate> pblocktemplate;
 
+    // Apply ALGO as standard selection (and overwrite with given algo string)
+    int32_t chosenAlgorithm = ALGO;
+    if(!algorithm.isNull() && algorithm.isStr() && IsValidAlgoByName(algorithm.get_str())){
+        std::string algorithmStr = algorithm.get_str();
+        chosenAlgorithm = GetAlgoByName(algorithmStr);
+    }
+
     // Cache whether the last invocation was with segwit support, to avoid returning
     // a segwit-block to a non-segwit caller.
     // static bool fLastTemplateSupportsSegwit = true;
@@ -487,7 +494,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, ALGO, false /*supports segwit bool*/);
+        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, chosenAlgorithm, false /*supports segwit bool*/);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -559,6 +566,8 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     UniValue result(UniValue::VOBJ);
     result.pushKV("capabilities", aCaps);
 
+    int32_t version = pblock->nVersion;
+
     UniValue aRules(UniValue::VARR);
     UniValue vbavailable(UniValue::VOBJ);
     for (int j = 0; j < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; ++j) {
@@ -602,18 +611,6 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         }
     }
 
-    int32_t version = 2;
-    if((pindexPrev->nHeight + 1) >= 340000){
-        version = VERSIONBITS_LAST_OLD_BLOCK_VERSION;
-        if(algorithm.isStr()){
-            std::string algorithmStr = algorithm.get_str();
-            int32_t algo = GetAlgoByName(algorithmStr);
-            version |= determineVersionForBlockTemplate(algo);
-        } else {
-            // defaulting to ALGO, this either set via config or default script
-            version |= determineVersionForBlockTemplate(ALGO);
-        }
-    }
     result.pushKV("version", version);
     result.pushKV("rules", aRules);
     result.pushKV("vbavailable", vbavailable);
