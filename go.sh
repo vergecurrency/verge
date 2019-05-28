@@ -108,8 +108,12 @@ else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
 result2=$(cat /etc/issue | grep -Po '19.04')
+if [ $result2 = "19.04" ]
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
+fi
 result3=$(cat /etc/issue | grep -Po '4.6')
-if [ $result2 = "19.04" ] || [ $result3 = "4.6" ]
+if [ $result3 = "4.6" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 fi
@@ -132,14 +136,14 @@ results=$(find /usr/ -name libboost_chrono.so)
 if [ -z $results ]
 then
 sudo rm download
-     wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
+     wget https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.zip/download 
      unzip -o download
-     cd boost_1_63_0
+     cd boost_1_67_0
 	sh bootstrap.sh
 	sudo ./b2 install
 	cd ~
 	sudo rm download 
-	sudo rm -Rf boost_1_63_0
+	sudo rm -Rf boost_1_67_0
 	#sudo ln -s $(dirname "$(find /usr/ -name libboost_chrono.so)")/lib*.so /usr/lib
 	sudo ldconfig
         #sudo rm /usr/lib/libboost_chrono.so
