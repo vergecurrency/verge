@@ -220,7 +220,7 @@ if [ -e ~/.VERGE/VERGE.conf ]
 then
     cp -a ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
 fi
-echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" '\n'"server=1" '\n'"deprecatedrpc=accounts" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'""> ~/.VERGE/VERGE.conf
+echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" '\n'"server=1" '\n'"deprecatedrpc=accounts" > ~/.VERGE/VERGE.conf
 
 #// Extract http link, download blockchain and install it.
 
