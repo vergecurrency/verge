@@ -59,6 +59,21 @@ static inline int GetAlgoByName(std::string strAlgo){
     return ALGO_SCRYPT;
 }
 
+static inline bool IsValidAlgoByName(std::string strAlgo){
+    if (strAlgo == "scrypt")
+        return true;
+    if (strAlgo == "groestl" || strAlgo == "myr-gr" || strAlgo == "myriad-groestl")
+        return true;
+    if (strAlgo == "x17")
+	    return true;
+    if (strAlgo == "lyra" || strAlgo == "lyra2re" || strAlgo == "lyra2v2" || strAlgo == "lyra2" || strAlgo == "lyra2rev2")
+	    return true;
+    if (strAlgo == "blake" || strAlgo == "blake2s")
+	    return true;
+
+    return false;
+}
+
 static inline std::string GetAlgoName(int algo)
 {
     switch (algo)
