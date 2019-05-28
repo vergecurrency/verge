@@ -191,15 +191,15 @@ cd ~
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
 cd VERGE
-./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests
 echo "Using Berkeley Generic..."
 else
 cd VERGE
-./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests
 echo "Using default system Berkeley..."
 fi
 
-make -j$(nproc)
+make -j$(nproc) USE_UPNP=-
 
 if [ -e ~/VERGE/src/qt/verge-qt ]
 then
@@ -241,7 +241,7 @@ sudo rm -Rf ~/VERGE
 
 # Blockchain
 
-echo -n "Success....Blockchain is now downloading press Ctrl-C to cancel and process to verged or verge-qt"
+echo -n "Success....Blockchain is now downloading press Ctrl-C to cancel but it will take longer to sync from 0. And you will have to start verge manual"
 sudo rm QT-Wallet*.zip
 echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
 sh link.sh
