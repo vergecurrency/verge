@@ -100,11 +100,7 @@ static void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
     {
         entry.pushKV("blockhash", wtx.hashBlock.GetHex());
         entry.pushKV("blockindex", wtx.nIndex);
-        std::map<uint256, CBlockIndex*>::const_iterator it = mapBlockIndex.find(wtx.hashBlock);
-        if (it != mapBlockIndex.end())
-            entry.push_back(Pair("blocktime", (boost::int64_t)(it->second->nTime)));
-        else
-            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Error: Block hash %s was not found in the block index.", wtx.hashBlock.ToString().c_str()));
+        entry.pushKV("blocktime", LookupBlockIndex(wtx.hashBlock)->GetBlockTime());
     } else {
         entry.pushKV("trusted", wtx.IsTrusted());
     }
