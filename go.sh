@@ -238,7 +238,17 @@ sudo echo "FORCE_SSL_PROMPT:YES" >> /etc/lynx/lynx.cfg
 # Create Icon on Desktop and in menu
 mkdir -p ~/Desktop/
 sudo cp ~/VERGE/src/qt/res/icons/verge.png /usr/share/icons/
-echo '#!/usr/bin/env xdg-open''\n'"[Desktop Entry]"'\n'"Version=1.0"'\n'"Type=Application"'\n'"Terminal=false"'\n'"Icon[en]=/usr/share/icons/verge.png"'\n'"Name[en]=VERGE"'\n'"Exec=verge-qt"'\n'"Name=VERGE"'\n'"Icon=/usr/share/icons/verge.png"'\n'"Categories=Network;Internet;" > ~/Desktop/VERGE.desktop
+echo "#!/usr/bin/env xdg-open" >> ~/Desktop/VERGE.desktop
+echo "[Desktop Entry]" >> ~/Desktop/VERGE.desktop
+echo "Version=1.0" >> ~/Desktop/VERGE.desktop
+echo "Type=Application" >> ~/Desktop/VERGE.desktop
+echo "Terminal=false" >> ~/Desktop/VERGE.desktop
+echo "Icon[en]=/usr/share/icons/verge.png" >> ~/Desktop/VERGE.desktop
+echo "Name[en]=VERGE" >> ~/Desktop/VERGE.desktop
+echo "Exec=verge-qt" >> ~/Desktop/VERGE.desktop
+echo "Name=VERGE" >> ~/Desktop/VERGE.desktop
+echo "Icon=/usr/share/icons/verge.png" >> ~/Desktop/VERGE.desktop
+echo "Categories=Network;Internet;" >> ~/Desktop/VERGE.desktop
 sudo chmod +x ~/Desktop/VERGE.desktop
 sudo cp ~/Desktop/VERGE.desktop /usr/share/applications/VERGE.desktop
 sudo chmod +x /usr/share/applications/VERGE.desktop
@@ -246,7 +256,7 @@ sudo chmod +x /usr/share/applications/VERGE.desktop
 # Erase all VERGE compilation directory , cleaning
 
 cd ~
-sudo rm -Rf ~/VERGE
+#sudo rm -Rf ~/VERGE
 
 # Blockchain
 
