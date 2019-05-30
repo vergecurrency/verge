@@ -1,11 +1,17 @@
-#ifndef TRANSACTIONDESCDIALOG_H
-#define TRANSACTIONDESCDIALOG_H
+// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2018-2018 The VERGE Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef VERGE_QT_TRANSACTIONDESCDIALOG_H
+#define VERGE_QT_TRANSACTIONDESCDIALOG_H
 
 #include <QDialog>
 
 namespace Ui {
     class TransactionDescDialog;
 }
+
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
@@ -23,4 +29,4 @@ private:
     Ui::TransactionDescDialog *ui;
 };
 
-#endif // TRANSACTIONDESCDIALOG_H
+#endif // VERGE_QT_TRANSACTIONDESCDIALOG_H

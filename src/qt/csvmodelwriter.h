@@ -1,8 +1,13 @@
-#ifndef CSVMODELWRITER_H
-#define CSVMODELWRITER_H
+// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2018-2018 The VERGE Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <QObject>
+#ifndef VERGE_QT_CSVMODELWRITER_H
+#define VERGE_QT_CSVMODELWRITER_H
+
 #include <QList>
+#include <QObject>
 
 QT_BEGIN_NAMESPACE
 class QAbstractItemModel;
@@ -14,6 +19,7 @@ QT_END_NAMESPACE
 class CSVModelWriter : public QObject
 {
     Q_OBJECT
+
 public:
     explicit CSVModelWriter(const QString &filename, QObject *parent = 0);
 
@@ -36,11 +42,6 @@ private:
         int role;
     };
     QList<Column> columns;
-
-signals:
-
-public slots:
-
 };
 
-#endif // CSVMODELWRITER_H
+#endif // VERGE_QT_CSVMODELWRITER_H

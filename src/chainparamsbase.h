@@ -1,63 +1,57 @@
-// Copyright (c) 2014 The Bitcoin developers
+// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2018-2018 The VERGE Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CHAINPARAMSBASE_H
-#define BITCOIN_CHAINPARAMSBASE_H
+#ifndef VERGE_CHAINPARAMSBASE_H
+#define VERGE_CHAINPARAMSBASE_H
 
+#include <memory>
 #include <string>
 #include <vector>
 
 /**
- * CBaseChainParams defines the base parameters (shared between dash-cli and dashd)
- * of a given instance of the Dash system.
+ * CBaseChainParams defines the base parameters (shared between verge-cli and verged)
+ * of a given instance of the VERGE system.
  */
 class CBaseChainParams
 {
 public:
-    enum Network {
-        MAIN,
-        TESTNET,
-
-        MAX_NETWORK_TYPES
-    };
+    /** BIP70 chain name strings (main, test or regtest) */
+    static const std::string MAIN;
+    static const std::string TESTNET;
+    static const std::string REGTEST;
 
     const std::string& DataDir() const { return strDataDir; }
     int RPCPort() const { return nRPCPort; }
 
-protected:
-    CBaseChainParams() {}
+    CBaseChainParams() = delete;
+    CBaseChainParams(const std::string& data_dir, int rpc_port) : nRPCPort(rpc_port), strDataDir(data_dir) {}
 
+private:
     int nRPCPort;
     std::string strDataDir;
-    Network networkID;
 };
 
 /**
- * Return the currently selected parameters. This won't change after app startup
- * outside of the unit tests.
+ * Creates and returns a std::unique_ptr<CBaseChainParams> of the chosen chain.
+ * @returns a CBaseChainParams* of the chosen chain.
+ * @throws a std::runtime_error if the chain is not supported.
+ */
+std::unique_ptr<CBaseChainParams> CreateBaseChainParams(const std::string& chain);
+
+/**
+ *Set the arguments for chainparams
+ */
+void SetupChainParamsBaseOptions();
+
+/**
+ * Return the currently selected parameters. This won't change after app
+ * startup, except for unit tests.
  */
 const CBaseChainParams& BaseParams();
 
 /** Sets the params returned by Params() to those for the given network. */
-void SelectBaseParams(CBaseChainParams::Network network);
+void SelectBaseParams(const std::string& chain);
 
-/**
- * Looks for -regtest or -testnet and returns the appropriate Network ID.
- * Returns MAX_NETWORK_TYPES if an invalid combination is given.
- */
-CBaseChainParams::Network NetworkIdFromCommandLine();
-
-/**
- * Calls NetworkIdFromCommandLine() and then calls SelectParams as appropriate.
- * Returns false if an invalid combination is given.
- */
-bool SelectBaseParamsFromCommandLine();
-
-/**
- * Return true if SelectBaseParamsFromCommandLine() has been called to select
- * a network.
- */
-bool AreBaseParamsConfigured();
-
-#endif // BITCOIN_CHAINPARAMSBASE_H
+#endif // VERGE_CHAINPARAMSBASE_H

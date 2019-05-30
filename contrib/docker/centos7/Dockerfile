@@ -4,17 +4,16 @@ MAINTAINER Mike Kinney <mike.kinney@gmail.com>
 
 RUN yum upgrade -y 
 RUN yum install -y wget 
-RUN wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-6.noarch.rpm
-RUN rpm -ivh epel-release-7-6.noarch.rpm
-RUN yum install -y autoconf automake gcc-c++ libdb4-cxx libdb4-cxx-devel boost-devel openssl-devel git bzip2 make file sudo
+RUN yum install -y epel-release
+RUN yum install -y autoconf automake gcc-c++ libdb4-cxx libdb4-cxx-devel boost-devel openssl-devel git bzip2 make file sudo patch libevent-devel libseccomp-devel libcap-devel
 
 RUN cd /tmp && \
-    wget http://protobuf.googlecode.com/files/protobuf-2.5.0.tar.bz2 && \
-    tar xf protobuf-2.5.0.tar.bz2 && \
-    cd /tmp/protobuf-2.5.0 && \
-    ./configure && \
-    make -Wall -Wwrite-strings -Woverloaded-virtual -Wno-sign-compare && \
-    make install
+        wget https://github.com/google/protobuf/releases/download/v2.6.0/protobuf-2.6.0.tar.bz2 && \
+        tar xf protobuf-2.6.0.tar.bz2 && \
+        cd /tmp/protobuf-2.6.0 && \
+        ./configure && \
+        make -Wall -Wwrite-strings -Woverloaded-virtual -Wno-sign-compare && \
+        make install
 
 RUN echo "/usr/local/lib" >> /etc/ld.so.conf && \
     echo "/usr/lib" >> /etc/ld.so.conf && \
@@ -22,13 +21,15 @@ RUN echo "/usr/local/lib" >> /etc/ld.so.conf && \
 
 ENV PKG_CONFIG_PATH /usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
-RUN yum install -y qt5-qtbase-devel qt5-qttools-devel qt5-qtwebkit-devel qt5-qtwebsockets qrencode-devel
+RUN yum install -y qt5-qtbase-devel qt5-qttools-devel qt5-qtwebsockets qrencode-devel
 
 RUN git clone https://github.com/vergecurrency/verge /coin/git
 
 WORKDIR /coin/git
 
 RUN ./autogen.sh && ./configure --with-gui=qt5 && make && mv src/VERGEd /coin/VERGEd
+
+ADD ./conf/VERGE.conf /root/.VERGE/VERGE.conf
 
 WORKDIR /coin
 VOLUME ["/coin/home"]

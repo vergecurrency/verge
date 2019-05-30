@@ -25,7 +25,8 @@ Reader::Reader(SequentialFile* file, Reporter* reporter, bool checksum,
       eof_(false),
       last_record_offset_(0),
       end_of_buffer_offset_(0),
-      initial_offset_(initial_offset) {
+      initial_offset_(initial_offset),
+      resyncing_(initial_offset > 0) {
 }
 
 Reader::~Reader() {
@@ -72,8 +73,25 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
 
   Slice fragment;
   while (true) {
-    uint64_t physical_record_offset = end_of_buffer_offset_ - buffer_.size();
     const unsigned int record_type = ReadPhysicalRecord(&fragment);
+
+    // ReadPhysicalRecord may have only had an empty trailer remaining in its
+    // internal buffer. Calculate the offset of the next physical record now
+    // that it has returned, properly accounting for its header size.
+    uint64_t physical_record_offset =
+        end_of_buffer_offset_ - buffer_.size() - kHeaderSize - fragment.size();
+
+    if (resyncing_) {
+      if (record_type == kMiddleType) {
+        continue;
+      } else if (record_type == kLastType) {
+        resyncing_ = false;
+        continue;
+      } else {
+        resyncing_ = false;
+      }
+    }
+
     switch (record_type) {
       case kFullType:
         if (in_fragmented_record) {
@@ -167,14 +185,14 @@ uint64_t Reader::LastRecordOffset() {
   return last_record_offset_;
 }
 
-void Reader::ReportCorruption(size_t bytes, const char* reason) {
-  ReportDrop(bytes, Status::Corruption(reason));
+void Reader::ReportCorruption(uint64_t bytes, const char* reason) {
+  ReportDrop(bytes, Status::Corruption(reason, file_->GetName()));
 }
 
-void Reader::ReportDrop(size_t bytes, const Status& reason) {
+void Reader::ReportDrop(uint64_t bytes, const Status& reason) {
   if (reporter_ != NULL &&
       end_of_buffer_offset_ - buffer_.size() - bytes >= initial_offset_) {
-    reporter_->Corruption(bytes, reason);
+    reporter_->Corruption(static_cast<size_t>(bytes), reason);
   }
 }
 

@@ -11,23 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Transaction details</string>
+   <string notr="true">Transaction details</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTextEdit" name="detailText">
      <property name="toolTip">
       <string>This pane shows a detailed description of the transaction</string>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 1px solid #000000;
-min-height: 225px;
-max-height: 225px;
-</string>
      </property>
      <property name="readOnly">
       <bool>true</bool>
@@ -55,12 +45,12 @@ max-height: 225px;
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>
@@ -71,12 +61,12 @@ max-height: 225px;
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>

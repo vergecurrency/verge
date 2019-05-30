@@ -1,12 +1,13 @@
 #!/bin/bash
-#// full deployement : run sh go.sh
-
+#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/patch-8/go.sh | bash
+sudo rm -Rf ~/VERGE
 # generating entropy make it harder to guess the randomness!.
 echo "Initializing random number generator..."
 random_seed=/var/run/random-seed
 # Carry a random seed from start-up to start-up
 # Load and then save the whole entropy pool
-if [ -f $random_seed ]; then
+if [ -f $random_seed ]
+then
     sudo cat $random_seed >/dev/urandom
 else
     sudo touch $random_seed
@@ -31,10 +32,11 @@ sudo dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
 # Create a swap file
 
 cd ~
-if [ -e /swapfile1 ]; then
+if [ -e /swapfile1 ]
+then
 echo "Swapfile already present"
 else
-sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=524288
+sudo dd if=/dev/zero of=/swapfile1 bs=1024 count=1024288
 sudo mkswap /swapfile1
 sudo chown root:root /swapfile1
 sudo chmod 0600 /swapfile1
@@ -60,15 +62,24 @@ sudo apt-get -y install libdb4.8-dev libdb4.8++-dev
 #echo "BerkeleyDb will not be installed its already there...."
 #fi
 
-sudo apt-get -y install git build-essential libtool autotools-dev autoconf automake pkg-config libssl-dev libevent-dev bsdmainutils git libprotobuf-dev protobuf-compiler libqrencode-dev
+sudo apt-get -y install libtool autotools-dev automake pkg-config libssl-dev libevent-dev
 
-sudo apt-get -y install libqt5gui5 libqt5core5a libqt5webkit5-dev libqt5dbus5 qttools5-dev qttools5-dev-tools
+sudo apt-get -y install bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5
 
-sudo apt-get -y install libminiupnpc-dev
+sudo apt-get -y install libqt5core5a libqt5dbus5 libevent-dev qttools5-dev
+
+sudo apt-get -y install qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+
+sudo apt-get -y install zlib1g-dev libseccomp-dev libcap-dev libncap-dev
+
+sudo apt-get -y install libunivalue-dev libzmq3-dev
+
+sudo apt-get -y install g++ build-essential
 
 # Keep current version of libboost if already present
 results=$(find /usr/ -name libboost_chrono.so)
-if [ -z $results ]; then
+if [ -z $results ]
+then
 sudo apt-get -y install libboost-all-dev
 else
 red=`tput setaf 1`
@@ -89,13 +100,27 @@ cd ~
 #// Compile Berkeley if 4.8 is not there
 if [ -e /usr/lib/libdb_cxx-4.8.so ]
 then
-echo "BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'DB_VERSION_STRING')" 
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+echo "${red}BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'DB_VERSION_STRING')${reset}" 
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
-tar -xzvf db-4.8.30.NC.tar.gz 
+tar -xzvf db-4.8.30.NC.tar.gz
+result2=$(cat /etc/issue | grep -Po '19.04')
+if [ $result2 = "19.04" ]
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
+fi
+result3=$(cat /etc/issue | grep -Po '4.6')
+if [ $result3 = "4.6" ]
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
+fi
+
 rm db-4.8.30.NC.tar.gz
 cd db-4.8.30.NC/build_unix 
-../dist/configure --enable-cxx 
+../dist/configure --enable-cxx
 make 
 sudo make install 
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
@@ -108,16 +133,17 @@ fi
 #// Check if libboost is present
 
 results=$(find /usr/ -name libboost_chrono.so)
-if [ -z $results ]; then
+if [ -z $results ]
+then
 sudo rm download
-     wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip/download 
+     wget https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.zip/download 
      unzip -o download
-     cd boost_1_63_0
+     cd boost_1_67_0
 	sh bootstrap.sh
 	sudo ./b2 install
 	cd ~
 	sudo rm download 
-	sudo rm -Rf boost_1_63_0
+	sudo rm -Rf boost_1_67_0
 	#sudo ln -s $(dirname "$(find /usr/ -name libboost_chrono.so)")/lib*.so /usr/lib
 	sudo ldconfig
         #sudo rm /usr/lib/libboost_chrono.so
@@ -128,13 +154,12 @@ fi
 
 #// Clone files from repo, Permissions and make
 
-git clone https://github.com/vergecurrency/VERGE
+git clone --recurse-submodules https://github.com/vergecurrency/VERGE
+cd ~
 cd VERGE
-sudo sh autogen.sh
+./autogen.sh
 chmod 777 ~/VERGE/share/genbuild.sh
 chmod 777 ~/VERGE/src/leveldb/build_detect_platform
-
-
 
 grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
 
@@ -146,7 +171,8 @@ split -dl 1 --additional-suffix=.txt words wrd
 
 
 
-if [ -e wrd01.txt ]; then
+if [ -e wrd01.txt ]
+then
 echo 0. $(cat wrd00.txt)
 echo 1. $(cat wrd01.txt)
 echo 2. $(cat wrd02.txt)
@@ -160,42 +186,26 @@ fi
 
 echo "You have choosen $answer"
 
+cd ~
+
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
-./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)")
+cd VERGE
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
 echo "Using Berkeley Generic..."
 else
-./configure --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)")
+cd VERGE
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-O2" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
 echo "Using default system Berkeley..."
 fi
 
-make -j$(nproc)
+#make -j$(nproc) USE_UPNP=-
+make USE_UPNP=-
 
-if [ -e ~/VERGE/src/qt/VERGE-qt ]; then
-#sudo apt-get -y install pulseaudio
-#sudo apt-get -y install portaudio19-dev
-# synthetic voice 
-#cd ~
-#wget https://sourceforge.net/projects/espeak/files/espeak/espeak-1.48/espeak-1.48.04-source.zip/download
-#unzip -o download
-#cd espeak-1.48.04-source/src
-#cp portaudio19.h portaudio.h
-#make
-#cd ~
-for i in 528 1000 1600 2000 3000
-do
-pactl load-module module-sine frequency=$i > /dev/null
-sleep 0.1
-done
-sleep 1
-pactl unload-module module-sine
-pactl upload-sample complet test2
-openssl rand -hex 4096 | padsp tee /dev/audio > /dev/null
-sleep 1.3
-pactl play-sample test2
-#espeak mission,complete
-sudo strip ~/VERGE/src/VERGEd
-sudo strip ~/VERGE/src/qt/VERGE-qt
+if [ -e ~/VERGE/src/qt/verge-qt ]
+then
+sudo strip ~/VERGE/src/verged
+sudo strip ~/VERGE/src/qt/verge-qt
 sudo make install
 else
 echo "Compile fail not VERGE-qt present"
@@ -205,46 +215,40 @@ cd ~
 
 #// Create the config file with random user and password
 
-mkdir ~/.VERGE
-cp ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
-echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" '\n'"server=1" '\n'"addnode=103.18.40.125:21102" '\n'"addnode=104.131.144.82:21102" '\n'"addnode=138.197.68.130:21102" '\n'"addnode=144.76.167.66:21102" '\n'"addnode=152.186.36.86:21102" '\n'"addnode=159.203.121.202:21102" '\n'"addnode=172.104.157.38:21102" '\n'"addnode=192.99.7.127:21102" '\n'"addnode=219.89.84.46:21102" '\n'"addnode=45.32.129.168:21102" '\n'"addnode=45.55.59.206:21102" '\n'"addnode=46.4.64.68:21102" '\n'"addnode=51.15.46.1:21102" '\n'"addnode=52.9.109.214:21102" '\n'"addnode=66.55.64.183:21102" '\n'"addnode=67.167.207.164:21102" '\n'"addnode=78.46.190.152:21102"> ~/.VERGE/VERGE.conf
+mkdir -p ~/.VERGE
+if [ -e ~/.VERGE/VERGE.conf ]
+then
+    cp -a ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
+fi
+rm ~/.VERGE/VERGE.conf
+echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26) >> ~/.VERGE/VERGE.conf
+echo "rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26) >> ~/.VERGE/VERGE.conf
+echo "rpcport=20102" >> ~/.VERGE/VERGE.conf
+echo "port=21102" >> ~/.VERGE/VERGE.conf
+echo "daemon=1" >> ~/.VERGE/VERGE.conf
+echo "listen=1" >> ~/.VERGE/VERGE.conf
+echo "server=1" >> ~/.VERGE/VERGE.conf
+echo "deprecatedrpc=accounts" >> ~/.VERGE/VERGE.conf
 
 #// Extract http link, download blockchain and install it.
 
-echo -n "Do you wish to download the complete VERGE Blockchain (y/n)?"
-read answer
-if echo "$answer" | grep -iq "^y" ;then
-    sudo rm Verge-Blockchain*.zip
-    until [ -e Verge*.zip ]
-    do
-    sleep 1
-    echo "wget" $(lynx --dump --listonly https://vergecurrency.de | grep -o "https:*.*zip") > link.sh
-    sleep 1
-    sh link.sh
-    done
-    
-    #checksum
-    sudo rm blockchain
-    wget https://www.vergecurrency.com/checksums/blockchain
-    md5sum Verge-Blockchain*.zip > md5
-    checksum="$(grep $(cat md5) blockchain)"
-    if [ -z "$checksum" ];
-    then
-    echo "Warning: MD5 is not matching"
-    else
-    echo "MD5 is matching...Success"
-    fi
-    
-    unzip -o Verge-Blockchain*.zip -d ~/.VERGE
-    sudo rm Verge-Blockchain*.zip
-else
- echo "Blockchain will not be installed sync may be long"   
-fi
+sudo chmod 777 /etc/lynx/lynx.cfg
+sudo echo "FORCE_SSL_PROMPT:YES" >> /etc/lynx/lynx.cfg
 
 # Create Icon on Desktop and in menu
-
+mkdir -p ~/Desktop/
 sudo cp ~/VERGE/src/qt/res/icons/verge.png /usr/share/icons/
-echo '#!/usr/bin/env xdg-open''\n'"[Desktop Entry]"'\n'"Version=1.0"'\n'"Type=Application"'\n'"Terminal=false"'\n'"Icon[en]=/usr/share/icons/verge.png"'\n'"Name[en]=VERGE"'\n'"Exec=VERGE-qt"'\n'"Name=VERGE"'\n'"Icon=/usr/share/icons/verge.png"'\n'"Categories=Network;Internet;" > ~/Desktop/VERGE.desktop
+echo "#!/usr/bin/env xdg-open" >> ~/Desktop/VERGE.desktop
+echo "[Desktop Entry]" >> ~/Desktop/VERGE.desktop
+echo "Version=1.0" >> ~/Desktop/VERGE.desktop
+echo "Type=Application" >> ~/Desktop/VERGE.desktop
+echo "Terminal=false" >> ~/Desktop/VERGE.desktop
+echo "Icon[en]=/usr/share/icons/verge.png" >> ~/Desktop/VERGE.desktop
+echo "Name[en]=VERGE" >> ~/Desktop/VERGE.desktop
+echo "Exec=verge-qt" >> ~/Desktop/VERGE.desktop
+echo "Name=VERGE" >> ~/Desktop/VERGE.desktop
+echo "Icon=/usr/share/icons/verge.png" >> ~/Desktop/VERGE.desktop
+echo "Categories=Network;Internet;" >> ~/Desktop/VERGE.desktop
 sudo chmod +x ~/Desktop/VERGE.desktop
 sudo cp ~/Desktop/VERGE.desktop /usr/share/applications/VERGE.desktop
 sudo chmod +x /usr/share/applications/VERGE.desktop
@@ -254,7 +258,13 @@ sudo chmod +x /usr/share/applications/VERGE.desktop
 cd ~
 #sudo rm -Rf ~/VERGE
 
-#// Start Verge
+# Blockchain
 
-VERGE-qt
-cp ~/.VERGE/wallet.dat ~/vergewallet.bak
+echo -n "Success....Blockchain is now downloading press Ctrl-C to cancel but it will take longer to sync from 0. And you will have to start verge manual"
+sudo rm QT-Wallet*.zip
+echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/down/ | grep -o "https://verge-blockchain.com/blockchain5.*zip") > link.sh
+sh link.sh
+unzip -o QT-Wallet*.zip -d ~/.VERGE
+sudo rm QT-Wallet*.zip
+#// Start Verge
+verge-qt

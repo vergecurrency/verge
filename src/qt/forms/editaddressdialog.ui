@@ -32,17 +32,7 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="labelEdit">
        <property name="toolTip">
-        <string>The label associated with this address book entry</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;</string>
+        <string>The label associated with this address list entry</string>
        </property>
       </widget>
      </item>
@@ -57,19 +47,9 @@ max-height: 25px;</string>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="addressEdit">
+      <widget class="QValidatedLineEdit" name="addressEdit">
        <property name="toolTip">
-        <string>The address associated with this address book entry. This can only be modified for sending addresses.</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
-border-bottom-left-radius: 5px;
-border-bottom-right-radius: 5px;
-border: 2px solid #000000;
-min-height: 25px;
-max-height: 25px;</string>
+        <string>The address associated with this address list entry. This can only be modified for sending addresses.</string>
        </property>
       </widget>
      </item>
@@ -87,6 +67,13 @@ max-height: 25px;</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qt/qvalidatedlineedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
@@ -96,12 +83,12 @@ max-height: 25px;</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>
@@ -112,12 +99,12 @@ max-height: 25px;</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>

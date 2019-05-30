@@ -1,9 +1,10 @@
-// Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2018-2018 The VERGE Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef MACDOCKICONHANDLER_H
-#define MACDOCKICONHANDLER_H
+#ifndef VERGE_QT_MACDOCKICONHANDLER_H
+#define VERGE_QT_MACDOCKICONHANDLER_H
 
 #include <QMainWindow>
 #include <QObject>
@@ -13,12 +14,6 @@ class QIcon;
 class QMenu;
 class QWidget;
 QT_END_NAMESPACE
-
-#ifdef __OBJC__
-@class DockIconClickEventHandler;
-#else
-class DockIconClickEventHandler;
-#endif
 
 /** Macintosh-specific dock icon handler.
  */
@@ -33,19 +28,18 @@ public:
     void setIcon(const QIcon &icon);
     void setMainWindow(QMainWindow *window);
     static MacDockIconHandler *instance();
-
+    static void cleanup();
     void handleDockIconClickEvent();
 
-signals:
+Q_SIGNALS:
     void dockIconClicked();
 
 private:
     MacDockIconHandler();
 
-    DockIconClickEventHandler *m_dockIconClickEventHandler;
     QWidget *m_dummyWidget;
     QMenu *m_dockMenu;
     QMainWindow *mainWindow;
 };
 
-#endif // MACDOCKICONCLICKHANDLER_H
+#endif // VERGE_QT_MACDOCKICONHANDLER_H

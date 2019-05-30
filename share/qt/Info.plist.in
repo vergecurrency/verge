@@ -3,7 +3,7 @@
 <plist version="0.9">
 <dict>
   <key>LSMinimumSystemVersion</key>
-  <string>10.6.0</string>
+  <string>10.8.0</string>
 
   <key>LSArchitecturePriority</key>
   <array>
@@ -11,13 +11,13 @@
   </array>
 
   <key>CFBundleIconFile</key>
-  <string>verge.icns</string>
+  <string>VERGE.icns</string>
 
   <key>CFBundlePackageType</key>
   <string>APPL</string>
 
   <key>CFBundleGetInfoString</key>
-  <string>@CLIENT_VERSION_MAJOR@.@CLIENT_VERSION_MINOR@.@CLIENT_VERSION_REVISION@, Copyright © 2014-@COPYRIGHT_YEAR@ The VERGE Core developers</string>
+  <string>@CLIENT_VERSION_MAJOR@.@CLIENT_VERSION_MINOR@.@CLIENT_VERSION_REVISION@, Copyright © 2009-@COPYRIGHT_YEAR@ @COPYRIGHT_HOLDERS_FINAL@</string>
 
   <key>CFBundleShortVersionString</key>
   <string>@CLIENT_VERSION_MAJOR@.@CLIENT_VERSION_MINOR@.@CLIENT_VERSION_REVISION@</string>
@@ -29,10 +29,16 @@
   <string>????</string>
 
   <key>CFBundleExecutable</key>
-  <string>VERGE-Qt</string>
+  <string>verge-qt</string>
+  
+  <key>CFBundleName</key>
+  <string>verge-qt</string>
+
+  <key>LSHasLocalizedDisplayName</key>
+  <true/>
 
   <key>CFBundleIdentifier</key>
-  <string>com.vergecurrency.VERGE-Qt</string>
+  <string>org.vergefoundation.verge-qt</string>
 
   <key>CFBundleURLTypes</key>
   <array>
@@ -40,10 +46,10 @@
       <key>CFBundleTypeRole</key>
       <string>Editor</string>
       <key>CFBundleURLName</key>
-      <string>org.bitcoin.BitcoinPayment</string>
+      <string>org.verge.vergePayment</string>
       <key>CFBundleURLSchemes</key>
       <array>
-        <string>bitcoin</string>
+        <string>verge</string>
       </array>
     </dict>
   </array>
@@ -52,9 +58,9 @@
   <array>
     <dict>
       <key>UTTypeIdentifier</key>
-      <string>org.bitcoin.paymentrequest</string>
+      <string>org.verge.paymentrequest</string>
       <key>UTTypeDescription</key>
-      <string>Bitcoin payment request</string>
+      <string>Verge payment request</string>
       <key>UTTypeConformsTo</key>
       <array>
         <string>public.data</string>
@@ -62,10 +68,10 @@
       <key>UTTypeTagSpecification</key>
       <dict>
         <key>public.mime-type</key>
-        <string>application/x-bitcoin-payment-request</string>
+        <string>application/x-verge-payment-request</string>
         <key>public.filename-extension</key>
         <array>
-          <string>bitcoinpaymentrequest</string>
+          <string>vergepaymentrequest</string>
         </array>
       </dict>
     </dict>
@@ -78,7 +84,7 @@
       <string>Editor</string>
       <key>LSItemContentTypes</key>
       <array>
-        <string>org.bitcoin.paymentrequest</string>
+        <string>org.verge.paymentrequest</string>
       </array>
       <key>LSHandlerRank</key>
       <string>Owner</string>
@@ -91,6 +97,12 @@
   <key>NSHighResolutionCapable</key>
     <string>True</string>
 
+  <key>LSAppNapIsDisabled</key>
+    <string>True</string>
+
+  <key>NSRequiresAquaSystemAppearance</key>
+    <string>True</string>
+  
   <key>LSApplicationCategoryType</key>
     <string>public.app-category.finance</string>
 </dict>

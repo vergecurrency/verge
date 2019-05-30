@@ -1,0 +1,92 @@
+#!/sbin/openrc-run
+
+# backward compatibility for existing gentoo layout 
+#
+if [ -d "/var/lib/verge/.verge3" ]; then
+	VERGED_DEFAULT_DATADIR="/var/lib/verge/.verge3"
+else
+	VERGED_DEFAULT_DATADIR="/var/lib/verged"
+fi
+
+VERGED_CONFIGFILE=${VERGED_CONFIGFILE:-/etc/verge/verge.conf}
+VERGED_PIDDIR=${VERGED_PIDDIR:-/var/run/verged}
+VERGED_PIDFILE=${VERGED_PIDFILE:-${VERGED_PIDDIR}/verged.pid}
+VERGED_DATADIR=${VERGED_DATADIR:-${VERGED_DEFAULT_DATADIR}}
+VERGED_USER=${VERGED_USER:-${VERGE_USER:-verge}}
+VERGED_GROUP=${VERGED_GROUP:-verge}
+VERGED_BIN=${VERGED_BIN:-/usr/bin/verged}
+VERGED_NICE=${VERGED_NICE:-${NICELEVEL:-0}}
+VERGED_OPTS="${VERGED_OPTS:-${VERGE_OPTS}}"
+
+name="VERGE Core Daemon"
+description="VERGE cryptocurrency P2P network daemon"
+
+command="/usr/bin/verged"
+command_args="-pid=\"${VERGED_PIDFILE}\" \
+		-conf=\"${VERGED_CONFIGFILE}\" \
+		-datadir=\"${VERGED_DATADIR}\" \
+		-daemon \
+		${VERGED_OPTS}"
+
+required_files="${VERGED_CONFIGFILE}"
+start_stop_daemon_args="-u ${VERGED_USER} \
+			-N ${VERGED_NICE} -w 2000"
+pidfile="${VERGED_PIDFILE}"
+
+# The retry schedule to use when stopping the daemon. Could be either
+# a timeout in seconds or multiple signal/timeout pairs (like
+# "SIGKILL/180 SIGTERM/300")
+retry="${VERGED_SIGTERM_TIMEOUT}"
+
+depend() {
+	need localmount net
+}
+
+# verify
+# 1) that the datadir exists and is writable (or create it)
+# 2) that a directory for the pid exists and is writable
+# 3) ownership and permissions on the config file
+start_pre() {
+	checkpath \
+	-d \
+	--mode 0750 \
+	--owner "${VERGED_USER}:${VERGED_GROUP}" \
+	"${VERGED_DATADIR}"
+
+	checkpath \
+	-d \
+	--mode 0755 \
+	--owner "${VERGED_USER}:${VERGED_GROUP}" \
+	"${VERGED_PIDDIR}"
+
+	checkpath -f \
+	-o ${VERGED_USER}:${VERGED_GROUP} \
+	-m 0660 \
+	${VERGED_CONFIGFILE}
+
+	checkconfig || return 1
+}
+
+checkconfig()
+{
+	if ! grep -qs '^rpcpassword=' "${VERGED_CONFIGFILE}" ; then
+		eerror ""
+		eerror "ERROR: You must set a secure rpcpassword to run verged."
+		eerror "The setting must appear in ${VERGED_CONFIGFILE}"
+		eerror ""
+		eerror "This password is security critical to securing wallets "
+		eerror "and must not be the same as the rpcuser setting."
+		eerror "You can generate a suitable random password using the following "
+		eerror "command from the shell:"
+		eerror ""
+		eerror "bash -c 'tr -dc a-zA-Z0-9 < /dev/urandom | head -c32 && echo'"
+		eerror ""
+		eerror "It is recommended that you also set alertnotify so you are "
+		eerror "notified of problems:"
+		eerror ""
+		eerror "ie: alertnotify=echo %%s | mail -s \"VERGE Alert\"" \
+			"admin@foo.com"
+		eerror ""
+		return 1
+	fi
+}
