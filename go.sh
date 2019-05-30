@@ -1,5 +1,5 @@
 #!/bin/bash
-#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/patch-8/go.sh | bash
+#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/go.sh | bash
 sudo rm -Rf ~/VERGE
 # generating entropy make it harder to guess the randomness!.
 echo "Initializing random number generator..."
