@@ -13,7 +13,7 @@
 
 #include <consensus/validation.h>
 #include <rpc/server.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/test/wallet_test_fixture.h>
@@ -135,6 +135,8 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup)
     m_coinbase_txns.emplace_back(CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey())).vtx[0]);
 
     LOCK(cs_main);
+	
+	std::string backup_file = (SetDataDir("importwallet_rescan") / "wallet.backup").string();
 
     // Import key into wallet and call dumpwallet to create backup file.
     {
@@ -145,7 +147,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup)
 
         JSONRPCRequest request;
         request.params.setArray();
-        request.params.push_back((pathTemp / "wallet.backup").string());
+        request.params.push_back(backup_file);
         AddWallet(wallet);
         ::dumpwallet(request);
         RemoveWallet(wallet);
@@ -158,7 +160,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup)
 
         JSONRPCRequest request;
         request.params.setArray();
-        request.params.push_back((pathTemp / "wallet.backup").string());
+        request.params.push_back(backup_file);
         AddWallet(wallet);
         ::importwallet(request);
         RemoveWallet(wallet);

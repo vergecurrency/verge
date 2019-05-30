@@ -12,7 +12,7 @@
 #include <script/sign.h>
 #include <script/ismine.h>
 #include <uint256.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 
 #include <boost/test/unit_test.hpp>

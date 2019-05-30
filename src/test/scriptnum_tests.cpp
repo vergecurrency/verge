@@ -5,7 +5,7 @@
 
 #include <test/scriptnum10.h>
 #include <script/script.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 #include <limits.h>

@@ -5,7 +5,7 @@
 
 #include <chain.h>
 #include <versionbits.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 #include <chainparams.h>
 #include <validation.h>
 #include <consensus/params.h>

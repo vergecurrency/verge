@@ -3,7 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <chainparams.h>
 #include <consensus/consensus.h>
@@ -47,26 +47,37 @@ std::ostream& operator<<(std::ostream& os, const uint256& num)
 }
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
+	: m_path_root(fs::temp_directory_path() / "test_verge" / strprintf("%lu_%i", (unsigned long)GetTime(), (int)(InsecureRandRange(1 << 30))))
 {
-        SHA256AutoDetect();
-        RandomInit();
-        ECC_Start();
-        SetupEnvironment();
-        SetupNetworking();
-        InitSignatureCache();
-        InitScriptExecutionCache();
-        fCheckBlockIndex = true;
-        SelectParams(chainName);
-        noui_connect();
+    SHA256AutoDetect();
+    RandomInit();
+    ECC_Start();
+    SetupEnvironment();
+    SetupNetworking();
+    InitSignatureCache();
+    InitScriptExecutionCache();
+    fCheckBlockIndex = true;
+    SelectParams(chainName);
+    noui_connect();
 }
 
 BasicTestingSetup::~BasicTestingSetup()
 {
-        ECC_Stop();
+    fs::remove_all(m_path_root);
+    ECC_Stop();
+}
+
+fs::path BasicTestingSetup::SetDataDir(const std::string& name)
+{
+    fs::path ret = m_path_root / name;
+    fs::create_directories(ret);
+    gArgs.ForceSetArg("-datadir", ret.string());
+    return ret;
 }
 
 TestingSetup::TestingSetup(const std::string& chainName) : BasicTestingSetup(chainName)
 {
+	SetDataDir("tempdir");
     const CChainParams& chainparams = Params();
     std::cout << "1";
         // Ideally we'd move all the RPC tests to the functional testing framework
@@ -76,11 +87,6 @@ TestingSetup::TestingSetup(const std::string& chainName) : BasicTestingSetup(cha
         std::cout << "2";
         ClearDatadirCache();
         std::cout << "3";
-        pathTemp = fs::temp_directory_path() / strprintf("test_verge_%lu_%i", (unsigned long)GetTime(), (int)(InsecureRandRange(1 << 30)));
-        std::cout << "4";
-        fs::create_directories(pathTemp);
-        std::cout << "5";
-        gArgs.ForceSetArg("-datadir", pathTemp.string());
 
         // We have to run a scheduler thread to prevent ActivateBestChain
         // from blocking due to queue overrun.
@@ -133,7 +139,6 @@ TestingSetup::~TestingSetup()
         pcoinsTip.reset();
         pcoinsdbview.reset();
         pblocktree.reset();
-        fs::remove_all(pathTemp);
 }
 
 TestChain100Setup::TestChain100Setup() : TestingSetup(CBaseChainParams::REGTEST)
