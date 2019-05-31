@@ -158,6 +158,7 @@ public:
             vSeeds.emplace_back("6telhbsuva4qkff2.onion");
         } else {
             vSeeds.emplace_back("185.162.9.97");
+	    vSeeds.emplace_back("159.89.46.252");
             vSeeds.emplace_back("104.131.144.82");
             vSeeds.emplace_back("192.241.187.222");
             vSeeds.emplace_back("105.228.198.44");
