@@ -198,7 +198,7 @@ green=`tput setaf 2`
 reset=`tput sgr0`
 echo "${green}ARM cpu detected --disable-sse2${reset}"
 txt=$(echo "--disable-sse2")
-sed -i 's/#include <emmintrin.h>//g' ~VERGE/src/crypto/pow/scrypt-sse2.cpp
+sed -i 's/#include <emmintrin.h>//g' ~/VERGE/src/crypto/pow/scrypt-sse2.cpp
 else
 txt=$(echo "")
 fi
