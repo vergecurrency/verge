@@ -1,5 +1,5 @@
 #!/bin/bash
-#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/go.sh | bash
+#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/master/go.sh | bash
 sudo rm -Rf ~/VERGE
 # generating entropy make it harder to guess the randomness!.
 echo "Initializing random number generator..."
@@ -85,7 +85,7 @@ else
 red=`tput setaf 1`
 green=`tput setaf 2`
 reset=`tput sgr0`
-echo "${red}Libboost will not be installed its already there....${reset}"
+echo "${green}Libboost will not be installed its already there....${reset}"
 grep --include=*.hpp -r '/usr/' -e "define BOOST_LIB_VERSION"
 fi
 
@@ -95,6 +95,8 @@ sudo apt-get -y install lynx
 
 sudo apt-get -y install unzip
 
+sudo apt-get -y install sed
+
 cd ~
 
 #// Compile Berkeley if 4.8 is not there
@@ -103,7 +105,7 @@ then
 red=`tput setaf 1`
 green=`tput setaf 2`
 reset=`tput sgr0`
-echo "${red}BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'DB_VERSION_STRING')${reset}" 
+echo "${green}BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'DB_VERSION_STRING')${reset}" 
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
@@ -114,6 +116,11 @@ sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.
 fi
 result3=$(cat /etc/issue | grep -Po '4.6')
 if [ $result3 = "4.6" ]
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
+fi
+result4=$(cat /etc/issue | grep -Po 'Ermine')
+if [ $result4 = "Ermine" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 fi
@@ -169,8 +176,6 @@ sudo rm words
 find /usr/ -name libboost_chrono.so > words
 split -dl 1 --additional-suffix=.txt words wrd
 
-
-
 if [ -e wrd01.txt ]
 then
 echo 0. $(cat wrd00.txt)
@@ -186,16 +191,26 @@ fi
 
 echo "You have choosen $answer"
 
-cd ~
+if [ $(dirname "$(cat wrd00.txt)") = "/usr/lib/arm-linux-gnueabihf" ]
+then
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+echo "${green}ARM cpu detected --disable-sse2${reset}"
+txt=$(echo "--disable-sse2")
+sed -i 's/#include <emmintrin.h>//g' ~VERGE/src/crypto/pow/scrypt-sse2.cpp
+else
+txt=$(echo "")
+fi
 
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
 cd VERGE
-./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc $txt
 echo "Using Berkeley Generic..."
 else
 cd VERGE
-./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-O2" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-O2" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc $txt
 echo "Using default system Berkeley..."
 fi
 
@@ -229,6 +244,7 @@ echo "daemon=1" >> ~/.VERGE/VERGE.conf
 echo "listen=1" >> ~/.VERGE/VERGE.conf
 echo "server=1" >> ~/.VERGE/VERGE.conf
 echo "deprecatedrpc=accounts" >> ~/.VERGE/VERGE.conf
+echo "usehd=1" >> ~/.VERGE/VERGE.conf
 
 #// Extract http link, download blockchain and install it.
 
