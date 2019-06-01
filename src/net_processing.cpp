@@ -1375,6 +1375,12 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
         if (!LookupBlockIndex(hashLastBlock)) {
             received_new_header = true;
         }
+
+        // we are patiently waiting for new headers to receive
+        // instead we got already known headers ... ignore.
+        if(IsInitialBlockDownload() && !received_new_header) {
+            return true;
+        }
     }
 
     CValidationState state;
