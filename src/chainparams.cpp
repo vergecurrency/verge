@@ -387,8 +387,8 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = Consensus::BIP9Deployment::ALWAYS_ACTIVE;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1529247969; // November 15th, 2016.
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1559347200; // November 15th, 2017.
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
@@ -403,12 +403,12 @@ public:
         nDefaultPort = 8333;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1, true);
+        genesis = CreateGenesisBlock(1462058000, 2, 0x1e0fffff, 1, true);
         consensus.hashGenesisBlock = genesis.GetHash();
-        // LogPrintf("%s", HexStr(consensus.hashGenesisBlock));
-        // assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
-        // LogPrintf("%s", HexStr(genesis.hashMerkleRoot));
-        // assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
+        // std::cout << "Genesis: " << consensus.hashGenesisBlock.GetHex().c_str() << "\n";
+        assert(consensus.hashGenesisBlock == uint256S("0xacb37abc4fc9aa01608a5cee4221c23821c9103bf63117517a27b66a1ebe9c1a"));
+        // std::cout << "MerkleRoot: " << genesis.hashMerkleRoot.GetHex().c_str() << "\n";
+        assert(genesis.hashMerkleRoot == uint256S("0xfa492bd0106e2dad694c7fafd92548e2fd9f876aae469a82004a330f3b2eaa9f"));
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
@@ -419,14 +419,15 @@ public:
 
         checkpointData = {
             {
-                {0, uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347")},
+                // {0, uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347")},
             }
         };
 
         chainTxData = ChainTxData{
-            0,
-            0,
-            0
+            // Data as of block 000000000000033cfa3c975eb83ecf2bb4aaedf68e6d279f6ed2b427c64caff9 (height 1260526)
+            1462058066,
+            1,
+            0.1
         };
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
