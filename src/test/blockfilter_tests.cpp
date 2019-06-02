@@ -3,7 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <blockfilter.h>
 #include <serialize.h>

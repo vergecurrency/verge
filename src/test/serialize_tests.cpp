@@ -6,7 +6,7 @@
 #include <serialize.h>
 #include <streams.h>
 #include <hash.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <stdint.h>
 

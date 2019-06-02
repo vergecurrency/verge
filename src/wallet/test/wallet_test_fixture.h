@@ -6,7 +6,7 @@
 #ifndef VERGE_WALLET_TEST_WALLET_TEST_FIXTURE_H
 #define VERGE_WALLET_TEST_WALLET_TEST_FIXTURE_H
 
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <wallet/wallet.h>
 

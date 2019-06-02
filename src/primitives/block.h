@@ -100,6 +100,8 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
 
+    uint256 hash;
+
     CBlockHeader()
     {
         SetNull();
@@ -116,6 +118,9 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        if(ser_action.ForRead()){
+            this->hash = GetPoWHash(ALGO_SCRYPT);
+        }
     }
 
     void SetNull()
@@ -123,6 +128,7 @@ public:
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
+        hash.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;

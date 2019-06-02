@@ -20,7 +20,7 @@
 #include <util/strencodings.h>
 #include <pow.h>
 
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <memory>
 

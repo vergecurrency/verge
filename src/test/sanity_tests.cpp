@@ -5,7 +5,7 @@
 
 #include <compat/sanity.h>
 #include <key.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 

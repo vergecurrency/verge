@@ -158,6 +158,9 @@ public:
             vSeeds.emplace_back("6telhbsuva4qkff2.onion");
         } else {
             vSeeds.emplace_back("185.162.9.97");
+	    vSeeds.emplace_back("159.89.46.252"); // v5-new-york
+	    vSeeds.emplace_back("139.59.34.170"); // v5-india
+	    vSeeds.emplace_back("134.209.197.243"); // v5-NL
             vSeeds.emplace_back("104.131.144.82");
             vSeeds.emplace_back("192.241.187.222");
             vSeeds.emplace_back("105.228.198.44");
