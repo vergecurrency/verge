@@ -137,7 +137,7 @@ jobs:
           paths:
             - '.'
 
-  test-create-and-test-build:
+  build-verge-core:
     <<: *defaults-docker
     steps:
       - attach_workspace:
@@ -154,9 +154,46 @@ jobs:
       - run:
           name: Make
           command: make -j4
+      - persist_to_workspace:
+          root: '.'
+          paths:
+            - '.'
+
+  run-unit-tests:
+    <<: *defaults-docker
+    steps:
+      - attach_workspace:
+          at: '.'
       - run:
           name: Check binaries
           command: make check
+
+  run-util-tests:
+    <<: *defaults-docker
+    steps:
+      - attach_workspace:
+          at: '.'
+      - run:
+          name: Run RPC Auth test
+          command: ./test/util/rpcauth-test.py
+      - run: 
+          name: Run config checks
+          command: ./test/util/verge-util-test.py
+      - run:
+          name: Install dependencies
+          command: pip3 install flake8 && sudo apt-get install shellcheck
+      - run:
+          name: Run linting checks
+          command: ./test/lint/lint-all.sh
+
+  run-regression-tests:
+    <<: *defaults-docker
+    steps:
+      - attach_workspace:
+          at: '.'
+      - run:
+          name: Run regression checks
+          command: ./test/functional/test_runner.py
 
 workflows:
   version: 2
@@ -207,6 +244,15 @@ workflows:
   testing:
     jobs:
       - test-setup-env
-      - test-create-and-test-build:
+      - build-verge-core:
           requires:
             - test-setup-env
+      - run-unit-tests:
+          requires:
+            - build-verge-core
+      - run-util-tests:
+          requires:
+            - build-verge-core
+      - run-regression-tests:
+          requires:
+            - build-verge-core
