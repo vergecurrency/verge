@@ -178,7 +178,7 @@ static UniValue ValueFromString(const std::string &str)
     return value;
 }
 
-/*BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values)
+BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values)
 {
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("-0.00000001")), UniValue);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0")), 0LL);
@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE(json_parse_errors)
     BOOST_CHECK_THROW(ParseNonRFCJSONValue("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNL"), std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(rpc_ban)
+/*BOOST_AUTO_TEST_CASE(rpc_ban)
 {
     BOOST_CHECK_NO_THROW(CallRPC(std::string("clearbanned")));
 
