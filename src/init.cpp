@@ -73,6 +73,9 @@ static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
+//! Check if initial sync is done with no change in block height or queued downloads every 30s
+static constexpr int SYNC_CHECK_INTERVAL = 30;
+
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
 
@@ -654,8 +657,8 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
     if (fReindex) {
         int nFile = 0;
         while (true) {
-            CDiskBlockPos pos(nFile, 0);
-            if (!fs::exists(GetBlockPosFilename(pos, "blk")))
+            FlatFilePos pos(nFile, 0);
+            if (!fs::exists(GetBlockPosFilename(pos)))
                 break; // No block files left to reindex
             FILE *file = OpenBlockFile(pos, true);
             if (!file)
@@ -1233,6 +1236,33 @@ bool AppInitLockDataDirectory()
     return true;
 }
 
+/**
+ * Once initial sync is finished and no change in block height or queued downloads, flush state to protect against data loss
+ */
+static void FlushAfterSync()
+{
+    if (IsInitialBlockDownload()) {
+        scheduler.scheduleFromNow(FlushAfterSync, SYNC_CHECK_INTERVAL * 1000);
+        return;
+    }
+
+    static int last_chain_height = -1;
+    LOCK(cs_main);
+    int current_height = chainActive.Height();
+    if (last_chain_height == -1 || last_chain_height != current_height) {
+        last_chain_height = current_height;
+        scheduler.scheduleFromNow(FlushAfterSync, SYNC_CHECK_INTERVAL * 1000);
+        return;
+    }
+
+    if (GetNumberOfPeersWithValidatedDownloads() > 0) {
+        scheduler.scheduleFromNow(FlushAfterSync, SYNC_CHECK_INTERVAL * 1000);
+        return;
+    }
+
+    FlushStateToDisk();
+}
+
 bool AppInitMain()
 {
     const CChainParams& chainparams = Params();
@@ -1681,8 +1711,14 @@ bool AppInitMain()
 
     // ********************************************************* Step 11: import blocks
 
-    if (!CheckDiskSpace() && !CheckDiskSpace(0, true))
+    if (!CheckDiskSpace(GetDataDir())) {
+        InitError(strprintf(_("Error: Disk space is low for %s"), GetDataDir()));
         return false;
+    }
+    if (!CheckDiskSpace(GetBlocksDir())) {
+        InitError(strprintf(_("Error: Disk space is low for %s"), GetBlocksDir()));
+        return false;
+    }
 
     // Either install a handler to notify us when genesis activates, or set fHaveGenesis directly.
     // No locking, as this happens before any background thread is started.
@@ -1802,6 +1838,8 @@ bool AppInitMain()
     uiInterface.InitMessage(_("Done loading"));
 
     g_wallet_init_interface.Start(scheduler);
+	
+	scheduler.scheduleFromNow(FlushAfterSync, SYNC_CHECK_INTERVAL * 1000);
 
     return true;
 }

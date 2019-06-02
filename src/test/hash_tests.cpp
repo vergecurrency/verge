@@ -6,7 +6,7 @@
 #include <crypto/siphash.h>
 #include <hash.h>
 #include <util/strencodings.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <vector>
 

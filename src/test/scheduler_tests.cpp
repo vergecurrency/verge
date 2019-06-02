@@ -6,7 +6,7 @@
 #include <random.h>
 #include <scheduler.h>
 
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>

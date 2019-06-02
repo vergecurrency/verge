@@ -103,4 +103,9 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
 void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
 
+/**
+ * Get number of peers from which we're downloading blocks
+ */
+int GetNumberOfPeersWithValidatedDownloads() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
 #endif // VERGE_NET_PROCESSING_H

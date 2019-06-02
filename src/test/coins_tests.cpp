@@ -8,7 +8,7 @@
 #include <uint256.h>
 #include <undo.h>
 #include <util/strencodings.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 #include <validation.h>
 #include <consensus/validation.h>
 

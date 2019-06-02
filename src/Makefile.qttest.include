@@ -28,10 +28,10 @@ TEST_QT_H = \
   qt/test/wallettests.h
 
 TEST_VERGE_CPP = \
-  test/test_verge.cpp
+  test/setup_common.cpp
 
 TEST_VERGE_H = \
-  test/test_verge.h
+  test/setup_common.h
 
 qt_test_test_verge_qt_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(VERGE_QT_INCLUDES) \
   $(QT_INCLUDES) $(QT_TEST_INCLUDES) $(PROTOBUF_CFLAGS)

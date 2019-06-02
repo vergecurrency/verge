@@ -1,4 +1,5 @@
 #!/bin/bash
+
 #// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/master/go.sh | bash
 sudo rm -Rf ~/VERGE
 # generating entropy make it harder to guess the randomness!.
@@ -211,6 +212,7 @@ echo "Using Berkeley Generic..."
 else
 cd VERGE
 ./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-O2" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc $txt
+
 echo "Using default system Berkeley..."
 fi
 
@@ -244,7 +246,9 @@ echo "daemon=1" >> ~/.VERGE/VERGE.conf
 echo "listen=1" >> ~/.VERGE/VERGE.conf
 echo "server=1" >> ~/.VERGE/VERGE.conf
 echo "deprecatedrpc=accounts" >> ~/.VERGE/VERGE.conf
+
 echo "usehd=1" >> ~/.VERGE/VERGE.conf
+
 
 #// Extract http link, download blockchain and install it.
 
