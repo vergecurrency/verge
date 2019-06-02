@@ -459,6 +459,15 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, int algo, cons
 
         return DarkGravityWave3(pindexLast, algo, params);//Then DarkGravityWave3
     }
+    else if(gArgs.GetChainName() == "regtest") 
+    {
+        if (pindexLast->nHeight < params.MULTI_ALGO_SWITCH_BLOCK)
+        {
+            return GetNextTargetRequired_V1(pindexLast, algo, params);
+        } 
+
+        return DarkGravityWave3(pindexLast, algo, params);
+    }
     else
     {
         if (pindexLast->nHeight < 340000){//first 340000 blocks with default retarget
