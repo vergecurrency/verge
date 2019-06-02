@@ -179,6 +179,12 @@ jobs:
       - run: 
           name: Run config checks
           command: ./test/util/verge-util-test.py
+
+  run-lint-tests:
+    <<: *defaults-docker
+    steps: 
+      - attach_workspace:
+          at: '.'
       - run:
           name: Install dependencies
           command: pip3 install flake8 && sudo apt-get install shellcheck
@@ -248,6 +254,9 @@ workflows:
           requires:
             - test-setup-env
       - run-unit-tests:
+          requires:
+            - build-verge-core
+      - run-lint-tests:
           requires:
             - build-verge-core
       - run-util-tests:
