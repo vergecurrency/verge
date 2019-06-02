@@ -19,8 +19,11 @@
 
 int ALGO = ALGO_SCRYPT;
 
-uint256 CBlockHeader::GetHash() const 
+uint256 CBlockHeader::GetHash() const
 {
+    if(!this->hash.IsNull()){
+        return this->hash;
+    }
     return GetPoWHash(ALGO_SCRYPT);
 }
 

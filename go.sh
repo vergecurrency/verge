@@ -1,5 +1,5 @@
 #!/bin/bash
-#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/patch-8/go.sh | bash
+#// full deployement :   wget -O - https://raw.githubusercontent.com/badbrainIRC/VERGE/go.sh | bash
 sudo rm -Rf ~/VERGE
 # generating entropy make it harder to guess the randomness!.
 echo "Initializing random number generator..."
@@ -191,11 +191,11 @@ cd ~
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
 cd VERGE
-./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2 -flto" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
 echo "Using Berkeley Generic..."
 else
 cd VERGE
-./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-O2 -flto" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
+./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" CPPFLAGS="-O2" --with-gui=qt5 --with-boost-libdir=$(dirname "$(cat wrd0$answer.txt)") --disable-bench --disable-tests --disable-gui-tests --without-miniupnpc
 echo "Using default system Berkeley..."
 fi
 
@@ -220,7 +220,15 @@ if [ -e ~/.VERGE/VERGE.conf ]
 then
     cp -a ~/.VERGE/VERGE.conf ~/.VERGE/VERGE.bak
 fi
-echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26 ; echo '') '\n'"rpcport=20102" '\n'"port=21102" '\n'"daemon=1" '\n'"listen=1" '\n'"server=1" '\n'"deprecatedrpc=accounts" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'"" '\n'""> ~/.VERGE/VERGE.conf
+rm ~/.VERGE/VERGE.conf
+echo "rpcuser="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26) >> ~/.VERGE/VERGE.conf
+echo "rpcpassword="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 26) >> ~/.VERGE/VERGE.conf
+echo "rpcport=20102" >> ~/.VERGE/VERGE.conf
+echo "port=21102" >> ~/.VERGE/VERGE.conf
+echo "daemon=1" >> ~/.VERGE/VERGE.conf
+echo "listen=1" >> ~/.VERGE/VERGE.conf
+echo "server=1" >> ~/.VERGE/VERGE.conf
+echo "deprecatedrpc=accounts" >> ~/.VERGE/VERGE.conf
 
 #// Extract http link, download blockchain and install it.
 
@@ -230,7 +238,17 @@ sudo echo "FORCE_SSL_PROMPT:YES" >> /etc/lynx/lynx.cfg
 # Create Icon on Desktop and in menu
 mkdir -p ~/Desktop/
 sudo cp ~/VERGE/src/qt/res/icons/verge.png /usr/share/icons/
-echo '#!/usr/bin/env xdg-open''\n'"[Desktop Entry]"'\n'"Version=1.0"'\n'"Type=Application"'\n'"Terminal=false"'\n'"Icon[en]=/usr/share/icons/verge.png"'\n'"Name[en]=VERGE"'\n'"Exec=verge-qt"'\n'"Name=VERGE"'\n'"Icon=/usr/share/icons/verge.png"'\n'"Categories=Network;Internet;" > ~/Desktop/VERGE.desktop
+echo "#!/usr/bin/env xdg-open" >> ~/Desktop/VERGE.desktop
+echo "[Desktop Entry]" >> ~/Desktop/VERGE.desktop
+echo "Version=1.0" >> ~/Desktop/VERGE.desktop
+echo "Type=Application" >> ~/Desktop/VERGE.desktop
+echo "Terminal=false" >> ~/Desktop/VERGE.desktop
+echo "Icon[en]=/usr/share/icons/verge.png" >> ~/Desktop/VERGE.desktop
+echo "Name[en]=VERGE" >> ~/Desktop/VERGE.desktop
+echo "Exec=verge-qt" >> ~/Desktop/VERGE.desktop
+echo "Name=VERGE" >> ~/Desktop/VERGE.desktop
+echo "Icon=/usr/share/icons/verge.png" >> ~/Desktop/VERGE.desktop
+echo "Categories=Network;Internet;" >> ~/Desktop/VERGE.desktop
 sudo chmod +x ~/Desktop/VERGE.desktop
 sudo cp ~/Desktop/VERGE.desktop /usr/share/applications/VERGE.desktop
 sudo chmod +x /usr/share/applications/VERGE.desktop
@@ -238,7 +256,7 @@ sudo chmod +x /usr/share/applications/VERGE.desktop
 # Erase all VERGE compilation directory , cleaning
 
 cd ~
-sudo rm -Rf ~/VERGE
+#sudo rm -Rf ~/VERGE
 
 # Blockchain
 
