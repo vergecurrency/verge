@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef VERGE_TEST_TEST_VERGE_H
-#define VERGE_TEST_TEST_VERGE_H
+#ifndef VERGE_TEST_SETUP_COMMON_H
+#define VERGE_TEST_SETUP_COMMON_H
 
 #include <chainparamsbase.h>
 #include <fs.h>
@@ -128,4 +128,4 @@ CBlock getBlock13b8a();
 // define an implicit conversion here so that uint256 may be used directly in BOOST_CHECK_*
 std::ostream& operator<<(std::ostream& os, const uint256& num);
 
-#endif
+#endif // VERGE_TEST_SETUP_COMMON_H
