@@ -469,7 +469,7 @@ def random_transaction(nodes, amount, min_fee, fee_increment, fee_variants):
 
     rawtx = from_node.createrawtransaction(inputs, outputs)
     signresult = from_node.signrawtransactionwithwallet(rawtx)
-    txid = from_node.sendrawtransaction(signresult["hex"], 0)
+    txid = from_node.sendrawtransaction(signresult["hex"], False)
 
     return (txid, signresult["hex"], fee)
 

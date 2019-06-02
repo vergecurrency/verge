@@ -63,7 +63,9 @@ class WalletBackupTest(VergeTestFramework):
 
     def one_send(self, from_node, to_address):
         if (randint(1,2) == 1):
-            amount = Decimal(randint(1,10)) / Decimal(10)
+            amount = Decimal(randint(100,200)) + Decimal("0.5") 
+            print(to_address)
+            print(amount)
             self.nodes[from_node].sendtoaddress(to_address, amount)
 
     def do_one_round(self):
@@ -115,9 +117,9 @@ class WalletBackupTest(VergeTestFramework):
         self.nodes[3].generate(100)
         self.sync_blocks()
 
-        assert_equal(self.nodes[0].getbalance(), 50)
-        assert_equal(self.nodes[1].getbalance(), 50)
-        assert_equal(self.nodes[2].getbalance(), 50)
+        assert_equal(self.nodes[0].getbalance(), 200000)
+        assert_equal(self.nodes[1].getbalance(), 200000)
+        assert_equal(self.nodes[2].getbalance(), 200000)
         assert_equal(self.nodes[3].getbalance(), 0)
 
         self.log.info("Creating transactions")

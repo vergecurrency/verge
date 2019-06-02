@@ -15,14 +15,14 @@ class LongpollThread(threading.Thread):
     def __init__(self, node):
         threading.Thread.__init__(self)
         # query current longpollid
-        template = node.getblocktemplate({'rules': ['segwit']})
+        template = node.getblocktemplate({})
         self.longpollid = template['longpollid']
         # create a new connection to the node, we can't use the same
         # connection from two threads
         self.node = get_rpc_proxy(node.url, 1, timeout=600, coveragedir=node.coverage_dir)
 
     def run(self):
-        self.node.getblocktemplate({'longpollid': self.longpollid, 'rules': ['segwit']})
+        self.node.getblocktemplate({'longpollid': self.longpollid})
 
 class GetBlockTemplateLPTest(VergeTestFramework):
     def set_test_params(self):

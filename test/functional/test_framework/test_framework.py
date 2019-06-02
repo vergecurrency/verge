@@ -14,6 +14,7 @@ import shutil
 import sys
 import tempfile
 import time
+import shutil
 
 from .authproxy import JSONRPCException
 from . import coverage
@@ -513,10 +514,10 @@ class VergeTestFramework(metaclass=VergeTestMetaClass):
                 return os.path.join(get_datadir_path(self.options.cachedir, n), "regtest", *paths)
 
             for i in range(MAX_NODES):
-                os.rmdir(cache_path(i, 'wallets'))  # Remove empty wallets dir
+                shutil.rmtree(cache_path(i, 'wallets'), ignore_errors=True)  # Remove empty wallets dir
                 for entry in os.listdir(cache_path(i)):
                     if entry not in ['chainstate', 'blocks']:
-                        os.remove(cache_path(i, entry))
+                        shutil.rmtree(cache_path(i, entry), ignore_errors=True)
 
         for i in range(self.num_nodes):
             from_dir = get_datadir_path(self.options.cachedir, i)
