@@ -60,9 +60,7 @@ def sha256(s):
 import scrypt
 
 def scrypt1024(s):
-    h = scrypt.hash(s, s)
-    print(h)
-    return h
+    return scrypt.hash(s, s, 1<<14, 8, 1, 32)
 
 def hash256(s):
     return sha256(sha256(s))
@@ -588,7 +586,11 @@ class CBlockHeader:
             r += struct.pack("<I", self.nBits)
             r += struct.pack("<I", self.nNonce)
             self.sha256 = uint256_from_str(scrypt1024(r))
+            self.sha256 = uint256_from_str(hash256(r))
             self.hash = encode(scrypt1024(r)[::-1], 'hex_codec').decode('ascii')
+            print(self.hash)
+            print(encode(hash256(r)[::-1], 'hex_codec').decode('ascii'))
+            print(hex(self.hashPrevBlock))
 
     def rehash(self):
         self.sha256 = None

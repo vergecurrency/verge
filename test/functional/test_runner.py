@@ -80,7 +80,7 @@ BASE_SCRIPTS = [
     # 'wallet_backup.py',
     # vv Tests less than 5m vv
     # 'feature_maxuploadtarget.py',
-    # 'feature_block.py',
+    # feature_block.py',
     # 'rpc_fundrawtransaction.py',
     # 'p2p_compactblocks.py',
     # 'feature_segwit.py',
@@ -162,17 +162,15 @@ BASE_SCRIPTS = [
     # 'wallet_resendwallettransactions.py',
     # 'wallet_fallbackfee.py',
     # 'feature_minchainwork.py',
-    # 'rpc_getblockstats.py',
-    # 'wallet_create_tx.py',
     # 'p2p_fingerprint.py',
     # 'feature_filelock.py',
     # 'p2p_unrequested_blocks.py',
-    # 'rpc_deriveaddresses.py',
-    # 'rpc_scantxoutset.py',
     # 'p2p_node_network_limited.py',
     # 'feature_config_args.py',
 
     # CHECKED AND WORKING :)
+    'rpc_getblockstats.py',
+    'wallet_create_tx.py',
     'mining_getblocktemplate_longpoll.py',
     'feature_shutdown.py',
     'rpc_help.py',

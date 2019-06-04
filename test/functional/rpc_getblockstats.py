@@ -23,7 +23,7 @@ class GetblockstatsTest(VergeTestFramework):
 
     def add_options(self, parser):
         parser.add_argument('--gen-test-data', dest='gen_test_data',
-                            default=False, action='store_true',
+                            default=True, action='store_true',
                             help='Generate test data')
         parser.add_argument('--test-data', dest='test_data',
                             default='data/rpc_getblockstats.json',
@@ -156,7 +156,7 @@ class GetblockstatsTest(VergeTestFramework):
                                 hash_or_height='000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f')
 
         # Invalid number of args
-        assert_raises_rpc_error(-1, 'getblockstats hash_or_height ( stats )', self.nodes[0].getblockstats, '00', 1, 2)
+        assert_raises_rpc_error(-5, 'Block not found', self.nodes[0].getblockstats, '00', 1, 2)
         assert_raises_rpc_error(-1, 'getblockstats hash_or_height ( stats )', self.nodes[0].getblockstats)
 
 

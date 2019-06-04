@@ -91,6 +91,7 @@ class TestNode():
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
             "-without-tor",
+            "-txindex",
             "-uacomment=testnode%d" % i,
         ]
 

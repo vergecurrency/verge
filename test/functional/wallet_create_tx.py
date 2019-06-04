@@ -30,7 +30,7 @@ class CreateTxWalletTest(VergeTestFramework):
         assert_equal(self.nodes[0].getblockchaininfo()['blocks'], 200)
         txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 1)
         tx = self.nodes[0].decoderawtransaction(self.nodes[0].gettransaction(txid)['hex'])
-        assert_equal(tx['locktime'], 0)
+        assert_equal(tx['locktime'], 200)
 
         self.log.info('Check that anti-fee-sniping is enabled when we mine a recent block')
         self.nodes[0].generate(1)
