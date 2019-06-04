@@ -188,7 +188,7 @@ jobs:
           at: '.'
       - run:
           name: Install dependencies
-          command: pip install flake8 && sudo apt-get install shellcheck
+          command: pip install --user flake8 && sudo apt-get install shellcheck
       - run:
           name: Run linting checks
           command: ./test/lint/lint-all.sh
@@ -201,7 +201,7 @@ jobs:
           at: '.'
       - run: 
           name: Install scrypt for python
-          command: pip install scrypt
+          command: pip install --user scrypt
       - run:
           name: Run regression checks
           command: ./test/functional/test_runner.py
