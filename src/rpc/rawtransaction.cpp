@@ -480,7 +480,7 @@ static UniValue createrawtransaction(const JSONRPCRequest& request)
             }
 
             CScript scriptPubKey = GetScriptForDestination(destination);
-            CAmount nAmount = AmountFromValue(outputs[name_]);
+            CAmount nAmount = SafeAmountFromValue(outputs[name_]);
 
             CTxOut out(nAmount, scriptPubKey);
             rawTx.vout.push_back(out);
@@ -814,7 +814,7 @@ UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxsUnival
                 newcoin.out.scriptPubKey = scriptPubKey;
                 newcoin.out.nValue = 0;
                 if (prevOut.exists("amount")) {
-                    newcoin.out.nValue = AmountFromValue(find_value(prevOut, "amount"));
+                    newcoin.out.nValue = SafeAmountFromValue(find_value(prevOut, "amount"));
                 }
                 newcoin.nHeight = 1;
                 view.AddCoin(out, std::move(newcoin), true);

@@ -670,7 +670,7 @@ UniValue sendtostealthaddress(const JSONRPCRequest& request)
     
     LOCK2(cs_main, pwallet->cs_wallet);
     std::string sEncoded = request.params[0].get_str();
-    int64_t nAmount = AmountFromValue(request.params[1]);
+    int64_t nAmount = SafeAmountFromValue(request.params[1]);
     
     // secure that we are at least synced to the last known point
 
@@ -4523,7 +4523,7 @@ static UniValue submitblock(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Wallet has to be available for block signature creation.");
     }
 
-    if (!blockptr->SignBlock(*pwallet)) {
+    if (Params().NetworkIDString() == CBaseChainParams::MAIN && !blockptr->SignBlock(*pwallet)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
     }
     
@@ -4608,7 +4608,11 @@ UniValue generateBlocks(const JSONRPCRequest& request, std::shared_ptr<CReserveS
 
         std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
         CWallet* const pwallet = wallet.get();
-        pblock->SignBlock(*pwallet);
+
+        if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
+            pblock->SignBlock(*pwallet);
+        }
+
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
         if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
