@@ -204,7 +204,7 @@ jobs:
           command: pip install --user scrypt
       - run:
           name: Run regression checks
-          command: ./test/functional/test_runner.py
+          command: ./test/functional/test_runner.py --ci --combinedlogslen=4000 --quiet --failfast
 
 workflows:
   version: 2
