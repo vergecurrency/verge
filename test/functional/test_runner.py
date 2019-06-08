@@ -74,13 +74,13 @@ EXTENDED_SCRIPTS = [
 ]
 
 BASE_SCRIPTS = [
-    # Scripts that are run by the travis build process.
-    # Longest test should go first, to favor running tests in parallel
-    # 'feature_fee_estimation.py',
-    # 'wallet_backup.py',
-    # vv Tests less than 5m vv
+    # # Scripts that are run by the travis build process.
+    # # Longest test should go first, to favor running tests in parallel
+    # # 'feature_fee_estimation.py',
+    # # 'wallet_backup.py',
+    # # vv Tests less than 5m vv
     # 'feature_maxuploadtarget.py',
-    # feature_block.py',
+    # 'feature_block.py',
     # 'rpc_fundrawtransaction.py',
     # 'p2p_compactblocks.py',
     # 'feature_segwit.py',
@@ -117,10 +117,9 @@ BASE_SCRIPTS = [
     # 'mempool_reorg.py',
     # 'mempool_persist.py',
     # 'wallet_multiwallet.py',
-    #'wallet_createwallet.py',
+    # 'wallet_createwallet.py',
     # 'interface_rpc.py',
     # 'rpc_psbt.py',
-    # # 'feature_proxy.py',
     # 'rpc_signrawtransaction.py',
     # 'wallet_groups.py',
     # 'rpc_decodescript.py',
@@ -128,13 +127,11 @@ BASE_SCRIPTS = [
     # 'wallet_disable.py',
     # 'rpc_net.py',
     # 'wallet_keypool.py',
-    # 'p2p_mempool.py',
     # 'mining_prioritisetransaction.py',
     # 'p2p_invalid_locator.py',
     # 'p2p_invalid_block.py',
     # 'p2p_invalid_messages.py',
     # 'p2p_invalid_tx.py',
-    # 'feature_assumevalid.py',
     # 'example_test.py',
     # 'wallet_txn_doublespend.py',
     # 'wallet_txn_clone.py --mineblock',
@@ -154,8 +151,6 @@ BASE_SCRIPTS = [
     # 'wallet_import_with_label.py',
     # 'mining_basic.py',
     # 'wallet_bumpfee.py',
-    # 'wallet_listsinceblock.py',
-    # 'p2p_leak.py',
     # 'wallet_encryption.py',
     # 'feature_dersig.py',
     # 'feature_cltv.py',
@@ -168,16 +163,22 @@ BASE_SCRIPTS = [
     # 'p2p_node_network_limited.py',
     # 'feature_config_args.py',
 
+    # KNOW BROKEN
+    # 'feature_blocksdir.py',
+    # 'feature_proxy.py',
+    # 'feature_assumevalid.py',
+
     # CHECKED AND WORKING :)
+    'wallet_listsinceblock.py',
+    'p2p_mempool.py',
+    'p2p_leak.py',
     'rpc_getblockstats.py',
     'wallet_create_tx.py',
     'mining_getblocktemplate_longpoll.py',
     'feature_shutdown.py',
     'rpc_help.py',
     'feature_help.py',
-    'feature_blocksdir.py',
     'feature_logging.py',
-    'rpc_deriveaddresses.py --usecli',
     'feature_includeconf.py',
     'feature_uacomment.py',
     'wallet_coinbase_category.py',

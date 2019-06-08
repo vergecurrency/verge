@@ -60,8 +60,8 @@ class WalletTest(VergeTestFramework):
         assert_equal(len(self.nodes[1].listunspent()), 0)
 
         self.log.info("Check that only node 0 is watching an address")
-        assert 'watchonly' in self.nodes[0].getbalances()
-        assert 'watchonly' not in self.nodes[1].getbalances()
+        assert 'watchonly' in self.nodes[0].getbalance()
+        assert 'watchonly' not in self.nodes[1].getbalance()
 
         self.log.info("Mining blocks ...")
         self.nodes[0].generate(1)
@@ -70,11 +70,11 @@ class WalletTest(VergeTestFramework):
         self.nodes[1].generatetoaddress(101, ADDRESS_WATCHONLY)
         self.sync_all()
 
-        assert_equal(self.nodes[0].getbalances()['mine']['trusted'], 50)
+        assert_equal(self.nodes[0].getbalance()['mine']['trusted'], 50)
         assert_equal(self.nodes[0].getwalletinfo()['balance'], 50)
-        assert_equal(self.nodes[1].getbalances()['mine']['trusted'], 50)
+        assert_equal(self.nodes[1].getbalance()['mine']['trusted'], 50)
 
-        assert_equal(self.nodes[0].getbalances()['watchonly']['immature'], 5000)
+        assert_equal(self.nodes[0].getbalance()['watchonly']['immature'], 5000)
         assert 'watchonly' not in self.nodes[1].getbalances()
 
         assert_equal(self.nodes[0].getbalance(), 50)

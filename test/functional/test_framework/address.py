@@ -9,7 +9,7 @@ from .util import hex_str_to_bytes
 
 from . import segwit_addr
 
-ADDRESS_BCRT1_UNSPENDABLE = 'bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3xueyj'
+ADDRESS_BCRT1_UNSPENDABLE = 'n3gffYgXVj46hDEPmhRVXCZLXrzeh1t3gB'
 
 chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 

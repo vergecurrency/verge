@@ -53,9 +53,9 @@ class ListSinceBlockTest (VergeTestFramework):
                                 "42759cde25462784395a337460bde75f58e73d3f08bd31fdc3507cbac856a2c4")
         assert_raises_rpc_error(-5, "Block not found", self.nodes[0].listsinceblock,
                                 "0000000000000000000000000000000000000000000000000000000000000000")
-        assert_raises_rpc_error(-8, "blockhash must be of length 64 (not 11, for 'invalid-hex')", self.nodes[0].listsinceblock,
+        assert_raises_rpc_error(-5, "Block not found", self.nodes[0].listsinceblock,
                                 "invalid-hex")
-        assert_raises_rpc_error(-8, "blockhash must be hexadecimal string (not 'Z000000000000000000000000000000000000000000000000000000000000000')", self.nodes[0].listsinceblock,
+        assert_raises_rpc_error(-5, "Block not found", self.nodes[0].listsinceblock,
                                 "Z000000000000000000000000000000000000000000000000000000000000000")
 
     def test_reorg(self):
@@ -154,10 +154,10 @@ class ListSinceBlockTest (VergeTestFramework):
         self.nodes[1].importprivkey(privkey)
 
         # send from nodes[1] using utxo to nodes[0]
-        change = '%.8f' % (float(utxo['amount']) - 1.0003)
+        change = '%.8f' % (float(utxo['amount']) - 2)
         recipient_dict = {
             self.nodes[0].getnewaddress(): 1,
-            self.nodes[1].getnewaddress(): change,
+            self.nodes[1].getnewaddress(): float(change),
         }
         utxo_dicts = [{
             'txid': utxo['txid'],
@@ -170,7 +170,7 @@ class ListSinceBlockTest (VergeTestFramework):
         # send from nodes[2] using utxo to nodes[3]
         recipient_dict2 = {
             self.nodes[3].getnewaddress(): 1,
-            self.nodes[2].getnewaddress(): change,
+            self.nodes[2].getnewaddress(): float(change),
         }
         self.nodes[2].sendrawtransaction(
             self.nodes[2].signrawtransactionwithwallet(
@@ -229,10 +229,10 @@ class ListSinceBlockTest (VergeTestFramework):
         # create and sign a transaction
         utxos = self.nodes[2].listunspent()
         utxo = utxos[0]
-        change = '%.8f' % (float(utxo['amount']) - 1.0003)
+        change = '%.8f' % (float(utxo['amount']) - 2)
         recipient_dict = {
             self.nodes[0].getnewaddress(): 1,
-            self.nodes[2].getnewaddress(): change,
+            self.nodes[2].getnewaddress(): float(change),
         }
         utxo_dicts = [{
             'txid': utxo['txid'],

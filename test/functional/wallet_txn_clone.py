@@ -95,7 +95,7 @@ class TxnMallTest(VergeTestFramework):
         # matured block, minus tx1 and tx2 amounts, and minus transaction fees:
         expected = starting_balance + node0_tx1["fee"] + node0_tx2["fee"]
         if self.options.mine_block:
-            expected += 50
+            expected += 200000
         expected += tx1["amount"] + tx1["fee"]
         expected += tx2["amount"] + tx2["fee"]
         assert_equal(self.nodes[0].getbalance(), expected)
@@ -138,7 +138,7 @@ class TxnMallTest(VergeTestFramework):
         # less possible orphaned matured subsidy
         expected += 100
         if (self.options.mine_block):
-            expected -= 50
+            expected -= 200000
         assert_equal(self.nodes[0].getbalance(), expected)
 
 if __name__ == '__main__':

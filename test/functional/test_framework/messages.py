@@ -586,11 +586,7 @@ class CBlockHeader:
             r += struct.pack("<I", self.nBits)
             r += struct.pack("<I", self.nNonce)
             self.sha256 = uint256_from_str(scrypt1024(r))
-            self.sha256 = uint256_from_str(hash256(r))
             self.hash = encode(scrypt1024(r)[::-1], 'hex_codec').decode('ascii')
-            print(self.hash)
-            print(encode(hash256(r)[::-1], 'hex_codec').decode('ascii'))
-            print(hex(self.hashPrevBlock))
 
     def rehash(self):
         self.sha256 = None
