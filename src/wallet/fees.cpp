@@ -18,11 +18,10 @@
 CAmount GetRequiredFee(const CWallet& wallet, unsigned int nTxBytes)
 {
     int64_t tenCent = 10 * CENT;
-    int64_t ceiledKiloBytesUsed = ceil(nTxBytes / static_cast<float>(1024));
+    int64_t ceiledKiloBytesUsed = ceil(nTxBytes / static_cast<float>(1000));
 
     CAmount feeForData = tenCent * ceiledKiloBytesUsed;
     return std::max(feeForData, tenCent);
-    return 10 * CENT;
 }
 
 
