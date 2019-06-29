@@ -170,7 +170,7 @@ void SendCoinsDialog::setModel(WalletModel *_model)
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this, SLOT(coinControlUpdateLabels()));
         connect(ui->optInRBF, SIGNAL(stateChanged(int)), this, SLOT(updateSmartFeeLabel()));
         connect(ui->optInRBF, SIGNAL(stateChanged(int)), this, SLOT(coinControlUpdateLabels()));
-        ui->customFee->setSingleStep(model->wallet().getRequiredFee(1000));
+        ui->customFee->setSingleStep(model->wallet().getRequiredFee(ONE_KILO_BYTE - 1));
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
@@ -627,7 +627,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry* entry)
 
 void SendCoinsDialog::setMinimumFee()
 {
-    ui->customFee->setValue(model->wallet().getRequiredFee(1000));
+    ui->customFee->setValue(model->wallet().getRequiredFee(ONE_KILO_BYTE - 1));
 }
 
 void SendCoinsDialog::updateFeeSectionControls()
@@ -657,7 +657,7 @@ void SendCoinsDialog::updateMinFeeLabel()
 {
     if (model && model->getOptionsModel())
         ui->checkBoxMinimumFee->setText(tr("Pay only the required fee of %1").arg(
-            VERGEUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), model->wallet().getRequiredFee(1000)) + "/kB")
+            VERGEUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), model->wallet().getRequiredFee(ONE_KILO_BYTE - 1)) + "/kB")
         );
 }
 
@@ -680,27 +680,11 @@ void SendCoinsDialog::updateSmartFeeLabel()
     CCoinControl coin_control;
     updateCoinControlState(coin_control);
     coin_control.m_feerate.reset(); // Explicitly use only fee estimation rate for smart fee labels
-    int returned_target;
-    FeeReason reason;
-    CFeeRate feeRate = CFeeRate(model->wallet().getMinimumFee(1000, coin_control, &returned_target, &reason));
 
-    ui->labelSmartFee->setText(VERGEUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), feeRate.GetFeePerK()) + "/kB");
-
-    if (reason == FeeReason::FALLBACK) {
-        ui->labelSmartFee2->show(); // (Smart fee not initialized yet. This usually takes a few blocks...)
-        ui->labelFeeEstimation->setText("");
-        ui->fallbackFeeWarningLabel->setVisible(true);
-        int lightness = ui->fallbackFeeWarningLabel->palette().color(QPalette::WindowText).lightness();
-        QColor warning_colour(255 - (lightness / 5), 176 - (lightness / 3), 48 - (lightness / 14));
-        ui->fallbackFeeWarningLabel->setStyleSheet("QLabel { color: " + warning_colour.name() + "; }");
-        ui->fallbackFeeWarningLabel->setIndent(QFontMetrics(ui->fallbackFeeWarningLabel->font()).width("x"));
-    }
-    else
-    {
-        ui->labelSmartFee2->hide();
-        ui->labelFeeEstimation->setText(tr("Static fee for standard payment method", ""));
-        ui->fallbackFeeWarningLabel->setVisible(false);
-    }
+    ui->labelSmartFee->setText(VERGEUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), 10 * CENT) + "/kB");
+    ui->labelSmartFee2->hide();
+    ui->labelFeeEstimation->setText(tr("Static fee for standard payment method", ""));
+    ui->fallbackFeeWarningLabel->setVisible(false);
 
     updateFeeMinimizedLabel();
 }
