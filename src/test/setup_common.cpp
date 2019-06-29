@@ -79,52 +79,39 @@ TestingSetup::TestingSetup(const std::string& chainName) : BasicTestingSetup(cha
 {
 	SetDataDir("tempdir");
     const CChainParams& chainparams = Params();
-    std::cout << "1";
-        // Ideally we'd move all the RPC tests to the functional testing framework
-        // instead of unit tests, but for now we need these here.
+    // Ideally we'd move all the RPC tests to the functional testing framework
+    // instead of unit tests, but for now we need these here.
 
-        RegisterAllCoreRPCCommands(tableRPC);
-        std::cout << "2";
-        ClearDatadirCache();
-        std::cout << "3";
+    RegisterAllCoreRPCCommands(tableRPC);
+    ClearDatadirCache();
 
-        // We have to run a scheduler thread to prevent ActivateBestChain
-        // from blocking due to queue overrun.
-        std::cout << "6";
-        threadGroup.create_thread(boost::bind(&CScheduler::serviceQueue, &scheduler));
-        std::cout << "7";
-        GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
-        
-        std::cout << "7";
-        mempool.setSanityCheck(1.0);
-        pblocktree.reset(new CBlockTreeDB(1 << 20, true));
-        pcoinsdbview.reset(new CCoinsViewDB(1 << 23, true));
-        pcoinsTip.reset(new CCoinsViewCache(pcoinsdbview.get()));
-        std::cout << "8";
-        if (!LoadGenesisBlock(chainparams)) {
-            std::cout << "8.E";
-            throw std::runtime_error("LoadGenesisBlock failed.");
+    // We have to run a scheduler thread to prevent ActivateBestChain
+    // from blocking due to queue overrun.
+    threadGroup.create_thread(boost::bind(&CScheduler::serviceQueue, &scheduler));
+    GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
+    
+    mempool.setSanityCheck(1.0);
+    pblocktree.reset(new CBlockTreeDB(1 << 20, true));
+    pcoinsdbview.reset(new CCoinsViewDB(1 << 23, true));
+    pcoinsTip.reset(new CCoinsViewCache(pcoinsdbview.get()));
+
+    if (!LoadGenesisBlock(chainparams)) {
+        throw std::runtime_error("LoadGenesisBlock failed.");
+    }
+
+    {
+        CValidationState state;
+        if (!ActivateBestChain(state, chainparams)) {
+            throw std::runtime_error(strprintf("ActivateBestChain failed. (%s)", FormatStateMessage(state)));
         }
-        std::cout << "9.P";
-        {
-            CValidationState state;
-            std::cout << "9";
-            if (!ActivateBestChain(state, chainparams)) {
-                std::cout << "9.E";
-                throw std::runtime_error(strprintf("ActivateBestChain failed. (%s)", FormatStateMessage(state)));
-            }
-        }
-        nScriptCheckThreads = 3;
-        for (int i=0; i < nScriptCheckThreads-1; i++)
-            threadGroup.create_thread(&ThreadScriptCheck);
-        
-        std::cout << "10";
-        g_connman = std::unique_ptr<CConnman>(new CConnman(0x1337, 0x1337)); // Deterministic randomness for tests.
-        std::cout << "11";
-        connman = g_connman.get();
-        std::cout << "12";
-        peerLogic.reset(new PeerLogicValidation(connman, scheduler));
-        std::cout << "END\n";
+    }
+    nScriptCheckThreads = 3;
+    for (int i=0; i < nScriptCheckThreads-1; i++)
+        threadGroup.create_thread(&ThreadScriptCheck);
+    
+    g_connman = std::unique_ptr<CConnman>(new CConnman(0x1337, 0x1337)); // Deterministic randomness for tests.
+    connman = g_connman.get();
+    peerLogic.reset(new PeerLogicValidation(connman, scheduler));
 }
 
 TestingSetup::~TestingSetup()
