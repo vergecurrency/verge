@@ -24,60 +24,65 @@ BOOST_AUTO_TEST_CASE(GetFeeTest)
 
     feeRate = CFeeRate(0);
     // Must always return 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e5), 100000);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1e5), CAmount(0));
 
     feeRate = CFeeRate(1000);
     // Must always just return the arg
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(121), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(999), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), 100000);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1), CAmount(1000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(121), CAmount(1000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(999), CAmount(1000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), CAmount(2000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), CAmount(10000));
 
     feeRate = CFeeRate(-1000);
     // Must always just return -1 * arg
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(121), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(999), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), 100000);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1), CAmount(-1000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(121), CAmount(-1000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(999), CAmount(-1000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), CAmount(-2000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), CAmount(-10000));
 
     feeRate = CFeeRate(123);
     // Truncates the result, if not integer
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), 100000); // Special case: returns 1 instead of 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(121), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(122), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(999), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), 100000);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(8), CAmount(123)); // Special case: returns 1 instead of 0
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9), CAmount(123));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(121), CAmount(123));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(122), CAmount(123));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(999), CAmount(123));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), CAmount(246));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), CAmount(1230));
 
     feeRate = CFeeRate(-123);
     // Truncates the result, if not integer
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), 100000);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), 100000); // Special case: returns -1 instead of 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9), 100000);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
 
     // check alternate constructor
     feeRate = CFeeRate(1000);
     altFeeRate = CFeeRate(feeRate);
     BOOST_CHECK_EQUAL(feeRate.GetFee(100), altFeeRate.GetFee(100));
 
+    feeRate = CFeeRate(10 * CENT);
+
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1001), 20 * CENT);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1000), 20 * CENT);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(999), 10 * CENT);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1), 10 * CENT);
+
     // Check full constructor
     // default value
-    BOOST_CHECK(CFeeRate(CAmount(-1), 1000) == CFeeRate(-1));
-    BOOST_CHECK(CFeeRate(CAmount(0), 1000) == CFeeRate(0));
-    BOOST_CHECK(CFeeRate(CAmount(1), 1000) == CFeeRate(1));
+    BOOST_CHECK(CFeeRate(CAmount(-1), 1000) == CFeeRate(10 * CENT));
+    BOOST_CHECK(CFeeRate(CAmount(0), 1000) == CFeeRate(10 * CENT));
+    BOOST_CHECK(CFeeRate(CAmount(1), 1000) == CFeeRate(10 * CENT));
     // lost precision (can only resolve satoshis per kB)
-    BOOST_CHECK(CFeeRate(CAmount(1), 1001) == CFeeRate(0));
-    BOOST_CHECK(CFeeRate(CAmount(2), 1001) == CFeeRate(1));
+    BOOST_CHECK(CFeeRate(CAmount(1), 1001) == CFeeRate(10 * CENT));
+    BOOST_CHECK(CFeeRate(CAmount(2), 1001) == CFeeRate(10 * CENT));
     // some more integer checks
-    BOOST_CHECK(CFeeRate(CAmount(26), 789) == CFeeRate(32));
-    BOOST_CHECK(CFeeRate(CAmount(27), 789) == CFeeRate(34));
+    BOOST_CHECK(CFeeRate(CAmount(26), 789) == CFeeRate(10 * CENT));
+    BOOST_CHECK(CFeeRate(CAmount(27), 789) == CFeeRate(10 * CENT));
     // Maximum size in bytes, should not crash
     CFeeRate(MAX_MONEY, std::numeric_limits<size_t>::max() >> 1).GetFeePerK();
 }
