@@ -2538,9 +2538,6 @@ CBlockIndex* CChainState::FindMostWorkChain() {
             pindexNew = *it;
         }
 
-        std::cout << "Block comparision!\n";
-        std::cout << "SEQ: " << pindexNew->nSequenceId << "\n";
-        std::cout << "HEIGHT: " << pindexNew->nHeight << "\n";
         // Check whether all blocks on the path between the currently active chain and the candidate are valid.
         // Just going until the active chain is an optimization, as we know all blocks in it are valid already.
         CBlockIndex *pindexTest = pindexNew;
