@@ -3166,6 +3166,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
+    if (!block.CheckBlockSignature())
+        return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
+
     return true;
 }
 
