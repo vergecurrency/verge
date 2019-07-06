@@ -8,6 +8,17 @@ defaults-docker: &defaults-docker
   docker:
     - image: circleci/buildpack-deps:bionic
 
+all-core-dependencies: &all-core-dependencies
+  - run:
+      name: Install build dependencies
+      command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3
+  - run:
+      name: Install ssl, event and boost dependency
+      command: sudo apt install libssl-dev libevent-dev libboost-all-dev
+  - run:
+      name: Install zlib, libseccomp and libcap
+      command: sudo apt-get install zlib1g-dev libseccomp-dev libcap-dev libncap-dev
+
 run_apt_packages: &run_apt_packages
   name: Prepare VM
   command: sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3
@@ -204,6 +215,7 @@ jobs:
       - run: 
           name: Install scrypt for python
           command: pip install --user scrypt
+      <<: *all-core-dependencies
       - run:
           name: Run regression checks
           command: ./test/functional/test_runner.py --combinedlogslen=4000 --failfast
