@@ -204,7 +204,7 @@ jobs:
           command: pip install --user scrypt
       - run:
           name: Run regression checks
-          command: ./test/functional/test_runner.py --ci --combinedlogslen=4000 --quiet --failfast
+          command: ./test/functional/test_runner.py --combinedlogslen=4000 --failfast
 
 workflows:
   version: 2
@@ -261,9 +261,9 @@ workflows:
       - run-unit-tests:
           requires:
             - build-verge-core
-      - run-lint-tests:
-          requires:
-            - build-verge-core
+      # - run-lint-tests:
+      #     requires:
+      #       - build-verge-core
       - run-util-tests:
           requires:
             - build-verge-core
