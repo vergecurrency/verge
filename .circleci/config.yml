@@ -215,7 +215,7 @@ jobs:
       - run: 
           name: Install scrypt for python
           command: pip install --user scrypt
-      - *all-core-dependencies
+      - <<: *all-core-dependencies
       - run:
           name: Run regression checks
           command: ./test/functional/test_runner.py --combinedlogslen=4000 --failfast
