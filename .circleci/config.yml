@@ -214,7 +214,7 @@ jobs:
           command: sudo apt install python3-pip
       - run: 
           name: Install scrypt for python
-          command: pip install --user scrypt
+          command: pip3 install --user scrypt
       - <<: *all-core-dependencies
       - run:
           name: Run regression checks
