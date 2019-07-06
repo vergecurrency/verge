@@ -3394,7 +3394,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-weight", false, strprintf("%s : weight limit failed", __func__));
     }
 
-    if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() || block.GetBlockTime() + GetMaxClockDrift(nHeight) < pindexPrev->GetBlockTime())
+    if (nHeight > 0 && (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() || block.GetBlockTime() + GetMaxClockDrift(nHeight) < pindexPrev->GetBlockTime()))
     {	        
         state.DoS(100, false, REJECT_INVALID, "bad-blk-time", false, strprintf("%s : blocks timestamp is too early", __func__));
     }
