@@ -194,11 +194,13 @@ jobs:
           command: ./test/lint/lint-all.sh
 
   run-regression-tests:
-    docker:
-      - image: circleci/python:3.7.3
+    <<: *defaults-docker
     steps:
       - attach_workspace:
           at: '.'
+      - run: 
+          name: Install pip
+          command: sudo apt install python3-pip
       - run: 
           name: Install scrypt for python
           command: pip install --user scrypt
