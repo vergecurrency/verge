@@ -166,6 +166,15 @@ jobs:
       - run:
           name: Make
           command: make -j4
+      - run: 
+          name: Install pip
+          command: sudo apt install python3-pip
+      - run: 
+          name: Install scrypt for python
+          command: pip install --user scrypt
+      - run:
+          name: Run regression checks
+          command: ./test/functional/test_runner.py --combinedlogslen=4000 --failfast
       - persist_to_workspace:
           root: '.'
           paths:
