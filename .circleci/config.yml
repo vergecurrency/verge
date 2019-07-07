@@ -205,7 +205,7 @@ jobs:
           command: ./test/lint/lint-all.sh
 
   run-regression-tests:
-    <<: *defaults-docker
+    <<: *defaults
     steps:
       - attach_workspace:
           at: '.'
