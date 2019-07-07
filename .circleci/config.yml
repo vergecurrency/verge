@@ -215,7 +215,7 @@ jobs:
           command: sudo apt install python3-pip
       - run: 
           name: Install scrypt for python
-          command: pip3 install --user scrypt
+          command: pip install --user scrypt
       - run: 
           <<: *build-dep
       - run: 
