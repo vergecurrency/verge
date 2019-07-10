@@ -1847,7 +1847,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     // is enforced in ContextualCheckBlockHeader(); we wouldn't want to
     // re-enforce that rule here (at least until we make it impossible for
     // GetAdjustedTime() to go backward).
-    if (!CheckBlock(block, state, chainparams.GetConsensus(), !fJustCheck, !fJustCheck)) {
+    if (!CheckBlock(block, state, chainparams.GetConsensus(), !fJustCheck, !fJustCheck, !fJustCheck)) {
         if (state.CorruptionPossible()) {
             // We don't write down blocks to disk if they may have been
             // corrupted, so this should be impossible unless we're having hardware
@@ -3106,7 +3106,7 @@ static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state,
     return true;
 }
 
-bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot)
+bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckBlockSignature)
 {
     // These are checks that are independent of context.
 
@@ -3166,8 +3166,12 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
-    if (!block.CheckBlockSignature())
-        return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
+    LogPrintf("Checking Block Signature: %i", fCheckBlockSignature);
+    if (fCheckBlockSignature) {
+        if(!block.CheckBlockSignature()) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
+        }
+    }
 
     return true;
 }
@@ -3628,7 +3632,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     return true;
 }
 
-bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
+bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckBlockSignature)
 {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainActive.Tip());
@@ -3642,7 +3646,7 @@ bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams,
     // NOTE: CheckBlockHeader is called by CheckBlock
     if (!ContextualCheckBlockHeader(block, state, chainparams, pindexPrev, GetAdjustedTime()))
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__, FormatStateMessage(state));
-    if (!CheckBlock(block, state, chainparams.GetConsensus(), fCheckPOW, fCheckMerkleRoot))
+    if (!CheckBlock(block, state, chainparams.GetConsensus(), fCheckPOW, fCheckMerkleRoot, fCheckBlockSignature))
         return error("%s: Consensus::CheckBlock: %s", __func__, FormatStateMessage(state));
     if (!ContextualCheckBlock(block, state, chainparams.GetConsensus(), pindexPrev))
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__, FormatStateMessage(state));
