@@ -87,6 +87,8 @@ BerkeleyDB is required for the wallet.
 **For Ubuntu only:** 
 You can add the repository and install using the following commands:
 
+_Note : This won't work on 19.04 releases and superior since the bitcoin ppa hasn't a release file for it_
+
     sudo apt-get install software-properties-common
     sudo add-apt-repository ppa:bitcoin/bitcoin
     sudo apt-get update
