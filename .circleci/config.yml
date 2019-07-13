@@ -126,6 +126,9 @@ jobs:
   build-verge-core:
     <<: *defaults-docker
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "c8:96:91:3d:b6:95:e0:99:e7:61:9c:84:76:53:ff:bd"
       - checkout
       - run:
           name: Install dependencies
