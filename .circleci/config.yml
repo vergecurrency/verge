@@ -124,11 +124,8 @@ jobs:
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
 
   build-verge-core:
-    version: 2
-      jobs:
-        build:
-          machine:
-            image: ubuntu:bionic
+    machine:
+      image: ubuntu:bionic
     steps:
       - add_ssh_keys:
           fingerprints:
