@@ -144,11 +144,11 @@ jobs:
           name: Make
           command: make -j4
       - run: 
-          name: Install pip
-          command: sudo apt install python3-pip
+          name: Set python and pip version
+          command: pyenv global 3.6.5
       - run: 
           name: Install scrypt for python
-          command: pip install --user scrypt
+          command: pip3 install --user scrypt
       - run:
           name: Run regression checks
           command: ./test/functional/test_runner.py --combinedlogslen=4000 --failfast
