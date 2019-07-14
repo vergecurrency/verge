@@ -94,7 +94,7 @@ class TestNode():
             "-txindex",
             "-uacomment=testnode%d" % i,
         ]
-
+        print("args:", self.args)
         self.cli = TestNodeCLI(verge_cli, self.datadir)
         self.use_cli = use_cli
         self.start_perf = start_perf
@@ -196,7 +196,7 @@ class TestNode():
 
         # add environment variable LIBC_FATAL_STDERR_=1 so that libc errors are written to stderr and not the terminal
         subp_env = dict(os.environ, LIBC_FATAL_STDERR_="1")
-
+        print("extra args:", extra_args, "subp_env", subp_env)
         self.process = subprocess.Popen(self.args + extra_args, env=subp_env, stdout=stdout, stderr=stderr, cwd=cwd, **kwargs)
 
         self.running = True
