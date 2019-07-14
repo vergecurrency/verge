@@ -125,7 +125,7 @@ jobs:
 
   build-verge-core:
     machine:
-      image: ubuntu:bionic
+      image: circleci/classic:201808-01
     steps:
       - add_ssh_keys:
           fingerprints:
