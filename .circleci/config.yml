@@ -125,7 +125,7 @@ jobs:
 
   build-verge-core:
     machine:
-      image: circleci/classic:201808-01
+      image: ubuntu:18.04
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -151,7 +151,7 @@ jobs:
           command: pip3 install --user scrypt
       - run:
           name: Run regression checks
-          command: ./test/functional/test_runner.py --combinedlogslen=4000 --failfast
+          command: ./test/functional/test_runner.py --combinedlogslen=4000 -loglevel=DEBUG
       - persist_to_workspace:
           root: '.'
           paths:
