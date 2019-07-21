@@ -125,7 +125,7 @@ jobs:
 
   build-verge-core:
     machine:
-      image: ubuntu:18.04
+      image: circleci/buildpack-deps:bionic
     steps:
       - add_ssh_keys:
           fingerprints:
