@@ -124,8 +124,8 @@ jobs:
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
 
   build-verge-core:
-    docker:
-      image: circleci/buildpack-deps:bionic
+    docker: # executor type
+      - image: circleci/buildpack-deps:bionic
     steps:
       - add_ssh_keys:
           fingerprints:
