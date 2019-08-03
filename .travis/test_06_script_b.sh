@@ -31,11 +31,11 @@ if [ "$RUN_COV_REPORT" = "true" ]; then
   cd ${TRAVIS_BUILD_DIR}
 fi
 
-# if [ "$RUN_FUNCTIONAL_TESTS" = "true" ]; then
-#   BEGIN_FOLD functional-tests
-#   DOCKER_EXEC test/functional/test_runner.py --ci --combinedlogslen=4000 --coverage --quiet --failfast
-#   END_FOLD
-# fi
+if [ "$RUN_FUNCTIONAL_TESTS" = "true" ]; then
+  BEGIN_FOLD functional-tests
+  DOCKER_EXEC test/functional/test_runner.py --ci --combinedlogslen=4000 --coverage --quiet --failfast
+  END_FOLD
+fi
 
 # if [ "$RUN_FUZZ_TESTS" = "true" ]; then
 #   BEGIN_FOLD fuzz-tests
