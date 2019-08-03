@@ -16,6 +16,6 @@ fi
 
 if [ "$RUN_FUNCTIONAL_TESTS" = "true" ]; then
   BEGIN_FOLD functional-tests
-  DOCKER_EXEC test/functional/test_runner.py -ci --loglevel=DEBUG
+  DOCKER_EXEC test/functional/test_runner.py --ci --loglevel=DEBUG
   END_FOLD
 fi
