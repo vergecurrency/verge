@@ -123,35 +123,49 @@ jobs:
             VERSION=$(git describe)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
 
-  build-verge-core:
-    docker: # executor type
-      - image: circleci/buildpack-deps:bionic
+  test-setup-env:
+    <<: *defaults-docker
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "c8:96:91:3d:b6:95:e0:99:e7:61:9c:84:76:53:ff:bd"
+      - checkout
+      - run:
+          name: Hash dependencies
+          command: md5sum depends/packages/* > hashes.run
+      - restore_cache:
+          key: source-depends-{{ checksum "./hashes.run" }}
+          paths:
+            - './depends'
       - run:
           name: Install dependencies
-          command: sudo apt-get update && sudo apt-get install -y git sudo build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 && sudo apt install -y libssl-dev libevent-dev libboost-all-dev && sudo apt-get install -y zlib1g-dev libseccomp-dev libcap-dev libncap-dev && sudo apt-get -y install software-properties-common && sudo add-apt-repository ppa:bitcoin/bitcoin -y && sudo apt-get update && sudo apt-get install -y libdb4.8-dev libdb4.8++-dev && sudo apt-get install -y libminiupnpc-dev && sudo apt-get install -y libzmq3-dev && sudo apt-get install -y libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler && sudo apt-get install -y libqrencode-dev
-      - checkout
+          command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3
+      - run:
+          name: Creating depends
+          command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+      - save_cache:
+          key: source-depends-{{ checksum "./hashes.run" }}
+          paths:
+            - './depends'
+      - persist_to_workspace:
+          root: '.'
+          paths:
+            - '.'
+
+  build-verge-core:
+    <<: *defaults-docker
+    steps:
+      - attach_workspace:
+          at: '.'
+      - run:
+          name: Install dependencies
+          command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev
       - run:
           name: Autogen tools
           command: ./autogen.sh
       - run:
           name: Configuring code
-          command: ./configure --disable-bench --without-gui --disable-dependency-tracking --disable-werror
+          command: ./configure --disable-bench --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
       - run:
           name: Make
           command: make -j4
-      - run: 
-          name: Set python and pip version
-          command: pyenv global 3.6.5
-      - run: 
-          name: Install scrypt for python
-          command: pip3 install --user scrypt
-      - run:
-          name: Run regression checks
-          command: ./test/functional/test_runner.py --combinedlogslen=4000 -loglevel=DEBUG
       - persist_to_workspace:
           root: '.'
           paths:
@@ -190,27 +204,6 @@ jobs:
       - run:
           name: Run linting checks
           command: ./test/lint/lint-all.sh
-
-  run-regression-tests:
-    <<: *defaults
-    steps:
-      - attach_workspace:
-          at: '.'
-      - run: 
-          name: Install pip
-          command: sudo apt install python3-pip
-      - run: 
-          name: Install scrypt for python
-          command: pip install --user scrypt
-      - run: 
-          <<: *build-dep
-      - run: 
-          <<: *ssl-event-boost-dep
-      - run: 
-          <<: *zlib-seccomp-cap-dep
-      # - run:
-      #     name: Run regression checks
-      #     command: ./test/functional/test_runner.py --combinedlogslen=4000 --failfast
 
 workflows:
   version: 2
@@ -260,13 +253,13 @@ workflows:
 
   testing:
     jobs:
-      - build-verge-core
+      - test-setup-env
+      - build-verge-core:
+          requires:
+            - test-setup-env
       - run-unit-tests:
           requires:
             - build-verge-core
       - run-util-tests:
-          requires:
-            - build-verge-core
-      - run-regression-tests:
           requires:
             - build-verge-core
