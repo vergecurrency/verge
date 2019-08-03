@@ -66,8 +66,8 @@ jobs:
         RUN_UNIT_TESTS=true
         RUN_FUNCTIONAL_TESTS=true
         RUN_COV_REPORT=true
-        HOST=x86_64-unknown-linux-gnu
-        PACKAGES="lcov python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
+        HOST=x86_64-linux-gnu
+        PACKAGES="build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3 lcov python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
         DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
         VERGE_CONFIG="--enable-lcov --disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports"
 
