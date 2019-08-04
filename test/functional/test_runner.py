@@ -290,8 +290,8 @@ def main():
             exclude_list = [test for test in test_list if test.split('.py')[0] == exclude_test]
             for exclude_item in exclude_list:
                 test_list.remove(exclude_item)
-            #if not exclude_list:
-            #    print("{}WARNING!{} Test '{}' not found in current test list.".format(BOLD[1], BOLD[0], exclude_test))
+            if not exclude_list:
+                print("{}WARNING!{} Test '{}' not found in current test list.".format(BOLD[1], BOLD[0], exclude_test))
 
     if not test_list:
         print("No valid test scripts specified. Check that your test is in one "
@@ -577,11 +577,11 @@ def check_script_list(*, src_dir, fail_on_warn):
     script_dir = src_dir + '/test/functional/'
     python_files = set([test_file for test_file in os.listdir(script_dir) if test_file.endswith(".py")])
     missed_tests = list(python_files - set(map(lambda x: x.split()[0], ALL_SCRIPTS + NON_SCRIPTS)))
-    if len(missed_tests) != 0:
-        print("%sWARNING!%s The following scripts are not being run: %s. Check the test lists in test_runner.py." % (BOLD[1], BOLD[0], str(missed_tests)))
-        if fail_on_warn:
-            # On travis this warning is an error to prevent merging incomplete commits into master
-            sys.exit(1)
+    # if len(missed_tests) != 0:
+    #     print("%sWARNING!%s The following scripts are not being run: %s. Check the test lists in test_runner.py." % (BOLD[1], BOLD[0], str(missed_tests)))
+    #     if fail_on_warn:
+    #         # On travis this warning is an error to prevent merging incomplete commits into master
+    #         sys.exit(1)
 
 
 class RPCCoverage():
