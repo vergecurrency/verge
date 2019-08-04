@@ -290,8 +290,8 @@ def main():
             exclude_list = [test for test in test_list if test.split('.py')[0] == exclude_test]
             for exclude_item in exclude_list:
                 test_list.remove(exclude_item)
-            if not exclude_list:
-                print("{}WARNING!{} Test '{}' not found in current test list.".format(BOLD[1], BOLD[0], exclude_test))
+            #if not exclude_list:
+            #    print("{}WARNING!{} Test '{}' not found in current test list.".format(BOLD[1], BOLD[0], exclude_test))
 
     if not test_list:
         print("No valid test scripts specified. Check that your test is in one "
