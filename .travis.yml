@@ -25,7 +25,7 @@ env:
     - BASE_OUTDIR=$TRAVIS_BUILD_DIR/out
     - SDK_URL=https://bitcoincore.org/depends-sources/sdks
     - WINEDEBUG=fixme-all
-    - DOCKER_PACKAGES="build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git ca-certificates ccache dpkg-dev make wget build-essential protobuf-compiler autoconf libssl-dev vim"
+    - DOCKER_PACKAGES="build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git ca-certificates ccache dpkg-dev make wget build-essential protobuf-compiler autoconf libssl-dev vim python3 python3-pip"
     - CACHE_ERR_MSG="Error! Initial build successful, but not enough time remains to run later build stages and tests. Please manually re-run this job by using the travis restart button or asking a bitcoin maintainer to restart. The next run should not time out because the build cache has been saved."
 
 before_install:
@@ -71,7 +71,7 @@ jobs:
         RUN_FUNCTIONAL_TESTS=true
         RUN_COV_REPORT=true
         HOST=x86_64-linux-gnu
-        PACKAGES="build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3 lcov python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
+        PACKAGES="build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold lcov python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libcap-dev libseccomp-dev"
         DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1 NO_TOR=1"
         VERGE_CONFIG="--enable-lcov --disable-bench --enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports"
 
