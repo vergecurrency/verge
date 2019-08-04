@@ -86,6 +86,7 @@ class TestNode():
         self.args = [
             self.binary,
             "-datadir=" + self.datadir,
+            "-server=1",
             "-logtimemicros",
             "-debug",
             "-debugexclude=libevent",
