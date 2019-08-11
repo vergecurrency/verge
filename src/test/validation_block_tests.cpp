@@ -15,7 +15,11 @@
 #include <validation.h>
 #include <validationinterface.h>
 
-BOOST_FIXTURE_TEST_SUITE(validation_block_tests, TestingSetup)
+struct RegtestingSetup : public TestingSetup {
+    RegtestingSetup() : TestingSetup(CBaseChainParams::REGTEST) {}
+};
+
+BOOST_FIXTURE_TEST_SUITE(validation_block_tests, RegtestingSetup)
 
 /*struct TestSubscriber : public CValidationInterface {
     uint256 m_expected_tip;
