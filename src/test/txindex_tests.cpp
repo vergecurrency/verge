@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(example_test)
     BOOST_CHECK(true);
 }
 
-/*BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
+BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
 {
     TxIndex txindex(1 << 20, true);
 
@@ -67,6 +67,6 @@ BOOST_AUTO_TEST_CASE(example_test)
             BOOST_ERROR("Read incorrect tx");
         }
     }
-}*/
+}
 
 BOOST_AUTO_TEST_SUITE_END()
