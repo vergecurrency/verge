@@ -11,7 +11,8 @@
 #include <primitives/block.h>
 #include <uint256.h>
 #include <util/system.h>
-#include <chainparamsbase.h>
+
+#include <chainparams.h>
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo, const Consensus::Params& params)
 {
@@ -51,31 +52,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     return GetNextTargetRequired(pindexLast, algo, params);
 }
 
-// unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)
-// {
-//     if (params.fPowNoRetargeting)
-//         return pindexLast->nBits;
-
-//     // Limit adjustment step
-//     int64_t nActualTimespan = pindexLast->GetBlockTime() - nFirstBlockTime;
-//     if (nActualTimespan < params.nPowTargetTimespan/4)
-//         nActualTimespan = params.nPowTargetTimespan/4;
-//     if (nActualTimespan > params.nPowTargetTimespan*4)
-//         nActualTimespan = params.nPowTargetTimespan*4;
-
-//     // Retarget
-//     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
-//     arith_uint256 bnNew;
-//     bnNew.SetCompact(pindexLast->nBits);
-//     bnNew *= nActualTimespan;
-//     bnNew /= params.nPowTargetTimespan;
-
-//     if (bnNew > bnPowLimit)
-//         bnNew = bnPowLimit;
-
-//     return bnNew.GetCompact();
-// }
-
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
 {
     bool fNegative;
@@ -87,19 +63,17 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
         return false;
 
+    auto isMainNetwork = [](std::string networkId) { 
+        return networkId != CBaseChainParams::REGTEST && networkId != CBaseChainParams::TESTNET; 
+    };
+    std::string paramsNetworkId = Params().NetworkIDString();
+
     // Check proof of work matches claimed amount
-    if(gArgs.GetChainName() == CBaseChainParams::TESTNET || gArgs.GetChainName() == CBaseChainParams::REGTEST){
-        if (hash != params.hashGenesisBlock && UintToArith256(hash) > bnTarget) 
-            return false;
-    } else {
-        if (UintToArith256(hash) > bnTarget)
-            return false;
-    }
+    if (isMainNetwork(paramsNetworkId) && UintToArith256(hash) > bnTarget)
+        return false;
 
     return true;
 }
-
-
 
 // =================================================================
 // verge part
@@ -446,8 +420,6 @@ unsigned int LwmaCalculateNextWorkRequired(const CBlockIndex* pindexLast, int al
 
     return next_target.GetCompact();
 }
-
-
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params)
 {
