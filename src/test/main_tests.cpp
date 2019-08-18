@@ -49,30 +49,31 @@ static void TestBlockSubsidyHalvings(const Consensus::Params& consensusParams)
     BOOST_CHECK_EQUAL(GetBlockSubsidy(2124001, consensusParams), nInitialSubsidy);
 
     // Restart cycle with divided by two regression
-    nInitialSubsidy = 256 * COIN;
-    BOOST_CHECK_EQUAL(256 * COIN, nInitialSubsidy);
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(3528001, consensusParams), nInitialSubsidy);
+    nInitialSubsidy = 400 * COIN;
+    BOOST_CHECK_EQUAL(400 * COIN, nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(3700001, consensusParams), nInitialSubsidy);
     nInitialSubsidy /= 2;
-    BOOST_CHECK_EQUAL(128 * COIN, nInitialSubsidy);
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(4579201, consensusParams), nInitialSubsidy);
+    BOOST_CHECK_EQUAL(200 * COIN, nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(4200001, consensusParams), nInitialSubsidy);
     nInitialSubsidy /= 2;
-    BOOST_CHECK_EQUAL(64 * COIN, nInitialSubsidy);
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(5630401, consensusParams), nInitialSubsidy);
+    BOOST_CHECK_EQUAL(100 * COIN, nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(4700001, consensusParams), nInitialSubsidy);
     nInitialSubsidy /= 2;
-    BOOST_CHECK_EQUAL(32 * COIN, nInitialSubsidy);
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(6681601, consensusParams), nInitialSubsidy);
+    BOOST_CHECK_EQUAL(50 * COIN, nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(5200001, consensusParams), nInitialSubsidy);
     nInitialSubsidy /= 2;
-    BOOST_CHECK_EQUAL(16 * COIN, nInitialSubsidy);
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(7732801, consensusParams), nInitialSubsidy);
+    BOOST_CHECK_EQUAL(25 * COIN, nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(5700001, consensusParams), nInitialSubsidy);
     nInitialSubsidy /= 2;
-    BOOST_CHECK_EQUAL(8 * COIN, nInitialSubsidy);
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(8784001, consensusParams), nInitialSubsidy);
+    BOOST_CHECK_EQUAL(12.5 * COIN, nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(6200001, consensusParams), nInitialSubsidy);
     nInitialSubsidy /= 2;
-    BOOST_CHECK_EQUAL(4 * COIN, nInitialSubsidy);
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(9835201, consensusParams), nInitialSubsidy);
+    BOOST_CHECK_EQUAL(6.25 * COIN, nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(6700001, consensusParams), nInitialSubsidy);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(7200000, consensusParams), nInitialSubsidy);
 
     // extend halvings over here 
-    BOOST_CHECK_EQUAL(GetBlockSubsidy(10886401, consensusParams), 0);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(7200001, consensusParams), 0);
 }
 
 BOOST_AUTO_TEST_CASE(block_subsidy_test)
@@ -91,7 +92,8 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
         nSum += nSubsidy * 1000;
         BOOST_REQUIRE(MoneyRange(nSum));
     }
-    BOOST_CHECK_EQUAL(nSum, CAmount{16533436000 * COIN});
+    BOOST_CHECK_EQUAL(nSum, CAmount{16521955000 * COIN});
+    BOOST_CHECK_MESSAGE(nSum > CAmount{16500000000 * COIN}, "generates too less coins");
     BOOST_CHECK_MESSAGE(MoneyRange(nSum), "Subsidy is exceeding the total supply");
 }
 
