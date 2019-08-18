@@ -1,6 +1,6 @@
 #include <qt/test/addressbooktests.h>
 #include <qt/test/util.h>
-#include <test/test_verge.h>
+#include <test/setup_common.h>
 
 #include <interfaces/node.h>
 #include <qt/addressbookpage.h>

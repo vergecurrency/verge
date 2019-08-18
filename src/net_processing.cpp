@@ -639,6 +639,11 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     return true;
 }
 
+int GetNumberOfPeersWithValidatedDownloads()
+{
+    return nPeersWithValidatedDownloads;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // mapOrphanTransactions
@@ -1374,6 +1379,12 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
         // something new (if these headers are valid).
         if (!LookupBlockIndex(hashLastBlock)) {
             received_new_header = true;
+        }
+
+        // we are patiently waiting for new headers to receive
+        // instead we got already known headers ... ignore.
+        if(IsInitialBlockDownload() && !received_new_header) {
+            return true;
         }
     }
 
@@ -2712,24 +2723,15 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         
         // new clients are sending clean headers
         // but the older version are sending also some addtional stuff with them
-        if (pfrom->nVersion >= 90007) {
-            headers.resize(nCount);
-            for (unsigned int n = 0; n < nCount; n++) {
-                vRecv >> headers[n];
-                ReadCompactSize(vRecv); 
-            }
-        } else {
-            // make sure only HEADERS are being parsed and nothing more!
-            vRecv.SetType(vRecv.GetType() | SER_BLOCKHEADERONLY);
-            blocks.resize(nCount);
-            for (unsigned int n = 0; n < nCount; n++) {
-                vRecv >> blocks[n];
-                ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
-            }
-
-            std::copy(blocks.begin(), blocks.end(), std::back_inserter(headers));
+        // make sure only HEADERS are being parsed and nothing more!
+        vRecv.SetType(vRecv.GetType() | SER_BLOCKHEADERONLY);
+        blocks.resize(nCount);
+        for (unsigned int n = 0; n < nCount; n++) {
+            vRecv >> blocks[n];
+            ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
         }
 
+        std::copy(blocks.begin(), blocks.end(), std::back_inserter(headers));
 
         // Headers received via a HEADERS message should be valid, and reflect
         // the chain the peer is on. If we receive a known-invalid header,

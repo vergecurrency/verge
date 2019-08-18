@@ -25,7 +25,7 @@ static const CAmount CENT = 10000;
  * currently happens to be less than 16,555,000,000 XVG for various reasons, but
  * rather a sanity check. As this sanity check is used by consensus-critical
  * validation code, the exact value of the MAX_MONEY constant is consensus
- * critical; in unusual circumstances like a(nother) overflow bug that allowed
+ * critical; in unusual circumstances like a(nother) overflow bug (on the bitcoin blockchain) that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  * */
 static const CAmount MAX_MONEY = 16555000000 * COIN;

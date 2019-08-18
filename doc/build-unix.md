@@ -74,16 +74,20 @@ Build requirements:
 
 Now, you can either build from self-compiled [depends](/depends/README.md) or install the required dependencies:
 
-    sudo apt-get install libssl-dev libevent-dev libboost-all-dev
+    sudo apt install libssl-dev libevent-dev libboost-all-dev
 
-To build without Tor, pass `--without-tor` to configure.  These are necessary for building with Tor:
+These are necessary for building with Tor:  
 
     sudo apt-get install zlib1g-dev libseccomp-dev libcap-dev libncap-dev
+
+To run without Tor after compile, you can pass --without-tor to the binary.
 
 BerkeleyDB is required for the wallet.
 
 **For Ubuntu only:** 
 You can add the repository and install using the following commands:
+
+_Note : This won't work on 19.04 releases and superior since the bitcoin ppa hasn't a release file for it_
 
     sudo apt-get install software-properties-common
     sudo add-apt-repository ppa:bitcoin/bitcoin

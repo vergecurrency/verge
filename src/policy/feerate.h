@@ -13,6 +13,7 @@
 #include <string>
 
 extern const std::string CURRENCY_UNIT;
+extern const size_t ONE_KILO_BYTE;
 
 /**
  * Fee rate in satoshis per kilobyte: CAmount / kB
@@ -32,10 +33,12 @@ public:
     }
     /** Constructor for a fee rate in satoshis per kB. The size in bytes must not exceed (2^63 - 1)*/
     CFeeRate(const CAmount& nFeePaid, size_t nBytes);
+
     /**
      * Return the fee in satoshis for the given size in bytes.
      */
     CAmount GetFee(size_t nBytes) const;
+
     /**
      * Return the fee in satoshis for a size of 1000 bytes
      */

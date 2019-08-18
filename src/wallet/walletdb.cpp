@@ -328,6 +328,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         {
             CStealthAddress sxAddr;
             ssValue >> sxAddr;
+            LogPrintf("Wallet ReadKeyValue sxAddr: %s\n", sxAddr.Encoded().c_str());
             pwallet->stealthAddresses.insert(sxAddr);
         }
         else if (strType == "acentry")
@@ -465,6 +466,17 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             ssValue >> keyMeta;
             wss.nKeyMeta++;
             pwallet->LoadKeyMetadata(vchPubKey.GetID(), keyMeta);
+        }
+        else if (strType == "sxKeyMeta")
+        {
+            LogPrintf("WalletDB ReadKeyValue sxKeyMeta\n");
+
+            CKeyID keyId;
+            ssKey >> keyId;
+            CStealthKeyMetadata sxKeyMeta;
+            ssValue >> sxKeyMeta;
+
+            pwallet->mapStealthKeyMeta[keyId] = sxKeyMeta;
         }
         else if (strType == "watchmeta")
         {

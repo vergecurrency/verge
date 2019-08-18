@@ -383,7 +383,11 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
 
         if(address_type == OutputType::STEALTH) {
             CStealthAddress sxAddr = boost::get<CStealthAddress>(GetDestinationForKey(newKey, OutputType::STEALTH));
-            walletModel->wallet().addStealthAddress(sxAddr);
+            bool savedStealthAddress = walletModel->wallet().addStealthAddress(sxAddr);
+            if(!savedStealthAddress){
+                editStatus = KEY_GENERATION_FAILURE;
+                return QString();
+            }
             strAddress = EncodeDestination(sxAddr);
         } else {
             walletModel->wallet().learnRelatedScripts(newKey, address_type);
