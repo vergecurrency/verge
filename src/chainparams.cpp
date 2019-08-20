@@ -138,8 +138,8 @@ public:
         // Adding some nodes in case it works
         if(!gArgs.IsArgSet("-without-tor")){
             vSeeds.emplace_back("lhvnwvqdlxxyotdmfej45jgphupxob5fci4hjxvw2ui75e24tjssl2id.onion");
-	    vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion");
-	    vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion");
+            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion");
+            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion");
             vSeeds.emplace_back("gasppfoxxedddnme.onion");
             vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
             vSeeds.emplace_back("bnm5ujfsvexzba4w.onion");
@@ -157,10 +157,12 @@ public:
             vSeeds.emplace_back("y2czcambifo2ybdm.onion");
             vSeeds.emplace_back("6telhbsuva4qkff2.onion");
         } else {
+            vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
+            vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
             vSeeds.emplace_back("185.162.9.97");
-	    vSeeds.emplace_back("159.89.46.252"); // v5-new-york
-	    vSeeds.emplace_back("139.59.34.170"); // v5-india
-	    vSeeds.emplace_back("134.209.197.243"); // v5-NL
+            vSeeds.emplace_back("159.89.46.252"); // v5-new-york
+            vSeeds.emplace_back("139.59.34.170"); // v5-india
+            vSeeds.emplace_back("134.209.197.243"); // v5-NL
             vSeeds.emplace_back("104.131.144.82");
             vSeeds.emplace_back("192.241.187.222");
             vSeeds.emplace_back("105.228.198.44");
