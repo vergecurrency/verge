@@ -3290,7 +3290,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
     return true;
 }
 
-static bool hasUsedValidMiningAlgorithm(const CBlock& block, const CBlockIndex* pindexPrev)
+bool hasUsedValidMiningAlgorithm(const CBlock& block, const CBlockIndex* pindexPrev)
 {
     unsigned checkedBlocks = 0;
     unsigned sameAlgoBlocks = 0;
