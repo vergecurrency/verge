@@ -4628,7 +4628,8 @@ UniValue generateBlocks(const JSONRPCRequest& request, std::shared_ptr<CReserveS
 
 UniValue liststealthaddresses(const JSONRPCRequest& request)
 {
-    std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request)
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
