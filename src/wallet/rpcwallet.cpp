@@ -4693,7 +4693,8 @@ UniValue liststealthaddresses(const JSONRPCRequest& request)
 
 UniValue exportstealthaddress(const JSONRPCRequest& request)
 {
-    std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request)
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -4745,7 +4746,8 @@ UniValue exportstealthaddress(const JSONRPCRequest& request)
 
 UniValue importstealthaddress(const JSONRPCRequest& request)
 {
-    std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request)
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
