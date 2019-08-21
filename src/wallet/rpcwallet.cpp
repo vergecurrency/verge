@@ -533,10 +533,10 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
             "\nResult:\n"
             "\"txid\"                  (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"")
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"\" \"\" true")
-            + HelpExampleRpc("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\"")
+            + HelpExampleCli("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 0.1")
+            + HelpExampleCli("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 0.1 \"donation\" \"seans outpost\"")
+            + HelpExampleCli("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 0.1 \"\" \"\" true")
+            + HelpExampleRpc("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\", 0.1, \"donation\", \"seans outpost\"")
         );
 
     // Make sure the results are valid at least up to the most recent block
@@ -663,9 +663,9 @@ UniValue sendtostealthaddress(const JSONRPCRequest& request)
             "\nResult:\n"
             "\"txid\"                  (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1, \"\", \"donation\" \"seans outpost\"")
-            + HelpExampleRpc("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"\", \"donation\", \"seans outpost\"")
+            + HelpExampleCli("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 0.1")
+            + HelpExampleCli("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 0.1, \"\", \"donation\" \"seans outpost\"")
+            + HelpExampleRpc("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\", 0.1, \"\", \"donation\", \"seans outpost\"")
         );
         
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -1171,11 +1171,11 @@ static UniValue sendfrom(const JSONRPCRequest& request)
             "\"txid\"                 (string) The transaction id.\n"
             "\nExamples:\n"
             "\nSend 0.01 " + CURRENCY_UNIT + " from the default account to the address, must have at least 1 confirmation\n"
-            + HelpExampleCli("sendfrom", "\"\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.01") +
+            + HelpExampleCli("sendfrom", "\"\" \"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 0.01") +
             "\nSend 0.01 from the tabby account to the given address, funds must have at least 6 confirmations\n"
-            + HelpExampleCli("sendfrom", "\"tabby\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.01 6 \"donation\" \"seans outpost\"") +
+            + HelpExampleCli("sendfrom", "\"tabby\" \"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 0.01 6 \"donation\" \"seans outpost\"") +
             "\nAs a json rpc call\n"
-            + HelpExampleRpc("sendfrom", "\"tabby\", \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.01, 6, \"donation\", \"seans outpost\"")
+            + HelpExampleRpc("sendfrom", "\"tabby\", \"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\", 0.01, 6, \"donation\", \"seans outpost\"")
         );
 
     // Make sure the results are valid at least up to the most recent block
@@ -1803,7 +1803,7 @@ static UniValue listreceivedbyaddress(const JSONRPCRequest& request)
             + HelpExampleCli("listreceivedbyaddress", "")
             + HelpExampleCli("listreceivedbyaddress", "6 true")
             + HelpExampleRpc("listreceivedbyaddress", "6, true, true")
-            + HelpExampleRpc("listreceivedbyaddress", "6, true, true, \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\"")
+            + HelpExampleRpc("listreceivedbyaddress", "6, true, true, \"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\"")
         );
 
     // Make sure the results are valid at least up to the most recent block
@@ -2779,7 +2779,7 @@ static UniValue walletlock(const JSONRPCRequest& request)
             "\nSet the passphrase for 2 minutes to perform a transaction\n"
             + HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
             "\nPerform a send (requires passphrase set)\n"
-            + HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 1.0") +
+            + HelpExampleCli("sendtoaddress", "\"DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV\" 1.0") +
             "\nClear the passphrase since we are done before 2 minutes is up\n"
             + HelpExampleCli("walletlock", "") +
             "\nAs json rpc call\n"
