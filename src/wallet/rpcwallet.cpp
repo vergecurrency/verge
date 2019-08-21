@@ -4627,7 +4627,7 @@ UniValue generateBlocks(const JSONRPCRequest& request, std::shared_ptr<CReserveS
 
 UniValue liststealthaddresses(const JSONRPCRequest& request)
 {
-    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -4691,7 +4691,7 @@ UniValue liststealthaddresses(const JSONRPCRequest& request)
 
 UniValue exportstealthaddress(const JSONRPCRequest& request)
 {
-    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -4743,7 +4743,7 @@ UniValue exportstealthaddress(const JSONRPCRequest& request)
 
 UniValue importstealthaddress(const JSONRPCRequest& request)
 {
-    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    std::shared_ptr<CWallet> GetWalletForJSONRPCRequest(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
