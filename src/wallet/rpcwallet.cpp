@@ -4674,15 +4674,15 @@ UniValue liststealthaddresses(const JSONRPCRequest& request)
 
         if (fShowSecrets)
         {
-            entry.pushKV("Label        ", it->label);
-            entry.pushKV("Address      ", it->Encoded());
-            entry.pushKV("Scan Secret  ", HexStr(it->scan_secret.begin(), it->scan_secret.end()));
-            entry.pushKV("Spend Secret ", HexStr(it->spend_secret.begin(), it->spend_secret.end()));
+            entry.pushKV("label", it->label);
+            entry.pushKV("address", it->Encoded());
+            entry.pushKV("scan_secret", HexStr(it->scan_secret.begin(), it->scan_secret.end()));
+            entry.pushKV("spend_secret", HexStr(it->spend_secret.begin(), it->spend_secret.end()));
         }
         else
         {
-            entry.pushKV("Label        ", it->label);
-            entry.pushKV("Address      ", it->Encoded());
+            entry.pushKV("label", it->label);
+            entry.pushKV("address", it->Encoded());
         };
 
         results.push_back(entry);
@@ -4733,9 +4733,9 @@ UniValue exportstealthaddress(const JSONRPCRequest& request)
         if (stealth_address_label == it->label || stealth_address_label == it->Encoded())
         {
             UniValue entry(UniValue::VOBJ);
-            entry.pushKV("Label        ", it->label);
-            entry.pushKV("Scan Secret  ", HexStr(it->scan_secret.begin(), it->scan_secret.end()));
-            entry.pushKV("Spend Secret ", HexStr(it->spend_secret.begin(), it->spend_secret.end()));
+            entry.pushKV("label", it->label);
+            entry.pushKV("scan_secret", HexStr(it->scan_secret.begin(), it->scan_secret.end()));
+            entry.pushKV("spend_secret", HexStr(it->spend_secret.begin(), it->spend_secret.end()));
             return entry;
         }
     };
