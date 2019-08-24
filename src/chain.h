@@ -186,6 +186,10 @@ public:
     unsigned int nUndoPos;
 
     //! (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
+    /**
+     * CAUTION FOR VERGE THIS IS REPRESENTING THE HEIGHT OF THE BLOCK
+     * FIXME VIP-1
+     */
     arith_uint256 nChainWork;
 
     //! Number of transactions in this block.
