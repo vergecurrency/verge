@@ -22,10 +22,16 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
 
 void avgRecentTimestamps(const CBlockIndex* pindexLast, int64_t *avgOf5, int64_t *avgOf7, int64_t *avgOf9, int64_t *avgOf17);
+unsigned int InitialDifficulty(const Consensus::Params& params, int algo);
+
+unsigned int GetNextTargetRequired_V1(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params);
 unsigned int GetNextTargetRequired_V2(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params);
 unsigned int DarkGravityWave3(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params);
-unsigned int GetNextTargetRequired_V1(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params);
+unsigned int GetNextWorkRequiredV4(const CBlockIndex* pindexLast, const Consensus::Params& params, int algo);
+
 unsigned int LwmaCalculateNextWorkRequired(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params);
+
+const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, const Consensus::Params& params, int algo);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params);
 unsigned int GetAlgoWeight(int algo);
 
