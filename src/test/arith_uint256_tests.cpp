@@ -1,4 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2014-2019 The DigiByte Core developers
 // Copyright (c) 2018-2018 The VERGE Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -366,6 +367,48 @@ BOOST_AUTO_TEST_CASE( divide )
 static bool almostEqual(double d1, double d2)
 {
     return fabs(d1-d2) <= 4*fabs(d1)*std::numeric_limits<double>::epsilon();
+}
+
+void CheckNthRoot(arith_uint256 x, int n)
+{
+    arith_uint256 root = x.ApproxNthRoot(n);
+    arith_uint256 power = 1;
+    arith_uint256 penultimate = 1;
+    for (int i = 0; i < n; i++)
+    {
+        penultimate = power;
+        power *= root;
+    }
+    // second condition is overflow check
+    BOOST_CHECK(power <= x && power / root == penultimate);
+    int roundingPos = std::max<int>(0, root.bits() - 64/n);
+    root += OneL << roundingPos;
+    // root should be too big now
+    power = 1;
+    for (int i = 0; i < n; i++)
+    {
+        penultimate = power;
+        power *= root;
+    }
+    BOOST_CHECK(!(power <= x && power / root == penultimate));
+}
+
+BOOST_AUTO_TEST_CASE(root)
+{
+    for (int n = 2; n <= 5; n++)
+    {
+        BOOST_CHECK(ZeroL.ApproxNthRoot(n) == ZeroL);
+        for (int shift = 0; shift < 2*n; shift++)
+        {
+            CheckNthRoot(MaxL >> shift, n);
+            CheckNthRoot(R1L >> shift, n);
+            CheckNthRoot(R2L >> shift, n);
+        }
+        for (int shift = 0; shift < 70; shift++)
+        {
+            CheckNthRoot(OneL << shift, n);
+        }
+    }
 }
 
 BOOST_AUTO_TEST_CASE( methods ) // GetHex SetHex size() GetLow64 GetSerializeSize, Serialize, Unserialize
