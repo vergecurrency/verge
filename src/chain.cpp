@@ -1,11 +1,13 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2014-2019 The DigiByte Core developers
 // Copyright (c) 2018-2018 The VERGE Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chain.h>
 #include <pow.h>
+#include <chainparams.h>
 
 /**
  * CChain implementation
@@ -120,7 +122,7 @@ void CBlockIndex::BuildSkip()
         pskip = pprev->GetAncestor(GetSkipHeight(nHeight));
 }
 
-arith_uint256 GetBlockProof(const CBlockIndex& block)
+arith_uint256 GetOldBlockProof(const CBlockIndex& block)
 {
     arith_uint256 bnTarget;
     bool fNegative;
@@ -134,6 +136,49 @@ arith_uint256 GetBlockProof(const CBlockIndex& block)
     // or ~bnTarget / (bnTarget+1) + 1.
     // Use weighting system for equivelant algo chainwork
     return (~bnTarget / (bnTarget + 1)) * GetAlgoWeight(block.GetAlgo()) + 1;
+}
+
+arith_uint256 GetGeometricMeanProof(const CBlockIndex& block, const Consensus::Params& params) 
+{
+    CBlockHeader header = block.GetBlockHeader();
+    // Compute the geometric mean of the block targets for each individual algorithm.
+    arith_uint256 bnAvgTarget(1);
+
+    for (int i = 0; i < NUM_ALGOS; i++)
+    {
+        unsigned int nBits = GetNextWorkRequired(block.pprev, &header, i, params);
+        arith_uint256 bnTarget;
+        bool fNegative;
+        bool fOverflow;
+        bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+        if (fNegative || fOverflow || bnTarget == 0)
+            return 0;
+        // Instead of multiplying them all together and then taking the
+        // nth root at the end, take the roots individually then multiply so
+        // that all intermediate values fit in 256-bit integers.
+        bnAvgTarget *= bnTarget.ApproxNthRoot(NUM_ALGOS);
+    }
+    // see comment in GetProofBase
+    arith_uint256 bnRes = (~bnAvgTarget / (bnAvgTarget + 1)) + 1;
+    
+    // Scale to roughly match the old work calculation
+    // TODO: check if those targets really match old work calculations 
+    // it should be somewhat near to prevent huge spikes or drops.
+    bnRes <<= 7;
+
+    return bnRes;
+}
+
+arith_uint256 GetBlockProof(const CBlockIndex& block)
+{    
+    int nHeight = block.nHeight;
+    const Consensus::Params& params = Params().GetConsensus();
+    if (nHeight < params.HeightAndMedianTimeDifficultyAdjustmentPerAlgo)
+    {
+        return GetOldBlockProof(block);
+    }
+    
+    return GetGeometricMeanProof(block, params);
 }
 
 int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& from, const CBlockIndex& tip, const Consensus::Params& params)
