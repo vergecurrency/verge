@@ -66,6 +66,8 @@ struct Params {
     int ForkHeight;
     int CLOCK_DRIFT_FORK;
 
+    int HeightAndMedianTimeDifficultyAdjustmentPerAlgo;
+
 
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks in a retargeting period,
@@ -82,6 +84,16 @@ struct Params {
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
+
+    int64_t nAveragingInterval;
+    int64_t multiAlgoTargetSpacingV4;
+    int64_t nMaxAdjustDownV4;
+    int64_t nMaxAdjustUpV4;
+    int64_t nAveragingTargetTimespanV4;
+    int64_t nMinActualTimespanV4;
+    int64_t nMaxActualTimespanV4;
+    int64_t nLocalTargetAdjustment;
+
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
 };

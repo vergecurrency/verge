@@ -74,6 +74,7 @@ public:
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
         consensus.FlexibleMiningAlgorithms = 2042000;
         consensus.CLOCK_DRIFT_FORK = 2218500;
+        consensus.HeightAndMedianTimeDifficultyAdjustmentPerAlgo = 3800000;
 		
         consensus.BIP34Height = consensus.ForkHeight;
         consensus.BIP65Height = consensus.ForkHeight;
@@ -81,13 +82,26 @@ public:
 
 
         consensus.powLimit = uint256S("00000fffff000000000000000000000000000000000000000000000000000000"); //ArithToUint256(~arith_uint256(0) >> 20);
+        
+        // older difficulty adjustments ... 
         consensus.nPowTargetTimespan = 30; // diff readjusting time
         consensus.nPowTargetSpacing = 30; //
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 100; // 100 out of 200 blocks
         consensus.nMinerConfirmationWindow = 200;
-        
+
+        // V4 difficulty adjustments ... 
+        consensus.nAveragingInterval = 10; // look for 10 blocks in the past
+        consensus.multiAlgoTargetSpacingV4 = 30 * 5; // Try to archive a NUM_ALGO * 30 secs spacing
+        consensus.nLocalTargetAdjustment = 4; // Local algo adjustments per time restrictions
+        consensus.nMaxAdjustDownV4 = 16; // maximum down adjustment capability
+        consensus.nMaxAdjustUpV4 = 8; // maximum up adjustment capability
+        /* 10 * NUM_ALGOS * 30 */
+        consensus.nAveragingTargetTimespanV4 = consensus.nAveragingInterval * consensus.multiAlgoTargetSpacingV4; 
+        consensus.nMinActualTimespanV4 = consensus.nAveragingTargetTimespanV4 * (100 - consensus.nMaxAdjustUpV4) / 100;
+        consensus.nMaxActualTimespanV4 = consensus.nAveragingTargetTimespanV4 * (100 + consensus.nMaxAdjustDownV4) / 100;
+
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
@@ -109,7 +123,7 @@ public:
 
         // By default assume that the signatures in ancestors of this block are valid.
         // KeyNote: Seems like speedup, similar to a checkpoint
-        consensus.defaultAssumeValid = uint256S("0xc766387a2e0cd6af995ea432518614824fe313e988598ea8b26f58efb99ebcdc"); // block 1,100,000
+        consensus.defaultAssumeValid = uint256S("0x9c7771f6e94182564a0a497f5c727d80e0564e20954142649d6ec9e52c35f79f"); // block 1,100,000
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
