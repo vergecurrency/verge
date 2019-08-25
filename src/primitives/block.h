@@ -304,7 +304,7 @@ public:
                     continue;
                 if(!key.Verify(GetHash(), vchBlockSig))
                     continue;
-                
+
                 return true;
             }
         }
