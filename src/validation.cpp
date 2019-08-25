@@ -3151,10 +3151,16 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
 
     // Check transactions
     for (const auto& tx : block.vtx)
+    {
         if (!CheckTransaction(*tx, state, true))
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetDebugMessage()));
 
+        // ppcoin: check transaction timestamp
+        if (block.GetBlockTime() < (int64_t)tx->nTime)
+            return state.DoS(50, false, REJECT_INVALID, "transaction-time-too-new", false, "block timestamp earlier than transaction timestamp");
+    }
+    
     unsigned int nSigOps = 0;
     for (const auto& tx : block.vtx)
     {
@@ -3166,7 +3172,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
-    LogPrintf("Checking Block Signature: %i", fCheckBlockSignature);
     if (fCheckBlockSignature) {
         if(!block.CheckBlockSignature()) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
