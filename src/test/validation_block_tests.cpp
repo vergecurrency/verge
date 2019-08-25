@@ -17,13 +17,6 @@
 
 BOOST_FIXTURE_TEST_SUITE(validation_block_tests, TestingSetup)
 
-BOOST_AUTO_TEST_CASE(example_test)
-{
-    BOOST_CHECK(true);
-}
-
-BOOST_AUTO_TEST_SUITE_END()
-
 /*struct TestSubscriber : public CValidationInterface {
     uint256 m_expected_tip;
 
@@ -48,7 +41,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
         m_expected_tip = block->hashPrevBlock;
     }
-};
+};*/
 
 std::shared_ptr<CBlock> Block(const uint256& prev_hash)
 {
@@ -58,7 +51,7 @@ std::shared_ptr<CBlock> Block(const uint256& prev_hash)
     CScript pubKey;
     pubKey << i++ << OP_TRUE;
 
-    auto ptemplate = BlockAssembler(Params()).CreateNewBlock(pubKey, false);
+    auto ptemplate = BlockAssembler(Params()).CreateNewBlock(pubKey, ALGO_SCRYPT, false);
     auto pblock = std::make_shared<CBlock>(ptemplate->block);
     pblock->hashPrevBlock = prev_hash;
     pblock->nTime = ++time;
@@ -71,11 +64,11 @@ std::shared_ptr<CBlock> Block(const uint256& prev_hash)
     return pblock;
 }
 
-std::shared_ptr<CBlock> FinalizeBlock(std::shared_ptr<CBlock> pblock)
+std::shared_ptr<CBlock> FinalizeBlock(std::shared_ptr<CBlock> pblock, bool requirePow = true)
 {
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
-
-    while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+    
+    while (requirePow && !CheckProofOfWork(pblock->GetPoWHash(ALGO_SCRYPT), pblock->nBits, Params().GetConsensus())) {
         ++(pblock->nNonce);
     }
 
@@ -123,7 +116,7 @@ void BuildChain(const uint256& root, int height, const unsigned int invalid_rate
     }
 }
 
-BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering)
+/*BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering)
 {
     // build a large-ish chain that's likely to have some forks
     std::vector<std::shared_ptr<const CBlock>> blocks;
@@ -183,6 +176,63 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering)
     UnregisterValidationInterface(&sub);
 
     BOOST_CHECK_EQUAL(sub.m_expected_tip, chainActive.Tip()->GetBlockHash());
+}*/
+
+BOOST_AUTO_TEST_CASE(reject_blocks_with_too_new_timestamps)
+{
+    bool ignored;
+    std::shared_ptr<CBlock> shared_genesisBlock = std::make_shared<CBlock>(Params().GenesisBlock());
+    BOOST_CHECK(ProcessNewBlock(Params(), shared_genesisBlock, true, &ignored));
+
+    std::shared_ptr<CBlock> newBlock = Block(shared_genesisBlock->GetPoWHash(ALGO_SCRYPT));
+
+    // Set the transaction to be 5 min in advance of the block
+    CMutableTransaction txCoinbase(*newBlock->vtx[0]);
+    txCoinbase.nTime = (uint32_t)GetTime() + 1; 
+    newBlock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
+    newBlock = FinalizeBlock(newBlock, false);
+
+    // checking for the current block state (without POW and signing)
+    CValidationState state;
+    bool ret = CheckBlock(*newBlock.get(), state, Params().GetConsensus(), false, true, false);
+
+    BOOST_CHECK_EQUAL(ret, false);
+    BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
+    BOOST_CHECK_EQUAL(state.GetRejectReason(), "transaction-time-too-new");
 }
 
-BOOST_AUTO_TEST_SUITE_END()*/
+BOOST_AUTO_TEST_CASE(reject_blocks_with_invalid_signature)
+{
+    bool ignored;
+    std::shared_ptr<CBlock> shared_genesisBlock = std::make_shared<CBlock>(Params().GenesisBlock());
+    BOOST_CHECK(ProcessNewBlock(Params(), shared_genesisBlock, true, &ignored));
+
+    std::shared_ptr<CBlock> newBlock = Block(shared_genesisBlock->GetPoWHash(ALGO_SCRYPT));
+
+    CBasicKeyStore keyStore;
+    CKey signKey;
+
+    signKey.MakeNewKey(false);
+    keyStore.AddKey(signKey);
+
+    // Add a pubkey but do not sign the block!
+    CMutableTransaction txCoinbase(*newBlock->vtx[0]);
+    txCoinbase.nTime = GetTime() - 1000;
+    txCoinbase.vout.resize(2);
+    txCoinbase.vout[1].nValue = 0;
+    txCoinbase.vout[1].scriptPubKey = GetScriptForRawPubKey(signKey.GetPubKey());
+
+    newBlock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
+    newBlock->nTime = GetTime();
+    newBlock = FinalizeBlock(newBlock, false);
+    
+    // checking for the current block state (without POW and signing)
+    CValidationState state;
+    bool ret = CheckBlock(*newBlock.get(), state, Params().GetConsensus(), false, true, true);
+
+    BOOST_CHECK_EQUAL(ret, false);
+    BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
+    BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-blk-signature");
+}
+
+BOOST_AUTO_TEST_SUITE_END()
