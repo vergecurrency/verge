@@ -225,7 +225,7 @@ void TestGUI()
             QCOMPARE(paymentTextList.at(0), QString("Payment information"));
             QVERIFY(paymentTextList.at(1).indexOf(QString("URI: verge:")) != -1);
             QVERIFY(paymentTextList.at(2).indexOf(QString("Address:")) != -1);
-            QCOMPARE(paymentTextList.at(3), QString("Amount: 0.00000001 ") + QString::fromStdString(CURRENCY_UNIT));
+            QCOMPARE(paymentTextList.at(3), QString("Amount: 0.000001 ") + QString::fromStdString(CURRENCY_UNIT));
             QCOMPARE(paymentTextList.at(4), QString("Label: TEST_LABEL_1"));
             QCOMPARE(paymentTextList.at(5), QString("Message: TEST_MESSAGE_1"));
         }
@@ -254,7 +254,7 @@ void TestGUI()
 
 void WalletTests::walletTests()
 {
-    //TestGUI();
+    TestGUI();
     QCOMPARE(0, 0);
 }
 
