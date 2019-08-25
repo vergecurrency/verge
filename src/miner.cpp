@@ -153,6 +153,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     if (nExpired)
         return nullptr;
 
+    pblock->nTime = GetAdjustedTime();
     const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
     nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
                        ? nMedianTimePast
@@ -200,7 +201,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
 
     // leave this at the end of the method, cause it's heavily relying on the transaction to be created beforehand
     pblock->nTime          = max(pindexPrev->GetMedianTimePast() + 1, pblock->GetMaxTransactionTime());
-    pblock->nTime          = max(pblock->GetBlockTime(), pindexPrev->GetBlockTime() - GetMaxClockDrift());
+    pblock->nTime          = max(pblock->GetBlockTime(), pindexPrev->GetBlockTime() - GetMaxClockDrift(nHeight));
     
     pblock->nNonce         = 0;
     pblocktemplate->vTxSigOpsCost[0] = GetLegacySigOpCount(*pblock->vtx[0]);
