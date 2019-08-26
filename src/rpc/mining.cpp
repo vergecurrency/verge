@@ -471,11 +471,24 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     // Cache whether the last invocation was with segwit support, to avoid returning
     // a segwit-block to a non-segwit caller.
     // static bool fLastTemplateSupportsSegwit = true;
+    CBlock* pblockCache;
+    if (!pblocktemplate){
+        pblockCache = &pblocktemplate->block;
+    }
 
-    if (pindexPrev != chainActive.Tip() ||
-        (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5) /*||
-        fLastTemplateSupportsSegwit != fSupportsSegwit*/)
-    {
+    /**
+     * Update the blocktemplate if ...
+     *  + the tip has changed since the last run
+     *  + new transactions joined the mempool 
+     *  + when the coinbase time expired
+     *  - and maybe segwit (later on) 
+     */
+    if (
+        pindexPrev != chainActive.Tip() || 
+        (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5) ||
+        (pblockCache != nullptr && pblockCache->GetBlockTime() > (int64_t)pblockCache->vtx[0]->nTime + GetMaxClockDrift(chainActive.Tip()->nHeight + 1)) /*||
+        fLastTemplateSupportsSegwit != fSupportsSegwit*/
+    ) {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
         pindexPrev = nullptr;
 
