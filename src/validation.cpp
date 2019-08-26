@@ -65,8 +65,8 @@ namespace {
     {
         bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
             // First sort by most total work, ...
-            if (pa->nChainWork > pb->nChainWork) return false;
-            if (pa->nChainWork < pb->nChainWork) return true;
+            if (pa->GetBlockWork() > pb->GetBlockWork()) return false;
+            if (pa->GetBlockWork() < pb->GetBlockWork()) return true;
 
             // ... then by earliest time received, ...
             if (pa->nSequenceId < pb->nSequenceId) return false;
@@ -125,7 +125,9 @@ private:
     /** Decreasing counter (used by subsequent preciousblock calls). */
     int32_t nBlockReverseSequenceId = -1;
     /** chainwork for the last block that preciousblock has been applied to. */
-    arith_uint256 nLastPreciousChainwork = 0;
+    // FIXME VIP-1
+    // arith_uint256 nLastPreciousChainwork = 0;
+    arith_uint256 nLastPreciousBlockHeight = 0;
 
     /** In order to efficiently track invalidity of headers, we keep the set of
       * blocks which we tried to connect and found to be invalid here (ie which
@@ -179,6 +181,7 @@ public:
     bool DisconnectTip(CValidationState& state, const CChainParams& chainparams, DisconnectedBlockTransactions *disconnectpool);
 
     // Manual block validity manipulation:
+    arith_uint256 GetLastPreciousBlockWork() const;
     bool PreciousBlock(CValidationState& state, const CChainParams& params, CBlockIndex *pindex);
     bool InvalidateBlock(CValidationState& state, const CChainParams& chainparams, CBlockIndex *pindex);
     bool ResetBlockFailureFlags(CBlockIndex *pindex);
@@ -204,7 +207,7 @@ private:
      * By default this only executes fully when using the Regtest chain; see: fCheckBlockIndex.
      */
     void CheckBlockIndex(const Consensus::Params& consensusParams);
-
+    void SetNewPreciousBlockWork(const arith_uint256& newWork);
     void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state);
     CBlockIndex* FindMostWorkChain();
     void ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pindexNew, const FlatFilePos& pos, const Consensus::Params& consensusParams);
@@ -2532,7 +2535,7 @@ CBlockIndex* CChainState::FindMostWorkChain() {
             bool fMissingData = !(pindexTest->nStatus & BLOCK_HAVE_DATA);
             if (fFailedChain || fMissingData) {
                 // Candidate chain is not usable (either invalid or missing data)
-                if (fFailedChain && (pindexBestInvalid == nullptr || pindexNew->nChainWork > pindexBestInvalid->nChainWork))
+                if (fFailedChain && (pindexBestInvalid == nullptr || pindexNew->GetBlockWork() > pindexBestInvalid->GetBlockWork()))
                     pindexBestInvalid = pindexNew;
                 CBlockIndex *pindexFailed = pindexNew;
                 // Remove the entire chain from the set.
@@ -2792,19 +2795,33 @@ bool ActivateBestChain(CValidationState &state, const CChainParams& chainparams,
     return g_chainstate.ActivateBestChain(state, chainparams, std::move(pblock));
 }
 
+arith_uint256 CChainState::GetLastPreciousBlockWork() const
+{
+    // FIXME VIP-1
+    return nLastPreciousBlockHeight;
+}
+
+void CChainState::SetNewPreciousBlockWork(const arith_uint256& newWork) 
+{
+    // FIXME VIP-1
+    nLastPreciousBlockHeight = newWork;
+}
+
 bool CChainState::PreciousBlock(CValidationState& state, const CChainParams& params, CBlockIndex *pindex)
 {
     {
         LOCK(cs_main);
-        if (pindex->nChainWork < chainActive.Tip()->nChainWork) {
+        if (pindex->GetBlockWork() < chainActive.Tip()->GetBlockWork()) {
             // Nothing to do, this block is not at the tip.
             return true;
         }
-        if (chainActive.Tip()->nChainWork > nLastPreciousChainwork) {
+        if (chainActive.Tip()->GetBlockWork() > GetLastPreciousBlockWork()) {
             // The chain has been extended since the last call, reset the counter.
             nBlockReverseSequenceId = -1;
         }
-        nLastPreciousChainwork = chainActive.Tip()->nChainWork;
+
+        SetNewPreciousBlockWork(chainActive.Tip()->GetBlockWork());
+
         setBlockIndexCandidates.erase(pindex);
         pindex->nSequenceId = nBlockReverseSequenceId;
         if (nBlockReverseSequenceId > std::numeric_limits<int32_t>::min()) {
