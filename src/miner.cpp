@@ -41,7 +41,9 @@ uint64_t nLastBlockWeight = 0;
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
     int64_t nOldTime = pblock->nTime;
-    int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
+    int64_t nNewTime = std::max(pblock->GetBlockTime(), GetAdjustedTime());
+    // Bitcoin's variant :)
+    // int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
 
     if (nOldTime < nNewTime)
         pblock->nTime = nNewTime;
@@ -97,7 +99,7 @@ void BlockAssembler::resetBlock()
     nFees = 0;
 }
 
-std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn,  int algo, bool fMineWitnessTx)
+std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn, int algo, bool fMineWitnessTx)
 {
     int64_t nTimeStart = GetTimeMicros();
 
@@ -155,7 +157,6 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
 
     pblock->nTime = GetAdjustedTime();
     const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
-
     nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
                        ? nMedianTimePast
                        : pblock->GetBlockTime();
@@ -199,6 +200,11 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
     pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, algo, chainparams.GetConsensus());
+
+    // leave this at the end of the method, cause it's heavily relying on the transaction to be created beforehand
+    pblock->nTime          = std::max(pindexPrev->GetMedianTimePast() + 1, pblock->GetMaxTransactionTime());
+    pblock->nTime          = std::max(pblock->GetBlockTime(), pindexPrev->GetBlockTime() - GetMaxClockDrift(nHeight));
+    
     pblock->nNonce         = 0;
     pblocktemplate->vTxSigOpsCost[0] = GetLegacySigOpCount(*pblock->vtx[0]);
 
@@ -233,8 +239,6 @@ bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOpsCost
         return false;
     if (nBlockSigOpsCost + packageSigOpsCost >= MAX_BLOCK_SIGOPS_COST)
         return false;
-    if (txTime > GetAdjustedTime())
-        return false;
 
     return true;
 }
@@ -243,12 +247,15 @@ bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOpsCost
 // - transaction finality (locktime)
 // - premature witness (in case segwit transactions are added to mempool before
 //   segwit activation)
+// - transactions which are at least older than the block itself
 bool BlockAssembler::TestPackageTransactions(const CTxMemPool::setEntries& package)
 {
     for (const CTxMemPool::txiter it : package) {
         if (!IsFinalTx(it->GetTx(), nHeight, nLockTimeCutoff))
             return false;
         if (!fIncludeWitness && it->GetTx().HasWitness())
+            return false;
+        if(it->GetTx().nTime > GetAdjustedTime())
             return false;
     }
     return true;
