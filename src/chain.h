@@ -364,6 +364,16 @@ public:
         return false;
     }
 
+    //! Defines the base for checking the validity and 
+    //! maintaining the best chain and searching for the best
+    arith_uint256 GetBlockWork() const
+    {
+        // this shall return the real block work that has been done 
+        // in order to create this work. Due to older code we are forced
+        // to use this for now. (FIXME VIP-1)
+        return nHeight;
+    }
+
     //! Build the skiplist pointer for this entry.
     void BuildSkip();
 
