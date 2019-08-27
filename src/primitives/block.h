@@ -311,6 +311,16 @@ public:
         
         return false;
     }
+
+    // ppcoin: get max transaction timestamp
+    int64_t GetMaxTransactionTime() const
+    {
+        int64_t maxTransactionTime = 0;
+        for(const auto& tx: vtx) {
+            maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx->nTime);
+        }
+        return maxTransactionTime;
+    }
     
     std::string ToString() const;
 };
