@@ -475,18 +475,21 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     if (!pblocktemplate){
         pblockCache = &pblocktemplate->block;
     }
+    int32_t templateAlgorithm = algorithm.isStr() ? GetAlgoByName(algorithm.get_str()) : ALGO;
 
     /**
      * Update the blocktemplate if ...
      *  + the tip has changed since the last run
      *  + new transactions joined the mempool 
      *  + when the coinbase time expired
+     *  + switched mining algo since the last cached block
      *  - and maybe segwit (later on) 
      */
     if (
         pindexPrev != chainActive.Tip() || 
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5) ||
-        (pblockCache != nullptr && pblockCache->GetBlockTime() > (int64_t)pblockCache->vtx[0]->nTime + GetMaxClockDrift(chainActive.Tip()->nHeight + 1)) /*||
+        (pblockCache != nullptr && pblockCache->GetBlockTime() > (int64_t)pblockCache->vtx[0]->nTime + GetMaxClockDrift(chainActive.Tip()->nHeight + 1)) ||
+        (pblockCache != nullptr && pblockCache->GetAlgo() != templateAlgorithm) /*||
         fLastTemplateSupportsSegwit != fSupportsSegwit*/
     ) {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -500,7 +503,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, ALGO, false /*supports segwit bool*/);
+        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, templateAlgorithm, false /*supports segwit bool*/);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -615,19 +618,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         }
     }
 
-    int32_t version = 2;
-    if((pindexPrev->nHeight + 1) >= 340000){
-        version = VERSIONBITS_LAST_OLD_BLOCK_VERSION;
-        if(algorithm.isStr()){
-            std::string algorithmStr = algorithm.get_str();
-            int32_t algo = GetAlgoByName(algorithmStr);
-            version |= determineVersionForBlockTemplate(algo);
-        } else {
-            // defaulting to ALGO, this either set via config or default script
-            version |= determineVersionForBlockTemplate(ALGO);
-        }
-    }
-    result.pushKV("version", version);
+    result.pushKV("version", pblock->nVersion);
     result.pushKV("rules", aRules);
     result.pushKV("vbavailable", vbavailable);
     result.pushKV("vbrequired", int(0));
