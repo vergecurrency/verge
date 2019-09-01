@@ -19,6 +19,7 @@
 #include <util/system.h>
 #include <util/strencodings.h>
 #include <pow.h>
+#include <key_io.h>
 
 #include <test/setup_common.h>
 
@@ -54,26 +55,31 @@ struct {
     unsigned char extranonce;
     unsigned int nonce;
 } blockinfo[] = {
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
-    {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873}, {0, 226873},
+    {0, 1294008}, {0, 142830}, {0, 642473}, {0, 665645}, {0, 514957},
+    {0, 956665}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
 };
 
 static CBlockIndex CreateBlockIndex(int nHeight)
@@ -194,17 +200,20 @@ static void TestPackageSelection(const CChainParams& chainparams, CScript script
     pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetHash() == hashLowFeeTx2);
 }
+
 BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
-{
-    BOOST_CHECK(true);
-}
-// NOTE: These tests rely on CreateNewBlock doing its own self-validation!
-/*BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 {
     // Note that by default, these tests run with size accounting enabled.
     const auto chainParams = CreateChainParams(CBaseChainParams::MAIN);
     const CChainParams& chainparams = *chainParams;
-    CScript scriptPubKey = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
+
+    std::string privKey = "QSsQgssbgzAn7juskeyjgGdPRJMQTLX7KLgVuUr1CavcT8iw37Cx";
+    CKey key = DecodeSecret(privKey);
+    CBasicKeyStore keystore;
+    keystore.AddKey(key);
+
+    CScript scriptPubKey = GetScriptForRawPubKey(key.GetPubKey());
+    
     std::unique_ptr<CBlockTemplate> pblocktemplate;
     CMutableTransaction tx,tx2;
     CScript script;
@@ -216,37 +225,42 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     fCheckpointsEnabled = false;
 
     // Simple block creation, nothing special yet:
-    BOOST_CHECK(pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
+    BOOST_CHECK(pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey, ALGO_SCRYPT, false));
     static const int nInnerLoopCount = 0x10000;
     // We can't make transactions until we have inputs
-    // Therefore, load 100 blocks :)
+    // Therefore, load 120 blocks :)
     int baseheight = 0;
     std::vector<CTransactionRef> txFirst;
-    blockinfo[0];
-    for (unsigned int i = 0; i < sizeof(blockinfo)/sizeof(*blockinfo); ++i)
+    for (unsigned int i = 0; i < sizeof(blockinfo)/sizeof(*blockinfo); i++)
     {
-        unsigned int nNonce = 0;
-        unsigned int nExtraNonce = 0;
+        std::cout << "Iteration: " << i << "\n";
+        unsigned int nNonce = blockinfo[i].nonce;
+        unsigned int nExtraNonce = blockinfo[i].extranonce;
         bool blockPOWAllowed = false;
         CBlock *pblock = &pblocktemplate->block; // pointer for convenience
         do {
-            nNonce = 0;
             {
                 LOCK(cs_main);
+
                 pblock->nVersion = 2;
-                pblock->nTime = chainActive.Tip()->GetMedianTimePast()+1;
+                pblock->nTime = chainActive.Tip()->GetMedianTimePast() + 1;
+
                 CMutableTransaction txCoinbase(*pblock->vtx[0]);
                 txCoinbase.nVersion = 1;
+                txCoinbase.nTime = chainActive.Tip()->GetMedianTimePast();
+                
                 txCoinbase.vin[0].scriptSig = CScript();
                 txCoinbase.vin[0].scriptSig.push_back(nExtraNonce);
                 txCoinbase.vin[0].scriptSig.push_back(chainActive.Height());
-                txCoinbase.vout.resize(1); // Ignore the (optional) segwit commitment added by CreateNewBlock (as the hardcoded nonces don't account for this)
-                txCoinbase.vout[0].scriptPubKey = CScript();
+
                 pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
+
                 if (txFirst.size() == 0)
                     baseheight = chainActive.Height();
+
                 if (txFirst.size() < 4)
                     txFirst.push_back(pblock->vtx[0]);
+
                 pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
                 pblock->nNonce = nNonce;
             }
@@ -263,6 +277,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 
         std::cout << "{" << nExtraNonce << ", " << nNonce << "},\n";
 
+        pblock->SignBlock(keystore);
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
         BOOST_CHECK(ProcessNewBlock(chainparams, shared_pblock, true, nullptr));
         pblock->hashPrevBlock = pblock->GetHash();
@@ -535,6 +550,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     TestPackageSelection(chainparams, scriptPubKey, txFirst);
 
     fCheckpointsEnabled = true;
-}*/
+}
 
 BOOST_AUTO_TEST_SUITE_END()
