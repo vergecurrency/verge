@@ -26,6 +26,8 @@
 #include <memory>
 
 #include <boost/test/unit_test.hpp>
+#include <thread>
+#include <future>
 
 BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
 
@@ -56,9 +58,9 @@ struct {
     unsigned int nonce;
 } blockinfo[] = {
     {0, 1294008}, {0, 142830}, {0, 642473}, {0, 665645}, {0, 514957},
-    {0, 956665}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 956665}, {0, 428064}, {0, 560697}, {0, 465197}, {0, 2153171},
+    {0, 1583163}, {0, 33089}, {0, 510662}, {0, 12688}, {0, 446543},
+    {0, 760515}, {0, 301225}, {0, 35796}, {0, 570852}, {0, 1495195},
     {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
     {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
     {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
@@ -201,6 +203,10 @@ static void TestPackageSelection(const CChainParams& chainparams, CScript script
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetHash() == hashLowFeeTx2);
 }
 
+void func(std::promise<int> && p) {
+    p.set_value(1);
+}
+
 BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 {
     // Note that by default, these tests run with size accounting enabled.
@@ -275,7 +281,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
             }
         } while(!blockPOWAllowed);
 
-        std::cout << "{" << nExtraNonce << ", " << nNonce << "},\n";
+        if(nNonce != blockinfo[i].nonce && nExtraNonce != blockinfo[i].extranonce)
+            std::cout << "{" << nExtraNonce << ", " << nNonce << "},\n";
 
         pblock->SignBlock(keystore);
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
