@@ -61,14 +61,14 @@ struct {
     {0, 956665}, {0, 428064}, {0, 560697}, {0, 465197}, {0, 2153171},
     {0, 1583163}, {0, 33089}, {0, 510662}, {0, 12688}, {0, 446543},
     {0, 760515}, {0, 301225}, {0, 35796}, {0, 570852}, {0, 1495195},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 858124}, {0, 91094}, {0, 1223983}, {0, 59674}, {0, 3504539},
+    {0, 2426625}, {0, 579022}, {0, 2254031}, {0, 230418}, {0, 255806},
+    {0, 90647}, {0, 803838}, {0, 981849}, {0, 697380}, {0, 861281},
+    {0, 253703}, {0, 1988086}, {0, 660649}, {0, 1217785}, {0, 55452},
+    {0, 474654}, {0, 2516397}, {0, 2465180}, {0, 139347}, {0, 2518145},
+    {0, 38860}, {0, 1958012}, {0, 256975}, {0, 735413}, {0, 524217},
+    {0, 988481}, {0, 283283}, {0, 641023}, {0, 2575838}, {0, 306440},
+    {0, 31686}, {0, 421887}, {0, 414081}, {0, 717476}, {0, 0},
     {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
     {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
     {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
@@ -203,8 +203,39 @@ static void TestPackageSelection(const CChainParams& chainparams, CScript script
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetHash() == hashLowFeeTx2);
 }
 
-void func(std::promise<int> && p) {
-    p.set_value(1);
+struct BlockMiningIdentifier {
+    public:
+        unsigned int nExtraNonce;
+        unsigned int nNonce;
+        BlockMiningIdentifier(unsigned int _nonce, unsigned int _extra) : nNonce(_nonce), nExtraNonce(_extra) {}
+};
+
+BlockMiningIdentifier GetMinedBlockNonces(
+    CBlock * pblock, 
+    unsigned int nNonce, 
+    unsigned int nExtraNonce,
+    const CChainParams& chainparams
+) {
+    if(CheckProofOfWork(pblock->GetPoWHash(ALGO_SCRYPT), pblock->nBits, chainparams.GetConsensus())) {
+        return BlockMiningIdentifier(nNonce, nExtraNonce);
+    }
+
+    while (pblock->nNonce < std::numeric_limits<uint32_t>::max()) {
+        ++nNonce;
+        // nExtraNonce = 0;
+
+        // while(nExtraNonce <= 3) {
+        //     if(CheckProofOfWork(pblock->GetPoWHash(ALGO_SCRYPT), pblock->nBits, chainparams.GetConsensus())) {
+        //         return BlockMiningIdentifier(nNonce, nExtraNonce);
+        //     }
+        //     IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+        // }
+
+        pblock->nNonce = nNonce;
+        if(CheckProofOfWork(pblock->GetPoWHash(ALGO_SCRYPT), pblock->nBits, chainparams.GetConsensus())) {
+            return BlockMiningIdentifier(nNonce, nExtraNonce);
+        }
+    }
 }
 
 BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
@@ -242,47 +273,37 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         std::cout << "Iteration: " << i << "\n";
         unsigned int nNonce = blockinfo[i].nonce;
         unsigned int nExtraNonce = blockinfo[i].extranonce;
-        bool blockPOWAllowed = false;
+
         CBlock *pblock = &pblocktemplate->block; // pointer for convenience
-        do {
-            {
-                LOCK(cs_main);
 
-                pblock->nVersion = 2;
-                pblock->nTime = chainActive.Tip()->GetMedianTimePast() + 1;
+        {
+            LOCK(cs_main);
 
-                CMutableTransaction txCoinbase(*pblock->vtx[0]);
-                txCoinbase.nVersion = 1;
-                txCoinbase.nTime = chainActive.Tip()->GetMedianTimePast();
-                
-                txCoinbase.vin[0].scriptSig = CScript();
-                txCoinbase.vin[0].scriptSig.push_back(nExtraNonce);
-                txCoinbase.vin[0].scriptSig.push_back(chainActive.Height());
+            pblock->nVersion = 2;
+            pblock->nTime = chainActive.Tip()->GetMedianTimePast() + 1;
 
-                pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
+            CMutableTransaction txCoinbase(*pblock->vtx[0]);
+            txCoinbase.nVersion = 1;
+            txCoinbase.nTime = chainActive.Tip()->GetMedianTimePast();
+            
+            txCoinbase.vin[0].scriptSig = CScript();
+            txCoinbase.vin[0].scriptSig.push_back(nExtraNonce);
+            txCoinbase.vin[0].scriptSig.push_back(chainActive.Height());
 
-                if (txFirst.size() == 0)
-                    baseheight = chainActive.Height();
+            pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
 
-                if (txFirst.size() < 4)
-                    txFirst.push_back(pblock->vtx[0]);
+            if (txFirst.size() == 0)
+                baseheight = chainActive.Height();
 
-                pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
-                pblock->nNonce = nNonce;
-            }
-            blockPOWAllowed = CheckProofOfWork(pblock->GetPoWHash(ALGO_SCRYPT), pblock->nBits, chainparams.GetConsensus());
-            while (pblock->nNonce < std::numeric_limits<uint32_t>::max() && !blockPOWAllowed) {
-                ++nNonce;
-                pblock->nNonce = nNonce;
-                blockPOWAllowed = CheckProofOfWork(pblock->GetPoWHash(ALGO_SCRYPT), pblock->nBits, chainparams.GetConsensus());
-            }
-            if(!blockPOWAllowed){
-                IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
-            }
-        } while(!blockPOWAllowed);
+            if (txFirst.size() < 4)
+                txFirst.push_back(pblock->vtx[0]);
 
-        if(nNonce != blockinfo[i].nonce && nExtraNonce != blockinfo[i].extranonce)
-            std::cout << "{" << nExtraNonce << ", " << nNonce << "},\n";
+            pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+            pblock->nNonce = nNonce;
+        }
+            
+        BlockMiningIdentifier nonces = GetMinedBlockNonces(pblock, nNonce, nExtraNonce, chainparams);
+        std::cout << "{" << nonces.nExtraNonce << ", " << nonces.nNonce << "},\n";
 
         pblock->SignBlock(keystore);
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
