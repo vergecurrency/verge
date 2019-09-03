@@ -227,6 +227,13 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                 strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
         }
 
+        // check that previous inputs aren't newer than the tx itself
+        if (coin.nOriginTransactionTime > tx.nTime)
+        {
+            return state.DoS(100, false, REJECT_INVALID, "bad-txs-and-input-times", false,
+                strprintf("input-time (%s) > tx-time (%s)", coin.nOriginTransactionTime, tx.nTime));
+        }
+
         // Check for negative or overflow input values
         nValueIn += coin.out.nValue;
         if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn)) {
