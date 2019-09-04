@@ -39,18 +39,22 @@ public:
     //! at which height this containing transaction was included in the active block chain
     uint32_t nHeight : 31;
 
+    // origin transaction timestamp
+    uint32_t nOriginTransactionTime;
+
     //! construct a Coin from a CTxOut and height/coinbase information.
-    Coin(CTxOut&& outIn, int nHeightIn, bool fCoinBaseIn) : out(std::move(outIn)), fCoinBase(fCoinBaseIn), nHeight(nHeightIn) {}
-    Coin(const CTxOut& outIn, int nHeightIn, bool fCoinBaseIn) : out(outIn), fCoinBase(fCoinBaseIn),nHeight(nHeightIn) {}
+    Coin(CTxOut&& outIn, int nHeightIn, bool fCoinBaseIn, uint32_t nOriginTransactionTimeIn) : out(std::move(outIn)), fCoinBase(fCoinBaseIn), nHeight(nHeightIn), nOriginTransactionTime(nOriginTransactionTimeIn) {}
+    Coin(const CTxOut& outIn, int nHeightIn, bool fCoinBaseIn, uint32_t nOriginTransactionTimeIn) : out(outIn), fCoinBase(fCoinBaseIn),nHeight(nHeightIn), nOriginTransactionTime(nOriginTransactionTimeIn) {}
 
     void Clear() {
         out.SetNull();
         fCoinBase = false;
         nHeight = 0;
+        nOriginTransactionTime = 0;
     }
 
     //! empty constructor
-    Coin() : fCoinBase(false), nHeight(0) { }
+    Coin() : fCoinBase(false), nHeight(0), nOriginTransactionTime(0) { }
 
     bool IsCoinBase() const {
         return fCoinBase;
@@ -62,6 +66,7 @@ public:
         uint32_t code = nHeight * 2 + fCoinBase;
         ::Serialize(s, VARINT(code));
         ::Serialize(s, CTxOutCompressor(REF(out)));
+        ::Serialize(s, VARINT(nOriginTransactionTime));
     }
 
     template<typename Stream>
@@ -71,6 +76,7 @@ public:
         nHeight = code >> 1;
         fCoinBase = code & 1;
         ::Unserialize(s, CTxOutCompressor(out));
+        ::Unserialize(s, VARINT(nOriginTransactionTime));
     }
 
     bool IsSpent() const {
