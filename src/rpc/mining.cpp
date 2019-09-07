@@ -76,7 +76,6 @@ static UniValue GetNetworkHashPS(int lookup, int height, int algo = ALGO) {
         return 0;
     
     int64_t timeDiff = maxTime - minTime;
-    printf("work: %s, time: %d", workTotal.GetHex().c_str(), timeDiff);
     workTotal /= GetAlgoWeight(algo); // reverse algo weighting
 
     return workTotal.getdouble() / timeDiff;
@@ -236,27 +235,11 @@ static std::string gbt_vb_name(const Consensus::DeploymentPos pos) {
     return s;
 }
 
-static int32_t determineVersionForBlockTemplate(int32_t algo){
-    switch(algo) {
-        case ALGO_X17:
-            return BLOCK_VERSION_X17;
-        case ALGO_LYRA2RE:
-            return BLOCK_VERSION_LYRA2RE;
-        case ALGO_BLAKE:
-            return BLOCK_VERSION_BLAKE;
-        case ALGO_GROESTL:
-            return BLOCK_VERSION_GROESTL;
-        case ALGO_SCRYPT:
-        default:
-            return BLOCK_VERSION_SCRYPT;
-    }
-}
-
 static UniValue getblocktemplate(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() > 1)
+    if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
-            "getblocktemplate ( TemplateRequest )\n"
+            "getblocktemplate ( TemplateRequest ) ( algorithm )\n"
             "\nIf the request parameters include a 'mode' key, that is used to explicitly select between the default 'template' request or a 'proposal'.\n"
             "It returns data needed to construct a block to work on.\n"
             "For full specification, see BIPs 22, 23, 9, and 145:\n"
@@ -277,8 +260,8 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             "           \"support\"          (string) client side supported softfork deployment\n"
             "           ,...\n"
             "       ]\n"
-            "       \"algo\": \"scrypt\"\n"
             "     }\n"
+            "2. algorithm         (string, optional) A string that represents one of the supported algorithms\n"
             "\n"
 
             "\nResult:\n"
@@ -352,7 +335,6 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         else
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
         lpval = find_value(oparam, "longpollid");
-        algorithm = find_value(oparam, "algo");
         if (strMode == "proposal")
         {
             const UniValue& dataval = find_value(oparam, "data");
@@ -395,6 +377,10 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
                 nMaxVersionPreVB = uvMaxVersion.get_int64();
             }
         }
+    }
+
+    if(!request.params[1].isNull()) {
+        algorithm = request.params[1].get_str();
     }
 
     if (strMode != "template")
@@ -475,18 +461,21 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     if (!pblocktemplate){
         pblockCache = &pblocktemplate->block;
     }
+    int32_t templateAlgorithm = algorithm.isStr() ? GetAlgoByName(algorithm.get_str()) : ALGO;
 
     /**
      * Update the blocktemplate if ...
      *  + the tip has changed since the last run
      *  + new transactions joined the mempool 
      *  + when the coinbase time expired
+     *  + switched mining algo since the last cached block
      *  - and maybe segwit (later on) 
      */
     if (
         pindexPrev != chainActive.Tip() || 
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5) ||
-        (pblockCache != nullptr && pblockCache->GetBlockTime() > (int64_t)pblockCache->vtx[0]->nTime + GetMaxClockDrift(chainActive.Tip()->nHeight + 1)) /*||
+        (pblockCache != nullptr && pblockCache->GetBlockTime() > (int64_t)pblockCache->vtx[0]->nTime + GetMaxClockDrift(chainActive.Tip()->nHeight + 1)) ||
+        (pblockCache != nullptr && pblockCache->GetAlgo() != templateAlgorithm) /*||
         fLastTemplateSupportsSegwit != fSupportsSegwit*/
     ) {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -500,7 +489,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, ALGO, false /*supports segwit bool*/);
+        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, templateAlgorithm, false /*supports segwit bool*/);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -615,19 +604,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         }
     }
 
-    int32_t version = 2;
-    if((pindexPrev->nHeight + 1) >= 340000){
-        version = VERSIONBITS_LAST_OLD_BLOCK_VERSION;
-        if(algorithm.isStr()){
-            std::string algorithmStr = algorithm.get_str();
-            int32_t algo = GetAlgoByName(algorithmStr);
-            version |= determineVersionForBlockTemplate(algo);
-        } else {
-            // defaulting to ALGO, this either set via config or default script
-            version |= determineVersionForBlockTemplate(ALGO);
-        }
-    }
-    result.pushKV("version", version);
+    result.pushKV("version", pblock->nVersion);
     result.pushKV("rules", aRules);
     result.pushKV("vbavailable", vbavailable);
     result.pushKV("vbrequired", int(0));
@@ -929,7 +906,7 @@ static const CRPCCommand commands[] =
     { "mining",             "getallnetworkhashps",    &getallnetworkhashps,    {"nblocks","height"} },
     { "mining",             "getmininginfo",          &getmininginfo,          {} },
     { "mining",             "prioritisetransaction",  &prioritisetransaction,  {"txid","dummy","fee_delta"} },
-    { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request"} },
+    { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request", "algorithm"} },
     { "mining",             "decodeblock",            &decodeblock,            {"hexdata"} },
     { "mining",             "reserializeblock",       &reserializeblock,       {"hexdata"} },
 
