@@ -3165,6 +3165,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinBase())
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
+    // Check coinbase timestamp
+    if (block.GetBlockTime() > (int64_t)block.vtx[0]->nTime + GetMaxClockDrift(chainActive.Height())){
+        return state.DoS(50, false, REJECT_INVALID, "transaction-time-too-new", false, "block timestamp earlier than transaction timestamp");
+    }
 
     // Check transactions
     for (const auto& tx : block.vtx)
@@ -3178,6 +3182,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             return state.DoS(50, false, REJECT_INVALID, "transaction-time-too-new", false, "block timestamp earlier than transaction timestamp");
     }
     
+
     unsigned int nSigOps = 0;
     for (const auto& tx : block.vtx)
     {
