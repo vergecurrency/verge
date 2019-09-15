@@ -3429,7 +3429,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     }
 
     if (block.GetBlockTime() > (int64_t)block.vtx[0]->nTime + GetMaxClockDrift(nHeight)) {
-        return state.DoS(50, false, REJECT_INVALID, "bad-cb-time", false, "blocks coinbase timestamp must be newer than block + clock drift");
+        return state.DoS(50, false, REJECT_INVALID, "bad-cb-time", false, "blocks timestamp must be newer than coinbase timestamp + clock drift");
     }
 
     if(checkBlockSignature && nHeight > consensusParams.FlexibleMiningAlgorithms && !hasUsedValidMiningAlgorithm(block, pindexPrev)) {
