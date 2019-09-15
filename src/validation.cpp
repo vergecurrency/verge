@@ -3428,6 +3428,10 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
         state.DoS(100, false, REJECT_INVALID, "bad-blk-time", false, strprintf("%s : blocks timestamp is too early", __func__));
     }
 
+    if (block.GetBlockTime() > (int64_t)block.vtx[0]->nTime + GetMaxClockDrift(nHeight)) {
+        return state.DoS(50, false, REJECT_INVALID, "bad-cb-time", false, "blocks coinbase timestamp must be newer than block + clock drift");
+    }
+
     if(checkBlockSignature && nHeight > consensusParams.FlexibleMiningAlgorithms && !hasUsedValidMiningAlgorithm(block, pindexPrev)) {
         return state.DoS(25, false, REJECT_INVALID, "bad-blk-algorithm", false, strprintf("%s : reused a mining algorithm too often", __func__));
     }
