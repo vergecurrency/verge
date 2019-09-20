@@ -61,11 +61,12 @@ static UniValue GetNetworkHashPS(int lookup, int height, int algo = ALGO) {
     CBlockIndex *pb0 = pb;
     int64_t minTime = pb0->GetBlockTime();
     int64_t maxTime = minTime;
-    arith_uint256 workTotal = GetBlockProof(*pb);
+    arith_uint256 workTotal = pb->GetBlockWork();
+
     for (int i = 0; i < lookup; i++) {
         pb0 = GetLastBlockIndex4Algo(pb0->pprev, algo);
         if (pb0 == nullptr) break;
-        workTotal += GetBlockProof(*pb0);
+        workTotal += pb0->GetBlockWork();
         int64_t time = pb0->GetBlockTime();
         minTime = std::min(time, minTime);
         maxTime = std::max(time, maxTime);
@@ -122,8 +123,10 @@ static UniValue getallnetworkhashps(const JSONRPCRequest& request)
        );
 
     LOCK(cs_main);
-    int blocks = !request.params[0].isNull() ? request.params[0].get_int() : 360;
+
+    int blocks = !request.params[0].isNull() ? request.params[0].get_int() : 20;
     int height =  !request.params[1].isNull() ? request.params[1].get_int() : -1;
+
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("scrypt", GetNetworkHashPS(blocks, height, ALGO_SCRYPT));
     obj.pushKV("groestl", GetNetworkHashPS(blocks, height, ALGO_GROESTL));

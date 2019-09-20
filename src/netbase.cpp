@@ -6,10 +6,12 @@
 
 #include <netbase.h>
 
+#include "arpa/nameser_compat.h"
 #include <hash.h>
 #include <sync.h>
 #include <uint256.h>
 #include <random.h>
+#include <functional>
 #include <tinyformat.h>
 #include <util/system.h>
 #include <util/strencodings.h>
@@ -111,6 +113,40 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
     }
 
     freeaddrinfo(aiRes);
+
+    return (vIP.size() > 0);
+}
+
+bool LookupTorHost(const char *pszName, std::vector<CNetAddr>& vIP) {
+    res_init();
+
+    int response;
+    unsigned char query_buffer[1024];
+    {
+        response = res_query(pszName, C_IN, ns_t_txt, query_buffer, sizeof(query_buffer));
+        if (response < 0) {
+            LogPrintf("Error looking up service!");
+            return false;
+        }
+    }
+
+    ns_msg nsMsg;
+    ns_initparse(query_buffer, response, &nsMsg);
+
+    for(int x= 0; x < ns_msg_count(nsMsg, ns_s_an); x++) {
+        ns_rr rr;
+        ns_parserr(&nsMsg, ns_s_an, x, &rr);
+
+        CNetAddr resolved;
+        std::string addressString((char*)ns_rr_rdata(rr) + 1);
+        std::string addressClean = addressString.substr(0, addressString.size()-2);
+        resolved.SetSpecial(addressClean);
+
+        /* Never allow resolving to an internal address. Consider any such result invalid */
+        if (!resolved.IsInternal()) {
+            vIP.push_back(resolved);
+        }
+    }
 
     return (vIP.size() > 0);
 }
