@@ -138,6 +138,22 @@ public:
         // Adding some nodes in case it works
         if(!gArgs.IsArgSet("-without-tor")){
             vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
+            vSeeds.emplace_back("gasppfoxxedddnme.onion");
+            vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
+            vSeeds.emplace_back("bnm5ujfsvexzba4w.onion");
+            vSeeds.emplace_back("sarpou7gsi7nan5m.onion");
+            vSeeds.emplace_back("4j3cz66g4z5o4aso.onion");
+            vSeeds.emplace_back("fqsvfu5gcmjox26m.onion");
+            vSeeds.emplace_back("kte6vpxfpim5lwqv.onion");
+            vSeeds.emplace_back("3z4vuj5k5xymy5su.onion");
+            vSeeds.emplace_back("ruxut6k4a6d4qe53.onion");
+            vSeeds.emplace_back("wfyfkm6j3vcuw2qz.onion");
+            vSeeds.emplace_back("cit2rtwxzwxrmory.onion");
+            vSeeds.emplace_back("vwym36tts7zhm24k.onion");
+            vSeeds.emplace_back("jzo6govpwfeauspf.onion");
+            vSeeds.emplace_back("ngfxjjrrtxteffvt.onion");
+            vSeeds.emplace_back("y2czcambifo2ybdm.onion");
+            vSeeds.emplace_back("6telhbsuva4qkff2.onion");
         } else {
             vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
             vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
