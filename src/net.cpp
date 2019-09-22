@@ -1636,13 +1636,12 @@ void CConnman::ThreadDNSAddressSeed()
             std::vector<CAddress> vAdd;
             ServiceFlags requiredServiceBits = GetDesirableServiceFlags(NODE_NONE);
 
-            std::string host;
-            if(isTorEnabled()) {
-                host = strprintf("x%x-tor.%s", requiredServiceBits, seed);
-            } else {
-                host = strprintf("x%x.%s", requiredServiceBits, seed);
-            }
-            LogPrintf("DNS Host to query: %s\n", host);
+            std::string host = isTorEnabled() 
+                ? strprintf("x%x-tor.%s", requiredServiceBits, seed) 
+                : strprintf("x%x.%s", requiredServiceBits, seed);
+            
+            LogPrintf("Next up DNS query: %s\n", host);
+            
             CNetAddr resolveSource;
             if (!resolveSource.SetInternal(host)) {
                 continue;
