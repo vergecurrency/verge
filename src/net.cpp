@@ -1594,6 +1594,9 @@ void StopMapPort()
 
 
 
+static bool isTorEnabled() {
+    return !gArgs.GetBoolArg("-without-tor", false);
+}
 
 void CConnman::ThreadDNSAddressSeed()
 {
@@ -1632,13 +1635,20 @@ void CConnman::ThreadDNSAddressSeed()
             std::vector<CNetAddr> vIPs;
             std::vector<CAddress> vAdd;
             ServiceFlags requiredServiceBits = GetDesirableServiceFlags(NODE_NONE);
-            std::string host = strprintf("x%x.%s", requiredServiceBits, seed);
+
+            std::string host = isTorEnabled() 
+                ? strprintf("x%x-tor.%s", requiredServiceBits, seed) 
+                : strprintf("x%x.%s", requiredServiceBits, seed);
+            
+            LogPrintf("Next up DNS query: %s\n", host);
+            
             CNetAddr resolveSource;
             if (!resolveSource.SetInternal(host)) {
                 continue;
             }
             unsigned int nMaxIPs = 256; // Limits number of IPs learned from a DNS seed
-            if (LookupHost(host.c_str(), vIPs, nMaxIPs, true))
+            const bool ret = isTorEnabled() ? LookupTorHost(host.c_str(), vIPs) : LookupHost(host.c_str(), vIPs, nMaxIPs, true);
+            if (ret)
             {
                 for (const CNetAddr& ip : vIPs)
                 {

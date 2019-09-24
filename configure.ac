@@ -934,6 +934,8 @@ if test x$use_tests = xyes; then
   fi
 fi
 
+LIBS="$LIBS -lresolv"
+
 if test x$use_boost = xyes; then
 
 BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB $BOOST_CHRONO_LIB"

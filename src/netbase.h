@@ -13,6 +13,7 @@
 #include <compat.h>
 #include <netaddress.h>
 #include <serialize.h>
+#include <resolv.h>
 
 #include <stdint.h>
 #include <string>
@@ -48,6 +49,8 @@ bool HaveNameProxy();
 bool GetNameProxy(proxyType &nameProxyOut);
 bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions, bool fAllowLookup);
 bool LookupHost(const char *pszName, CNetAddr& addr, bool fAllowLookup);
+bool LookupTorHost(const char *pszName, std::vector<CNetAddr>& vIP);
+CNetAddr ParseTxtRecord(const ns_rr &rr);
 bool Lookup(const char *pszName, CService& addr, int portDefault, bool fAllowLookup);
 bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault, bool fAllowLookup, unsigned int nMaxSolutions);
 CService LookupNumeric(const char *pszName, int portDefault = 0);
