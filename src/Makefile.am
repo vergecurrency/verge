@@ -62,24 +62,21 @@ TOR_UTIL_LIBS = \
 LIBED25519_REF10 = tor/src/ext/ed25519/ref10/libed25519_ref10.a
 LIBED25519_DONNA = tor/src/ext/ed25519/donna/libed25519_donna.a
 LIBKECCAK_TINY = tor/src/ext/keccak-tiny/libkeccak-tiny.a
+
 LIBDONNA = tor/src/lib/libcurve25519_donna.a \
   $(LIBED25519_REF10) \
   $(LIBED25519_DONNA)
 
 TOR_CRYPTO_LIBS = \
-	tor/src/lib/libtor-tls.a \
-	tor/src/lib/libtor-crypt-ops.a \
 	$(LIBKECCAK_TINY) \
 	$(LIBDONNA)
 
 TOR_LIBS = \
 	tor/src/core/libtor-app.a \
-	tor/src/lib/libtor-compress.a \
-	tor/src/lib/libtor-evloop.a \
 	$(TOR_CRYPTO_LIBS) \
 	$(TOR_UTIL_LIBS) \
-	tor/src/trunnel/libor-trunnel.a \
-	tor/src/lib/libtor-trace.a
+  tor/src/trunnel/libor-trunnel.a \
+	tor/src/tools/libtorrunner.a
 
 libverge_SERVER=libverge_server.a
 libverge_COMMON=libverge_common.a
