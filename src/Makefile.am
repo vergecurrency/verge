@@ -29,8 +29,6 @@ TOR_UTIL_LIBS = \
   tor/src/lib/libtor-compress.a \
   tor/src/lib/libtor-crypt-ops.a \
   tor/src/lib/libtor-ctime.a \
-  tor/src/lib/libtor-dispatch.a \
-  tor/src/lib/libtor-container.a \
   tor/src/lib/libtor-encoding.a \
   tor/src/lib/libtor-err.a \
   tor/src/lib/libtor-evloop.a \
@@ -57,6 +55,8 @@ TOR_UTIL_LIBS = \
   tor/src/lib/libtor-tls.a \
   tor/src/lib/libtor-trace.a \
   tor/src/lib/libtor-version.a \
+  tor/src/lib/libtor-dispatch.a \
+  tor/src/lib/libtor-container.a \
   tor/src/lib/libtor-wallclock.a
 
 LIBED25519_REF10 = tor/src/ext/ed25519/ref10/libed25519_ref10.a
