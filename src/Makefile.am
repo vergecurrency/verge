@@ -25,39 +25,34 @@ VERGE_INCLUDES += $(UNIVALUE_CFLAGS)
 
 # "Common" libraries used to link tor's utility code.
 TOR_UTIL_LIBS = \
-  tor/src/lib/libtor-buf.a \
-  tor/src/lib/libtor-compress.a \
-  tor/src/lib/libtor-crypt-ops.a \
-  tor/src/lib/libtor-ctime.a \
-  tor/src/lib/libtor-encoding.a \
-  tor/src/lib/libtor-err.a \
-  tor/src/lib/libtor-evloop.a \
-  tor/src/lib/libtor-fdio.a \
-  tor/src/lib/libtor-fs.a \
-  tor/src/lib/libtor-geoip.a \
-  tor/src/lib/libtor-intmath.a \
-  tor/src/lib/libtor-lock.a \
-  tor/src/lib/libtor-log.a \
-  tor/src/lib/libtor-malloc.a \
-  tor/src/lib/libtor-math.a \
-  tor/src/lib/libtor-memarea.a \
-  tor/src/lib/libtor-meminfo.a \
-  tor/src/lib/libtor-net.a \
-  tor/src/lib/libtor-osinfo.a \
-  tor/src/lib/libtor-process.a \
-  tor/src/lib/libtor-pubsub.a \
-  tor/src/lib/libtor-sandbox.a \
-  tor/src/lib/libtor-smartlist-core.a \
-  tor/src/lib/libtor-string.a \
-  tor/src/lib/libtor-term.a \
-  tor/src/lib/libtor-thread.a \
-  tor/src/lib/libtor-time.a \
-  tor/src/lib/libtor-tls.a \
-  tor/src/lib/libtor-trace.a \
-  tor/src/lib/libtor-version.a \
-  tor/src/lib/libtor-dispatch.a \
-  tor/src/lib/libtor-container.a \
-  tor/src/lib/libtor-wallclock.a
+    tor/src/lib/libtor-geoip.a \
+    tor/src/lib/libtor-process.a \
+    tor/src/lib/libtor-buf.a \
+    tor/src/lib/libtor-pubsub.a \
+    tor/src/lib/libtor-dispatch.a \
+    tor/src/lib/libtor-time.a \
+    tor/src/lib/libtor-fs.a \
+    tor/src/lib/libtor-encoding.a \
+    tor/src/lib/libtor-sandbox.a \
+    tor/src/lib/libtor-container.a \
+    tor/src/lib/libtor-net.a \
+    tor/src/lib/libtor-thread.a \
+    tor/src/lib/libtor-memarea.a \
+    tor/src/lib/libtor-math.a \
+    tor/src/lib/libtor-meminfo.a \
+    tor/src/lib/libtor-osinfo.a \
+    tor/src/lib/libtor-log.a \
+    tor/src/lib/libtor-lock.a \
+    tor/src/lib/libtor-fdio.a \
+    tor/src/lib/libtor-string.a \
+    tor/src/lib/libtor-term.a \
+    tor/src/lib/libtor-smartlist-core.a \
+    tor/src/lib/libtor-malloc.a \
+    tor/src/lib/libtor-wallclock.a \
+    tor/src/lib/libtor-err.a \
+    tor/src/lib/libtor-version.a \
+    tor/src/lib/libtor-intmath.a \
+    tor/src/lib/libtor-ctime.a
 
 LIBED25519_REF10 = tor/src/ext/ed25519/ref10/libed25519_ref10.a
 LIBED25519_DONNA = tor/src/ext/ed25519/donna/libed25519_donna.a
@@ -68,15 +63,19 @@ LIBDONNA = tor/src/lib/libcurve25519_donna.a \
   $(LIBED25519_DONNA)
 
 TOR_CRYPTO_LIBS = \
+	tor/src/lib/libtor-tls.a \
+	tor/src/lib/libtor-crypt-ops.a \
 	$(LIBKECCAK_TINY) \
 	$(LIBDONNA)
 
 TOR_LIBS = \
 	tor/src/core/libtor-app.a \
-	tor/src/tools/libtorrunner.a \
-	$(TOR_UTIL_LIBS) \
+	tor/src/lib/libtor-compress.a \
+	tor/src/lib/libtor-evloop.a \
 	$(TOR_CRYPTO_LIBS) \
-  tor/src/trunnel/libor-trunnel.a
+	$(TOR_UTIL_LIBS) \
+	tor/src/trunnel/libor-trunnel.a \
+	tor/src/lib/libtor-trace.a
 
 libverge_SERVER=libverge_server.a
 libverge_COMMON=libverge_common.a
