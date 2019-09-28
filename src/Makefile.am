@@ -27,10 +27,10 @@ VERGE_INCLUDES += $(UNIVALUE_CFLAGS)
 TOR_UTIL_LIBS = \
   tor/src/lib/libtor-buf.a \
   tor/src/lib/libtor-compress.a \
-  tor/src/lib/libtor-container.a \
   tor/src/lib/libtor-crypt-ops.a \
   tor/src/lib/libtor-ctime.a \
   tor/src/lib/libtor-dispatch.a \
+  tor/src/lib/libtor-container.a \
   tor/src/lib/libtor-encoding.a \
   tor/src/lib/libtor-err.a \
   tor/src/lib/libtor-evloop.a \
@@ -73,10 +73,10 @@ TOR_CRYPTO_LIBS = \
 
 TOR_LIBS = \
 	tor/src/core/libtor-app.a \
-	$(TOR_CRYPTO_LIBS) \
+	tor/src/tools/libtorrunner.a \
 	$(TOR_UTIL_LIBS) \
-  tor/src/trunnel/libor-trunnel.a \
-	tor/src/tools/libtorrunner.a
+	$(TOR_CRYPTO_LIBS) \
+  tor/src/trunnel/libor-trunnel.a
 
 libverge_SERVER=libverge_server.a
 libverge_COMMON=libverge_common.a
