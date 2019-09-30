@@ -162,52 +162,6 @@ jobs:
           name: Check binaries
           command: make check
 
-  xenial-test-setup-env:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-    steps:
-      - checkout
-      - restore_cache:
-          key: xenial-source-depends-{{ checksum "./hashes.run" }}
-          paths:
-            - './depends'
-      - run:
-          name: Install dependencies
-          command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3
-      - run:
-          name: Creating depends
-          command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
-      - save_cache:
-          key: xenial-source-depends-{{ checksum "./hashes.run" }}
-          paths:
-            - './depends'
-      - persist_to_workspace:
-          root: '.'
-          paths:
-            - '.'
-
-  xenial-test-create-and-test-build:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-    steps:
-      - attach_workspace:
-          at: '.'
-      - run:
-          name: Install dependencies
-          command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev
-      - run:
-          name: Autogen tools
-          command: ./autogen.sh
-      - run:
-          name: Configuring code
-          command: ./configure --disable-bench --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
-      - run:
-          name: Make
-          command: make -j4
-      - run:
-          name: Check binaries
-          command: make check
-
 workflows:
   version: 2
   release:
@@ -260,13 +214,6 @@ workflows:
       - bionic-test-create-and-test-build:
           requires:
             - bionic-test-setup-env
-
-  xenial-linux-testing:
-    jobs:
-      - xenial-test-setup-env
-      - xenial-test-create-and-test-build:
-          requires:
-            - xenial-test-setup-env
 
   test-static-windows-build:
     jobs:
