@@ -37,6 +37,7 @@ enum
     // algo
     BLOCK_VERSION_ALGO_BROKEN    = (10 << 11), //'101000000000000' 10 (broken bitmask)
     BLOCK_VERSION_ALGO           = (15 << 11), //'111100000000000' 15 (bitmask)
+    
     BLOCK_VERSION_SCRYPT         = (1  << 11), //'000100000000000' 1
     BLOCK_VERSION_GROESTL        = (2  << 11), //'001000000000000' 2
     BLOCK_VERSION_X17		     = (3  << 11), //'001100000000000' 3
@@ -75,6 +76,24 @@ static inline std::string GetAlgoName(int algo)
             return std::string("x17");
     }
     return std::string("unknown");
+}
+
+static inline int32_t GetVersionByAlgo(int32_t algo) {
+    switch (algo)
+    {
+        case ALGO_SCRYPT:
+            return BLOCK_VERSION_SCRYPT;
+        case ALGO_GROESTL:
+            return BLOCK_VERSION_GROESTL;
+        case ALGO_LYRA2RE:
+            return BLOCK_VERSION_LYRA2RE;
+        case ALGO_BLAKE:
+            return BLOCK_VERSION_BLAKE;
+        case ALGO_X17:
+            return BLOCK_VERSION_X17;
+    }
+
+    assert(false);
 }
 
 /**

@@ -69,39 +69,33 @@ public:
     CMainParams() {
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 210000;// FIXME: Unused
-        consensus.ForkHeight = 2800000;
         consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
         consensus.FlexibleMiningAlgorithms = 2042000;
         consensus.CLOCK_DRIFT_FORK = 2218500;
 		
+        consensus.ForkHeight = 2800000;
         consensus.BIP34Height = consensus.ForkHeight;
         consensus.BIP65Height = consensus.ForkHeight;
         consensus.BIP66Height = consensus.ForkHeight; 
 
-
         consensus.powLimit = uint256S("00000fffff000000000000000000000000000000000000000000000000000000"); //ArithToUint256(~arith_uint256(0) >> 20);
         consensus.nPowTargetTimespan = 30; // diff readjusting time
-        consensus.nPowTargetSpacing = 30; //
+        consensus.nPowTargetSpacing = 30; 
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
-        consensus.nRuleChangeActivationThreshold = 100; // 100 out of 200 blocks
-        consensus.nMinerConfirmationWindow = 200;
-        
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
 
-        // Deployment of BIP68, BIP112, and BIP113.
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1529247969; // May 1st, 2016
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1559347200; // May 1st, 2017
+        // Consensus deployment timeframes. 
+        // 15 days confirmation window
+        consensus.nMinerConfirmationWindow = 45000;
+        // 95% agreement-rate needed for locking
+        consensus.nRuleChangeActivationThreshold = 42750;
 
         // Deployment of SegWit (BIP141, BIP143, and BIP147)
         // It is all safe :thumbsup:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1529247969; // November 15th, 2016.
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1559347200; // November 15th, 2017.
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 0; // disabled
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 0; // disabled
 
         // The best chain should have at least this much work. 
         // KeyNote: (Kind of like a checkpoint)
@@ -120,6 +114,7 @@ public:
         pchMessageStart[1] = 0xa7;
         pchMessageStart[2] = 0x7e;
         pchMessageStart[3] = 0xff;
+
         nDefaultPort = 21102;
         nPruneAfterHeight = 100000;
 

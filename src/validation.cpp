@@ -1724,10 +1724,10 @@ void ThreadScriptCheck() {
 // Protected by cs_main
 VersionBitsCache versionbitscache;
 
-int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Params& params)
+int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Params& params, int32_t algorithm)
 {
     LOCK(cs_main);
-    int32_t nVersion = VERSIONBITS_TOP_BITS;
+    int32_t nVersion = VERSIONBITS_TOP_BITS | BLOCK_VERSION_DEFAULT;
 
     for (int i = 0; i < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; i++) {
         ThresholdState state = VersionBitsState(pindexPrev, params, static_cast<Consensus::DeploymentPos>(i), versionbitscache);
@@ -1736,6 +1736,7 @@ int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Para
         }
     }
 
+    nVersion |= GetVersionByAlgo(algorithm);
     return nVersion;
 }
 
@@ -1759,7 +1760,7 @@ public:
     {
         return ((pindex->nVersion & VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS) &&
                ((pindex->nVersion >> bit) & 1) != 0 &&
-               ((ComputeBlockVersion(pindex->pprev, params) >> bit) & 1) == 0;
+               ((ComputeBlockVersion(pindex->pprev, params, pindex->GetAlgo()) >> bit) & 1) == 0;
     }
 };
 
@@ -2290,7 +2291,7 @@ void static UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainPar
         // Check the version of the last 100 blocks to see if we need to upgrade:
         for (int i = 0; i < 100 && pindex != nullptr; i++)
         {
-            int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus()); // FIXME: check for other cases
+            int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus(), pindex->GetAlgo()); // FIXME: check for other cases
             int32_t nCorrectedVersion = pindex->nVersion & (~BLOCK_VERSION_ALGO); // Remove the Algo versions
             if (nCorrectedVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (nCorrectedVersion & ~nExpectedVersion) != 0)
                 ++nUpgraded;

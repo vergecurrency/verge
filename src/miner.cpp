@@ -122,35 +122,12 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     nHeight = pindexPrev->nHeight + 1;
     
     // bitcoins version of computing the version based on the deployment status (not yet needed for us)
-    // pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
-    pblock->nVersion = pindexPrev->nHeight >= chainparams.GetConsensus().STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
-
+    pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus(), algo);
+    
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (chainparams.MineBlocksOnDemand())
         pblock->nVersion = gArgs.GetArg("-blockversion", pblock->nVersion);
-
-    switch (algo)
-    {
-	    case ALGO_LYRA2RE:
-	        pblock->nVersion |= BLOCK_VERSION_LYRA2RE;
-            break;
-        case ALGO_SCRYPT:
-            pblock->nVersion |= BLOCK_VERSION_SCRYPT;
-            break;
-        case ALGO_GROESTL:
-            pblock->nVersion |= BLOCK_VERSION_GROESTL;
-            break;
-        case ALGO_X17:
-            pblock->nVersion |= BLOCK_VERSION_X17;
-            break;
-        case ALGO_BLAKE:
-            pblock->nVersion |= BLOCK_VERSION_BLAKE;
-            break;
-        default:
-            error("CreateNewBlock: bad algo");
-            return NULL;
-   }
 
     if (nExpired)
         return nullptr;
