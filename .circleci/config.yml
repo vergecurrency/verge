@@ -22,6 +22,11 @@ run_base_setup: &run_base_setup
 
 semvers: &semvers /v(?<=^[Vv]|^)(?:(?<major>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<minor>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<patch>(?:0|[1-9](?:(?:0|[1-9])+)*))(?:-(?<prerelease>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*)))*))?(?:[+](?<build>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+)))*))?)$/
 
+pre-test-setup-env-steps: &pre-test-setup-env-steps
+  run:
+    name: Hash dependencies
+    command: md5sum depends/packages/* > hashes.run
+
 jobs:
   release-prepare-machine:
     <<: *defaults
@@ -111,15 +116,13 @@ jobs:
             VERSION=$(git describe)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
 
-  test-setup-env:
-    <<: *defaults-docker
+  bionic-test-setup-env:
+    docker:
+      - image: circleci/buildpack-deps:bionic
     steps:
       - checkout
-      - run:
-          name: Hash dependencies
-          command: md5sum depends/packages/* > hashes.run
       - restore_cache:
-          key: source-depends-{{ checksum "./hashes.run" }}
+          key: bionic-source-depends-{{ checksum "./hashes.run" }}
           paths:
             - './depends'
       - run:
@@ -129,7 +132,7 @@ jobs:
           name: Creating depends
           command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
       - save_cache:
-          key: source-depends-{{ checksum "./hashes.run" }}
+          key: bionic-source-depends-{{ checksum "./hashes.run" }}
           paths:
             - './depends'
       - persist_to_workspace:
@@ -137,8 +140,9 @@ jobs:
           paths:
             - '.'
 
-  test-create-and-test-build:
-    <<: *defaults-docker
+  bionic-test-create-and-test-build:
+    docker:
+      - image: circleci/buildpack-deps:bionic
     steps:
       - attach_workspace:
           at: '.'
@@ -204,9 +208,30 @@ workflows:
             - release-macos
             - release-linux
 
-  testing:
+  bionic-linux-testing:
     jobs:
-      - test-setup-env
-      - test-create-and-test-build:
+      - bionic-test-setup-env
+      - bionic-test-create-and-test-build:
           requires:
-            - test-setup-env
+            - bionic-test-setup-env
+
+  test-static-windows-build:
+    jobs:
+      - release-prepare-machine
+      - release-windows:
+          requires:
+            - release-prepare-machine
+
+  test-static-linux-build:
+    jobs:
+      - release-prepare-machine
+      - release-linux:
+          requires:
+            - release-prepare-machine
+
+  test-static-macos-build:
+    jobs:
+      - release-prepare-machine
+      - release-macos:
+          requires:
+            - release-prepare-machine
