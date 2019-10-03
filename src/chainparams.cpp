@@ -68,12 +68,12 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        consensus.nSubsidyHalvingInterval = 210000;// FIXME: Unused
         consensus.ForkHeight = 2800000;
         consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
         consensus.FlexibleMiningAlgorithms = 2042000;
         consensus.CLOCK_DRIFT_FORK = 2218500;
+        consensus.nSubsidyHalvingInterval = 500000;
 		
         consensus.BIP34Height = consensus.ForkHeight;
         consensus.BIP65Height = consensus.ForkHeight;
