@@ -934,7 +934,7 @@ if test x$use_tests = xyes; then
   fi
 fi
 
-LIBS="$LIBS -lresolv"
+dnl LIBS="$LIBS -lresolv"
 
 if test x$use_boost = xyes; then
 
