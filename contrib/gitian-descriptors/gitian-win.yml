@@ -41,7 +41,7 @@ script: |
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests"
   FAKETIME_HOST_PROGS="g++ ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
-  HOST_LDFLAGS="-lboost_system-mt-s"
+  # HOST_LDFLAGS="-lboost_system-mt-s"
   HOST_CFLAGS="-O2 -g"
   HOST_CXXFLAGS="-O2 -g"
 
@@ -160,7 +160,7 @@ script: |
     mkdir src/obj
     cp ../src/obj/build.h src/obj/
 
-    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}" LDFLAGS="${HOST_LDFLAGS}"
+    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}" #LDFLAGS="${HOST_LDFLAGS}"
     make ${MAKEOPTS}
     # make ${MAKEOPTS} -C src check-security
     make deploy
