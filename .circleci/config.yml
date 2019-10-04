@@ -121,7 +121,7 @@ jobs:
           command: apk add --no-cache gnupg
       - run:
           name: Add release private key
-          command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --import PRIVATE_GPG_KEY.asc
+          command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --batch --import PRIVATE_GPG_KEY.asc
       - run:
           name: Generate SHA256 hashes & Sign release hashes
           command: cd ./verge-binaries/master/verge-binaries/master/ && shasum -a 256 verge-* > release.sha256sum && gpg --clearsign --output release.sha256sum.sig --sign release.sha256sum
