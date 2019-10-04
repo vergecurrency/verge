@@ -116,6 +116,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: ./verge-binaries/master
+      - run: 
+          name: Install gpg
+          command: sudo apt-get install gnupg
       - run:
           name: Add release private key
           command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --import PRIVATE_GPG_KEY.asc
@@ -188,7 +191,9 @@ workflows:
   test-flow:
     jobs:
       - prepare-upload-release
-      - upload-github-releases
+      - upload-github-releases:
+          requires:
+              - prepare-upload-release
 
   # release:
   #   jobs:
