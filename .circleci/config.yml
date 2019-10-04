@@ -117,7 +117,7 @@ jobs:
           at: ./verge-binaries/master
       - run: 
           name: Install gpg
-          command: sudo apt-get install gnupg shasum
+          command: sudo apt-get install gnupg
       - run:
           name: Install GHR
           command: export GHR_VERSION=0.13.0 && export ENV GHR_URL=https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz && wget "$GHR_URL" && tar xzf ghr_v${GHR_VERSION}_linux_amd64.tar.gz && mv ghr_v${GHR_VERSION}_linux_amd64/ghr /usr/bin/ghr && rm -r ghr_v${GHR_VERSION}_linux_amd64.tar.gz ghr_v${GHR_VERSION}_linux_amd64/
