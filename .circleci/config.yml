@@ -113,6 +113,7 @@ jobs:
     docker:
       - image: circleci/buildpack-deps:bionic
     steps:
+      - checkout
       - attach_workspace:
           at: ./verge-binaries/master
       - run: 
