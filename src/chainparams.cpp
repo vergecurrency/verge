@@ -137,7 +137,9 @@ public:
 
         // Adding some nodes in case it works
         if(!gArgs.IsArgSet("-without-tor")){
-            vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
+            vSeeds.emplace_back("lhvnwvqdlxxyotdmfej45jgphupxob5fci4hjxvw2ui75e24tjssl2id.onion");
+            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion");
+            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion");
             vSeeds.emplace_back("gasppfoxxedddnme.onion");
             vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
             vSeeds.emplace_back("bnm5ujfsvexzba4w.onion");
