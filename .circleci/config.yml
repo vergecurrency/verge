@@ -126,7 +126,7 @@ jobs:
           command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --batch --import PRIVATE_GPG_KEY.asc
       - run:
           name: Generate SHA256 hashes & Sign release hashes
-          command: cd ./verge-binaries/master/verge-binaries/master/ && shasum -a 256 verge-* > release.sha256sum && gpg --batch --clearsign --output release.sha256sum.sig --sign release.sha256sum
+          command: cd ./verge-binaries/master/verge-binaries/master/ && shasum -a 256 verge-* > release.sha256sum && gpg --batch --clearsign --passphrase $GPG_PASSPHRASE --output release.sha256sum.sig --sign release.sha256sum
       - run:
           name: Prepare release body text
           command: |
