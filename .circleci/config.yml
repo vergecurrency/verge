@@ -120,7 +120,7 @@ jobs:
           command: sudo apt-get install gnupg
       - run:
           name: Install GHR
-          command: export GHR_VERSION=0.13.0 && export ENV GHR_URL=https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz && wget "$GHR_URL" && tar xzf ghr_v${GHR_VERSION}_linux_amd64.tar.gz && mv ghr_v${GHR_VERSION}_linux_amd64/ghr /usr/bin/ghr && rm -r ghr_v${GHR_VERSION}_linux_amd64.tar.gz ghr_v${GHR_VERSION}_linux_amd64/
+          command: export GHR_VERSION=0.13.0 && export ENV GHR_URL=https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz && wget "$GHR_URL" && tar xzf ghr_v${GHR_VERSION}_linux_amd64.tar.gz && sudo mv ghr_v${GHR_VERSION}_linux_amd64/ghr /usr/bin/ghr && rm -r ghr_v${GHR_VERSION}_linux_amd64.tar.gz ghr_v${GHR_VERSION}_linux_amd64/
       - run:
           name: Add release private key
           command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --batch --import PRIVATE_GPG_KEY.asc
