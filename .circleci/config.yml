@@ -99,15 +99,15 @@ jobs:
           paths: 'verge-binaries/master'
 
 
-  prepare-upload-release: 
-    <<: *defaults
-    steps:
-      - run: 
-            name: Create files :)
-            command: mkdir verge-binaries && cd verge-binaries/ && mkdir master && cd master/ && echo 'a' >> verge-5.3.1-osx-unsigned.dmg && echo 'b' >> verge-5.3.1-win64.zip
-      - persist_to_workspace:
-            root: .
-            paths: 'verge-binaries/master'
+  # prepare-upload-release: 
+  #   <<: *defaults
+  #   steps:
+  #     - run: 
+  #           name: Create files :)
+  #           command: mkdir verge-binaries && cd verge-binaries/ && mkdir master && cd master/ && echo 'a' >> verge-5.3.1-osx-unsigned.dmg && echo 'b' >> verge-5.3.1-win64.zip
+  #     - persist_to_workspace:
+  #           root: .
+  #           paths: 'verge-binaries/master'
 
   upload-github-releases:
     docker:
@@ -191,81 +191,75 @@ jobs:
 
 workflows:
   version: 2
-  test-flow:
+
+  release:
     jobs:
-      - prepare-upload-release
-      - upload-github-releases:
+      - release-prepare-machine:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+      - release-windows:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
           requires:
-              - prepare-upload-release
+            - release-prepare-machine
+      - release-macos:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+          requires:
+            - release-prepare-machine
+      - release-linux:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+          requires:
+            - release-prepare-machine
+      - upload-github-releases:
+          context: github-gangster
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+          requires:
+            - release-windows
+            - release-macos
+            - release-linux
 
-  # release:
-  #   jobs:
-  #     - release-prepare-machine:
-  #         filters:
-  #           branches:
-  #             ignore: /.*/
-  #           tags:
-  #             only: /^v.*/
-  #     - release-windows:
-  #         filters:
-  #           branches:
-  #             ignore: /.*/
-  #           tags:
-  #             only: /^v.*/
-  #         requires:
-  #           - release-prepare-machine
-  #     - release-macos:
-  #         filters:
-  #           branches:
-  #             ignore: /.*/
-  #           tags:
-  #             only: /^v.*/
-  #         requires:
-  #           - release-prepare-machine
-  #     - release-linux:
-  #         filters:
-  #           branches:
-  #             ignore: /.*/
-  #           tags:
-  #             only: /^v.*/
-  #         requires:
-  #           - release-prepare-machine
-  #     - upload-github-releases:
-  #         context: github-gangster
-  #         filters:
-  #           branches:
-  #             ignore: /.*/
-  #           tags:
-  #             only: /^v.*/
-  #         requires:
-  #           - release-windows
-  #           - release-macos
-  #           - release-linux
+  bionic-linux-testing:
+    jobs:
+      - bionic-test-setup-env
+      - bionic-test-create-and-test-build:
+          requires:
+            - bionic-test-setup-env
 
-  # bionic-linux-testing:
-  #   jobs:
-  #     - bionic-test-setup-env
-  #     - bionic-test-create-and-test-build:
-  #         requires:
-  #           - bionic-test-setup-env
+  test-static-windows-build:
+    jobs:
+      - release-prepare-machine
+      - release-windows:
+          requires:
+            - release-prepare-machine
 
-  # test-static-windows-build:
-  #   jobs:
-  #     - release-prepare-machine
-  #     - release-windows:
-  #         requires:
-  #           - release-prepare-machine
+  test-static-linux-build:
+    jobs:
+      - release-prepare-machine
+      - release-linux:
+          requires:
+            - release-prepare-machine
 
-  # test-static-linux-build:
-  #   jobs:
-  #     - release-prepare-machine
-  #     - release-linux:
-  #         requires:
-  #           - release-prepare-machine
-
-  # test-static-macos-build:
-  #   jobs:
-  #     - release-prepare-machine
-  #     - release-macos:
-  #         requires:
-  #           - release-prepare-machine
+  test-static-macos-build:
+    jobs:
+      - release-prepare-machine
+      - release-macos:
+          requires:
+            - release-prepare-machine
