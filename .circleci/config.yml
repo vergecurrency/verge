@@ -131,14 +131,14 @@ jobs:
       - run:
           name: Prepare release body text
           command: |
-            echo "## Minor Release (${CIRCLE_TAG})\n\n### Requirements:\n\n---\n\n### Release notes:\n\n### Release Hashes and Signature\n\n\`\`\`gpg" > release.md
+            echo -e "## Release (${CIRCLE_TAG})\n\n### Requirements:\n\n---\n\n### Release notes:\n\n### Release Hashes and Signature\n\n\`\`\`gpg" > release.md
             cat ./verge-binaries/master/verge-binaries/master/release.sha256sum.sig >> release.md
-            echo "\`\`\`\n\nSigned by public key \`7028 B24D 2265 AA27 6664  B078 BA2F 0EF9 9AF2 355B\` (<marpme@users.noreply.github.com>)" >> release.md
+            echo -e "\`\`\`\n\nSigned by public key \`7028 B24D 2265 AA27 6664  B078 BA2F 0EF9 9AF2 355B\` (<marpme@users.noreply.github.com>)" >> release.md
       - run:
           name: 'Publish Release on GitHub'
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} -n ${CIRCLE_TAG} -body="$(cat ./release.md)" ./verge-binaries/master/verge-binaries/master/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete ${CIRCLE_TAG}  ./verge-binaries/master/verge-binaries/master/
 
   bionic-test-setup-env:
     docker:
