@@ -22,11 +22,6 @@ run_base_setup: &run_base_setup
 
 semvers: &semvers /v(?<=^[Vv]|^)(?:(?<major>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<minor>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<patch>(?:0|[1-9](?:(?:0|[1-9])+)*))(?:-(?<prerelease>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*)))*))?(?:[+](?<build>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+)))*))?)$/
 
-pre-test-setup-env-steps: &pre-test-setup-env-steps
-  run:
-    name: Hash dependencies
-    command: md5sum depends/packages/* > hashes.run
-
 jobs:
   release-prepare-machine:
     <<: *defaults
@@ -103,24 +98,56 @@ jobs:
           root: .
           paths: 'verge-binaries/master'
 
+
+  # prepare-upload-release: 
+  #   <<: *defaults
+  #   steps:
+  #     - run: 
+  #           name: Create files :)
+  #           command: mkdir verge-binaries && cd verge-binaries/ && mkdir master && cd master/ && echo 'a' >> verge-5.3.1-osx-unsigned.dmg && echo 'b' >> verge-5.3.1-win64.zip
+  #     - persist_to_workspace:
+  #           root: .
+  #           paths: 'verge-binaries/master'
+
   upload-github-releases:
     docker:
-      - image: cibuilds/github:0.10
+      - image: circleci/buildpack-deps:bionic
     steps:
       - checkout
       - attach_workspace:
           at: ./verge-binaries/master
+      - run: 
+          name: Install gpg
+          command: sudo apt-get install gnupg
+      - run:
+          name: Install GHR
+          command: export GHR_VERSION=0.13.0 && export ENV GHR_URL=https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz && wget "$GHR_URL" && tar xzf ghr_v${GHR_VERSION}_linux_amd64.tar.gz && sudo mv ghr_v${GHR_VERSION}_linux_amd64/ghr /usr/bin/ghr && rm -r ghr_v${GHR_VERSION}_linux_amd64.tar.gz ghr_v${GHR_VERSION}_linux_amd64/
+      - run:
+          name: Add release private key
+          command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --batch --import PRIVATE_GPG_KEY.asc
+      - run:
+          name: Generate SHA256 hashes & Sign release hashes
+          command: cd ./verge-binaries/master/verge-binaries/master/ && shasum -a 256 verge-* > release.sha256sum && gpg --pinentry-mode loopback --clearsign --passphrase $GPG_PASSPHRASE --output release.sha256sum.sig --sign release.sha256sum
+      - run:
+          name: Prepare release body text
+          command: |
+            echo "## Minor Release (${CIRCLE_TAG})\n\n### Requirements:\n\n---\n\n### Release notes:\n\n### Release Hashes and Signature\n\n\`\`\`gpg" > release.md
+            cat ./verge-binaries/master/verge-binaries/master/release.sha256sum.sig >> release.md
+            echo "\`\`\`\n\nSigned by public key \`7028 B24D 2265 AA27 6664  B078 BA2F 0EF9 9AF2 355B\` (<marpme@users.noreply.github.com>)" >> release.md
       - run:
           name: 'Publish Release on GitHub'
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} -n ${CIRCLE_TAG} -body="$(cat ./release.md)" ./verge-binaries/master/verge-binaries/master/
 
   bionic-test-setup-env:
     docker:
       - image: circleci/buildpack-deps:bionic
     steps:
       - checkout
+      - run:
+          name: Hash dependencies
+          command: md5sum depends/packages/* > hashes.run
       - restore_cache:
           key: bionic-source-depends-{{ checksum "./hashes.run" }}
           paths:
@@ -164,6 +191,7 @@ jobs:
 
 workflows:
   version: 2
+
   release:
     jobs:
       - release-prepare-machine:
