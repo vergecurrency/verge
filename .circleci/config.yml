@@ -118,7 +118,7 @@ jobs:
           at: ./verge-binaries/master
       - run: 
           name: Install gpg
-          command: apt-get install gnupg
+          command: apk add --no-cache gnupg
       - run:
           name: Add release private key
           command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --import PRIVATE_GPG_KEY.asc
