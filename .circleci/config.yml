@@ -111,14 +111,17 @@ jobs:
 
   upload-github-releases:
     docker:
-      - image: cibuilds/github:0.10
+      - image: circleci/buildpack-deps:bionic
     steps:
       - checkout
       - attach_workspace:
           at: ./verge-binaries/master
       - run: 
           name: Install gpg
-          command: apk add --no-cache gnupg shasum
+          command: apt-get install gnupg shasum
+      - run:
+          name: Install GHR
+          command: export GHR_VERSION=0.13.0 && export ENV GHR_URL=https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz && wget "$GHR_URL" && tar xzf ghr_v${GHR_VERSION}_linux_amd64.tar.gz && mv ghr_v${GHR_VERSION}_linux_amd64/ghr /usr/bin/ghr && rm -r ghr_v${GHR_VERSION}_linux_amd64.tar.gz ghr_v${GHR_VERSION}_linux_amd64/
       - run:
           name: Add release private key
           command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --batch --import PRIVATE_GPG_KEY.asc
