@@ -13,7 +13,12 @@
 #include <compat.h>
 #include <netaddress.h>
 #include <serialize.h>
+
+#ifdef WIN32
+#include <Windows.h>
+#else
 #include <resolv.h>
+#endif
 
 #include <stdint.h>
 #include <string>

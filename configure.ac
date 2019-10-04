@@ -934,7 +934,9 @@ if test x$use_tests = xyes; then
   fi
 fi
 
-dnl LIBS="$LIBS -lresolv"
+if test x$TARGET_OS != xwindows; then
+  LIBS="$LIBS -lresolv"
+fi
 
 if test x$use_boost = xyes; then
 
