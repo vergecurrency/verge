@@ -15,7 +15,7 @@
 #include <serialize.h>
 
 #ifdef WIN32
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <resolv.h>
 #endif
