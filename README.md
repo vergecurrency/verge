@@ -23,7 +23,7 @@ pre-mine | N/A
 ICO | N/A
 
 ## Blockrewards
-Block Number | Reward
+Block Number Range | Reward
 --- | ---
 0 to 14,000 | 200,000 coins
 14,000 to 28,000 | 100,000 coins
@@ -33,7 +33,14 @@ Block Number | Reward
 378,000 to 546,000 | 6,250 coins
 546,000 to 714,000 | 3,125 coins
 714,000 to 2,124,000 | 1,560 coins
-2,124,000 to 4,248,000 | 730 coins
+2,124,000 to 3,700,000 | 730 coins
+3,700,000 to 4,200,000 | 400 coins
+4,200,000 to 4,700,000 | 200 coins
+4,700,000 to 5,200,000 | 100 coins
+5,200,000 to 5,700,000 | 50  coins
+5,700,000 to 6,200,000 | 25  coins
+6,200,000 to 6,700,000 | 12.5 coins
+6,700,000 to 7,200,000 | 6.25 coins
 
 ## Resources
 
