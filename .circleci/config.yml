@@ -138,7 +138,7 @@ jobs:
           name: 'Publish Release on GitHub'
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete ${CIRCLE_TAG}  ./verge-binaries/master/verge-binaries/master/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete -draft ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
 
   bionic-test-setup-env:
     docker:
