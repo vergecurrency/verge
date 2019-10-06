@@ -6,6 +6,10 @@
   <a href="https://codecov.io/gh/vergecurrency/VERGE">
     <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/develop/graph/badge.svg" />
   </a>
+  <a href="https://github.com/vergecurrency/VERGE/releases">
+    <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vergecurrency/VERGE/total?style=social">
+  </a>
+  <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
 </p>
 
 # VERGE Source Code [XVG]
