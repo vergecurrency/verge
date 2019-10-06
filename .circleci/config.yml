@@ -175,19 +175,25 @@ jobs:
           at: '.'
       - run:
           name: Install dependencies
-          command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev
+          command: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev lcov
       - run:
           name: Autogen tools
           command: ./autogen.sh
       - run:
           name: Configuring code
-          command: ./configure --disable-bench --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+          command: ./configure --enable-lcov --disable-bench --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
       - run:
           name: Make
           command: make -j4
       - run:
           name: Check binaries
-          command: make check
+          command: make -j4 check
+      - run:
+          name: Generate Coverage
+          command: make -j4 test_verge_filtered.info
+      - run:
+          name: Upload code coverage
+          command: bash <(curl -s https://codecov.io/bash) -f test_verge_filtered.info || (echo "Could not upload coverage report to codecov"; exit 1)
 
 workflows:
   version: 2
