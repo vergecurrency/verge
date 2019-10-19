@@ -18,7 +18,7 @@ set_python_version: &set_python_version
 
 run_base_setup: &run_base_setup
   name: Setup repo and execute VM builder
-  command: ./gitian-build.py --docker --commit --setup marpme master
+  command: ./gitian-build.py --docker --commit --setup marpme ${CIRCLE_BRANCH:-master}
 
 semvers: &semvers /v(?<=^[Vv]|^)(?:(?<major>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<minor>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<patch>(?:0|[1-9](?:(?:0|[1-9])+)*))(?:-(?<prerelease>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*)))*))?(?:[+](?<build>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+)))*))?)$/
 
@@ -59,10 +59,10 @@ jobs:
           <<: *run_base_setup
       - run:
           name: Gitian Build Windows
-          command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme master
+          command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-master}
       - persist_to_workspace:
           root: .
-          paths: 'verge-binaries/master'
+          paths: 'verge-binaries/${CIRCLE_BRANCH:-master}'
 
   release-macos:
     <<: *defaults
@@ -80,10 +80,10 @@ jobs:
           command: mkdir -p gitian-builder && cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
       - run:
           name: Gitian Build MacOS
-          command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
+          command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-master}
       - persist_to_workspace:
           root: .
-          paths: 'verge-binaries/master'
+          paths: 'verge-binaries/${CIRCLE_BRANCH:-master}'
 
   release-linux:
     <<: *defaults
@@ -98,10 +98,10 @@ jobs:
           <<: *run_base_setup
       - run:
           name: Gitian Build Linux
-          command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
+          command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-master}
       - persist_to_workspace:
           root: .
-          paths: 'verge-binaries/master'
+          paths: 'verge-binaries/${CIRCLE_BRANCH:-master}'
 
   upload-github-releases:
     docker:
@@ -109,12 +109,12 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ./verge-binaries/master
+          at: ./verge-binaries/${CIRCLE_BRANCH:-master}
       - run:
           name: 'Publish Release on GitHub'
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -delete ${CIRCLE_TAG} ./verge-binaries/${CIRCLE_BRANCH:-master}/verge-binaries/${CIRCLE_BRANCH:-master}/
 
   bionic-test-setup-env:
     docker:
