@@ -1,42 +1,42 @@
 ---
-name: "verge-linux-5.0.0-beta1"
+name: 'verge-linux-5.0.0-beta1'
 enable_cache: true
-distro: "ubuntu"
+distro: 'ubuntu'
 suites:
-- "bionic"
+  - 'bionic'
 architectures:
-- "amd64"
+  - 'amd64'
 packages:
-- "curl"
-- "g++-aarch64-linux-gnu"
-- "g++-8-aarch64-linux-gnu"
-- "gcc-8-aarch64-linux-gnu"
-- "binutils-aarch64-linux-gnu"
-- "g++-arm-linux-gnueabihf"
-- "g++-8-arm-linux-gnueabihf"
-- "gcc-8-arm-linux-gnueabihf"
-- "binutils-arm-linux-gnueabihf"
-- "g++-riscv64-linux-gnu"
-- "g++-8-riscv64-linux-gnu"
-- "gcc-8-riscv64-linux-gnu"
-- "binutils-riscv64-linux-gnu"
-- "g++-8-multilib"
-- "gcc-8-multilib"
-- "binutils-gold"
-- "git"
-- "pkg-config"
-- "autoconf"
-- "libtool"
-- "automake"
-- "faketime"
-- "bsdmainutils"
-- "ca-certificates"
-- "python3"
-- "libattr1-dev"
+  - 'curl'
+  - 'g++-aarch64-linux-gnu'
+  - 'g++-8-aarch64-linux-gnu'
+  - 'gcc-8-aarch64-linux-gnu'
+  - 'binutils-aarch64-linux-gnu'
+  - 'g++-arm-linux-gnueabihf'
+  - 'g++-8-arm-linux-gnueabihf'
+  - 'gcc-8-arm-linux-gnueabihf'
+  - 'binutils-arm-linux-gnueabihf'
+  - 'g++-riscv64-linux-gnu'
+  - 'g++-8-riscv64-linux-gnu'
+  - 'gcc-8-riscv64-linux-gnu'
+  - 'binutils-riscv64-linux-gnu'
+  - 'g++-8-multilib'
+  - 'gcc-8-multilib'
+  - 'binutils-gold'
+  - 'git'
+  - 'pkg-config'
+  - 'autoconf'
+  - 'libtool'
+  - 'automake'
+  - 'faketime'
+  - 'bsdmainutils'
+  - 'ca-certificates'
+  - 'python3'
+  - 'libattr1-dev'
 
 remotes:
-- "url": "https://github.com/vergecurrency/VERGE.git"
-  "dir": "verge"
+  - 'url': 'https://github.com/vergecurrency/VERGE.git'
+    'dir': 'verge'
 files: []
 script: |
 
@@ -171,7 +171,7 @@ script: |
 
     CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}" LDFLAGS="${HOST_LDFLAGS}"
     make ${MAKEOPTS}
-    # make ${MAKEOPTS} -C src check-security
+    make ${MAKEOPTS} -C src check-security
 
     #TODO: This is a quick hack that disables symbol checking for arm.
     #      Instead, we should investigate why these are popping up.

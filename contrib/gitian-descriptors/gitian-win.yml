@@ -1,39 +1,39 @@
 ---
-name: "verge-win-5.0.0-beta1"
+name: 'verge-win-5.0.0-beta1'
 enable_cache: true
 suites:
-- "bionic"
+  - 'bionic'
 architectures:
-- "amd64"
+  - 'amd64'
 packages:
-- "curl"
-- "g++"
-- "git"
-- "pkg-config"
-- "autoconf"
-- "libtool"
-- "automake"
-- "faketime"
-- "bsdmainutils"
-- "mingw-w64"
-- "g++-mingw-w64"
-- "g++-mingw-w64-x86-64"
-- "nsis"
-- "zip"
-- "ca-certificates"
-- "python3"
-- "rename"
-- "libattr1-dev"
-- "libseccomp-dev"
-- "libcap-dev"
+  - 'curl'
+  - 'g++'
+  - 'git'
+  - 'pkg-config'
+  - 'autoconf'
+  - 'libtool'
+  - 'automake'
+  - 'faketime'
+  - 'bsdmainutils'
+  - 'mingw-w64'
+  - 'g++-mingw-w64'
+  - 'g++-mingw-w64-x86-64'
+  - 'nsis'
+  - 'zip'
+  - 'ca-certificates'
+  - 'python3'
+  - 'rename'
+  - 'libattr1-dev'
+  - 'libseccomp-dev'
+  - 'libcap-dev'
 
 alternatives:
   - package: x86_64-w64-mingw32-g++
     path: /usr/bin/x86_64-w64-mingw32-g++-posix
 
 remotes:
-- "url": "https://github.com/vergecurrency/VERGE.git"
-  "dir": "verge"
+  - 'url': 'https://github.com/vergecurrency/VERGE.git'
+    'dir': 'verge'
 files: []
 script: |
   WRAP_DIR=$HOME/wrapped
@@ -41,7 +41,7 @@ script: |
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests"
   FAKETIME_HOST_PROGS="g++ ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
-  # HOST_LDFLAGS="-lboost_system-mt-s"
+  HOST_LDFLAGS="-lboost_system-mt-s"
   HOST_CFLAGS="-O2 -g"
   HOST_CXXFLAGS="-O2 -g"
 
@@ -160,9 +160,9 @@ script: |
     mkdir src/obj
     cp ../src/obj/build.h src/obj/
 
-    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}" #LDFLAGS="${HOST_LDFLAGS}"
+    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}" LDFLAGS="${HOST_LDFLAGS}"
     make ${MAKEOPTS}
-    # make ${MAKEOPTS} -C src check-security
+    make ${MAKEOPTS} -C src check-security
     make deploy
     make install DESTDIR=${INSTALLPATH}
     rename 's/-setup\.exe$/-setup-unsigned.exe/' *-setup.exe

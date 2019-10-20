@@ -1,5 +1,5 @@
 # ===========================================================================
-#     https://www.gnu.org/software/autoconf-archive/ax_boost_system.html
+#      http://www.gnu.org/software/autoconf-archive/ax_boost_system.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -31,7 +31,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 19
+#serial 18
 
 AC_DEFUN([AX_BOOST_SYSTEM],
 [
@@ -84,6 +84,7 @@ AC_DEFUN([AX_BOOST_SYSTEM],
 
 			LDFLAGS_SAVE=$LDFLAGS
             if test "x$ax_boost_user_system_lib" = "x"; then
+                ax_lib=
                 for libextension in `ls -r $BOOSTLIBDIR/libboost_system* 2>/dev/null | sed 's,.*/lib,,' | sed 's,\..*,,'` ; do
                      ax_lib=${libextension}
 				    AC_CHECK_LIB($ax_lib, exit,
@@ -108,7 +109,7 @@ AC_DEFUN([AX_BOOST_SYSTEM],
 
             fi
             if test "x$ax_lib" = "x"; then
-                AC_MSG_ERROR(Could not find a version of the library!)
+                AC_MSG_ERROR(Could not find a version of the boost_system library!)
             fi
 			if test "x$link_system" = "xno"; then
 				AC_MSG_ERROR(Could not link against $ax_lib !)

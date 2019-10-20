@@ -18,7 +18,7 @@ set_python_version: &set_python_version
 
 run_base_setup: &run_base_setup
   name: Setup repo and execute VM builder
-  command: ./gitian-build.py --docker --commit --setup marpme master
+  command: ./gitian-build.py --docker --commit --setup marpme ${CIRCLE_BRANCH:-master}
 
 semvers: &semvers /v(?<=^[Vv]|^)(?:(?<major>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<minor>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<patch>(?:0|[1-9](?:(?:0|[1-9])+)*))(?:-(?<prerelease>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*)))*))?(?:[+](?<build>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+)))*))?)$/
 
@@ -54,10 +54,13 @@ jobs:
           <<: *run_base_setup
       - run:
           name: Gitian Build Windows
-          command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme master
+          command: ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-master}
+      - run:
+          name: Collect binaries
+          command: mv verge-binaries/${CIRCLE_BRANCH:-master}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'verge-binaries/master'
+          paths: 'bin'
 
   release-macos:
     <<: *defaults
@@ -75,10 +78,13 @@ jobs:
           command: mkdir -p gitian-builder && cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
       - run:
           name: Gitian Build MacOS
-          command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme master
+          command: ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-master}
+      - run:
+          name: Collect binaries
+          command: mv verge-binaries/${CIRCLE_BRANCH:-master}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'verge-binaries/master'
+          paths: 'bin'
 
   release-linux:
     <<: *defaults
@@ -93,21 +99,13 @@ jobs:
           <<: *run_base_setup
       - run:
           name: Gitian Build Linux
-          command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme master
+          command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-master}
+      - run:
+          name: Collect binaries
+          command: mv verge-binaries/${CIRCLE_BRANCH:-master}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'verge-binaries/master'
-
-
-  # prepare-upload-release: 
-  #   <<: *defaults
-  #   steps:
-  #     - run: 
-  #           name: Create files :)
-  #           command: mkdir verge-binaries && cd verge-binaries/ && mkdir master && cd master/ && echo 'a' >> verge-5.3.1-osx-unsigned.dmg && echo 'b' >> verge-5.3.1-win64.zip
-  #     - persist_to_workspace:
-  #           root: .
-  #           paths: 'verge-binaries/master'
+          paths: 'bin'
 
   upload-github-releases:
     docker:
@@ -115,8 +113,8 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ./verge-binaries/master
-      - run: 
+          at: ./bin
+      - run:
           name: Install gpg
           command: sudo apt-get install gnupg
       - run:
@@ -127,18 +125,18 @@ jobs:
           command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --batch --import PRIVATE_GPG_KEY.asc
       - run:
           name: Generate SHA256 hashes & Sign release hashes
-          command: cd ./verge-binaries/master/verge-binaries/master/ && shasum -a 256 verge-* > release.sha256sum && gpg --pinentry-mode loopback --clearsign --passphrase $GPG_PASSPHRASE --output release.sha256sum.sig --sign release.sha256sum
+          command: cd ./bin/verge-binaries/${CIRCLE_BRANCH:-master}/ && shasum -a 256 verge-* > release.sha256sum && gpg --pinentry-mode loopback --clearsign --passphrase $GPG_PASSPHRASE --output release.sha256sum.sig --sign release.sha256sum
       - run:
           name: Prepare release body text
           command: |
             echo -e "## Release (${CIRCLE_TAG})\n\n### Requirements:\n\n---\n\n### Release notes:\n\n### Release Hashes and Signature\n\n\`\`\`gpg" > release.md
-            cat ./verge-binaries/master/verge-binaries/master/release.sha256sum.sig >> release.md
+            cat ./bin/verge-binaries/${CIRCLE_BRANCH:-master}/release.sha256sum.sig >> release.md
             echo -e "\`\`\`\n\nSigned by public key \`7028 B24D 2265 AA27 6664  B078 BA2F 0EF9 9AF2 355B\` (<marpme@users.noreply.github.com>)" >> release.md
       - run:
           name: 'Publish Release on GitHub'
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete -draft ${CIRCLE_TAG} ./verge-binaries/master/verge-binaries/master/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete -draft ${CIRCLE_TAG} ./bin/verge-binaries/${CIRCLE_BRANCH:-master}/
 
   bionic-test-setup-env:
     docker:
