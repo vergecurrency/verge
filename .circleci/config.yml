@@ -125,18 +125,18 @@ jobs:
           command: echo -e $GPG_KEY > PRIVATE_GPG_KEY.asc && gpg --batch --import PRIVATE_GPG_KEY.asc
       - run:
           name: Generate SHA256 hashes & Sign release hashes
-          command: cd ./bin/verge-binaries/${CIRCLE_BRANCH:-master}/ && shasum -a 256 verge-* > release.sha256sum && gpg --pinentry-mode loopback --clearsign --passphrase $GPG_PASSPHRASE --output release.sha256sum.sig --sign release.sha256sum
+          command: cd ./bin/bin/ && shasum -a 256 verge-* > release.sha256sum && gpg --pinentry-mode loopback --clearsign --passphrase $GPG_PASSPHRASE --output release.sha256sum.sig --sign release.sha256sum
       - run:
           name: Prepare release body text
           command: |
             echo -e "## Release (${CIRCLE_TAG})\n\n### Requirements:\n\n---\n\n### Release notes:\n\n### Release Hashes and Signature\n\n\`\`\`gpg" > release.md
-            cat ./bin/verge-binaries/${CIRCLE_BRANCH:-master}/release.sha256sum.sig >> release.md
+            cat ./bin/bin/release.sha256sum.sig >> release.md
             echo -e "\`\`\`\n\nSigned by public key \`7028 B24D 2265 AA27 6664  B078 BA2F 0EF9 9AF2 355B\` (<marpme@users.noreply.github.com>)" >> release.md
       - run:
           name: 'Publish Release on GitHub'
           command: |
             VERSION=$(git describe)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete -draft ${CIRCLE_TAG} ./bin/verge-binaries/${CIRCLE_BRANCH:-master}/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete -draft ${CIRCLE_TAG} ./bin/bin/
 
   bionic-test-setup-env:
     docker:
