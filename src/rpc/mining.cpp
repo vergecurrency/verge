@@ -10,7 +10,11 @@
 #include <consensus/consensus.h>
 #include <consensus/params.h>
 #include <consensus/validation.h>
+
+#ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
+#endif
+
 #include <core_io.h>
 #include <validation.h>
 #include <key_io.h>
