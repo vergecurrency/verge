@@ -1205,10 +1205,20 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
         return 3125 * COIN;
     if (nHeight<2124001 && nHeight>714000)
         return 1560 * COIN;
-    if (nHeight<4248001 && nHeight>2124000)
+    if (nHeight<3700001 && nHeight>2124000)
         return 730 * COIN;
 
-    return 0; // Default
+    const int lastIrregularBlock = 3700001;
+    const int newSubsidyHeight = nHeight - lastIrregularBlock;
+
+    const CAmount initialHalvingRewards = 400 * COIN;
+    const int halvingCount = newSubsidyHeight / consensusParams.nSubsidyHalvingInterval;
+
+    if (halvingCount < 7) {
+        return initialHalvingRewards >> halvingCount;
+    }
+
+    return 0;
 }
 
 bool IsInitialBlockDownload()

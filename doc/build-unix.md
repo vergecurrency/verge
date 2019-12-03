@@ -78,7 +78,7 @@ Now, you can either build from self-compiled [depends](/depends/README.md) or in
 
 These are necessary for building with Tor:  
 
-    sudo apt-get install zlib1g-dev libseccomp-dev libcap-dev libncap-dev
+    sudo apt-get install zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy
 
 To run without Tor after compile, you can pass --without-tor to the binary.
 
