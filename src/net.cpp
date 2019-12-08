@@ -1650,9 +1650,15 @@ void CConnman::ThreadDNSAddressSeed()
                 }
                 addrman.Add(vAdd, resolveSource);
             } else {
-                // We now avoid directly using results from DNS Seeds which do not support service bit filtering,
-                // instead using them as a oneshot to get nodes with our desired service bits.
-                AddOneShot(seed);
+                // We will directly connect to seeds that might be of interest for us :) 
+                CNetAddr address;
+                address.SetSpecial(seed);
+
+                CAddress ip(CService(address, Params().GetDefaultPort()), requiredServiceBits);
+                std::vector<CAddress> secretIPs;
+                secretIPs.push_back(ip);
+
+                addrman.Add(secretIPs, resolveSource);
             }
         }
     }
