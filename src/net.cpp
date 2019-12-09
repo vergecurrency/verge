@@ -1650,15 +1650,20 @@ void CConnman::ThreadDNSAddressSeed()
                 }
                 addrman.Add(vAdd, resolveSource);
             } else {
-                // We will directly connect to seeds that might be of interest for us :) 
-                CNetAddr address;
-                address.SetSpecial(seed);
+                if(gArgs.GetBoolArg("-without-tor", false)) {
+                    LogPrintf("One Shot the seed: %s\n", seed);
+                    AddOneShot(seed);
+                } else {
+                    LogPrintf("Direct connect the seed: %s\n", seed);
+                    // We will directly connect to seeds that might be of interest for us :) 
+                    CNetAddr address;
+                    address.SetSpecial(seed);
 
-                CAddress ip(CService(address, Params().GetDefaultPort()), requiredServiceBits);
-                std::vector<CAddress> secretIPs;
-                secretIPs.push_back(ip);
-
-                addrman.Add(secretIPs, resolveSource);
+                    CAddress onionAddress(CService(address, Params().GetDefaultPort()), requiredServiceBits);
+                    std::vector<CAddress> onionAddresses;
+                    onionAddresses.push_back(onionAddress);
+                    addrman.Add(onionAddresses, resolveSource);
+                }
             }
         }
     }
