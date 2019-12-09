@@ -143,7 +143,9 @@ public:
             vSeeds.emplace_back("rje6q245yhiyn4setn5abjlcqwapxzgwbfksrscexyhv7ffjdasmvaqd.onion"); //v6 Justin
             vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v6 Swat
             vSeeds.emplace_back("763co2copdnav2ik2jlq33wzj2rogt4wfexjvukx5tg3tiepm2ahbrid.onion"); //v6 Swat
-            vSeeds.emplace_back("jmt4wbjy7qehjw6p7zqabrsg2rczzmdiqflfnnrh55htdfpbdanscnad.onion"); //v6 Marplez
+            vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP
+            vSeeds.emplace_back("zwvqhwne3mlefxd52q35cckzdo46uhvcuvl7qdzqlatgpfqe4r43suid.onion"); //v6 Marplez AMS
+            vSeeds.emplace_back("ojmwnkopgmpotm2byx7vsm7xplqxhctutw3d3ve7k5mbybsuydfk46qd.onion"); //v6 Marplez NYC
             vSeeds.emplace_back("yljtbpoubr2b43kr.onion");
             vSeeds.emplace_back("pjga6ctdjjussj5c.onion");
             vSeeds.emplace_back("6xugg5xdwbxhvvhg.onion");
