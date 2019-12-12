@@ -20,6 +20,7 @@
 
 #ifndef WIN32
 #include <fcntl.h>
+#include <resolv.h>
 #endif
 
 #include <boost/algorithm/string/case_conv.hpp> // for to_lower()
@@ -118,6 +119,7 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
 }
 
 bool LookupTorHost(const char *pszName, std::vector<CNetAddr>& vIP) {
+    #ifndef WIN32
     res_init();
 
     int response;
@@ -149,7 +151,11 @@ bool LookupTorHost(const char *pszName, std::vector<CNetAddr>& vIP) {
     }
 
     return (vIP.size() > 0);
+    #else
+    return false;
+    #endif
 }
+
 
 bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions, bool fAllowLookup)
 {
