@@ -154,9 +154,15 @@ public:
             vSeeds.emplace_back("b7wajcc3sesbgezp.onion");
             vSeeds.emplace_back("iepsagowgreyeyfo.onion");
             vSeeds.emplace_back("mrb4ndemnqcow3jr.onion");
-            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion"); //v6 Justin
-            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion"); //v6 Justin
-            vSeeds.emplace_back("rje6q245yhiyn4setn5abjlcqwapxzgwbfksrscexyhv7ffjdasmvaqd.onion"); //v6 Justin
+            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("rje6q245yhiyn4setn5abjlcqwapxzgwbfksrscexyhv7ffjdasmvaqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("wu6bebmvs6jw2t6lmjg3aako5synunxm4i3zb7bybvzrvxe277achfad.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("jvnd4gjzhmuiaph5xft6ju4twt5gjmpbqdc2sis7gd2pnnqpwwpqz5id.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("wuoki3rq3htqmtrmrtkqtnxzgfsgclwj7jrxk35abkwksni2asdepzyd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("7wg3vv67i5m3uiectqw4taj5pm3qmxnlgyb7ks7e5oilo62g7mxn2zqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("y2y2cr6h4dn3g5l4545mj7dw245i3fsuixx6he6r4w4aqh3j23pwqoid.onion"); //v6 SUNEROK
             vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v6 Swat
             vSeeds.emplace_back("763co2copdnav2ik2jlq33wzj2rogt4wfexjvukx5tg3tiepm2ahbrid.onion"); //v6 Swat
             vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP
