@@ -6,7 +6,6 @@
 
 #include <netbase.h>
 
-#include "arpa/nameser_compat.h"
 #include <hash.h>
 #include <sync.h>
 #include <uint256.h>
@@ -19,6 +18,7 @@
 #include <atomic>
 
 #ifndef WIN32
+#include "arpa/nameser_compat.h"
 #include <fcntl.h>
 #include <resolv.h>
 #endif
