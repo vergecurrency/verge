@@ -136,33 +136,34 @@ public:
         // release ASAP to avoid it where possible.
 
         // Adding some nodes in case it works
-        if(!gArgs.IsArgSet("-without-tor")){
-            vSeeds.emplace_back("lhvnwvqdlxxyotdmfej45jgphupxob5fci4hjxvw2ui75e24tjssl2id.onion");
-            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion");
-            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion");
-            vSeeds.emplace_back("gasppfoxxedddnme.onion");
-            vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
-            vSeeds.emplace_back("bnm5ujfsvexzba4w.onion");
-            vSeeds.emplace_back("sarpou7gsi7nan5m.onion");
-            vSeeds.emplace_back("4j3cz66g4z5o4aso.onion");
-            vSeeds.emplace_back("fqsvfu5gcmjox26m.onion");
-            vSeeds.emplace_back("kte6vpxfpim5lwqv.onion");
-            vSeeds.emplace_back("3z4vuj5k5xymy5su.onion");
-            vSeeds.emplace_back("ruxut6k4a6d4qe53.onion");
-            vSeeds.emplace_back("wfyfkm6j3vcuw2qz.onion");
-            vSeeds.emplace_back("cit2rtwxzwxrmory.onion");
-            vSeeds.emplace_back("vwym36tts7zhm24k.onion");
-            vSeeds.emplace_back("jzo6govpwfeauspf.onion");
-            vSeeds.emplace_back("ngfxjjrrtxteffvt.onion");
-            vSeeds.emplace_back("y2czcambifo2ybdm.onion");
-            vSeeds.emplace_back("6telhbsuva4qkff2.onion");
+
+        if (!gArgs.IsArgSet("-without-tor")) {
+            vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("ry7yyqv4oeu2kjygco5xvcvi2sgr5bxkynvh6yctftghwe2jy6w2wkqd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("25hj4mdmslzvu2lngo4jcsbrouwsdktv6ps3xifipju74oqyoply6qad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("rje6q245yhiyn4setn5abjlcqwapxzgwbfksrscexyhv7ffjdasmvaqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("wu6bebmvs6jw2t6lmjg3aako5synunxm4i3zb7bybvzrvxe277achfad.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("jvnd4gjzhmuiaph5xft6ju4twt5gjmpbqdc2sis7gd2pnnqpwwpqz5id.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("wuoki3rq3htqmtrmrtkqtnxzgfsgclwj7jrxk35abkwksni2asdepzyd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("7wg3vv67i5m3uiectqw4taj5pm3qmxnlgyb7ks7e5oilo62g7mxn2zqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("y2y2cr6h4dn3g5l4545mj7dw245i3fsuixx6he6r4w4aqh3j23pwqoid.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v6 Swat
+            vSeeds.emplace_back("763co2copdnav2ik2jlq33wzj2rogt4wfexjvukx5tg3tiepm2ahbrid.onion"); //v6 Swat
+            vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP
+            vSeeds.emplace_back("zwvqhwne3mlefxd52q35cckzdo46uhvcuvl7qdzqlatgpfqe4r43suid.onion"); //v6 Marplez AMS
+            vSeeds.emplace_back("ojmwnkopgmpotm2byx7vsm7xplqxhctutw3d3ve7k5mbybsuydfk46qd.onion"); //v6 Marplez NYC
         } else {
             vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
             vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
             vSeeds.emplace_back("185.162.9.97");
-            vSeeds.emplace_back("159.89.46.252"); // v5-new-york
-            vSeeds.emplace_back("139.59.34.170"); // v5-india
-            vSeeds.emplace_back("134.209.197.243"); // v5-NL
+            vSeeds.emplace_back("159.89.46.252"); // v6-new-york
+            vSeeds.emplace_back("139.59.34.170"); // v6-india
+            vSeeds.emplace_back("134.209.197.243"); // v6-NL
             vSeeds.emplace_back("104.131.144.82");
             vSeeds.emplace_back("192.241.187.222");
             vSeeds.emplace_back("105.228.198.44");
