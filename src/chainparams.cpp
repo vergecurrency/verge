@@ -139,7 +139,10 @@ public:
 
         if (!gArgs.IsArgSet("-without-tor")) {
             vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
-            vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("zca2vot3ucw6bjvdg6yhgjxzvyqv7fl27pvu4pskdng6w6dhjfrs5myd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("ho6iij2ag6fcnwnqhfwkzfvitcvbrr3lmlgetxlve2isvfqp72vwu5ad.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("obtsnd4wobjuubco4v2awt534zoog2wtq3oknloibmeul3dh5cxycjqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("ry7yyqv4oeu2kjygco5xvcvi2sgr5bxkynvh6yctftghwe2jy6w2wkqd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v6 SUNEROK
             vSeeds.emplace_back("25hj4mdmslzvu2lngo4jcsbrouwsdktv6ps3xifipju74oqyoply6qad.onion"); //v6 SUNEROK
