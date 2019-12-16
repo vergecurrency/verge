@@ -160,7 +160,8 @@ public:
             vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP
             vSeeds.emplace_back("zwvqhwne3mlefxd52q35cckzdo46uhvcuvl7qdzqlatgpfqe4r43suid.onion"); //v6 Marplez AMS
             vSeeds.emplace_back("ojmwnkopgmpotm2byx7vsm7xplqxhctutw3d3ve7k5mbybsuydfk46qd.onion"); //v6 Marplez NYC
-	    vSeeds.emplace_back("i3k7kqqrlbm26w27xjqh5tw6bm277jki7ueojejxnjcxktt7ofk7f4ad.onion"); //v6 2lazy2debug DE
+	    vSeeds.emplace_back("g7cbcrcxdy7kszjmvw62bfm5douesjtkioqycc6m4gpomybcsohba7ad.onion"); //v6 2lazy2debug DE
+	    vSeeds.emplace_back("2zju2kcvt55h3v5dnghtduw5hrqqlt6nggngtyjnrjgybu7tqz4wvdad.onion"); //v6 2lazy2debug NL
         } else {
             vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
             vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
