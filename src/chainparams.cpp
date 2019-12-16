@@ -138,8 +138,11 @@ public:
         // Adding some nodes in case it works
 
         if (!gArgs.IsArgSet("-without-tor")) {
-            vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
-            vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK  
+	          vSeeds.emplace_back("zca2vot3ucw6bjvdg6yhgjxzvyqv7fl27pvu4pskdng6w6dhjfrs5myd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("ho6iij2ag6fcnwnqhfwkzfvitcvbrr3lmlgetxlve2isvfqp72vwu5ad.onion"); //v6 SUNEROK
+	          vSeeds.emplace_back("obtsnd4wobjuubco4v2awt534zoog2wtq3oknloibmeul3dh5cxycjqd.onion"); //v6 SUNEROK
+	          vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("ry7yyqv4oeu2kjygco5xvcvi2sgr5bxkynvh6yctftghwe2jy6w2wkqd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v6 SUNEROK
             vSeeds.emplace_back("25hj4mdmslzvu2lngo4jcsbrouwsdktv6ps3xifipju74oqyoply6qad.onion"); //v6 SUNEROK
@@ -157,6 +160,8 @@ public:
             vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP
             vSeeds.emplace_back("zwvqhwne3mlefxd52q35cckzdo46uhvcuvl7qdzqlatgpfqe4r43suid.onion"); //v6 Marplez AMS
             vSeeds.emplace_back("ojmwnkopgmpotm2byx7vsm7xplqxhctutw3d3ve7k5mbybsuydfk46qd.onion"); //v6 Marplez NYC
+	    vSeeds.emplace_back("i3k7kqqrlbm26w27xjqh5tw6bm277jki7ueojejxnjcxktt7ofk7f4ad.onion"); //v6 2lazy2debug DE
+
         } else {
             vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
             vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
