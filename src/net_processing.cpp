@@ -1576,7 +1576,7 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
     return true;
 }
 
-std::string deprecatedVersions[] = {"XVG:2", "VVraith:2"};
+std::string deprecatedVersions[] = {"XVG:2", " VVraith:2"};
 
 bool IsDeprecatedVersionNumber(std::string strSubVer){
     for(const std::string &versionStr : deprecatedVersions){
@@ -1717,6 +1717,40 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 LogPrintf("bad peer: peer's connecting subver is %s, which is too old! - disconnecting!\n", pfrom->strSubVer.c_str());
                 pfrom->fDisconnect = true;
             }
+
+        }
+	if (!vRecv.empty())
+        {
+            vRecv >> pfrom->strSubVer;
+            printf("subver alert: peer connecting subver is %s",pfrom->strSubVer.c_str());
+            
+            std::size_t iFoundPosition = pfrom->strSubVer.find("verge:5.3.1");
+            if(iFoundPosition != std::string::npos)
+            {
+                printf("  -  disconnecting .....\n");
+                pfrom->fDisconnect = true;
+                return false;
+            }
+            
+            std::size_t iFoundPosition2 = pfrom->strSubVer.find("VVraith:4.0.1");
+            if(iFoundPosition2 != std::string::npos)
+            {
+                printf("  -  disconnecting .....\n");
+                pfrom->fDisconnect = true;
+                return false;
+            }
+            
+            std::size_t iFoundPosition3 = pfrom->strSubVer.find("VVraith:4.0.2");
+            if(iFoundPosition3 != std::string::npos)
+            {
+                printf("  -  disconnecting .....\n");
+                pfrom->fDisconnect = true;
+                return false;
+            }
+
+
+            printf("\n");
+            
         }
         if (!vRecv.empty()) {
             vRecv >> nStartingHeight;
