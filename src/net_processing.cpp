@@ -6,6 +6,7 @@
 
 #include <net_processing.h>
 
+#include <alerter.h>
 #include <addrman.h>
 #include <arith_uint256.h>
 #include <blockencodings.h>
@@ -1704,6 +1705,15 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
             pfrom->fDisconnect = true;
             return false;
+        }
+
+        if (nVersion > PROTOCOL_VERSION) {
+            DoWarning(
+                strprintf(
+                    "Warning: Unknown protocol version detected (protocol-version %i). Consider checking updates for your wallet.",
+                    nVersion
+                )
+            );
         }
 
         if (nVersion == 10300)

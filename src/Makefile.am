@@ -235,6 +235,7 @@ VERGE_CORE_H = \
   util/moneystr.h \
   util/time.h \
   validation.h \
+  alerter.h \
   validationinterface.h \
   versionbits.h \
   torcontroller.h \
@@ -305,6 +306,7 @@ libverge_server_a_SOURCES = \
   txmempool.cpp \
   ui_interface.cpp \
   validation.cpp \
+  alerter.cpp \
   validationinterface.cpp \
   versionbits.cpp \
   torcontroller.cpp \
