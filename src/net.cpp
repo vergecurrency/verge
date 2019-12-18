@@ -216,9 +216,12 @@ bool AddLocal(const CService& addr, int nScore)
     if (IsLimited(addr))
         return false;
 
-    bool isTorActived = !gArgs.GetBoolArg("-without-tor", false);
-    if((isTorActived && !addr.IsTor()) && (isTorActived && !addr.IsTorV3()))
-        return false;
+    if(!gArgs.GetBoolArg("-dynamic-network", false)){
+        bool isTorActived = !gArgs.GetBoolArg("-without-tor", false);
+        if((isTorActived && !addr.IsTor()) && (isTorActived && !addr.IsTorV3())){
+            return false;
+        }
+    }
 
     LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
 
