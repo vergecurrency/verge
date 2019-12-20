@@ -43,7 +43,9 @@ $(package)_config_opts+=no-whirlpool
 $(package)_config_opts+=no-zlib
 $(package)_config_opts+=no-zlib-dynamic
 $(package)_config_opts+=$($(package)_cflags) $($(package)_cppflags)
+$(package)_config_opts+=-DPURIFY
 $(package)_config_opts_linux=-fPIC -Wa,--noexecstack
+$(package)_config_opts_freebsd=-fPIC -Wa,--noexecstack
 $(package)_config_opts_x86_64_linux=linux-x86_64
 $(package)_config_opts_i686_linux=linux-generic32
 $(package)_config_opts_arm_linux=linux-generic32
@@ -55,13 +57,15 @@ $(package)_config_opts_powerpc_linux=linux-generic32
 $(package)_config_opts_riscv32_linux=linux-generic32
 $(package)_config_opts_riscv64_linux=linux-generic64
 $(package)_config_opts_x86_64_darwin=darwin64-x86_64-cc
+$(package)_config_opts_x86_64_freebsd=BSD-x86_64
+$(package)_config_opts_i686_freebsd=BSD-generic32
 $(package)_config_opts_x86_64_mingw32=mingw64
 $(package)_config_opts_i686_mingw32=mingw
 endef
 
 define $(package)_preprocess_cmds
-  sed -i.old "/define DATE/d" util/mkbuildinf.pl && \
-  sed -i.old "s|engines apps test|engines|" Makefile.org
+  sed -i.old 's/built on: $$$$date/built on: date not available/' util/mkbuildinf.pl && \
+  sed -i.old "s|\"engines\", \"apps\", \"test\"|\"engines\"|" Configure
 endef
 
 define $(package)_config_cmds
@@ -73,7 +77,7 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  $(MAKE) INSTALL_PREFIX=$($(package)_staging_dir) -j1 install_sw
+  $(MAKE) DESTDIR=$($(package)_staging_dir) -j1 install_sw
 endef
 
 define $(package)_postprocess_cmds
