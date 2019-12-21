@@ -12,7 +12,9 @@ jobs:
     - uses: actions/stale@v1
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'Stale issue message'
-        stale-pr-message: 'Stale pull request message'
+        stale-issue-message: | 
+          Your issue hasn't been processed. I'm pushing your issue again, either someone will follow up or close it.
+        stale-pr-message: |
+          'Your pull request hasn't been touched for a long time, please check if there's something left to do. Thank you.'
         stale-issue-label: 'no-issue-activity'
         stale-pr-label: 'no-pr-activity'
