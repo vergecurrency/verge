@@ -154,6 +154,9 @@ public:
             vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("7wg3vv67i5m3uiectqw4taj5pm3qmxnlgyb7ks7e5oilo62g7mxn2zqd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("y2y2cr6h4dn3g5l4545mj7dw245i3fsuixx6he6r4w4aqh3j23pwqoid.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("hrpy4r4xijwps32lknzbyd36ad6vaibumceioaxe62smpiv22oktiwad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("oy2q3dl6pupe4mk2dzrbtbvpf3fjru2ajdr4rsrxlxpaweqn3utvxzad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("u7ikxx5hloxuvyr53mwqdzgxr5cjpabqruzqrx5qfcvuv6kpa22gsjid.onion"); //v6 SUNEROK
             vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v6 Swat
             vSeeds.emplace_back("763co2copdnav2ik2jlq33wzj2rogt4wfexjvukx5tg3tiepm2ahbrid.onion"); //v6 Swat
             vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP

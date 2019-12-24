@@ -1,0 +1,20 @@
+name: welcomer-messages
+
+on: [pull_request, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: |
+          So sorry to hear, that you've in trouble with our software. We will
+          review your ticket as soon as we can. Please make sure to state your problem as 
+          detailed as possible and also consider checking our FAQ/Wiki sites. 
+        pr-message: |
+          Thank you for submitting a Pull-Request to the Verge repository.
+          Please make sure that you read the CONTRIBUTION.md in order to quickily 
+          move forward with your ticket. Moreover we would like you to also have
+          a look onto your pipelines and upcoming reviews.
