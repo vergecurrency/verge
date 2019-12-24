@@ -1378,7 +1378,9 @@ bool AppInitMain()
     
     if (gArgs.IsArgSet("-without-tor")){
         SetLimited(NET_TOR);
-        LogPrintf("Tor disabled, Socks Proxy not initialized.\n");
+        LogPrintf("[DEPRECATED] flag -without-tor will be removed with the upcoming release\n");
+        LogPrintf("[DEPRECATED] Please use -dynamic-network instead\n");
+        LogPrintf("[DEPRECATED] Tor disabled, Socks Proxy not initialized.\n");
     }
 
     assert(!g_connman);
