@@ -716,17 +716,17 @@ bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealt
         return false;
     };
     
-    // leaving  Log Prints for debugging reasons.
-    LogPrintf("getnewstealthaddress: \n");
-    LogPrintf("scan_pubkey \n");
-    for (uint32_t i = 0; i < scan_pubkey.size(); ++i)
-        LogPrintf("%02x\n", scan_pubkey[i]);
-    LogPrintf("\n");
+    // leaving Log Prints for debugging reasons.
+    // LogPrintf("getnewstealthaddress: \n");
+    // LogPrintf("scan_pubkey \n");
+    // for (uint32_t i = 0; i < scan_pubkey.size(); ++i)
+    //     LogPrintf("%02x\n", scan_pubkey[i]);
+    // LogPrintf("\n");
     
-    LogPrintf("spend_pubkey \n");
-    for (uint32_t i = 0; i < spend_pubkey.size(); ++i)
-        LogPrintf("%02x\n", spend_pubkey[i]);
-    LogPrintf("\n");
+    // LogPrintf("spend_pubkey \n");
+    // for (uint32_t i = 0; i < spend_pubkey.size(); ++i)
+    //     LogPrintf("%02x\n", spend_pubkey[i]);
+    // LogPrintf("\n");
     
     sxAddr.label = sLabel;
     sxAddr.scan_pubkey = scan_pubkey;
