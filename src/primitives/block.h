@@ -44,6 +44,26 @@ enum
     BLOCK_VERSION_LYRA2RE	     = (10 << 11), //'101000000000000' 10
 };
 
+inline int GetVersionForAlgo(int algo)
+{
+    switch(algo)
+    {
+        case ALGO_LYRA2RE:
+	        return BLOCK_VERSION_LYRA2RE;
+        case ALGO_SCRYPT:
+            return BLOCK_VERSION_SCRYPT;
+        case ALGO_GROESTL:
+            return BLOCK_VERSION_GROESTL;
+        case ALGO_X17:
+            return BLOCK_VERSION_X17;   
+        case ALGO_BLAKE:
+            return BLOCK_VERSION_BLAKE;
+        default:
+            assert(false);
+            return 0;
+    }
+}
+
 static inline int GetAlgoByName(std::string strAlgo){
     if (strAlgo == "scrypt")
         return ALGO_SCRYPT;

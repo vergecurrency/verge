@@ -122,8 +122,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     nHeight = pindexPrev->nHeight + 1;
     
     // bitcoins version of computing the version based on the deployment status (not yet needed for us)
-    // pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
-    pblock->nVersion = pindexPrev->nHeight >= chainparams.GetConsensus().STEALTH_TX_SWITCH_BLOCK ? BLOCK_VERSION_STEALTH : BLOCK_VERSION_DEFAULT;
+    pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus(), algo);
 
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
