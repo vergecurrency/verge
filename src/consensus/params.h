@@ -64,7 +64,10 @@ struct Params {
     int FlexibleMiningAlgorithms;
     /** Block height at which VERGE was forked into VERGE v3 */
     int ForkHeight;
+    /** Block height at which VERGE was forked into VERGE v4.0.3 */
     int CLOCK_DRIFT_FORK;
+    /** Block height at which VERGE remove all nTime occurrences + block signatures */
+    int CLEAR_POS_FORK;
 
 
     /**

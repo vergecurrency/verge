@@ -419,6 +419,9 @@ bool hasUsedValidMiningAlgorithm(const CBlock& block, const CBlockIndex* pindexP
 /** Check a block is completely valid from start to finish (only works on top of our current best block, with cs_main held) */
 bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckBlockSignature = true);
 
+/** Check whether a block should be signed or not anymore, leave block signatures empty vector */
+bool isBlockSignaturesDisabled(int nHeight, const Consensus::Params& params);
+
 /** Check whether witness commitments are required for block. */
 bool IsWitnessEnabled(const CBlockIndex* pindexPrev, const Consensus::Params& params);
 

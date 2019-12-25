@@ -3181,7 +3181,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
-    if (fCheckBlockSignature) {
+    if (fCheckBlockSignature && !isBlockSignaturesDisabled(chainActive.Height(), Params().GetConsensus())) {
         if(!block.CheckBlockSignature()) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
         }
@@ -3194,6 +3194,11 @@ bool IsWitnessEnabled(const CBlockIndex* pindexPrev, const Consensus::Params& pa
 {
     LOCK(cs_main);
     return (VersionBitsState(pindexPrev, params, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == ThresholdState::ACTIVE);
+}
+
+bool isBlockSignaturesDisabled(int nHeight, const Consensus::Params& params) {
+    LOCK(cs_main);
+    return nHeight >= params.CLEAR_POS_FORK;
 }
 
 bool IsNullDummyEnabled(const CBlockIndex* pindexPrev, const Consensus::Params& params)

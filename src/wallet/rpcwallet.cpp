@@ -4524,10 +4524,6 @@ static UniValue submitblock(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Wallet has to be available for block signature creation.");
     }
-
-    if (!blockptr->SignBlock(*pwallet)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
-    }
     
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase()) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
@@ -4554,6 +4550,11 @@ static UniValue submitblock(const JSONRPCRequest& request)
         LOCK(cs_main);
         const CBlockIndex* pindex = LookupBlockIndex(block.hashPrevBlock);
         if (pindex) {
+            if(!isBlockSignaturesDisabled(pindex->nHeight + 1, Params().GetConsensus())){
+                if (!blockptr->SignBlock(*pwallet)) {
+                    throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
+                }
+            }
             UpdateUncommittedBlockStructures(block, pindex, Params().GetConsensus());
         }
     }
@@ -4610,7 +4611,9 @@ UniValue generateBlocks(const JSONRPCRequest& request, std::shared_ptr<CReserveS
 
         std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
         CWallet* const pwallet = wallet.get();
-        pblock->SignBlock(*pwallet);
+        if(!isBlockSignaturesDisabled(nHeight, Params().GetConsensus())){
+            pblock->SignBlock(*pwallet);
+        }
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
         if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
