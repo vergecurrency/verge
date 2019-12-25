@@ -3324,13 +3324,6 @@ bool hasUsedValidMiningAlgorithm(const CBlock& block, const CBlockIndex* pindexP
     return true;
 }
 
-static int64_t GetMaxClockDrift(int nHeight, const Consensus::Params& consensusParams){
-    if (nHeight < consensusParams.CLOCK_DRIFT_FORK)
-        return 2 * 60 * 60; // old 2 hour drift
-    else
-        return 10 * 60; // new 10 min drift
-}
-
 /** NOTE: This function is not currently invoked by ConnectBlock(), so we
  *  should consider upgrade issues if we change which consensus rules are
  *  enforced in this function (eg by adding a new consensus rule). See comment
