@@ -258,13 +258,10 @@ public:
             }
         };
 
-        // FIXME: need to know the amount of transactions
         chainTxData = ChainTxData{
-            // Data as of block 0000000000000000002d6cca6761c99b3c2e936f9a0e304b7c7651a993f461de (height 506081).
-            1412878964, // * UNIX timestamp of last known number of transactions
-            1,  // * total number of transactions between genesis and that timestamp
-                        //   (the tx=... number in the SetBestChain debug.log lines)
-            1         // * estimated number of transactions per second after that timestamp
+            1577552136,
+            8015431,
+            0.04004504697221486         
         };
 
         /* disable fallback fee on mainnet */
