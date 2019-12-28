@@ -220,6 +220,7 @@ public:
                 { 900000, uint256S("0xc4d8b4079da888985854eda0200fb57045c2c70b29f10e98543f7c4076129e91")},
                 {1000000, uint256S("0x000000000049eaba3d6c29d9f45bc2a944b46eec005e2b038f1ee924f2f9c029")},
                 {1100000, uint256S("0xc766387a2e0cd6af995ea432518614824fe313e988598ea8b26f58efb99ebcdc")},
+                {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
             }
         };
 
@@ -253,6 +254,7 @@ public:
                 {2500000, uint256S("0xff122f47bff95423f64d2167401192ee336a6c51b0c560afa8a9ea16ee81d886")},
                 {2600000, uint256S("0x20af6c9020b36967944f7dcacf4b7a49ec56c068c681f6170614585abd3de6cf")},
                 {2700000, uint256S("0x49fa4075fa2396bf797818e172b3b5702a39d8318606a0ee01c5d06555e65bf6")},
+                {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
             }
         };
 
