@@ -1698,11 +1698,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (nVersion < MIN_PEER_PROTO_VERSION)
         {
             // disconnect from peers older than this proto version
-            LogPrint(BCLog::NET, "peer=%d using obsolete version %i; disconnecting\n", pfrom->GetId(), nVersion);
-            if (g_enable_bip61) {
-                connman->PushMessage(pfrom, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
-                                   strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION)));
-            }
+            Misbehaving(pfrom->GetId(), 100, strprintf("peer=%d using obsolete version %i; disconnecting\n", nVersion));
             pfrom->fDisconnect = true;
             return false;
         }
