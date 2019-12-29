@@ -1653,14 +1653,8 @@ void CConnman::ThreadDNSAddressSeed()
                 }
                 addrman.Add(vAdd, resolveSource);
             } else {
-                // We will directly connect to seeds that might be of interest for us :) 
-                CNetAddr address;
-                address.SetSpecial(seed);
-
-                CAddress onionAddress(CService(address, Params().GetDefaultPort()), requiredServiceBits);
-                std::vector<CAddress> onionAddresses;
-                onionAddresses.push_back(onionAddress);
-                addrman.Add(onionAddresses, resolveSource);
+                LogPrintf("One Shot the seed: %s\n", seed);
+                AddOneShot(seed);
             }
         }
     }
