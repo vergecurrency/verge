@@ -433,6 +433,7 @@ void SetupServerArgs()
     gArgs.AddArg("-seednode=<ip>", "Connect to a node to retrieve peer addresses, and disconnect", false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-timeout=<n>", strprintf("Specify connection timeout in milliseconds (minimum: 1, default: %d)", DEFAULT_CONNECT_TIMEOUT), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-without-tor", strprintf("Removes the limitation to route all traffic through tor. (default: %s)", false), false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-dynamic-network", strprintf("Removes the limitation to route all traffic through tor but keeps running a tor proxy. (default: %s)", false), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torsocksport", strprintf("Sets the tor port to a custom socket port. (default: %i)", 9080), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torcontrol=<ip>:<port>", strprintf("Tor control port to use if onion listening enabled (default: %s)", DEFAULT_TOR_CONTROL), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torpassword=<pass>", "Tor control port password (default: empty)", false, OptionsCategory::CONNECTION);
@@ -1361,15 +1362,25 @@ bool AppInitMain()
             return InitError(strprintf(_("Invalid -onion address or hostname: '127.0.0.1:9050'")));
 
         SetProxy(NET_TOR, addrOnion);
-        SetProxy(NET_IPV4, addrOnion);
-        SetProxy(NET_IPV6, addrOnion);
+        if(!gArgs.GetBoolArg("-dynamic-network", false)) {
+            SetProxy(NET_IPV4, addrOnion);
+            SetProxy(NET_IPV6, addrOnion);
+        }
 
         SetLimited(NET_TOR, false);
+        if(gArgs.GetBoolArg("-dynamic-network", false)) {
+            SetLimited(NET_IPV4, false);
+            SetLimited(NET_IPV6, false);
+        }
 
         LogPrintf("Tor Successfully bound ...\n");
-	} else {
+	}
+    
+    if (gArgs.IsArgSet("-without-tor")){
         SetLimited(NET_TOR);
-        LogPrintf("Tor disabled, Socks Proxy not initialized.\n");
+        LogPrintf("[DEPRECATED] flag -without-tor will be removed with the upcoming release\n");
+        LogPrintf("[DEPRECATED] Please use -dynamic-network instead\n");
+        LogPrintf("[DEPRECATED] Tor disabled, Socks Proxy not initialized.\n");
     }
 
     assert(!g_connman);
@@ -1766,8 +1777,9 @@ bool AppInitMain()
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);
 
-    if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION) || !gArgs.IsArgSet("-without-tor"))
+    if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION) || !gArgs.IsArgSet("-without-tor") || gArgs.IsArgSet("-dynamic-network")) {
         StartTorControl();
+    }
 
     Discover();
 

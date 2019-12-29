@@ -6,6 +6,10 @@
   <a href="https://codecov.io/gh/vergecurrency/VERGE">
     <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/develop/graph/badge.svg" />
   </a>
+  <a href="https://github.com/vergecurrency/VERGE/releases">
+    <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vergecurrency/VERGE/total?style=social">
+  </a>
+  <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
 </p>
 
 # VERGE Source Code [XVG]
@@ -23,17 +27,24 @@ pre-mine | N/A
 ICO | N/A
 
 ## Blockrewards
-Block Number | Reward
+Block Number Range | Reward
 --- | ---
 0 to 14,000 | 200,000 coins
-14,000 to 28,000 | 100,000 coins
-28,000 to 42,000 | 50,000 coins
-42,000 to 210,000 | 25,000 coins
-210,000 to 378,000 | 12,500 coins
-378,000 to 546,000 | 6,250 coins
-546,000 to 714,000 | 3,125 coins
-714,000 to 2,124,000 | 1,560 coins
-2,124,000 to 4,248,000 | 730 coins
+14,001 to 28,000 | 100,000 coins
+28,001 to 42,000 | 50,000 coins
+42,001 to 210,000 | 25,000 coins
+210,001 to 378,000 | 12,500 coins
+378,001 to 546,000 | 6,250 coins
+546,001 to 714,000 | 3,125 coins
+714,001 to 2,124,000 | 1,560 coins
+2,124,001 to 3,700,000 | 730 coins
+3,700,001 to 4,200,000 | 400 coins
+4,200,001 to 4,700,000 | 200 coins
+4,700,001 to 5,200,000 | 100 coins
+5,200,001 to 5,700,000 | 50  coins
+5,700,001 to 6,200,000 | 25  coins
+6,200,001 to 6,700,000 | 12.5 coins
+6,700,001 to 7,200,000 | 6.25 coins
 
 ## Resources
 

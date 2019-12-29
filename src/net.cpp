@@ -216,9 +216,12 @@ bool AddLocal(const CService& addr, int nScore)
     if (IsLimited(addr))
         return false;
 
-    bool isTorActived = !gArgs.GetBoolArg("-without-tor", false);
-    if((isTorActived && !addr.IsTor()) && (isTorActived && !addr.IsTorV3()))
-        return false;
+    if(!gArgs.GetBoolArg("-dynamic-network", false)){
+        bool isTorActived = !gArgs.GetBoolArg("-without-tor", false);
+        if((isTorActived && !addr.IsTor()) && (isTorActived && !addr.IsTorV3())){
+            return false;
+        }
+    }
 
     LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
 
@@ -1650,9 +1653,14 @@ void CConnman::ThreadDNSAddressSeed()
                 }
                 addrman.Add(vAdd, resolveSource);
             } else {
-                // We now avoid directly using results from DNS Seeds which do not support service bit filtering,
-                // instead using them as a oneshot to get nodes with our desired service bits.
-                AddOneShot(seed);
+                // We will directly connect to seeds that might be of interest for us :) 
+                CNetAddr address;
+                address.SetSpecial(seed);
+
+                CAddress onionAddress(CService(address, Params().GetDefaultPort()), requiredServiceBits);
+                std::vector<CAddress> onionAddresses;
+                onionAddresses.push_back(onionAddress);
+                addrman.Add(onionAddresses, resolveSource);
             }
         }
     }

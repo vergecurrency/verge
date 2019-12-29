@@ -21,6 +21,7 @@
 #include <script/script_error.h>
 #include <script/standard.h>
 #include <util/strencodings.h>
+#include <timedata.h>
 
 #include <map>
 #include <string>
@@ -93,6 +94,17 @@ std::string FormatScriptFlags(unsigned int flags)
 }
 
 BOOST_FIXTURE_TEST_SUITE(transaction_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(tx_time_being_adjusted)
+{
+    CMutableTransaction txOne;
+
+    // Transaction nTime should always be in the range of the AdjustedTime
+    // Should always fit the rule: (AdjustedTime - 5) <= txTime <= AdjustedTime
+    
+    uint32_t curTime = GetAdjustedTime();
+    BOOST_CHECK(curTime - 5 <= txOne.nTime && txOne.nTime <= curTime);
+}
 
 /*BOOST_AUTO_TEST_CASE(tx_valid)
 {

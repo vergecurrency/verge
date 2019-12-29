@@ -6,6 +6,7 @@
 
 #include <validation.h>
 
+#include <alerter.h>
 #include <arith_uint256.h>
 #include <chain.h>
 #include <chainparams.h>
@@ -65,8 +66,8 @@ namespace {
     {
         bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
             // First sort by most total work, ...
-            if (pa->nChainWork > pb->nChainWork) return false;
-            if (pa->nChainWork < pb->nChainWork) return true;
+            if (pa->GetBlockWork() > pb->GetBlockWork()) return false;
+            if (pa->GetBlockWork() < pb->GetBlockWork()) return true;
 
             // ... then by earliest time received, ...
             if (pa->nSequenceId < pb->nSequenceId) return false;
@@ -125,7 +126,9 @@ private:
     /** Decreasing counter (used by subsequent preciousblock calls). */
     int32_t nBlockReverseSequenceId = -1;
     /** chainwork for the last block that preciousblock has been applied to. */
-    arith_uint256 nLastPreciousChainwork = 0;
+    // FIXME VIP-1
+    // arith_uint256 nLastPreciousChainwork = 0;
+    arith_uint256 nLastPreciousBlockHeight = 0;
 
     /** In order to efficiently track invalidity of headers, we keep the set of
       * blocks which we tried to connect and found to be invalid here (ie which
@@ -179,6 +182,7 @@ public:
     bool DisconnectTip(CValidationState& state, const CChainParams& chainparams, DisconnectedBlockTransactions *disconnectpool);
 
     // Manual block validity manipulation:
+    arith_uint256 GetLastPreciousBlockWork() const;
     bool PreciousBlock(CValidationState& state, const CChainParams& params, CBlockIndex *pindex);
     bool InvalidateBlock(CValidationState& state, const CChainParams& chainparams, CBlockIndex *pindex);
     bool ResetBlockFailureFlags(CBlockIndex *pindex);
@@ -204,7 +208,7 @@ private:
      * By default this only executes fully when using the Regtest chain; see: fCheckBlockIndex.
      */
     void CheckBlockIndex(const Consensus::Params& consensusParams);
-
+    void SetNewPreciousBlockWork(const arith_uint256& newWork);
     void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state);
     CBlockIndex* FindMostWorkChain();
     void ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pindexNew, const FlatFilePos& pos, const Consensus::Params& consensusParams);
@@ -1202,10 +1206,20 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
         return 3125 * COIN;
     if (nHeight<2124001 && nHeight>714000)
         return 1560 * COIN;
-    if (nHeight<4248001 && nHeight>2124000)
+    if (nHeight<3700001 && nHeight>2124000)
         return 730 * COIN;
 
-    return 0; // Default
+    const int lastIrregularBlock = 3700001;
+    const int newSubsidyHeight = nHeight - lastIrregularBlock;
+
+    const CAmount initialHalvingRewards = 400 * COIN;
+    const int halvingCount = newSubsidyHeight / consensusParams.nSubsidyHalvingInterval;
+
+    if (halvingCount < 7) {
+        return initialHalvingRewards >> halvingCount;
+    }
+
+    return 0;
 }
 
 bool IsInitialBlockDownload()
@@ -1233,24 +1247,6 @@ bool IsInitialBlockDownload()
 }
 
 CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
-
-static void AlertNotify(const std::string& strMessage)
-{
-    uiInterface.NotifyAlertChanged();
-    std::string strCmd = gArgs.GetArg("-alertnotify", "");
-    if (strCmd.empty()) return;
-
-    // Alert text should be plain ascii coming from a trusted source, but to
-    // be safe we first strip anything not in safeChars, then add single quotes around
-    // the whole string before passing it to the shell:
-    std::string singleQuote("'");
-    std::string safeStatus = SanitizeString(strMessage);
-    safeStatus = singleQuote+safeStatus+singleQuote;
-    boost::replace_all(strCmd, "%s", safeStatus);
-
-    std::thread t(runCommand, strCmd);
-    t.detach(); // thread runs free
-}
 
 static void CheckForkWarningConditions()
 {
@@ -2245,16 +2241,6 @@ void PruneAndFlush() {
     }
 }
 
-static void DoWarning(const std::string& strWarning)
-{
-    static bool fWarned = false;
-    SetMiscWarning(strWarning);
-    if (!fWarned) {
-        AlertNotify(strWarning);
-        fWarned = true;
-    }
-}
-
 /** Check warning conditions and do some notifications on new chain tip set. */
 void static UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams) {
     // New best block
@@ -2532,7 +2518,7 @@ CBlockIndex* CChainState::FindMostWorkChain() {
             bool fMissingData = !(pindexTest->nStatus & BLOCK_HAVE_DATA);
             if (fFailedChain || fMissingData) {
                 // Candidate chain is not usable (either invalid or missing data)
-                if (fFailedChain && (pindexBestInvalid == nullptr || pindexNew->nChainWork > pindexBestInvalid->nChainWork))
+                if (fFailedChain && (pindexBestInvalid == nullptr || pindexNew->GetBlockWork() > pindexBestInvalid->GetBlockWork()))
                     pindexBestInvalid = pindexNew;
                 CBlockIndex *pindexFailed = pindexNew;
                 // Remove the entire chain from the set.
@@ -2792,19 +2778,33 @@ bool ActivateBestChain(CValidationState &state, const CChainParams& chainparams,
     return g_chainstate.ActivateBestChain(state, chainparams, std::move(pblock));
 }
 
+arith_uint256 CChainState::GetLastPreciousBlockWork() const
+{
+    // FIXME VIP-1
+    return nLastPreciousBlockHeight;
+}
+
+void CChainState::SetNewPreciousBlockWork(const arith_uint256& newWork) 
+{
+    // FIXME VIP-1
+    nLastPreciousBlockHeight = newWork;
+}
+
 bool CChainState::PreciousBlock(CValidationState& state, const CChainParams& params, CBlockIndex *pindex)
 {
     {
         LOCK(cs_main);
-        if (pindex->nChainWork < chainActive.Tip()->nChainWork) {
+        if (pindex->GetBlockWork() < chainActive.Tip()->GetBlockWork()) {
             // Nothing to do, this block is not at the tip.
             return true;
         }
-        if (chainActive.Tip()->nChainWork > nLastPreciousChainwork) {
+        if (chainActive.Tip()->GetBlockWork() > GetLastPreciousBlockWork()) {
             // The chain has been extended since the last call, reset the counter.
             nBlockReverseSequenceId = -1;
         }
-        nLastPreciousChainwork = chainActive.Tip()->nChainWork;
+
+        SetNewPreciousBlockWork(chainActive.Tip()->GetBlockWork());
+
         setBlockIndexCandidates.erase(pindex);
         pindex->nSequenceId = nBlockReverseSequenceId;
         if (nBlockReverseSequenceId > std::numeric_limits<int32_t>::min()) {
@@ -3148,12 +3148,23 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinBase())
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
+    // Check coinbase timestamp
+    if (block.GetBlockTime() > (int64_t)block.vtx[0]->nTime + GetMaxClockDrift(chainActive.Height())){
+        return state.DoS(50, false, REJECT_INVALID, "transaction-time-too-new", false, "block timestamp earlier than transaction timestamp");
+    }
 
     // Check transactions
     for (const auto& tx : block.vtx)
+    {
         if (!CheckTransaction(*tx, state, true))
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetDebugMessage()));
+
+        // ppcoin: check transaction timestamp
+        if (block.GetBlockTime() < (int64_t)tx->nTime)
+            return state.DoS(50, false, REJECT_INVALID, "transaction-time-too-new", false, "block timestamp earlier than transaction timestamp");
+    }
+    
 
     unsigned int nSigOps = 0;
     for (const auto& tx : block.vtx)
@@ -3166,7 +3177,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
-    LogPrintf("Checking Block Signature: %i", fCheckBlockSignature);
     if (fCheckBlockSignature) {
         if(!block.CheckBlockSignature()) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");

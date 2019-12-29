@@ -68,13 +68,13 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        consensus.nSubsidyHalvingInterval = 210000;// FIXME: Unused
         consensus.ForkHeight = 2800000;
         consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
         consensus.FlexibleMiningAlgorithms = 2042000;
         consensus.CLOCK_DRIFT_FORK = 2218500;
         consensus.HeightAndMedianTimeDifficultyAdjustmentPerAlgo = 3800000;
+        consensus.nSubsidyHalvingInterval = 500000;
 		
         consensus.BIP34Height = consensus.ForkHeight;
         consensus.BIP65Height = consensus.ForkHeight;
@@ -150,33 +150,43 @@ public:
         // release ASAP to avoid it where possible.
 
         // Adding some nodes in case it works
-        if(!gArgs.IsArgSet("-without-tor")){
-            vSeeds.emplace_back("lhvnwvqdlxxyotdmfej45jgphupxob5fci4hjxvw2ui75e24tjssl2id.onion");
-            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion");
-            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion");
-            vSeeds.emplace_back("gasppfoxxedddnme.onion");
-            vSeeds.emplace_back("oxcfjsfmkrqjehjy.onion");
-            vSeeds.emplace_back("bnm5ujfsvexzba4w.onion");
-            vSeeds.emplace_back("sarpou7gsi7nan5m.onion");
-            vSeeds.emplace_back("4j3cz66g4z5o4aso.onion");
-            vSeeds.emplace_back("fqsvfu5gcmjox26m.onion");
-            vSeeds.emplace_back("kte6vpxfpim5lwqv.onion");
-            vSeeds.emplace_back("3z4vuj5k5xymy5su.onion");
-            vSeeds.emplace_back("ruxut6k4a6d4qe53.onion");
-            vSeeds.emplace_back("wfyfkm6j3vcuw2qz.onion");
-            vSeeds.emplace_back("cit2rtwxzwxrmory.onion");
-            vSeeds.emplace_back("vwym36tts7zhm24k.onion");
-            vSeeds.emplace_back("jzo6govpwfeauspf.onion");
-            vSeeds.emplace_back("ngfxjjrrtxteffvt.onion");
-            vSeeds.emplace_back("y2czcambifo2ybdm.onion");
-            vSeeds.emplace_back("6telhbsuva4qkff2.onion");
-        } else {
+        if (!gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
+            vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
+	        vSeeds.emplace_back("zca2vot3ucw6bjvdg6yhgjxzvyqv7fl27pvu4pskdng6w6dhjfrs5myd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("ho6iij2ag6fcnwnqhfwkzfvitcvbrr3lmlgetxlve2isvfqp72vwu5ad.onion"); //v6 SUNEROK
+	        vSeeds.emplace_back("obtsnd4wobjuubco4v2awt534zoog2wtq3oknloibmeul3dh5cxycjqd.onion"); //v6 SUNEROK
+	        vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("ry7yyqv4oeu2kjygco5xvcvi2sgr5bxkynvh6yctftghwe2jy6w2wkqd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("25hj4mdmslzvu2lngo4jcsbrouwsdktv6ps3xifipju74oqyoply6qad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("amafdqgkmtbkld45kaal5cwwfbrsgnimw77gawwltsaklgxxlubjvhid.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("n7rk4xqurrvedhhghkkvz2pmxalgmoviokgjiwjgcvpcxa6piym5m2ad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("rje6q245yhiyn4setn5abjlcqwapxzgwbfksrscexyhv7ffjdasmvaqd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("wu6bebmvs6jw2t6lmjg3aako5synunxm4i3zb7bybvzrvxe277achfad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("jvnd4gjzhmuiaph5xft6ju4twt5gjmpbqdc2sis7gd2pnnqpwwpqz5id.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("wuoki3rq3htqmtrmrtkqtnxzgfsgclwj7jrxk35abkwksni2asdepzyd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("7wg3vv67i5m3uiectqw4taj5pm3qmxnlgyb7ks7e5oilo62g7mxn2zqd.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("y2y2cr6h4dn3g5l4545mj7dw245i3fsuixx6he6r4w4aqh3j23pwqoid.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("hrpy4r4xijwps32lknzbyd36ad6vaibumceioaxe62smpiv22oktiwad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("oy2q3dl6pupe4mk2dzrbtbvpf3fjru2ajdr4rsrxlxpaweqn3utvxzad.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("u7ikxx5hloxuvyr53mwqdzgxr5cjpabqruzqrx5qfcvuv6kpa22gsjid.onion"); //v6 SUNEROK
+            vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v6 Swat
+            vSeeds.emplace_back("763co2copdnav2ik2jlq33wzj2rogt4wfexjvukx5tg3tiepm2ahbrid.onion"); //v6 Swat
+            vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP
+            vSeeds.emplace_back("zwvqhwne3mlefxd52q35cckzdo46uhvcuvl7qdzqlatgpfqe4r43suid.onion"); //v6 Marplez AMS
+            vSeeds.emplace_back("ojmwnkopgmpotm2byx7vsm7xplqxhctutw3d3ve7k5mbybsuydfk46qd.onion"); //v6 Marplez NYC
+            vSeeds.emplace_back("g7cbcrcxdy7kszjmvw62bfm5douesjtkioqycc6m4gpomybcsohba7ad.onion"); //v6 2lazy2debug DE
+            vSeeds.emplace_back("2zju2kcvt55h3v5dnghtduw5hrqqlt6nggngtyjnrjgybu7tqz4wvdad.onion"); //v6 2lazy2debug NL
+        }
+        
+        if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
             vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
             vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
             vSeeds.emplace_back("185.162.9.97");
-            vSeeds.emplace_back("159.89.46.252"); // v5-new-york
-            vSeeds.emplace_back("139.59.34.170"); // v5-india
-            vSeeds.emplace_back("134.209.197.243"); // v5-NL
+            vSeeds.emplace_back("159.89.46.252"); // v6-new-york
+            vSeeds.emplace_back("139.59.34.170"); // v6-india
+            vSeeds.emplace_back("134.209.197.243"); // v6-NL
             vSeeds.emplace_back("104.131.144.82");
             vSeeds.emplace_back("192.241.187.222");
             vSeeds.emplace_back("105.228.198.44");
@@ -224,6 +234,7 @@ public:
                 { 900000, uint256S("0xc4d8b4079da888985854eda0200fb57045c2c70b29f10e98543f7c4076129e91")},
                 {1000000, uint256S("0x000000000049eaba3d6c29d9f45bc2a944b46eec005e2b038f1ee924f2f9c029")},
                 {1100000, uint256S("0xc766387a2e0cd6af995ea432518614824fe313e988598ea8b26f58efb99ebcdc")},
+                {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
             }
         };
 
@@ -257,16 +268,14 @@ public:
                 {2500000, uint256S("0xff122f47bff95423f64d2167401192ee336a6c51b0c560afa8a9ea16ee81d886")},
                 {2600000, uint256S("0x20af6c9020b36967944f7dcacf4b7a49ec56c068c681f6170614585abd3de6cf")},
                 {2700000, uint256S("0x49fa4075fa2396bf797818e172b3b5702a39d8318606a0ee01c5d06555e65bf6")},
+                {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
             }
         };
 
-        // FIXME: need to know the amount of transactions
         chainTxData = ChainTxData{
-            // Data as of block 0000000000000000002d6cca6761c99b3c2e936f9a0e304b7c7651a993f461de (height 506081).
-            1412878964, // * UNIX timestamp of last known number of transactions
-            1,  // * total number of transactions between genesis and that timestamp
-                        //   (the tx=... number in the SetBestChain debug.log lines)
-            1         // * estimated number of transactions per second after that timestamp
+            1577552136,
+            8015431,
+            0.04004504697221486         
         };
 
         /* disable fallback fee on mainnet */
@@ -334,10 +343,9 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
-        vSeeds.emplace_back("testnet-seed.bitcoin.jonasschnelli.ch");
-        vSeeds.emplace_back("seed.tbtc.petertodd.org");
-        vSeeds.emplace_back("seed.testnet.bitcoin.sprovoost.nl");
-        vSeeds.emplace_back("testnet-seed.bluematt.me"); // Just a static list of stable node(s), only supports x9
+        vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");
+        vSeeds.emplace_back("qwwqi7h6bkkcw6clp34ttg5mxmcwerkot2hepfhi6g4yclvlhsv2kxid.onion");
+        vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,115);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,198);
