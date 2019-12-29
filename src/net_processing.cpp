@@ -1703,15 +1703,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return false;
         }
 
-        if (nVersion > PROTOCOL_VERSION) {
-            DoWarning(
-                strprintf(
-                    "Warning: Unknown protocol version detected (protocol-version %i). Consider checking updates for your wallet.",
-                    nVersion
-                )
-            );
-        }
-
         if (nVersion == 10300)
             nVersion = 300;
         if (!vRecv.empty())
