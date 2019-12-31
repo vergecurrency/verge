@@ -1021,7 +1021,7 @@ bool CConnman::AttemptToEvictConnection()
                 continue;
             NodeEvictionCandidate candidate = {node->GetId(), node->nTimeConnected, node->nMinPingUsecTime,
                                                node->nLastBlockTime, node->nLastTXTime,
-                                               HasAllDesirableServiceFlags(node->nServices, node->nVersion),
+                                               HasAllDesirableServiceFlags(node->nServices),
                                                node->fRelayTxes, node->pfilter != nullptr, node->addr, node->nKeyedNetGroup};
             vEvictionCandidates.push_back(candidate);
         }
@@ -1882,7 +1882,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
             } else if (fFeeler && !MayHaveUsefulAddressDB(addr.nServices)) {
                 continue;
             }
-
+            
             // do not allow non-default ports, unless after 50 invalid addresses selected already
             if (addr.GetPort() != Params().GetDefaultPort() && nTries < 50)
                 continue;

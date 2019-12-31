@@ -314,15 +314,6 @@ void SetServiceFlagsIBDCache(bool status);
  * == GetDesirableServiceFlags(services), ie determines whether the given
  * set of service flags are sufficient for a peer to be "relevant".
  */
-static inline bool HasAllDesirableServiceFlags(ServiceFlags services, int nVersion) {
-    return !(GetDesirableServiceFlags(services, nVersion) & (~services));
-}
-
-/**
- * A shortcut for (services & GetDesirableServiceFlags(services))
- * == GetDesirableServiceFlags(services), ie determines whether the given
- * set of service flags are sufficient for a peer to be "relevant".
- */
 static inline bool HasAllDesirableServiceFlags(ServiceFlags services) {
     return !(GetDesirableServiceFlags(services) & (~services));
 }

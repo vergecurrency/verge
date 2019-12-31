@@ -129,25 +129,12 @@ bool CMessageHeader::IsValid(const MessageStartChars& pchMessageStartIn) const
     return true;
 }
 
-
-ServiceFlags GetDesirableServiceFlags(ServiceFlags services, int nVersion) {
-    if ((services & NODE_NETWORK_LIMITED) && g_initial_block_download_completed) {
-        return nVersion < 90007 
-            ? ServiceFlags(NODE_NETWORK_LIMITED | NODE_BLOOM)
-            : ServiceFlags(NODE_NETWORK_LIMITED | NODE_WITNESS); 
-    } 
-
-    return nVersion < 90007 
-        ? ServiceFlags(NODE_NETWORK | NODE_BLOOM) 
-        : ServiceFlags(NODE_NETWORK | NODE_WITNESS);
-}
-
 ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
     if ((services & NODE_NETWORK_LIMITED) && g_initial_block_download_completed) {
-        return ServiceFlags(NODE_NETWORK_LIMITED | NODE_GETUTXO);
+        return ServiceFlags(NODE_NETWORK_LIMITED | NODE_WITNESS);
     }
 
-    return ServiceFlags(NODE_NETWORK | NODE_GETUTXO);
+    return ServiceFlags(NODE_NETWORK | NODE_WITNESS);
 }
 
 void SetServiceFlagsIBDCache(bool state) {
