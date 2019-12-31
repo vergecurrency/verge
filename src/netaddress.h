@@ -10,6 +10,7 @@
 #include <config/verge-config.h>
 #endif
 
+#include <logging.h>
 #include <compat.h>
 #include <serialize.h>
 #include <span.h>
@@ -101,7 +102,11 @@ class CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            if(s.GetVersion() > TORV3_SERVICES_VERSION) {
+            if(
+                (s.GetVersion() == INIT_PROTO_VERSION && !ser_action.ForRead()) || 
+                s.GetVersion() >= TORV3_SERVICES_VERSION || 
+                s.GetType() == SER_DISK
+            ) {
                 READWRITE(ip);
             } else { // backwards compatibility
                 if(ser_action.ForRead()){
@@ -113,7 +118,7 @@ class CNetAddr
                     memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
                     READWRITE(compatibleIP);
                 }
-            }    
+            } 
         }
 
         friend class CSubNet;
@@ -185,19 +190,23 @@ class CService : public CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            if(s.GetVersion() >= TORV3_SERVICES_VERSION) {
+            if(
+                (s.GetVersion() == INIT_PROTO_VERSION && !ser_action.ForRead()) || 
+                (s.GetVersion() >= TORV3_SERVICES_VERSION) || 
+                (s.GetType() == SER_DISK)
+            ) {
                 READWRITE(ip);
-            } else {
+            } else { // backwards compatibility
                 if(ser_action.ForRead()){
                     unsigned char compatibleIP[16];
                     READWRITE(compatibleIP);
                     memcpy(CNetAddr::ip, compatibleIP, sizeof(compatibleIP));
                 } else {
-                    unsigned char compatibleIP[16]; // backwards compatibility
+                    unsigned char compatibleIP[16]; 
                     memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
                     READWRITE(compatibleIP);
                 }
-            }         
+            } 
             READWRITE(WrapBigEndian(port));
         }
 };

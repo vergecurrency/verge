@@ -1666,7 +1666,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         int nStartingHeight = -1;
         bool fRelay = true;
 
-        vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+        vRecv >> nVersion;
+        vRecv.SetVersion(nVersion);
+
+        vRecv >> nServiceInt >> nTime >> addrMe;
         nSendVersion = std::min(nVersion, PROTOCOL_VERSION);
         nServices = ServiceFlags(nServiceInt);
         if (!pfrom->fInbound)
@@ -1923,6 +1926,11 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // part because we may make feeler connections to them.
             if (!MayHaveUsefulAddressDB(addr.nServices) && !HasAllDesirableServiceFlags(addr.nServices, pfrom->nVersion))
                 continue;
+
+            // TODO: remove checks
+            if(addr.GetNetwork() == NET_TOR && !addr.IsTorV3()) {
+                continue;
+            }
 
             if (addr.nTime <= 100000000 || addr.nTime > nNow + 10 * 60)
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
