@@ -10,9 +10,17 @@
  * network protocol versioning
  */
 
-static const int PROTOCOL_VERSION = 90008;
+static const int PROTOCOL_VERSION = 90009;
 
+/**
+ * Initial Support for storing and handling TORv3/I2P services
+ */
 static const int TORV3_SERVICES_VERSION = 90007;
+
+/**
+ * Support addrv2 TORV3 and I2P messages.
+ */
+static const int GOSSIP_ADDRV2_VERSION = 90009;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
