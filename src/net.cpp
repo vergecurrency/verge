@@ -1894,12 +1894,8 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
                     return;
                 LogPrint(BCLog::NET, "Making feeler connection to %s\n", addrConnect.ToString());
             }
-            // TODO: Remove Checks
-            if((addrConnect.GetNetwork() == NET_TOR && addrConnect.IsTorV3()) || addrConnect.GetNetwork() == NET_IPV4 || addrConnect.GetNetwork() == NET_IPV6) {
-                OpenNetworkConnection(addrConnect, (int)setConnected.size() >= std::min(nMaxConnections - 1, 2), &grant, nullptr, false, fFeeler);
-            } else {
-                LogPrintf("Skipping address %s\n", addrConnect.ToString());
-            }
+
+            OpenNetworkConnection(addrConnect, (int)setConnected.size() >= std::min(nMaxConnections - 1, 2), &grant, nullptr, false, fFeeler);
         }
     }
 }

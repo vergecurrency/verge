@@ -106,10 +106,8 @@ class CNetAddr
                 s.GetVersion() >= TORV3_SERVICES_VERSION || 
                 s.GetType() == SER_DISK
             ) {
-                LogPrintf("-> New Method\n");
                 READWRITE(ip);
             } else { // backwards compatibility
-                LogPrintf("-> Old Method\n");
                 if(ser_action.ForRead()){
                     unsigned char compatibleIP[16];
                     READWRITE(compatibleIP);
@@ -119,8 +117,7 @@ class CNetAddr
                     memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
                     READWRITE(compatibleIP);
                 }
-            } 
-            LogPrintf("Version: %i, read? %i, DISK? %i, Name: %s\n", s.GetVersion(), ser_action.ForRead(), s.GetType() == SER_DISK, this->ToString());
+            }
         }
 
         friend class CSubNet;

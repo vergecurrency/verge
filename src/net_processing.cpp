@@ -1918,9 +1918,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (!MayHaveUsefulAddressDB(addr.nServices) && !HasAllDesirableServiceFlags(addr.nServices, pfrom->nVersion))
                 continue;
 
-            LogPrintf("-> Service Advertised: %s\n", addr.ToString());
-
-            // TODO: remove checks
+            // We shouldn't accept any advitised peers < tor V3 anymore.
+            // They are mostly false formatted and can waste time by connecting to false positives.
             if(addr.GetNetwork() == NET_TOR && !addr.IsTorV3()) {
                 continue;
             }
