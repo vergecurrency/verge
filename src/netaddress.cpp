@@ -15,6 +15,7 @@ static const unsigned char pchGarliCat[] = {0xFD,0x60,0xDB,0x4D,0xDD,0xB5};
 
 // 0xFD + sha256("bitcoin")[0:5]
 static const unsigned char g_internal_prefix[] = { 0xFD, 0x6B, 0x88, 0xC0, 0x87, 0x24 };
+static const unsigned char pchOnionv3Cat[] = { 0xFD, 0x50, 0xa7, 0xf7, 0xc0, 0xf8};
 
 CNetAddr::CNetAddr()
 {
@@ -64,17 +65,15 @@ bool CNetAddr::SetSpecial(const std::string &strName)
             memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
             for (unsigned int i = 0; i < 16 - sizeof(pchOnionCat); i++)
                 ip[i + sizeof(pchOnionCat)] = vchAddr[i];
-            usesTorV3 = false;
             return true;
         }
 
         // 56' length - v3 tor addressess
         std::vector<unsigned char> vchAddrV3 = DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
-        if (vchAddrV3.size() == 41 - sizeof(pchOnionCat)){
-            memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
-            for (unsigned int i = 0; i < 41 - sizeof(pchOnionCat); i++)
-                ip[i + sizeof(pchOnionCat)] = vchAddrV3[i];
-            usesTorV3 = true;
+        if (vchAddrV3.size() == 41 - sizeof(pchOnionv3Cat)){
+            memcpy(ip, pchOnionv3Cat, sizeof(pchOnionv3Cat));
+            for (unsigned int i = 0; i < 41 - sizeof(pchOnionv3Cat); i++)
+                ip[i + sizeof(pchOnionv3Cat)] = vchAddrV3[i];
             return true;
         }
       
@@ -83,7 +82,7 @@ bool CNetAddr::SetSpecial(const std::string &strName)
         std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 11).c_str());
         if (vchAddr.size() != 16-sizeof(pchGarliCat))
             return false;
-        memcpy(ip, pchOnionCat, sizeof(pchGarliCat));
+        memcpy(ip, pchGarliCat, sizeof(pchGarliCat));
         for (unsigned int i=0; i<16-sizeof(pchGarliCat); i++)
             ip[i + sizeof(pchGarliCat)] = vchAddr[i];
         return true;
@@ -192,12 +191,12 @@ bool CNetAddr::IsRFC4843() const
 
 bool CNetAddr::IsTor() const
 {
-    return !usesTorV3 && (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
+    return (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
 }
 
 bool CNetAddr::IsTorV3() const
 {
-    return usesTorV3 && (memcmp(ip, pchOnionCat, sizeof(pchOnionCat)) == 0);
+    return (memcmp(ip, pchOnionv3Cat, sizeof(pchOnionv3Cat)) == 0);
 }
 
 bool CNetAddr::IsI2P() const
@@ -282,7 +281,7 @@ enum Network CNetAddr::GetNetwork() const
     if (IsTor() || IsTorV3())
         return NET_TOR;
 	
-	if (IsI2P())
+    if (IsI2P())
         return NET_I2P;
 
     return NET_IPV6;
@@ -293,7 +292,7 @@ std::string CNetAddr::ToStringIP() const
     if (IsTor())
         return EncodeBase32(&ip[6], 10) + ".onion";
 
-	  if (IsI2P())
+    if (IsI2P())
         return EncodeBase32(&ip[6], 10) + ".oc.b32.i2p";
 
     if (IsTorV3())

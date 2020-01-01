@@ -1918,6 +1918,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (!MayHaveUsefulAddressDB(addr.nServices) && !HasAllDesirableServiceFlags(addr.nServices, pfrom->nVersion))
                 continue;
 
+            LogPrintf("-> Service Advertised: %s\n", addr.ToString());
+
             // TODO: remove checks
             if(addr.GetNetwork() == NET_TOR && !addr.IsTorV3()) {
                 continue;
