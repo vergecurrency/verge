@@ -229,6 +229,11 @@ bool CNetAddr::IsValid() const
     if (memcmp(ip, pchIPv4+3, sizeof(pchIPv4)-3) == 0)
         return false;
 
+    // Deprecate support for TorV2 address ranges
+    // collision exists and TorV3 will be the new standard.
+    if (IsTor())
+        return false;
+
     // unspecified IPv6 address (::/128)
     unsigned char ipNone6[16] = {};
     if (memcmp(ip, ipNone6, 16) == 0)

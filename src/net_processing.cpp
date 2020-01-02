@@ -1920,9 +1920,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
             // We shouldn't accept any advitised peers < tor V3 anymore.
             // They are mostly false formatted and can waste time by connecting to false positives.
-            if(addr.GetNetwork() == NET_TOR && !addr.IsTorV3()) {
+            // also get rid of not routable addresses, there's no need to waste space :)
+            if(!addr.IsRoutable() && addr.GetNetwork() == NET_TOR && !addr.IsTorV3()) 
                 continue;
-            }
 
             if (addr.nTime <= 100000000 || addr.nTime > nNow + 10 * 60)
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
@@ -1934,7 +1934,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 RelayAddress(addr, fReachable, connman);
             }
             // Do not store addresses outside our network
-            if (fReachable)
+            if (fReachable) 
                 vAddrOk.push_back(addr);
         }
         connman->AddNewAddresses(vAddrOk, pfrom->addr, 2 * 60 * 60);
@@ -3350,7 +3350,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
             std::vector<CAddress> vAddr;
             vAddr.reserve(pto->vAddrToSend.size());
             for (const CAddress& addr : pto->vAddrToSend)
-            {
+            {   
                 if (!pto->addrKnown.contains(addr.GetKey()))
                 {
                     pto->addrKnown.insert(addr.GetKey());
@@ -3364,7 +3364,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                 }
             }
             pto->vAddrToSend.clear();
-            if (!vAddr.empty())
+            if (!vAddr.empty()) 
                 connman->PushMessage(pto, msgMaker.Make(NetMsgType::ADDR, vAddr));
             // we only send the big addr message once
             if (pto->vAddrToSend.capacity() > 40)
