@@ -303,20 +303,10 @@ enum ServiceFlags : uint64_t {
  * If the NODE_NONE return value is changed, contrib/seeds/makeseeds.py
  * should be updated appropriately to filter for the same nodes.
  */
-ServiceFlags GetDesirableServiceFlags(ServiceFlags services, int nVersion);
 ServiceFlags GetDesirableServiceFlags(ServiceFlags services);
 
 /** Set the current IBD status in order to figure out the desirable service flags */
 void SetServiceFlagsIBDCache(bool status);
-
-/**
- * A shortcut for (services & GetDesirableServiceFlags(services))
- * == GetDesirableServiceFlags(services), ie determines whether the given
- * set of service flags are sufficient for a peer to be "relevant".
- */
-static inline bool HasAllDesirableServiceFlags(ServiceFlags services, int nVersion) {
-    return !(GetDesirableServiceFlags(services, nVersion) & (~services));
-}
 
 /**
  * A shortcut for (services & GetDesirableServiceFlags(services))
