@@ -1844,7 +1844,6 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
         while (!interruptNet)
         {
             CAddrInfo addr = addrman.SelectTriedCollision();
-            LogPrintf("Selected random peer: %s\n", addr.ToString());
 
             // SelectTriedCollision returns an invalid address if it is empty.
             if (!fFeeler || !addr.IsValid()) {
@@ -1853,7 +1852,6 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
 
             // if we selected an invalid address, restart
             if (!addr.IsValid() || setConnected.count(addr.GetGroup()) || IsLocal(addr)){
-                LogPrintf("Selected invalid peer: %s\n", addr.ToString());
                 break;
             }
 
@@ -1869,7 +1867,6 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
 
             // only consider very recently tried nodes after 30 failed attempts
             if (nANow - addr.nLastTry < 600 && nTries < 30){
-                LogPrintf("Recently tried peer: %s\n", addr.ToString());
                 continue;
             }
 
@@ -1877,16 +1874,13 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
             // for feelers, only require they be a full node (only because most
             // SPV clients don't have a good address DB available)
             if (!fFeeler && !HasAllDesirableServiceFlags(addr.nServices)) {
-                LogPrintf("Boring Flags peer: %s\n", addr.ToString());
                 continue;
             } else if (fFeeler && !MayHaveUsefulAddressDB(addr.nServices)) {
-                LogPrintf("Boring DB peer: %s\n", addr.ToString());
                 continue;
             }
 
             // do not allow non-default ports, unless after 50 invalid addresses selected already
             if (addr.GetPort() != Params().GetDefaultPort() && nTries < 50){
-                LogPrintf("Skipping due to port peer: %s\n", addr.ToString());
                 continue;
             }
 
@@ -1904,10 +1898,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
                 LogPrint(BCLog::NET, "Making feeler connection to %s\n", addrConnect.ToString());
             }
 
-            LogPrintf("Trying to connect to %s\n", addrConnect.ToString());
             OpenNetworkConnection(addrConnect, (int)setConnected.size() >= std::min(nMaxConnections - 1, 2), &grant, nullptr, false, fFeeler);
-        } else {
-            LogPrintf("Peer is invalid: %s\n", addrConnect.ToString());
         }
     }
 }
