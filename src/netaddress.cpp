@@ -325,12 +325,12 @@ std::string CNetAddr::ToString() const
 
 bool operator==(const CNetAddr& a, const CNetAddr& b)
 {
-    return (memcmp(a.ip, b.ip, 16) == 0);
+    return (memcmp(a.ip, b.ip, 41) == 0);
 }
 
 bool operator<(const CNetAddr& a, const CNetAddr& b)
 {
-    return (memcmp(a.ip, b.ip, 16) < 0);
+    return (memcmp(a.ip, b.ip, 41) < 0);
 }
 
 bool CNetAddr::GetInAddr(struct in_addr* pipv4Addr) const
@@ -604,8 +604,8 @@ std::vector<unsigned char> CService::GetKey() const
      std::vector<unsigned char> vKey;
      vKey.resize(43);
      memcpy(vKey.data(), ip, 41);
-     vKey[16] = port / 0x100;
-     vKey[17] = port & 0x0FF;
+     vKey[41] = port / 0x100;
+     vKey[42] = port & 0x0FF;
      return vKey;
 }
 
