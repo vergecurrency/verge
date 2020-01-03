@@ -1666,14 +1666,17 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         int nStartingHeight = -1;
         bool fRelay = true;
 
-        vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+        vRecv >> nVersion;
+        vRecv.SetVersion(nVersion);
+
+        vRecv >> nServiceInt >> nTime >> addrMe;
         nSendVersion = std::min(nVersion, PROTOCOL_VERSION);
         nServices = ServiceFlags(nServiceInt);
         if (!pfrom->fInbound)
         {
             connman->SetServices(pfrom->addr, nServices);
         }
-        if (!pfrom->fInbound && !pfrom->fFeeler && !pfrom->m_manual_connection && !HasAllDesirableServiceFlags(nServices, nSendVersion))
+        if (!pfrom->fInbound && !pfrom->fFeeler && !pfrom->m_manual_connection && !HasAllDesirableServiceFlags(nServices))
         {
             LogPrint(BCLog::NET, "peer=%d does not offer the expected services (%08x offered, %08x expected); disconnecting\n", pfrom->GetId(), nServices, GetDesirableServiceFlags(nServices));
             if (g_enable_bip61) {
@@ -1912,7 +1915,13 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // We only bother storing full nodes, though this may include
             // things which we would not make an outbound connection to, in
             // part because we may make feeler connections to them.
-            if (!MayHaveUsefulAddressDB(addr.nServices) && !HasAllDesirableServiceFlags(addr.nServices, pfrom->nVersion))
+            if (!MayHaveUsefulAddressDB(addr.nServices) && !HasAllDesirableServiceFlags(addr.nServices))
+                continue;
+
+            // We shouldn't accept any advitised peers < tor V3 anymore.
+            // They are mostly false formatted and can waste time by connecting to false positives.
+            // also get rid of not routable addresses, there's no need to waste space :)
+            if(!addr.IsRoutable() && addr.GetNetwork() == NET_TOR && !addr.IsTorV3()) 
                 continue;
 
             if (addr.nTime <= 100000000 || addr.nTime > nNow + 10 * 60)
@@ -1925,7 +1934,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 RelayAddress(addr, fReachable, connman);
             }
             // Do not store addresses outside our network
-            if (fReachable)
+            if (fReachable) 
                 vAddrOk.push_back(addr);
         }
         connman->AddNewAddresses(vAddrOk, pfrom->addr, 2 * 60 * 60);
@@ -3341,7 +3350,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
             std::vector<CAddress> vAddr;
             vAddr.reserve(pto->vAddrToSend.size());
             for (const CAddress& addr : pto->vAddrToSend)
-            {
+            {   
                 if (!pto->addrKnown.contains(addr.GetKey()))
                 {
                     pto->addrKnown.insert(addr.GetKey());
@@ -3355,7 +3364,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                 }
             }
             pto->vAddrToSend.clear();
-            if (!vAddr.empty())
+            if (!vAddr.empty()) 
                 connman->PushMessage(pto, msgMaker.Make(NetMsgType::ADDR, vAddr));
             // we only send the big addr message once
             if (pto->vAddrToSend.capacity() > 40)
