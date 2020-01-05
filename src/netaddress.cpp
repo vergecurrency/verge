@@ -19,7 +19,7 @@ static const unsigned char pchOnionv3Cat[] = { 0xFD, 0x50, 0xa7, 0xf7, 0xc0, 0xf
 
 CNetAddr::CNetAddr()
 {
-    memset(ip, 0, sizeof(ip));
+    std::fill(std::begin(ip), std::end(ip), 0);
     scopeId = 0;
 }
 
@@ -30,6 +30,8 @@ void CNetAddr::SetIP(const CNetAddr& ipIn)
 
 void CNetAddr::SetRaw(Network network, const uint8_t *ip_in)
 {
+    // Reset Address before setting a new one. Could potentially be overlapping
+    std::fill(std::begin(ip), std::end(ip), 0);
     switch(network)
     {
         case NET_IPV4:
@@ -606,12 +608,12 @@ bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const
 
 std::vector<unsigned char> CService::GetKey() const
 {
-     std::vector<unsigned char> vKey;
-     vKey.resize(43);
-     memcpy(vKey.data(), ip, 41);
-     vKey[41] = port / 0x100;
-     vKey[42] = port & 0x0FF;
-     return vKey;
+    std::vector<unsigned char> vKey;
+    vKey.resize(43);
+    memcpy(vKey.data(), ip, 41);
+    vKey[41] = port / 0x100;
+    vKey[42] = port & 0x0FF;
+    return vKey;
 }
 
 std::string CService::ToStringPort() const

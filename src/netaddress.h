@@ -36,8 +36,10 @@ enum Network
 class CNetAddr
 {
     protected:
-        unsigned char ip[41]; // in network byte order
-        uint32_t scopeId; // for scoped/link-local ipv6 addresses
+        // in network byte order
+        unsigned char ip[41];
+        // for scoped/link-local ipv6 addresses
+        uint32_t scopeId;
 
     public:
         CNetAddr();
