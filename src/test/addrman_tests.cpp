@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(addrman_select)
     // Add three addresses to new table.
     CService addr2 = ResolveService("250.3.1.1", 21102);
     CService addr3 = ResolveService("250.3.2.2", 9999);
-    CService addr4 = ResolveService("250.3.3.3", 9999);
+    CService addr4 = ResolveService("250.3.3.3", 7777);
 
     BOOST_CHECK(addrman.Add(CAddress(addr2, NODE_NONE), ResolveService("250.3.1.1", 21102)));
     BOOST_CHECK(addrman.Add(CAddress(addr3, NODE_NONE), ResolveService("250.3.1.1", 21102)));
