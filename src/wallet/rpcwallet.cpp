@@ -4525,7 +4525,7 @@ static UniValue submitblock(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Wallet has to be available for block signature creation.");
     }
 
-    if (!blockptr->SignBlock(*pwallet)) {
+    if (!SignBlock(block, *pwallet)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
     }
     
@@ -4610,7 +4610,7 @@ UniValue generateBlocks(const JSONRPCRequest& request, std::shared_ptr<CReserveS
 
         std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
         CWallet* const pwallet = wallet.get();
-        pblock->SignBlock(*pwallet);
+        SignBlock(*pblock, *pwallet);
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
         if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
