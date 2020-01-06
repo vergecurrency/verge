@@ -14,12 +14,7 @@
 
 BOOST_AUTO_TEST_SUITE(txindex_tests)
 
-BOOST_AUTO_TEST_CASE(example_test)
-{
-    BOOST_CHECK(true);
-}
-
-/*BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
+BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup)
 {
     TxIndex txindex(1 << 20, true);
 
@@ -55,7 +50,7 @@ BOOST_AUTO_TEST_CASE(example_test)
 
     // Check that new transactions in new blocks make it into the index.
     for (int i = 0; i < 10; i++) {
-        CScript coinbase_script_pub_key = GetScriptForDestination(coinbaseKey.GetPubKey().GetID());
+        CScript coinbase_script_pub_key = GetScriptForRawPubKey(coinbaseKey.GetPubKey());
         std::vector<CMutableTransaction> no_txns;
         const CBlock& block = CreateAndProcessBlock(no_txns, coinbase_script_pub_key);
         const CTransaction& txn = *block.vtx[0];
@@ -67,6 +62,6 @@ BOOST_AUTO_TEST_CASE(example_test)
             BOOST_ERROR("Read incorrect tx");
         }
     }
-}*/
+}
 
 BOOST_AUTO_TEST_SUITE_END()
