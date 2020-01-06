@@ -4903,7 +4903,7 @@ bool SignBlock(CBlock& block, const CKeyStore& keystore)
 
         if (!Solver(txout.scriptPubKey, whichType, vSolutions))
             continue;
-        std::cout << "WhichType: " << whichType << "\n";
+
         if (whichType == TX_PUBKEY)
         {
             // Sign
@@ -4912,24 +4912,24 @@ bool SignBlock(CBlock& block, const CKeyStore& keystore)
             CPubKey pubKey(vchPubKey);
 
             if (!keystore.GetKey(pubKey.GetID(), key)){
-                std::cout << "[SignBlock] Key not found for singature\n";
+                LogPrintf("[SignBlock] Key not found for singature\n");
                 continue;
             }
             if (key.GetPubKey() != pubKey){
-                std::cout << "[SignBlock] Keys not identical (generated vs found)\n";
+                LogPrintf("[SignBlock] Keys not identical (generated vs found)\n");
                 continue;
             }
             if(!key.Sign(block.GetHash(), block.vchBlockSig)){
-                std::cout << "[SignBlock] Could not sign block\n";
+                LogPrintf("[SignBlock] Could not sign block\n");
                 continue;
             }
 
-            std::cout << "BlockSign successfully done with: TX_PUBKEY\n";
+            LogPrintf("BlockSign successfully done with: TX_PUBKEY\n");
             return true;
         }
     }
 
-    std::cout << "Sign failed\n";
+    LogPrintf("Sign failed\n");
     return false;
 }
 
