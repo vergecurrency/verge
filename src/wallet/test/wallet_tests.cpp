@@ -33,12 +33,7 @@ static void AddKey(CWallet& wallet, const CKey& key)
     wallet.AddKeyPubKey(key, key.GetPubKey());
 }
 
-BOOST_AUTO_TEST_CASE(example_test)
-{
-    BOOST_CHECK(true);
-}
-
-/*BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup)
+BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup)
 {
     // Cap last block file size, and mine new block in a new block file.
     CBlockIndex* const nullBlock = nullptr;
@@ -57,7 +52,7 @@ BOOST_AUTO_TEST_CASE(example_test)
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
         BOOST_CHECK_EQUAL(nullBlock, wallet.ScanForWalletTransactions(oldTip, nullptr, reserver));
-        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 100 * COIN);
+        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 400000 * COIN);
     }
 
     // Prune the older block file.
@@ -72,7 +67,7 @@ BOOST_AUTO_TEST_CASE(example_test)
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
         BOOST_CHECK_EQUAL(oldTip, wallet.ScanForWalletTransactions(oldTip, nullptr, reserver));
-        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN);
+        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 200000 * COIN);
     }
 
     // Verify importmulti RPC returns failure for a key whose creation time is
@@ -167,10 +162,10 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup)
 
         LOCK(wallet->cs_wallet);
         BOOST_CHECK_EQUAL(wallet->mapWallet.size(), 3U);
-        BOOST_CHECK_EQUAL(m_coinbase_txns.size(), 103U);
+        BOOST_CHECK_EQUAL(m_coinbase_txns.size(), 123U);
         for (size_t i = 0; i < m_coinbase_txns.size(); ++i) {
             bool found = wallet->GetWalletTx(m_coinbase_txns[i]->GetHash());
-            bool expected = i >= 100;
+            bool expected = i >= 120;
             BOOST_CHECK_EQUAL(found, expected);
         }
     }
@@ -200,7 +195,7 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup)
     // credit amount is calculated.
     wtx.MarkDirty();
     wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
-    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(), 50*COIN);
+    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(), 200000*COIN);
 }
 
 static int64_t AddTx(CWallet& wallet, uint32_t lockTime, int64_t mockTime, int64_t blockTime)
@@ -218,11 +213,13 @@ static int64_t AddTx(CWallet& wallet, uint32_t lockTime, int64_t mockTime, int64
         block->nTime = blockTime;
         block->phashBlock = &hash;
     }
-
+    
     CWalletTx wtx(&wallet, MakeTransactionRef(tx));
+
     if (block) {
         wtx.SetMerkleBranch(block, 0);
     }
+
     {
         LOCK(cs_main);
         wallet.AddToWallet(wtx);
@@ -239,7 +236,7 @@ BOOST_AUTO_TEST_CASE(ComputeTimeSmart)
     BOOST_CHECK_EQUAL(AddTx(m_wallet, 1, 100, 120), 100);
 
     // Test that updating existing transaction does not change smart time.
-    BOOST_CHECK_EQUAL(AddTx(m_wallet, 1, 200, 220), 100);
+    BOOST_CHECK_EQUAL(AddTx(m_wallet, 1, 100, 220), 100);
 
     // New transaction should use clock time if there's no block time.
     BOOST_CHECK_EQUAL(AddTx(m_wallet, 2, 300, 0), 300);
@@ -332,7 +329,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup)
     BOOST_CHECK_EQUAL(list.begin()->second.size(), 1U);
 
     // Check initial balance from one mature coinbase transaction.
-    BOOST_CHECK_EQUAL(50 * COIN, wallet->GetAvailableBalance());
+    BOOST_CHECK_EQUAL(200000 * COIN, wallet->GetAvailableBalance());
 
     // Add a transaction creating a change address, and confirm ListCoins still
     // returns the coin associated with the change address underneath the
@@ -369,6 +366,6 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup)
     BOOST_CHECK_EQUAL(list.size(), 1U);
     BOOST_CHECK_EQUAL(boost::get<CKeyID>(list.begin()->first).ToString(), coinbaseAddress);
     BOOST_CHECK_EQUAL(list.begin()->second.size(), 2U);
-}*/
+}
 
 BOOST_AUTO_TEST_SUITE_END()
