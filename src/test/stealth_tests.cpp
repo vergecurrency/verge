@@ -1,5 +1,5 @@
 #include <boost/test/unit_test.hpp>
-// #include <boost/atomic.hpp>
+#include <util/strencodings.h>
 #include <stealth.h>
 
 
