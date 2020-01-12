@@ -21,8 +21,8 @@ Protocol | PoW (proof of Work)
 Algorithms | scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 Blocktime | 30 seconds
 Total Supply | 16,500,000,000 XVG
-RPC port | 20102
-P2P port | 21102
+RPC port | 20102 (testnet: 21102)
+P2P port | 21102 (testnet: 21104)
 pre-mine | N/A
 ICO | N/A
 
