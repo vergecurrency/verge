@@ -185,8 +185,14 @@ The _slightly_ longer version:
     ```shell
     git clone https://github.com/vergecurrency/VERGE && cd VERGE && ./autogen.sh && ./configure && make
     ```
+    If updating from previous version, dont forget to:
+    ```shell
+    sudo make install
+    ```
 
 > **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
+
+
 
 
 ### Mac OS X Wallet
