@@ -74,6 +74,12 @@ struct TestingSetup: public BasicTestingSetup {
     ~TestingSetup();
 };
 
+/** Identical to TestingSetup, but chain set to regtest */
+struct RegTestingSetup : public TestingSetup {
+    RegTestingSetup()
+        : TestingSetup{CBaseChainParams::REGTEST} {}
+};
+
 class CBlock;
 struct CMutableTransaction;
 class CScript;
@@ -94,6 +100,7 @@ struct TestChain100Setup : public TestingSetup {
 
     std::vector<CTransactionRef> m_coinbase_txns; // For convenience, coinbase transactions
     CKey coinbaseKey; // private/public key needed to spend coinbase transactions
+    CBasicKeyStore keystore;
 };
 
 class CTxMemPoolEntry;

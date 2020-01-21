@@ -3178,7 +3178,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         block.fChecked = true;
 
     if (fCheckBlockSignature) {
-        if(!block.CheckBlockSignature()) {
+        if(!CheckBlockSignature(block)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
         }
     }
@@ -4889,6 +4889,83 @@ double GuessVerificationProgress(const ChainTxData& data, const CBlockIndex *pin
     }
 
     return pindex->nChainTx / fTxTotal;
+}
+
+typedef std::vector<unsigned char> valtype;
+bool SignBlock(CBlock& block, const CKeyStore& keystore)
+{
+    std::vector<valtype> vSolutions;
+    txnouttype whichType;
+
+    for(unsigned int i = 0; i < block.vtx[0]->vout.size(); i++)
+    {
+        const CTxOut& txout = block.vtx[0]->vout[i];
+
+        if (!Solver(txout.scriptPubKey, whichType, vSolutions))
+            continue;
+
+        if (whichType == TX_PUBKEY)
+        {
+            // Sign
+            valtype& vchPubKey = vSolutions[0];
+            CKey key;
+            CPubKey pubKey(vchPubKey);
+
+            if (!keystore.GetKey(pubKey.GetID(), key)){
+                LogPrintf("[SignBlock] Key not found for singature\n");
+                continue;
+            }
+            if (key.GetPubKey() != pubKey){
+                LogPrintf("[SignBlock] Keys not identical (generated vs found)\n");
+                continue;
+            }
+            if(!key.Sign(block.GetHash(), block.vchBlockSig)){
+                LogPrintf("[SignBlock] Could not sign block\n");
+                continue;
+            }
+
+            LogPrintf("BlockSign successfully done with: TX_PUBKEY\n");
+            return true;
+        }
+    }
+
+    LogPrintf("Sign failed\n");
+    return false;
+}
+
+bool CheckBlockSignature(const CBlock& block)
+{
+    if (block.GetHash() == Params().GetConsensus().hashGenesisBlock)
+        return block.vchBlockSig.empty();
+
+    std::vector<valtype> vSolutions;
+    txnouttype whichType;
+
+    // check for block signature in Proof Of Work (old shit why we have to do this.)
+    for(unsigned int i = 0; i < block.vtx[0]->vout.size(); i++)
+    {
+        const CTxOut& txout = block.vtx[0]->vout[i];
+
+        if (!Solver(txout.scriptPubKey, whichType, vSolutions))
+            return false;
+
+        if (whichType == TX_PUBKEY)
+        {
+            // Verify
+            valtype& vchPubKey = vSolutions[0];
+            CPubKey key(vchPubKey);
+            if (!key.IsFullyValid())
+                continue;
+            if (block.vchBlockSig.empty())
+                continue;
+            if(!key.Verify(block.GetHash(), block.vchBlockSig))
+                continue;
+
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 class CMainCleanup

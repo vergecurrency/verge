@@ -80,6 +80,7 @@ VERGE_TESTS =\
   test/sighash_tests.cpp \
   test/sigopcount_tests.cpp \
   test/skiplist_tests.cpp \
+  test/stealth_tests.cpp \
   test/streams_tests.cpp \
   test/sync_tests.cpp \
   test/timedata_tests.cpp \

@@ -15,9 +15,9 @@
 #include <validation.h>
 #include <validationinterface.h>
 
-BOOST_FIXTURE_TEST_SUITE(validation_block_tests, TestingSetup)
+BOOST_FIXTURE_TEST_SUITE(validation_block_tests, RegTestingSetup)
 
-/*struct TestSubscriber : public CValidationInterface {
+struct TestSubscriber : public CValidationInterface {
     uint256 m_expected_tip;
 
     TestSubscriber(uint256 tip) : m_expected_tip(tip) {}
@@ -41,7 +41,7 @@ BOOST_FIXTURE_TEST_SUITE(validation_block_tests, TestingSetup)
 
         m_expected_tip = block->hashPrevBlock;
     }
-};*/
+};
 
 std::shared_ptr<CBlock> Block(const uint256& prev_hash)
 {
