@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/status-stable-green.svg">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg">
   <a href="https://codecov.io/gh/vergecurrency/VERGE">
-    <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/develop/graph/badge.svg" />
+    <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/master/graph/badge.svg" />
   </a>
   <a href="https://github.com/vergecurrency/VERGE/releases">
     <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vergecurrency/VERGE/total?style=social">
