@@ -144,8 +144,8 @@ static bool rest_headers(HTTPRequest* req,
     uint256 hash;
     if (!ParseHashStr(hashStr, hash))
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
-	
-	const CBlockIndex* tip = nullptr;
+
+    const CBlockIndex* tip = nullptr;
     std::vector<const CBlockIndex *> headers;
     headers.reserve(count);
     {
