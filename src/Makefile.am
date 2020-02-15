@@ -238,6 +238,7 @@ VERGE_CORE_H = \
   alerter.h \
   validationinterface.h \
   versionbits.h \
+  networking/torEncoding.h \
   networking/torcontroller.h \
   networking/torrelay.h \
   walletinitinterface.h \
@@ -310,6 +311,7 @@ libverge_server_a_SOURCES = \
   alerter.cpp \
   validationinterface.cpp \
   versionbits.cpp \
+  networking/torEncoding.cpp \
   networking/torcontroller.cpp \
   networking/torrelay.cpp \
   $(VERGE_CORE_H)

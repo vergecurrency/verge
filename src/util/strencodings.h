@@ -232,4 +232,7 @@ constexpr unsigned char ToUpper(unsigned char c)
  */
 std::string Capitalize(std::string str);
 
+
+char* convertStringToCharArray(std::string &str); 
+
 #endif // VERGE_UTIL_STRENCODINGS_H

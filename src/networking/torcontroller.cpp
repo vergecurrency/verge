@@ -8,18 +8,13 @@
 
 #include <networking/torcontroller.h>
 #include <logging.h>
+#include <strencodings.h>
 
 extern "C" {
     int tor_main(int argc, char *argv[]);
 }
 
 static boost::thread torControllerThread;
-
-char *convert_str(const std::string &s) {
-    char *pc = new char[s.size()+1];
-    std::strcpy(pc, s.c_str());
-    return pc;
-}
 
 void run_tor() {
     fs::path tor_dir = GetDataDir() / "tor";
@@ -56,7 +51,7 @@ void run_tor() {
     argv.push_back("1");
 
     std::vector<char *> argv_c;
-    std::transform(argv.begin(), argv.end(), std::back_inserter(argv_c), convert_str);
+    std::transform(argv.begin(), argv.end(), std::back_inserter(argv_c), convertStringToCharArray);
 
     tor_main(argv_c.size(), &argv_c[0]);
 }

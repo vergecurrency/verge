@@ -51,6 +51,7 @@
 #include <stdio.h>
 #include <arith_uint256.h>
 #include <networking/torcontroller.h>
+#include <networking/torrelay.h>
 
 #ifndef WIN32
 #include <signal.h>
@@ -186,6 +187,7 @@ void Interrupt()
     InterruptTorControl();
     InterruptMapPort();
     StopTorController();
+    StopTorRelay();
     if (g_connman)
         g_connman->Interrupt();
     if (g_txindex) {
@@ -227,6 +229,7 @@ void Shutdown()
 
     StopTorControl();
     StopTorController();
+    StopTorRelay();
 
     // After everything has been shut down, but before things get flushed, stop the
     // CScheduler/checkqueue threadGroup
@@ -433,6 +436,7 @@ void SetupServerArgs()
     gArgs.AddArg("-timeout=<n>", strprintf("Specify connection timeout in milliseconds (minimum: 1, default: %d)", DEFAULT_CONNECT_TIMEOUT), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-without-tor", strprintf("Removes the limitation to route all traffic through tor. (default: %s)", false), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-dynamic-network", strprintf("Removes the limitation to route all traffic through tor but keeps running a tor proxy. (default: %s)", false), false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-tor-relay", strprintf("Enables tor relay while running a verge node. (default: %s)", true), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torsocksport", strprintf("Sets the tor port to a custom socket port. (default: %i)", 9080), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torcontrol=<ip>:<port>", strprintf("Tor control port to use if onion listening enabled (default: %s)", DEFAULT_TOR_CONTROL), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torpassword=<pass>", "Tor control port password (default: empty)", false, OptionsCategory::CONNECTION);
@@ -1379,6 +1383,11 @@ bool AppInitMain()
         LogPrintf("[DEPRECATED] flag -without-tor will be removed with the upcoming release\n");
         LogPrintf("[DEPRECATED] Please use -dynamic-network instead\n");
         LogPrintf("[DEPRECATED] Tor disabled, Socks Proxy not initialized.\n");
+    }
+
+    if(gArgs.GetBoolArg("-tor-relay", true)) {
+        InitalizeTorRelayThread();
+        LogPrintf("Tor relay thread has been initialized successfully.\n");
     }
 
     assert(!g_connman);

@@ -551,7 +551,8 @@ void Downcase(std::string& str)
 {
     std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){return ToLower(c);});
 }
- std::string Capitalize(std::string str)
+
+std::string Capitalize(std::string str)
 {
     if (str.empty()) return str;
     str[0] = ToUpper(str.front());

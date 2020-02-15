@@ -21,16 +21,13 @@
 #include <util/system.h>
 #include <threadinterrupt.h>
 #include <scheduler.h>
+#include <networking/torEncoding.h>
 
 /** Default Port to run tor entry node on **/
 static const unsigned int DEFAULT_TOR_PORT = 9090;
 
 /** Default Port for handling tor's control port **/
 static const unsigned int DEFAULT_TOR_CONTROL_PORT = 9051;
-
-char *convert_str(const std::string &s);
-
-void run_tor();
 
 /**
  * Initializes a new tor thread within a new thread 
