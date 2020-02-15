@@ -283,7 +283,6 @@ public:
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
         consensus.FlexibleMiningAlgorithms = 2042000;
         consensus.CLOCK_DRIFT_FORK = 2218500;
-        consensus.CLEAR_POS_FORK = 2;
         
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
