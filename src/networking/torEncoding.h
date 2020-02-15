@@ -3,10 +3,6 @@
 
 #include <string>
 
-static char* convertStringToCharArray(std::string &str){
-    char *pc = new char[str.size()+1];
-    std::strcpy(pc, str.c_str());
-    return pc;
-}
+char* convertStringToCharArray(std::string &str);
 
 #endif // VERGE_NETWORKING_TORENCODING_H

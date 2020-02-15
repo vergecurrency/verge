@@ -21,7 +21,7 @@
 #include <util/system.h>
 #include <threadinterrupt.h>
 #include <scheduler.h>
-#include <networking/torEncoding.h>
+#include <networking/torencoding.h>
 
 /**
  * Initializes a new tor thread within a new thread 

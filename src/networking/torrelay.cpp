@@ -8,7 +8,6 @@
 
 #include <networking/torrelay.h>
 #include <logging.h>
-#include <strencodings.h>
 
 extern "C" {
     int tor_main(int argc, char *argv[]);

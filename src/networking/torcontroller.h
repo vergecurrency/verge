@@ -21,7 +21,7 @@
 #include <util/system.h>
 #include <threadinterrupt.h>
 #include <scheduler.h>
-#include <networking/torEncoding.h>
+#include <networking/torencoding.h>
 
 /** Default Port to run tor entry node on **/
 static const unsigned int DEFAULT_TOR_PORT = 9090;
