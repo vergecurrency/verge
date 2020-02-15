@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/status-stable-green.svg">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg">
   <a href="https://codecov.io/gh/vergecurrency/VERGE">
-    <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/develop/graph/badge.svg" />
+    <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/master/graph/badge.svg" />
   </a>
   <a href="https://github.com/vergecurrency/VERGE/releases">
     <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vergecurrency/VERGE/total?style=social">
@@ -21,8 +21,8 @@ Protocol | PoW (proof of Work)
 Algorithms | scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 Blocktime | 30 seconds
 Total Supply | 16,500,000,000 XVG
-RPC port | 20102
-P2P port | 21102
+RPC port | 20102 (testnet: 21102)
+P2P port | 21102 (testnet: 21104)
 pre-mine | N/A
 ICO | N/A
 
@@ -185,8 +185,14 @@ The _slightly_ longer version:
     ```shell
     git clone https://github.com/vergecurrency/VERGE && cd VERGE && ./autogen.sh && ./configure && make
     ```
+    If updating from previous version, dont forget to:
+    ```shell
+    sudo make install
+    ```
 
 > **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
+
+
 
 
 ### Mac OS X Wallet

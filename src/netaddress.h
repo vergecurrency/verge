@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,6 +10,7 @@
 #include <config/verge-config.h>
 #endif
 
+#include <logging.h>
 #include <compat.h>
 #include <serialize.h>
 #include <span.h>
@@ -35,9 +36,10 @@ enum Network
 class CNetAddr
 {
     protected:
-        unsigned char ip[41]; // in network byte order
-        bool usesTorV3 = false;
-        uint32_t scopeId; // for scoped/link-local ipv6 addresses
+        // in network byte order
+        unsigned char ip[41];
+        // for scoped/link-local ipv6 addresses
+        uint32_t scopeId;
 
     public:
         CNetAddr();
@@ -75,7 +77,7 @@ class CNetAddr
         bool IsRFC6052() const; // IPv6 well-known prefix (64:FF9B::/96)
         bool IsRFC6145() const; // IPv6 IPv4-translated address (::FFFF:0:0:0/96)
         bool IsTor() const;
-		    bool IsI2P() const;
+		bool IsI2P() const;
         bool IsTorV3() const;
         bool IsLocal() const;
         bool IsRoutable() const;
@@ -101,7 +103,11 @@ class CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            if(s.GetVersion() > TORV3_SERVICES_VERSION) {
+            if(
+                (s.GetVersion() == INIT_PROTO_VERSION && !ser_action.ForRead()) || 
+                s.GetVersion() >= TORV3_SERVICES_VERSION || 
+                s.GetType() == SER_DISK
+            ) {
                 READWRITE(ip);
             } else { // backwards compatibility
                 if(ser_action.ForRead()){
@@ -113,7 +119,7 @@ class CNetAddr
                     memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
                     READWRITE(compatibleIP);
                 }
-            }    
+            }
         }
 
         friend class CSubNet;
@@ -185,19 +191,7 @@ class CService : public CNetAddr
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            if(s.GetVersion() >= TORV3_SERVICES_VERSION) {
-                READWRITE(ip);
-            } else {
-                if(ser_action.ForRead()){
-                    unsigned char compatibleIP[16];
-                    READWRITE(compatibleIP);
-                    memcpy(CNetAddr::ip, compatibleIP, sizeof(compatibleIP));
-                } else {
-                    unsigned char compatibleIP[16]; // backwards compatibility
-                    memcpy(compatibleIP, CNetAddr::ip, sizeof(compatibleIP));
-                    READWRITE(compatibleIP);
-                }
-            }         
+            READWRITEAS(CNetAddr, *this);
             READWRITE(WrapBigEndian(port));
         }
 };

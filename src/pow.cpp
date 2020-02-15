@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,6 +12,7 @@
 #include <uint256.h>
 #include <util/system.h>
 #include <chainparamsbase.h>
+#include <chainparams.h>
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo, const Consensus::Params& params)
 {
@@ -88,7 +89,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
         return false;
 
     // Check proof of work matches claimed amount
-    if(gArgs.GetChainName() == CBaseChainParams::TESTNET){
+    if (Params().NetworkIDString() == CBaseChainParams::TESTNET || Params().NetworkIDString() == CBaseChainParams::REGTEST) {
         if (hash != params.hashGenesisBlock && UintToArith256(hash) > bnTarget) 
             return false;
     } else {
@@ -451,7 +452,7 @@ unsigned int LwmaCalculateNextWorkRequired(const CBlockIndex* pindexLast, int al
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, int algo, const Consensus::Params& params)
 {
-    if(gArgs.GetChainName() == "main"){
+    if(gArgs.GetChainName() == "main" || gArgs.GetChainName() == "regtest"){
         if (pindexLast->nHeight < params.MULTI_ALGO_SWITCH_BLOCK)
         {
             return GetNextTargetRequired_V1(pindexLast, algo, params);

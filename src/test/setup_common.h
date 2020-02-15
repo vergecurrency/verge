@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -74,6 +74,12 @@ struct TestingSetup: public BasicTestingSetup {
     ~TestingSetup();
 };
 
+/** Identical to TestingSetup, but chain set to regtest */
+struct RegTestingSetup : public TestingSetup {
+    RegTestingSetup()
+        : TestingSetup{CBaseChainParams::REGTEST} {}
+};
+
 class CBlock;
 struct CMutableTransaction;
 class CScript;
@@ -94,6 +100,7 @@ struct TestChain100Setup : public TestingSetup {
 
     std::vector<CTransactionRef> m_coinbase_txns; // For convenience, coinbase transactions
     CKey coinbaseKey; // private/public key needed to spend coinbase transactions
+    CBasicKeyStore keystore;
 };
 
 class CTxMemPoolEntry;

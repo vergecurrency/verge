@@ -137,11 +137,12 @@ public:
 
         // Adding some nodes in case it works
         if (!gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
-            vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
-	        vSeeds.emplace_back("zca2vot3ucw6bjvdg6yhgjxzvyqv7fl27pvu4pskdng6w6dhjfrs5myd.onion"); //v6 SUNEROK
+            // protocol-90009 with proper TOR v3 support
+	    vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("zca2vot3ucw6bjvdg6yhgjxzvyqv7fl27pvu4pskdng6w6dhjfrs5myd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("ho6iij2ag6fcnwnqhfwkzfvitcvbrr3lmlgetxlve2isvfqp72vwu5ad.onion"); //v6 SUNEROK
-	        vSeeds.emplace_back("obtsnd4wobjuubco4v2awt534zoog2wtq3oknloibmeul3dh5cxycjqd.onion"); //v6 SUNEROK
-	        vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("obtsnd4wobjuubco4v2awt534zoog2wtq3oknloibmeul3dh5cxycjqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("ry7yyqv4oeu2kjygco5xvcvi2sgr5bxkynvh6yctftghwe2jy6w2wkqd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v6 SUNEROK
             vSeeds.emplace_back("25hj4mdmslzvu2lngo4jcsbrouwsdktv6ps3xifipju74oqyoply6qad.onion"); //v6 SUNEROK
@@ -164,6 +165,8 @@ public:
             vSeeds.emplace_back("ojmwnkopgmpotm2byx7vsm7xplqxhctutw3d3ve7k5mbybsuydfk46qd.onion"); //v6 Marplez NYC
             vSeeds.emplace_back("g7cbcrcxdy7kszjmvw62bfm5douesjtkioqycc6m4gpomybcsohba7ad.onion"); //v6 2lazy2debug DE
             vSeeds.emplace_back("2zju2kcvt55h3v5dnghtduw5hrqqlt6nggngtyjnrjgybu7tqz4wvdad.onion"); //v6 2lazy2debug NL
+            vSeeds.emplace_back("3zal3m6ixo3vhvaeihybqi4r7vs33l2a4x7qce2gb6seqog2sk67lkyd.onion");
+            vSeeds.emplace_back("jcq2di2z5t2x6xibjuak4syslkx46rkid6vpuzys3rnn65vhwfywhrid.onion");
         }
         
         if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
@@ -220,6 +223,7 @@ public:
                 { 900000, uint256S("0xc4d8b4079da888985854eda0200fb57045c2c70b29f10e98543f7c4076129e91")},
                 {1000000, uint256S("0x000000000049eaba3d6c29d9f45bc2a944b46eec005e2b038f1ee924f2f9c029")},
                 {1100000, uint256S("0xc766387a2e0cd6af995ea432518614824fe313e988598ea8b26f58efb99ebcdc")},
+                {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
             }
         };
 
@@ -253,16 +257,14 @@ public:
                 {2500000, uint256S("0xff122f47bff95423f64d2167401192ee336a6c51b0c560afa8a9ea16ee81d886")},
                 {2600000, uint256S("0x20af6c9020b36967944f7dcacf4b7a49ec56c068c681f6170614585abd3de6cf")},
                 {2700000, uint256S("0x49fa4075fa2396bf797818e172b3b5702a39d8318606a0ee01c5d06555e65bf6")},
+                {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
             }
         };
 
-        // FIXME: need to know the amount of transactions
         chainTxData = ChainTxData{
-            // Data as of block 0000000000000000002d6cca6761c99b3c2e936f9a0e304b7c7651a993f461de (height 506081).
-            1412878964, // * UNIX timestamp of last known number of transactions
-            1,  // * total number of transactions between genesis and that timestamp
-                        //   (the tx=... number in the SetBestChain debug.log lines)
-            1         // * estimated number of transactions per second after that timestamp
+            1577552136,
+            8015431,
+            0.04004504697221486         
         };
 
         /* disable fallback fee on mainnet */
@@ -351,7 +353,7 @@ public:
 
         checkpointData = {
             {
-                {0, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")},
+                {0, uint256S("65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347")},
             }
         };
 
@@ -378,13 +380,22 @@ public:
         consensus.BIP34Height = 100000000; // BIP34 has not activated on regtest (far in the future so block v1 are not rejected in tests)
         consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251; // BIP66 activated on regtest (Used in rpc activation tests)
+
+        consensus.ForkHeight = 2800000;
+        consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
+        consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
+        consensus.FlexibleMiningAlgorithms = 2042000;
+        consensus.CLOCK_DRIFT_FORK = 2218500;
+        consensus.nSubsidyHalvingInterval = 500000;
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+
         consensus.nPowTargetTimespan = 7 * 24 * 60 * 60; // one week
         consensus.nPowTargetSpacing = 30;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
         consensus.nMinerConfirmationWindow = 144; // Faster than normal for regtest (144 instead of 2016)
+
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
@@ -405,14 +416,15 @@ public:
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
-        nDefaultPort = 8333;
+        nDefaultPort = 31102;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1);
+        genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1, true);
         consensus.hashGenesisBlock = genesis.GetHash();
-        //assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
-        //assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
 
+        assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
+        assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
+        
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
 
@@ -421,9 +433,7 @@ public:
         fMineBlocksOnDemand = true;
 
         checkpointData = {
-            {
-                {0, uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347")},
-            }
+            {}
         };
 
         chainTxData = ChainTxData{

@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,9 +10,9 @@
  * network protocol versioning
  */
 
-static const int PROTOCOL_VERSION = 90008;
+static const int PROTOCOL_VERSION = 90009;
 
-static const int TORV3_SERVICES_VERSION = 90007;
+static const int TORV3_SERVICES_VERSION = 90009;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;

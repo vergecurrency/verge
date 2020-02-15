@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,15 +16,10 @@
 
 BOOST_AUTO_TEST_SUITE(txvalidation_tests)
 
-BOOST_AUTO_TEST_CASE(example_test)
-{
-    BOOST_CHECK(true);
-}
-
 /**
  * Ensure that the mempool won't accept coinbase transactions.
  */
-/*BOOST_FIXTURE_TEST_CASE(tx_mempool_reject_coinbase, TestChain100Setup)
+BOOST_FIXTURE_TEST_CASE(tx_mempool_reject_coinbase, TestChain100Setup)
 {
     CScript scriptPubKey = CScript() << ToByteVector(coinbaseKey.GetPubKey()) << OP_CHECKSIG;
     CMutableTransaction coinbaseTx;
@@ -62,6 +57,6 @@ BOOST_AUTO_TEST_CASE(example_test)
     int nDoS;
     BOOST_CHECK_EQUAL(state.IsInvalid(nDoS), true);
     BOOST_CHECK_EQUAL(nDoS, 100);
-}*/
+}
 
 BOOST_AUTO_TEST_SUITE_END()

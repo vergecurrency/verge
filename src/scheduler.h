@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -41,7 +41,7 @@ public:
     CScheduler();
     ~CScheduler();
 
-    typedef std::function<void(void)> Function;
+    typedef std::function<void()> Function;
 
     // Call func at/after time t
     void schedule(Function f, boost::chrono::system_clock::time_point t=boost::chrono::system_clock::now());

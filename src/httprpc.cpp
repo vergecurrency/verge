@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -31,7 +31,7 @@ static const char* WWW_AUTH_HEADER_DATA = "Basic realm=\"jsonrpc\"";
 class HTTPRPCTimer : public RPCTimerBase
 {
 public:
-    HTTPRPCTimer(struct event_base* eventBase, std::function<void(void)>& func, int64_t millis) :
+    HTTPRPCTimer(struct event_base* eventBase, std::function<void()>& func, int64_t millis) :
         ev(eventBase, false, func)
     {
         struct timeval tv;
@@ -53,7 +53,7 @@ public:
     {
         return "HTTP";
     }
-    RPCTimerBase* NewTimer(std::function<void(void)>& func, int64_t millis) override
+    RPCTimerBase* NewTimer(std::function<void()>& func, int64_t millis) override
     {
         return new HTTPRPCTimer(base, func, millis);
     }

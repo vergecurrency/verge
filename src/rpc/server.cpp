@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The Verge Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -562,7 +562,7 @@ void RPCUnsetTimerInterface(RPCTimerInterface *iface)
         timerInterface = nullptr;
 }
 
-void RPCRunLater(const std::string& name, std::function<void(void)> func, int64_t nSeconds)
+void RPCRunLater(const std::string& name, std::function<void()> func, int64_t nSeconds)
 {
     if (!timerInterface)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "No timer handler registered for RPC");

@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -303,20 +303,10 @@ enum ServiceFlags : uint64_t {
  * If the NODE_NONE return value is changed, contrib/seeds/makeseeds.py
  * should be updated appropriately to filter for the same nodes.
  */
-ServiceFlags GetDesirableServiceFlags(ServiceFlags services, int nVersion);
 ServiceFlags GetDesirableServiceFlags(ServiceFlags services);
 
 /** Set the current IBD status in order to figure out the desirable service flags */
 void SetServiceFlagsIBDCache(bool status);
-
-/**
- * A shortcut for (services & GetDesirableServiceFlags(services))
- * == GetDesirableServiceFlags(services), ie determines whether the given
- * set of service flags are sufficient for a peer to be "relevant".
- */
-static inline bool HasAllDesirableServiceFlags(ServiceFlags services, int nVersion) {
-    return !(GetDesirableServiceFlags(services, nVersion) & (~services));
-}
 
 /**
  * A shortcut for (services & GetDesirableServiceFlags(services))

@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2018 The VERGE Core developers
+// Copyright (c) 2018-2020 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -129,25 +129,12 @@ bool CMessageHeader::IsValid(const MessageStartChars& pchMessageStartIn) const
     return true;
 }
 
-
-ServiceFlags GetDesirableServiceFlags(ServiceFlags services, int nVersion) {
-    if ((services & NODE_NETWORK_LIMITED) && g_initial_block_download_completed) {
-        return nVersion < 90007 
-            ? ServiceFlags(NODE_NETWORK_LIMITED | NODE_BLOOM)
-            : ServiceFlags(NODE_NETWORK_LIMITED | NODE_WITNESS); 
-    } 
-
-    return nVersion < 90007 
-        ? ServiceFlags(NODE_NETWORK | NODE_BLOOM) 
-        : ServiceFlags(NODE_NETWORK | NODE_WITNESS);
-}
-
 ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
     if ((services & NODE_NETWORK_LIMITED) && g_initial_block_download_completed) {
-        return ServiceFlags(NODE_NETWORK_LIMITED | NODE_GETUTXO);
+        return ServiceFlags(NODE_NETWORK_LIMITED | NODE_WITNESS);
     }
 
-    return ServiceFlags(NODE_NETWORK | NODE_GETUTXO);
+    return ServiceFlags(NODE_NETWORK | NODE_WITNESS);
 }
 
 void SetServiceFlagsIBDCache(bool state) {
