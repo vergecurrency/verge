@@ -79,7 +79,8 @@ void StartTorController()
     {
         run_tor();
     }
-    catch (std::exception& e) {
+    catch (std::exception& e) 
+    {
         LogPrintf("%s\n", e.what());
     }    
 }
