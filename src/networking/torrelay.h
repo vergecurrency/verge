@@ -5,8 +5,8 @@
 /**
  * Functionality for communicating with Tor.
  */
-#ifndef VERGE_TORCONTROLLER_H
-#define VERGE_TORCONTROLLER_H
+#ifndef VERGE_TORRELAY_H
+#define VERGE_TORRELAY_H
 
 #include <stdint.h>
 #include <atomic>
@@ -35,16 +35,16 @@ void run_tor();
 /**
  * Initializes a new tor thread within a new thread 
  **/
-void InitalizeTorThread();
+void InitalizeTorRelayThread();
 
 /**
  * Stops the known thread and tries to kill it
  **/
-void StopTorController();
+void StopTorRelay();
 
 /**
  * Internally starts within the new thread
  **/
-void StartTorController();
+void StartTorRelay();
 
-#endif /* VERGE_TORCONTROLLER_H */
+#endif /* VERGE_TORRELAY_H */

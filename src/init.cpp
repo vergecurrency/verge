@@ -40,7 +40,7 @@
 #include <timedata.h>
 #include <txdb.h>
 #include <txmempool.h>
-#include <torcontrol.h>
+#include <networking/torcontrol.h>
 #include <ui_interface.h>
 #include <util/system.h>
 #include <util/moneystr.h>
@@ -50,7 +50,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <arith_uint256.h>
-#include <torcontroller.h>
+#include <networking/torcontroller.h>
 
 #ifndef WIN32
 #include <signal.h>

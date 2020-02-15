@@ -6,14 +6,14 @@
 #include <config/verge-config.h>
 #endif
 
-#include <torcontroller.h>
+#include <networking/torrelay.h>
 #include <logging.h>
 
 extern "C" {
     int tor_main(int argc, char *argv[]);
 }
 
-static boost::thread torControllerThread;
+static boost::thread torRelayThread;
 
 char *convert_str(const std::string &s) {
     char *pc = new char[s.size()+1];
@@ -62,16 +62,16 @@ void run_tor() {
 }
 
 void InitalizeTorThread(){
-    torControllerThread = boost::thread(boost::bind(&TraceThread<void (*)()>, "torcontroller", &StartTorController));
+    torRelayThread = boost::thread(boost::bind(&TraceThread<void (*)()>, "torrelay", &StartTorRelay));
 }
 
-void StopTorController()
+void StopTorRelay()
 {
-    torControllerThread.interrupt();
+    torRelayThread.interrupt();
     LogPrintf("Tor Controller thread exited.\n");
 }
 
-void StartTorController()
+void StartTorRelay()
 {
     RenameThread("TorController");
 

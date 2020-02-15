@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 //
 #include <test/setup_common.h>
-#include <torcontrol.h>
+#include <networking/torcontrol.h>
 
 #include <boost/test/unit_test.hpp>
 

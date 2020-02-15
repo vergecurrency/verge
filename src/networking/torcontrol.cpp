@@ -4,13 +4,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <torcontrol.h>
+#include <networking/torcontrol.h>
 #include <util/strencodings.h>
 #include <netbase.h>
 #include <net.h>
 #include <util/system.h>
 #include <crypto/hmac_sha256.h>
-#include <torcontroller.h>
+#include <networking/torcontroller.h>
 
 #include <vector>
 #include <deque>

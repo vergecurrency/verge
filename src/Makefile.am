@@ -224,7 +224,7 @@ VERGE_CORE_H = \
   threadsafety.h \
   threadinterrupt.h \
   timedata.h \
-  torcontrol.h \
+  networking/torcontrol.h \
   txdb.h \
   txmempool.h \
   ui_interface.h \
@@ -238,7 +238,8 @@ VERGE_CORE_H = \
   alerter.h \
   validationinterface.h \
   versionbits.h \
-  torcontroller.h \
+  networking/torcontroller.h \
+  networking/torrelay.h \
   walletinitinterface.h \
   wallet/coincontrol.h \
   wallet/crypter.h \
@@ -301,7 +302,7 @@ libverge_server_a_SOURCES = \
   script/sigcache.cpp \
   shutdown.cpp \
   timedata.cpp \
-  torcontrol.cpp \
+  networking/torcontrol.cpp \
   txdb.cpp \
   txmempool.cpp \
   ui_interface.cpp \
@@ -309,7 +310,8 @@ libverge_server_a_SOURCES = \
   alerter.cpp \
   validationinterface.cpp \
   versionbits.cpp \
-  torcontroller.cpp \
+  networking/torcontroller.cpp \
+  networking/torrelay.cpp \
   $(VERGE_CORE_H)
 
 if ENABLE_ZMQ

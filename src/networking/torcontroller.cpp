@@ -6,7 +6,7 @@
 #include <config/verge-config.h>
 #endif
 
-#include <torcontroller.h>
+#include <networking/torcontroller.h>
 #include <logging.h>
 
 extern "C" {
