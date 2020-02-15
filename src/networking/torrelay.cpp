@@ -26,7 +26,7 @@ void run_tor() {
     fs::create_directory(tor_dir);
     fs::path log_file = tor_dir / "tor.log";
 
-    LogPrintf("TOR thread started.\n");
+    LogPrintf("TOR Relay thread started.\n");
 
     std::vector<std::string> argv;
     argv.emplace_back("tor");
@@ -68,12 +68,12 @@ void InitalizeTorThread(){
 void StopTorRelay()
 {
     torRelayThread.interrupt();
-    LogPrintf("Tor Controller thread exited.\n");
+    LogPrintf("Tor Relay thread exited.\n");
 }
 
 void StartTorRelay()
 {
-    RenameThread("TorController");
+    RenameThread("TorRelay");
 
     try
     {
