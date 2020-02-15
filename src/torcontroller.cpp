@@ -25,16 +25,11 @@ void run_tor() {
     fs::path tor_dir = GetDataDir() / "tor";
     fs::create_directory(tor_dir);
     fs::path log_file = tor_dir / "tor.log";
-    fs::path torrc_file = tor_dir / "torrc";
-
-    std::ifstream torrc_stream;
-    std::string line;
-    std::string obfs4proxy_path;
 
     LogPrintf("TOR thread started.\n");
 
     std::vector<std::string> argv;
-    argv.push_back("tor");
+    argv.emplace_back("tor");
     argv.push_back("--Log");
     argv.push_back("notice file " + log_file.string());
     argv.push_back("--SocksPort");
@@ -45,7 +40,7 @@ void run_tor() {
         onion_port = gArgs.GetArg("-torsocksport", "0");
     }
 
-    argv.push_back(onion_port.c_str());
+    argv.push_back(onion_port);
     argv.push_back("--ignore-missing-torrc");
     argv.push_back("-f");
     argv.push_back((tor_dir / "torrc").string());
