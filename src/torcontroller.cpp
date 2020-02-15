@@ -7,6 +7,7 @@
 #endif
 
 #include <torcontroller.h>
+#include <logging.h>
 
 extern "C" {
     int tor_main(int argc, char *argv[]);
@@ -21,8 +22,6 @@ char *convert_str(const std::string &s) {
 }
 
 void run_tor() {
-    std::string clientTransportPlugin;
-
     fs::path tor_dir = GetDataDir() / "tor";
     fs::create_directory(tor_dir);
     fs::path log_file = tor_dir / "tor.log";
@@ -32,7 +31,7 @@ void run_tor() {
     std::string line;
     std::string obfs4proxy_path;
 
-    printf("TOR thread started.\n");
+    LogPrintf("TOR thread started.\n");
 
     std::vector<std::string> argv;
     argv.push_back("tor");
@@ -61,17 +60,6 @@ void run_tor() {
     argv.push_back("--CookieAuthentication");
     argv.push_back("1");
 
-    if(!clientTransportPlugin.empty()){
-      printf("Using OBFS4.\n");
-      argv.push_back("--ClientTransportPlugin");
-      argv.push_back(clientTransportPlugin);
-      argv.push_back("--UseBridges");
-      argv.push_back("1");
-    }
-    else {
-      printf("No OBFS4 found, not using it.\n");
-    }
-
     std::vector<char *> argv_c;
     std::transform(argv.begin(), argv.end(), std::back_inserter(argv_c), convert_str);
 
@@ -97,6 +85,6 @@ void StartTorController()
         run_tor();
     }
     catch (std::exception& e) {
-        printf("%s\n", e.what());
+        LogPrintf("%s\n", e.what());
     }    
 }
