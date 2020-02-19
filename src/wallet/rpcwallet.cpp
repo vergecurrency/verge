@@ -2632,6 +2632,7 @@ static void LockWallet(CWallet* pWallet)
     LOCK(pWallet->cs_wallet);
     pWallet->nRelockTime = 0;
     pWallet->Lock();
+    pWallet->LockStealthAddresses();
 }
 
 static UniValue walletpassphrase(const JSONRPCRequest& request)
@@ -2794,6 +2795,7 @@ static UniValue walletlock(const JSONRPCRequest& request)
     }
 
     pwallet->Lock();
+    pwallet->LockStealthAddresses();
     pwallet->nRelockTime = 0;
 
     return NullUniValue;

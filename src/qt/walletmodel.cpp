@@ -387,6 +387,7 @@ bool WalletModel::setWalletLocked(bool locked, const SecureString &passPhrase)
     if(locked)
     {
         // Lock
+        m_wallet->lockStealthAddresses();
         return m_wallet->lock();
     }
     else

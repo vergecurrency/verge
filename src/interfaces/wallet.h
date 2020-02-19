@@ -58,6 +58,9 @@ public:
     //! Lock wallet.
     virtual bool lock() = 0;
 
+    //! Lock stealth wallet.
+    virtual void lockStealthAddresses() = 0;
+
     //! Unlock wallet.
     virtual bool unlock(const SecureString& wallet_passphrase) = 0;
 
