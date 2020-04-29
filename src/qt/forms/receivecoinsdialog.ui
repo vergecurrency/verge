@@ -209,7 +209,7 @@
              <string>Stealth Addressing Protects your privacy while receiving funds</string>
             </property>
             <property name="text">
-             <string>Generate native stealth address</string>
+             <string>Generate not a Stealth address</string>
             </property>
            </widget>
           </item>
