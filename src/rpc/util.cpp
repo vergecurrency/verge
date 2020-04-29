@@ -123,7 +123,7 @@ public:
         return obj;
     }
 
-    UniValue operator()(const CStealthAddress& id) const
+    UniValue operator()(const CNotAStealthAddress& id) const
     {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("isstealth", true);

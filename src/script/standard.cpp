@@ -266,7 +266,7 @@ public:
         return true;
     }
 
-    bool operator()(const CStealthAddress &stealthID) const {
+    bool operator()(const CNotAStealthAddress &stealthID) const {
         script->clear();
 
         ec_secret ephem_secret;

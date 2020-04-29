@@ -55,10 +55,10 @@ T from_little_endian(Iterator in)
     return out;
 }
 
-class CStealthAddress
+class CNotAStealthAddress
 {
 public:
-    CStealthAddress()
+    CNotAStealthAddress()
     {
         options = 0;
     }
@@ -76,12 +76,12 @@ public:
     bool SetEncoded(const std::string& encodedAddress);
     std::string Encoded() const;
     
-    bool operator <(const CStealthAddress& y) const
+    bool operator <(const CNotAStealthAddress& y) const
     {
         return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], ec_compressed_size) < 0;
     }
 
-    bool operator ==(const CStealthAddress& y) const
+    bool operator ==(const CNotAStealthAddress& y) const
     {
         return &scan_pubkey == &y.scan_pubkey &&  &scan_secret == &y.scan_secret && 
                 &spend_pubkey == &y.spend_pubkey &&  &spend_secret == &y.spend_secret;
@@ -114,7 +114,7 @@ int StealthSecret(ec_secret& secret, const ec_point& pubkey, const ec_point& pkS
 int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& spendSecret, ec_secret& secretOut);
 int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_secret& secretOut);
 
-bool IsStealthAddress(const std::string& encodedAddress);
-bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr);
+bool IsNotAStealthAddress(const std::string& encodedAddress);
+bool GenerateNewNotAStealthAddress(std::string& sError, std::string& sLabel, CNotAStealthAddress& sxAddr);
 
 #endif // VERGE_STEALTH_H

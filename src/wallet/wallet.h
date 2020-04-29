@@ -800,7 +800,7 @@ public:
     const int64_t MIN_COIN_FEE = 10 * CENT;
 
     // a Set for all known stealth addresses
-    std::set<CStealthAddress> stealthAddresses;
+    std::set<CNotAStealthAddress> stealthAddresses;
     StealthKeyMetaMap mapStealthKeyMeta;
     uint32_t nStealth, nFoundStealth; // for reporting, zero before use
 
@@ -926,7 +926,7 @@ public:
     int64_t nRelockTime = 0;
 
     bool Unlock(const SecureString& strWalletPassphrase);
-    void LockStealthAddresses();
+    void LockNotAStealthAddresses();
     bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
     bool EncryptWallet(const SecureString& strWalletPassphrase);
 
@@ -982,13 +982,13 @@ public:
                            std::string& strFailReason, const CCoinControl& coin_control, bool sign = true);
     bool CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm, std::string fromAccount, CReserveKey& reservekey, CConnman* connman, CValidationState& state);
 
-    bool AddStealthAddress(CStealthAddress& sxAddr);
-    bool UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn);
-    bool UpdateStealthAddress(std::string &addr, std::string &label, bool addIfNotExist);
+    bool AddNotAStealthAddress(CNotAStealthAddress& sxAddr);
+    bool UnlockNotAStealthAddresses(const CKeyingMaterial& vMasterKeyIn);
+    bool UpdateNotAStealthAddress(std::string &addr, std::string &label, bool addIfNotExist);
 
     bool CreateStealthTransaction(CScript scriptPubKey, int64_t nValue, std::vector<uint8_t>& P, std::vector<uint8_t>& narr, std::string& sNarr, CTransactionRef& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet);
     std::string SendStealthMoney(CScript scriptPubKey, int64_t nValue, std::vector<uint8_t>& P, std::vector<uint8_t>& narr, std::string& sNarr, CTransactionRef& wtxNew, bool fAskFee);   
-    bool SendStealthMoneyToDestination(CStealthAddress& sxAddress, int64_t nValue, std::string& sNarr, CTransactionRef& txNew, std::string& sError, bool fAskFee=false);
+    bool SendStealthMoneyToDestination(CNotAStealthAddress& sxAddress, int64_t nValue, std::string& sNarr, CTransactionRef& txNew, std::string& sError, bool fAskFee=false);
     bool FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNarr);
 
     void ListAccountCreditDebit(const std::string& strAccount, std::list<CAccountingEntry>& entries);

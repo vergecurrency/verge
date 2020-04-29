@@ -471,7 +471,7 @@ static UniValue createrawtransaction(const JSONRPCRequest& request)
             rawTx.vout.push_back(out);
         } else {
             CTxDestination destination = DecodeDestination(name_);
-            if (!IsValidDestination(destination) || IsStealthAddress(name_) || destination.type() == typeid(CStealthAddress)) {
+            if (!IsValidDestination(destination) || IsNotAStealthAddress(name_) || destination.type() == typeid(CNotAStealthAddress)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid VERGE address: ") + name_);
             }
 

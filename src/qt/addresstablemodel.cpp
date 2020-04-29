@@ -382,10 +382,10 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
         }
 
         if(address_type == OutputType::STEALTH) {
-            CStealthAddress sxAddr = boost::get<CStealthAddress>(GetDestinationForKey(newKey, OutputType::STEALTH));
+            CNotAStealthAddress sxAddr = boost::get<CNotAStealthAddress>(GetDestinationForKey(newKey, OutputType::STEALTH));
             WalletModel::UnlockContext ctx(walletModel->requestUnlock());
-            bool savedStealthAddress = walletModel->wallet().addStealthAddress(sxAddr);
-            if(!savedStealthAddress){
+            bool savedNotAStealthAddress = walletModel->wallet().addNotAStealthAddress(sxAddr);
+            if(!savedNotAStealthAddress){
                 editStatus = KEY_GENERATION_FAILURE;
                 return QString();
             }

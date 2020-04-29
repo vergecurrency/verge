@@ -404,7 +404,7 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase)
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey))
                 continue; // try another master key
             if (CCryptoKeyStore::Unlock(_vMasterKey)){
-                UnlockStealthAddresses(_vMasterKey);
+                UnlockNotAStealthAddresses(_vMasterKey);
                 return true;
             }
         }
@@ -420,7 +420,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
     {
         LOCK(cs_wallet);
         Lock();
-        LockStealthAddresses();
+        LockNotAStealthAddresses();
 
         CCrypter crypter;
         CKeyingMaterial _vMasterKey;
@@ -430,7 +430,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
                 return false;
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey))
                 return false;
-            if (CCryptoKeyStore::Unlock(_vMasterKey) && UnlockStealthAddresses(_vMasterKey))
+            if (CCryptoKeyStore::Unlock(_vMasterKey) && UnlockNotAStealthAddresses(_vMasterKey))
             {
                 int64_t nStartTime = GetTimeMillis();
                 crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod);
@@ -452,7 +452,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
                 WalletBatch(*database).WriteMasterKey(pMasterKey.first, pMasterKey.second);
                 if (fWasLocked){
                     Lock();
-                    LockStealthAddresses();
+                    LockNotAStealthAddresses();
                 }
                 return true;
             }
@@ -681,14 +681,14 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
             assert(false);
         }
 
-        std::set<CStealthAddress>::iterator it;
+        std::set<CNotAStealthAddress>::iterator it;
         for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
         {
             if (it->scan_secret.size() < 32)
                 continue; // stealth address is not owned
             
-            // -- CStealthAddress is only sorted on spend_pubkey
-            CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
+            // -- CNotAStealthAddress is only sorted on spend_pubkey
+            CNotAStealthAddress &sxAddr = const_cast<CNotAStealthAddress&>(*it);
             
          
             LogPrintf("Encrypting stealth key %s\n", sxAddr.Encoded().c_str());
@@ -707,7 +707,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
             };
             
             sxAddr.spend_secret = vchCryptedSecret;
-            encrypted_batch->WriteStealthAddress(sxAddr);
+            encrypted_batch->WriteNotAStealthAddress(sxAddr);
         };
 
         // Encryption was introduced in version 0.4.0
@@ -735,7 +735,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 
         NewKeyPool();
         Lock();
-        LockStealthAddresses();
+        LockNotAStealthAddresses();
 
         // Need to completely rewrite the wallet file; if we don't, bdb might keep
         // bits of the unencrypted private key in slack space in the database file.
@@ -3167,7 +3167,7 @@ bool CWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::ve
     return true;
 }
 
-bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
+bool CWallet::AddNotAStealthAddress(CNotAStealthAddress& sxAddr)
 {
 
     LOCK(cs_wallet);
@@ -3182,7 +3182,7 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
         // -- owned addresses can only be added when wallet is unlocked
         if (IsLocked())
         {
-            printf("Error: CWallet::AddStealthAddress wallet must be unlocked.\n");
+            printf("Error: CWallet::AddNotAStealthAddress wallet must be unlocked.\n");
             stealthAddresses.erase(sxAddr);
             return false;
         };
@@ -3206,7 +3206,7 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
     };
     
     WalletBatch batch(*database);
-    bool rv = batch.WriteStealthAddress(sxAddr);
+    bool rv = batch.WriteNotAStealthAddress(sxAddr);
 
     
     if (rv)
@@ -3215,22 +3215,22 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
     return rv;
 }
 
-void CWallet::LockStealthAddresses() {
+void CWallet::LockNotAStealthAddresses() {
      // -- load encrypted spend_secret of stealth addresses
-    CStealthAddress sxAddrTemp;
-    std::set<CStealthAddress>::iterator it;
+    CNotAStealthAddress sxAddrTemp;
+    std::set<CNotAStealthAddress>::iterator it;
     for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
     {
         if (it->scan_secret.size() < 32)
             continue; // stealth address is not owned
 
-        // -- CStealthAddress are only sorted on spend_pubkey
-        CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
+        // -- CNotAStealthAddress are only sorted on spend_pubkey
+        CNotAStealthAddress &sxAddr = const_cast<CNotAStealthAddress&>(*it);
         LogPrintf("Recrypting stealth key %s\n", sxAddr.Encoded().c_str());
 
         sxAddrTemp.scan_pubkey = sxAddr.scan_pubkey;
         WalletBatch batch(*database);
-        if (!batch.ReadStealthAddress(sxAddrTemp))
+        if (!batch.ReadNotAStealthAddress(sxAddrTemp))
         {
             LogPrintf("Error: Failed to read stealth key from db %s\n", sxAddr.Encoded().c_str());
             continue;
@@ -3239,17 +3239,17 @@ void CWallet::LockStealthAddresses() {
     };
 };
 
-bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
+bool CWallet::UnlockNotAStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
 {
     // -- decrypt spend_secret of stealth addresses
-    std::set<CStealthAddress>::iterator it;
+    std::set<CNotAStealthAddress>::iterator it;
     for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
     {
         if (it->scan_secret.size() < 32)
             continue; // stealth address is not owned
         
-        // -- CStealthAddress are only sorted on spend_pubkey
-        CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
+        // -- CNotAStealthAddress are only sorted on spend_pubkey
+        CNotAStealthAddress &sxAddr = const_cast<CNotAStealthAddress&>(*it);
         
         LogPrintf("Decrypting stealth key %s\n", sxAddr.Encoded().c_str());
         
@@ -3296,10 +3296,10 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         
         CStealthKeyMetadata& sxKeyMeta = mi->second;
         
-        CStealthAddress sxFind;
+        CNotAStealthAddress sxFind;
         sxFind.scan_pubkey = sxKeyMeta.pkScan.Raw();
         
-        std::set<CStealthAddress>::iterator si = stealthAddresses.find(sxFind);
+        std::set<CNotAStealthAddress>::iterator si = stealthAddresses.find(sxFind);
         if (si == stealthAddresses.end())
         {
             LogPrintf("No stealth key found to add secret\n");
@@ -3394,20 +3394,20 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
     return true;
 }
 
-bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool addIfNotExist)
+bool CWallet::UpdateNotAStealthAddress(std::string &addr, std::string &label, bool addIfNotExist)
 {
-    LogPrintf("UpdateStealthAddress %s\n", addr.c_str());
+    LogPrintf("UpdateNotAStealthAddress %s\n", addr.c_str());
 
-    CStealthAddress sxAddr;
+    CNotAStealthAddress sxAddr;
     
     if (!sxAddr.SetEncoded(addr))
         return false;
     
-    std::set<CStealthAddress>::iterator it;
+    std::set<CNotAStealthAddress>::iterator it;
     it = stealthAddresses.find(sxAddr);
     
     ChangeType nMode = CT_UPDATED;
-    CStealthAddress sxFound;
+    CNotAStealthAddress sxFound;
     if (it == stealthAddresses.end())
     {
         if (addIfNotExist)
@@ -3418,12 +3418,12 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
             nMode = CT_NEW;
         } else
         {
-            LogPrintf("UpdateStealthAddress %s, not in set\n", addr.c_str());
+            LogPrintf("UpdateNotAStealthAddress %s, not in set\n", addr.c_str());
             return false;
         };
     } else
     {
-        sxFound = const_cast<CStealthAddress&>(*it);
+        sxFound = const_cast<CNotAStealthAddress&>(*it);
         
         if (sxFound.label == label)
         {
@@ -3434,9 +3434,9 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
     
     sxFound.label = label;
     WalletBatch batch(*database);
-    if (!batch.WriteStealthAddress(sxFound))
+    if (!batch.WriteNotAStealthAddress(sxFound))
     {
-        LogPrintf("UpdateStealthAddress(%s) Write to db failed.\n", addr.c_str());
+        LogPrintf("UpdateNotAStealthAddress(%s) Write to db failed.\n", addr.c_str());
         return false;
     };
     
@@ -3524,7 +3524,7 @@ std::string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std:
     return "";
 }
 
-bool CWallet::SendStealthMoneyToDestination(CStealthAddress& sxAddress, int64_t nValue, std::string& sNarr, CTransactionRef& wtxNew, std::string& sError, bool fAskFee /*false*/)
+bool CWallet::SendStealthMoneyToDestination(CNotAStealthAddress& sxAddress, int64_t nValue, std::string& sNarr, CTransactionRef& wtxNew, std::string& sError, bool fAskFee /*false*/)
 {
     // -- Check amount
     if (nValue <= 0)
@@ -3686,7 +3686,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
             if (HaveKey(ckidMatch)) // no point checking if already have key
                 continue;
             
-            std::set<CStealthAddress>::iterator it;
+            std::set<CNotAStealthAddress>::iterator it;
             for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
             {
                 if (it->scan_secret.size() != ec_secret_size)
@@ -5158,10 +5158,10 @@ CTxDestination GetDestinationForKey(const CPubKey& key, OutputType type)
     switch (type) {
     case OutputType::LEGACY: return key.GetID();
     case OutputType::STEALTH: {
-        CStealthAddress sxAddr;
+        CNotAStealthAddress sxAddr;
         std::string error;
         std::string label;
-        if(!GenerateNewStealthAddress(error, label, sxAddr))
+        if(!GenerateNewNotAStealthAddress(error, label, sxAddr))
             assert(false);
 
         return sxAddr;

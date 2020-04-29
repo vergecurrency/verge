@@ -461,7 +461,7 @@ static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &
 {
     CAmount curBalance = pwallet->GetBalance();
 
-    if(address.type() == typeid(CStealthAddress))
+    if(address.type() == typeid(CNotAStealthAddress))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Stealth address not supported");
 
     // Check amount
@@ -550,7 +550,7 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
-    if(dest.type() == typeid(CStealthAddress)) {
+    if(dest.type() == typeid(CNotAStealthAddress)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "For sending to stealth addresses please use sendtostealthaddress");
     }
 
@@ -624,12 +624,12 @@ UniValue getnewstealthaddress(const JSONRPCRequest& request){
     if (!request.params[0].isNull())
         sLabel = request.params[0].get_str();
     
-    CStealthAddress sxAddr;
+    CNotAStealthAddress sxAddr;
     std::string sError;
-    if (!GenerateNewStealthAddress(sError, sLabel, sxAddr))
+    if (!GenerateNewNotAStealthAddress(sError, sLabel, sxAddr))
         throw std::runtime_error(std::string("Could get new stealth address: ") + sError);
     
-    if (!pwallet->AddStealthAddress(sxAddr))
+    if (!pwallet->AddNotAStealthAddress(sxAddr))
         throw std::runtime_error("Could not save to wallet.");
     
     return sxAddr.Encoded();
@@ -683,7 +683,7 @@ UniValue sendtostealthaddress(const JSONRPCRequest& request)
     if (sNarr.length() > 24)
         throw JSONRPCError(RPC_TYPE_ERROR, "Narration must be smaller than 24 characters");
     
-    CStealthAddress sxAddr;
+    CNotAStealthAddress sxAddr;
     
     if (!sxAddr.SetEncoded(sEncoded))
     {
@@ -4099,7 +4099,7 @@ public:
         return obj;
     }
 
-    UniValue operator()(const CStealthAddress& stealthID) const
+    UniValue operator()(const CNotAStealthAddress& stealthID) const
     {
         UniValue obj(UniValue::VOBJ);
         
@@ -4663,7 +4663,7 @@ UniValue liststealthaddresses(const JSONRPCRequest& request)
 
     UniValue results(UniValue::VARR);
 
-    std::set<CStealthAddress>::iterator it;
+    std::set<CNotAStealthAddress>::iterator it;
 
     for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it)
     {
@@ -4724,7 +4724,7 @@ UniValue exportstealthaddress(const JSONRPCRequest& request)
 
     UniValue result(UniValue::VOBJ);
 
-    std::set<CStealthAddress>::iterator it;
+    std::set<CNotAStealthAddress>::iterator it;
     for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it)
     {
         if (it->scan_secret.size() < 1)
@@ -4823,7 +4823,7 @@ UniValue importstealthaddress(const JSONRPCRequest& request)
     if (SecretToPublicKey(spend_secret, spend_pubkey) != 0)
         throw std::runtime_error("Could not get spend public key.");
 
-    CStealthAddress sxAddr;
+    CNotAStealthAddress sxAddr;
     sxAddr.label = sLabel;
     sxAddr.scan_pubkey = scan_pubkey;
     sxAddr.spend_pubkey = spend_pubkey;
@@ -4835,10 +4835,10 @@ UniValue importstealthaddress(const JSONRPCRequest& request)
     UniValue result(UniValue::VOBJ);
     bool fFound = false;
     // -- find if address already exists
-    std::set<CStealthAddress>::iterator it;
+    std::set<CNotAStealthAddress>::iterator it;
     for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it)
     {
-        CStealthAddress &sxAddrIt = const_cast<CStealthAddress&>(*it);
+        CNotAStealthAddress &sxAddrIt = const_cast<CNotAStealthAddress&>(*it);
         if (sxAddrIt.scan_pubkey == sxAddr.scan_pubkey && sxAddrIt.spend_pubkey == sxAddr.spend_pubkey)
         {
             if (sxAddrIt.scan_secret.size() < 1)
@@ -4866,7 +4866,7 @@ UniValue importstealthaddress(const JSONRPCRequest& request)
         result.push_back(Pair("Address", sxAddr.Encoded()));
     };
 
-	if (!pwallet->AddStealthAddress(sxAddr))
+	if (!pwallet->AddNotAStealthAddress(sxAddr))
         throw std::runtime_error("Could not save to wallet.");
 
     return result;
@@ -4896,7 +4896,7 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
     }
 
     CTxDestination destination = DecodeDestination(request.params[1].get_str());
-    if(destination.type() == typeid(CStealthAddress)) {
+    if(destination.type() == typeid(CNotAStealthAddress)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Stealth address not supported");
     }
     

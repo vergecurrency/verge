@@ -212,8 +212,8 @@ public:
 
     bool WriteStealthKeyMeta(const CKeyID& keyId, const CStealthKeyMetadata& sxKeyMeta);
     bool EraseStealthKeyMeta(const CKeyID& keyId);
-    bool WriteStealthAddress(const CStealthAddress& sxAddr);
-    bool ReadStealthAddress(CStealthAddress& sxAddr);
+    bool WriteNotAStealthAddress(const CNotAStealthAddress& sxAddr);
+    bool ReadNotAStealthAddress(CNotAStealthAddress& sxAddr);
 
     bool WriteCScript(const uint160& hash, const CScript& redeemScript);
 

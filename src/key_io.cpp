@@ -35,7 +35,7 @@ public:
         return EncodeBase58Check(data);
     }
 
-    std::string operator()(const CStealthAddress& stealthId) const
+    std::string operator()(const CNotAStealthAddress& stealthId) const
     {
         return stealthId.Encoded();
     }
@@ -80,8 +80,8 @@ public:
 CTxDestination DecodeDestination(const std::string& str, const CChainParams& params)
 {
     std::vector<unsigned char> data;
-    if(IsStealthAddress(str)){
-        CStealthAddress sxAddr;
+    if(IsNotAStealthAddress(str)){
+        CNotAStealthAddress sxAddr;
         sxAddr.SetEncoded(str);
 
         return sxAddr;

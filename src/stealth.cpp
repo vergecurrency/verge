@@ -19,26 +19,26 @@ const uint8_t stealth_version_byte = 0x28;
 
 
 
-bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
+bool CNotAStealthAddress::SetEncoded(const std::string& encodedAddress)
 {
     data_chunk raw;
     
     if (!DecodeBase58(encodedAddress, raw))
     {
-        LogPrintf("CStealthAddress::SetEncoded DecodeBase58 failed.\n");
+        LogPrintf("CNotAStealthAddress::SetEncoded DecodeBase58 failed.\n");
         return false;
     };
     
     if (!VerifyChecksum(raw))
     {
 
-        LogPrintf("CStealthAddress::SetEncoded verify_checksum failed.\n");
+        LogPrintf("CNotAStealthAddress::SetEncoded verify_checksum failed.\n");
         return false;
     };
     
     if (raw.size() < 1 + 1 + 33 + 1 + 33 + 1 + 1 + 4)
     {
-        LogPrintf("CStealthAddress::SetEncoded() too few bytes provided.\n");
+        LogPrintf("CNotAStealthAddress::SetEncoded() too few bytes provided.\n");
         return false;
     };
     
@@ -48,7 +48,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     
     if (version != stealth_version_byte)
     {
-        LogPrintf("CStealthAddress::SetEncoded version mismatch 0x%x != 0x%x.\n", version, stealth_version_byte);
+        LogPrintf("CNotAStealthAddress::SetEncoded version mismatch 0x%x != 0x%x.\n", version, stealth_version_byte);
         return false;
     };
     
@@ -66,7 +66,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     return true;
 };
 
-std::string CStealthAddress::Encoded() const
+std::string CNotAStealthAddress::Encoded() const
 {
     // https://wiki.unsystem.net/index.php/DarkWallet/Stealth#Address_format
     // [version] [options] [scan_key] [N] ... [Nsigs] [prefix_length] ...
@@ -654,25 +654,25 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     return rv;
 };
 
-bool IsStealthAddress(const std::string& encodedAddress)
+bool IsNotAStealthAddress(const std::string& encodedAddress)
 {
     data_chunk raw;
     
     if (!DecodeBase58(encodedAddress, raw))
     {
-        //printf("IsStealthAddress DecodeBase58 failed.\n");
+        //printf("IsNotAStealthAddress DecodeBase58 failed.\n");
         return false;
     };
     
     if (!VerifyChecksum(raw))
     {
-        //printf("IsStealthAddress verify_checksum failed.\n");
+        //printf("IsNotAStealthAddress verify_checksum failed.\n");
         return false;
     };
     
     if (raw.size() < 1 + 1 + 33 + 1 + 33 + 1 + 1 + 4)
     {
-        //printf("IsStealthAddress too few bytes provided.\n");
+        //printf("IsNotAStealthAddress too few bytes provided.\n");
         return false;
     };
     
@@ -682,14 +682,14 @@ bool IsStealthAddress(const std::string& encodedAddress)
     
     if (version != stealth_version_byte)
     {
-        //printf("IsStealthAddress version mismatch 0x%x != 0x%x.\n", version, stealth_version_byte);
+        //printf("IsNotAStealthAddress version mismatch 0x%x != 0x%x.\n", version, stealth_version_byte);
         return false;
     };
     
     return true;
 };
 
-bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr) {
+bool GenerateNewNotAStealthAddress(std::string& sError, std::string& sLabel, CNotAStealthAddress& sxAddr) {
     ec_secret scan_secret;
     ec_secret spend_secret;
     
@@ -697,7 +697,7 @@ bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealt
         || GenerateRandomSecret(spend_secret) != 0)
     {
         sError = "GenerateRandomSecret failed.";
-        LogPrintf("Error CWallet::NewStealthAddress - %s\n", sError.c_str());
+        LogPrintf("Error CWallet::NewNotAStealthAddress - %s\n", sError.c_str());
         return false;
     };
     
@@ -705,14 +705,14 @@ bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealt
     if (SecretToPublicKey(scan_secret, scan_pubkey) != 0)
     {
         sError = "Could not get scan public key.";
-        LogPrintf("Error CWallet::NewStealthAddress - %s\n", sError.c_str());
+        LogPrintf("Error CWallet::NewNotAStealthAddress - %s\n", sError.c_str());
         return false;
     };
     
     if (SecretToPublicKey(spend_secret, spend_pubkey) != 0)
     {
         sError = "Could not get spend public key.";
-        LogPrintf("Error CWallet::NewStealthAddress - %s\n", sError.c_str());
+        LogPrintf("Error CWallet::NewNotAStealthAddress - %s\n", sError.c_str());
         return false;
     };
     

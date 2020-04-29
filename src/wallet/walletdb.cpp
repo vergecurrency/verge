@@ -103,12 +103,12 @@ bool WalletBatch::EraseStealthKeyMeta(const CKeyID& keyId)
     return EraseIC(std::make_pair(std::string("sxKeyMeta"), keyId));
 }
 
-bool WalletBatch::WriteStealthAddress(const CStealthAddress& sxAddr)
+bool WalletBatch::WriteNotAStealthAddress(const CNotAStealthAddress& sxAddr)
 {
     return WriteIC(std::make_pair(std::string("sxAddr"), sxAddr.scan_pubkey), sxAddr, true);
 }
 
-bool WalletBatch::ReadStealthAddress(CStealthAddress& sxAddr)
+bool WalletBatch::ReadNotAStealthAddress(CNotAStealthAddress& sxAddr)
 {
     // -- set scan_pubkey before reading
     return m_batch.Read(std::make_pair(std::string("sxAddr"), sxAddr.scan_pubkey), sxAddr);
@@ -326,7 +326,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         }
         else if (strType == "sxAddr")		
         {
-            CStealthAddress sxAddr;
+            CNotAStealthAddress sxAddr;
             ssValue >> sxAddr;
             LogPrintf("Wallet ReadKeyValue sxAddr: %s\n", sxAddr.Encoded().c_str());
             pwallet->stealthAddresses.insert(sxAddr);

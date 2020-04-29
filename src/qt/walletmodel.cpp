@@ -179,8 +179,8 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             ++nAddresses;
 
             CTxDestination dest = DecodeDestination(rcp.address.toStdString());
-            if(dest.type() == typeid(CStealthAddress)){
-                CStealthAddress sxAddr = boost::get<CStealthAddress>(dest);
+            if(dest.type() == typeid(CNotAStealthAddress)){
+                CNotAStealthAddress sxAddr = boost::get<CNotAStealthAddress>(dest);
                 ec_secret ephem_secret;
                 ec_secret secretShared;
                 ec_point pkSendTo;

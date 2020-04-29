@@ -112,7 +112,7 @@ public:
     virtual void learnRelatedScripts(const CPubKey& key, OutputType type) = 0;
 
     //! Add stealth address 
-    virtual bool addStealthAddress(CStealthAddress sxAddr) = 0;
+    virtual bool addNotAStealthAddress(CNotAStealthAddress sxAddr) = 0;
 
     //! Add dest data.
     virtual bool addDestData(const CTxDestination& dest, const std::string& key, const std::string& value) = 0;

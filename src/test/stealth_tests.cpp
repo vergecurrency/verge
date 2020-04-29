@@ -10,7 +10,7 @@ BOOST_AUTO_TEST_CASE(stealth_key)
 {
     const char *testAddr = "smYjKTSpYSAznNCeRiRxb992ey8Xu11mowhp4ee4hBccqWwzRQfKfkCEnK3T7SjowDDmfmqWwZxiDkiPKpiEuw936H5yWYSqnhKL9N";
     
-    CStealthAddress sxAddr;
+    CNotAStealthAddress sxAddr;
     
     BOOST_CHECK(true == sxAddr.SetEncoded(testAddr));
     
