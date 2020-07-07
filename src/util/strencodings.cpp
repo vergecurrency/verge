@@ -516,8 +516,6 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
             }
         } else return false; /* missing expected digit */
     }
-    if (ptr != end)
-        return false; /* trailing garbage */
 
     /* finalize exponent */
     if (exponent_sign)
