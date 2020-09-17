@@ -10,11 +10,12 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-message: |
-          So sorry to hear, that you've in trouble with our software. We will
-          review your ticket as soon as we can. Please make sure to state your problem as 
-          detailed as possible and also consider checking our FAQ/Wiki sites. 
+          Hi! Thank you for filing an issue. Please be patient before anyone responds.
+          Make sure your issue is filled in with as many details as possible.
+          Its also recommended to check out previously resolved or closed issues so no duplicates are created.
+          There's also the chance the anwser for your issue can be found on one of the XVG wiki/FAQ's.
         pr-message: |
-          Thank you for submitting a Pull-Request to the Verge repository.
-          Please make sure that you read the CONTRIBUTION.md in order to quickily 
-          move forward with your ticket. Moreover we would like you to also have
-          a look onto your pipelines and upcoming reviews.
+          Thank you for your submitted Pull-Request!
+          Please make sure that you've read the CONTRIBUTION.md to prevent unwanted comments. ;)
+          Be patient before anyone responds or reviews your Pull-Request.
+          Keep in touch with this Pull-Request to make this a quick process!
