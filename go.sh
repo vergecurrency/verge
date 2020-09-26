@@ -110,6 +110,11 @@ echo "${green}BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'D
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
+result5=$(cat /etc/issue | grep -Po '20.04')
+if [ $result5 = "20.04" ]
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
+fi
 result2=$(cat /etc/issue | grep -Po '19.04')
 if [ $result2 = "19.04" ]
 then
