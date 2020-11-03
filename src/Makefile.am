@@ -211,6 +211,7 @@ VERGE_CORE_H = \
   rpc/register.h \
   rpc/util.h \
   scheduler.h \
+  script/descriptor.h \
   script/ismine.h \
   script/sigcache.h \
   script/sign.h \
@@ -232,6 +233,7 @@ VERGE_CORE_H = \
   ui_interface.h \
   undo.h \
   util/bytevectorhash.h \
+  util/spanparsing.h \
   util/system.h \
   util/memory.h \
   util/moneystr.h \
@@ -497,6 +499,7 @@ libverge_common_a_SOURCES = \
   policy/feerate.cpp \
   protocol.cpp \
   scheduler.cpp \
+  script/descriptor.cpp \
   script/ismine.cpp \
   script/sign.cpp \
   script/standard.cpp \
@@ -529,6 +532,7 @@ libverge_util_a_SOURCES = \
   util/bytevectorhash.cpp \
   util/system.cpp \
   util/moneystr.cpp \
+  util/spanparsing.cpp \
   util/strencodings.cpp \
   util/time.cpp \
   $(VERGE_CORE_H)
