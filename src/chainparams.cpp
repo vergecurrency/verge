@@ -74,10 +74,10 @@ public:
         consensus.FlexibleMiningAlgorithms = 2042000;
         consensus.CLOCK_DRIFT_FORK = 2218500;
         consensus.nSubsidyHalvingInterval = 500000;
-		
+
         consensus.BIP34Height = consensus.ForkHeight;
         consensus.BIP65Height = consensus.ForkHeight;
-        consensus.BIP66Height = consensus.ForkHeight; 
+        consensus.BIP66Height = consensus.ForkHeight;
 
 
         consensus.powLimit = uint256S("00000fffff000000000000000000000000000000000000000000000000000000"); //ArithToUint256(~arith_uint256(0) >> 20);
@@ -87,7 +87,7 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 100; // 100 out of 200 blocks
         consensus.nMinerConfirmationWindow = 200;
-        
+
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
@@ -103,7 +103,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1529247969; // November 15th, 2016.
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1559347200; // November 15th, 2017.
 
-        // The best chain should have at least this much work. 
+        // The best chain should have at least this much work.
         // KeyNote: (Kind of like a checkpoint)
         consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000000000222e000001");
 
@@ -116,7 +116,7 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xf7; 
+        pchMessageStart[0] = 0xf7;
         pchMessageStart[1] = 0xa7;
         pchMessageStart[2] = 0x7e;
         pchMessageStart[3] = 0xff;
@@ -125,7 +125,7 @@ public:
 
         genesis = CreateGenesisBlock(1412878964, 1473191, 0x1e0fffff, 1);
         consensus.hashGenesisBlock = genesis.GetHash();
-        
+
         assert(genesis.hashMerkleRoot == uint256S("0x1c83275d9151711eec3aec37d829837cc3c2730b2bdfd00ec5e8e5dce675fd00"));
         assert(consensus.hashGenesisBlock == uint256S("0x00000fc63692467faeb20cdb3b53200dc601d75bdfa1001463304cc790d77278"));
 
@@ -182,7 +182,7 @@ public:
             vSeeds.emplace_back("awkqdic6j42k3m6vstjiolnw43z34l3o2o2fyoxdltvgvsvqf3qxpjqd.onion");
             vSeeds.emplace_back("rsjpflaxtqmgrnkakcndadgsmk3kbv6l4j73gd5hjpglzg5jokdm5fyd.onion");
         }
-        
+
         if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
             vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
             vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
@@ -206,8 +206,8 @@ public:
             vSeeds.emplace_back("73.247.117.99");
             vSeeds.emplace_back("145.239.0.122");
         }
-    
-    
+
+
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,33);
@@ -283,12 +283,12 @@ public:
         chainTxData = ChainTxData{
             1577552136,
             8015431,
-            0.04004504697221486         
+            0.04004504697221486
         };
 
         // reorg
         consensus.nMaxReorgDepth = 5;
-        consensus.nMaxReorgDepthEnforcementBlock = 388000;
+        consensus.nMaxReorgDepthEnforcementBlock = 4760000;
 
         /* disable fallback fee on mainnet */
         m_fallback_fee_enabled = false;
@@ -308,7 +308,7 @@ public:
         consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
         consensus.FlexibleMiningAlgorithms = 2042000;
         consensus.CLOCK_DRIFT_FORK = 2218500;
-        
+
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
         consensus.BIP66Height = 0; // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
@@ -337,7 +337,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000000000000000000f");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"); //also genesis 
+        consensus.defaultAssumeValid = uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"); //also genesis
 
         pchMessageStart[0] = 0xcd;
         pchMessageStart[1] = 0xf2;
@@ -389,7 +389,7 @@ public:
 
         // reorg
         consensus.nMaxReorgDepth = 4;
-        consensus.nMaxReorgDepthEnforcementBlock = 25150;
+        consensus.nMaxReorgDepthEnforcementBlock = 100;
 
         /* enable fallback fee on testnet */
         m_fallback_fee_enabled = true;
@@ -451,7 +451,7 @@ public:
 
         assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
         assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
-        
+
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
 
