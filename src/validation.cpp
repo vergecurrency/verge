@@ -2714,6 +2714,21 @@ bool CChainState::ActivateBestChain(CValidationState &state, const CChainParams&
 
                 if (pindexMostWork == nullptr) {
                     pindexMostWork = FindMostWorkChain();
+
+                    // Check for reorg depth limit.
+                    if (pindexMostWork != nullptr && pindexMostWork != chainActive.Tip() && chainActive.Height() >= chainparams.GetConsensus().nMaxReorgDepthEnforcementBlock && !gArgs.GetBoolArg("-allowdeepreorg", false)) {
+                        const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
+                        assert(pindexFork != nullptr);
+
+                        // Check if reorg exceeds max reorg depth.
+                        if (chainActive.Tip() != pindexFork && pindexFork->nHeight < chainActive.Height() - chainparams.GetConsensus().nMaxReorgDepth) {
+                            LogPrintf("Deep reorg of %d blocks blocked (most work block = %s, fork block = %s)\n", pindexMostWork->nHeight - pindexFork->nHeight, pindexMostWork->GetBlockHash().ToString(), pindexFork->GetBlockHash().ToString());
+
+                            // Mark block on wrong chain as invalid.
+                            InvalidateBlock(state, chainparams, pindexMostWork->GetAncestor(pindexFork->nHeight+1));
+                            return state.Error("Reorg depth exceeds maximum allowed value");
+                        }
+                    }
                 }
 
                 // Whether we have anything to do at all.
