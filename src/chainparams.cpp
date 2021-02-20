@@ -138,11 +138,11 @@ public:
         // Adding some nodes in case it works
         if (!gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
             // protocol-90009 with proper TOR v3 support
-	        vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
-	        vSeeds.emplace_back("zca2vot3ucw6bjvdg6yhgjxzvyqv7fl27pvu4pskdng6w6dhjfrs5myd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("aizckfmksnk54gqcg5fur22cz22vzut2ig7cexz45pfm7witswzawcqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("zca2vot3ucw6bjvdg6yhgjxzvyqv7fl27pvu4pskdng6w6dhjfrs5myd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("ho6iij2ag6fcnwnqhfwkzfvitcvbrr3lmlgetxlve2isvfqp72vwu5ad.onion"); //v6 SUNEROK
-	        vSeeds.emplace_back("obtsnd4wobjuubco4v2awt534zoog2wtq3oknloibmeul3dh5cxycjqd.onion"); //v6 SUNEROK
-	        vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("obtsnd4wobjuubco4v2awt534zoog2wtq3oknloibmeul3dh5cxycjqd.onion"); //v6 SUNEROK
+	    vSeeds.emplace_back("jdaootwqo25qcfq3qjcantgfwlilzzc72e6ormt6t3gnafeacjzgd3qd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("ry7yyqv4oeu2kjygco5xvcvi2sgr5bxkynvh6yctftghwe2jy6w2wkqd.onion"); //v6 SUNEROK
             vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v6 SUNEROK
             vSeeds.emplace_back("25hj4mdmslzvu2lngo4jcsbrouwsdktv6ps3xifipju74oqyoply6qad.onion"); //v6 SUNEROK
@@ -240,6 +240,7 @@ public:
                 {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
                 {4000000, uint256S("0x61dca6a2a662da0fddaa7c19aa95f09d6ffda3c0b33a4613ab3698f25b5b9552")},
                 {4500000, uint256S("0x180f33d62de99ed493700fa7d4607a81ca7c26a96f497670c08191a933ce28a6")},
+		{4750000, uint256S("0xa1a59a1b1e2ccd0ee5d7ec86d41107dfa12f63d99dfab281003d95e05f805302")},
             }
         };
 
@@ -274,9 +275,10 @@ public:
                 {2600000, uint256S("0x20af6c9020b36967944f7dcacf4b7a49ec56c068c681f6170614585abd3de6cf")},
                 {2700000, uint256S("0x49fa4075fa2396bf797818e172b3b5702a39d8318606a0ee01c5d06555e65bf6")},
                 {3700001, uint256S("0x65a6844e9cee118fd45edb78e36ed81eee149a16ccec7d859951a28ef6604cfe")}, // manifests the v6 hardfork
-				{4000000, uint256S("0x61dca6a2a662da0fddaa7c19aa95f09d6ffda3c0b33a4613ab3698f25b5b9552")},
+		{4000000, uint256S("0x61dca6a2a662da0fddaa7c19aa95f09d6ffda3c0b33a4613ab3698f25b5b9552")},
                 {4500000, uint256S("0x180f33d62de99ed493700fa7d4607a81ca7c26a96f497670c08191a933ce28a6")},
                 {4714560, uint256S("0x073cbdba83dac29384fdc8b4b07199718cb43997558925dcd4824c1e228971d6")}, // updated 2/1/2021
+		{4750000, uint256S("0xa1a59a1b1e2ccd0ee5d7ec86d41107dfa12f63d99dfab281003d95e05f805302")},
             }
         };
 
