@@ -290,7 +290,7 @@ public:
 
         // reorg
         consensus.nMaxReorgDepth = 5;
-        consensus.nMaxReorgDepthEnforcementBlock = 4760000;
+        consensus.nMaxReorgDepthEnforcementBlock = 4800000;
 
         /* disable fallback fee on mainnet */
         m_fallback_fee_enabled = false;
