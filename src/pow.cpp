@@ -316,12 +316,6 @@ unsigned int DarkGravityWave3(const CBlockIndex* pindexLast, int algo, const Con
 
     long long nTargetTimespan = CountBlocks * GetTargetSpacing(pindexLast->nHeight);
 
-    if (nActualTimespan < nTargetTimespan/3)
-        nActualTimespan = nTargetTimespan/3;
-
-    if (nActualTimespan > nTargetTimespan*3)
-        nActualTimespan = nTargetTimespan*3;
-
     // Retarget
     bnNew *= nActualTimespan;
     bnNew /= nTargetTimespan;
