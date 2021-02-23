@@ -201,38 +201,4 @@ BOOST_AUTO_TEST_CASE(reject_blocks_with_too_new_timestamps)
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "transaction-time-too-new");
 }
 
-BOOST_AUTO_TEST_CASE(reject_blocks_with_invalid_signature)
-{
-    bool ignored;
-    std::shared_ptr<CBlock> shared_genesisBlock = std::make_shared<CBlock>(Params().GenesisBlock());
-    BOOST_CHECK(ProcessNewBlock(Params(), shared_genesisBlock, true, &ignored));
-
-    std::shared_ptr<CBlock> newBlock = Block(shared_genesisBlock->GetPoWHash(ALGO_SCRYPT));
-
-    CBasicKeyStore keyStore;
-    CKey signKey;
-
-    signKey.MakeNewKey(false);
-    keyStore.AddKey(signKey);
-
-    // Add a pubkey but do not sign the block!
-    CMutableTransaction txCoinbase(*newBlock->vtx[0]);
-    txCoinbase.nTime = GetTime() - 1000;
-    txCoinbase.vout.resize(2);
-    txCoinbase.vout[1].nValue = 0;
-    txCoinbase.vout[1].scriptPubKey = GetScriptForRawPubKey(signKey.GetPubKey());
-
-    newBlock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
-    newBlock->nTime = GetTime();
-    newBlock = FinalizeBlock(newBlock, false);
-    
-    // checking for the current block state (without POW and signing)
-    CValidationState state;
-    bool ret = CheckBlock(*newBlock.get(), state, Params().GetConsensus(), false, true, true);
-
-    BOOST_CHECK_EQUAL(ret, false);
-    BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
-    BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-blk-signature");
-}
-
 BOOST_AUTO_TEST_SUITE_END()
