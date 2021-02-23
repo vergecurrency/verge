@@ -46,11 +46,14 @@ inline int CalculateAvgBlockTimeForHeight(int nHeight){
  * Maximum amount of time that a block timestamp is allowed to exceed the
  * current network-adjusted time before the block will be accepted.
  */
-static const int64_t MAX_FUTURE_BLOCK_TIME = 10 * 60;
+static const int64_t MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60;
+static const int64_t NEW_FUTURE_BLOCK_TIME = 10 * 60;
 
 inline int64_t GetMaxClockDrift(int Height){
     if (Height < 2218500)
         return MAX_FUTURE_BLOCK_TIME;
+	if (Height > 4800000)
+		return NEW_FUTURE_BLOCK_TIME;
     return 10 * 60;
 }
 
