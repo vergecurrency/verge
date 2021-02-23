@@ -289,7 +289,7 @@ public:
         };
 
         // reorg
-        consensus.nMaxReorgDepth = 5;
+        consensus.nMaxReorgDepth = 6;
         consensus.nMaxReorgDepthEnforcementBlock = 4800000;
 
         /* disable fallback fee on mainnet */
