@@ -317,6 +317,7 @@ echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-block
 sh link.sh
 sudo rm -Rf ~/.VERGE/blocks
 sudo rm -Rf ~/.VERGE/chainstate
+sudo rm -Rf ~/.VERGE/tor
 sudo rm ~/.VERGE/peers.dat
 unzip -o QT-Wallet*.zip -d ~/.VERGE
 sudo rm QT-Wallet*.zip
