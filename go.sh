@@ -124,8 +124,8 @@ echo "${green}BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'D
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
-result7=$(cat /etc/issue | grep -Po 'Linux 10')
-if [ $result7 = "Linux 10" ]
+result7=$(cat /etc/issue | grep -Po 'GNU/Linux')
+if [ $result7 = "GNU/Linux" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 fi
