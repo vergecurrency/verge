@@ -242,6 +242,7 @@ public:
                 {4765728, uint256S("0x000000000006781bb672a43ceaa683b8830faa5056cd69d6fc359a98e1e2ac8e")}, // 2/22/2021
                 {5039226, uint256S("0x8ee0be305788218466d9e4e174efcbd3c8a7d1368a1ae044c291e54a3ccf69fc")}, // 6/9/2021
                 {5296344, uint256S("0x65008bb6061b0398bee35cb8713ac90bbfc21808a4961e1edc9e3215c1ace600")}, // 10/1/2021
+                {5399322, uint256S("0x17ae41e30e74dfaf5e2dd3941ef71647171297fd868125f13436b1d4e45425fd")}, // 11/11/2021 (mined by Mining-Dutch.NL)
             }
         };
 
@@ -282,6 +283,7 @@ public:
                 {4765728, uint256S("0x000000000006781bb672a43ceaa683b8830faa5056cd69d6fc359a98e1e2ac8e")}, // 2/22/2021
                 {5039226, uint256S("0x8ee0be305788218466d9e4e174efcbd3c8a7d1368a1ae044c291e54a3ccf69fc")}, // 6/9/2021
                 {5296344, uint256S("0x65008bb6061b0398bee35cb8713ac90bbfc21808a4961e1edc9e3215c1ace600")}, // 10/1/2021
+                {5399322, uint256S("0x17ae41e30e74dfaf5e2dd3941ef71647171297fd868125f13436b1d4e45425fd")}, // 11/11/2021 (mined by Mining-Dutch.NL)
             }
         };
 
