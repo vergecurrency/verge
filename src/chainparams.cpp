@@ -158,7 +158,7 @@ public:
             vSeeds.emplace_back("oy2q3dl6pupe4mk2dzrbtbvpf3fjru2ajdr4rsrxlxpaweqn3utvxzad.onion"); //v6 SUNEROK
             vSeeds.emplace_back("u7ikxx5hloxuvyr53mwqdzgxr5cjpabqruzqrx5qfcvuv6kpa22gsjid.onion"); //v6 SUNEROK
             vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v7 Swat
-            vSeeds.emplace_back("mwg7hewoljizy73lb4ud6zd7bjeewzzzkfsgrpshix3nmygm27ulj4qd.onion"); //v7 Swat
+            vSeeds.emplace_back("atzbdtcerateg5qybprv7edubuh35gywu3hkjvj4ks7s2whxyje2hzyd.onion"); //v7 Swat
             vSeeds.emplace_back("yvvioyzj3w5k6z64urv55xuh65oftcy5wts4tgwpi6hxdeixamsn63qd.onion"); //v6 Marplez SGP
             vSeeds.emplace_back("zwvqhwne3mlefxd52q35cckzdo46uhvcuvl7qdzqlatgpfqe4r43suid.onion"); //v6 Marplez AMS
             vSeeds.emplace_back("ojmwnkopgmpotm2byx7vsm7xplqxhctutw3d3ve7k5mbybsuydfk46qd.onion"); //v6 Marplez NYC
