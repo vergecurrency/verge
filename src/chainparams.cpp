@@ -157,8 +157,9 @@ public:
             vSeeds.emplace_back("4omta4xmldql2xqv5ji2rjplejqrd56yst6jlsork43ayb3rbhkpywyd.onion"); //v7
         }
 
-        if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
-            vSeeds.emplace_back("seed.marpmedev.xyz"); // marples DNS seed (v4, v5)
+        if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {            
+            vSeeds.emplace_back("seed1.verge-blockchain.com");      //swat
+            vSeeds.emplace_back("seed2.verge-blockchain.com");      //swat
             vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
             vSeeds.emplace_back("185.162.9.97");
             vSeeds.emplace_back("159.89.46.252"); // v6-new-york
