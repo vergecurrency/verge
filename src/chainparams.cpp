@@ -141,13 +141,9 @@ public:
 	        vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v7 SUNEROK
 	        vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7 SUNEROK
             vSeeds.emplace_back("7yiwfnm5xkmhsw5duuvkbwrmrtctmdnq6qbmlkfroth5wspyx7oig7id.onion"); //v7 SUNEROK
-            vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v7 Swat
-            vSeeds.emplace_back("atzbdtcerateg5qybprv7edubuh35gywu3hkjvj4ks7s2whxyje2hzyd.onion"); //v7 Swat           
-            vSeeds.emplace_back("3zal3m6ixo3vhvaeihybqi4r7vs33l2a4x7qce2gb6seqog2sk67lkyd.onion"); //v7
-            vSeeds.emplace_back("jcq2di2z5t2x6xibjuak4syslkx46rkid6vpuzys3rnn65vhwfywhrid.onion"); //v7
-            vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v7
-            vSeeds.emplace_back("hrpy4r4xijwps32lknzbyd36ad6vaibumceioaxe62smpiv22oktiwad.onion"); //v7
-            vSeeds.emplace_back("qswnv5grptfwfbhm6y56b5vbjr4b7pyhsuhq5gaynjs632qgot5so5qd.onion"); //v7
+            vSeeds.emplace_back("j5zcpq6u5gmlhg3cripigwvpo4ph4rezpega4wgnmc4on53q5n6qqbqd.onion"); //v7 Swat
+            vSeeds.emplace_back("atzbdtcerateg5qybprv7edubuh35gywu3hkjvj4ks7s2whxyje2hzyd.onion"); //v7 Swat
+            vSeeds.emplace_back("qswnv5grptfwfbhm6y56b5vbjr4b7pyhsuhq5gaynjs632qgot5so5qd.onion"); //v7           
             vSeeds.emplace_back("kb2bgqdwmxwxekxkc6g2s7diramjhdbiqhyxoesbzvlqsbqo7ws5l2qd.onion"); //v7
             vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7
             vSeeds.emplace_back("shtsxnyxjjplkfifdwoz22u7xef7os2fhaq3j7bkk5md37wj7ors4yqd.onion"); //v7
@@ -160,26 +156,6 @@ public:
         if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {            
             vSeeds.emplace_back("seed1.verge-blockchain.com");      //swat
             vSeeds.emplace_back("seed2.verge-blockchain.com");      //swat
-            vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
-            vSeeds.emplace_back("185.162.9.97");
-            vSeeds.emplace_back("159.89.46.252"); // v6-new-york
-            vSeeds.emplace_back("139.59.34.170"); // v6-india
-            vSeeds.emplace_back("134.209.197.243"); // v6-NL
-            vSeeds.emplace_back("104.131.144.82");
-            vSeeds.emplace_back("192.241.187.222");
-            vSeeds.emplace_back("105.228.198.44");
-            vSeeds.emplace_back("46.127.57.167");
-            vSeeds.emplace_back("98.5.123.15");
-            vSeeds.emplace_back("81.147.68.236");
-            vSeeds.emplace_back("77.67.46.100");
-            vSeeds.emplace_back("95.46.99.96");
-            vSeeds.emplace_back("138.201.91.159");
-            vSeeds.emplace_back("159.89.202.56");
-            vSeeds.emplace_back("163.158.20.118");
-            vSeeds.emplace_back("99.45.88.147");
-            vSeeds.emplace_back("114.145.237.35");
-            vSeeds.emplace_back("73.247.117.99");
-            vSeeds.emplace_back("145.239.0.122");
         }
 
 
