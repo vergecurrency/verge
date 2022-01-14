@@ -264,7 +264,8 @@ algo=blake
 ## TestNet
 
 Here is a list of active testnet nodes:
-ddvnucmtvyiemiuk.onion (sunerok)
+* ddvnucmtvyiemiuk.onion (sunerok)
+* uacxdw34wnfybshfjs6hxdfzwkqxs765peu4iyyakqnz2mqyvspubeqd.onion (dedicated testnet)
 
 ## Donations
 
