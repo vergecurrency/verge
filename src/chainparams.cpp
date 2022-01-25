@@ -141,8 +141,8 @@ public:
 	        vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v7 SUNEROK
 	        vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7 SUNEROK
             vSeeds.emplace_back("7yiwfnm5xkmhsw5duuvkbwrmrtctmdnq6qbmlkfroth5wspyx7oig7id.onion"); //v7 SUNEROK
-            vSeeds.emplace_back("j5zcpq6u5gmlhg3cripigwvpo4ph4rezpega4wgnmc4on53q5n6qqbqd.onion"); //v7 Swat
-            vSeeds.emplace_back("atzbdtcerateg5qybprv7edubuh35gywu3hkjvj4ks7s2whxyje2hzyd.onion"); //v7 Swat
+            vSeeds.emplace_back("xuet3co7iz2qcojnc6peuvm5gqkvn6gn6dzbvhsljurtbt2kpokxqbad.onion"); //v7 Swat
+            vSeeds.emplace_back("rg26lmazggizrw7hhesrav2mvzkvuftyaqpkpldxl6ywuscuhh3lrsyd.onion"); //v7 Swat
             vSeeds.emplace_back("qswnv5grptfwfbhm6y56b5vbjr4b7pyhsuhq5gaynjs632qgot5so5qd.onion"); //v7           
             vSeeds.emplace_back("kb2bgqdwmxwxekxkc6g2s7diramjhdbiqhyxoesbzvlqsbqo7ws5l2qd.onion"); //v7
             vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7
@@ -315,7 +315,7 @@ public:
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
         vSeeds.emplace_back("uacxdw34wnfybshfjs6hxdfzwkqxs765peu4iyyakqnz2mqyvspubeqd.onion");  // dedicated testnet server
-        vSeeds.emplace_back("bp2m36a7b7t4yyciawcqoi2x2iuizrnnagb4nkm7gozo7yd2sjbdr6ad.onion");  // testnet blockchain explorer
+        vSeeds.emplace_back("ankgfybzzxzvu3ogo4fkopz6nfk4qv3j7gbxllawx6or5oxxjtujeyqd.onion");  // testnet blockchain explorer
         vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");
         vSeeds.emplace_back("qwwqi7h6bkkcw6clp34ttg5mxmcwerkot2hepfhi6g4yclvlhsv2kxid.onion");
         vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");
