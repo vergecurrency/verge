@@ -154,11 +154,6 @@ if [ $result3 = "4.6" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 fi
-result4=$(cat /etc/issue | grep -Po 'Ermine')
-if [ $result4 = "Ermine" ]
-then
-sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
-fi
 
 rm db-4.8.30.NC.tar.gz
 cd db-4.8.30.NC/build_unix 
