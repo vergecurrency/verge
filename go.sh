@@ -124,6 +124,10 @@ echo "${green}BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'D
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
+result8=$(cat /etc/issue | grep -Po '22.04')
+if [ $result8= "22.04"]
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 result7=$(cat /etc/issue | grep -Po 'GNU/Linux')
 if [ $result7 = "GNU/Linux" ]
 then
@@ -323,8 +327,8 @@ cd ~
 
 echo -n "Success....Blockchain is now downloading press Ctrl-C to cancel but it will take longer to sync from 0. And you will have to start verge manual"
 sudo rm QT-Wallet*.zip
-echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/ | grep -o "https://verge-blockchain*.*zip" | head -1 ) > link.sh
-sh link.sh
+# echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/ | grep -o "https://verge-blockchain*.*zip" | head -1 ) > link.sh
+echo "wget --no-check-certificate https://verge-blockchain.com/download/"$(lynx --source https://verge-blockchain.com/ | grep -o "**QT-Wallet**_.*zip" | head -1 ) > link.sh
 sudo rm -Rf ~/.VERGE/blocks
 sudo rm -Rf ~/.VERGE/chainstate
 sudo rm -Rf ~/.VERGE/tor
