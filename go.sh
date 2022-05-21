@@ -125,7 +125,7 @@ else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
 result8=$(cat /etc/issue | grep -Po '22.04')
-if [ $result8= "22.04"]
+if [ $result8 = "22.04" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 fi
