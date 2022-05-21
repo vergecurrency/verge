@@ -239,6 +239,8 @@ else
 txt=$(echo "")
 fi
 
+sudo apt-get -y install openssl1.1
+
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
 cd VERGE
@@ -251,8 +253,7 @@ cd VERGE
 echo "Using default system Berkeley..."
 fi
 
-#make -j$(nproc) USE_UPNP=-
-make USE_UPNP=-
+make -j$(nproc) USE_UPNP=-
 
 if [ -e ~/VERGE/src/qt/verge-qt ]
 then
