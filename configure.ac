@@ -26,9 +26,10 @@ VERGE_GUI_NAME=verge-qt
 VERGE_CLI_NAME=verge-cli
 VERGE_TX_NAME=verge-tx
 
-dnl Unless the user specified ARFLAGS, force it to be cr
-AC_ARG_VAR(ARFLAGS, [Flags for the archiver, defaults to <cr> if not set])
-if test "x${ARFLAGS+set}" != "xset"; then
+nl Unless the user specified ARFLAGS, force it to be cr
+dnl This is also the default as-of libtool 2.4.7
+AC_ARG_VAR([ARFLAGS], [Flags for the archiver, defaults to <cr> if not set])
+if test "${ARFLAGS+set}" != "set"; then
   ARFLAGS="cr"
 fi
 
