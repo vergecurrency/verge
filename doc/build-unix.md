@@ -70,15 +70,15 @@ tuned to conserve memory with additional CXXFLAGS:
 
 Build requirements:
 
-    sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3
+    sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 gcc-multilib g++-multilib
 
 Now, you can either build from self-compiled [depends](/depends/README.md) or install the required dependencies:
 
-    sudo apt install libssl-dev libevent-dev libboost-all-dev
+    sudo apt install libssl-dev libevent-dev libboost-all-dev 
 
 These are necessary for building with Tor:  
 
-    sudo apt-get install zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy
+    sudo apt-get install asciidoc zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy
 
 To run without Tor after compile, you can pass --without-tor to the binary.
 
