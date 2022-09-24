@@ -52,7 +52,7 @@ TOR_UTIL_LIBS = \
 	tor/src/lib/libtor-wallclock.a \
 	tor/src/lib/libtor-err.a \
 	tor/src/lib/libtor-version.a \
-	src/lib/libtor-llharden.a \
+	tor/src/lib/libtor-llharden.a \
 	tor/src/lib/libtor-intmath.a \
 	tor/src/lib/libtor-ctime.a \
 	tor/src/lib/libtor-metrics.a
