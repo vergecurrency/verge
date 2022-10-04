@@ -138,16 +138,10 @@ public:
         // Adding some nodes in case it works
         if (!gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
             // protocol-90009 with proper TOR v3 support
-	        vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v7 SUNEROK
-	        vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7 SUNEROK
-            vSeeds.emplace_back("7yiwfnm5xkmhsw5duuvkbwrmrtctmdnq6qbmlkfroth5wspyx7oig7id.onion"); //v7 SUNEROK
             vSeeds.emplace_back("xuet3co7iz2qcojnc6peuvm5gqkvn6gn6dzbvhsljurtbt2kpokxqbad.onion"); //v7 Swat
-            vSeeds.emplace_back("rg26lmazggizrw7hhesrav2mvzkvuftyaqpkpldxl6ywuscuhh3lrsyd.onion"); //v7 Swat
-            vSeeds.emplace_back("qswnv5grptfwfbhm6y56b5vbjr4b7pyhsuhq5gaynjs632qgot5so5qd.onion"); //v7           
+            vSeeds.emplace_back("rg26lmazggizrw7hhesrav2mvzkvuftyaqpkpldxl6ywuscuhh3lrsyd.onion"); //v7 Swat          
             vSeeds.emplace_back("kb2bgqdwmxwxekxkc6g2s7diramjhdbiqhyxoesbzvlqsbqo7ws5l2qd.onion"); //v7
-            vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7
             vSeeds.emplace_back("shtsxnyxjjplkfifdwoz22u7xef7os2fhaq3j7bkk5md37wj7ors4yqd.onion"); //v7
-            vSeeds.emplace_back("6k7grjy6laipvkqopiueicjlfulj2wzw3pfhtynnc7jggnunkpo4w7id.onion"); //v7
             vSeeds.emplace_back("afppaj6ugeskfyjo2z24sjo37572ln7ggfkcuk3a5lkhznpqsfgxw6qd.onion"); //v7
             vSeeds.emplace_back("urtf7ovgjnxilnbxppmhvjebxcwk4ofo36mgz4kmwr7i4aqimdknf7ad.onion"); //v7
             vSeeds.emplace_back("4omta4xmldql2xqv5ji2rjplejqrd56yst6jlsork43ayb3rbhkpywyd.onion"); //v7
@@ -159,9 +153,7 @@ public:
             vSeeds.emplace_back("xcb4tbu5vywfbiehqj5p56wlpoq4nd4e62ujfhsydbvvrjn6mev2juad.onion"); //v7
             vSeeds.emplace_back("ractae3zucrklqxwpcu66ujbssfnrewzwdjzd5r3f3prapnpt2a2pzqd.onion"); //v7
             vSeeds.emplace_back("myg3o4o5xe2d4ht2hsguxwbbvkbv5wbthkzztc243oycstapsyldcdqd.onion"); //v7
-            vSeeds.emplace_back("ve7loixakguboazsfhwiutinappw4ix344tv2bieuz3pj4flgjxur6qd.onion"); //v7
             vSeeds.emplace_back("accu36f6dg5e54axjcytitblk4r736uenuvs6fzbp77m3akfxztpeqqd.onion"); //v7
-            vSeeds.emplace_back("oduosqof5sbkjkqcv72eudjt5bgp7towqodtjo767xelc4qcmlibpjad.onion"); //v7
             vSeeds.emplace_back("dzp3twhnyccmyv2mchkhcihgvobgbhwj23bum7esdtg3ajyaheaxswyd.onion"); //v7
         }
 
