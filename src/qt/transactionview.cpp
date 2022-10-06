@@ -31,7 +31,6 @@
 #include <QMenu>
 #include <QPoint>
 #include <QScrollBar>
-#include <QSignalMapper>
 #include <QTableView>
 #include <QTimer>
 #include <QUrl>
@@ -181,11 +180,6 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     contextMenu->addAction(abandonAction);
     contextMenu->addAction(editLabelAction);
 
-    mapperThirdPartyTxUrls = new QSignalMapper(this);
-
-    // Connect actions
-    connect(mapperThirdPartyTxUrls, SIGNAL(mapped(QString)), this, SLOT(openThirdPartyTxUrl(QString)));
-
     connect(dateWidget, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &TransactionView::chooseDate);
     connect(typeWidget, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &TransactionView::chooseType);
     connect(watchOnlyWidget, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &TransactionView::chooseWatchonly);
@@ -205,6 +199,12 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     connect(copyTxPlainText, &QAction::triggered, this, &TransactionView::copyTxPlainText);
     connect(editLabelAction, &QAction::triggered, this, &TransactionView::editLabel);
     connect(showDetailsAction, &QAction::triggered, this, &TransactionView::showDetails);
+	// Double-clicking on a transaction on the transaction history page shows details
+    connect(this, &TransactionView::doubleClicked, this, &TransactionView::showDetails);
+    // Highlight transaction after fee bump
+    connect(this, &TransactionView::bumpedFee, [this](const uint256& txid) {
+      focusTransaction(txid);
+    });
 }
 
 void TransactionView::setModel(WalletModel *_model)
@@ -225,9 +225,9 @@ void TransactionView::setModel(WalletModel *_model)
         transactionView->setAlternatingRowColors(true);
         transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);
         transactionView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        transactionView->setSortingEnabled(true);
         transactionView->horizontalHeader()->setSortIndicator(TransactionTableModel::Date, Qt::DescendingOrder);
-        transactionView->verticalHeader()->hide();
+        transactionView->setSortingEnabled(true);
+		transactionView->verticalHeader()->hide();
 
         transactionView->setColumnWidth(TransactionTableModel::Status, STATUS_COLUMN_WIDTH);
         transactionView->setColumnWidth(TransactionTableModel::Watchonly, WATCHONLY_COLUMN_WIDTH);
@@ -260,7 +260,7 @@ void TransactionView::setModel(WalletModel *_model)
         updateWatchOnlyColumn(_model->wallet().haveWatchOnly());
 
         // Watch-only signal
-        connect(thirdPartyTxUrlAction, &QAction::triggered, [this, url] { openThirdPartyTxUrl(url); });
+        connect(_model, &WalletModel::notifyWatchonlyChanged, this, &TransactionView::updateWatchOnlyColumn);
     }
 }
 
