@@ -56,6 +56,14 @@
 #include <QThread>
 #include <QMouseEvent>
 
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QJsonObject>
+#include <QJsonDocument>
+
+#include <qt/guiconstants.h>
+
 #if QT_VERSION < 0x050000
 #include <QUrl>
 #else
@@ -123,6 +131,51 @@ static std::string DummyAddress(const CChainParams &params)
     return "";
 }
 
+QString resolveUnsDomain(QString domain)
+{
+    if(!unsEnabled()) return domain;
+
+    bool isDomain = domain.contains(".");
+    if(isDomain){
+        QEventLoop eventLoop;
+
+        QNetworkAccessManager mgr;
+        QObject::connect(&mgr, SIGNAL(finished(QNetworkReply*)), &eventLoop, SLOT(quit()));
+
+        QNetworkRequest req(QUrl(QString(UNS_API).append(domain)));
+
+        req.setRawHeader("Authorization", UNS_API_KEY);
+        QNetworkReply *reply = mgr.get(req);
+        eventLoop.exec();
+
+        if (reply->error() == QNetworkReply::NoError) {
+            //success
+
+            QByteArray result = reply->readAll();
+            QJsonDocument jsonResponse = QJsonDocument::fromJson(result);
+            QJsonObject mainObj = jsonResponse.object();
+            QJsonObject recordObj = mainObj["records"].toObject();
+
+            delete reply;
+
+            if(recordObj.contains(QString(UNS_XVG_RECORD))){
+                return QString(recordObj[QString(UNS_XVG_RECORD)].toString());
+            }
+        }
+        else {
+            //failure
+            delete reply;
+        }
+    }
+
+    return domain;
+}
+
+
+bool unsEnabled(){
+    return gArgs.GetBoolArg("-with-unstoppable", false);
+}
+
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
 {
     parent->setFocusProxy(widget);
@@ -131,8 +184,13 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
 #if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
-    widget->setPlaceholderText(QObject::tr("Enter a VERGE address (e.g. %1)").arg(
-        QString::fromStdString(DummyAddress(Params()))));
+    if(unsEnabled()){
+        widget->setPlaceholderText(QObject::tr("Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)").arg(
+            QString::fromStdString(DummyAddress(Params()))));
+    }else{
+        widget->setPlaceholderText(QObject::tr("Enter a VERGE address(e.g. %1)").arg(
+            QString::fromStdString(DummyAddress(Params()))));
+    }
 #endif
     widget->setValidator(new VERGEAddressEntryValidator(parent));
     widget->setCheckValidator(new VERGEAddressCheckValidator(parent));

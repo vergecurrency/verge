@@ -153,6 +153,11 @@ You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.co
 * [OS X Instructions](doc/build-osx.md)
 * [Windows Instructions](doc/build-windows.md)
 
+
+## Use [Unstoppable Domains](https://unstoppabledomains.com)
+
+To use VERGE with Unstoppable Domains for sending coins using Web3 Domains (know more about [Unstoppable Domains here](https://unstoppabledomains.com)), use this command to start the app "./verge-qt --with-unstoppable".
+
 ## Developer Notes
 
 The Easy Method:
@@ -302,3 +307,4 @@ Alternatively, if you would like to make a suggestion regarding a potential fix 
 ### Security-related issues
 
 Contact the developers privately by sending an e-mail to contact@vergecurrency.com with the details of the issue. Do not post the issue on github or anywhere else until the issue has been resolved.
+
