@@ -6,6 +6,7 @@
 #include <qt/vergeaddressvalidator.h>
 
 #include <key_io.h>
+#include <qt/guiutil.h>
 
 /* Base58 characters are:
      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
@@ -68,7 +69,7 @@ QValidator::State VERGEAddressEntryValidator::validate(QString &input, int &pos)
         if (((ch >= '0' && ch<='9') ||
             (ch >= 'a' && ch<='z') ||
             (ch >= 'A' && ch<='Z')) &&
-            ch != 'I' && ch != 'O') // Characters invalid in both Base58 and Bech32
+            ch != 'I' && ch != 'O' || ch == '.' || ch == '-') // Characters invalid in both Base58 and Bech32
         {
             // Alphanumeric and not a 'forbidden' character
         }
@@ -89,8 +90,11 @@ VERGEAddressCheckValidator::VERGEAddressCheckValidator(QObject *parent) :
 QValidator::State VERGEAddressCheckValidator::validate(QString &input, int &pos) const
 {
     Q_UNUSED(pos);
+
+    QString address = GUIUtil::resolveUnsDomain(input);
+
     // Validate the passed VERGE address
-    if (IsValidDestinationString(input.toStdString())) {
+    if (IsValidDestinationString(address.toStdString())) {
         return QValidator::Acceptable;
     }
 

@@ -1444,7 +1444,11 @@
         <translation>金額</translation>
     </message>
     <message>
-        <source>Enter a VERGE address (e.g. %1)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <translation>輸入 VERGE 位址 (比如說 %1)</translation>
+    </message>
+    <message>
+        <source>Enter a VERGE address(e.g. %1)</source>
         <translation>輸入 VERGE 位址 (比如說 %1)</translation>
     </message>
     <message>

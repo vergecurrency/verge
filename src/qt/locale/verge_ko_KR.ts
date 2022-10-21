@@ -1444,7 +1444,11 @@
         <translation>거래액</translation>
     </message>
     <message>
-        <source>Enter a VERGE address (e.g. %1)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <translation>비트코인 주소를 입력하기 (예. %1)</translation>
+    </message>
+    <message>
+        <source>Enter a VERGE address(e.g. %1)</source>
         <translation>비트코인 주소를 입력하기 (예. %1)</translation>
     </message>
     <message>
