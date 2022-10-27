@@ -561,6 +561,7 @@ static void SetupUIArgs()
     gArgs.AddArg("-rootcertificates=<file>", "Set SSL root certificates for payment request (default: -system-)", false, OptionsCategory::GUI);
     gArgs.AddArg("-splash", strprintf("Show splash screen on startup (default: %u)", DEFAULT_SPLASHSCREEN), false, OptionsCategory::GUI);
     gArgs.AddArg("-uiplatform", strprintf("Select platform to customize UI for (one of windows, macosx, other; default: %s)", VERGEGUI::DEFAULT_UIPLATFORM), true, OptionsCategory::GUI);
+    gArgs.AddArg("-with-unstoppable", "Enable Unstoppable Domain in VERGE to send using Web3 Domain", false, OptionsCategory::OPTIONS);
 }
 
 #ifndef VERGE_QT_TEST

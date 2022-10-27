@@ -46,12 +46,16 @@ namespace GUIUtil
     // Return a monospace font
     QFont fixedPitchFont();
 
+    //Unstoppable Domains
+    QString resolveUnsDomain(QString domain);   
+    bool unsEnabled();   
+
     // Set up widget for address
     void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);
 
     // Parse "verge:" URI into recipient object, return true on successful parsing
     bool parseVERGEURI(const QUrl &uri, SendCoinsRecipient *out);
-    bool parseVERGEURI(QString uri, SendCoinsRecipient *out);
+    bool parseVERGEURI(QString uri, SendCoinsRecipient *out);   
     QString formatVERGEURI(const SendCoinsRecipient &info);
 
     // Returns true if given address+amount meets "dust" definition

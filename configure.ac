@@ -1,12 +1,12 @@
-dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
-AC_PREREQ([2.60])
+dnl require autoconf 2.69 (AS_ECHO/AS_ECHO_N)
+AC_PREREQ([2.69])
 define(_CLIENT_VERSION_MAJOR, 7)
-define(_CLIENT_VERSION_MINOR, 0)
+define(_CLIENT_VERSION_MINOR, 1)
 define(_CLIENT_VERSION_REVISION, 0)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_RC, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
-define(_COPYRIGHT_YEAR, 2021)
+define(_COPYRIGHT_YEAR, 2022)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
 define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Verge Core]])
 AC_INIT([Verge Septem],m4_join([.], _CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MINOR, _CLIENT_VERSION_REVISION, m4_if(_CLIENT_VERSION_BUILD, [0], [], _CLIENT_VERSION_BUILD))m4_if(_CLIENT_VERSION_RC, [0], [], [rc]_CLIENT_VERSION_RC),[https://github.com/vergecurrency/verge/issues],[verge],[https://vergecurrency.com/])
@@ -15,14 +15,21 @@ AC_CONFIG_HEADERS([src/config/verge-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
+m4_ifndef([PKG_PROG_PKG_CONFIG], [m4_fatal([PKG_PROG_PKG_CONFIG macro not found. Please install pkg-config and re-run autogen.sh])])
+PKG_PROG_PKG_CONFIG
+if test "$PKG_CONFIG" = ""; then
+  AC_MSG_ERROR([pkg-config not found])
+fi
+
 VERGE_DAEMON_NAME=verged
 VERGE_GUI_NAME=verge-qt
 VERGE_CLI_NAME=verge-cli
 VERGE_TX_NAME=verge-tx
 
-dnl Unless the user specified ARFLAGS, force it to be cr
-AC_ARG_VAR(ARFLAGS, [Flags for the archiver, defaults to <cr> if not set])
-if test "x${ARFLAGS+set}" != "xset"; then
+nl Unless the user specified ARFLAGS, force it to be cr
+dnl This is also the default as-of libtool 2.4.7
+AC_ARG_VAR([ARFLAGS], [Flags for the archiver, defaults to <cr> if not set])
+if test "${ARFLAGS+set}" != "set"; then
   ARFLAGS="cr"
 fi
 
@@ -351,21 +358,17 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 CXXFLAGS="$TEMP_CXXFLAGS"
 
 TEMP_CXXFLAGS="$CXXFLAGS"
-CXXFLAGS="$CXXFLAGS $SSE41_CXXFLAGS"
-AC_MSG_CHECKING(for SSE4.1 intrinsics)
+CXXFLAGS="$SSE41_CXXFLAGS $CXXFLAGS"
+AC_MSG_CHECKING([for SSE4.1 intrinsics])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     #include <stdint.h>
-    #if defined(_MSC_VER)
     #include <immintrin.h>
-    #elif defined(__GNUC__)
-    #include <x86intrin.h>
-    #endif
   ]],[[
     __m128i l = _mm_set1_epi32(0);
     return _mm_extract_epi32(l, 3);
   ]])],
- [ AC_MSG_RESULT(yes); enable_sse41=yes; AC_DEFINE(ENABLE_SSE41, 1, [Define this symbol to build code that uses SSE4.1 intrinsics]) ],
- [ AC_MSG_RESULT(no)]
+ [ AC_MSG_RESULT([yes]); enable_sse41=yes; AC_DEFINE([ENABLE_SSE41], [1], [Define this symbol to build code that uses SSE4.1 intrinsics]) ],
+ [ AC_MSG_RESULT([no])]
 )
 CXXFLAGS="$TEMP_CXXFLAGS"
 

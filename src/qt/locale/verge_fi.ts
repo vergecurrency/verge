@@ -1400,7 +1400,11 @@
         <translation>Määrä</translation>
     </message>
     <message>
-        <source>Enter a VERGE address (e.g. %1)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <translation>Syötä VERGE-osoite (esim. %1)</translation>
+    </message>
+    <message>
+        <source>Enter a VERGE address(e.g. %1)</source>
         <translation>Syötä VERGE-osoite (esim. %1)</translation>
     </message>
     <message>

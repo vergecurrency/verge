@@ -1184,7 +1184,11 @@
         <translation>Bedrag</translation>
     </message>
     <message>
-        <source>Enter a VERGE address (e.g. %1)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <translation>Voer in 'n VERGE adres (bv. %1)</translation>
+    </message>
+    <message>
+        <source>Enter a VERGE address(e.g. %1)</source>
         <translation>Voer in 'n VERGE adres (bv. %1)</translation>
     </message>
     <message>

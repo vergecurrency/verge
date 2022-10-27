@@ -140,7 +140,10 @@ bool SendCoinsEntry::validate(interfaces::Node& node)
     if (recipient.paymentRequest.IsInitialized())
         return retval;
 
-    if (!model->validateAddress(ui->payTo->text()))
+
+    QString payAddress = GUIUtil::resolveUnsDomain(ui->payTo->text());
+
+    if (!model->validateAddress(payAddress))
     {
         ui->payTo->setValid(false);
         retval = false;
@@ -173,8 +176,9 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     if (recipient.paymentRequest.IsInitialized())
         return recipient;
 
+    QString payAddress = GUIUtil::resolveUnsDomain(ui->payTo->text());
     // Normal payment
-    recipient.address = ui->payTo->text();
+    recipient.address = payAddress;
     recipient.label = ui->addAsLabel->text();
     recipient.amount = ui->payAmount->value();
     recipient.message = ui->messageTextLabel->text();

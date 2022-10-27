@@ -7,9 +7,11 @@
 #define VERGE_QT_UTILITYDIALOG_H
 
 #include <QDialog>
-#include <QObject>
+#include <QWidget>
 
-class VERGEGUI;
+QT_BEGIN_NAMESPACE
+class QMainWindow;
+QT_END_NAMESPACE
 
 namespace interfaces {
     class Node;
@@ -46,8 +48,8 @@ class ShutdownWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit ShutdownWindow(QWidget *parent=0, Qt::WindowFlags f=0);
-    static QWidget *showShutdownWindow(VERGEGUI *window);
+    explicit ShutdownWindow(QWidget *parent=nullptr, Qt::WindowFlags f=Qt::Widget);
+    static QWidget* showShutdownWindow(QMainWindow* window);
 
 protected:
     void closeEvent(QCloseEvent *event);

@@ -138,48 +138,28 @@ public:
         // Adding some nodes in case it works
         if (!gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
             // protocol-90009 with proper TOR v3 support
-	        vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v7 SUNEROK
-	        vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7 SUNEROK
-            vSeeds.emplace_back("7yiwfnm5xkmhsw5duuvkbwrmrtctmdnq6qbmlkfroth5wspyx7oig7id.onion"); //v7 SUNEROK
-            vSeeds.emplace_back("jno3zpfsdgrtdaxlyuowipokbumoidyecmczrjru7tjfovfjkztl2pad.onion"); //v7 Swat
-            vSeeds.emplace_back("atzbdtcerateg5qybprv7edubuh35gywu3hkjvj4ks7s2whxyje2hzyd.onion"); //v7 Swat           
-            vSeeds.emplace_back("3zal3m6ixo3vhvaeihybqi4r7vs33l2a4x7qce2gb6seqog2sk67lkyd.onion"); //v7
-            vSeeds.emplace_back("jcq2di2z5t2x6xibjuak4syslkx46rkid6vpuzys3rnn65vhwfywhrid.onion"); //v7
-            vSeeds.emplace_back("f3cy2jkmfl3qzqpk4srruhpefkunq3rj6wi7z57yzinyxpk3rmbluoad.onion"); //v7
-            vSeeds.emplace_back("hrpy4r4xijwps32lknzbyd36ad6vaibumceioaxe62smpiv22oktiwad.onion"); //v7
-            vSeeds.emplace_back("qswnv5grptfwfbhm6y56b5vbjr4b7pyhsuhq5gaynjs632qgot5so5qd.onion"); //v7
+            vSeeds.emplace_back("xuet3co7iz2qcojnc6peuvm5gqkvn6gn6dzbvhsljurtbt2kpokxqbad.onion"); //v7 Swat
+            vSeeds.emplace_back("rg26lmazggizrw7hhesrav2mvzkvuftyaqpkpldxl6ywuscuhh3lrsyd.onion"); //v7 Swat          
             vSeeds.emplace_back("kb2bgqdwmxwxekxkc6g2s7diramjhdbiqhyxoesbzvlqsbqo7ws5l2qd.onion"); //v7
-            vSeeds.emplace_back("3czrw4cxofudpyhl46whvcyzgmkciaai2uw7s6motxejb3fijdkgmuqd.onion"); //v7
             vSeeds.emplace_back("shtsxnyxjjplkfifdwoz22u7xef7os2fhaq3j7bkk5md37wj7ors4yqd.onion"); //v7
-            vSeeds.emplace_back("6k7grjy6laipvkqopiueicjlfulj2wzw3pfhtynnc7jggnunkpo4w7id.onion"); //v7
             vSeeds.emplace_back("afppaj6ugeskfyjo2z24sjo37572ln7ggfkcuk3a5lkhznpqsfgxw6qd.onion"); //v7
             vSeeds.emplace_back("urtf7ovgjnxilnbxppmhvjebxcwk4ofo36mgz4kmwr7i4aqimdknf7ad.onion"); //v7
             vSeeds.emplace_back("4omta4xmldql2xqv5ji2rjplejqrd56yst6jlsork43ayb3rbhkpywyd.onion"); //v7
+            vSeeds.emplace_back("7q6c6glv5hp5humq3wh5qzlt7jp3s3cacpznjzu2jehkmf7fivy2jmid.onion"); //v7
+            vSeeds.emplace_back("ka2e2kaw5oxsyykw3ykdvba43eya6cotzm2huvvtrt7fw3dm62ztqfid.onion"); //v7
+            vSeeds.emplace_back("tvrceykeeaxtxcj77qm2ekgqvtc5kmxrlkrorlz542kiie5wzec5pqad.onion"); //v7
+            vSeeds.emplace_back("xzpuglxfng6lypn2ggnqeiwpo5uyzbnrlwmutgoboeji6aru7oxqjeid.onion"); //v7
+            vSeeds.emplace_back("4wqkmkldxngbemhlebywhsjzmlqwbveksqbadcjj7ga6ctbrrcs6q3id.onion"); //v7
+            vSeeds.emplace_back("xcb4tbu5vywfbiehqj5p56wlpoq4nd4e62ujfhsydbvvrjn6mev2juad.onion"); //v7
+            vSeeds.emplace_back("ractae3zucrklqxwpcu66ujbssfnrewzwdjzd5r3f3prapnpt2a2pzqd.onion"); //v7
+            vSeeds.emplace_back("myg3o4o5xe2d4ht2hsguxwbbvkbv5wbthkzztc243oycstapsyldcdqd.onion"); //v7
+            vSeeds.emplace_back("accu36f6dg5e54axjcytitblk4r736uenuvs6fzbp77m3akfxztpeqqd.onion"); //v7
+            vSeeds.emplace_back("dzp3twhnyccmyv2mchkhcihgvobgbhwj23bum7esdtg3ajyaheaxswyd.onion"); //v7
         }
 
         if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {            
             vSeeds.emplace_back("seed1.verge-blockchain.com");      //swat
             vSeeds.emplace_back("seed2.verge-blockchain.com");      //swat
-            vSeeds.emplace_back("seed.verge.dev"); // additional DNS seed
-            vSeeds.emplace_back("185.162.9.97");
-            vSeeds.emplace_back("159.89.46.252"); // v6-new-york
-            vSeeds.emplace_back("139.59.34.170"); // v6-india
-            vSeeds.emplace_back("134.209.197.243"); // v6-NL
-            vSeeds.emplace_back("104.131.144.82");
-            vSeeds.emplace_back("192.241.187.222");
-            vSeeds.emplace_back("105.228.198.44");
-            vSeeds.emplace_back("46.127.57.167");
-            vSeeds.emplace_back("98.5.123.15");
-            vSeeds.emplace_back("81.147.68.236");
-            vSeeds.emplace_back("77.67.46.100");
-            vSeeds.emplace_back("95.46.99.96");
-            vSeeds.emplace_back("138.201.91.159");
-            vSeeds.emplace_back("159.89.202.56");
-            vSeeds.emplace_back("163.158.20.118");
-            vSeeds.emplace_back("99.45.88.147");
-            vSeeds.emplace_back("114.145.237.35");
-            vSeeds.emplace_back("73.247.117.99");
-            vSeeds.emplace_back("145.239.0.122");
         }
 
 
@@ -339,6 +319,7 @@ public:
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
         vSeeds.emplace_back("uacxdw34wnfybshfjs6hxdfzwkqxs765peu4iyyakqnz2mqyvspubeqd.onion");  // dedicated testnet server
+        vSeeds.emplace_back("ankgfybzzxzvu3ogo4fkopz6nfk4qv3j7gbxllawx6or5oxxjtujeyqd.onion");  // testnet blockchain explorer
         vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");
         vSeeds.emplace_back("qwwqi7h6bkkcw6clp34ttg5mxmcwerkot2hepfhi6g4yclvlhsv2kxid.onion");
         vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");

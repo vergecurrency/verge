@@ -124,6 +124,11 @@ echo "${green}BerkeleyDb already present...$(grep --include *.h -r '/usr/' -e 'D
 else
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz 
 tar -xzvf db-4.8.30.NC.tar.gz
+result8=$(cat /etc/issue | grep -Po '22.04')
+if [ $result8 = "22.04" ]
+then
+sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
+fi
 result7=$(cat /etc/issue | grep -Po 'GNU/Linux')
 if [ $result7 = "GNU/Linux" ]
 then
@@ -146,11 +151,6 @@ sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.
 fi
 result3=$(cat /etc/issue | grep -Po '4.6')
 if [ $result3 = "4.6" ]
-then
-sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
-fi
-result4=$(cat /etc/issue | grep -Po 'Ermine')
-if [ $result4 = "Ermine" ]
 then
 sed -i 's/__atomic_compare_exchange/__db_atomic_compare_exchange/g' ~/db-4.8.30.NC/dbinc/atomic.h
 fi
@@ -234,6 +234,8 @@ else
 txt=$(echo "")
 fi
 
+sudo apt-get -y install openssl1.1
+
 if [ -d /usr/local/BerkeleyDB.4.8/include ]
 then
 cd VERGE
@@ -246,8 +248,7 @@ cd VERGE
 echo "Using default system Berkeley..."
 fi
 
-#make -j$(nproc) USE_UPNP=-
-make USE_UPNP=-
+make -j$(nproc) USE_UPNP=-
 
 if [ -e ~/VERGE/src/qt/verge-qt ]
 then
@@ -323,7 +324,8 @@ cd ~
 
 echo -n "Success....Blockchain is now downloading press Ctrl-C to cancel but it will take longer to sync from 0. And you will have to start verge manual"
 sudo rm QT-Wallet*.zip
-echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/download/ | grep -o "https://verge-blockchain*.*zip" | head -1 ) > link.sh
+# echo "wget --no-check-certificate " $(lynx --dump --listonly https://verge-blockchain.com/ | grep -o "https://verge-blockchain*.*zip" | head -1 ) > link.sh
+echo "wget --no-check-certificate https://verge-blockchain.com/download/"$(lynx --source https://verge-blockchain.com/ | grep -o "**QT-Wallet**_.*zip" | head -1 ) > link.sh
 sh link.sh
 sudo rm -Rf ~/.VERGE/blocks
 sudo rm -Rf ~/.VERGE/chainstate
