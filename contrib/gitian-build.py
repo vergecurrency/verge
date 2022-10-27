@@ -101,10 +101,11 @@ def build():
         cmdSignArgs = os.getcwd() + '/bin/gsign -p ' + args.sign_prog + ' --signer ' + args.signer + ' --release ' + args.version + '-osx-unsigned --destination ' + args.url + '/gitian.sigs/ ' + args.url +  '/verge/contrib/gitian-descriptors/gitian-osx.yml'
         print(cmdSignArgs)
         subprocess.Popen(cmdSignArgs, shell=True)
-        subprocess.check_call('mv build/out/verge-*-osx-unsigned.tar.gz inputs/', shell=True)
-        cmdMoveArgs = 'mv build/out/verge-*.tar.gz build/out/verge-*.dmg' + os.getcwd() + '/verge-binaries/' + args.version
-        print(cmdMoveArgs)
+        cmdMoveArgs = 'mv build/out/verge-*-osx-unsigned.tar.gz inputs/'
         subprocess.Popen(cmdMoveArgs, shell=True)
+        cmdMoveArgs2 = 'mv build/out/verge-*.tar.gz build/out/verge-*.dmg ' + os.getcwd() + '/verge-binaries/' + args.version
+        print(cmdMoveArgs2)
+        subprocess.Popen(cmdMoveArgs2, shell=True)
 
     os.chdir(workdir)
 
