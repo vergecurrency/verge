@@ -81,6 +81,9 @@ def build():
     if args.windows:
         print('\nCompiling ' + args.version + ' Windows')
         print('Working Directory ' + os.getcwd())
+        print(args.jobs)
+        print(args.memory)
+        print(args.commit)
         subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-win.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-unsigned', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-win.yml'])
         subprocess.check_call('mv build/out/verge-*-win-unsigned.tar.gz inputs/', shell=True)
@@ -89,10 +92,19 @@ def build():
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
         print('Working Directory ' + os.getcwd())
-        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
-        subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-unsigned', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
+        print(args.jobs)
+        print(args.memory)
+        print(args.commit)
+        cmdBuildArgs = os.getcwd() + '/bin/gbuild -j ' + args.jobs + ' -m ' + args.memory + ' --commit verge=' + args.commit + ' --url verge=' + args.url + '/verge/contrib/gitian-descriptors/gitian-osx.yml'
+        print(cmdBuildArgs)
+        subprocess.Popen(cmdBuildArgs, shell=True)
+        cmdSignArgs = os.getcwd() + '/bin/gsign -p ' + args.sign_prog + ' --signer ' + args.signer + ' --release ' + args.version + '-osx-unsigned --destination ' + os.getcwd() + '/gitian.sigs/ ' + os.getcwd() +  '/verge/contrib/gitian-descriptors/gitian-osx.yml'
+        print(cmdSignArgs)
+        subprocess.Popen(cmdSignArgs, shell=True)
         subprocess.check_call('mv build/out/verge-*-osx-unsigned.tar.gz inputs/', shell=True)
-        subprocess.check_call('mv build/out/verge-*.tar.gz build/out/verge-*.dmg ../verge-binaries/'+args.version, shell=True)
+        cmdMoveArgs = 'mv build/out/verge-*.tar.gz build/out/verge-*.dmg' + os.getcwd() + '/verge-binaries/' + args.version
+        print(cmdMoveArgs)
+        subprocess.Popen(cmdMoveArgs, shell=True)
 
     os.chdir(workdir)
 
