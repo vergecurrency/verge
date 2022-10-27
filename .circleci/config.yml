@@ -10,7 +10,7 @@ defaults-docker: &defaults-docker
 
 run_apt_packages: &run_apt_packages
   name: Prepare VM
-  command: sudo apt-get update --fix-missing && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3 python2
+  command: sudo apt-get update --fix-missing && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3.5 python2
 
 set_python_version: &set_python_version
   name: Set Python Version
@@ -18,7 +18,7 @@ set_python_version: &set_python_version
 
 run_base_setup: &run_base_setup
   name: Setup repo and execute VM builder
-  command: python3 ./gitian-build.py --docker --commit --setup ${CIRCLE_PROJECT_USERNAME} ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
+  command: python2 ./gitian-build.py --docker --commit --setup ${CIRCLE_PROJECT_USERNAME} ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
 
 semvers: &semvers /v(?<=^[Vv]|^)(?:(?<major>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<minor>(?:0|[1-9](?:(?:0|[1-9])+)*))[.](?<patch>(?:0|[1-9](?:(?:0|[1-9])+)*))(?:-(?<prerelease>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:0|[1-9](?:(?:0|[1-9])+)*)))*))?(?:[+](?<build>(?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+))(?:[.](?:(?:(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?|(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)(?:[A-Za-z]|-)(?:(?:(?:0|[1-9])|(?:[A-Za-z]|-))+)?)|(?:(?:0|[1-9])+)))*))?)$/
 
@@ -54,7 +54,7 @@ jobs:
           <<: *run_base_setup
       - run:
           name: Gitian Build Windows
-          command: python3 ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
+          command: python2 ./gitian-build.py --docker --detach-sign -o w --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
       - run:
           name: Collect binaries
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
@@ -78,7 +78,7 @@ jobs:
           command: mkdir -p gitian-builder && cd ./gitian-builder && mkdir -p inputs && cd inputs && curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz --output MacOSX10.11.sdk.tar.gz
       - run:
           name: Gitian Build MacOS
-          command: python3 ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
+          command: python2 ./gitian-build.py --docker --detach-sign -o m --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
       - run:
           name: Collect binaries
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
@@ -99,7 +99,7 @@ jobs:
           <<: *run_base_setup
       - run:
           name: Gitian Build Linux
-          command: python3 ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b ${CIRCLE_PROJECT_USERNAME} ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
+          command: python2 ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b ${CIRCLE_PROJECT_USERNAME} ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
       - run:
           name: Collect binaries
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
@@ -152,7 +152,7 @@ jobs:
             - './depends'
       - run:
           name: Install dependencies
-          command: sudo apt-get update && sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3
+          command: sudo apt-get update && sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3.5 python2
       - run:
           name: Creating depends
           command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
