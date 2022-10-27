@@ -84,10 +84,18 @@ def build():
         print(args.jobs)
         print(args.memory)
         print(args.commit)
-        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-win.yml'])
-        subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-unsigned', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-win.yml'])
-        subprocess.check_call('mv build/out/verge-*-win-unsigned.tar.gz inputs/', shell=True)
-        subprocess.check_call('mv build/out/verge-*.zip build/out/verge-*.exe ../verge-binaries/'+args.version, shell=True)
+        cmdBuildArgs = os.getcwd() + '/bin/gbuild -j ' + args.jobs + ' -m' + args.memory + ' --commit verge=' + args.commit + ' --url verge=' + args.url + '/verge/contrib/gitian-descriptors/gitian-win.yml'
+        print(cmdBuildArgs)
+        subprocess.Popen(cmdBuildArgs, shell=True)
+        cmdSignArgs = os.getcwd() + '/bin/gsign -p ' + args.sign_prog + ' --signer ' + args.signer + ' --release ' + args.version + '-win-unsigned --destination ' + args.url + '/gitian.sigs/ ' + args.url + '/verge/contrib/gitian-descriptors/gitian-win.yml'
+        print(cmdSignArgs)
+        subprocess.Popen(cmdSignArgs, shell=True)
+        cmdMoveArgs = 'mv build/out/verge-*-win-unsigned.tar.gz inputs/'
+        print(cmdMoveArgs)
+        subprocess.Popen(cmdMoveArgs, shell=True)
+        cmdMoveArgs2 = 'mv build/out/verge-*.zip build/out/verge-*.exe' + os.getcwd() + '/verge-binaries/' + args.version
+        print(cmdMoveArgs2)
+        subprocess.Popen(cmdMoveArgs2, shell=True)
 
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
