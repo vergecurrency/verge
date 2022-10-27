@@ -68,7 +68,7 @@ def build():
         print(args.jobs)
         print(args.memory)
         print(args.commit)
-        cmdBuildArgs = 'bin/gbuild -j ' + args.jobs + ' -m ' + args.memory + ' --commit verge='+args.commit + '--url verge='+args.url + ' ../verge/contrib/gitian-descriptors/gitian-linux.yml'
+        cmdBuildArgs = os.getcwd() + '/bin/gbuild -j ' + args.jobs + ' -m ' + args.memory + ' --commit verge='+args.commit + '--url verge='+args.url + '../verge/contrib/gitian-descriptors/gitian-linux.yml'
         print(cmdBuildArgs)
         subprocess.check_call(cmdBuildArgs, shell=True)
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-linux', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
