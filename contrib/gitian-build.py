@@ -68,8 +68,8 @@ def build():
         print(args.jobs)
         print(args.memory)
         print(args.commit)
-        cmdBuildArgs = '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml'
-        subprocess.check_call("bin/gbuild " + cmdBuildArgs, shell=True)
+        cmdBuildArgs = 'bin/gbuild -j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml'
+        subprocess.check_call(cmdBuildArgs, shell=True)
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-linux', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
         subprocess.check_call('mv build/out/verge-*.tar.gz build/out/src/verge-*.tar.gz ../verge-binaries/'+args.version, shell=True)
 
