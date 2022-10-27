@@ -102,13 +102,13 @@ jobs:
           <<: *run_base_setup
       - run:
           name: Gitian Build Linux
-          command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b marpme ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
+          command: ./gitian-build.py --docker --detach-sign -o l --commit -j 4 -m 4000 -b ${CIRCLE_PROJECT_USERNAME} ${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}
       - run:
           name: Collect binaries
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'bin'
+          paths: ['bin']
 
   upload-github-releases:
     docker:
