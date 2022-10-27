@@ -14,7 +14,7 @@ run_apt_packages: &run_apt_packages
 
 set_python_version: &set_python_version
   name: Set Python Version
-  command: pyenv global 3.5.2
+  command: pyenv global 2.7
 
 run_base_setup: &run_base_setup
   name: Setup repo and execute VM builder
