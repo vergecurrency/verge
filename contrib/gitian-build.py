@@ -74,7 +74,9 @@ def build():
         cmdSignArgs = os.getcwd() + '/bin/gsign -p ' + args.sign_prog + ' --signer ' + args.signer + ' --release ' + args.version + '-linux --destination ' + args.url + '/gitian.sigs/ ' + args.url + '/verge/contrib/gitian-descriptors/gitian-linux.yml'
         print(cmdSignArgs)
         subprocess.Popen(cmdSignArgs, shell=True)
-        subprocess.check_call('mv build/out/verge-*.tar.gz build/out/src/verge-*.tar.gz ../verge-binaries/'+args.version, shell=True)
+        cmdMoveArgs = 'mv build/out/verge-*.tar.gz build/out/src/verge-*.tar.gz ' +  os.getcwd() + '/verge-binaries/' + args.version
+        print(cmdMoveArgs)
+        subprocess.Popen(cmdMoveArgs, shell=True)
 
     if args.windows:
         print('\nCompiling ' + args.version + ' Windows')
