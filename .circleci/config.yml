@@ -35,7 +35,7 @@ jobs:
           command: cp ./verge/contrib/gitian-build.py . && chmod u+x gitian-build.py
       - run:
           name: Prepare VM Builder
-          command: git clone https://github.com/newroco/vmbuilder.git && cd vmbuilder && sudo chmod u+x ./setup.py && sudo python2 ./setup.py install 
+          command: git clone https://github.com/newroco/vmbuilder.git && cd vmbuilder && sudo chmod u+x ./setup.py && sudo python ./setup.py install 
       - persist_to_workspace:
           root: '.'
           paths:
