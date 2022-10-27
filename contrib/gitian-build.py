@@ -58,7 +58,7 @@ def build():
 
     subprocess.check_call(['wget', '-N', '-P', 'inputs', 'https://github.com/vergecurrency/osslsigncode-1.7.1.tar.gz/blob/master/osslsigncode-1.7.1.tar.gz'])
     subprocess.check_call(['wget', '-N', '-P', 'inputs', 'https://github.com/vergecurrency/osslsigncode-1.7.1.tar.gz/blob/master/osslsigncode-Backports-to-1.7.1.patch'])
-    subprocess.check_call(["echo '663115efb2afb49639cca1468155b5a36d53af1e3f7759865eb74c763d2e8fdb inputs/osslsigncode-Backports-to-1.7.1.patch' | sha256sum -c"], shell=True)
+    subprocess.check_call(["echo '9a9b856b94a7e0aed36f4f0e3871ac35ca0efb9ceb92a379f2440108d72b6577 inputs/osslsigncode-Backports-to-1.7.1.patch' | sha256sum -c"], shell=True)
     subprocess.check_call(["echo 'ad00ec3ef114f2ff3386f44953e4afe8f95771f492a4dd650a8d6252315abae0 inputs/osslsigncode-1.7.1.tar.gz' | sha256sum -c"], shell=True)
     subprocess.check_call(['make', '-C', '../verge/depends', 'download', 'SOURCES_PATH=' + os.getcwd() + '/cache/common'])
 
