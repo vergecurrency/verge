@@ -98,7 +98,7 @@ def build():
         cmdBuildArgs = os.getcwd() + '/bin/gbuild -j ' + args.jobs + ' -m ' + args.memory + ' --commit verge=' + args.commit + ' --url verge=' + args.url + '/verge/contrib/gitian-descriptors/gitian-osx.yml'
         print(cmdBuildArgs)
         subprocess.Popen(cmdBuildArgs, shell=True)
-        cmdSignArgs = os.getcwd() + '/bin/gsign -p ' + args.sign_prog + ' --signer ' + args.signer + ' --release ' + args.version + '-osx-unsigned --destination ' + os.getcwd() + '/gitian.sigs/ ' + os.getcwd() +  '/verge/contrib/gitian-descriptors/gitian-osx.yml'
+        cmdSignArgs = os.getcwd() + '/bin/gsign -p ' + args.sign_prog + ' --signer ' + args.signer + ' --release ' + args.version + '-osx-unsigned --destination ' + args.url + '/gitian.sigs/ ' + args.url +  '/verge/contrib/gitian-descriptors/gitian-osx.yml'
         print(cmdSignArgs)
         subprocess.Popen(cmdSignArgs, shell=True)
         subprocess.check_call('mv build/out/verge-*-osx-unsigned.tar.gz inputs/', shell=True)
