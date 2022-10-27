@@ -65,7 +65,7 @@ def build():
     if args.linux:
         print('\nCompiling ' + args.version + ' Linux')
         print('Working Directory ' + os.getcwd())
-        cmdArray = ['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml']
+        cmdArray = [os.getcwd() + '/bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml']
         print(cmdArray)        
         cmsString = ' '.join(cmdArray)
         subprocess.check_call(cmsString, shell=True)
