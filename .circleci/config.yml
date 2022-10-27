@@ -31,14 +31,14 @@ jobs:
       - checkout:
           path: ~/project/verge
       - run:
-          name: Find Python location
-          command: which python
-      - run:
           name: Hardcopy gitian build script
           command: cp ./verge/contrib/gitian-build.py . && chmod u+x gitian-build.py
       - run:
           name: Prepare VM Builder
           command: git clone https://github.com/newroco/vmbuilder.git && cd vmbuilder && sudo chmod u+x ./setup.py && sudo ./setup.py install
+      - run:
+          name: Find Python location
+          command: which python
       - persist_to_workspace:
           root: '.'
           paths:
