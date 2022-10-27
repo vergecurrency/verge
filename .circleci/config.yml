@@ -31,6 +31,9 @@ jobs:
       - checkout:
           path: ~/project/verge
       - run:
+          name: Find Python location
+          command: which python
+      - run:
           name: Hardcopy gitian build script
           command: cp ./verge/contrib/gitian-build.py . && chmod u+x gitian-build.py
       - run:
