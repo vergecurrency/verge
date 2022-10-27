@@ -65,23 +65,23 @@ def build():
     if args.linux:
         print('\nCompiling ' + args.version + ' Linux')
         print('Working Directory ' + os.getcwd())
-        subprocess.check_call([os.getcwd() + '/bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
-        subprocess.check_call([os.getcwd() + '/bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-linux', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
+        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
+        subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-linux', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
         subprocess.check_call('mv build/out/verge-*.tar.gz build/out/src/verge-*.tar.gz ../verge-binaries/'+args.version, shell=True)
 
     if args.windows:
         print('\nCompiling ' + args.version + ' Windows')
         print('Working Directory ' + os.getcwd())
-        subprocess.check_call([os.getcwd() + '/bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-win.yml'])
-        subprocess.check_call([os.getcwd() + '/bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-unsigned', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-win.yml'])
+        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-win.yml'])
+        subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-unsigned', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-win.yml'])
         subprocess.check_call('mv build/out/verge-*-win-unsigned.tar.gz inputs/', shell=True)
         subprocess.check_call('mv build/out/verge-*.zip build/out/verge-*.exe ../verge-binaries/'+args.version, shell=True)
 
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
         print('Working Directory ' + os.getcwd())
-        subprocess.check_call([os.getcwd() + '/bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
-        subprocess.check_call([os.getcwd() + '/bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-unsigned', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
+        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
+        subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-unsigned', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
         subprocess.check_call('mv build/out/verge-*-osx-unsigned.tar.gz inputs/', shell=True)
         subprocess.check_call('mv build/out/verge-*.tar.gz build/out/verge-*.dmg ../verge-binaries/'+args.version, shell=True)
 
@@ -103,16 +103,16 @@ def sign():
     if args.windows:
         print('\nSigning ' + args.version + ' Windows')
         subprocess.check_call('cp inputs/verge-' + args.version + '-win-unsigned.tar.gz inputs/verge-win-unsigned.tar.gz', shell=True)
-        subprocess.check_call([os.getcwd() + '/bin/gbuild', '-i', '--commit', 'signature='+args.commit, '../verge/contrib/gitian-descriptors/gitian-win-signer.yml'])
-        subprocess.check_call([os.getcwd() + '/bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-signed', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-win-signer.yml'])
+        subprocess.check_call(['bin/gbuild', '-i', '--commit', 'signature='+args.commit, '../verge/contrib/gitian-descriptors/gitian-win-signer.yml'])
+        subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-signed', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-win-signer.yml'])
         subprocess.check_call('mv build/out/verge-*win64-setup.exe ../verge-binaries/'+args.version, shell=True)
         subprocess.check_call('mv build/out/verge-*win32-setup.exe ../verge-binaries/'+args.version, shell=True)
 
     if args.macos:
         print('\nSigning ' + args.version + ' MacOS')
         subprocess.check_call('cp inputs/verge-' + args.version + '-osx-unsigned.tar.gz inputs/verge-osx-unsigned.tar.gz', shell=True)
-        subprocess.check_call([os.getcwd() + '/bin/gbuild', '-i', '--commit', 'signature='+args.commit, '../verge/contrib/gitian-descriptors/gitian-osx-signer.yml'])
-        subprocess.check_call([os.getcwd() + '/bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-signed', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-osx-signer.yml'])
+        subprocess.check_call(['bin/gbuild', '-i', '--commit', 'signature='+args.commit, '../verge/contrib/gitian-descriptors/gitian-osx-signer.yml'])
+        subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-signed', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-osx-signer.yml'])
         subprocess.check_call('mv build/out/verge-osx-signed.dmg ../verge-binaries/'+args.version+'/verge-'+args.version+'-osx.dmg', shell=True)
 
     os.chdir(workdir)
@@ -130,15 +130,15 @@ def verify():
     os.chdir('gitian-builder')
 
     print('\nVerifying v'+args.version+' Linux\n')
-    subprocess.check_call([os.getcwd() + '/bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-linux', '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
+    subprocess.check_call(['bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-linux', '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
     print('\nVerifying v'+args.version+' Windows\n')
-    subprocess.check_call([os.getcwd() + '/bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-win-unsigned', '../verge/contrib/gitian-descriptors/gitian-win.yml'])
+    subprocess.check_call(['bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-win-unsigned', '../verge/contrib/gitian-descriptors/gitian-win.yml'])
     print('\nVerifying v'+args.version+' MacOS\n')
-    subprocess.check_call([os.getcwd() + '/bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-osx-unsigned', '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
+    subprocess.check_call(['bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-osx-unsigned', '../verge/contrib/gitian-descriptors/gitian-osx.yml'])
     print('\nVerifying v'+args.version+' Signed Windows\n')
-    subprocess.check_call([os.getcwd() + '/bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-win-signed', '../verge/contrib/gitian-descriptors/gitian-win-signer.yml'])
+    subprocess.check_call(['bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-win-signed', '../verge/contrib/gitian-descriptors/gitian-win-signer.yml'])
     print('\nVerifying v'+args.version+' Signed MacOS\n')
-    subprocess.check_call([os.getcwd() + '/bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-osx-signed', '../verge/contrib/gitian-descriptors/gitian-osx-signer.yml'])
+    subprocess.check_call(['bin/gverify', '-v', '-d', '../gitian.sigs/', '-r', args.version+'-osx-signed', '../verge/contrib/gitian-descriptors/gitian-osx-signer.yml'])
 
     os.chdir(workdir)
 
