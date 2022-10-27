@@ -6,7 +6,7 @@ defaults: &defaults
 
 defaults-docker: &defaults-docker
   docker:
-    - image: circleci/buildpack-deps:bionic
+    - image: cimg/base:edge-22.04
 
 run_apt_packages: &run_apt_packages
   name: Prepare VM
