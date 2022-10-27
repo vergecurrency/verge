@@ -60,7 +60,7 @@ jobs:
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'bin'
+          paths: ['bin']
 
   release-macos:
     <<: *defaults
@@ -84,7 +84,7 @@ jobs:
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'bin'
+          paths: ['bin']
 
   release-linux:
     <<: *defaults
