@@ -65,10 +65,11 @@ def build():
     if args.linux:
         print('\nCompiling ' + args.version + ' Linux')
         print('Working Directory ' + os.getcwd())
-        cmdArray = [os.getcwd() + '/bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml']
-        print(cmdArray)        
-        cmsString = ' '.join(cmdArray)
-        subprocess.check_call(cmsString, shell=True)
+        print(args.jobs)
+        print(args.memory)
+        print(args.commit)
+        cmdBuildArgs = '-j', args.jobs, '-m', args.memory, '--commit', 'verge='+args.commit, '--url', 'verge='+args.url, '../verge/contrib/gitian-descriptors/gitian-linux.yml'
+        subprocess.check_call("bin/gbuild " + cmdBuildArgs, shell=True)
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-linux', '--destination', '../gitian.sigs/', '../verge/contrib/gitian-descriptors/gitian-linux.yml'])
         subprocess.check_call('mv build/out/verge-*.tar.gz build/out/src/verge-*.tar.gz ../verge-binaries/'+args.version, shell=True)
 
