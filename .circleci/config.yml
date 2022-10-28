@@ -6,7 +6,7 @@ defaults: &defaults
 
 defaults-docker: &defaults-docker
   docker:
-    - image: cimg/base:edge-22.04
+    - image: circleci/buildpack-deps:bionic
 
 run_apt_packages: &run_apt_packages
   name: Prepare VM
@@ -60,7 +60,7 @@ jobs:
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'bin'
+          paths: ['bin']
 
   release-macos:
     <<: *defaults
@@ -84,7 +84,7 @@ jobs:
           command: mv verge-binaries/${CIRCLE_BRANCH:-${CIRCLE_TAG:-master}}/ bin
       - persist_to_workspace:
           root: .
-          paths: 'bin'
+          paths: ['bin']
 
   release-linux:
     <<: *defaults
