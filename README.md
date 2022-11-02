@@ -49,6 +49,7 @@ Block Number Range | Reward
 ## Resources
 
 * [Blockchain Explorer](https://verge-blockchain.info/)
+* [Blockchain Explorer Testnet](https://testnet.verge-blockchain.info/)
 * [Mining Pool List](https://vergecurrency.com/community/xvg-mining-pools/)
 * [Black Paper](https://vergecurrency.com/static/blackpaper/Verge-Anonymity-Centric-CryptoCurrency.pdf)
 
