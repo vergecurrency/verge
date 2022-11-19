@@ -10,7 +10,7 @@
 #
 #   Test for the Boost C++ libraries of a particular version (or newer)
 #
-#   If no path to the installed boost library is given the macro searchs
+#   If no path to the installed boost library is given the macro searches
 #   under /usr, /usr/local, /opt and /opt/local and evaluates the
 #   $BOOST_ROOT environment variable. Further documentation is available at
 #   <http://randspringer.de/boost/index.html>.
@@ -33,7 +33,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 27
+#serial 26
 
 AC_DEFUN([AX_BOOST_BASE],
 [
@@ -96,7 +96,7 @@ if test "x$want_boost" = "xyes"; then
         libsubdirs="lib64 libx32 lib lib64"
         ;;
       ppc64|s390x|sparc64|aarch64|ppc64le)
-        libsubdirs="lib64 lib lib64"
+        libsubdirs="lib64 lib lib64 ppc64le"
         ;;
     esac
 
@@ -119,7 +119,7 @@ if test "x$want_boost" = "xyes"; then
     libsubdirs="lib/`$CXX -dumpmachine 2>/dev/null` $libsubdirs"
 
     dnl first we check the system location for boost libraries
-    dnl this location ist chosen if boost libraries are installed with the --layout=system option
+    dnl this location is chosen if boost libraries are installed with the --layout=system option
     dnl or if you install boost with RPM
     if test "$ac_boost_path" != ""; then
         BOOST_CPPFLAGS="-I$ac_boost_path/include"
@@ -170,7 +170,7 @@ if test "x$want_boost" = "xyes"; then
         AC_MSG_RESULT(yes)
     succeeded=yes
     found_system=yes
-        ],[:
+        ],[
         ])
     AC_LANG_POP([C++])
 
@@ -263,7 +263,7 @@ if test "x$want_boost" = "xyes"; then
             AC_MSG_RESULT(yes)
         succeeded=yes
         found_system=yes
-            ],[:
+            ],[
             ])
         AC_LANG_POP([C++])
     fi
