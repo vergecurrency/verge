@@ -439,7 +439,7 @@ qt_verge_qt_LDADD += $(libverge_CLI) $(libverge_COMMON) $(libverge_UTIL) $(libve
   $(LIBSECCOMP_LIBS) \
   $(LIBCAP_LIBS) \
   $(ZLIB_LIBS)
-qt_verge_qt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+qt_verge_qt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 qt_verge_qt_LIBTOOLFLAGS = $(AM_LIBTOOLFLAGS) --tag CXX
 
 #locale/foo.ts -> locale/foo.qm

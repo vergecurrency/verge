@@ -118,7 +118,7 @@ test_test_verge_LDADD += $(libverge_SERVER) $(libverge_CLI) $(libverge_COMMON) $
 test_test_verge_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 test_test_verge_LDADD += $(libverge_CONSENSUS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
-test_test_verge_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
+test_test_verge_LDFLAGS = $(FUZZ_SUITE_LDFLAGS_COMMON) $(PTHREAD_FLAGS) -static
 
 if ENABLE_ZMQ
 test_test_verge_LDADD += $(ZMQ_LIBS)
@@ -129,7 +129,7 @@ endif
 test_test_verge_fuzzy_SOURCES = test/test_verge_fuzzy.cpp
 test_test_verge_fuzzy_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES)
 test_test_verge_fuzzy_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-test_test_verge_fuzzy_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+test_test_verge_fuzzy_LDFLAGS = $(FUZZ_SUITE_LDFLAGS_COMMON)
 
 test_test_verge_fuzzy_LDADD = \
   $(LIBUNIVALUE) \
