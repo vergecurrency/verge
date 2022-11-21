@@ -50,21 +50,18 @@ $(package)_config_opts_i686_mingw32=mingw
 endef
 
 define $(package)_preprocess_cmds
-  sed -i.old "/define DATE/d" util/mkbuildinf.pl
+  sed -i.old 's/built on: $$$$date/built on: date not available/' util/mkbuildinf.pl && \
+  sed -i.old "s|\"engines\", \"apps\", \"test\"|\"engines\"|" Configure
 endef
-
 define $(package)_config_cmds
   ./Configure $($(package)_config_opts)
 endef
-
 define $(package)_build_cmds
   $(MAKE) -j1 build_libs libcrypto.pc libssl.pc openssl.pc
 endef
-
 define $(package)_stage_cmds
-  $(MAKE) INSTALL_PREFIX=$($(package)_staging_dir) -j1 install_sw
+  $(MAKE) DESTDIR=$($(package)_staging_dir) -j1 install_sw
 endef
-
 define $(package)_postprocess_cmds
   rm -rf share bin etc
 endef
