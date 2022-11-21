@@ -873,7 +873,7 @@ fi
 VERGE_QT_INIT
 
 dnl sets $verge_enable_qt, $verge_enable_qt_test, $verge_enable_qt_dbus
-VERGE_QT_CONFIGURE([$use_pkgconfig], [qt5])
+VERGE_QT_CONFIGURE
 
 if test x$build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests$use_bench = xnonononono; then
     use_boost=no
