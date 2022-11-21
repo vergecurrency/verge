@@ -111,5 +111,6 @@ std::string FormatISO8601Time(int64_t nTime) {
 #else
     if (gmtime_s(&ts, &time_val) != 0) {
 #endif
+    }
     return strprintf("%02i:%02i:%02iZ", ts.tm_hour, ts.tm_min, ts.tm_sec);
 }
