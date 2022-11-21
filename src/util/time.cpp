@@ -103,16 +103,13 @@ std::string FormatISO8601Date(int64_t nTime) {
     return strprintf("%04i-%02i-%02i", ts.tm_year + 1900, ts.tm_mon + 1, ts.tm_mday);
 }
 
-int64_t ParseISO8601DateTime(const std::string& str)
-{
-    static const boost::posix_time::ptime epoch = boost::posix_time::from_time_t(0);
-    static const std::locale loc(std::locale::classic(),
-        new boost::posix_time::time_input_facet("%Y-%m-%dT%H:%M:%SZ"));
-    std::istringstream iss(str);
-    iss.imbue(loc);
-    boost::posix_time::ptime ptime(boost::date_time::not_a_date_time);
-    iss >> ptime;
-    if (ptime.is_not_a_date_time() || epoch > ptime)
-        return 0;
-    return (ptime - epoch).total_seconds();
+std::string FormatISO8601Time(int64_t nTime) {
+    struct tm ts;
+    time_t time_val = nTime;
+#ifdef HAVE_GMTIME_R
+    if (gmtime_r(&time_val, &ts) == nullptr) {
+#else
+    if (gmtime_s(&ts, &time_val) != 0) {
+#endif
+    return strprintf("%02i:%02i:%02iZ", ts.tm_hour, ts.tm_min, ts.tm_sec);
 }
