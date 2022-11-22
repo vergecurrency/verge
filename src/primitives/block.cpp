@@ -8,7 +8,6 @@
 
 #include <hash.h>
 #include <tinyformat.h>
-#include <util/strencodings.h>
 #include <crypto/common.h>
 
 #include <crypto/pow/scrypt.h>
