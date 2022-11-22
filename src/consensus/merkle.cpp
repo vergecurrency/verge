@@ -5,7 +5,6 @@
 
 #include <consensus/merkle.h>
 #include <hash.h>
-#include <util/strencodings.h>
 
 /*     WARNING! If you're reading this because you're learning about crypto
        and/or designing a new system that will use merkle trees, keep in mind
