@@ -1,9 +1,8 @@
 package=boost
-$(package)_version=1_74_0
-$(package)_download_path=https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source
-$(package)_file_name=$(package)_$($(package)_version).tar.bz2
-$(package)_sha256_hash=83bfc1507731a0906e387fc28b7ef5417d591429e51e788417fe9ff025e116b1
-$(package)_patches=signals2-noise.patch
+$(package)_version=1.77.0
+$(package)_download_path=https://boostorg.jfrog.io/artifactory/main/release/$($(package)_version)/source/
+$(package)_file_name=boost_$(subst .,_,$($(package)_version)).tar.bz2
+$(package)_sha256_hash=fc9f85fc030e233142908241af7a846e60630aa7388de9a5fafb1f3a26840854
 
 $(package)_compiler=
 ifeq ($(CLANG_ARG),true)
@@ -31,10 +30,6 @@ $(package)_config_libraries=chrono,filesystem,program_options,system,thread,test
 $(package)_cxxflags=-std=c++17 -fvisibility=hidden
 $(package)_cxxflags_linux=-fPIC
 $(package)_cxxflags_freebsd=-fPIC
-endef
-
-define $(package)_preprocess_cmds
-  patch -p2 < $($(package)_patch_dir)/signals2-noise.patch
 endef
 
 define $(package)_config_cmds
