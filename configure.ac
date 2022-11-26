@@ -21,6 +21,16 @@ if test "$PKG_CONFIG" = ""; then
   AC_MSG_ERROR([pkg-config not found])
 fi
 
+# When compiling with depends, the `PKG_CONFIG_PATH` and `PKG_CONFIG_LIBDIR` variables,	
+# being set in a `config.site` file, are not exported to let the `--config-cache` option	
+# work properly.	
+if test -n "$PKG_CONFIG_PATH"; then	
+  PKG_CONFIG="env PKG_CONFIG_PATH=$PKG_CONFIG_PATH $PKG_CONFIG"	
+fi	
+if test -n "$PKG_CONFIG_LIBDIR"; then	
+  PKG_CONFIG="env PKG_CONFIG_LIBDIR=$PKG_CONFIG_LIBDIR $PKG_CONFIG"	
+fi
+
 VERGE_DAEMON_NAME=verged
 VERGE_GUI_NAME=verge-qt
 VERGE_CLI_NAME=verge-cli
@@ -43,7 +53,7 @@ dnl faketime breaks configure and is only needed for make. Disable it here.
 unset FAKETIME
 
 dnl Automake init set-up and checks
-AM_INIT_AUTOMAKE([no-define subdir-objects foreign])
+AM_INIT_AUTOMAKE([1.13 no-define subdir-objects foreign])
 
 dnl faketime messes with timestamps and causes configure to be re-run.
 dnl --disable-maintainer-mode can be used to bypass this.
@@ -53,7 +63,7 @@ dnl make the compilation flags quiet unless V=1 is used
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Compiler checks (here before libtool).
-if test "x${CXXFLAGS+set}" = "xset"; then
+	if test "${CXXFLAGS+set}" = "set"; then
   CXXFLAGS_overridden=yes
 else
   CXXFLAGS_overridden=no
@@ -68,15 +78,29 @@ case $host in
      lt_cv_deplibs_check_method="pass_all"
   ;;
 esac
-dnl Require C++11 compiler (no GNU extensions)
-AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory], [nodefault])
-dnl Check if -latomic is required for <std::atomic>
-CHECK_ATOMIC
+AC_ARG_WITH([seccomp],	
+  [AS_HELP_STRING([--with-seccomp],	
+  [enable experimental syscall sandbox feature (-sandbox), default is yes if seccomp-bpf is detected under Linux x86_64])],	
+  [seccomp_found=$withval],	
+  [seccomp_found=auto])	
+AC_ARG_ENABLE([c++20],	
+  [AS_HELP_STRING([--enable-c++20],	
+  [enable compilation in c++20 mode (disabled by default)])],	
+  [use_cxx20=$enableval],	
+  [use_cxx20=no])	
+dnl Require C++17 compiler (no GNU extensions)	
+if test "$use_cxx20" = "no"; then	
+AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])	
+else	
+AX_CXX_COMPILE_STDCXX([20], [noext], [mandatory])	
+fi	
+dnl check if additional link flags are required for std::filesystem	
+CHECK_FILESYSTEM
 
 dnl Unless the user specified OBJCXX, force it to be the same as CXX. This ensures
 dnl that we get the same -std flags for both.
 m4_ifdef([AC_PROG_OBJCXX],[
-if test "x${OBJCXX+set}" = "x"; then
+if test "${OBJCXX+set}" = ""; then
   OBJCXX="${CXX}"
 fi
 AC_PROG_OBJCXX
