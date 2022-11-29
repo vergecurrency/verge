@@ -63,7 +63,7 @@ dnl make the compilation flags quiet unless V=1 is used
 AM_SILENT_RULES([yes])
 
 dnl Compiler checks (here before libtool).
-	if test "${CXXFLAGS+set}" = "set"; then
+if test "${CXXFLAGS+set}" = "set"; then
   CXXFLAGS_overridden=yes
 else
   CXXFLAGS_overridden=no
@@ -132,7 +132,7 @@ if test -z "$DOXYGEN"; then
 fi
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
 
-AC_ARG_VAR(PYTHONPATH, Augments the default search path for python module files)
+AC_ARG_VAR([PYTHONPATH], [Augments the default search path for python module files])
 
 # Enable wallet
 AC_ARG_ENABLE([wallet],
@@ -253,29 +253,29 @@ AC_ARG_ENABLE(man,
     [AS_HELP_STRING([--disable-man],
                     [do not install man pages (default is to install)])],,
     enable_man=yes)
-AM_CONDITIONAL(ENABLE_MAN, test "$enable_man" != no)
+AM_CONDITIONAL([ENABLE_MAN], [test "$enable_man" != "no"])
 
-# Enable debug
+dnl Enable debug
 AC_ARG_ENABLE([debug],
     [AS_HELP_STRING([--enable-debug],
                     [use debug compiler flags and macros (default is no)])],
     [enable_debug=$enableval],
     [enable_debug=no])
 
-# Enable different -fsanitize options
+dnl Enable different -fsanitize options
 AC_ARG_WITH([sanitizers],
     [AS_HELP_STRING([--with-sanitizers],
                     [comma separated list of extra sanitizers to build with (default is none enabled)])],
     [use_sanitizers=$withval])
 
-# Enable gprof profiling
+dnl Enable gprof profiling
 AC_ARG_ENABLE([gprof],
     [AS_HELP_STRING([--enable-gprof],
                     [use gprof profiling compiler flags (default is no)])],
     [enable_gprof=$enableval],
     [enable_gprof=no])
 
-# Turn warnings into errors
+dnl Turn warnings into errors
 AC_ARG_ENABLE([werror],
     [AS_HELP_STRING([--enable-werror],
                     [Treat certain compiler warnings as errors (default is no)])],
@@ -283,12 +283,33 @@ AC_ARG_ENABLE([werror],
     [enable_werror=no])
 
 AC_LANG_PUSH([C++])
-AX_CHECK_COMPILE_FLAG([-Werror],[CXXFLAG_WERROR="-Werror"],[CXXFLAG_WERROR=""])
-
-if test "x$enable_debug" = xyes; then
-  # Clear default -g -O2 flags
-  if test "x$CXXFLAGS_overridden" = xno; then
-	CXXFLAGS=""
+dnl Check for a flag to turn compiler warnings into errors. This is helpful for checks which may
+dnl appear to succeed because by default they merely emit warnings when they fail.
+dnl
+dnl Note that this is not necessarily a check to see if -Werror is supported, but rather to see if
+dnl a compile with -Werror can succeed. This is important because the compiler may already be
+dnl warning about something unrelated, for example about some path issue. If that is the case,
+dnl -Werror cannot be used because all of those warnings would be turned into errors.
+AX_CHECK_COMPILE_FLAG([-Werror], [CXXFLAG_WERROR="-Werror"], [CXXFLAG_WERROR=""])
+dnl Check for a flag to turn linker warnings into errors. When flags are passed to linkers via the
+dnl compiler driver using a -Wl,-foo flag, linker warnings may be swallowed rather than bubbling up.
+dnl See note above, the same applies here as well.
+dnl
+dnl LDFLAG_WERROR Should only be used when testing -Wl,*
+case $host in
+ *darwin*)
+    AX_CHECK_LINK_FLAG([-Wl,-fatal_warnings], [LDFLAG_WERROR="-Wl,-fatal_warnings"], [LDFLAG_WERROR=""])
+    ;;
+  *)
+    AX_CHECK_LINK_FLAG([-Wl,--fatal-warnings], [LDFLAG_WERROR="-Wl,--fatal-warnings"], [LDFLAG_WERROR=""])
+    ;;
+esac
+if test "$enable_debug" = "yes"; then
+  dnl If debugging is enabled, and the user hasn't overridden CXXFLAGS, clear
+  dnl them, to prevent autoconfs "-g -O2" being added. Otherwise we'd end up
+  dnl with "-O0 -g3 -g -O2".
+  if test "$CXXFLAGS_overridden" = "no"; then
+  CXXFLAGS=""
   fi
   # Prefer -Og, fall back to -O0 if that is unavailable.
   AX_CHECK_COMPILE_FLAG(
@@ -329,12 +350,16 @@ if test x$use_sanitizers != x; then
 fi
 
 ERROR_CXXFLAGS=
-if test "x$enable_werror" = "xyes"; then
-  if test "x$CXXFLAG_WERROR" = "x"; then
-    AC_MSG_ERROR("enable-werror set but -Werror is not usable")
+if test "$enable_werror" = "yes"; then
+  if test "$CXXFLAG_WERROR" = ""; then
+    AC_MSG_ERROR([enable-werror set but -Werror is not usable])
   fi
-  AX_CHECK_COMPILE_FLAG([-Werror=vla],[ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror=vla"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Werror=thread-safety-analysis],[ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror=thread-safety-analysis"],,[[$CXXFLAG_WERROR]])
+  ERROR_CXXFLAGS=$CXXFLAG_WERROR
+  dnl -Wreturn-type is broken in GCC for MinGW-w64.
+  dnl https://sourceforge.net/p/mingw-w64/bugs/306/
+  AX_CHECK_COMPILE_FLAG([-Werror=return-type], [], [ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Wno-error=return-type"], [$CXXFLAG_WERROR],
+                        [AC_LANG_SOURCE([[#include <cassert>
+                                          int f(){ assert(false); }]])])
 fi
 
 if test "x$CXXFLAGS_overridden" = "xno"; then
@@ -387,8 +412,8 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 CXXFLAGS="$TEMP_CXXFLAGS"
 
 TEMP_CXXFLAGS="$CXXFLAGS"
-CXXFLAGS="$SSE41_CXXFLAGS $CXXFLAGS"
-AC_MSG_CHECKING([for SSE4.1 intrinsics])
+CXXFLAGS="$AVX2_CXXFLAGS $CXXFLAGS"
+AC_MSG_CHECKING([for AVX2 intrinsics])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     #include <stdint.h>
     #include <immintrin.h>
@@ -468,18 +493,18 @@ case $host in
      AC_CHECK_LIB([iphlpapi],      [main],, AC_MSG_ERROR(libiphlpapi missing))
      AC_CHECK_LIB([crypt32],      [main],, AC_MSG_ERROR(libcrypt32 missing))
 
-     # -static is interpreted by libtool, where it has a different meaning.
-     # In libtool-speak, it's -all-static.
-     AX_CHECK_LINK_FLAG([[-static]],[LIBTOOL_APP_LDFLAGS="$LIBTOOL_APP_LDFLAGS -all-static"])
+     dnl -static is interpreted by libtool, where it has a different meaning.
+	 dnl In libtool-speak, it's -all-static.
+     AX_CHECK_LINK_FLAG([-static], [LIBTOOL_APP_LDFLAGS="$LIBTOOL_APP_LDFLAGS -all-static"])
 
-     AC_PATH_PROG([MAKENSIS], [makensis], none)
-     if test x$MAKENSIS = xnone; then
-       AC_MSG_WARN("makensis not found. Cannot create installer.")
+     AC_PATH_PROG([MAKENSIS], [makensis], [none])
+     if test "$MAKENSIS" = "none"; then
+       AC_MSG_WARN([makensis not found. Cannot create installer.])
      fi
 
-     AC_PATH_TOOL(WINDRES, windres, none)
-     if test x$WINDRES = xnone; then
-       AC_MSG_ERROR("windres not found")
+     AC_PATH_TOOL([WINDRES], [windres], [none])
+     if test "$WINDRES" = "none"; then
+       AC_MSG_ERROR([windres not found])
      fi
 
      CPPFLAGS="$CPPFLAGS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB"
@@ -535,13 +560,14 @@ case $host in
            CPPFLAGS="$CPPFLAGS -I$openssl_prefix/include"
            export PKG_CONFIG_PATH
          fi
-         if test x$bdb_prefix != x; then
-           CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
-           LIBS="$LIBS -L$bdb_prefix/lib"
+         if test "$use_bdb" != "no" && $BREW list --versions berkeley-db@4 >/dev/null && test "$BDB_CFLAGS" = "" && test "$BDB_LIBS" = ""; then
+           bdb_prefix=$($BREW --prefix berkeley-db@4 2>/dev/null)
+           dnl This must precede the call to BITCOIN_FIND_BDB48 below.
+           BDB_CFLAGS="-I$bdb_prefix/include"
+           BDB_LIBS="-L$bdb_prefix/lib -ldb_cxx-4.8"
          fi
-         if test x$qt5_prefix != x; then
-           PKG_CONFIG_PATH="$qt5_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
-           export PKG_CONFIG_PATH
+         if $BREW list --versions qt@5 >/dev/null; then
+           export PKG_CONFIG_PATH="$($BREW --prefix qt@5 2>/dev/null)/lib/pkgconfig:$PKG_CONFIG_PATH"
          fi
        fi
      else
@@ -669,7 +695,7 @@ else
   AC_SEARCH_LIBS([clock_gettime],[rt])
 fi
 
-if test "x$enable_gprof" = xyes; then
+if test "$enable_gprof" = "yes"; then
     dnl -pg is incompatible with -pie. Since hardening and profiling together doesn't make sense,
     dnl we simply make them mutually exclusive here. Additionally, hardened toolchains may force
     dnl -pie by default, in which case it needs to be turned off with -no-pie.
@@ -679,7 +705,7 @@ if test "x$enable_gprof" = xyes; then
     fi
     use_hardening=no
     AX_CHECK_COMPILE_FLAG([-pg],[GPROF_CXXFLAGS="-pg"],
-        [AC_MSG_ERROR(gprof profiling requested but not available)], [[$CXXFLAG_WERROR]])
+        [AC_MSG_ERROR([gprof profiling requested but not available])], [$CXXFLAG_WERROR])
 
     AX_CHECK_LINK_FLAG([[-no-pie]], [GPROF_LDFLAGS="-no-pie"])
     AX_CHECK_LINK_FLAG([[-pg]],[GPROF_LDFLAGS="$GPROF_LDFLAGS -pg"],
@@ -744,12 +770,28 @@ AC_CHECK_DECLS([bswap_16, bswap_32, bswap_64],,,
 AC_CHECK_DECLS([__builtin_clz, __builtin_clzl, __builtin_clzll])
 
 dnl Check for malloc_info (for memory statistics information in getmemoryinfo)
-AC_MSG_CHECKING(for getmemoryinfo)
+AC_MSG_CHECKING([for getmemoryinfo])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <malloc.h>]],
  [[ int f = malloc_info(0, NULL); ]])],
- [ AC_MSG_RESULT(yes); AC_DEFINE(HAVE_MALLOC_INFO, 1,[Define this symbol if you have malloc_info]) ],
- [ AC_MSG_RESULT(no)]
+ [ AC_MSG_RESULT([yes]); AC_DEFINE([HAVE_MALLOPT_ARENA_MAX], [1], [Define this symbol if you have malloc_info]) ],
+ [ AC_MSG_RESULT([no])]
 )
+
+dnl Check for posix_fallocate
+AC_MSG_CHECKING([for posix_fallocate])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+                   // same as in src/util/system.cpp
+                   #ifdef __linux__
+                   #ifdef _POSIX_C_SOURCE
+                   #undef _POSIX_C_SOURCE
+                   #endif
+                   #define _POSIX_C_SOURCE 200112L
+                   #endif // __linux__
+                   #include <fcntl.h>]],
+                   [[ int f = posix_fallocate(0, 0, 0); ]])],
+ [ AC_MSG_RESULT([yes]); AC_DEFINE([HAVE_POSIX_FALLOCATE], [1], [Define this symbol if you have posix_fallocate]) ],
+ [ AC_MSG_RESULT([no])]
+ )
 
 dnl Check for mallopt(M_ARENA_MAX) (to set glibc arenas)
 AC_MSG_CHECKING(for mallopt M_ARENA_MAX)
