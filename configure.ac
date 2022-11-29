@@ -185,12 +185,6 @@ AC_ARG_ENABLE([hardening],
   [use_hardening=$enableval],
   [use_hardening=auto])
 
-AC_ARG_ENABLE([windows],
-  [AS_HELP_STRING([--enable-windows],
-  [implements different compiling standards for windows 32/64bit)])],
-  [use_windows=$enableval],
-  [use_windows=no])
-
 AC_ARG_ENABLE([reduce-exports],
   [AS_HELP_STRING([--enable-reduce-exports],
   [attempt to reduce exported symbols in the resulting executables (default is no)])],
@@ -202,6 +196,16 @@ AC_ARG_ENABLE([ccache],
   [do not use ccache for building (default is to use if found)])],
   [use_ccache=$enableval],
   [use_ccache=auto])
+  
+dnl Suppress warnings from external headers (e.g. Boost, Qt).	
+dnl May be useful if warnings from external headers clutter the build output	
+dnl too much, so that it becomes difficult to spot Verge Core warnings	
+dnl or if they cause a build failure with --enable-werror.	
+AC_ARG_ENABLE([suppress-external-warnings],	
+  [AS_HELP_STRING([--enable-suppress-external-warnings],	
+                  [Suppress warnings from external headers (default is no)])],	
+  [suppress_external_warnings=$enableval],	
+  [suppress_external_warnings=no])
 
 AC_ARG_ENABLE([lcov],
   [AS_HELP_STRING([--enable-lcov],
