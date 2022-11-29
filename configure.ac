@@ -21,14 +21,14 @@ if test "$PKG_CONFIG" = ""; then
   AC_MSG_ERROR([pkg-config not found])
 fi
 
-# When compiling with depends, the `PKG_CONFIG_PATH` and `PKG_CONFIG_LIBDIR` variables,	
-# being set in a `config.site` file, are not exported to let the `--config-cache` option	
-# work properly.	
-if test -n "$PKG_CONFIG_PATH"; then	
-  PKG_CONFIG="env PKG_CONFIG_PATH=$PKG_CONFIG_PATH $PKG_CONFIG"	
-fi	
-if test -n "$PKG_CONFIG_LIBDIR"; then	
-  PKG_CONFIG="env PKG_CONFIG_LIBDIR=$PKG_CONFIG_LIBDIR $PKG_CONFIG"	
+# When compiling with depends, the `PKG_CONFIG_PATH` and `PKG_CONFIG_LIBDIR` variables,
+# being set in a `config.site` file, are not exported to let the `--config-cache` option
+# work properly.
+if test -n "$PKG_CONFIG_PATH"; then
+  PKG_CONFIG="env PKG_CONFIG_PATH=$PKG_CONFIG_PATH $PKG_CONFIG"
+fi
+if test -n "$PKG_CONFIG_LIBDIR"; then
+  PKG_CONFIG="env PKG_CONFIG_LIBDIR=$PKG_CONFIG_LIBDIR $PKG_CONFIG"
 fi
 
 VERGE_DAEMON_NAME=verged
@@ -79,23 +79,23 @@ case $host in
   ;;
 esac
 
-AC_ARG_WITH([seccomp],	
-  [AS_HELP_STRING([--with-seccomp],	
-  [enable experimental syscall sandbox feature (-sandbox), default is yes if seccomp-bpf is detected under Linux x86_64])],	
-  [seccomp_found=$withval],	
-  [seccomp_found=auto])	
-AC_ARG_ENABLE([c++20],	
-  [AS_HELP_STRING([--enable-c++20],	
-  [enable compilation in c++20 mode (disabled by default)])],	
-  [use_cxx20=$enableval],	
-  [use_cxx20=no])	
-dnl Require C++17 compiler (no GNU extensions)	
-if test "$use_cxx20" = "no"; then	
-AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])	
-else	
-AX_CXX_COMPILE_STDCXX([20], [noext], [mandatory])	
-fi	
-dnl check if additional link flags are required for std::filesystem	
+AC_ARG_WITH([seccomp],
+  [AS_HELP_STRING([--with-seccomp],
+  [enable experimental syscall sandbox feature (-sandbox), default is yes if seccomp-bpf is detected under Linux x86_64])],
+  [seccomp_found=$withval],
+  [seccomp_found=auto])
+AC_ARG_ENABLE([c++20],
+  [AS_HELP_STRING([--enable-c++20],
+  [enable compilation in c++20 mode (disabled by default)])],
+  [use_cxx20=$enableval],
+  [use_cxx20=no])
+dnl Require C++17 compiler (no GNU extensions)
+if test "$use_cxx20" = "no"; then
+AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])
+else
+AX_CXX_COMPILE_STDCXX([20], [noext], [mandatory])
+fi
+dnl check if additional link flags are required for std::filesystem
 CHECK_FILESYSTEM
 
 dnl Unless the user specified OBJCXX, force it to be the same as CXX. This ensures
@@ -196,15 +196,15 @@ AC_ARG_ENABLE([ccache],
   [do not use ccache for building (default is to use if found)])],
   [use_ccache=$enableval],
   [use_ccache=auto])
-  
-dnl Suppress warnings from external headers (e.g. Boost, Qt).	
-dnl May be useful if warnings from external headers clutter the build output	
-dnl too much, so that it becomes difficult to spot Verge Core warnings	
-dnl or if they cause a build failure with --enable-werror.	
-AC_ARG_ENABLE([suppress-external-warnings],	
-  [AS_HELP_STRING([--enable-suppress-external-warnings],	
-                  [Suppress warnings from external headers (default is no)])],	
-  [suppress_external_warnings=$enableval],	
+
+dnl Suppress warnings from external headers (e.g. Boost, Qt).
+dnl May be useful if warnings from external headers clutter the build output
+dnl too much, so that it becomes difficult to spot Verge Core warnings
+dnl or if they cause a build failure with --enable-werror.
+AC_ARG_ENABLE([suppress-external-warnings],
+  [AS_HELP_STRING([--enable-suppress-external-warnings],
+                  [Suppress warnings from external headers (default is no)])],
+  [suppress_external_warnings=$enableval],
   [suppress_external_warnings=no])
 
 AC_ARG_ENABLE([lcov],
