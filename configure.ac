@@ -60,7 +60,7 @@ dnl --disable-maintainer-mode can be used to bypass this.
 AM_MAINTAINER_MODE([enable])
 
 dnl make the compilation flags quiet unless V=1 is used
-AM_SILENT_RULES([yes])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Compiler checks (here before libtool).
 	if test "${CXXFLAGS+set}" = "set"; then
@@ -107,7 +107,7 @@ AC_PROG_OBJCXX
 ])
 
 dnl Libtool init checks.
-LT_INIT([pic-only win32-dll])
+LT_INIT([pic-only])
 
 dnl Check/return PATH for base programs.
 AC_PATH_TOOL(AR, ar)
@@ -226,7 +226,7 @@ AC_ARG_ENABLE([asm],
   [use_asm=$enableval],
   [use_asm=yes])
 
-if test "$use_asm" = yes; then
+if test "x$use_asm" = xyes; then
   AC_DEFINE(USE_ASM, 1, [Define this symbol to build in assembly routines])
 fi
 
@@ -280,9 +280,9 @@ AC_ARG_ENABLE([werror],
 AC_LANG_PUSH([C++])
 AX_CHECK_COMPILE_FLAG([-Werror],[CXXFLAG_WERROR="-Werror"],[CXXFLAG_WERROR=""])
 
-if test "$enable_debug" = yes; then
+if test "x$enable_debug" = xyes; then
   # Clear default -g -O2 flags
-  if test "$CXXFLAGS_overridden" = no; then
+  if test "x$CXXFLAGS_overridden" = xno; then
 	CXXFLAGS=""
   fi
   # Prefer -Og, fall back to -O0 if that is unavailable.
@@ -303,7 +303,7 @@ if test "$enable_debug" = yes; then
   AX_CHECK_PREPROC_FLAG([-DDEBUG_LOCKORDER],[[DEBUG_CPPFLAGS="$DEBUG_CPPFLAGS -DDEBUG_LOCKORDER"]],,[[$CXXFLAG_WERROR]])
 fi
 
-if test $use_sanitizers != ; then
+if test x$use_sanitizers != x; then
   # First check if the compiler accepts flags. If an incompatible pair like
   # -fsanitize=address,thread is used here, this check will fail. This will also
   # fail if a bad argument is passed, e.g. -fsanitize=undfeined
@@ -324,15 +324,15 @@ if test $use_sanitizers != ; then
 fi
 
 ERROR_CXXFLAGS=
-if test "$enable_werror" = "yes"; then
-  if test "$CXXFLAG_WERROR" = ""; then
+if test "x$enable_werror" = "xyes"; then
+  if test "x$CXXFLAG_WERROR" = "x"; then
     AC_MSG_ERROR("enable-werror set but -Werror is not usable")
   fi
   AX_CHECK_COMPILE_FLAG([-Werror=vla],[ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror=vla"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Werror=thread-safety-analysis],[ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror=thread-safety-analysis"],,[[$CXXFLAG_WERROR]])
 fi
 
-if test "$CXXFLAGS_overridden" = "no"; then
+if test "x$CXXFLAGS_overridden" = "xno"; then
   AX_CHECK_COMPILE_FLAG([-Wall],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wall"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wextra],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wextra"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wformat],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wformat"],,[[$CXXFLAG_WERROR]])
@@ -360,24 +360,24 @@ AX_CHECK_COMPILE_FLAG([-msse4.1],[[SSE41_CXXFLAGS="-msse4.1"]],,[[$CXXFLAG_WERRO
 AX_CHECK_COMPILE_FLAG([-mavx -mavx2],[[AVX2_CXXFLAGS="-mavx -mavx2"]],,[[$CXXFLAG_WERROR]])
 
 TEMP_CXXFLAGS="$CXXFLAGS"
-CXXFLAGS="$SSE42_CXXFLAGS $CXXFLAGS"	
-AC_MSG_CHECKING([for SSE4.2 intrinsics])	
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[	
-    #include <stdint.h>	
-    #if defined(_MSC_VER)	
-    #include <intrin.h>	
-    #elif defined(__GNUC__) && defined(__SSE4_2__)	
-    #include <nmmintrin.h>	
-    #endif	
-  ]],[[	
-    uint64_t l = 0;	
-    l = _mm_crc32_u8(l, 0);	
-    l = _mm_crc32_u32(l, 0);	
-    l = _mm_crc32_u64(l, 0);	
-    return l;	
-  ]])],	
- [ AC_MSG_RESULT([yes]); enable_sse42=yes],	
- [ AC_MSG_RESULT([no])]	
+CXXFLAGS="$CXXFLAGS $SSE42_CXXFLAGS"
+AC_MSG_CHECKING(for assembler crc32 support)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdint.h>
+    #if defined(_MSC_VER)
+    #include <intrin.h>
+    #elif defined(__GNUC__) && defined(__SSE4_2__)
+    #include <nmmintrin.h>
+    #endif
+  ]],[[
+    uint64_t l = 0;
+    l = _mm_crc32_u8(l, 0);
+    l = _mm_crc32_u32(l, 0);
+    l = _mm_crc32_u64(l, 0);
+    return l;
+  ]])],
+ [ AC_MSG_RESULT(yes); enable_hwcrc32=yes],
+ [ AC_MSG_RESULT(no)]
 )
 CXXFLAGS="$TEMP_CXXFLAGS"
 
@@ -468,17 +468,17 @@ case $host in
      AX_CHECK_LINK_FLAG([[-static]],[LIBTOOL_APP_LDFLAGS="$LIBTOOL_APP_LDFLAGS -all-static"])
 
      AC_PATH_PROG([MAKENSIS], [makensis], none)
-     if test $MAKENSIS = none; then
+     if test x$MAKENSIS = xnone; then
        AC_MSG_WARN("makensis not found. Cannot create installer.")
      fi
 
      AC_PATH_TOOL(WINDRES, windres, none)
-     if test $WINDRES = none; then
+     if test x$WINDRES = xnone; then
        AC_MSG_ERROR("windres not found")
      fi
 
      CPPFLAGS="$CPPFLAGS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB"
-     if test "$CXXFLAGS_overridden" = "no"; then
+     if test "x$CXXFLAGS_overridden" = "xno"; then
        CXXFLAGS="$CXXFLAGS -w"
      fi
      case $host in
@@ -499,10 +499,10 @@ case $host in
      ;;
   *darwin*)
      TARGET_OS=darwin
-     if  test $cross_compiling != yes; then
+     if  test x$cross_compiling != xyes; then
        BUILD_OS=darwin
        AC_CHECK_PROG([PORT],port, port)
-       if test $PORT = xport; then
+       if test x$PORT = xport; then
          dnl add default macports paths
          CPPFLAGS="$CPPFLAGS -isystem /opt/local/include"
          LIBS="$LIBS -L/opt/local/lib"
@@ -514,7 +514,7 @@ case $host in
 
        AC_PATH_PROGS([RSVG_CONVERT], [rsvg-convert rsvg],rsvg-convert)
        AC_CHECK_PROG([BREW],brew, brew)
-       if test $BREW = xbrew; then
+       if test x$BREW = xbrew; then
          dnl These Homebrew packages may be keg-only, meaning that they won't be found
          dnl in expected paths because they may conflict with system files. Ask
          dnl Homebrew where each one is located, then adjust paths accordingly.
@@ -524,17 +524,17 @@ case $host in
          openssl_prefix=`$BREW --prefix openssl 2>/dev/null`
          bdb_prefix=`$BREW --prefix berkeley-db4 2>/dev/null`
          qt5_prefix=`$BREW --prefix qt5 2>/dev/null`
-         if test $openssl_prefix != x; then
+         if test x$openssl_prefix != x; then
            PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
            CFLAGS="$CFLAGS -I$openssl_prefix/include"
            CPPFLAGS="$CPPFLAGS -I$openssl_prefix/include"
            export PKG_CONFIG_PATH
          fi
-         if test $bdb_prefix != x; then
+         if test x$bdb_prefix != x; then
            CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
            LIBS="$LIBS -L$bdb_prefix/lib"
          fi
-         if test $qt5_prefix != x; then
+         if test x$qt5_prefix != x; then
            PKG_CONFIG_PATH="$qt5_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
            export PKG_CONFIG_PATH
          fi
@@ -570,31 +570,31 @@ case $host in
      ;;
 esac
 
-if test $use_pkgconfig = yes; then
+if test x$use_pkgconfig = xyes; then
   m4_ifndef([PKG_PROG_PKG_CONFIG], [AC_MSG_ERROR(PKG_PROG_PKG_CONFIG macro not found. Please install pkg-config and re-run autogen.sh.)])
   m4_ifdef([PKG_PROG_PKG_CONFIG], [
   PKG_PROG_PKG_CONFIG
-  if test "$PKG_CONFIG" = ""; then
+  if test x"$PKG_CONFIG" = "x"; then
     AC_MSG_ERROR(pkg-config not found.)
   fi
   ])
 fi
 
-if test $use_extended_functional_tests != no; then
+if test x$use_extended_functional_tests != xno; then
   AC_SUBST(EXTENDED_FUNCTIONAL_TESTS, --extended)
 fi
 
-if test $use_lcov = yes; then
-  if test $LCOV = x; then
+if test x$use_lcov = xyes; then
+  if test x$LCOV = x; then
     AC_MSG_ERROR("lcov testing requested but lcov not found")
   fi
-  if test $GCOV = x; then
+  if test x$GCOV = x; then
     AC_MSG_ERROR("lcov testing requested but gcov not found")
   fi
-  if test $PYTHON = x; then
+  if test x$PYTHON = x; then
     AC_MSG_ERROR("lcov testing requested but python not found")
   fi
-  if test $GENHTML = x; then
+  if test x$GENHTML = x; then
     AC_MSG_ERROR("lcov testing requested but genhtml not found")
   fi
   LCOV="$LCOV --gcov-tool=$GCOV"
@@ -606,7 +606,7 @@ if test $use_lcov = yes; then
   CXXFLAGS="$CXXFLAGS -Og"
 fi
 
-if test $use_lcov_branch != no; then
+if test x$use_lcov_branch != xno; then
   AC_SUBST(LCOV_OPTS, "$LCOV_OPTS --rc lcov_branch_coverage=1")
 fi
 
@@ -623,15 +623,15 @@ AC_SYS_LARGEFILE
 # detect POSIX or GNU variant of strerror_r
 AC_FUNC_STRERROR_R
 
-if test $ac_cv_sys_file_offset_bits != x &&
-   test $ac_cv_sys_file_offset_bits != no &&
-   test $ac_cv_sys_file_offset_bits != unknown; then
+if test x$ac_cv_sys_file_offset_bits != x &&
+   test x$ac_cv_sys_file_offset_bits != xno &&
+   test x$ac_cv_sys_file_offset_bits != xunknown; then
   CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=$ac_cv_sys_file_offset_bits"
 fi
 
-if test $ac_cv_sys_large_files !=  &&
-   test $ac_cv_sys_large_files != no &&
-   test $ac_cv_sys_large_files != unknown; then
+if test x$ac_cv_sys_large_files != x &&
+   test x$ac_cv_sys_large_files != xno &&
+   test x$ac_cv_sys_large_files != xunknown; then
   CPPFLAGS="$CPPFLAGS -D_LARGE_FILES=$ac_cv_sys_large_files"
 fi
 
@@ -641,7 +641,7 @@ AX_GCC_FUNC_ATTRIBUTE([visibility])
 AX_GCC_FUNC_ATTRIBUTE([dllexport])
 AX_GCC_FUNC_ATTRIBUTE([dllimport])
 
-if test $use_glibc_compat != no; then
+if test x$use_glibc_compat != xno; then
 
   #glibc absorbed clock_gettime in 2.17. librt (its previous location) is safe to link
   #in anyway for back-compat.
@@ -664,12 +664,12 @@ else
   AC_SEARCH_LIBS([clock_gettime],[rt])
 fi
 
-if test "$enable_gprof" = yes; then
+if test "x$enable_gprof" = xyes; then
     dnl -pg is incompatible with -pie. Since hardening and profiling together doesn't make sense,
     dnl we simply make them mutually exclusive here. Additionally, hardened toolchains may force
     dnl -pie by default, in which case it needs to be turned off with -no-pie.
 
-    if test $use_hardening = yes; then
+    if test x$use_hardening = xyes; then
         AC_MSG_ERROR(gprof profiling is not compatible with hardening. Reconfigure with --disable-hardening or --disable-gprof)
     fi
     use_hardening=no
@@ -681,12 +681,12 @@ if test "$enable_gprof" = yes; then
         [AC_MSG_ERROR(gprof profiling requested but not available)], [[$GPROF_LDFLAGS]])
 fi
 
-if test $TARGET_OS != windows; then
+if test x$TARGET_OS != xwindows; then
   # All windows code is PIC, forcing it on just adds useless compile warnings
   AX_CHECK_COMPILE_FLAG([-fPIC],[PIC_FLAGS="-fPIC"])
 fi
 
-if test $use_hardening != no; then
+if test x$use_hardening != xno; then
   use_hardening=yes
   AX_CHECK_COMPILE_FLAG([-Wstack-protector],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -Wstack-protector"])
   AX_CHECK_COMPILE_FLAG([-fstack-protector-all],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -fstack-protector-all"])
@@ -713,7 +713,7 @@ if test $use_hardening != no; then
 fi
 
 dnl this flag screws up non-darwin gcc even when the check fails. special-case it.
-if test $TARGET_OS = xdarwin; then
+if test x$TARGET_OS = xdarwin; then
   AX_CHECK_LINK_FLAG([[-Wl,-dead_strip]], [LDFLAGS="$LDFLAGS -Wl,-dead_strip"])
 fi
 
@@ -765,7 +765,7 @@ AC_LINK_IFELSE([AC_LANG_SOURCE([
   ],
   [
     AC_MSG_RESULT(no)
-    if test $use_reduce_exports = yes; then
+    if test x$use_reduce_exports = xyes; then
       AC_MSG_ERROR([Cannot find a working visibility attribute. Use --disable-reduce-exports.])
     fi
   ]
@@ -867,7 +867,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <fcntl.h>]],
 )
 
 # Check for reduced exports
-if test $use_reduce_exports = yes; then
+if test x$use_reduce_exports = xyes; then
   AX_CHECK_COMPILE_FLAG([-fvisibility=hidden],[RE_CXXFLAGS="-fvisibility=hidden"],
   [AC_MSG_ERROR([Cannot set default symbol visibility. Use --disable-reduce-exports.])])
 fi
@@ -880,13 +880,13 @@ AC_SUBST(LEVELDB_CPPFLAGS)
 AC_SUBST(LIBLEVELDB)
 AC_SUBST(LIBMEMENV)
 
-if test $enable_wallet != no; then
+if test x$enable_wallet != xno; then
     dnl Check for libdb_cxx only if wallet enabled
     VERGE_FIND_BDB48
 fi
 
 dnl Check for libminiupnpc (optional)
-if test $use_upnp != no; then
+if test x$use_upnp != xno; then
   AC_CHECK_HEADERS(
     [miniupnpc/miniwget.h miniupnpc/miniupnpc.h miniupnpc/upnpcommands.h miniupnpc/upnperrors.h],
     [AC_CHECK_LIB([miniupnpc], [upnpDiscover], [MINIUPNPC_LIBS=-lminiupnpc], [have_miniupnpc=no])],
@@ -899,20 +899,20 @@ VERGE_QT_INIT
 dnl sets $verge_enable_qt, $verge_enable_qt_test, $verge_enable_qt_dbus
 VERGE_QT_CONFIGURE
 
-if test $build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests$use_bench = nonononono; then
+if test x$build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests$use_bench = xnonononono; then
     use_boost=no
 else
     use_boost=yes
 fi
 
-if test $use_boost = yes; then
+if test x$use_boost = xyes; then
 
 dnl Minimum required Boost version
 define(MINIMUM_REQUIRED_BOOST, 1.47.0)
 
 dnl Check for boost libs
 AX_BOOST_BASE([MINIMUM_REQUIRED_BOOST])
-if test $want_boost = no; then
+if test x$want_boost = xno; then
     AC_MSG_ERROR([[only libvergeconsensus can be built without boost]])
 fi
 AX_BOOST_SYSTEM
@@ -926,7 +926,7 @@ dnl counter implementations. In 1.63 and later the std::atomic approach is defau
 m4_pattern_allow(DBOOST_AC_USE_STD_ATOMIC) dnl otherwise it's treated like a macro
 BOOST_CPPFLAGS="-DBOOST_SP_USE_STD_ATOMIC -DBOOST_AC_USE_STD_ATOMIC $BOOST_CPPFLAGS"
 
-if test $use_reduce_exports = yes; then
+if test x$use_reduce_exports = xyes; then
   AC_MSG_CHECKING([for working boost reduced exports])
   TEMP_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$BOOST_CPPFLAGS $CPPFLAGS"
@@ -947,19 +947,19 @@ if test $use_reduce_exports = yes; then
 fi
 fi
 
-if test $use_reduce_exports = yes; then
+if test x$use_reduce_exports = xyes; then
     CXXFLAGS="$CXXFLAGS $RE_CXXFLAGS"
     AX_CHECK_LINK_FLAG([[-Wl,--exclude-libs,ALL]], [RELDFLAGS="-Wl,--exclude-libs,ALL"])
 fi
 
-if test $use_tests = yes; then
+if test x$use_tests = xyes; then
 
-  if test $HEXDUMP = x; then
+  if test x$HEXDUMP = x; then
     AC_MSG_ERROR(hexdump is required for tests)
   fi
 
 
-  if test $use_boost = yes; then
+  if test x$use_boost = xyes; then
 
   AX_BOOST_UNIT_TEST_FRAMEWORK
 
@@ -984,7 +984,7 @@ if test $use_tests = yes; then
   fi
 fi
 
-if test $use_boost = yes; then
+if test x$use_boost = xyes; then
 
 BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB $BOOST_CHRONO_LIB"
 
@@ -1049,7 +1049,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 LIBS="$TEMP_LIBS"
 CPPFLAGS="$TEMP_CPPFLAGS"
 
-if test $boost_sleep != yes; then
+if test x$boost_sleep != xyes; then
 TEMP_LIBS="$LIBS"
 LIBS="$BOOST_LIBS $LIBS"
 TEMP_CPPFLAGS="$CPPFLAGS"
@@ -1071,37 +1071,37 @@ LIBS="$TEMP_LIBS"
 CPPFLAGS="$TEMP_CPPFLAGS"
 fi
 
-if test $boost_sleep != yes; then
+if test x$boost_sleep != xyes; then
   AC_MSG_ERROR(No working boost sleep implementation found.)
 fi
 
 fi
 
-if test $use_pkgconfig = yes; then
+if test x$use_pkgconfig = xyes; then
   : dnl
   m4_ifdef(
     [PKG_CHECK_MODULES],
     [
       PKG_CHECK_MODULES(LIBEVENT, [libevent], [], [AC_MSG_ERROR([libevent not found])])
       PKG_CHECK_MODULES(ZLIB, [zlib], [], [AC_MSG_ERROR([zlib not found])])
-      if test $TARGET_OS = xlinux; then
+      if test x$TARGET_OS = xlinux; then
         PKG_CHECK_MODULES(LIBSECCOMP, [libseccomp], [], [AC_MSG_ERROR([libseccomp not found])])
         PKG_CHECK_MODULES(LIBCAP, [libcap], [], [AC_MSG_ERROR([libcap not found])])
       fi
       PKG_CHECK_MODULES([SSL], [libssl],, [AC_MSG_ERROR(openssl not found.)])
       PKG_CHECK_MODULES([CRYPTO], [libcrypto],,[AC_MSG_ERROR(libcrypto not found.)])
       VERGE_QT_CHECK([PKG_CHECK_MODULES([PROTOBUF], [protobuf], [have_protobuf=yes], [VERGE_QT_FAIL(libprotobuf not found)])])
-      if test $use_qr != no; then
+      if test x$use_qr != xno; then
         VERGE_QT_CHECK([PKG_CHECK_MODULES([QR], [libqrencode], [have_qrencode=yes], [have_qrencode=no])])
       fi
-      if test $build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests != nononono; then
+      if test x$build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests != xnononono; then
         PKG_CHECK_MODULES([EVENT], [libevent],, [AC_MSG_ERROR(libevent not found.)])
-        if test $TARGET_OS != xwindows; then
+        if test x$TARGET_OS != xwindows; then
           PKG_CHECK_MODULES([EVENT_PTHREADS], [libevent_pthreads],, [AC_MSG_ERROR(libevent_pthreads not found.)])
         fi
       fi
 
-      if test "$use_zmq" = "yes"; then
+      if test "x$use_zmq" = "xyes"; then
         PKG_CHECK_MODULES([ZMQ],[libzmq >= 4],
           [AC_DEFINE([ENABLE_ZMQ],[1],[Define to 1 to enable ZMQ functions])],
           [AC_DEFINE([ENABLE_ZMQ],[0],[Define to 1 to enable ZMQ functions])
@@ -1119,15 +1119,15 @@ else
   AC_CHECK_HEADER([openssl/ssl.h],, AC_MSG_ERROR(libssl headers missing),)
   AC_CHECK_LIB([ssl],         [main],SSL_LIBS=-lssl, AC_MSG_ERROR(libssl missing))
 
-  if test $build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests != nononono; then
+  if test x$build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests != xnononono; then
     AC_CHECK_HEADER([event2/event.h],, AC_MSG_ERROR(libevent headers missing),)
     AC_CHECK_LIB([event],[main],EVENT_LIBS=-levent,AC_MSG_ERROR(libevent missing))
-    if test $TARGET_OS != xwindows; then
+    if test x$TARGET_OS != xwindows; then
       AC_CHECK_LIB([event_pthreads],[main],EVENT_PTHREADS_LIBS=-levent_pthreads,AC_MSG_ERROR(libevent_pthreads missing))
     fi
   fi
 
-  if test "$use_zmq" = "yes"; then
+  if test "x$use_zmq" = "xyes"; then
      AC_CHECK_HEADER([zmq.h],
        [AC_DEFINE([ENABLE_ZMQ],[1],[Define to 1 to enable ZMQ functions])],
        [AC_MSG_WARN([zmq.h not found, disabling zmq support])
@@ -1141,7 +1141,7 @@ else
     AC_DEFINE_UNQUOTED([ENABLE_ZMQ],[0],[Define to 1 to enable ZMQ functions])
   fi
 
-  if test "$use_zmq" = "yes"; then
+  if test "x$use_zmq" = "xyes"; then
     dnl Assume libzmq was built for static linking
     case $host in
       *mingw*)
@@ -1151,7 +1151,7 @@ else
   fi
 
   VERGE_QT_CHECK(AC_CHECK_LIB([protobuf] ,[main],[PROTOBUF_LIBS=-lprotobuf], VERGE_QT_FAIL(libprotobuf not found)))
-  if test $use_qr != no; then
+  if test x$use_qr != xno; then
     VERGE_QT_CHECK([AC_CHECK_LIB([qrencode], [main],[QR_LIBS=-lqrencode], [have_qrencode=no])])
     VERGE_QT_CHECK([AC_CHECK_HEADER([qrencode.h],, have_qrencode=no)])
   fi
@@ -1168,13 +1168,13 @@ dnl univalue check
 
 need_bundled_univalue=yes
 
-if test $build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests$use_bench = nonononono; then
+if test x$build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests$use_bench = xnonononono; then
   need_bundled_univalue=no
 else
 
-if test $system_univalue != no ; then
+if test x$system_univalue != xno ; then
   found_univalue=no
-  if test $use_pkgconfig = yes; then
+  if test x$use_pkgconfig = xyes; then
     : #NOP
     m4_ifdef(
       [PKG_CHECK_MODULES],
@@ -1191,40 +1191,40 @@ if test $system_univalue != no ; then
     ],[true])
   fi
 
-  if test $found_univalue = yes ; then
+  if test x$found_univalue = xyes ; then
     system_univalue=yes
     need_bundled_univalue=no
-  elif test $system_univalue = yes ; then
+  elif test x$system_univalue = xyes ; then
     AC_MSG_ERROR([univalue not found])
   else
     system_univalue=no
   fi
 fi
 
-if test $need_bundled_univalue = yes ; then
+if test x$need_bundled_univalue = xyes ; then
   UNIVALUE_CFLAGS='-I$(srcdir)/univalue/include'
   UNIVALUE_LIBS='univalue/libunivalue.la'
 fi
 
 fi
 
-AM_CONDITIONAL([EMBEDDED_UNIVALUE],[test $need_bundled_univalue = yes])
+AM_CONDITIONAL([EMBEDDED_UNIVALUE],[test x$need_bundled_univalue = xyes])
 AC_SUBST(UNIVALUE_CFLAGS)
 AC_SUBST(UNIVALUE_LIBS)
 
 VERGE_QT_PATH_PROGS([PROTOC], [protoc],$protoc_bin_path)
 
 AC_MSG_CHECKING([whether to build verged])
-AM_CONDITIONAL([BUILD_VERGEd], [test $BUILD_VERGEd = yes])
+AM_CONDITIONAL([BUILD_VERGEd], [test x$BUILD_VERGEd = xyes])
 AC_MSG_RESULT($BUILD_VERGEd)
 
 AC_MSG_CHECKING([whether to build utils (verge-cli verge-tx)])
-AM_CONDITIONAL([BUILD_VERGE_UTILS], [test $build_verge_utils = yes])
+AM_CONDITIONAL([BUILD_VERGE_UTILS], [test x$build_verge_utils = xyes])
 AC_MSG_RESULT($build_verge_utils)
 
 AC_MSG_CHECKING([whether to build libraries])
-AM_CONDITIONAL([BUILD_VERGE_LIBS], [test $build_verge_libs = yes])
-if test $build_verge_libs = yes; then
+AM_CONDITIONAL([BUILD_VERGE_LIBS], [test x$build_verge_libs = xyes])
+if test x$build_verge_libs = xyes; then
   AC_DEFINE(HAVE_CONSENSUS_LIB, 1, [Define this symbol if the consensus lib has been built])
   AC_CONFIG_FILES([libvergeconsensus.pc:libvergeconsensus.pc.in])
 fi
@@ -1232,10 +1232,10 @@ AC_MSG_RESULT($build_verge_libs)
 
 AC_LANG_POP
 
-if test "$use_ccache" != "no"; then
+if test "x$use_ccache" != "xno"; then
   AC_MSG_CHECKING(if ccache should be used)
-  if test $CCACHE = x; then
-    if test "$use_ccache" = "yes"; then
+  if test x$CCACHE = x; then
+    if test "x$use_ccache" = "xyes"; then
       AC_MSG_ERROR([ccache not found.]);
     else
       use_ccache=no
@@ -1247,13 +1247,13 @@ if test "$use_ccache" != "no"; then
   fi
   AC_MSG_RESULT($use_ccache)
 fi
-if test "$use_ccache" = "yes"; then
+if test "x$use_ccache" = "xyes"; then
     AX_CHECK_PREPROC_FLAG([-Qunused-arguments],[CPPFLAGS="-Qunused-arguments $CPPFLAGS"])
 fi
 
 dnl enable wallet
 AC_MSG_CHECKING([if wallet should be enabled])
-if test $enable_wallet != no; then
+if test x$enable_wallet != xno; then
   AC_MSG_RESULT(yes)
   AC_DEFINE_UNQUOTED([ENABLE_WALLET],[1],[Define to 1 to enable wallet functions])
 
@@ -1263,24 +1263,24 @@ fi
 
 dnl enable upnp support
 AC_MSG_CHECKING([whether to build with support for UPnP])
-if test $have_miniupnpc = no; then
-  if test $use_upnp = yes; then
+if test x$have_miniupnpc = xno; then
+  if test x$use_upnp = xyes; then
      AC_MSG_ERROR("UPnP requested but cannot be built. use --without-miniupnpc")
   fi
   AC_MSG_RESULT(no)
 else
-  if test $use_upnp != no; then
+  if test x$use_upnp != xno; then
     AC_MSG_RESULT(yes)
     AC_MSG_CHECKING([whether to build with UPnP enabled by default])
     use_upnp=yes
     upnp_setting=0
-    if test $use_upnp_default != no; then
+    if test x$use_upnp_default != xno; then
       use_upnp_default=yes
       upnp_setting=1
     fi
     AC_MSG_RESULT($use_upnp_default)
     AC_DEFINE_UNQUOTED([USE_UPNP],[$upnp_setting],[UPnP support not compiled if undefined, otherwise value (0 or 1) determines default state])
-    if test $TARGET_OS = windows; then
+    if test x$TARGET_OS = xwindows; then
       MINIUPNPC_CPPFLAGS="-DSTATICLIB -DMINIUPNP_STATICLIB"
     fi
   else
@@ -1290,23 +1290,23 @@ fi
 
 dnl these are only used when qt is enabled
 BUILD_TEST_QT=""
-if test $verge_enable_qt != no; then
+if test x$verge_enable_qt != xno; then
   dnl enable dbus support
   AC_MSG_CHECKING([whether to build GUI with support for D-Bus])
-  if test $verge_enable_qt_dbus != no; then
+  if test x$verge_enable_qt_dbus != xno; then
     AC_DEFINE([USE_DBUS],[1],[Define if dbus support should be compiled in])
   fi
   AC_MSG_RESULT($verge_enable_qt_dbus)
 
   dnl enable qr support
   AC_MSG_CHECKING([whether to build GUI with support for QR codes])
-  if test $have_qrencode = no; then
-    if test $use_qr = yes; then
+  if test x$have_qrencode = xno; then
+    if test x$use_qr = xyes; then
      AC_MSG_ERROR("QR support requested but cannot be built. use --without-qrencode")
     fi
     AC_MSG_RESULT(no)
   else
-    if test $use_qr != no; then
+    if test x$use_qr != xno; then
       AC_MSG_RESULT(yes)
       AC_DEFINE([USE_QRCODE],[1],[Define if QR support should be compiled in])
       use_qr=yes
@@ -1315,12 +1315,12 @@ if test $verge_enable_qt != no; then
     fi
   fi
 
-  if test $XGETTEXT = x; then
+  if test x$XGETTEXT = x; then
     AC_MSG_WARN("xgettext is required to update qt translations")
   fi
 
   AC_MSG_CHECKING([whether to build test_verge-qt])
-  if test $use_gui_tests$verge_enable_qt_test = yesyes; then
+  if test x$use_gui_tests$verge_enable_qt_test = xyesyes; then
     AC_MSG_RESULT([yes])
     BUILD_TEST_QT="yes"
   else
@@ -1328,10 +1328,10 @@ if test $verge_enable_qt != no; then
   fi
 fi
 
-AM_CONDITIONAL([ENABLE_ZMQ], [test "$use_zmq" = "yes"])
+AM_CONDITIONAL([ENABLE_ZMQ], [test "x$use_zmq" = "xyes"])
 
 AC_MSG_CHECKING([whether to build test_verge])
-if test $use_tests = yes; then
+if test x$use_tests = xyes; then
   AC_MSG_RESULT([yes])
   BUILD_TEST="yes"
 else
@@ -1340,34 +1340,34 @@ else
 fi
 
 AC_MSG_CHECKING([whether to reduce exports])
-if test $use_reduce_exports = yes; then
+if test x$use_reduce_exports = xyes; then
   AC_MSG_RESULT([yes])
 else
   AC_MSG_RESULT([no])
 fi
 
-if test $build_verge_utils$build_verge_libs$BUILD_VERGEd$verge_enable_qt$use_bench$use_tests = nononononono; then
+if test x$build_verge_utils$build_verge_libs$BUILD_VERGEd$verge_enable_qt$use_bench$use_tests = xnononononono; then
   AC_MSG_ERROR([No targets! Please specify at least one of: --with-utils --with-libs --with-daemon --with-gui --enable-bench or --enable-tests])
 fi
 
-AM_CONDITIONAL([TARGET_DARWIN], [test $TARGET_OS = darwin])
-AM_CONDITIONAL([BUILD_DARWIN], [test $BUILD_OS = darwin])
-AM_CONDITIONAL([TARGET_WINDOWS], [test $TARGET_OS = windows])
-AM_CONDITIONAL([ENABLE_WALLET],[test $enable_wallet = yes])
-AM_CONDITIONAL([ENABLE_TESTS],[test $BUILD_TEST = yes])
-AM_CONDITIONAL([ENABLE_QT],[test $verge_enable_qt = yes])
-AM_CONDITIONAL([ENABLE_QT_TESTS],[test $BUILD_TEST_QT = yes])
-AM_CONDITIONAL([ENABLE_BENCH],[test $use_bench = yes])
-AM_CONDITIONAL([USE_QRCODE], [test $use_qr = yes])
-AM_CONDITIONAL([USE_LCOV],[test $use_lcov = yes])
-AM_CONDITIONAL([GLIBC_BACK_COMPAT],[test $use_glibc_compat = yes])
-AM_CONDITIONAL([WINDOWS],[test $use_windows = yes])
-AM_CONDITIONAL([HARDEN],[test $use_hardening = yes])
-AM_CONDITIONAL([ENABLE_HWCRC32],[test $enable_hwcrc32 = yes])
-AM_CONDITIONAL([ENABLE_SSE41],[test $enable_sse41 = yes])
-AM_CONDITIONAL([ENABLE_AVX2],[test $enable_avx2 = yes])
-AM_CONDITIONAL([USE_ASM],[test $use_asm = yes])
-AM_CONDITIONAL([WORDS_BIGENDIAN],[test $ac_cv_c_bigendian = yes])
+AM_CONDITIONAL([TARGET_DARWIN], [test x$TARGET_OS = xdarwin])
+AM_CONDITIONAL([BUILD_DARWIN], [test x$BUILD_OS = xdarwin])
+AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
+AM_CONDITIONAL([ENABLE_WALLET],[test x$enable_wallet = xyes])
+AM_CONDITIONAL([ENABLE_TESTS],[test x$BUILD_TEST = xyes])
+AM_CONDITIONAL([ENABLE_QT],[test x$verge_enable_qt = xyes])
+AM_CONDITIONAL([ENABLE_QT_TESTS],[test x$BUILD_TEST_QT = xyes])
+AM_CONDITIONAL([ENABLE_BENCH],[test x$use_bench = xyes])
+AM_CONDITIONAL([USE_QRCODE], [test x$use_qr = xyes])
+AM_CONDITIONAL([USE_LCOV],[test x$use_lcov = xyes])
+AM_CONDITIONAL([GLIBC_BACK_COMPAT],[test x$use_glibc_compat = xyes])
+AM_CONDITIONAL([WINDOWS],[test x$use_windows = xyes])
+AM_CONDITIONAL([HARDEN],[test x$use_hardening = xyes])
+AM_CONDITIONAL([ENABLE_HWCRC32],[test x$enable_hwcrc32 = xyes])
+AM_CONDITIONAL([ENABLE_SSE41],[test x$enable_sse41 = xyes])
+AM_CONDITIONAL([ENABLE_AVX2],[test x$enable_avx2 = xyes])
+AM_CONDITIONAL([USE_ASM],[test x$use_asm = xyes])
+AM_CONDITIONAL([WORDS_BIGENDIAN],[test x$ac_cv_c_bigendian = xyes])
 
 AC_DEFINE(CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MAJOR, [Major version])
 AC_DEFINE(CLIENT_VERSION_MINOR, _CLIENT_VERSION_MINOR, [Minor version])
@@ -1460,7 +1460,7 @@ PKGCONFIG_LIBDIR_TEMP="$PKG_CONFIG_LIBDIR"
 unset PKG_CONFIG_LIBDIR
 PKG_CONFIG_LIBDIR="$PKGCONFIG_LIBDIR_TEMP"
 
-if test $need_bundled_univalue = yes; then
+if test x$need_bundled_univalue = xyes; then
   AC_CONFIG_SUBDIRS([src/univalue])
 fi
 
@@ -1494,7 +1494,7 @@ echo
 echo "Options used to compile and link:"
 echo "  with wallet   = $enable_wallet"
 echo "  with gui / qt = $verge_enable_qt"
-if test $verge_enable_qt != no; then
+if test x$verge_enable_qt != xno; then
     echo "    qt version  = $verge_qt_got_major_vers"
     echo "    with qr     = $use_qr"
 fi
