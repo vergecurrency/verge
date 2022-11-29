@@ -303,7 +303,7 @@ if test "$enable_debug" = yes; then
   AX_CHECK_PREPROC_FLAG([-DDEBUG_LOCKORDER],[[DEBUG_CPPFLAGS="$DEBUG_CPPFLAGS -DDEBUG_LOCKORDER"]],,[[$CXXFLAG_WERROR]])
 fi
 
-if test x$use_sanitizers != x; then
+if test $use_sanitizers != ; then
   # First check if the compiler accepts flags. If an incompatible pair like
   # -fsanitize=address,thread is used here, this check will fail. This will also
   # fail if a bad argument is passed, e.g. -fsanitize=undfeined
@@ -325,7 +325,7 @@ fi
 
 ERROR_CXXFLAGS=
 if test "$enable_werror" = "yes"; then
-  if test "x$CXXFLAG_WERROR" = "x"; then
+  if test "$CXXFLAG_WERROR" = ""; then
     AC_MSG_ERROR("enable-werror set but -Werror is not usable")
   fi
   AX_CHECK_COMPILE_FLAG([-Werror=vla],[ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror=vla"],,[[$CXXFLAG_WERROR]])
@@ -574,7 +574,7 @@ if test $use_pkgconfig = yes; then
   m4_ifndef([PKG_PROG_PKG_CONFIG], [AC_MSG_ERROR(PKG_PROG_PKG_CONFIG macro not found. Please install pkg-config and re-run autogen.sh.)])
   m4_ifdef([PKG_PROG_PKG_CONFIG], [
   PKG_PROG_PKG_CONFIG
-  if test x"$PKG_CONFIG" = "x"; then
+  if test "$PKG_CONFIG" = ""; then
     AC_MSG_ERROR(pkg-config not found.)
   fi
   ])
