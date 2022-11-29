@@ -906,11 +906,6 @@ VERGE_QT_CONFIGURE([5.11.3])
 
 dnl Keep a copy of the original $QT_INCLUDES and use it when invoking qt's moc
   QT_INCLUDES_UNSUPPRESSED=$QT_INCLUDES
-  if test "$suppress_external_warnings" != "no" ; then
-    QT_INCLUDES=SUPPRESS_WARNINGS($QT_INCLUDES)
-    QT_DBUS_INCLUDES=SUPPRESS_WARNINGS($QT_DBUS_INCLUDES)
-    QT_TEST_INCLUDES=SUPPRESS_WARNINGS($QT_TEST_INCLUDES)
-  fi
 
 if test x$build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests$use_bench = xnonononono; then
     use_boost=no
