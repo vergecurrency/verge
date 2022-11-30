@@ -954,12 +954,9 @@ AC_SUBST(LEVELDB_CPPFLAGS)
 AC_SUBST(LIBLEVELDB)
 AC_SUBST(LIBMEMENV)
 
-if test x$enable_wallet != xno; then
+if test "$enable_wallet" != "no"; then
     dnl Check for libdb_cxx only if wallet enabled
     VERGE_FIND_BDB48
-	if test "$suppress_external_warnings" != "no" ; then
-        BDB_CPPFLAGS=SUPPRESS_WARNINGS($BDB_CPPFLAGS)
-      fi
 fi
 
 dnl Check for libminiupnpc (optional)
