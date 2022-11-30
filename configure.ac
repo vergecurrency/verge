@@ -980,12 +980,10 @@ dnl it would break GCC's #include_next.
 AC_DEFUN([SUPPRESS_WARNINGS],
          [[$(echo $1 |${SED} -E -e 's/(^| )-I/\1-isystem /g' -e 's;-isystem /usr/include/*( |$);-I/usr/include\1;g')]])
 
-AX_CHECK_PREPROC_FLAG([-DABORT_ON_FAILED_ASSUME], [DEBUG_CPPFLAGS="$DEBUG_CPPFLAGS -DABORT_ON_FAILED_ASSUME"], [], [$CXXFLAG_WERROR])
-else
 VERGE_QT_INIT
 
 dnl sets $verge_enable_qt, $verge_enable_qt_test, $verge_enable_qt_dbus
-VERGE_QT_CONFIGURE([5.11.3])
+VERGE_QT_CONFIGURE([5.9.8])
 
 dnl Keep a copy of the original $QT_INCLUDES and use it when invoking qt's moc
   QT_INCLUDES_UNSUPPRESSED=$QT_INCLUDES
