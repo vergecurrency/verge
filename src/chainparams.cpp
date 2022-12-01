@@ -143,11 +143,9 @@ public:
             vSeeds.emplace_back("kb2bgqdwmxwxekxkc6g2s7diramjhdbiqhyxoesbzvlqsbqo7ws5l2qd.onion"); //v7
             vSeeds.emplace_back("shtsxnyxjjplkfifdwoz22u7xef7os2fhaq3j7bkk5md37wj7ors4yqd.onion"); //v7
             vSeeds.emplace_back("afppaj6ugeskfyjo2z24sjo37572ln7ggfkcuk3a5lkhznpqsfgxw6qd.onion"); //v7
-            vSeeds.emplace_back("urtf7ovgjnxilnbxppmhvjebxcwk4ofo36mgz4kmwr7i4aqimdknf7ad.onion"); //v7
             vSeeds.emplace_back("4omta4xmldql2xqv5ji2rjplejqrd56yst6jlsork43ayb3rbhkpywyd.onion"); //v7
             vSeeds.emplace_back("7q6c6glv5hp5humq3wh5qzlt7jp3s3cacpznjzu2jehkmf7fivy2jmid.onion"); //v7
             vSeeds.emplace_back("ka2e2kaw5oxsyykw3ykdvba43eya6cotzm2huvvtrt7fw3dm62ztqfid.onion"); //v7
-            vSeeds.emplace_back("tvrceykeeaxtxcj77qm2ekgqvtc5kmxrlkrorlz542kiie5wzec5pqad.onion"); //v7
             vSeeds.emplace_back("xzpuglxfng6lypn2ggnqeiwpo5uyzbnrlwmutgoboeji6aru7oxqjeid.onion"); //v7
             vSeeds.emplace_back("4wqkmkldxngbemhlebywhsjzmlqwbveksqbadcjj7ga6ctbrrcs6q3id.onion"); //v7
             vSeeds.emplace_back("xcb4tbu5vywfbiehqj5p56wlpoq4nd4e62ujfhsydbvvrjn6mev2juad.onion"); //v7
