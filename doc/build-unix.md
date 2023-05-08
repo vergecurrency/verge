@@ -74,11 +74,13 @@ Build requirements:
 
 Now, you can either build from self-compiled [depends](/depends/README.md) or install the required dependencies:
 
-    sudo apt install libssl-dev libevent-dev libboost-all-dev 
+    ```sudo apt install libssl-dev libevent-dev libboost-all-dev```
+    
+    (this will install packages such as libboost-system-dev and libboost-filesystem-dev)
 
 These are necessary for building with Tor:  
 
-    sudo apt-get install asciidoc zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy
+    ```sudo apt-get install asciidoc zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy```
 
 To run without Tor after compile, you can pass --without-tor to the binary.
 
