@@ -82,17 +82,22 @@ These are necessary for building with Tor:
 
 To run without Tor after compile, you can pass --without-tor to the binary.
 
-BerkeleyDB is required for the wallet.
+BerkeleyDB is required for the wallet. Download, compile, and install it.
 
-**For Ubuntu only:** 
-You can add the repository and install using the following commands:
-
-_Note : This won't work on 19.04 releases and superior since the bitcoin ppa hasn't a release file for it_
-
-    sudo apt-get install software-properties-common
-    sudo add-apt-repository ppa:bitcoin/bitcoin
-    sudo apt-get update
-    sudo apt-get install libdb4.8-dev libdb4.8++-dev
+```
+wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
+tar -xzvf db-4.8.30.NC.tar.gz
+cd db-4.8.30.NC/build_unix/
+../dist/configure --enable-cxx
+make
+make install
+```
+Tell your environment where it is now.
+```
+export BDB_INCLUDE_PATH="/usr/local/BerkeleyDB.4.8/include"
+export BDB_LIB_PATH="/usr/local/BerkeleyDB.4.8/lib"
+ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
+```
 
 Ubuntu and Debian have their own libdb-dev and libdb++-dev packages, but these will install
 BerkeleyDB 5.1 or later. This will break binary wallet compatibility with the distributed executables, which
