@@ -8,9 +8,10 @@
 #include <qt/vergeunits.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
-
 #include <clientversion.h>
 #include <streams.h>
+#include <QLatin1Char>	
+#include <QLatin1String>
 
 
 RecentRequestsTableModel::RecentRequestsTableModel(WalletModel *parent) :
@@ -123,7 +124,11 @@ void RecentRequestsTableModel::updateAmountColumnTitle()
 /** Gets title for amount column including current display unit if optionsModel reference available. */
 QString RecentRequestsTableModel::getAmountTitle()
 {
-    return (this->walletModel->getOptionsModel() != nullptr) ? tr("Requested") + " ("+VERGEUnits::shortName(this->walletModel->getOptionsModel()->getDisplayUnit()) + ")" : "";
+    if (!walletModel->getOptionsModel()) return {};
+    return tr("Requested") +
+        QLatin1String(" (") +
+        VERGEUnits::shortName(this->walletModel->getOptionsModel()->getDisplayUnit()) +
+        QLatin1Char(')');
 }
 
 QModelIndex RecentRequestsTableModel::index(int row, int column, const QModelIndex &parent) const
