@@ -74,13 +74,17 @@ Build requirements:
 
 Now, you can either build from self-compiled [depends](/depends/README.md) or install the required dependencies:
 
-    ```sudo apt install libssl-dev libevent-dev libboost-all-dev```
+    ```
+    sudo apt install libssl-dev libevent-dev libboost-all-dev
+    ```
     
     (this will install packages such as libboost-system-dev and libboost-filesystem-dev)
 
 These are necessary for building with Tor:  
 
-    ```sudo apt-get install asciidoc zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy```
+    ```
+    sudo apt-get install asciidoc zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy
+    ```
 
 To run without Tor after compile, you can pass --without-tor to the binary.
 
@@ -104,13 +108,17 @@ sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8
 
 you may get a message about missing libdb cxx headers, in which case you will want to specify the location to autoconf
 
-example: ```./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib"```
+example: 
+```
+./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib"
+```
 
 
 Ubuntu and Debian have their own libdb-dev and libdb++-dev packages, but these will install
 BerkeleyDB 5.1 or later. This will break binary wallet compatibility with the distributed executables, which
 are based on BerkeleyDB 4.8. If you do not care about wallet compatibility,
-pass `--with-incompatible-bdb` to configure.
+pass `--with-incompatible-bdb` to configure. (./configure --with-incompatible-bdb) (configure accepts many flags, such as
+./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-incompatible-bdb)
 
 To build Verge Core without wallet, see [*Disable-wallet mode*](/doc/build-unix.md#disable-wallet-mode)
 
