@@ -102,6 +102,11 @@ sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
 ```
 
+you may get a message about missing libdb cxx headers, in which case you will want to specify the location to autoconf
+
+example: ```./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib"```
+
+
 Ubuntu and Debian have their own libdb-dev and libdb++-dev packages, but these will install
 BerkeleyDB 5.1 or later. This will break binary wallet compatibility with the distributed executables, which
 are based on BerkeleyDB 4.8. If you do not care about wallet compatibility,
