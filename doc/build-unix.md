@@ -86,11 +86,12 @@ These are necessary for building with Tor:
     sudo apt-get install asciidoc zlib1g-dev libseccomp-dev libcap-dev libncap-dev obfs4proxy
     ```
 
-To run without Tor after compile, you can pass --without-tor to the binary.
+To run without Tor after compile, you can pass --without-tor to the binary. (./verged --without-tor ./verge-qt --without-tor)
 
 BerkeleyDB is required for the wallet. Download, compile, and install it.
 
 ```
+cd ~
 wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
 tar -xzvf db-4.8.30.NC.tar.gz
 cd db-4.8.30.NC/build_unix/
@@ -98,14 +99,19 @@ cd db-4.8.30.NC/build_unix/
 make
 make install
 ```
-Tell your environment where it is now.
+
+in Ubuntu 22, a break will occur in the atomic header, this patch will fix it:
+```
+sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' ~/db-4.8.30.NC/dbinc/atomic.h
+```
+
+After compilation, let's tell our environment where BerkeleyDB is located.
 ```
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
 ```
 
-you may get a message about missing libdb cxx headers, in which case you will want to specify the location to autoconf
-
+if you get a message about configure not being able to find the BerkeleyDB header db_cxx, try passing the location in configure
 example: 
 ```
 ./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib"
@@ -115,7 +121,7 @@ example:
 Ubuntu and Debian have their own libdb-dev and libdb++-dev packages, but these will install
 BerkeleyDB 5.1 or later. This will break binary wallet compatibility with the distributed executables, which
 are based on BerkeleyDB 4.8. If you do not care about wallet compatibility,
-pass `--with-incompatible-bdb` to configure. (./configure --with-incompatible-bdb) (configure accepts many flags, such as
+pass `--with-incompatible-bdb` to configure. (./configure --with-incompatible-bdb) (configure accepts many flags at once, such as
 ./configure CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -O2" LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib" --with-incompatible-bdb)
 
 To build Verge Core without wallet, see [*Disable-wallet mode*](/doc/build-unix.md#disable-wallet-mode)
