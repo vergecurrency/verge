@@ -100,8 +100,6 @@ make install
 ```
 Tell your environment where it is now.
 ```
-export BDB_INCLUDE_PATH="/usr/local/BerkeleyDB.4.8/include"
-export BDB_LIB_PATH="/usr/local/BerkeleyDB.4.8/lib"
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so
 sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so
 ```
