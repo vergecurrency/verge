@@ -40,7 +40,7 @@ QString TransactionDesc::FormatTxStatus(const interfaces::WalletTx& wtx, const i
         int nDepth = status.depth_in_main_chain;
         if (nDepth < 0) {
             return tr("conflicted with a transaction with %1 confirmations").arg(-nDepth);
-        else if (adjustedTime - status.time_received > 2 * 60 && status.request_count == 0)
+		} else if (adjustedTime - status.time_received > 2 * 60 && status.request_count == 0) {
             return tr("%1/offline").arg(nDepth);
         } else if (nDepth == 0) {
             const QString abandoned{status.is_abandoned ? QLatin1String(", ") + tr("abandoned") : QString()};
