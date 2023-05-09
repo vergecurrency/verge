@@ -27,6 +27,8 @@
 #include <QDebug>
 #include <QIcon>
 #include <QList>
+#include <QLatin1Char>
+#include <QLatin1String>
 
 // Amount column is right-aligned it contains numbers
 static int column_alignments[] = {
@@ -386,9 +388,9 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
 QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const
 {
     QString watchAddress;
-    if (tooltip) {
+    if (tooltip && wtx->involvesWatchAddress) {
         // Mark transactions involving watch-only addresses by adding " (watch-only)"
-        watchAddress = wtx->involvesWatchAddress ? QString(" (") + tr("watch-only") + QString(")") : "";
+        watchAddress = QLatin1String(" (") + tr("watch-only") + QLatin1Char(')');
     }
 
     switch(wtx->type)

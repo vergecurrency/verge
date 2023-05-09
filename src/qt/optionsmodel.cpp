@@ -14,6 +14,7 @@
 
 #include <interfaces/node.h>
 #include <validation.h> // For DEFAULT_SCRIPTCHECK_THREADS
+#include <QLatin1Char>
 #include <net.h>
 #include <netbase.h>
 #include <txdb.h> // for -dbcache defaults
