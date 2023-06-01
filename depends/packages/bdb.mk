@@ -10,7 +10,7 @@ $(package)_config_opts=--disable-shared --enable-cxx --disable-replication
 $(package)_config_opts_mingw32=--enable-mingw
 $(package)_config_opts_linux=--with-pic
 $(package)_config_opts_android=--with-pic
-$(package)_cxxflags=-std=c++17
+$(package)_cxxflags=-std=c++1z
 
 endef
 
