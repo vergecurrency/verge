@@ -1572,7 +1572,7 @@ AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with
 
 ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc"
 AC_CONFIG_SUBDIRS([src/tor])
-
+dnl you can add --with-openssl-dir to the above autoconfigure args if you want to use a specific openssl dir to compile tor from
 AC_OUTPUT
 
 dnl Taken from https://wiki.debian.org/RpathIssue

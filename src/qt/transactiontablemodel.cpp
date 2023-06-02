@@ -27,6 +27,8 @@
 #include <QDebug>
 #include <QIcon>
 #include <QList>
+#include <QLatin1Char>
+#include <QLatin1String>
 
 // Amount column is right-aligned it contains numbers
 static int column_alignments[] = {
@@ -97,9 +99,9 @@ public:
         qDebug() << "TransactionTablePriv::updateWallet: " + QString::fromStdString(hash.ToString()) + " " + QString::number(status);
 
         // Find bounds of this transaction in model
-        QList<TransactionRecord>::iterator lower = qLowerBound(
+        QList<TransactionRecord>::iterator lower = std::lower_bound(
             cachedWallet.begin(), cachedWallet.end(), hash, TxLessThan());
-        QList<TransactionRecord>::iterator upper = qUpperBound(
+        QList<TransactionRecord>::iterator upper = std::upper_bound(
             cachedWallet.begin(), cachedWallet.end(), hash, TxLessThan());
         int lowerIndex = (lower - cachedWallet.begin());
         int upperIndex = (upper - cachedWallet.begin());
@@ -386,9 +388,9 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
 QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const
 {
     QString watchAddress;
-    if (tooltip) {
+    if (tooltip && wtx->involvesWatchAddress) {
         // Mark transactions involving watch-only addresses by adding " (watch-only)"
-        watchAddress = wtx->involvesWatchAddress ? QString(" (") + tr("watch-only") + QString(")") : "";
+        watchAddress = QLatin1String(" (") + tr("watch-only") + QLatin1Char(')');
     }
 
     switch(wtx->type)
