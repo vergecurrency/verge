@@ -6,7 +6,7 @@ defaults: &defaults
 
 defaults-docker: &defaults-docker
   docker:
-    - image: circleci/buildpack-deps:bionic
+    - image: circleci/buildpack-deps:jammy
 
 run_apt_packages: &run_apt_packages
   name: Prepare VM
@@ -109,7 +109,7 @@ jobs:
 
   upload-github-releases:
     docker:
-      - image: circleci/buildpack-deps:bionic
+      - image: circleci/buildpack-deps:jammy
     steps:
       - checkout
       - attach_workspace:
@@ -138,16 +138,16 @@ jobs:
             VERSION=$(git describe)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n ${CIRCLE_TAG} -b "$(cat ./release.md)" -delete -draft ${CIRCLE_TAG} ./bin/bin/
 
-  bionic-test-setup-env:
+  jammy-test-setup-env:
     docker:
-      - image: circleci/buildpack-deps:bionic
+      - image: circleci/buildpack-deps:jammy
     steps:
       - checkout
       - run:
           name: Hash dependencies
           command: md5sum depends/packages/* > hashes.run
       - restore_cache:
-          key: bionic-source-depends-{{ checksum "./hashes.run" }}
+          key: jammy-source-depends-{{ checksum "./hashes.run" }}
           paths:
             - './depends'
       - run:
@@ -157,7 +157,7 @@ jobs:
           name: Creating depends
           command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
       - save_cache:
-          key: bionic-source-depends-{{ checksum "./hashes.run" }}
+          key: jammy-source-depends-{{ checksum "./hashes.run" }}
           paths:
             - './depends'
       - persist_to_workspace:
@@ -165,9 +165,9 @@ jobs:
           paths:
             - '.'
 
-  bionic-test-create-and-test-build:
+  jammy-test-create-and-test-build:
     docker:
-      - image: circleci/buildpack-deps:bionic
+      - image: circleci/buildpack-deps:jammy
     steps:
       - attach_workspace:
           at: '.'
@@ -240,12 +240,12 @@ workflows:
             - release-macos
             - release-linux
 
-  bionic-linux-testing:
+  jammy-linux-testing:
     jobs:
-      - bionic-test-setup-env
-      - bionic-test-create-and-test-build:
+      - jammy-test-setup-env
+      - jammy-test-create-and-test-build:
           requires:
-            - bionic-test-setup-env
+            - jammy-test-setup-env
 
   test-static-windows-build:
     jobs:
