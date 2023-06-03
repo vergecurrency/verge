@@ -1,5 +1,5 @@
 [submodule "src/tor"]
 	path = src/tor
 	url = https://github.com/torproject/tor
-	branch = tor-0.4.7.13
+	branch = tor-0.4.8.1
 
