@@ -1,9 +1,9 @@
 ---
-name: 'verge-linux-5.0.0-beta1'
+name: 'verge-linux-7.0.0-beta'
 enable_cache: true
 distro: 'ubuntu'
 suites:
-  - 'bionic'
+  - 'jammy'
 architectures:
   - 'amd64'
 packages:
