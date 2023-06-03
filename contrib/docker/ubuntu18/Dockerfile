@@ -6,7 +6,7 @@
 # https://github.com/vergecurrency/Docker-Verge-Daemon.git
 #  Jeremiah Buddenhagen <bitspill@bitspill.net>
 
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 MAINTAINER Mike Kinney <mike.kinney@gmail.com> / Sunerok
 
