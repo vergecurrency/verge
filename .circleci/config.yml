@@ -10,7 +10,7 @@ defaults-docker: &defaults-docker
 
 run_apt_packages: &run_apt_packages
   name: Prepare VM
-  command: sudo apt-get update --fix-missing && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common git python3.5 bison byacc python2
+  command: sudo apt-get update --fix-missing && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent bison byacc software-properties-common git python3.5 bison byacc python2
 
 set_python_version: &set_python_version
   name: Set Python Version
