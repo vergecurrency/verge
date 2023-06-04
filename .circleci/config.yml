@@ -171,8 +171,8 @@ jobs:
     steps:
       - attach_workspace:
           at: '.'
-      - run: aptitude update and upgrade
-          name: update and upgrade
+      - run:
+          name: Aptitude update and upgrade
           command: sudo apt update -y && sudo apt upgrade -y
       - run:
           name: Install dependencies
