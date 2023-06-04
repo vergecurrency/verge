@@ -175,9 +175,6 @@ jobs:
           name: Install dependencies
           command: sudo apt-get install build-essential byacc bison libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev lcov libboost-all-dev
       - run:
-          name: boost patch
-          command: 
-      - run:
           name: Autogen tools
           command: ./autogen.sh 
       - run:
