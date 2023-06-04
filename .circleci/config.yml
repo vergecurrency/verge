@@ -173,10 +173,13 @@ jobs:
           at: '.'
       - run:
           name: Install dependencies
-          command: sudo apt-get install build-essential byacc bison libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev lcov
+          command: sudo apt-get install build-essential byacc bison libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev lcov libboost-all-dev
+      - run:
+          name: boost patch
+          command: 
       - run:
           name: Autogen tools
-          command: ./autogen.sh
+          command: ./autogen.sh 
       - run:
           name: Configuring code
           command: ./configure --enable-lcov --disable-bench --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib

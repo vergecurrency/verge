@@ -983,7 +983,7 @@ AC_DEFUN([SUPPRESS_WARNINGS],
 VERGE_QT_INIT
 
 dnl sets $verge_enable_qt, $verge_enable_qt_test, $verge_enable_qt_dbus
-VERGE_QT_CONFIGURE([5.9.8])
+VERGE_QT_CONFIGURE([5.12.11])
 
 dnl Keep a copy of the original $QT_INCLUDES and use it when invoking qt's moc
   QT_INCLUDES_UNSUPPRESSED=$QT_INCLUDES
