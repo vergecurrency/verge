@@ -171,9 +171,12 @@ jobs:
     steps:
       - attach_workspace:
           at: '.'
+      - run: aptitude update and upgrade
+          name: update and upgrade
+          command: sudo apt update -y && sudo apt upgrade -y
       - run:
           name: Install dependencies
-          command: sudo apt-get install build-essential byacc bison libtool autotools-dev automake pkg-config bsdmainutils python3 libattr1-dev lcov libboost-all-dev
+          command: sudo apt-get install build-essential byacc bison libtool autotools-dev automake pkg-config bsdmainutils python3 python3-dev libattr1-dev lcov libboost-all-dev
       - run:
           name: Autogen tools
           command: ./autogen.sh 
