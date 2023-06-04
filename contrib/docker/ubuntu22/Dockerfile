@@ -28,6 +28,8 @@ RUN apt-get update --yes > /dev/null && \
        autoconf \
        automake \
        autotools-dev \
+	   bison \
+	   byacc \
        bsdmainutils \
        build-essential \
        git \

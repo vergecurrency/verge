@@ -2,9 +2,9 @@ FROM ubuntu:22.04
 
 RUN apt-get update
 
-RUN apt-get install -y build-essential
+RUN apt-get install -y build-essential bison byacc
 RUN apt-get install -y git
-RUN apt-get install -y software-properties-common python-software-properties
+RUN apt-get install -y software-properties-common python-software-properties 
 RUN cd ~
 RUN wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
 RUN tar -xzvf db-4.8.30.NC.tar.gz
