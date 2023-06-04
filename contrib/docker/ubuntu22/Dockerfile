@@ -15,9 +15,15 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update --yes > /dev/null && \
     apt-get upgrade --yes > /dev/null && \
     apt-get install --yes -qq software-properties-common > /dev/null && \
-    add-apt-repository --yes ppa:bitcoin/bitcoin && \
-    apt-get update --yes > /dev/null && \
-    apt-get upgrade --yes > /dev/null && \
+    cd ~ \
+	wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz' \
+	tar -xzvf db-4.8.30.NC.tar.gz \
+	cd db-4.8.30.NC/build_unix/ \
+	sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' ~/db-4.8.30.NC/dbinc/atomic.h \
+	../dist/configure --enable-cxx && make && make install \
+	sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so \
+    sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so \
+	cd ~ \
     apt-get install --yes -qq \
        autoconf \
        automake \
