@@ -70,7 +70,7 @@ tuned to conserve memory with additional CXXFLAGS:
 
 Build requirements:
 
-    sudo apt-get install git build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 gcc-multilib g++-multilib
+    sudo apt-get install git build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 byacc bison gcc-multilib g++-multilib
 
 Now, you can either build from self-compiled [depends](/depends/README.md) or install the required dependencies:
 
