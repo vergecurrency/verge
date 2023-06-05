@@ -1002,18 +1002,18 @@ fi
 if test "$use_boost" = "yes"; then
 
 dnl Minimum required Boost version
-define(MINIMUM_REQUIRED_BOOST, 1.47.0)
+define(MINIMUM_REQUIRED_BOOST, 1.76.0)
 
 dnl Check for boost libs
 AX_BOOST_BASE([MINIMUM_REQUIRED_BOOST])
 if test x$want_boost = xno; then
     AC_MSG_ERROR([[only libvergeconsensus can be built without boost]])
 fi
-AX_BOOST_SYSTEM
-AX_BOOST_FILESYSTEM
-AX_BOOST_PROGRAM_OPTIONS
-AX_BOOST_THREAD
-AX_BOOST_CHRONO
+BOOST_SYSTEM
+BOOST_FILESYSTEM
+BOOST_PROGRAM_OPTIONS
+BOOST_THREAD
+BOOST_CHRONO
 
 dnl Boost 1.56 through 1.62 allow using std::atomic instead of its own atomic
 dnl counter implementations. In 1.63 and later the std::atomic approach is default.
@@ -1063,12 +1063,13 @@ if test x$use_tests = xyes; then
 
   if test x$use_boost = xyes; then
 
-  AX_BOOST_UNIT_TEST_FRAMEWORK
+  BOOST_TEST
+  AC_MSG_NOTICE([Using boost test: [$BOOST_UNIT_TEST_FRAMEWORK_LIBS]]
 
   dnl Determine if -DBOOST_TEST_DYN_LINK is needed
   AC_MSG_CHECKING([for dynamic linked boost test])
   TEMP_LIBS="$LIBS"
-  LIBS="$LIBS $BOOST_LDFLAGS $BOOST_UNIT_TEST_FRAMEWORK_LIB"
+  LIBS="$LIBS $BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS $BOOST_UNIT_TEST_FRAMEWORK_LIBS"
   TEMP_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
   AC_LINK_IFELSE([AC_LANG_SOURCE([
@@ -1088,7 +1089,8 @@ fi
 
 if test x$use_boost = xyes; then
 
-BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB $BOOST_CHRONO_LIB"
+BOOST_LIBS="$BOOST_THREAD_LDFLAGS $BOOST_SYSTEM_LIBS $BOOST_FILESYSTEM_LIBS $BOOST_PROGRAM_OPTIONS_LIBS $BOOST_THREAD_LIBS $BOOST_CHRONO_LIBS"
+AC_MSG_NOTICE([Using boost linker options: [$BOOST_LIBS]])
 
 
 dnl If boost (prior to 1.57) was built without c++11, it emulated scoped enums
