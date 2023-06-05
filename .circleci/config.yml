@@ -152,7 +152,7 @@ jobs:
             - './depends'
       - run:
           name: Install dependencies
-          command: sudo apt-get update && sudo apt-get install build-essential bison byacc libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3
+          command: sudo apt-get update && sudo apt-get install build-essential bison byacc libtool  libboost-all-dev autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake cmake curl g++-multilib binutils-gold python3
       - run:
           name: Creating depends
           command: cd depends/ && make -j4 HOST=x86_64-linux-gnu
@@ -176,7 +176,7 @@ jobs:
           command: sudo apt update -y && sudo apt upgrade -y
       - run:
           name: Install dependencies
-          command: sudo apt-get install build-essential byacc bison libtool autotools-dev automake pkg-config bsdmainutils python3 python3-dev libattr1-dev lcov libboost-all-dev
+          command: sudo apt-get install build-essential byacc bison libtool autotools-dev automake pkg-config bsdmainutils python3 python3-dev libattr1-dev lcov
       - run:
           name: Autogen tools
           command: ./autogen.sh 
