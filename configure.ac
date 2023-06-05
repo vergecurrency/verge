@@ -1009,11 +1009,11 @@ AX_BOOST_BASE([MINIMUM_REQUIRED_BOOST])
 if test x$want_boost = xno; then
     AC_MSG_ERROR([[only libvergeconsensus can be built without boost]])
 fi
-BOOST_SYSTEM
-BOOST_FILESYSTEM
-BOOST_PROGRAM_OPTIONS
-BOOST_THREAD
-BOOST_CHRONO
+AX_BOOST_SYSTEM
+AX_BOOST_FILESYSTEM
+AX_BOOST_PROGRAM_OPTIONS
+AX_BOOST_THREAD
+AX_BOOST_CHRONO
 
 dnl Boost 1.56 through 1.62 allow using std::atomic instead of its own atomic
 dnl counter implementations. In 1.63 and later the std::atomic approach is default.
@@ -1063,8 +1063,7 @@ if test x$use_tests = xyes; then
 
   if test x$use_boost = xyes; then
 
-  BOOST_TEST
-  AC_MSG_NOTICE([Using boost test: [$BOOST_UNIT_TEST_FRAMEWORK_LIBS]]
+  AX_BOOST_UNIT_TEST_FRAMEWORK
 
   dnl Determine if -DBOOST_TEST_DYN_LINK is needed
   AC_MSG_CHECKING([for dynamic linked boost test])
