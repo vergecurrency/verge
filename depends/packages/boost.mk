@@ -34,9 +34,9 @@ define $(package)_config_cmds
 endef
 
 define $(package)_build_cmds
-  b2 -d2 -j$(JOBCOUNT) -d1 --prefix=$($(package)_staging_prefix_dir) $($(package)_config_opts) toolset=$($(package)_toolset_$(host_os)) stage
+  b2 -d2 -j -d1 --prefix=$($(package)_staging_prefix_dir) $($(package)_config_opts) toolset=$($(package)_toolset_$(host_os)) stage
 endef
 
 define $(package)_stage_cmds
-  b2 -d0 -j$(JOBCOUNT) --prefix=$($(package)_staging_prefix_dir) $($(package)_config_opts) toolset=$($(package)_toolset_$(host_os)) install
+  b2 -d0 -j --prefix=$($(package)_staging_prefix_dir) $($(package)_config_opts) toolset=$($(package)_toolset_$(host_os)) install
 endef
