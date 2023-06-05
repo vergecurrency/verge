@@ -1002,7 +1002,7 @@ fi
 if test "$use_boost" = "yes"; then
 
 dnl Minimum required Boost version
-define(MINIMUM_REQUIRED_BOOST, 1.76.0)
+define(MINIMUM_REQUIRED_BOOST, 1.65.0)
 
 dnl Check for boost libs
 AX_BOOST_BASE([MINIMUM_REQUIRED_BOOST])
@@ -1035,7 +1035,7 @@ if test $use_reduce_exports = yes; then
   AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
       @%:@include <boost/version.hpp>
     ]], [[
-      #if BOOST_VERSION >= 104900
+      #if BOOST_VERSION >= 106500
       // Everything is okay
       #else
       #  error Boost version is too old
