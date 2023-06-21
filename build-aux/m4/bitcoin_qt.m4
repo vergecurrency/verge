@@ -5,8 +5,8 @@ dnl file COPYING or http://www.opensource.org/licenses/mit-license.php.
 dnl Helper for cases where a qt dependency is not met.
 dnl Output: If qt version is auto, set verge_enable_qt to false. Else, exit.
 AC_DEFUN([VERGE_QT_FAIL],[
-  if test "$verge_qt_want_version" = "auto" && test "$verge_qt_force" != "yes"; then
-    if test "$verge_enable_qt" != "no"; then
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
       AC_MSG_WARN([$1; verge-qt frontend will not be built])
     fi
     verge_enable_qt=no
@@ -17,7 +17,7 @@ AC_DEFUN([VERGE_QT_FAIL],[
 ])
 
 AC_DEFUN([VERGE_QT_CHECK],[
-  if test "$verge_enable_qt" != "no" && test "$verge_qt_want_version" != "no"; then
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
     true
     $1
   else
@@ -35,12 +35,12 @@ dnl Inputs: $4: If "yes", don't fail if $2 is not found.
 dnl Output: $1 is set to the path of $2 if found. $2 are searched in order.
 AC_DEFUN([VERGE_QT_PATH_PROGS],[
   VERGE_QT_CHECK([
-    if test "$3" != ""; then
-      AC_PATH_PROGS([$1], [$2], [], [$3])
+    if test "x$3" != x; then
+      AC_PATH_PROGS($1,$2,,$3)
     else
-      AC_PATH_PROGS([$1], [$2])
+      AC_PATH_PROGS($1,$2)
     fi
-    if test "$$1" = "" && test "$4" != "yes"; then
+    if test "x$$1" = x && test "x$4" != xyes; then
       VERGE_QT_FAIL([$1 not found])
     fi
   ])
@@ -57,20 +57,19 @@ AC_DEFUN([VERGE_QT_INIT],[
     [build verge-qt GUI (default=auto)])],
     [
      verge_qt_want_version=$withval
-     if test "$verge_qt_want_version" = "yes"; then
+     if test "x$verge_qt_want_version" = xyes; then
        verge_qt_force=yes
        verge_qt_want_version=auto
      fi
     ],
     [verge_qt_want_version=auto])
 
-  AS_IF([test "$with_gui" = "qt5_debug"],
+  AS_IF([test "x$with_gui" = xqt5_debug],
         [AS_CASE([$host],
                  [*darwin*], [qt_lib_suffix=_debug],
+                 [*mingw*], [qt_lib_suffix=d],
                  [qt_lib_suffix= ]); verge_qt_want_version=qt5],
         [qt_lib_suffix= ])
-
-  AS_CASE([$host], [*android*], [qt_lib_suffix=_$ANDROID_ARCH])
 
   AC_ARG_WITH([qt-incdir],[AS_HELP_STRING([--with-qt-incdir=INC_DIR],[specify qt include path (overridden by pkgconfig)])], [qt_include_path=$withval], [])
   AC_ARG_WITH([qt-libdir],[AS_HELP_STRING([--with-qt-libdir=LIB_DIR],[specify qt lib path (overridden by pkgconfig)])], [qt_lib_path=$withval], [])
@@ -87,7 +86,7 @@ AC_DEFUN([VERGE_QT_INIT],[
   dnl Android doesn't support D-Bus and certainly doesn't use it for notifications
   case $host in
     *android*)
-      if test "$use_dbus" != "yes"; then
+      if test "x$use_dbus" != xyes; then
         use_dbus=no
       fi
     ;;
@@ -116,13 +115,13 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
   VERGE_QT_CHECK([
   TEMP_CPPFLAGS=$CPPFLAGS
   TEMP_CXXFLAGS=$CXXFLAGS
-  CPPFLAGS="$QT_INCLUDES $CORE_CPPFLAGS $CPPFLAGS"
-  CXXFLAGS="$PIC_FLAGS $CORE_CXXFLAGS $CXXFLAGS"
+  CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
+  CXXFLAGS="$PIC_FLAGS $CXXFLAGS"
   _VERGE_QT_IS_STATIC
-  if test "$verge_cv_static_qt" = "yes"; then
+  if test "x$verge_cv_static_qt" = xyes; then
     _VERGE_QT_CHECK_STATIC_LIBS
 
-    if test "$qt_plugin_path" != ""; then
+    if test "x$qt_plugin_path" != x; then
       if test -d "$qt_plugin_path/platforms"; then
         QT_LIBS="$QT_LIBS -L$qt_plugin_path/platforms"
       fi
@@ -137,49 +136,51 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
       fi
     fi
 
-    AC_DEFINE([QT_STATICPLUGIN], [1], [Define this symbol if qt plugins are static])
-    if test "$TARGET_OS" != "android"; then
+    AC_DEFINE(QT_STATICPLUGIN, 1, [Define this symbol if qt plugins are static])
+    if test "x$TARGET_OS" != xandroid; then
       _VERGE_QT_CHECK_STATIC_PLUGIN([QMinimalIntegrationPlugin], [-lqminimal])
-      AC_DEFINE([QT_QPA_PLATFORM_MINIMAL], [1], [Define this symbol if the minimal qt platform exists])
+      AC_DEFINE(QT_QPA_PLATFORM_MINIMAL, 1, [Define this symbol if the minimal qt platform exists])
     fi
-    if test "$TARGET_OS" = "windows"; then
+    if test "x$TARGET_OS" = xwindows; then
       dnl Linking against wtsapi32 is required. See #17749 and
       dnl https://bugreports.qt.io/browse/QTBUG-27097.
       AX_CHECK_LINK_FLAG([-lwtsapi32], [QT_LIBS="$QT_LIBS -lwtsapi32"], [AC_MSG_ERROR([could not link against -lwtsapi32])])
       _VERGE_QT_CHECK_STATIC_PLUGIN([QWindowsIntegrationPlugin], [-lqwindows])
       _VERGE_QT_CHECK_STATIC_PLUGIN([QWindowsVistaStylePlugin], [-lqwindowsvistastyle])
-      AC_DEFINE([QT_QPA_PLATFORM_WINDOWS], [1], [Define this symbol if the qt platform is windows])
-    elif test "$TARGET_OS" = "linux"; then
+      AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
+    elif test "x$TARGET_OS" = xlinux; then
+      dnl workaround for https://bugreports.qt.io/browse/QTBUG-74874
+      AX_CHECK_LINK_FLAG([-lxcb-shm], [QT_LIBS="$QT_LIBS -lxcb-shm"], [AC_MSG_ERROR([could not link against -lxcb-shm])])
       _VERGE_QT_CHECK_STATIC_PLUGIN([QXcbIntegrationPlugin], [-lqxcb])
-      AC_DEFINE([QT_QPA_PLATFORM_XCB], [1], [Define this symbol if the qt platform is xcb])
-    elif test "$TARGET_OS" = "darwin"; then
-      AX_CHECK_LINK_FLAG([-framework Carbon], [QT_LIBS="$QT_LIBS -framework Carbon"], [AC_MSG_ERROR(could not link against Carbon framework)])
-      AX_CHECK_LINK_FLAG([-framework IOSurface], [QT_LIBS="$QT_LIBS -framework IOSurface"], [AC_MSG_ERROR(could not link against IOSurface framework)])
-      AX_CHECK_LINK_FLAG([-framework Metal], [QT_LIBS="$QT_LIBS -framework Metal"], [AC_MSG_ERROR(could not link against Metal framework)])
-      AX_CHECK_LINK_FLAG([-framework QuartzCore], [QT_LIBS="$QT_LIBS -framework QuartzCore"], [AC_MSG_ERROR(could not link against QuartzCore framework)])
+      AC_DEFINE(QT_QPA_PLATFORM_XCB, 1, [Define this symbol if the qt platform is xcb])
+    elif test "x$TARGET_OS" = xdarwin; then
+      AX_CHECK_LINK_FLAG([[-framework Carbon]],[QT_LIBS="$QT_LIBS -framework Carbon"],[AC_MSG_ERROR(could not link against Carbon framework)])
+      AX_CHECK_LINK_FLAG([[-framework IOSurface]],[QT_LIBS="$QT_LIBS -framework IOSurface"],[AC_MSG_ERROR(could not link against IOSurface framework)])
+      AX_CHECK_LINK_FLAG([[-framework Metal]],[QT_LIBS="$QT_LIBS -framework Metal"],[AC_MSG_ERROR(could not link against Metal framework)])
+      AX_CHECK_LINK_FLAG([[-framework QuartzCore]],[QT_LIBS="$QT_LIBS -framework QuartzCore"],[AC_MSG_ERROR(could not link against QuartzCore framework)])
       _VERGE_QT_CHECK_STATIC_PLUGIN([QCocoaIntegrationPlugin], [-lqcocoa])
       _VERGE_QT_CHECK_STATIC_PLUGIN([QMacStylePlugin], [-lqmacstyle])
-      AC_DEFINE([QT_QPA_PLATFORM_COCOA], [1], [Define this symbol if the qt platform is cocoa])
-    elif test "$TARGET_OS" = "android"; then
-      QT_LIBS="-Wl,--export-dynamic,--undefined=JNI_OnLoad -lplugins_platforms_qtforandroid${qt_lib_suffix} -ljnigraphics -landroid -lqtfreetype${qt_lib_suffix} $QT_LIBS"
-      AC_DEFINE([QT_QPA_PLATFORM_ANDROID], [1], [Define this symbol if the qt platform is android])
+      AC_DEFINE(QT_QPA_PLATFORM_COCOA, 1, [Define this symbol if the qt platform is cocoa])
+    elif test "x$TARGET_OS" = xandroid; then
+      QT_LIBS="-Wl,--export-dynamic,--undefined=JNI_OnLoad -lqtforandroid -ljnigraphics -landroid -lqtfreetype $QT_LIBS"
+      AC_DEFINE(QT_QPA_PLATFORM_ANDROID, 1, [Define this symbol if the qt platform is android])
     fi
   fi
   CPPFLAGS=$TEMP_CPPFLAGS
   CXXFLAGS=$TEMP_CXXFLAGS
   ])
 
-  if test "$qt_bin_path" = ""; then
+  if test "x$qt_bin_path" = x; then
     qt_bin_path="`$PKG_CONFIG --variable=host_bins ${qt_lib_prefix}Core 2>/dev/null`"
   fi
 
-  if test "$use_hardening" != "no"; then
+  if test "x$use_hardening" != xno; then
     VERGE_QT_CHECK([
-    AC_MSG_CHECKING([whether -fPIE can be used with this Qt config])
+    AC_MSG_CHECKING(whether -fPIE can be used with this Qt config)
     TEMP_CPPFLAGS=$CPPFLAGS
     TEMP_CXXFLAGS=$CXXFLAGS
-    CPPFLAGS="$QT_INCLUDES $CORE_CPPFLAGS $CPPFLAGS"
-    CXXFLAGS="$PIE_FLAGS $CORE_CXXFLAGS $CXXFLAGS"
+    CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
+    CXXFLAGS="$PIE_FLAGS $CXXFLAGS"
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
         #include <QtCore/qconfig.h>
         #ifndef QT_VERSION
@@ -191,17 +192,17 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
         choke
         #endif
       ]])],
-      [ AC_MSG_RESULT([yes]); QT_PIE_FLAGS=$PIE_FLAGS ],
-      [ AC_MSG_RESULT([no]); QT_PIE_FLAGS=$PIC_FLAGS]
+      [ AC_MSG_RESULT(yes); QT_PIE_FLAGS=$PIE_FLAGS ],
+      [ AC_MSG_RESULT(no); QT_PIE_FLAGS=$PIC_FLAGS]
     )
     CPPFLAGS=$TEMP_CPPFLAGS
     CXXFLAGS=$TEMP_CXXFLAGS
     ])
   else
     VERGE_QT_CHECK([
-    AC_MSG_CHECKING([whether -fPIC is needed with this Qt config])
+    AC_MSG_CHECKING(whether -fPIC is needed with this Qt config)
     TEMP_CPPFLAGS=$CPPFLAGS
-    CPPFLAGS="$QT_INCLUDES $CORE_CPPFLAGS $CPPFLAGS"
+    CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
         #include <QtCore/qconfig.h>
         #ifndef QT_VERSION
@@ -213,8 +214,8 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
         choke
         #endif
       ]])],
-      [ AC_MSG_RESULT([no])],
-      [ AC_MSG_RESULT([yes]); QT_PIE_FLAGS=$PIC_FLAGS]
+      [ AC_MSG_RESULT(no)],
+      [ AC_MSG_RESULT(yes); QT_PIE_FLAGS=$PIC_FLAGS]
     )
     CPPFLAGS=$TEMP_CPPFLAGS
     ])
@@ -233,12 +234,12 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
      VERGE_QT_CHECK([
        MOC_DEFS="${MOC_DEFS} -DQ_OS_MAC"
        base_frameworks="-framework Foundation -framework AppKit"
-       AX_CHECK_LINK_FLAG([$base_frameworks], [QT_LIBS="$QT_LIBS $base_frameworks"], [AC_MSG_ERROR(could not find base frameworks)])
+       AX_CHECK_LINK_FLAG([[$base_frameworks]],[QT_LIBS="$QT_LIBS $base_frameworks"],[AC_MSG_ERROR(could not find base frameworks)])
      ])
     ;;
     *mingw*)
        VERGE_QT_CHECK([
-         AX_CHECK_LINK_FLAG([-mwindows], [QT_LDFLAGS="$QT_LDFLAGS -mwindows"], [AC_MSG_WARN([-mwindows linker support not detected])])
+         AX_CHECK_LINK_FLAG([[-mwindows]],[QT_LDFLAGS="$QT_LDFLAGS -mwindows"],[AC_MSG_WARN(-mwindows linker support not detected)])
        ])
   esac
 
@@ -248,26 +249,26 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
   VERGE_QT_CHECK([
     verge_enable_qt=yes
     verge_enable_qt_test=yes
-    if test "$have_qt_test" = "no"; then
+    if test "x$have_qt_test" = xno; then
       verge_enable_qt_test=no
     fi
     verge_enable_qt_dbus=no
-    if test "$use_dbus" != "no" && test "$have_qt_dbus" = "yes"; then
+    if test "x$use_dbus" != xno && test "x$have_qt_dbus" = xyes; then
       verge_enable_qt_dbus=yes
     fi
-    if test "$use_dbus" = "yes" && test "$have_qt_dbus" = "no"; then
+    if test "x$use_dbus" = xyes && test "x$have_qt_dbus" = xno; then
       AC_MSG_ERROR([libQtDBus not found. Install libQtDBus or remove --with-qtdbus.])
     fi
-    if test "$LUPDATE" = ""; then
+    if test "x$LUPDATE" = x; then
       AC_MSG_WARN([lupdate tool is required to update Qt translations.])
     fi
-    if test "$LCONVERT" = ""; then
+    if test "x$LCONVERT" = x; then
       AC_MSG_WARN([lconvert tool is required to update Qt translations.])
     fi
   ],[
     verge_enable_qt=no
   ])
-  if test $verge_enable_qt = "yes"; then
+  if test x$verge_enable_qt = xyes; then
     AC_MSG_RESULT([$verge_enable_qt ($qt_lib_prefix)])
   else
     AC_MSG_RESULT([$verge_enable_qt])
@@ -278,7 +279,9 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
   AC_SUBST(QT_LIBS)
   AC_SUBST(QT_LDFLAGS)
   AC_SUBST(QT_DBUS_INCLUDES)
+  AC_SUBST(QT_DBUS_LIBS)
   AC_SUBST(QT_TEST_INCLUDES)
+  AC_SUBST(QT_TEST_LIBS)
   AC_SUBST(QT_SELECT, qt5)
   AC_SUBST(MOC_DEFS)
 ])
@@ -346,20 +349,18 @@ AC_DEFUN([_VERGE_QT_CHECK_STATIC_LIBS], [
   PKG_CHECK_MODULES([QT_FB], [${qt_lib_prefix}FbSupport${qt_lib_suffix}], [QT_LIBS="$QT_FB_LIBS $QT_LIBS"])
   PKG_CHECK_MODULES([QT_FONTDATABASE], [${qt_lib_prefix}FontDatabaseSupport${qt_lib_suffix}], [QT_LIBS="$QT_FONTDATABASE_LIBS $QT_LIBS"])
   PKG_CHECK_MODULES([QT_THEME], [${qt_lib_prefix}ThemeSupport${qt_lib_suffix}], [QT_LIBS="$QT_THEME_LIBS $QT_LIBS"])
-  if test "$TARGET_OS" = "linux"; then
+  if test "x$TARGET_OS" = xlinux; then
     PKG_CHECK_MODULES([QT_INPUT], [${qt_lib_prefix}InputSupport], [QT_LIBS="$QT_INPUT_LIBS $QT_LIBS"])
     PKG_CHECK_MODULES([QT_SERVICE], [${qt_lib_prefix}ServiceSupport], [QT_LIBS="$QT_SERVICE_LIBS $QT_LIBS"])
     PKG_CHECK_MODULES([QT_XCBQPA], [${qt_lib_prefix}XcbQpa], [QT_LIBS="$QT_XCBQPA_LIBS $QT_LIBS"])
-    PKG_CHECK_MODULES([QT_XKBCOMMON], [${qt_lib_prefix}XkbCommonSupport], [QT_LIBS="$QT_XKBCOMMON_LIBS $QT_LIBS"])
-  elif test "$TARGET_OS" = "darwin"; then
+  elif test "x$TARGET_OS" = xdarwin; then
     PKG_CHECK_MODULES([QT_CLIPBOARD], [${qt_lib_prefix}ClipboardSupport${qt_lib_suffix}], [QT_LIBS="$QT_CLIPBOARD_LIBS $QT_LIBS"])
     PKG_CHECK_MODULES([QT_GRAPHICS], [${qt_lib_prefix}GraphicsSupport${qt_lib_suffix}], [QT_LIBS="$QT_GRAPHICS_LIBS $QT_LIBS"])
     PKG_CHECK_MODULES([QT_SERVICE], [${qt_lib_prefix}ServiceSupport${qt_lib_suffix}], [QT_LIBS="$QT_SERVICE_LIBS $QT_LIBS"])
-  elif test "$TARGET_OS" = "windows"; then
+  elif test "x$TARGET_OS" = xwindows; then
     PKG_CHECK_MODULES([QT_WINDOWSUIAUTOMATION], [${qt_lib_prefix}WindowsUIAutomationSupport${qt_lib_suffix}], [QT_LIBS="$QT_WINDOWSUIAUTOMATION_LIBS $QT_LIBS"])
-  elif test "$TARGET_OS" = "android"; then
-    PKG_CHECK_MODULES([QT_EGL], [${qt_lib_prefix}EglSupport${qt_lib_suffix}], [QT_LIBS="$QT_EGL_LIBS $QT_LIBS"])
-    PKG_CHECK_MODULES([QT_SERVICE], [${qt_lib_prefix}ServiceSupport${qt_lib_suffix}], [QT_LIBS="$QT_SERVICE_LIBS $QT_LIBS"])
+  elif test "x$TARGET_OS" = xandroid; then
+    PKG_CHECK_MODULES([QT_EGL], [${qt_lib_prefix}EglSupport], [QT_LIBS="$QT_EGL_LIBS $QT_LIBS"])
   fi
 ])
 
@@ -390,7 +391,7 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS],[
 
   VERGE_QT_CHECK([
     PKG_CHECK_MODULES([QT_TEST], [${qt_lib_prefix}Test${qt_lib_suffix} $qt_version], [QT_TEST_INCLUDES="$QT_TEST_CFLAGS"; have_qt_test=yes], [have_qt_test=no])
-    if test "$use_dbus" != "no"; then
+    if test "x$use_dbus" != xno; then
       PKG_CHECK_MODULES([QT_DBUS], [${qt_lib_prefix}DBus $qt_version], [QT_DBUS_INCLUDES="$QT_DBUS_CFLAGS"; have_qt_dbus=yes], [have_qt_dbus=no])
     fi
   ])
