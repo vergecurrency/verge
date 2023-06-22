@@ -67,6 +67,7 @@ $(1)_cached_checksum:=$(BASE_CACHE)/$(host)/$(1)/$(1)-$($(1)_version)-$($(1)_bui
 $(1)_patch_dir:=$(base_build_dir)/$(host)/$(1)/$($(1)_version)-$($(1)_build_id)/.patches-$($(1)_build_id)
 $(1)_prefixbin:=$($($(1)_type)_prefix)/bin/
 $(1)_cached:=$(BASE_CACHE)/$(host)/$(1)/$(1)-$($(1)_version)-$($(1)_build_id).tar.gz
+$(1)_build_log:=$(BASEDIR)/$(1)-$($(1)_version)-$($(1)_build_id).log
 $(1)_all_sources=$($(1)_file_name) $($(1)_extra_sources)
 
 #stamps
@@ -75,7 +76,7 @@ $(1)_extracted=$$($(1)_extract_dir)/.stamp_extracted
 $(1)_preprocessed=$$($(1)_extract_dir)/.stamp_preprocessed
 $(1)_cleaned=$$($(1)_extract_dir)/.stamp_cleaned
 $(1)_built=$$($(1)_build_dir)/.stamp_built
-$(1)_configured=$$($(1)_build_dir)/.stamp_configured
+$(1)_configured=$(host_prefix)/.$(1)_stamp_configured
 $(1)_staged=$$($(1)_staging_dir)/.stamp_staged
 $(1)_postprocessed=$$($(1)_staging_prefix_dir)/.stamp_postprocessed
 $(1)_download_path_fixed=$(subst :,\:,$$($(1)_download_path))
@@ -84,11 +85,11 @@ $(1)_download_path_fixed=$(subst :,\:,$$($(1)_download_path))
 #default commands
 # The default behavior for tar will try to set ownership when running as uid 0 and may not succeed, --no-same-owner disables this behavior
 $(1)_fetch_cmds ?= $(call fetch_file,$(1),$(subst \:,:,$$($(1)_download_path_fixed)),$$($(1)_download_file),$($(1)_file_name),$($(1)_sha256_hash))
-$(1)_extract_cmds ?= mkdir -p $$($(1)_extract_dir) && echo "$$($(1)_sha256_hash)  $$($(1)_source)" > $$($(1)_extract_dir)/.$$($(1)_file_name).hash &&  $(build_SHA256SUM) -c $$($(1)_extract_dir)/.$$($(1)_file_name).hash && tar --no-same-owner --strip-components=1 -xf $$($(1)_source)
-$(1)_preprocess_cmds ?=
-$(1)_build_cmds ?=
-$(1)_config_cmds ?=
-$(1)_stage_cmds ?=
+$(1)_extract_cmds ?= mkdir -p $$($(1)_extract_dir) && echo "$$($(1)_sha256_hash)  $$($(1)_source)" > $$($(1)_extract_dir)/.$$($(1)_file_name).hash &&  $(build_SHA256SUM) -c $$($(1)_extract_dir)/.$$($(1)_file_name).hash && $(build_TAR) --no-same-owner --strip-components=1 -xf $$($(1)_source)
+$(1)_preprocess_cmds ?= true
+$(1)_build_cmds ?= true
+$(1)_config_cmds ?= true
+$(1)_stage_cmds ?= true
 $(1)_set_vars ?=
 
 
@@ -136,6 +137,7 @@ $(1)_config_env+=$($(1)_config_env_$(host_arch)_$(host_os)) $($(1)_config_env_$(
 
 $(1)_config_env+=PKG_CONFIG_LIBDIR=$($($(1)_type)_prefix)/lib/pkgconfig
 $(1)_config_env+=PKG_CONFIG_PATH=$($($(1)_type)_prefix)/share/pkgconfig
+$(1)_config_env+=PKG_CONFIG_SYSROOT_DIR=/
 $(1)_config_env+=CMAKE_MODULE_PATH=$($($(1)_type)_prefix)/lib/cmake
 $(1)_config_env+=PATH=$(build_prefix)/bin:$(PATH)
 $(1)_build_env+=PATH=$(build_prefix)/bin:$(PATH)
@@ -174,7 +176,7 @@ $(1)_cmake=env CC="$$($(1)_cc)" \
                CXX="$$($(1)_cxx)" \
                CXXFLAGS="$$($(1)_cppflags) $$($(1)_cxxflags)" \
                LDFLAGS="$$($(1)_ldflags)" \
-             cmake -DCMAKE_INSTALL_PREFIX:PATH="$$($($(1)_type)_prefix)"
+             cmake -DCMAKE_INSTALL_PREFIX:PATH="$$($($(1)_type)_prefix)" $$($(1)_cmake_opts)
 ifeq ($($(1)_type),build)
 $(1)_cmake += -DCMAKE_INSTALL_RPATH:PATH="$$($($(1)_type)_prefix)/lib"
 else
@@ -187,54 +189,61 @@ endif
 endef
 
 define int_add_cmds
+ifneq ($(LOG),)
+$(1)_logging = >>$$($(1)_build_log) 2>&1 || { if test -f $$($(1)_build_log); then cat $$($(1)_build_log); fi; exit 1; }
+endif
+
 $($(1)_fetched):
-	$(AT)mkdir -p $$(@D) $(SOURCES_PATH)
-	$(AT)rm -f $$@
-	$(AT)touch $$@
-	$(AT)cd $$(@D); $(call $(1)_fetch_cmds,$(1))
-	$(AT)cd $($(1)_source_dir); $(foreach source,$($(1)_all_sources),$(build_SHA256SUM) $(source) >> $$(@);)
-	$(AT)touch $$@
+	mkdir -p $$(@D) $(SOURCES_PATH)
+	rm -f $$@
+	touch $$@
+	cd $$(@D); $($(1)_fetch_cmds)
+	cd $($(1)_source_dir); $(foreach source,$($(1)_all_sources),$(build_SHA256SUM) $(source) >> $$(@);)
+	touch $$@
 $($(1)_extracted): | $($(1)_fetched)
-	$(AT)echo Extracting $(1)...
-	$(AT)mkdir -p $$(@D)
-	$(AT)cd $$(@D); $(call $(1)_extract_cmds,$(1))
-	$(AT)touch $$@
+	echo Extracting $(1)...
+	mkdir -p $$(@D)
+	cd $$(@D); $($(1)_extract_cmds)
+	touch $$@
 $($(1)_preprocessed): | $($(1)_extracted)
-	$(AT)echo Preprocessing $(1)...
-	$(AT)mkdir -p $$(@D) $($(1)_patch_dir)
-	$(AT)$(foreach patch,$($(1)_patches),cd $(PATCHES_PATH)/$(1); cp $(patch) $($(1)_patch_dir) ;)
-	$(AT)cd $$(@D); $(call $(1)_preprocess_cmds, $(1))
-	$(AT)touch $$@
+	echo Preprocessing $(1)...
+	mkdir -p $$(@D) $($(1)_patch_dir)
+	$(foreach patch,$($(1)_patches),cd $(PATCHES_PATH)/$(1); cp $(patch) $($(1)_patch_dir) ;)
+	{ cd $$(@D); $($(1)_preprocess_cmds); } $$($(1)_logging)
+	touch $$@
 $($(1)_configured): | $($(1)_dependencies) $($(1)_preprocessed)
-	$(AT)echo Configuring $(1)...
-	$(AT)rm -rf $(host_prefix); mkdir -p $(host_prefix)/lib; cd $(host_prefix); $(foreach package,$($(1)_all_dependencies), tar --no-same-owner -xf $($(package)_cached); )
-	$(AT)mkdir -p $$(@D)
-	$(AT)+cd $$(@D); $($(1)_config_env) $(call $(1)_config_cmds, $(1))
-	$(AT)touch $$@
+	echo Configuring $(1)...
+	rm -rf $(host_prefix); mkdir -p $(host_prefix)/lib; cd $(host_prefix); $(foreach package,$($(1)_all_dependencies), $(build_TAR) --no-same-owner -xf $($(package)_cached); )
+	mkdir -p $$($(1)_build_dir)
+	+{ cd $$($(1)_build_dir); export $($(1)_config_env); $($(1)_config_cmds); } $$($(1)_logging)
+	touch $$@
 $($(1)_built): | $($(1)_configured)
-	$(AT)echo Building $(1)...
-	$(AT)mkdir -p $$(@D)
-	$(AT)+cd $$(@D); $($(1)_build_env) $(call $(1)_build_cmds, $(1))
-	$(AT)touch $$@
+	echo Building $(1)...
+	mkdir -p $$(@D)
+	+{ cd $$(@D); export $($(1)_build_env); $($(1)_build_cmds); } $$($(1)_logging)
+	touch $$@
 $($(1)_staged): | $($(1)_built)
-	$(AT)echo Staging $(1)...
-	$(AT)mkdir -p $($(1)_staging_dir)/$(host_prefix)
-	$(AT)cd $($(1)_build_dir); $($(1)_stage_env) $(call $(1)_stage_cmds, $(1))
-	$(AT)rm -rf $($(1)_extract_dir)
-	$(AT)touch $$@
+	echo Staging $(1)...
+	mkdir -p $($(1)_staging_dir)/$(host_prefix)
+	+{ cd $($(1)_build_dir); export $($(1)_stage_env); $($(1)_stage_cmds); } $$($(1)_logging)
+	rm -rf $($(1)_extract_dir)
+	touch $$@
 $($(1)_postprocessed): | $($(1)_staged)
-	$(AT)echo Postprocessing $(1)...
-	$(AT)cd $($(1)_staging_prefix_dir); $(call $(1)_postprocess_cmds)
-	$(AT)touch $$@
+	echo Postprocessing $(1)...
+	cd $($(1)_staging_prefix_dir); $($(1)_postprocess_cmds)
+	touch $$@
 $($(1)_cached): | $($(1)_dependencies) $($(1)_postprocessed)
-	$(AT)echo Caching $(1)...
-	$(AT)cd $$($(1)_staging_dir)/$(host_prefix); find . | sort | tar --no-recursion -czf $$($(1)_staging_dir)/$$(@F) -T -
-	$(AT)mkdir -p $$(@D)
-	$(AT)rm -rf $$(@D) && mkdir -p $$(@D)
-	$(AT)mv $$($(1)_staging_dir)/$$(@F) $$(@)
-	$(AT)rm -rf $($(1)_staging_dir)
+	echo Caching $(1)...
+	cd $$($(1)_staging_dir)/$(host_prefix); \
+	  find . ! -name '.stamp_postprocessed' -print0 | TZ=UTC xargs -0r touch -h -m -t 200001011200; \
+	  find . ! -name '.stamp_postprocessed' | LC_ALL=C sort | $(build_TAR) --numeric-owner --no-recursion -czf $$($(1)_staging_dir)/$$(@F) -T -
+	mkdir -p $$(@D)
+	rm -rf $$(@D) && mkdir -p $$(@D)
+	mv $$($(1)_staging_dir)/$$(@F) $$(@)
+	rm -rf $($(1)_staging_dir)
+	if test -f $($(1)_build_log); then mv $($(1)_build_log) $$(@D); fi
 $($(1)_cached_checksum): $($(1)_cached)
-	$(AT)cd $$(@D); $(build_SHA256SUM) $$(<F) > $$(@)
+	cd $$(@D); $(build_SHA256SUM) $$(<F) > $$(@)
 
 .PHONY: $(1)
 $(1): | $($(1)_cached_checksum)
@@ -264,7 +273,8 @@ $(foreach package,$(packages),$(eval $(package)_type=$(host_arch)_$(host_os)))
 $(foreach package,$(all_packages),$(eval $(call int_vars,$(package))))
 
 #include package files
-$(foreach package,$(all_packages),$(eval include packages/$(package).mk))
+$(foreach native_package,$(native_packages),$(eval include packages/$(native_package).mk))
+$(foreach package,$(packages),$(eval include packages/$(package).mk))
 
 #compute a hash of all files that comprise this package's build recipe
 $(foreach package,$(all_packages),$(eval $(call int_get_build_recipe_hash,$(package))))
