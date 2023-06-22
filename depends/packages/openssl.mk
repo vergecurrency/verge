@@ -51,7 +51,6 @@ $(package)_config_opts+=no-seed
 $(package)_config_opts+=no-sock
 $(package)_config_opts+=no-srp
 $(package)_config_opts+=no-srtp
-$(package)_config_opts+=no-ssl2
 $(package)_config_opts+=no-ssl3
 $(package)_config_opts+=no-ssl-trace
 $(package)_config_opts+=no-stdio
