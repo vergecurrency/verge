@@ -1004,10 +1004,10 @@ if test "$use_boost" = "yes"; then
 dnl Minimum required Boost version
 define(MINIMUM_REQUIRED_BOOST, 1.65.0)
 
-dnl Check for boost libs
-AX_BOOST_BASE([MINIMUM_REQUIRED_BOOST])
-if test x$want_boost = xno; then
-    AC_MSG_ERROR([[only libvergeconsensus can be built without boost]])
+dnl Check for Boost headers
+AX_BOOST_BASE([1.65.0],[],[AC_MSG_ERROR([Boost is not available!])])
+if test "$want_boost" = "no"; then
+  ([only libvergeconsensus can be built without Boost])
 fi
 AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
