@@ -1,8 +1,8 @@
 package=openssl
-$(package)_version=3.0.8
+$(package)_version=3.0.9
 $(package)_download_path=https://www.openssl.org/source
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=6c13d2bf38fdf31eac3ce2a347073673f5d63263398f1f69d0df4a41253e4b3e
+$(package)_sha256_hash=eb1ab04781474360f77c318ab89d8c5a03abc38e63d65a603cabbf1b00a1dc90
 
 define $(package)_set_vars
 $(package)_config_env=AR="$($(package)_ar)" RANLIB="$($(package)_ranlib)" CC="$($(package)_cc)" CFLAGS="$($(package)_cflags)"
@@ -24,7 +24,6 @@ $(package)_config_opts+=no-des
 $(package)_config_opts+=no-dgram
 $(package)_config_opts+=no-dsa
 $(package)_config_opts+=no-dso
-$(package)_config_opts+=no-dtls
 $(package)_config_opts+=no-dynamic-engine
 $(package)_config_opts+=no-ec2m
 $(package)_config_opts+=no-engine
@@ -48,14 +47,12 @@ $(package)_config_opts+=no-rfc3779
 $(package)_config_opts+=no-rmd160
 $(package)_config_opts+=no-scrypt
 $(package)_config_opts+=no-seed
-$(package)_config_opts+=no-sock
 $(package)_config_opts+=no-srp
 $(package)_config_opts+=no-srtp
 $(package)_config_opts+=no-ssl3
 $(package)_config_opts+=no-ssl-trace
 $(package)_config_opts+=no-stdio
 $(package)_config_opts+=no-tests
-$(package)_config_opts+=no-tls
 $(package)_config_opts+=no-ts
 $(package)_config_opts+=no-whirlpool
 $(package)_config_opts+=no-zlib
