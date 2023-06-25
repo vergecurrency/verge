@@ -1004,10 +1004,10 @@ if test "$use_boost" = "yes"; then
 dnl Minimum required Boost version
 define(MINIMUM_REQUIRED_BOOST, 1.65.0)
 
-dnl Check for Boost headers
-AX_BOOST_BASE([1.65.0],[],[AC_MSG_ERROR([Boost is not available!])])
-if test "$want_boost" = "no"; then
-  ([only libvergeconsensus can be built without Boost])
+dnl Check for boost libs
+AX_BOOST_BASE([MINIMUM_REQUIRED_BOOST])
+if test x$want_boost = xno; then
+    AC_MSG_ERROR([[only libvergeconsensus can be built without boost]])
 fi
 AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
@@ -1570,7 +1570,7 @@ fi
 
 AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with-bignum=no], [--enable-module-recovery], [--enable-experimental], [--enable-module-ecdh]])
 
-ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc"
+ac_configure_args="${ac_configure_args} --disable-unittests  --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc"
 AC_CONFIG_SUBDIRS([src/tor])
 dnl you can add --with-openssl-dir to the above autoconfigure args if you want to use a specific openssl dir to compile tor from
 AC_OUTPUT
