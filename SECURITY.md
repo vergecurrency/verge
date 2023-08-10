@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Check the listed versions to make sure that you aren’t an outdated or/and vulnerable version of Verge.
+Check the listed versions to make sure that you aren’t using an outdated and/or vulnerable version of Verge.
 
 | Version | Supported          |
 | ------- | ------------------ |
