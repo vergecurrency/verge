@@ -6,11 +6,13 @@ Check the listed versions to make sure that you aren’t an outdated or/and vuln
 
 | Version | Supported          |
 | ------- | ------------------ |
-| > 6.x.x | :white_check_mark: current LTS |
+| > 7.x.x | :white_check_mark: current LTS |
+| v6.x.x | :x: deprecated |
 | v5.x.x | :x: deprecated |
 | < 5.1.2   | :x: (critical bugs found)  |
 | v4.x.x   | :x: deprecated|
 
 ## Reporting a Vulnerability
 
-tba.
+Please send a dm to @vergecurrency on X (formerly twitter) if it's of High Severity/Critical, or just open an issue here if it is -not- High Severity.
+
