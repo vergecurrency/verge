@@ -170,7 +170,7 @@ void BuildChain(const uint256& root, int height, const unsigned int invalid_rate
 
     threads.join_all();
     while (GetMainSignals().CallbacksPending() > 0) {
-        MilliSleep(100);
+        UninterruptibleSleep(std::chrono::milliseconds{100});
     }
 
     UnregisterValidationInterface(&sub);
