@@ -1,4 +1,4 @@
-]  dnl require autoconf 2.69 (AS_ECHO/AS_ECHO_N)
+dnl require autoconf 2.69 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.69])
 define(_CLIENT_VERSION_MAJOR, 7)
 define(_CLIENT_VERSION_MINOR, 1)
@@ -1422,7 +1422,7 @@ fi
 
 AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with-bignum=no], [--enable-module-recovery], [--enable-experimental], [--enable-module-ecdh]])
 
-ac_configure_args="${ac_configure_args} --disable-unittests  --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc"
+ac_configure_args="${ac_configure_args} --disable-unittests  --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc --disable-gcc-hardening"
 AC_CONFIG_SUBDIRS([src/tor])
 dnl you can add --with-openssl-dir to the above autoconfigure args if you want to use a specific openssl dir to compile tor from
 AC_OUTPUT
