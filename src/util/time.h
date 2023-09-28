@@ -9,6 +9,9 @@
 
 #include <stdint.h>
 #include <string>
+#include <chrono>
+
+void UninterruptibleSleep(const std::chrono::microseconds& n);
 
 /**
  * GetTimeMicros() and GetTimeMillis() both return the system time, but in
@@ -26,7 +29,6 @@ int64_t GetTimeMicros();
 int64_t GetSystemTimeInSeconds(); // Like GetTime(), but not mockable
 void SetMockTime(int64_t nMockTimeIn);
 int64_t GetMockTime();
-void MilliSleep(int64_t n);
 
 /**
  * ISO 8601 formatting is preferred. Use the FormatISO8601{DateTime,Date,Time}
