@@ -4,13 +4,14 @@
   <img src="https://img.shields.io/badge/status-stable-green.svg">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg">
   <a href="https://codecov.io/gh/vergecurrency/VERGE">
-    <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/master/graph/badge.svg" />
+  <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/master/graph/badge.svg" />
   </a>
   <a href="https://github.com/vergecurrency/VERGE/releases">
-    <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vergecurrency/VERGE/total?style=social">
+  <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vergecurrency/VERGE/total?style=social">
   </a>
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
   <img alt="Discord" src="https://img.shields.io/discord/325024453065179137">
+  <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/vergecurrency/verge">
 </p>
 
 # VERGE Source Code [XVG]
