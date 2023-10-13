@@ -12,6 +12,7 @@
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
   <img alt="Discord" src="https://img.shields.io/discord/325024453065179137">
   <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/vergecurrency/verge">
+  <img alt="X (formerly Twitter) Follow" src="https://img.shields.io/twitter/follow/vergecurrency">
 </p>
 
 # VERGE Source Code [XVG]
