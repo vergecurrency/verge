@@ -6,8 +6,8 @@
   <a href="https://codecov.io/gh/vergecurrency/VERGE">
   <img src="https://codecov.io/gh/vergecurrency/VERGE/branch/master/graph/badge.svg" />
   </a>
-  <a href="https://github.com/vergecurrency/VERGE/releases">
-  <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vergecurrency/VERGE/total?style=social">
+  <a href=https://github.com/vergecurrency/verge/releases/latest">
+  <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/vergecurrency/verge/total?logo=GitHub">
   </a>
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
   <img alt="Discord" src="https://img.shields.io/discord/325024453065179137">
