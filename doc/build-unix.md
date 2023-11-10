@@ -100,7 +100,7 @@ make
 make install
 ```
 
-in Ubuntu 22, a break will occur in the atomic header, this patch will fix it:
+in Ubuntu 20 & 22, a break will occur in the atomic header during compile, this patch will fix it:
 ```
 sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' ~/db-4.8.30.NC/dbinc/atomic.h
 ```
