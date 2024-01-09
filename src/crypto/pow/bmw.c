@@ -33,6 +33,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -702,6 +703,8 @@ bmw32_close(sph_bmw_small_context *sc, unsigned ub, unsigned n,
 	sph_enc32le_aligned(buf + (sizeof sc->buf) - 4,
 		SPH_T32(sc->bit_count_high));
 #endif
+fflush(stdout);
+
 	compress_small(buf, h, h2);
 	for (u = 0; u < 16; u ++)
 		sph_enc32le_aligned(buf + 4 * u, h2[u]);
