@@ -1,4 +1,4 @@
-name: '[NO WALLET] Ubuntu 18.04.'
+name: '[NO WALLET] Ubuntu 22.04.'
 
 on: [push]
 
