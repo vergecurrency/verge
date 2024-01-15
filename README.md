@@ -15,10 +15,11 @@
  <img alt="X (formerly Twitter) Follow VergeCurrency!" src="https://img.shields.io/twitter/follow/vergecurrency?logo=twitter&logoColor=teal&labelColor=black&color=black">
 </p>
 <p align="center">
-[![[FULL] Ubuntu 22.04.](https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu.yml/badge.svg)](https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu.yml)
-[![[NO WALLET] Ubuntu 22.04.](https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu-no-wallet.yml/badge.svg)](https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu-no-wallet.yml)
-# VERGE Source Code [XVG]
+<a href="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu.yml/badge.svg"></a>
+<a href="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu-no-wallet.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu-no-wallet.yml/badge.svg"></a>
 </p>
+# VERGE Source Code [XVG]
+
 
 ## Specifications
 Specification | Value
