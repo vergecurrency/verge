@@ -26,11 +26,11 @@ Specification | Value
 Protocol | PoW (proof of Work)
 Algorithms | scrypt, x17, Lyra2rev2, myr-groestl, & blake2s
 Blocktime | 30 seconds
-Total Supply | 16,500,000,000 XVG
+Total Supply | 16,521,951,238 XVG (Complete!)
 RPC port | 20102 (testnet: 21102)
 P2P port | 21102 (testnet: 21104)
-pre-mine | N/A
-ICO | N/A
+pre-mine | Not Applicable
+ICO | Not Applicable
 
 ## Blockrewards
 Block Number Range | Reward
@@ -54,9 +54,10 @@ Block Number Range | Reward
 
 ## Resources
 
-* [Blockchain Explorer](https://verge-blockchain.info/)
-* [Blockchain Explorer Testnet](https://testnet.verge-blockchain.info/)
-* [Mining Pool List](https://vergecurrency.com/community/xvg-mining-pools/)
+* [Blockchain Explorer](https://verge-blockchain.info/)https://verge-blockchain.info/
+* [Blockchain Explorer Testnet](https://testnet.verge-blockchain.info/)https://testnet.verge-blockchain.info/
+* [Blockchain Explorer](https://xvgblockexplorer.com/)https://xvgblockexplorer.com/
+* [Mining Pool List](https://vergecurrency.com/community/xvg-mining-pools/) (needs updating)
 * [Black Paper](https://vergecurrency.com/static/blackpaper/verge-blackpaper-v5.0.pdf)
 
 ### Community
