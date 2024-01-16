@@ -1,4 +1,4 @@
-name: 'Ubuntu 22.04. [Daemon Only/No GUI]'
+name: '[Daemon Only/No GUI] - Ubuntu 22.04'
 
 on: [push]
 
