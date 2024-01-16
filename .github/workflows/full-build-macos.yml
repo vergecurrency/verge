@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v1
 
       - name: Brew install base dependencies
-        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc openssl pkg-config protobuf python libevent qrencode librsvg
+        run: brew install automake berkeley-db4 libtool boost@1.76 libboost-all-dev@1.76 miniupnpc openssl pkg-config protobuf python libevent qrencode librsvg
 
       - name: Auto generate
         run: ./autogen.sh
