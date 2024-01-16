@@ -10,13 +10,13 @@ jobs:
       - uses: actions/checkout@v1
 
       - name: Brew install base dependencies
-        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc openssl pkg-config protobuf python qt libevent qrencode librsvg
+        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc openssl pkg-config protobuf python qt@5.9.9 libevent qrencode librsvg
 
       - name: Auto generate
         run: ./autogen.sh
 
       - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: make
         run: make -j4
