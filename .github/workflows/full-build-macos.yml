@@ -26,8 +26,4 @@ jobs:
 
       - name: make check
         run: make check -j4
-
-      - name: make deploy
-        run: make deploy -j4
-
         
