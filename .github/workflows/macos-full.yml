@@ -1,0 +1,28 @@
+ame: '[Full Build] MacOs'
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Brew install base dependencies
+        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qtr@5 openssl pkg-config protobuf python libevent qrencode librsvg
+
+      - name: Brew link dependencies
+        run: brew link boost@1.76
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
+
+      - name: make check
+        run: make check -j4
