@@ -19,7 +19,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: make
         run: make -j4
