@@ -15,6 +15,9 @@ jobs:
       - name: Brew link dependencies
         run: brew link boost@1.76 qt@5 berkeley-db4
 
+      - name: Brew doctor
+        run: brew doctor
+
       - name: Auto generate
         run: ./autogen.sh
 
