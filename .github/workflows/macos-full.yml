@@ -13,7 +13,7 @@ jobs:
         run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config protobuf@3 python libevent qrencode librsvg
 
       - name: Brew link dependencies
-        run: brew link boost@1.76
+        run: brew link boost@1.76 protobuf@3 qt@5 berkeley-db4
 
       - name: Auto generate
         run: ./autogen.sh
