@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v1
 
       - name: Brew install base dependencies
-        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config python libevent qrencode librsvg && brew tap paulirish/homebrew-versions-1 && brew install protobuf260
+        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config python libevent qrencode librsvg && brew tap paulirish/homebrew-versions-1 && brew install paulirish/homebrew-versions-1/protobuf260
 
       - name: Brew link dependencies
         run: brew link boost@1.76 qt@5 berkeley-db4
