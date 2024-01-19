@@ -9,6 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - name: git config credential.helper
+        run: git config credential.helper
+
       - name: Brew install base dependencies
         run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config python libevent qrencode librsvg && brew tap justinvforvendetta/protobuf261 && brew install protobuf261
 
