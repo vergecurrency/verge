@@ -15,6 +15,9 @@
 </p>
 <p align="center">
 <a href="https://github.com/vergecurrency/verge/actions/workflows/ubuntu-deamon-only.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/ubuntu-deamon-only.yml/badge.svg?branch=master"></a>
+<a href="https://github.com/vergecurrency/verge/actions/workflows/full-build-test-ubuntu.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/full-build-test-ubuntu.yml/badge.svg?branch=master"></a>
+<a href="https://github.com/vergecurrency/verge/actions/workflows/full-build-macos.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/full-build-macos.yml/badge.svg?branch=master"></a>
+<a href="https://github.com/vergecurrency/verge/actions/workflows/macos-full.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/macos-full.yml/badge.svg?branch=master">
 </p>
 # VERGE Source Code [XVG]
 
