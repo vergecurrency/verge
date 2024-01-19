@@ -14,8 +14,7 @@
  <img alt="X (formerly Twitter) Follow VergeCurrency!" src="https://img.shields.io/twitter/follow/vergecurrency?logo=twitter&logoColor=teal&labelColor=black&color=black">
 </p>
 <p align="center">
-<a href="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu.yml/badge.svg"></a>
-<a href="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu-no-wallet.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/build-test-ubuntu-no-wallet.yml/badge.svg"></a>
+<a href="https://github.com/vergecurrency/verge/actions/workflows/ubuntu-deamon-only.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/ubuntu-deamon-only.yml/badge.svg?branch=master"></a>
 </p>
 # VERGE Source Code [XVG]
 
