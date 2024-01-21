@@ -36,10 +36,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          release_name: "Verge Build release ${{ github.event.inputs.release }}"
-          tag_name: ${{ github.event.inputs.release }}
-          draft: true
-          prerelease: false
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: Pre Release - ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: true
       - name: Upload Release Asset
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
