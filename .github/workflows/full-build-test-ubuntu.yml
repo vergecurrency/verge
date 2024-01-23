@@ -30,23 +30,5 @@ jobs:
       - name: make check
         run: make check -j4
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v7.3.0
-          release_name: Pre Release - ${{ env.RELEASE_VERSION }}
-          draft: true
-          prerelease: true
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./linux.zip
-          asset_name: linux-verge.zip
-          asset_content_type: application/zip
+      - name: zip binaries
+        run: zip verge-linux.zip verged verge-cli verge-tx ./qt/verge-qt 
