@@ -34,4 +34,4 @@ jobs:
         run: make deploy
 
       - name: zip .dmg
-        run: zip verge-macos.zip /Users/runner/work/verge/verge/verge-qt.temp.dmg
+        run: zip verge-macos.zip /Users/runner/work/verge/verge/verge-qt.dmg
