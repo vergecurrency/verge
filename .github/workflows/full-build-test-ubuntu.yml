@@ -31,4 +31,4 @@ jobs:
         run: make check -j4
 
       - name: zip binaries
-        run: zip verge-linux.zip verged verge-cli verge-tx ./qt/verge-qt 
+        run: zip verge-linux.zip ./src/verged ./src/verge-cli ./src/verge-tx ./src/qt/verge-qt 
