@@ -1,0 +1,28 @@
+name: '[Full Build - Windows Cross Compile] '
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git g++-mingw-w64-x86-64 bison byacc python3 nsis
+
+      - name: Build depends for MingW32 Cross Compile
+        run: cd depends/ && make HOST=x86_64-w64-mingw32
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+
+      - name: make
+        run: make -j4
