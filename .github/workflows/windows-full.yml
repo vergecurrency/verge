@@ -29,3 +29,6 @@ jobs:
 
       - name: make
         run: make -j2
+
+      - name: zip up GUI Wallet and CLI utils
+        run: zip verge-windows.zip verged.exe verge-cli.exe verge-tx.exe /qt/verge-qt.exe
