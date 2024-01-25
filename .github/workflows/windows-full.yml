@@ -31,4 +31,4 @@ jobs:
         run: make -j2
 
       - name: zip up GUI Wallet and CLI utils
-        run: zip verge-windows.zip verged.exe verge-cli.exe verge-tx.exe /qt/verge-qt.exe
+        run: zip verge-windows.zip /home/runner/work/verge/verge/src/verged.exe /home/runner/work/verge/verge/src/verge-cli.exe /home/runner/work/verge/verge/src/verge-tx.exe /home/runner/work/verge/verge/src/qt/verge-qt.exe
