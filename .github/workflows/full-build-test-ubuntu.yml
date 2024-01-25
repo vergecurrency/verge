@@ -1,4 +1,4 @@
-name: '[Full Build - Daemon\Qt GUI] Ubuntu 22.04.'
+name: '[Full Build - Ubuntu 22.04]'
 
 on: [push]
 
