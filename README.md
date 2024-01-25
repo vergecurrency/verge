@@ -14,10 +14,9 @@
  <img alt="X (formerly Twitter) Follow VergeCurrency!" src="https://img.shields.io/twitter/follow/vergecurrency?logo=twitter&logoColor=teal&labelColor=black&color=black">
 </p>
 <p align="center">
-<a href="https://github.com/vergecurrency/verge/actions/workflows/ubuntu-deamon-only.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/ubuntu-deamon-only.yml/badge.svg?branch=master"></a><br>
 <a href="https://github.com/vergecurrency/verge/actions/workflows/full-build-test-ubuntu.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/full-build-test-ubuntu.yml/badge.svg?branch=master"></a><br>
-<a href="https://github.com/vergecurrency/verge/actions/workflows/full-build-macos.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/full-build-macos.yml/badge.svg?branch=master"></a><br>
 <a href="https://github.com/vergecurrency/verge/actions/workflows/macos-full.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/macos-full.yml/badge.svg?branch=master"><br>
+<a href="https://github.com/vergecurrency/verge/actions/workflows/windows-full.yml"><img src="https://github.com/vergecurrency/verge/actions/workflows/windows-full.yml/badge.svg?branch=master"><br>
 </p>
 # VERGE Source Code [XVG]
 
