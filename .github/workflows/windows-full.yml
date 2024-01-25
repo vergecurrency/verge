@@ -13,10 +13,10 @@ jobs:
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git g++-mingw-w64-x86-64 bison byacc python3 nsis
+        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git g++-mingw-w64-x86-64 bison byacc python3 nsis && sudo update-alternatives --config x86_64-w64-mingw32-g++
 
       - name: Build depends for MingW32 Cross Compile
-        run: cd depends/ && make HOST=x86_64-w64-mingw32
+        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=x86_64-w64-mingw32
 
       - name: Auto generate
         run: ./autogen.sh
