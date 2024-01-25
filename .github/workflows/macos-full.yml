@@ -1,4 +1,4 @@
-name: '[Full Build] MacOs'
+name: '[Full Build - MacOS]'
 
 on: [push]
 
