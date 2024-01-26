@@ -36,25 +36,20 @@ jobs:
       - name: zip .dmg
         run: zip verge-macos.zip /Users/runner/work/verge/verge/verge-qt.dmg
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Build & test"
+        run: |
+          echo "done!"
+      
+      - name: get SHA
+        run: echo ${{ github.sha }} > Release.txt
+        
+      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          tag_name: v${{ github.ref }}
-          release_name: v{{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: upload release asset
-        if: ${{ github.event_name == 'release'}}
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./verge-macos.zip
-          asset_name: verge-macos.zip
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            Release.txt
+            *.zip
           asset_content_type: application/zip
