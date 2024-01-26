@@ -3,7 +3,7 @@ name: '[Full Build - Linux, Windows, MacOS]'
 on: [push]
 
 jobs:
-  build:
+  macos:
     runs-on: macos-latest
 
     steps:
@@ -38,8 +38,19 @@ jobs:
       
       - name: get SHA
         run: echo ${{ github.sha }} > Release.txt
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: "${{ github.event.release.tag_name }}"
+          files: |
+            Release.txt
+            *.zip
+          asset_content_type: application/zip
   
-  build2:
+  linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -72,7 +83,18 @@ jobs:
       - name: get SHA
         run: echo ${{ github.sha }} > Release.txt
 
-  build3:
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: "${{ github.event.release.tag_name }}"
+          files: |
+            Release.txt
+            *.zip
+          asset_content_type: application/zip
+
+  windows:
     runs-on: ubuntu-latest
 
     steps:
@@ -104,5 +126,16 @@ jobs:
 
       - name: get SHA
         run: echo ${{ github.sha }} > Release.txt
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: "${{ github.event.release.tag_name }}"
+          files: |
+            Release.txt
+            *.zip
+          asset_content_type: application/zip
 
     
