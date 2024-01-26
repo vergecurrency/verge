@@ -39,7 +39,6 @@ jobs:
       - name: get SHA
         run: echo ${{ github.sha }} > Release.txt
 
-  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -72,7 +71,6 @@ jobs:
       - name: get SHA
         run: echo ${{ github.sha }} > Release.txt
 
-  build:
     runs-on: ubuntu-latest
 
     steps:
