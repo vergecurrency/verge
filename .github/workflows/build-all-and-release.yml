@@ -126,14 +126,11 @@ jobs:
             *.txt
             *.zip
 
-    push_artifacts_release:
-      runs-on: ubuntu-latest          
-
-      - name: upload linux artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
+              - name: upload linux artifact
+                uses: actions/upload-release-asset@v1
+                env:
+                GITHUB_TOKEN: ${{ github.token }}
+                  with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./verge-linux.zip
           asset_name: verge-linux.zip
@@ -147,12 +144,12 @@ jobs:
           asset_path: ./verge-macos.zip
           asset_name: verge-macos.zip
           asset_content_type: application/zip
-        - name: upload windows artifact
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ github.token }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: ./verge-windows.zip
-            asset_name: verge-windows.zip
-            asset_content_type: application/zip
+      - name: upload windows artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./verge-windows.zip
+          asset_name: verge-windows.zip
+          asset_content_type: application/zip
