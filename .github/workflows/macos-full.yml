@@ -32,24 +32,3 @@ jobs:
 
       - name: make .dmg
         run: make deploy
-
-      - name: zip .dmg
-        run: zip verge-macos.zip /Users/runner/work/verge/verge/verge-qt.dmg
-
-      - name: "Build & test"
-        run: |
-          echo "done!"
-      
-      - name: get SHA
-        run: echo ${{ github.sha }} > Release.txt
-        
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: false
-          title: "${{ github.event.release.tag_name }}"
-          files: |
-            Release.txt
-            *.zip
-          asset_content_type: application/zip
