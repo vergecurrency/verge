@@ -126,7 +126,7 @@ jobs:
             *.txt
             *.zip
 
-release:
+  release:
     runs-on: ubuntu-latest
 
     steps:
