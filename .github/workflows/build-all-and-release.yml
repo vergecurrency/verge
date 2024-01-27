@@ -45,17 +45,6 @@ jobs:
           path: |
             *.txt
             *.zip
-
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "${{ github.event.release.tag_name }}"
-          files: |
-            Release.txt
-            *.zip
-          asset_content_type: application/zip
   
   linux:
     runs-on: ubuntu-latest
@@ -97,17 +86,6 @@ jobs:
             *.txt
             *.zip
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "${{ github.event.release.tag_name }}"
-          files: |
-            Release.txt
-            *.zip
-          asset_content_type: application/zip
-
   windows:
     runs-on: ubuntu-latest
 
@@ -147,17 +125,6 @@ jobs:
           path: |
             *.txt
             *.zip
-
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "${{ github.event.release.tag_name }}"
-          files: |
-            Release.txt
-            *.zip
-          asset_content_type: application/zip
 
   push_artifacts_release:
     runs-on: ubuntu-latest          
