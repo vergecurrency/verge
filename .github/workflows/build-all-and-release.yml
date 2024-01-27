@@ -90,6 +90,13 @@ jobs:
       - name: get SHA
         run: echo ${{ github.sha }} > Release.txt
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-linux
+          path: |
+            *.txt
+            *.zip
+
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -133,6 +140,13 @@ jobs:
 
       - name: get SHA
         run: echo ${{ github.sha }} > Release.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-windows
+          path: |
+            *.txt
+            *.zip
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
