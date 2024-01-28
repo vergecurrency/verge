@@ -150,6 +150,7 @@ jobs:
       - name: push zips to release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: v7.2.3
           files: |
             verge-macos.zip
             verge-windows.zip
