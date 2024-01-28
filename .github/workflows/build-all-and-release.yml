@@ -146,14 +146,13 @@ jobs:
           draft: false
           prerelease: false
           release_name: ${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref, 'refs/tags/v'}}
+          tag_name: ${{ github.ref }}
           body_path: ${{ github.workspace }}-CHANGELOG.txt
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: push zips to release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: |
             verge-macos.zip
