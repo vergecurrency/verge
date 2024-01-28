@@ -142,10 +142,14 @@ jobs:
           draft: true
           prerelease: false
 
+      - name: download binary .zip artifacts
+        uses: actions/download-artifact@master
+
       - name: Release with Notes
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: v${{ steps.package-version.outputs.version }}
           files: |
             verge-macos.zip
             verge-windows.zip
