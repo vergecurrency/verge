@@ -131,31 +131,23 @@ jobs:
     needs: [macos, linux, windows]
 
     steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: true
-          prerelease: false
 
       - name: download binary .zip artifacts
         uses: actions/download-artifact@master
 
-      - name: Release with Notes
+      - name: Generate Changelog
+        run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
+
+      - name: Release with Changelog
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.package-version.outputs.version }}
+          tag_name: v7.3
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
+          draft: false
           files: |
             verge-macos.zip
             verge-windows.zip
             verge-linux.zip
-            
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-     
-          
