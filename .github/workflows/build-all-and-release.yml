@@ -144,6 +144,7 @@ jobs:
 
       - name: Release with Notes
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             verge-macos.zip
