@@ -142,34 +142,15 @@ jobs:
           draft: true
           prerelease: false
 
-      - name: upload windows artifact
-        uses: actions/upload-release-asset@v1
-        env:
-            GITHUB_TOKEN: ${{ github.token }}
+      - name: Release with Notes
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./verge-windows.zip
-          asset_name: verge-windows.zip
-          asset_content_type: application/zip
-
-      - name: upload macos artifact
-        uses: actions/upload-release-asset@v1
+          files: |
+            verge-macos.zip
+            verge-windows.zip
+            verge-linux.zip
+            
         env:
-            GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./verge-macos.zip
-          asset_name: verge-macos.zip
-          asset_content_type: application/zip
-
-      - name: upload linux artifact
-        uses: actions/upload-release-asset@v1
-        env:
-            GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./verge-linux.zip
-          asset_name: verge-linux.zip
-          asset_content_type: application/zip
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
      
           
