@@ -147,10 +147,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: verge-windows.zip
+          path: verge-windows.zip
+      - uses: actions/download-artifact@v2
+        with:
+          name: verge-macos.zip
+          path: verge-macos.zip
+      - uses: actions/download-artifact@v2
+        with:
+          name: verge-linux.zip
+          path: verge-linux.zip          
+
       - name: push zips to release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v7.2.3
+          tag_name: v7.3.0
           files: |
             ./verge-macos.zip
             ./verge-windows.zip
