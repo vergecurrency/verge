@@ -45,27 +45,6 @@ jobs:
           path: |
             *.txt
             *.zip
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: true
-          prerelease: false
-
-      - name: upload macos artifact
-        uses: actions/upload-release-asset@v1
-        env:
-            GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./verge-macos.zip
-          asset_name: verge-macos.zip
-          asset_content_type: application/zip      
   
   linux:
     runs-on: ubuntu-latest
@@ -107,27 +86,6 @@ jobs:
             *.txt
             *.zip
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: true
-          prerelease: false
-
-      - name: upload linux artifact
-        uses: actions/upload-release-asset@v1
-        env:
-            GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./verge-linux.zip
-          asset_name: verge-linux.zip
-          asset_content_type: application/zip
-
   windows:
     runs-on: ubuntu-latest
 
@@ -168,6 +126,11 @@ jobs:
             *.txt
             *.zip
 
+  SendReleases:
+    runs-on: ubuntu-latest
+    needs: [macos, linux, windows]
+
+    steps:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -188,4 +151,25 @@ jobs:
           asset_path: ./verge-windows.zip
           asset_name: verge-windows.zip
           asset_content_type: application/zip
+
+      - name: upload macos artifact
+        uses: actions/upload-release-asset@v1
+        env:
+            GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./verge-macos.zip
+          asset_name: verge-macos.zip
+          asset_content_type: application/zip
+
+      - name: upload linux artifact
+        uses: actions/upload-release-asset@v1
+        env:
+            GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./verge-linux.zip
+          asset_name: verge-linux.zip
+          asset_content_type: application/zip
+     
           
