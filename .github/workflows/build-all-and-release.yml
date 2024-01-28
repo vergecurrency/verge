@@ -132,21 +132,29 @@ jobs:
 
     steps:
 
-      - name: download binary .zip artifacts
-        uses: actions/download-artifact@master
-
       - name: Generate Changelog
         run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
 
-      - name: Release with Changelog
+      - name: version
+        run: echo "::set-output name=version::${{ github.ref }}"
+        id: version
+        
+      - name: create release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: push zips to release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v7.3
-          body_path: ${{ github.workspace }}-CHANGELOG.txt
-          draft: false
           files: |
             verge-macos.zip
             verge-windows.zip
