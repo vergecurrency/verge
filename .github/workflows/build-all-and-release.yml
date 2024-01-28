@@ -152,6 +152,6 @@ jobs:
         with:
           tag_name: v7.2.3
           files: |
-            verge-macos.zip
-            verge-windows.zip
-            verge-linux.zip
+            ./verge-macos.zip
+            ./verge-windows.zip
+            ./verge-linux.zip
