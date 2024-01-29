@@ -134,37 +134,25 @@ jobs:
 
       - name: Generate Changelog
         run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
-
-      - name: create release
-        uses: actions/create-release@v1
-        id: create_release
-        with:
-          draft: false
-          prerelease: false
-          release_name: v7.3.0
-          tag_name: v7.3.0 
-          body_path: ${{ github.workspace }}-CHANGELOG.txt
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
+        
       - uses: actions/download-artifact@v2
         with:
           name: verge-windows.zip
-          path: ./verge-windows.zip
+          path: ./release-files/verge-windows.zip
       - uses: actions/download-artifact@v2
         with:
           name: verge-macos.zip
-          path: ./verge-macos.zip
+          path: ./release-files/verge-macos.zip
       - uses: actions/download-artifact@v2
         with:
           name: verge-linux.zip
-          path: ./verge-linux.zip          
+          path: ./release-files/verge-linux.zip          
 
       - name: push zips to release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v7.3.0
           files: |
-            verge-macos.zip
-            verge-windows.zip
-            verge-linux.zip
+            ./release-files/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
