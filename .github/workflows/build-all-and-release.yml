@@ -35,15 +35,11 @@ jobs:
 
       - name: zip .dmg
         run: zip verge-macos.zip /Users/runner/work/verge/verge/verge-qt.dmg
-      
-      - name: get SHA
-        run: echo ${{ github.sha }} > Release.txt
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos.zip
           path: |
-            *.txt
             *.zip
   
   linux:
@@ -76,14 +72,10 @@ jobs:
       - name: zip binaries
         run: zip verge-linux.zip ./src/verged ./src/verge-cli ./src/verge-tx ./src/qt/verge-qt 
 
-      - name: get SHA
-        run: echo ${{ github.sha }} > Release.txt
-
       - uses: actions/upload-artifact@v4
         with:
           name: verge-linux.zip
           path: |
-            *.txt
             *.zip
 
   windows:
@@ -116,14 +108,10 @@ jobs:
       - name: zip up GUI Wallet and CLI utils
         run: zip verge-windows.zip /home/runner/work/verge/verge/src/verged.exe /home/runner/work/verge/verge/src/verge-cli.exe /home/runner/work/verge/verge/src/verge-tx.exe /home/runner/work/verge/verge/src/qt/verge-qt.exe
 
-      - name: get SHA
-        run: echo ${{ github.sha }} > Release.txt
-
       - uses: actions/upload-artifact@v4
         with:
           name: verge-windows.zip
           path: |
-            *.txt
             *.zip
 
   SendReleases:
@@ -138,21 +126,21 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: verge-windows.zip
-          path: ./release-files/verge-windows.zip
+          path: ./verge-windows.zip
       - uses: actions/download-artifact@v2
         with:
           name: verge-macos.zip
-          path: ./release-files/verge-macos.zip
+          path: ./verge-macos.zip
       - uses: actions/download-artifact@v2
         with:
           name: verge-linux.zip
-          path: ./release-files/verge-linux.zip          
+          path: ./verge-linux.zip          
 
       - name: push zips to release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v7.3.0
           files: |
-            ./release-files/*
+            *.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
