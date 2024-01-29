@@ -13,7 +13,7 @@
   <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/vergecurrency/verge">
  <img alt="X (formerly Twitter) Follow VergeCurrency!" src="https://img.shields.io/twitter/follow/vergecurrency?logo=twitter&logoColor=teal&labelColor=black&color=black">
 </p>
-<p>
+<p align="center">
   <a href="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml">
   <img src="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml/badge.svg">
   </a>
