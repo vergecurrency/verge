@@ -125,15 +125,15 @@ jobs:
       
       - name: show files
         run: ls 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: verge-windows.zip
           path: verge-windows.zip
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: verge-macos.zip
           path: verge-macos.zip
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: verge-linux.zip
           path: verge-linux.zip
