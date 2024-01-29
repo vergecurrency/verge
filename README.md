@@ -18,10 +18,11 @@
   <img src="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml/badge.svg">
   </a>
 </p>
+
 # VERGE Source Code [XVG]
 
-
 ## Specifications
+
 Specification | Value
 --- | ---
 Protocol | PoW (proof of Work)
