@@ -143,8 +143,8 @@ jobs:
         with:
           tag_name: v7.3.0
           files: |
-            ./home/runner/work/verge/verge/verge-macos.zip
-            ./home/runner/work/verge/verge/verge-linux.zip
-            ./home/runner/work/verge/verge/verge-windows.zip
+            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-windows.zip
+            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-macos.zip
+            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-linux.zip            
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
