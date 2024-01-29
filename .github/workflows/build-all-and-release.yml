@@ -123,8 +123,6 @@ jobs:
       - name: Generate Changelog
         run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
       
-      - name: show files
-        run: ls 
       - uses: actions/download-artifact@v4
         with:
           name: verge-windows.zip
@@ -137,6 +135,8 @@ jobs:
         with:
           name: verge-linux.zip
           path: home/runner/work/verge/verge/verge-linux.zip
+      - name: list files
+        run: ls -la
 
       - name: push zips to release
         uses: softprops/action-gh-release@v1
