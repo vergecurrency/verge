@@ -114,37 +114,34 @@ jobs:
           path: |
             *.zip
 
-  SendReleases:
-    runs-on: ubuntu-latest
-    needs: [macos, linux, windows]
+SendReleases:
+  runs-on: ubuntu-latest
+  needs: [macos, linux, windows]
 
-    steps:
+  steps:
+    - name: Generate Changelog
+      run: echo "# Changelog" > CHANGELOG.txt
+    
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-windows.zip
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-macos.zip
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-linux.zip
 
-      - name: Generate Changelog
-        run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
-      
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-windows.zip
-          path: home/runner/work/verge/verge/verge-windows.zip
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-macos.zip
-          path: home/runner/work/verge/verge/verge-macos.zip
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-linux.zip
-          path: home/runner/work/verge/verge/verge-linux.zip
-      - name: list files
-        run: ls /home/runner/work/verge/verge/
+    - name: list files
+      run: ls
 
-      - name: push zips to release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v7.3.0
-          files: |
-            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-windows.zip/verge-windows.zip
-            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-macos.zip/verge-macos.zip
-            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-linux.zip/verge-linux.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: push zips to release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v7.3.0
+        files: |
+          verge-windows.zip
+          verge-macos.zip
+          verge-linux.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
