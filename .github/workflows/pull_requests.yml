@@ -1,0 +1,87 @@
+on:
+  pull_request:
+    types: [opened, reopened. review_requested]
+jobs:
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: git config credential.helper
+        run: git config credential.helper
+
+      - name: Brew install base dependencies
+        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config python libevent qrencode librsvg && curl -L https://raw.githubusercontent.com/udalov/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+
+      - name: Brew link dependencies
+        run: brew link boost@1.76 qt@5 berkeley-db4
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
+
+      - name: make check
+        run: make check -j4
+
+      - name: make .dmg
+        run: make deploy
+
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+
+      - name: Build depends
+        run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
+
+      - name: make check
+        run: make check -j4
+
+  windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+
+      - name: Force Posix
+        run: sudo apt-get install  g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+
+      - name: Build depends for MingW32 Cross Compile
+        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+
+      - name: make
+        run: make -j2
