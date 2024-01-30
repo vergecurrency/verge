@@ -126,15 +126,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: verge-windows.zip
-          path: home/runner/work/verge/verge/verge-windows.zip
       - uses: actions/download-artifact@v4
         with:
           name: verge-macos.zip
-          path: home/runner/work/verge/verge/verge-macos.zip
       - uses: actions/download-artifact@v4
         with:
           name: verge-linux.zip
-          path: home/runner/work/verge/verge/verge-linux.zip
       - name: list files
         run: ls /home/runner/work/verge/verge/
 
@@ -143,8 +140,8 @@ jobs:
         with:
           tag_name: v7.3.0
           files: |
-            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-windows.zip/verge-windows.zip
-            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-macos.zip/verge-macos.zip
-            /home/runner/work/verge/verge/home/runner/work/verge/verge/verge-linux.zip/verge-linux.zip
+            verge-windows.zip
+            verge-macos.zip
+            verge-linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
