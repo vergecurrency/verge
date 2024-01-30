@@ -1,6 +1,9 @@
 name: '[Full Build - Linux, Windows, MacOS]'
 
-on: [push]
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   macos:
