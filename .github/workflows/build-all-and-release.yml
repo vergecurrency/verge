@@ -109,7 +109,7 @@ jobs:
         run: make -j2
 
       - name: zip up GUI Wallet and CLI utils
-        run: zip verge-windows.zip /home/runner/work/verge/verge/src/verged.exe /home/runner/work/verge/verge/src/verge-cli.exe /home/runner/work/verge/verge/src/verge-tx.exe /home/runner/work/verge/verge/src/qt/verge-qt.exe
+        run: mv /home/runner/work/verge/verge/src/verged.exe ~/ && mv /home/runner/work/verge/verge/src/verge-cli.exe ~/ && mv /home/runner/work/verge/verge/src/verge-tx.exe ~/ && mv /home/runner/work/verge/verge/src/qt/verge-qt.exe ~/ && zip verge-windows.zip verged.exe verge-tx.exe verge-cli.exe verge-qt.exe
 
       - uses: actions/upload-artifact@v4
         with:
