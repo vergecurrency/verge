@@ -31,8 +31,8 @@ jobs:
       - name: make .dmg
         run: make deploy
 
-      - name: move and zip .dmg
-        run: mv /Users/runner/work/verge/verge/verge-qt.dmg ~/ && zip verge-macos.zip ~/verge-qt.dmg
+      - name: zip .dmg
+        run: zip verge-macos.zip verge-qt.dmg
 
       - uses: actions/upload-artifact@v4
         with:
