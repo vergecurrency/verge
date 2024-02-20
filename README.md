@@ -10,7 +10,9 @@
  <img alt="X (formerly Twitter) Follow VergeCurrency!" src="https://img.shields.io/twitter/follow/vergecurrency?logo=twitter&logoColor=teal&labelColor=black&color=black">
 </p>
 <br>
+
 # VERGE Source Code [XVG]
+
 <p align="center">
   <a href="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml">
   <img src="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml/badge.svg">
