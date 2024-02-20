@@ -155,7 +155,7 @@ jobs:
 
   SendReleases:
     runs-on: ubuntu-latest
-    needs: [macos, linux, windows]
+    needs: [macos, linux-ubuntu20, linux-ubuntu22, windows]
 
     steps:
 
