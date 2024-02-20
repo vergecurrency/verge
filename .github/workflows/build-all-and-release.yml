@@ -77,7 +77,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu20
+          name: verge-ubuntu20.zip
           path: |
             *.zip
   
@@ -113,7 +113,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu22
+          name: verge-ubuntu22.zip
           path: |
             *.zip
 
@@ -177,10 +177,11 @@ jobs:
       - name: push zips to release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v7.3.0
+          tag_name: v7.4.0
           files: |
             verge-windows.zip
             verge-macos.zip
-            verge-linux.zip
+            verge-ubuntu20.zip
+            verge-ubuntu22.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
