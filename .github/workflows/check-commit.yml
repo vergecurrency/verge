@@ -11,7 +11,7 @@ jobs:
         run: git config credential.helper
 
       - name: Brew install base dependencies
-        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config python libevent qrencode librsvg && curl -L https://raw.githubusercontent.com/udalov/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config python gperf libevent qrencode librsvg && curl -L https://raw.githubusercontent.com/udalov/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
       - name: Brew link dependencies
         run: brew link boost@1.76 qt@5 berkeley-db4
@@ -50,7 +50,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
 
       - name: Build depends
         run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
@@ -86,7 +86,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
 
       - name: Build depends
         run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
@@ -122,7 +122,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
 
       - name: Force Posix
         run: sudo apt-get install  g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
