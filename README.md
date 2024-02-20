@@ -13,7 +13,7 @@
 
 # VERGE Source Code [XVG]
 
-<p align="center">
+<p align="left">
   <a href="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml">
   <img src="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml/badge.svg">
   </a>
