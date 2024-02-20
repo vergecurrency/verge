@@ -1,8 +1,8 @@
 package=libseccomp
-$(package)_version=2.3.3
+$(package)_version=2.5.5
 $(package)_download_path=https://github.com/seccomp/libseccomp/releases/download/v$($(package)_version)/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=7fc28f4294cc72e61c529bedf97e705c3acf9c479a8f1a3028d4cd2ca9f3b155
+$(package)_sha256_hash=248a2c8a4d9b9858aa6baf52712c34afefcf9c9e94b76dce02c1c9aa25fb3375
 
 ifneq ($(host_os),mingw32)
 ifneq ($(host_os),darwin)

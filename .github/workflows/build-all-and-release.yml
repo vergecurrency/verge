@@ -16,7 +16,7 @@ jobs:
         run: git config credential.helper
 
       - name: Brew install base dependencies
-        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc qt@5 openssl pkg-config python libevent qrencode librsvg && curl -L https://raw.githubusercontent.com/udalov/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+        run: brew install automake berkeley-db4 libtool boost@1.76 miniupnpc gperf qt@5 openssl pkg-config python libevent qrencode librsvg && curl -L https://raw.githubusercontent.com/udalov/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
       - name: Brew link dependencies
         run: brew link boost@1.76 qt@5 berkeley-db4
@@ -45,7 +45,43 @@ jobs:
           path: |
             *.zip
   
-  linux:
+  linux-ubuntu20:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+
+      - name: Build depends
+        run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
+
+      - name: make check
+        run: make check -j4
+
+      - name: zip binaries
+        run: zip verge-ubuntu20.zip ./src/verged ./src/verge-cli ./src/verge-tx ./src/qt/verge-qt 
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-ubuntu20
+          path: |
+            *.zip
+  
+  linux-ubuntu22:
     runs-on: ubuntu-latest
 
     steps:
@@ -55,7 +91,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
 
       - name: Build depends
         run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
@@ -77,7 +113,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-linux.zip
+          name: verge-ubuntu22
           path: |
             *.zip
 
@@ -91,7 +127,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
 
       - name: Force Posix
         run: sudo apt-get install  g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix

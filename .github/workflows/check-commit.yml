@@ -68,11 +68,11 @@ jobs:
         run: make check -j4
 
       - name: zip binaries
-        run: zip verge-linux.zip ./src/verged ./src/verge-cli ./src/verge-tx ./src/qt/verge-qt 
+        run: zip verge-ubuntu22.zip ./src/verged ./src/verge-cli ./src/verge-tx ./src/qt/verge-qt 
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-linux.zip
+          name: verge-ubuntu22
           path: |
             *.zip
             
@@ -108,7 +108,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu20.zip
+          name: verge-ubuntu20
           path: |
             *.zip
 
