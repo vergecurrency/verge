@@ -75,6 +75,42 @@ jobs:
           name: verge-linux.zip
           path: |
             *.zip
+            
+  linux2:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+
+      - name: Build depends
+        run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
+
+      - name: make check
+        run: make check -j4
+
+      - name: zip binaries
+        run: zip verge-ubuntu20.zip ./src/verged ./src/verge-cli ./src/verge-tx ./src/qt/verge-qt 
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-ubuntu20.zip
+          path: |
+            *.zip
 
   windows:
     runs-on: ubuntu-latest
