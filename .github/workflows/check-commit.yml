@@ -36,7 +36,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos.zip
           path: |
             *.zip
 
@@ -72,7 +71,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu22.zip
           path: |
             *.zip
             
@@ -108,7 +106,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu20.zip
           path: |
             *.zip
 
@@ -144,6 +141,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows.zip
           path: |
             *.zip
