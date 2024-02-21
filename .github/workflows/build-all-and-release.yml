@@ -167,9 +167,10 @@ jobs:
           name: verge-macos.zip
       - uses: actions/download-artifact@v4
         with:
-          name: verge-linux.zip
-      - name: list files
-        run: ls /home/runner/work/verge/verge/
+          name: verge-ubuntu20.zip
+      - uses: actions/download-artifact@v4
+        with:
+          name: verge-ubuntu22.zip
 
       - name: push zips to release
         uses: softprops/action-gh-release@v1
