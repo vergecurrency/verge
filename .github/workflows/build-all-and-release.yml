@@ -43,7 +43,7 @@ jobs:
         with:
           name: verge-macos.zip
           path: |
-            *.zip
+            *.dmg
   
   linux-ubuntu20:
     runs-on: ubuntu-20.04
@@ -79,7 +79,10 @@ jobs:
         with:
           name: verge-ubuntu20.zip
           path: |
-            *.zip
+            ./src/verged
+            ./src/verge-cli
+            ./src/verge-tx
+            ./src/qt/verge-qt
   
   linux-ubuntu22:
     runs-on: ubuntu-latest
@@ -115,7 +118,10 @@ jobs:
         with:
           name: verge-ubuntu22.zip
           path: |
-            *.zip
+            ./src/verged
+            ./src/verge-cli
+            ./src/verge-tx
+            ./src/qt/verge-qt
 
   windows:
     runs-on: ubuntu-latest
@@ -151,7 +157,10 @@ jobs:
         with:
           name: verge-windows.zip
           path: |
-            *.zip
+            /home/runner/work/verge/verge/src/verged.exe
+            /home/runner/work/verge/verge/src/verge-cli.exe
+            /home/runner/work/verge/verge/src/verge-tx.exe
+            /home/runner/work/verge/verge/src/qt/verge-qt.exe
 
   SendReleases:
     runs-on: ubuntu-latest
