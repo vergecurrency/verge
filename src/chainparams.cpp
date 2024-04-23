@@ -147,7 +147,6 @@ vSeeds.emplace_back("smfr5dlxtpo5jkjoyxdmxrbgrzgeofrmjy6kdypybjojdkuelhk3cxid.on
 vSeeds.emplace_back("jahwfwbbdlschhhdkvyuwagotbo67kn6uo5ch6bxx5emnaomjet545yd.onion"); //v7
 vSeeds.emplace_back("fs6zqnig2st24grcjdeqdvgjisohdj6itwxwqyymv7m6lku2itotczid.onion"); //v7
 vSeeds.emplace_back("u4ora7mgtiu5anddbviowcsotal6rb4e5q5wtd2s7m6cwrb5m7bdezyd.onion"); //v7
-vSeeds.emplace_back("zvbevhqr33jaz67zx4mj2xqa4uqcitlwi2egmfnmjaozbxohsqppzhqd.onion"); //v7
 vSeeds.emplace_back("k4ifangn54eqtj2si7lmj4hfujej5xtd5rctjhmefq7vcrcsnxhj3ryd.onion"); //v7
 vSeeds.emplace_back("6sbjtp23eya6zx2wyirq2nzexey254mgbtx2h3avc2q2vmasnkczs6id.onion"); //v7
 vSeeds.emplace_back("3cpj44g4tj64ern5kz6hv5mupbnrhq6q2dysnpifqqzvl3qynf2bjaad.onion"); //v7
