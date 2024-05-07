@@ -1,8 +1,14 @@
 package=xcb_proto
-$(package)_version=1.16.0
+$(package)_version=1.17.0
 $(package)_download_path=https://xorg.freedesktop.org/archive/individual/proto
-$(package)_file_name=xcb-proto-$($(package)_version).tar.xz
-$(package)_sha256_hash=a75a1848ad2a89a82d841a51be56ce988ff3c63a8d6bf4383ae3219d8d915119
+$(package)_file_name=xcb-proto-$($(package)_version).tar.gz
+$(package)_sha256_hash=392d3c9690f8c8202a68fdb89c16fd55159ab8d65000a6da213f4a1576e97a16
+
+define $(package)_preprocess_cmds
+  find . -type f -name 'Makefile.in' -exec rm {} + && \
+  rm aclocal.m4 configure install-sh missing py-compile && \
+  autoreconf -fi
+endef
 
 define $(package)_config_cmds
   $($(package)_autoconf)
