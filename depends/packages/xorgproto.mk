@@ -1,4 +1,4 @@
-package=xorgproto
+package=xproto
 $(package)_version=7.0.31
 $(package)_download_path=http://xorg.freedesktop.org/releases/individual/proto
 $(package)_file_name=$(package)-$($(package)_version).tar.bz2
