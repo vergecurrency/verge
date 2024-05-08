@@ -12,7 +12,6 @@ define $(package)_set_vars
 endef
 
 define $(package)_preprocess_cmds
-  patch -p1 < $($(package)_patch_dir)/patch-malloc-zero-check.patch &&\
   cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub .
 endef
 
