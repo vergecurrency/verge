@@ -3,7 +3,7 @@ $(package)_version=1.3.4
 $(package)_download_path=http://xorg.freedesktop.org/releases/individual/lib/
 $(package)_file_name=$(package)-$($(package)_version).tar.bz2
 $(package)_sha256_hash=59ad6fcce98deaecc14d39a672cf218ca37aba617c9a0f691cac3bcd28edf82b
-$(package)_dependencies=xproto xextproto libX11 libXau
+$(package)_dependencies=xorgproto xextproto libX11 libXau
 $(package)_patches=patch-malloc-zero-check.patch
 
 define $(package)_set_vars
