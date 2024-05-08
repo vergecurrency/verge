@@ -1,8 +1,8 @@
 package=libXext
-$(package)_version=1.3.4
+$(package)_version=1.3.6
 $(package)_download_path=http://xorg.freedesktop.org/releases/individual/lib/
-$(package)_file_name=$(package)-$($(package)_version).tar.bz2
-$(package)_sha256_hash=59ad6fcce98deaecc14d39a672cf218ca37aba617c9a0f691cac3bcd28edf82b
+$(package)_file_name=$(package)-$($(package)_version).tar.gz
+$(package)_sha256_hash=1A0AC5CD792A55D5D465CED8DBF403ED016C8E6D14380C0EA3646C4415496E3D
 $(package)_dependencies=xorgproto xextproto libX11 libXau
 $(package)_patches=patch-malloc-zero-check.patch
 
