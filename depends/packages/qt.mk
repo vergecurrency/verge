@@ -25,7 +25,7 @@ $(package)_config_opts_debug = -debug
 $(package)_config_opts += -bindir $(build_prefix)/bin
 $(package)_config_opts += -c++std c++11
 $(package)_config_opts += -confirm-license
-$(package)_config_opts += -dbus-linked
+$(package)_config_opts += -dbus-runtime
 $(package)_config_opts += -hostprefix $(build_prefix)
 $(package)_config_opts += -no-compile-examples
 $(package)_config_opts += -no-cups
@@ -87,6 +87,7 @@ $(package)_config_opts += -no-feature-wizard
 $(package)_config_opts += -no-feature-xml
 
 ifneq ($(build_os),darwin)
+$(package)_config_opts_darwin = -no-dbus
 $(package)_config_opts_darwin = -xplatform macx-clang-linux
 $(package)_config_opts_darwin += -device-option MAC_SDK_PATH=$(OSX_SDK)
 $(package)_config_opts_darwin += -device-option MAC_SDK_VERSION=$(OSX_SDK_VERSION)
@@ -102,6 +103,8 @@ $(package)_config_opts_linux += -system-freetype
 $(package)_config_opts_linux += -no-feature-sessionmanager
 $(package)_config_opts_linux += -fontconfig
 $(package)_config_opts_linux += -no-opengl
+$(package)_config_opts_linux += -dbus-linked
+
 $(package)_config_opts_arm_linux += -platform linux-g++ -xplatform bitcoin-linux-g++
 $(package)_config_opts_i686_linux  = -xplatform linux-g++-32
 $(package)_config_opts_x86_64_linux = -xplatform linux-g++-64
@@ -111,6 +114,40 @@ $(package)_config_opts_mingw32  = -no-opengl -xplatform win32-g++ -device-option
 $(package)_build_env  = QT_RCC_TEST=1
 $(package)_build_env += QT_RCC_SOURCE_DATE_OVERRIDE=1
 endef
+
+$(package)_config_opts_mingw32 = -no-opengl
+$(package)_config_opts_mingw32 += -no-dbus
+$(package)_config_opts_mingw32 += -no-freetype
+$(package)_config_opts_mingw32 += -xplatform win32-g++
+$(package)_config_opts_mingw32 += "QMAKE_CFLAGS = '$($(package)_cflags) $($(package)_cppflags)'"
+$(package)_config_opts_mingw32 += "QMAKE_CXX = '$($(package)_cxx)'"
+$(package)_config_opts_mingw32 += "QMAKE_CXXFLAGS = '$($(package)_cxxflags) $($(package)_cppflags)'"
+$(package)_config_opts_mingw32 += "QMAKE_LINK = '$($(package)_cxx)'"
+$(package)_config_opts_mingw32 += "QMAKE_LFLAGS = '$($(package)_ldflags)'"
+$(package)_config_opts_mingw32 += "QMAKE_LIB = '$($(package)_ar) rc'"
+$(package)_config_opts_mingw32 += -device-option CROSS_COMPILE="$(host)-"
+$(package)_config_opts_mingw32 += -pch
+ifneq ($(LTO),)
+$(package)_config_opts_mingw32 += -ltcg
+endif
+
+$(package)_config_opts_android = -xplatform android-clang
+$(package)_config_opts_android += -android-sdk $(ANDROID_SDK)
+$(package)_config_opts_android += -android-ndk $(ANDROID_NDK)
+$(package)_config_opts_android += -android-ndk-platform android-$(ANDROID_API_LEVEL)
+$(package)_config_opts_android += -egl
+$(package)_config_opts_android += -no-dbus
+$(package)_config_opts_android += -opengl es2
+$(package)_config_opts_android += -qt-freetype
+$(package)_config_opts_android += -no-fontconfig
+$(package)_config_opts_android += -L $(host_prefix)/lib
+$(package)_config_opts_android += -I $(host_prefix)/include
+$(package)_config_opts_android += -pch
+$(package)_config_opts_android += -no-feature-vulkan
+
+$(package)_config_opts_aarch64_android += -android-arch arm64-v8a
+$(package)_config_opts_armv7a_android += -android-arch armeabi-v7a
+$(package)_config_opts_x86_64_android += -android-arch x86_64
 
 define $(package)_fetch_cmds
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_download_file),$($(package)_file_name),$($(package)_sha256_hash)) && \
