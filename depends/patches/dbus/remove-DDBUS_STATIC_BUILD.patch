@@ -1,0 +1,10 @@
+diff --git a/dbus-1.pc.in b/dbus-1.pc.in
+index 3581be6e..ef422589 100644
+--- a/dbus-1.pc.in
++++ b/dbus-1.pc.in
+@@ -18,4 +18,4 @@ Description: Free desktop message bus
+ Version: @VERSION@
+ Libs: -L${libdir} -ldbus-1
+ Libs.private: @LIBDBUS_LIBS@
+-Cflags: -I${includedir}/dbus-1.0 -I${libdir}/dbus-1.0/include @DBUS_STATIC_BUILD_CPPFLAGS@
++Cflags: -I${includedir}/dbus-1.0 -I${libdir}/dbus-1.0/include
