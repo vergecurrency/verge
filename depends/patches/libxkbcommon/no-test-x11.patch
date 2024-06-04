@@ -1,0 +1,39 @@
+diff --git a/meson.build b/meson.build
+index 2de4ee9..57c1038 100644
+--- a/meson.build
++++ b/meson.build
+@@ -768,20 +768,6 @@ test(
+         dependencies: test_dep),
+     env: test_env,
+ )
+-if get_option('enable-x11')
+-    test(
+-        'x11',
+-        executable('test-x11', 'test/x11.c', dependencies: x11_test_dep),
+-        env: test_env,
+-        is_parallel : false,
+-    )
+-    test(
+-        'x11comp',
+-        executable('test-x11comp', 'test/x11comp.c', dependencies: x11_test_dep),
+-        env: test_env,
+-        is_parallel : false,
+-    )
+-endif
+ if get_option('enable-xkbregistry')
+     test(
+         'registry',
+@@ -866,13 +852,6 @@ benchmark(
+     executable('bench-atom', 'bench/atom.c', dependencies: test_dep),
+     env: bench_env,
+ )
+-if get_option('enable-x11')
+-  benchmark(
+-      'x11',
+-      executable('bench-x11', 'bench/x11.c', dependencies: x11_test_dep),
+-      env: bench_env,
+-  )
+-endif
+ 
+ 
+ # Documentation.
