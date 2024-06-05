@@ -1,7 +1,7 @@
 package=libX11
 $(package)_version=1.8.9
 $(package)_download_path=http://xorg.freedesktop.org/releases/individual/lib/
-$(package)_file_name=$(package)-$($(package)_version).tar.bz2
+$(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=57CA5F07D263788AD661A86F4139412E8B699662E6B60C20F1F028C25A935E48
 $(package)_dependencies=libxcb xtrans xextproto xorgproto
 $(package)_patches=patch-malloc-zero-check.patch
