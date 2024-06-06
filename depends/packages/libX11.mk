@@ -4,7 +4,6 @@ $(package)_download_path=http://xorg.freedesktop.org/releases/individual/lib/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=57CA5F07D263788AD661A86F4139412E8B699662E6B60C20F1F028C25A935E48
 $(package)_dependencies=libxcb xtrans xextproto xorgproto
-$(package)_patches=patch-malloc-zero-check.patch
 
 define $(package)_set_vars
 $(package)_config_opts_arm_linux_gnueabihf += --host=arm-linux-gnueabihf --build=x86_64-linux-gnu 
@@ -14,7 +13,6 @@ $(package)_config_opts_linux=--with-pic
 endef
 
 define $(package)_preprocess_cmds
-  patch -p1 < $($(package)_patch_dir)/patch-malloc-zero-check.patch &&\
   cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub .
 endef
 
