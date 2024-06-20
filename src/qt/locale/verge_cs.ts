@@ -922,7 +922,7 @@
         <translation>Nedávné transakce ještě nemusí být vidět, takže stav tvého účtu nemusí být platný. Jakmile se však tvá peněženka dosynchronizuje s vergeovou sítí (viz informace níže), tak už bude stav správně.</translation>
     </message>
     <message>
-        <source>Attempting to spend VERGE that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend VERGE from transactions that are not confirmed yet, will not be accepted by the network.</source>
         <translation>Utrácení vergeů, které už utratily zatím nezobrazené transakce, nebude vergeovou sítí umožněno.</translation>
     </message>
     <message>

@@ -914,7 +914,7 @@
         <translation>Giao dịch gần đây có thể chưa được hiển thị, và vì vậy số dư wallet của bạn có thể không dúng. Thông tin này sẽ được làm đúng khi wallet hoàn thành đồng bộ với VERGE network, như chi tiết bên dưới.</translation>
     </message>
     <message>
-        <source>Attempting to spend VERGE that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend VERGE from transactions that are not confirmed yet, will not be accepted by the network.</source>
         <translation>Cố gắng spend các VERGE bị ảnh hưởng bởi các giao dịch chưa được hiển thị sẽ không được chấp nhận bởi mạng.</translation>
     </message>
     <message>

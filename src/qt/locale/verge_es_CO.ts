@@ -761,7 +761,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Es posible que las transacciones recientes aún no estén visibles y, por lo tanto, el saldo de su billetera podría ser incorrecto. Esta información será correcta una vez que su billetera haya terminado de sincronizarse con la red verge, como se detalla a continuación.</translation>
     </message>
     <message>
-        <source>Attempting to spend VERGE that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend VERGE from transactions that are not confirmed yet, will not be accepted by the network.</source>
         <translation>La red no aceptará intentar gastar VERGE que se vean afectados por transacciones aún no mostradas</translation>
     </message>
     <message>

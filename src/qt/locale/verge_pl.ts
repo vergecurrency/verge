@@ -918,7 +918,7 @@
         <translation>Świeże transakcje mogą nie być jeszcze widoczne, a zatem saldo portfela może być nieprawidłowe. Te detale będą poprawne, gdy portfel zakończy synchronizację z siecią verge, zgodnie z poniższym opisem.</translation>
     </message>
     <message>
-        <source>Attempting to spend VERGE that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend VERGE from transactions that are not confirmed yet, will not be accepted by the network.</source>
         <translation>Próba wydania vergeów które nie są jeszcze wyświetlone jako transakcja zostanie odrzucona przez sieć. </translation>
     </message>
     <message>

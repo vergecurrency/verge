@@ -922,7 +922,7 @@
         <translation>Neueste Transaktionen werden eventuell noch nicht angezeigt, daher könnte Ihr Kontostand veraltet sein. Er wird korrigiert, sobald Ihr Wallet die Synchronisation mit dem VERGE-Netzwerk erfolgreich abgeschlossen hat. Details dazu finden sich weiter unten.</translation>
     </message>
     <message>
-        <source>Attempting to spend VERGE that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend VERGE from transactions that are not confirmed yet, will not be accepted by the network.</source>
         <translation>Versuche, VERGEs aus noch nicht angezeigten Transaktionen auszugeben, werden vom Netzwerk nicht akzeptiert.</translation>
     </message>
     <message>

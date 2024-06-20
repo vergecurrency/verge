@@ -922,7 +922,7 @@
         <translation>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronising with the VERGE network, as detailed below.</translation>
     </message>
     <message>
-        <source>Attempting to spend VERGE that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend VERGE from transactions that are not confirmed yet, will not be accepted by the network.</source>
         <translation>Attempting to spend VERGEs that are affected by not-yet-displayed transactions will not be accepted by the network.</translation>
     </message>
     <message>
