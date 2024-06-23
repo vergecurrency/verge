@@ -115,25 +115,25 @@ Alihkan fail data ke dalam tab semasa</translation>
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Dialog frasa laluan</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>memasukkan frasa laluan</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Frasa laluan baru</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Ulangi frasa laluan baru</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Memasukkan frasa laluan baru kepada dompet.&lt;br/&gt;Sila mengunakkan frasa laluan yang&lt;b&gt;mengandungi 10 atau lebih aksara rawak&lt;/b&gt;,ataupun&lt;b&gt;lapan atau lebih perkataan.&lt;/b&gt;</translation>
     </message>
     <message>
@@ -141,7 +141,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Dompet encrypt</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Operasi ini perlukan frasa laluan dompet anda untuk membuka kunci dompet.</translation>
     </message>
     <message>
@@ -149,7 +149,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Membuka kunci dompet</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Operasi ini memerlukan frasa laluan dompet anda untuk menyahsulit dompet.</translation>
     </message>
     <message>
@@ -157,11 +157,11 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Menyahsulit dompet</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Menukar frasa laluan</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Memasukkan frasa laluan lama dan frasa laluan baru untuk.</translation>
     </message>
     <message>
@@ -169,7 +169,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Mengesahkan enkripsi dompet</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Amaran: Jika anda enkripkan dompet anda dan hilangkan frasa laluan, anda akan &lt;b&gt;ANDA AKAN HILANGKAN SEMUA VERGE ANDA&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -197,7 +197,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Enkripsi dompet gagal kerana ralat dalaman. Dompet anda tidak dienkripkan.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Frasa laluan yang dibekalkan tidak sepadan.</translation>
     </message>
     <message>
@@ -205,7 +205,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Pembukaan kunci dompet gagal</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Frasa laluan dimasukki untuk dekripsi dompet adalah tidak betul.</translation>
     </message>
     <message>
@@ -213,7 +213,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Dekripsi dompet gagal</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Frasa laluan dompet berjaya ditukar.</translation>
     </message>
     <message>
@@ -303,7 +303,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>&amp;Dompet Sandaran...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Menukar frasa-laluan</translation>
     </message>
     <message>
@@ -347,7 +347,7 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Wallet sandaran ke lokasi lain</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Tukar kata laluan untuk dompet disulitkan</translation>
     </message>
     <message>

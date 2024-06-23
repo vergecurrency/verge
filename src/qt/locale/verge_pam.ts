@@ -38,22 +38,22 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
-        <translation>Dialogo ning Passphrase</translation>
+        <source>Password Dialog</source>
+        <translation>Dialogo ning Password</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
-        <translation>Mamalub kang passphrase</translation>
+        <source>Enter password</source>
+        <translation>Mamalub kang password</translation>
     </message>
     <message>
-        <source>New passphrase</source>
-        <translation>Panibayung passphrase</translation>
+        <source>New password</source>
+        <translation>Panibayung password</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
-        <translation>Pasibayuan ya ing bayung passphrase</translation>
+        <source>Repeat new password</source>
+        <translation>Pasibayuan ya ing bayung password</translation>
     </message>
     </context>
 <context>
@@ -114,8 +114,8 @@
         <translation>I-&amp;Backup ing Wallet...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
-        <translation>&amp;Alilan ing Passphrase...</translation>
+        <source>&amp;Change Password...</source>
+        <translation>&amp;Alilan ing Password...</translation>
     </message>
     <message>
         <source>&amp;Receiving addresses...</source>
@@ -130,8 +130,8 @@
         <translation>I-backup ing wallet king aliwang lugal</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
-        <translation>Alilan ya ing passphrase a gagamitan para king wallet encryption</translation>
+        <source>Change the password used for wallet encryption</source>
+        <translation>Alilan ya ing password a gagamitan para king wallet encryption</translation>
     </message>
     <message>
         <source>&amp;Debug window</source>

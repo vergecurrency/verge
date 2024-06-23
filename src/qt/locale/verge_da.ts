@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Adgangskodedialog</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Indtast adgangskode</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Ny adgangskode</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Gentag ny adgangskode</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Vis adgangskode</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Indtast det nye kodeord til tegnebogen.&lt;br/&gt;Brug venligst et kodeord på &lt;b&gt;ti eller flere tilfældige tegn&lt;/b&gt; eller &lt;b&gt;otte eller flere ord&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Kryptér tegnebog</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Denne funktion har brug for din tegnebogs adgangskode for at låse tegnebogen op.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Lås tegnebog op</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Denne funktion har brug for din tegnebogs adgangskode for at dekryptere tegnebogen.</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>Dekryptér tegnebog</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Skift adgangskode</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Indtast den gamle adgangskode og en ny adgangskode til tegnebogen.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>Bekræft tegnebogskryptering</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Advarsel: Hvis du krypterer din tegnebog og mister din adgangskode, vil du &lt;b&gt;MISTE ALLE DINE VERGES&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Tegnebogskryptering mislykkedes på grund af en intern fejl. Din tegnebog blev ikke krypteret.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>De angivne adgangskoder stemmer ikke overens.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Tegnebogsoplåsning mislykkedes</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Den angivne adgangskode for tegnebogsdekrypteringen er forkert.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>Tegnebogsdekryptering mislykkedes</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Tegnebogens adgangskode blev ændret.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>&amp;Sikkerhedskopiér tegnebog…</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Skift adgangskode…</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>Lav sikkerhedskopi af tegnebogen til et andet sted</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Skift adgangskode anvendt til tegnebogskryptering</translation>
     </message>
     <message>

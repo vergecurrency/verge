@@ -63,21 +63,21 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>पासफ्रेज संवाद</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>पासफ्रेज प्रवेश गर्नुहोस्</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>नयाँ पासफ्रेज</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>नयाँ पासफ्रेज दोहोर्याउनुहोस्</translation>
     </message>
     </context>
@@ -163,7 +163,7 @@
         <translation>&amp;amp;वालेटलाई ब्याकअप गर्नुहोस्...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;amp;पासफ्रेज परिवर्तन गर्नुहोस्...</translation>
     </message>
     <message>
@@ -191,7 +191,7 @@
         <translation>वालेटलाई अर्को ठेगानामा ब्याकअप गर्नुहोस्</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>वालेट इन्क्रिप्सनमा प्रयोग हुने इन्क्रिप्सन पासफ्रेज परिवर्तन गर्नुहोस्</translation>
     </message>
     <message>

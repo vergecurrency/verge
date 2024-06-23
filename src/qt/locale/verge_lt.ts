@@ -50,21 +50,21 @@
     </message>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Slaptafrazės dialogas</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Įvesti slaptafrazę</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nauja slaptafrazė</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Pakartokite naują slaptafrazę</translation>
     </message>
     </context>
@@ -142,7 +142,7 @@
         <translation>&amp;Backup piniginę...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Keisti slaptafrazę...</translation>
     </message>
     <message>
@@ -170,7 +170,7 @@
         <translation>Daryti piniginės atsarginę kopiją</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Pakeisti slaptafrazę naudojamą piniginės užšifravimui</translation>
     </message>
     <message>

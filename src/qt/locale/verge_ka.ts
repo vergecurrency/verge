@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>ფრაზა-პაროლის დიალოგი</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>შეიყვანეთ ფრაზა-პაროლი</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>ახალი ფრაზა-პაროლი</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>გაიმეორეთ ახალი ფრაზა-პაროლი</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>აკრიფეთ ახალი პასფრაზა საფულისათვის.&lt;br/&gt; გამოიყენეთ &lt;b&gt;ათი ან მეტი შემთხვევითი სიმბოლოსაგან &lt;/b&gt;, ან &lt;b&gt;რვა ან მეტი სიტყვისაგან&lt;/b&gt; შემდგარი პასფრაზა.</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>საფულის დაშიფრვა</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>ამ ოპერაციის შესასრულებლად საჭიროა თქვენი საფულის განბლოკვა პასფრაზით.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>საფულის განბლოკვა</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>ამ ოპერაციის შესასრულებლად საჭიროა თქვენი საფულის განშიფრვა პასფრაზით.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>საფულის განბლოკვა</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>პაროლის შეცვლა</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>აკრიფეთ ძველი და ახალი პასფრაზები საფულისათვის.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>საფულის დაშიფრვის დადასტურება</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>გაფრთხილება: თუ თქვენ დაშიფრავთ თქვენს საფულეს და ამის შემდეგ დაკარგავთ გასაშიფრ ფრაზას, &lt;b&gt;თქვენ დაკარგავთ ყველა ბიტკოინს!&lt;/b&gt;</translation>
     </message>
     <message>
@@ -266,7 +266,7 @@
         <translation>საფულის &amp;არქივირება</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>ფრაზა-პაროლის შე&amp;ცვლა</translation>
     </message>
     <message>
@@ -294,7 +294,7 @@
         <translation>საფულის არქივირება სხვა ადგილზე</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>საფულის დაშიფრვის ფრაზა-პაროლის შეცვლა</translation>
     </message>
     <message>

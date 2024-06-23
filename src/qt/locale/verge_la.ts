@@ -30,21 +30,21 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Dialogus Tesserae</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Insere tesseram</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nova tessera</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Itera novam tesseram</translation>
     </message>
     </context>
@@ -106,7 +106,7 @@
         <translation>&amp;Conserva Cassidile...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Muta tesseram...</translation>
     </message>
     <message>
@@ -122,7 +122,7 @@
         <translation>Conserva cassidile in locum alium</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Muta tesseram utam pro cassidilis cifrando</translation>
     </message>
     <message>

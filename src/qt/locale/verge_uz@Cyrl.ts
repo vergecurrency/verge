@@ -46,21 +46,21 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Махфий сўз ойнаси</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Махфий сузни киритинг</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Янги махфий суз</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Янги махфий сузни такрорланг</translation>
     </message>
     </context>
@@ -126,7 +126,7 @@
         <translation>Ҳамённи &amp;заҳиралаш...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Махфий сўзни &amp;ўзгартириш...</translation>
     </message>
     <message>
@@ -154,7 +154,7 @@
         <translation>Ҳамённи бошқа манзилга заҳиралаш</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Паролни ўзгартириш ҳамённи кодлашда фойдаланилади</translation>
     </message>
     <message>

@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Fenêtre de dialogue de la phrase de passe</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Saisir la phrase de passe</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nouvelle phrase de passe</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Répéter la phrase de passe</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Afficher le mot de passe</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Saisissez la nouvelle phrase de passe du porte-monnaie.&lt;br/&gt;Veuillez utiliser une phrase de passe composée de &lt;b&gt;dix caractères aléatoires ou plus&lt;/b&gt;, ou de &lt;b&gt;huit mots ou plus&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Chiffrer le porte-monnaie</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Cette opération nécessite votre phrase de passe pour déverrouiller le porte-monnaie.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Déverrouiller le porte-monnaie</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Cette opération nécessite votre phrase de passe pour déchiffrer le porte-monnaie.</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>Déchiffrer le porte-monnaie</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Changer la phrase de passe</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Saisir l’ancienne puis la nouvelle phrase de passe du porte-monnaie.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>Confirmer le chiffrement du porte-monnaie</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Avertissement : si vous chiffrez votre porte-monnaie et perdez votre phrase de passe, vous &lt;b&gt;PERDREZ TOUS VOS VERGES&lt;/b&gt; !</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Le chiffrement du porte-monnaie a échoué en raison d’une erreur interne. Votre porte-monnaie n’a pas été chiffré.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Les phrases de passe saisies ne correspondent pas.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Échec de déverrouillage du porte-monnaie</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>La phrase de passe saisie pour déchiffrer le porte-monnaie était erronée.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>Échec de déchiffrement du porte-monnaie</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>La phrase de passe du porte-monnaie a été modifiée avec succès.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>Sauvegarder le &amp;porte-monnaie...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Changer la phrase de passe...</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>Sauvegarder le porte-monnaie vers un autre emplacement</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Modifier la phrase de passe utilisée pour le chiffrement du porte-monnaie</translation>
     </message>
     <message>

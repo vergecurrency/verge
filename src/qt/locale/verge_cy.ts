@@ -110,25 +110,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Deialog Cyfrinair</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Teipiwch gyfrinymadrodd</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Cyfrinymadrodd newydd</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Ailadroddwch gyfrinymadrodd newydd</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Ysgrifennwch y cyfrinair newydd i'r waled. &lt;br/&gt; Os gwelwch yn dda, defnyddiwch gyfrinair &lt;b&gt; deg neu fwy o gymeriadau ar hap &lt;/b&gt; , neu &lt;b&gt; wyth neu fwy o eiriau &lt;/b&gt; .</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Amgryptio'r Waled</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Mae'r weithred hon angen eich cyfrinair waled i ddatgloi'r waled.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Datgloi'r waled</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Mae'r weithred hon angen eich cyfrinair waled i ddatgryptio'r waled.</translation>
     </message>
     <message>
@@ -152,11 +152,11 @@
         <translation>Datgryptio waled</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Newid cyfrinair</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Ysgrifennwch yr hen gyfrinair a chyfrinair newydd y waled.</translation>
     </message>
     <message>
@@ -164,7 +164,7 @@
         <translation>Cadarnhau amgryptio'r waled</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Rhybudd: Os ydych yn amgryptio'r waled ag yn colli'r cyfrinair, byddwch yn &lt;b&gt; COLLI EICH VERGES I GYD &lt;b&gt; !</translation>
     </message>
     <message>
@@ -192,7 +192,7 @@
         <translation>Amgryptio waled wedi methu oherwydd gwall mewnol. Dydi eich waled heb amgryptio.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Nid ydi'r cyfrineiriau a gyflenwyd yn cyfateb.</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Dadgloi waled wedi methu</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Mae'r cyfrinair ysgrifennwyd ar gyfer datgryptio'r waled yn anghywir.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Amgryptio waled wedi methu</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Newid cyfrinair waled yn llwyddiannus. </translation>
     </message>
     <message>
@@ -298,7 +298,7 @@
         <translation>&amp;Backup Waled...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Newid cyfrinymadrodd...</translation>
     </message>
     <message>
@@ -342,7 +342,7 @@
         <translation>Bacio fyny'r waled i leoliad arall</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Newid y cyfrinair ddefnyddiwyd ar gyfer amgryptio'r waled</translation>
     </message>
     <message>

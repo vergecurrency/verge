@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Tunnuslauseen tekstinsyöttökenttä</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Kirjoita tunnuslause</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Uusi tunnuslause</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Toista uusi tunnuslause</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Näytä salasana</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Kirjoita uusi salauslause lompakolle.&lt;br/&gt;Käytä salauslausetta jossa on joko&lt;b&gt;kymmenen tai useampi satunnainen merkki&lt;/b&gt;, tai&lt;b&gt;vähintään kahdeksan sanaa&lt;/b&gt;</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Salaa lompakko</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Tämä toiminto vaatii lompakkosi tunnuslauseen sen avaamiseksi</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Avaa lompakko</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Tämä toiminto vaatii lompakkosia tunnuslauseen salauksen purkuun</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>Pura lompakon salaus</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Vaihda salasana</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Syötä vanha ja uusi tunnuslause lompakolle.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>Vahvista lompakon salaaminen</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Varoitus: Jos salaat lompakkosi ja menetät tunnuslauseesi, &lt;b&gt;MENETÄT KAIKKI VERGEISI&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Lompakon salaaminen epäonnistui sisäisen virheen vuoksi. Lompakkoasi ei salattu.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Annetut salauslauseet eivät täsmää.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Lompakon lukituksen avaaminen epäonnistui</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Annettu salauslause lompakon avaamiseksi oli väärä.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>Lompakon salauksen purkaminen epäonnistui</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Lompakon salasana vaihdettiin onnistuneesti.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>&amp;Varmuuskopioi Lompakko...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Vaihda Tunnuslause...</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>Varmuuskopioi lompakko toiseen sijaintiin</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Vaihda lompakon salaukseen käytettävä tunnuslause</translation>
     </message>
     <message>

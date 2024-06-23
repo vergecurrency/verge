@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>حوار جملة السر</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>ادخل كلمة المرور</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>كلمة مرور جديدة</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>اعد كتابة كلمة السر</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>إعرض كلمة السر</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>أدخل عبارة مرور جديدة إلى المحفظة. الرجاء استخدام عبارة مرور تتكون من10 حروف عشوائية على الاقل, أو ثمانية كلمات على الاقل.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>تشفير المحفظة</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>هذه العملية تحتاج كلمة مرور محفظتك لفتحها</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>إفتح المحفظة</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>هذه العملية تحتاج كلمة مرور محفظتك لفك تشفيرها </translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>فك تشفير المحفظة</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>تغيير كلمة المرور</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>أدخل كلمة المرور القديمة والجديدة للمحفظة.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>تأكيد تشفير المحفظة</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>تحذير: إذا قمت بتشفير محفظتك وفقدت كلمة المرور الخاص بك, ستفقد كل عملات VERGES الخاصة بك.</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>فشل تشفير المحفظة بسبب خطأ داخلي. لم يتم تشفير محفظتك.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>كلمتي المرور ليستا متطابقتان</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>فشل فتح المحفظة</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>كلمة المرور التي تم إدخالها لفك تشفير المحفظة غير صحيحة.</translation>
     </message>
     <message>
@@ -212,7 +212,7 @@
         <translation>فشل   فك التشفير المحفظة</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>لقد تم تغير عبارة مرور المحفظة بنجاح</translation>
     </message>
     <message>
@@ -302,7 +302,7 @@
         <translation>&amp;نسخ احتياط للمحفظة</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;تغيير كلمة المرور</translation>
     </message>
     <message>
@@ -342,7 +342,7 @@
         <translation>احفظ نسخة احتياطية للمحفظة في مكان آخر</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>تغيير كلمة المرور المستخدمة لتشفير المحفظة</translation>
     </message>
     <message>

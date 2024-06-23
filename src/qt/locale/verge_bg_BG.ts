@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Диалог за пропуск</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Въведи парола</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Нова парола</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Повтори парола</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Криптирай портфейл</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Тази операция изисква вашата парола на портфейла за отключването на портфейла.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Отключи портфейла</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Тази операция изисква вашата парола на портфейла за декриптирането на портфейла.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Декриптирай портфейл</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Промени парола</translation>
     </message>
     <message>
@@ -258,7 +258,7 @@
         <translation>Направи резервно копие на портфейла...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Промени паролата...</translation>
     </message>
     <message>

@@ -54,17 +54,17 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>पहचान शब्द/अक्षर डालिए !</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>नया पहचान शब्द/अक्षर डालिए !</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>दोबारा नया पहचान शब्द/अक्षर डालिए !</translation>
     </message>
     </context>
@@ -111,7 +111,7 @@
         <translation>&amp;बैकप वॉलेट</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>पहचान शब्द/अक्षर जो वॉलेट एनक्रिपशन के लिए इस्तेमाल किया है उसे बदलिए!</translation>
     </message>
     <message>

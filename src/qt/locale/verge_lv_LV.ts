@@ -78,21 +78,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Paroles dialogs</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Ierakstiet paroli</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Jauna parole</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Jaunā parole vēlreiz</translation>
     </message>
     <message>
@@ -182,7 +182,7 @@
         <translation>&amp;Maciņa Rezerves Kopija...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Mainīt &amp;Paroli...</translation>
     </message>
     <message>
@@ -210,7 +210,7 @@
         <translation>Izveidot maciņa rezerves kopiju citur</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Mainīt maciņa šifrēšanas paroli</translation>
     </message>
     <message>

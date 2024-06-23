@@ -66,17 +66,17 @@
     </message>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Унесите лозинку</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Нова лозинка</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Поновите нову лозинку</translation>
     </message>
     </context>
@@ -134,7 +134,7 @@
         <translation>&amp;Backup новчаника</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Промени &amp;лозинку...</translation>
     </message>
     <message>
@@ -142,7 +142,7 @@
         <translation>Пошаљите новац на VERGE адресу</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Мењање лозинке којом се шифрује новчаник</translation>
     </message>
     <message>

@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>パスフレーズ ダイアログ</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>パスフレーズを入力</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>新しいパスフレーズ</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>新しいパスフレーズをもう一度</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>パスワードを表示</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>ウォレットの新しいパスフレーズを入力してください。&lt;br/&gt;&lt;b&gt;10文字以上のランダムな文字&lt;/b&gt;で構成されたものか、&lt;b&gt;8単語以上の単語&lt;/b&gt;で構成されたパスフレーズを使用してください。</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>ウォレットを暗号化する</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>この操作はウォレットをアンロックするためにパスフレーズが必要です。</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>ウォレットをアンロックする</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>この操作はウォレットの暗号化解除のためにパスフレーズが必要です。</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>ウォレットの暗号化を解除する</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>パスフレーズの変更</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>ウォレットの古いパスフレーズおよび新しいパスフレーズを入力してください。</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>ウォレットの暗号化を確認する</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>警告: もしもあなたのウォレットを暗号化してパスフレーズを失ってしまったなら、&lt;b&gt;あなたの VERGE はすべて失われます&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>内部エラーによりウォレットの暗号化が失敗しました。ウォレットは暗号化されませんでした。</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>パスフレーズが同じではありません。</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>ウォレットのアンロックに失敗しました</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>ウォレットの暗号化解除のパスフレーズが正しくありません。</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>ウォレットの暗号化解除に失敗しました</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>ウォレットのパスフレーズの変更が成功しました。</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>ウォレットのバックアップ... (&amp;B)</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>パスフレーズの変更... (&amp;C)</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>ウォレットを他の場所にバックアップ</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>ウォレット暗号化用パスフレーズの変更</translation>
     </message>
     <message>

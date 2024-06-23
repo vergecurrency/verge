@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Wagwoord Dialoog</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Tik u wagwoord in</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nuwe wagwoord</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Herhaal nuwe wagwoord</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Tik die nuwe wagwoord vir u beursie.&lt;br/&gt;Gerbuik asseblief 'n wagwoord met &lt;b&gt;tien of meer lukrake karakters&lt;/b&gt;, of &lt;b&gt;agt of meer woorde&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>Kodifiseer beursie</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>U het u beursie se wagwoord nodig om toegang tot u beursie te verkry.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>Sluit beursie oop</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>U het u beursie se wagwoord nodig om u beursie se kode te ontsyfer.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>Ontsleutel beursie</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Verander wagwoord</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Tik die ou en die nuwe wagwoorde vir die beursie.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>Bevestig dat die beursie gekodifiseer is</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Waarskuwing: Indien u die beursie kodifiseer en u vergeet u wagwoord &lt;b&gt;VERLOOR U AL U VERGES&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -192,7 +192,7 @@
         <translation>Weens 'n interne fout het kodifikasie het nie geslaag nie.  U beursie is nie gekodifiseer nie</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Die wagwoorde stem nie ooreen nie.</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Die beursie is nie oopgesluit nie</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>U het die verkeerde wagwoord ingetik.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Beursie-dekripsie het misluk</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Beursie wagwoordfrase is suksesvol verander.</translation>
     </message>
     <message>
@@ -298,7 +298,7 @@
         <translation>&amp;Rugsteun-kopie van Beursie</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Verander Wagwoord</translation>
     </message>
     <message>
@@ -338,7 +338,7 @@
         <translation>Maak 'n rugsteun-kopié van beursie na 'n ander stoorplek</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Verander die wagwoord wat ek vir kodifikasie van my beursie gebruik</translation>
     </message>
     <message>

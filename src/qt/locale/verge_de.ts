@@ -114,66 +114,66 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
-        <translation>Passphrasendialog</translation>
+        <source>Password Dialog</source>
+        <translation>Passwordndialog</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
-        <translation>Passphrase eingeben</translation>
+        <source>Enter password</source>
+        <translation>Password eingeben</translation>
     </message>
     <message>
-        <source>New passphrase</source>
-        <translation>Neue Passphrase</translation>
+        <source>New password</source>
+        <translation>Neue Password</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
-        <translation>Neue Passphrase bestätigen</translation>
+        <source>Repeat new password</source>
+        <translation>Neue Password bestätigen</translation>
     </message>
     <message>
         <source>Show password</source>
         <translation>Zeige das Passwort</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Geben Sie die neue Passphrase für die Brieftasche ein.&lt;br&gt;Bitte benutzen Sie eine Passphrase bestehend aus &lt;b&gt;zehn oder mehr zufälligen Zeichen&lt;/b&gt; oder &lt;b&gt;acht oder mehr Wörtern&lt;/b&gt;.</translation>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <translation>Geben Sie die neue Password für die Brieftasche ein.&lt;br&gt;Bitte benutzen Sie eine Password bestehend aus &lt;b&gt;zehn oder mehr zufälligen Zeichen&lt;/b&gt; oder &lt;b&gt;acht oder mehr Wörtern&lt;/b&gt;.</translation>
     </message>
     <message>
         <source>Encrypt wallet</source>
         <translation>Wallet verschlüsseln</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Dieser Vorgang benötigt ihre Passphrase, um die Brieftasche zu entsperren.</translation>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
+        <translation>Dieser Vorgang benötigt ihre Password, um die Brieftasche zu entsperren.</translation>
     </message>
     <message>
         <source>Unlock wallet</source>
         <translation>Wallet entsperren</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Dieser Vorgang benötigt Ihre Passphrase, um die Brieftasche zu entschlüsseln.</translation>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
+        <translation>Dieser Vorgang benötigt Ihre Password, um die Brieftasche zu entschlüsseln.</translation>
     </message>
     <message>
         <source>Decrypt wallet</source>
         <translation>Brieftasche entschlüsseln</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
-        <translation>Passphrase ändern</translation>
+        <source>Change password</source>
+        <translation>Password ändern</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
-        <translation>Geben Sie die alte und neue Brieftschen-Passphrase ein.</translation>
+        <source>Enter the old password and new password to the wallet.</source>
+        <translation>Geben Sie die alte und neue Brieftschen-Password ein.</translation>
     </message>
     <message>
         <source>Confirm wallet encryption</source>
         <translation>Brieftaschen-Verschlüsselung bestätigen</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
-        <translation>Warnung: Wenn Sie Ihre Brieftasche verschlüsseln und Ihre Passphrase verlieren, werden Sie &lt;b&gt;alle Ihre VERGEs verlieren&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <translation>Warnung: Wenn Sie Ihre Brieftasche verschlüsseln und Ihre Password verlieren, werden Sie &lt;b&gt;alle Ihre VERGEs verlieren&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -200,24 +200,24 @@
         <translation>Die Brieftaschen-Verschlüsselung ist aufgrund eines internen Fehlers fehlgeschlagen. Ihre Brieftasche wurde nicht verschlüsselt.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
-        <translation>Die eingegebenen Passphrasen stimmen nicht überein.</translation>
+        <source>The supplied passwords do not match.</source>
+        <translation>Die eingegebenen Passwordn stimmen nicht überein.</translation>
     </message>
     <message>
         <source>Wallet unlock failed</source>
         <translation>Brieftaschen-Entsperrung fehlgeschlagen</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>Die eingegebene Passphrase zur Brieftaschen-Entschlüsselung war nicht korrekt.</translation>
+        <source>The password entered for the wallet decryption was incorrect.</source>
+        <translation>Die eingegebene Password zur Brieftaschen-Entschlüsselung war nicht korrekt.</translation>
     </message>
     <message>
         <source>Wallet decryption failed</source>
         <translation>Brieftaschen-Entschlüsselung fehlgeschlagen</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
-        <translation>Die Brieftaschen-Passphrase wurde erfolgreich geändert.</translation>
+        <source>Wallet password was successfully changed.</source>
+        <translation>Die Brieftaschen-Password wurde erfolgreich geändert.</translation>
     </message>
     <message>
         <source>Warning: The Caps Lock key is on!</source>
@@ -306,8 +306,8 @@
         <translation>Wallet &amp;sichern...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
-        <translation>Passphrase &amp;ändern...</translation>
+        <source>&amp;Change Password...</source>
+        <translation>Password &amp;ändern...</translation>
     </message>
     <message>
         <source>&amp;Sending addresses...</source>
@@ -350,8 +350,8 @@
         <translation>Eine Wallet-Sicherungskopie erstellen und abspeichern</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
-        <translation>Ändert die Passphrase, die für die Wallet-Verschlüsselung benutzt wird</translation>
+        <source>Change the password used for wallet encryption</source>
+        <translation>Ändert die Password, die für die Wallet-Verschlüsselung benutzt wird</translation>
     </message>
     <message>
         <source>&amp;Debug window</source>

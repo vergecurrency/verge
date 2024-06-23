@@ -6,7 +6,7 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     </context>
 <context>
     <name>BanTableModel</name>

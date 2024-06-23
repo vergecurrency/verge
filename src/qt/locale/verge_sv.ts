@@ -115,25 +115,25 @@ Var vänlig och försök igen.</translation>
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Lösenordsdialog</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Ange lösenord</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nytt lösenord</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Upprepa nytt lösenord</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Ange plånbokens nya lösenord. &lt;br/&gt; Använd ett lösenord på &lt;b&gt;tio eller fler slumpmässiga tecken,&lt;/b&gt; eller &lt;b&gt;åtta eller fler ord.&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -141,7 +141,7 @@ Var vänlig och försök igen.</translation>
         <translation>Kryptera plånbok</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Denna operation behöver din plånboks lösenord för att låsa upp plånboken.</translation>
     </message>
     <message>
@@ -149,7 +149,7 @@ Var vänlig och försök igen.</translation>
         <translation>Lås upp plånbok</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Denna operation behöver din plånboks lösenord för att dekryptera plånboken.</translation>
     </message>
     <message>
@@ -157,11 +157,11 @@ Var vänlig och försök igen.</translation>
         <translation>Dekryptera plånbok</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Ändra lösenord</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Ge det gamla lösenordet och det nya lösenordet för plånboken.</translation>
     </message>
     <message>
@@ -169,7 +169,7 @@ Var vänlig och försök igen.</translation>
         <translation>Bekräfta kryptering av plånbok</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>VARNING: Om du krypterar din plånbok och glömmer ditt lösenord, kommer du att &lt;b&gt;FÖRLORA ALLA DINA VERGE&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -197,7 +197,7 @@ Var vänlig och försök igen.</translation>
         <translation>Kryptering av plånbok misslyckades på grund av ett internt fel. Din plånbok blev inte krypterad.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>De angivna lösenorden överensstämmer inte.</translation>
     </message>
     <message>
@@ -205,7 +205,7 @@ Var vänlig och försök igen.</translation>
         <translation>Misslyckades låsa upp plånboken</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Lösenordet för dekryptering av plånboken var felaktig.</translation>
     </message>
     <message>
@@ -213,7 +213,7 @@ Var vänlig och försök igen.</translation>
         <translation>Dekryptering av plånbok misslyckades</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Plånbokens lösenord har ändrats.</translation>
     </message>
     <message>
@@ -303,7 +303,7 @@ Var vänlig och försök igen.</translation>
         <translation>&amp;Säkerhetskopiera plånbok...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Byt lösenord...</translation>
     </message>
     <message>
@@ -347,7 +347,7 @@ Var vänlig och försök igen.</translation>
         <translation>Säkerhetskopiera plånboken till en annan plats</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Byt lösenfras för kryptering av plånbok</translation>
     </message>
     <message>

@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>암호문 대화상자</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>암호 입력하기</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>새로운 암호</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>새로운 암호 재확인</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>비밀번호를 입력하세요</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>지갑에 새로운 비밀문구를 입력하세요.&lt;br/&gt;비밀문구를 &lt;b&gt;열 개 이상의 무작위 글자&lt;/b&gt; 혹은 &lt;b&gt;여덟개 이상의 단어로&lt;b&gt; 정하세요.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>지갑 암호화</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>이 작업을 실행하려면 사용자 지갑의 암호가 필요합니다.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>지갑 잠금해제</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>이 작업은 지갑을 해독하기 위해 사용자 지갑의 암호가 필요합니다.</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>지갑 복호화</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>암호 변경</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>지갑의 기존 암호와 새로운 암호를 입력해주세요.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>지갑 암호화 승인</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>경고: 만약 암호화 된 지갑의 비밀번호를 잃어버릴 경우, &lt;b&gt;모든 비트코인들을 잃어버릴 수 있습니다&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>지갑 암호화는 내부 에러로 인해 실패했습니다.  당신의 지갑은 암호화 되지 않았습니다.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>지정한 암호가 일치하지 않습니다.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>지갑 잠금해제 실패</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>지갑 해독을 위한 암호가 틀렸습니다.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>지갑 복호화 실패</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>지갑 비밀번호가 성공적으로 변경되었습니다.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>지갑 백업(&amp;B)...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>암호문 변경(&amp;C)...</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>지갑을 다른장소에 백업</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>지갑 암호화에 사용되는 암호를 변경합니다</translation>
     </message>
     <message>

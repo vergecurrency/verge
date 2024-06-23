@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Parola Diyaloğu</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Parolayı giriniz</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Yeni parola</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Yeni parolayı tekrarlayınız</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Parolayı göster</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Cüzdan için yeni parolayı giriniz.&lt;br/&gt;Lütfen &lt;b&gt;on ya da daha fazla rastgele karakter&lt;/b&gt; veya &lt;b&gt;sekiz ya da daha fazla kelime&lt;/b&gt; içeren bir parola kullanınız.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Cüzdanı şifrele</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Bu eylem cüzdan kilidini açmak için cüzdan parolanızı gerektirir.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Cüzdan kilidini kaldır</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Bu eylem, cüzdan şifresini çözmek için cüzdan parolanıza ihtiyaç duyuyor.</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>Cüzdanın şifrelemesini aç</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Parola değiştir</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Eski ve yeni parolanızı cüzdana giriniz.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>Cüzdan şifrelemesini onayla</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Uyarı: Eğer cüzdanınızı şifreler ve parolanızı kaybederseniz &lt;b&gt;TÜM BİTCOİNLERİNİZİ KAYBEDECEKSİNİZ&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Dahili bir hata yüzünden cüzdan şifrelemesi başarısız oldu. Cüzdanın şifrelenmedi.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Girilen parolalar birbiriyle eşleşmiyor.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Cüzdan kilidini kaldırma başarısız oldu</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Cüzdan şifresinin açılması için girilen parola yanlıştı.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>Cüzdan şifresinin açılması başarısız oldu</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Cüzdan parolası başarılı bir şekilde değiştirildi.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>&amp;Cüzdanı Yedekle...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Parolayı Değiştir...</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>Cüzdanı diğer bir konumda yedekle</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Cüzdan şifrelemesi için kullanılan parolayı değiştir</translation>
     </message>
     <message>

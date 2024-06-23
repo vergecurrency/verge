@@ -42,17 +42,17 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Sisesta parool</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Uus parool</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Korda uut parooli</translation>
     </message>
     <message>
@@ -64,7 +64,7 @@
         <translation>Dekrüpteeri rahakott</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Muuda parooli</translation>
     </message>
     <message>
@@ -84,7 +84,7 @@
         <translation>Rahakoti krüpteerimine ebaõnnestus sisemise vea tõttu. Sinu rahakotti ei krüpteeritud.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Sisestatud paroolid ei kattu.</translation>
     </message>
     <message>
@@ -96,7 +96,7 @@
         <translation>Rahakoti dekrüpteerimine ebaõnnestus</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Rahakoti parooli vahetus õnnestus.</translation>
     </message>
     </context>

@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Parola Diyaloğu</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Parolayı girin</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Yeni parola</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Yeni parolayı tekrarla</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Yeni parolayı cüzdana girin.&lt;br/&gt;Lütfen &lt;b&gt;on yada daha fazla karakter&lt;/b&gt; veya &lt;b&gt;sekiz yada daha fazla kelime&lt;/b&gt;içeren bir parola kullanın. </translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>Cüzdanı Şifrele</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Bu işlem, cüzdan kilidinizi açmak için parolanıza ihtiyaç duyuyor</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>Cüzdanı Kilitle</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Bu işlem, cüzdan kilidinizi açmak için parolanıza ihtiyaç duyuyor</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>Cüzdanın Şifresini Çöz</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Parolayı değiştir</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Eski ve yeni parolanızı cüzdana girin.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>Cüzdan Şifrelemesini Onaylayın</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Uyarı: Eğer cüzdanınızı şifreleyip parolanızı kaybederseniz (unutursanız) , &lt;b&gt;BÜTÜN VERGE'LERINIZI KAYBEDECEKSINIZ&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -192,7 +192,7 @@
         <translation>Cüzdan şifreleme başarısız oldu</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Girilen parolalar eşleşmiyor.</translation>
     </message>
     <message>

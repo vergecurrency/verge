@@ -46,17 +46,17 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Escriba la contraseña</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nueva contraseña</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Repetir nueva contraseña</translation>
     </message>
     </context>
@@ -106,7 +106,7 @@
         <translation>Respaldar Billetera</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Cambiar contraseña</translation>
     </message>
     <message>
@@ -122,7 +122,7 @@
         <translation>Enviar monedas a una dirección VERGE</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Cambie la clave utilizada para el cifrado del monedero</translation>
     </message>
     <message>

@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>דו־שיח מילת צופן</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>נא להזין מילת צופן</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>מילת צופן חדשה</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>נא לחזור על מילת הצופן החדשה</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>נא להזין את מילת הצופן לארנק.&lt;br/&gt;נא להשתמש במילת צופן המורכבת מ&lt;b&gt;עשרה או יותר תווים אקראיים&lt;/b&gt;, או &lt;b&gt;שמונה מילים ומעלה&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>הצפנת הארנק</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>פעולה זו דורשת את מילת הצופן של הארנק שלך כדי לשחרר את הארנק.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>שחרור הארנק</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>פעולה זו דורשת את מילת הצופן של הארנק שלך כדי לפענח את הארנק.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>פענוח הארנק</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>החלפת מילת הצופן</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>נא להזין את מילת הצופן הישנה וחדשה לארנק</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>אימות הצפנת הארנק</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>אזהרה: איבוד מילת הצופן לאחר הצפנת הארנק עשויה לגרום לכך &lt;b&gt;שכל הביטקוינים שלך יאבדו&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>הצפנת הארנק נכשלה עקב תקלה פנימית. הארנק שלך לא הוצפן.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>מילות הצופן שסופקו אינן תואמות.</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>שחרור האנרק נכשל</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>מילת הצופן שהוזנה לצורך פענוח הארנק שגויה.</translation>
     </message>
     <message>
@@ -212,7 +212,7 @@
         <translation>פענוח הארנק נכשל</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>מילת הצופן של הארנק הוחלפה בהצלחה.</translation>
     </message>
     <message>
@@ -302,7 +302,7 @@
         <translation>&amp;גיבוי הארנק…</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>ה&amp;חלפת מילת הצופן…</translation>
     </message>
     <message>
@@ -346,7 +346,7 @@
         <translation>גיבוי הארנק למיקום אחר</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>החלפת מילת הצופן להצפנת הארנק</translation>
     </message>
     <message>

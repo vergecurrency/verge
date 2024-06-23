@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Změna hesla</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Zadej platné heslo</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Zadej nové heslo</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Totéž heslo ještě jednou</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Zobrazit heslo</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Zadej nové heslo k peněžence.&lt;br/&gt;Použij &lt;b&gt;alespoň deset náhodných znaků&lt;/b&gt; nebo &lt;b&gt;alespoň osm slov&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Zašifruj peněženku</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>K provedení této operace musíš zadat heslo k peněžence, aby se mohla odemknout.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Odemkni peněženku</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>K provedení této operace musíš zadat heslo k peněžence, aby se mohla dešifrovat.</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>Dešifruj peněženku</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Změň heslo</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Zadej staré a nové heslo k peněžence.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>Potvrď zašifrování peněženky</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Upozornění: Pokud si zašifruješ peněženku a ztratíš či zapomeneš heslo, &lt;b&gt;PŘIJDEŠ O VŠECHNY VERGEY&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Zašifrování peněženky selhalo kvůli vnitřní chybě. Tvá peněženka tedy nebyla zašifrována.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Zadaná hesla nejsou shodná.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Nepodařilo se odemknout peněženku</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Nezadal jsi správné heslo pro dešifrování peněženky.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>Nepodařilo se dešifrovat peněženku</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Heslo k peněžence bylo v pořádku změněno.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>&amp;Zazálohuj peněženku...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Změň &amp;heslo...</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>Zazálohuj peněženku na jiné místo</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Změň heslo k šifrování peněženky</translation>
     </message>
     <message>

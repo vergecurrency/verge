@@ -102,29 +102,29 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
-        <translation>Hội thoại Passphrase</translation>
+        <source>Password Dialog</source>
+        <translation>Hội thoại Password</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
-        <translation>Điền passphrase</translation>
+        <source>Enter password</source>
+        <translation>Điền password</translation>
     </message>
     <message>
-        <source>New passphrase</source>
-        <translation>Passphrase mới</translation>
+        <source>New password</source>
+        <translation>Password mới</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
-        <translation>Điền lại passphrase</translation>
+        <source>Repeat new password</source>
+        <translation>Điền lại password</translation>
     </message>
     <message>
         <source>Encrypt wallet</source>
         <translation>Mã hóa ví</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Thao tác này cần cụm từ mật khẩu để mở khóa ví.</translation>
     </message>
     <message>
@@ -132,7 +132,7 @@
         <translation>Mở khóa ví</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Thao tác này cần cụm mật khẩu ví của bạn để giải mã ví.</translation>
     </message>
     <message>
@@ -140,11 +140,11 @@
         <translation>Giải mã ví</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Đổi cụm mật khẩu</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Nhập cụm từ mật khẩu cũ và cụm mật khẩu mới vào ví.</translation>
     </message>
     <message>
@@ -173,7 +173,7 @@
 Ví của bạn chưa được mã hóa.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Cụm mật khẩu được cung cấp không khớp.</translation>
     </message>
     <message>
@@ -181,7 +181,7 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>Mở khóa ví không thành công</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Cụm từ mật mã nhập vào không đúng</translation>
     </message>
     <message>
@@ -189,7 +189,7 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>Giải mã ví không thành công</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Cụm từ mật khẩu mã hóa của ví đã được thay đổi.</translation>
     </message>
     <message>
@@ -279,7 +279,7 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>&amp;Sao lưu ví tiền...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Thay đổi mật khẩu...</translation>
     </message>
     <message>
@@ -323,7 +323,7 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>Sao lưu ví tiền ở vị trí khác</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Thay đổi cụm mật mã dùng cho mã hoá Ví</translation>
     </message>
     <message>

@@ -42,21 +42,21 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Diálogo de contraseña</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Introducir contraseña</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nueva contraseña</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Repita la nueva contraseña</translation>
     </message>
     </context>
@@ -122,7 +122,7 @@
         <translation>Copia de &amp;respaldo del monedero...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Cambiar la contraseña…</translation>
     </message>
     <message>
@@ -150,7 +150,7 @@
         <translation>Copia de seguridad del monedero en otra ubicación</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Cambiar la contraseña utilizada para el cifrado del monedero</translation>
     </message>
     <message>

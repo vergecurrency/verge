@@ -110,21 +110,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Finestra Password</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Inserisci la password</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nuova password</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Ripeti nuova password</translation>
     </message>
     <message>
@@ -132,7 +132,7 @@
         <translation>mostra password</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Inserisci la nuova password per il portafoglio.&lt;br/&gt;Per favore usa una password di &lt;b&gt;dieci o più caratteri casuali&lt;/b&gt;, oppure &lt;b&gt;otto o più parole&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>Cripta portafoglio</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Questa operazione necessita della password del tuo portafoglio per sbloccare il portafoglio.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>Sblocca portafoglio</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Questa operazione necessita della password del tuo portafoglio per decriptare il portafoglio.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>Decripta portafoglio</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Cambia password</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Inserisci la vecchia password e la nuova password per decriptare il portafoglio.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>Conferma criptaggio portafoglio</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Attenzione: Se cripti il tuo portafoglio e perdi la password, &lt;b&gt;PERDERAI TUTTI I TUOI VERGE&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>Criptaggio del portafoglio fallito per un errore interno. Il tuo portafoglio non è stato criptato.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>La password fornite non corrispondono.</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>Sblocco portafoglio fallito</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>La password inserita per decriptare il portafoglio è errata.</translation>
     </message>
     <message>
@@ -212,7 +212,7 @@
         <translation>Decriptaggio portafoglio fallito</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>La password del portafoglio è stata cambiata correttamente.</translation>
     </message>
     <message>
@@ -302,7 +302,7 @@
         <translation>Backup portafoglio</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Cambia Password...</translation>
     </message>
     <message>
@@ -346,7 +346,7 @@
         <translation>Backup del portafoglio in un'altra posizione</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Cambia la password usata per criptare il portafoglio</translation>
     </message>
     <message>

@@ -58,21 +58,21 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>ช่องสำหรับ รหัสผ่าน</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>ใส่รหัสผ่าน</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>รหัสผา่นใหม่</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>กรุณากรอกรหัสผ่านใหม่อีกครั้งหนึ่ง</translation>
     </message>
     </context>
@@ -158,7 +158,7 @@
         <translation>&amp;สำรองกระเป๋าเงิน...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;เปลี่ยนรหัสผ่าน...</translation>
     </message>
     <message>
@@ -186,7 +186,7 @@
         <translation>สำรอง กระเป๋าเงินไปยัง ที่เก็บอื่น</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>เปลี่ยนรหัสผ่านที่ใช้สำหรับการเข้ารหัสกระเป๋าเงิน</translation>
     </message>
     <message>

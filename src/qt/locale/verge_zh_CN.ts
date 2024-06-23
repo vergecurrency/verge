@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>密码对话框</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>输入密码</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>新密码</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>重复新密码</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>输入钱包的新密码。&lt;br/&gt;密码请用&lt;b&gt;10 个以上的随机字符&lt;/b&gt;，或是&lt;b&gt;8 个以上的字词&lt;/b&gt;。</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>加密钱包</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>这个操作需要你的钱包密码来解锁钱包。</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>解锁钱包</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>这个操作需要你的钱包密码来把钱包解密。</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>解密钱包</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>修改密码</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>请输入钱包的旧密码和新密码。</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>确认钱包加密</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>警告: 如果把钱包加密后又忘记密码，你就会从此&lt;b&gt;失去其中所有的比特币了&lt;/b&gt;！</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>因为内部错误导致钱包加密失败。你的钱包还是没加密。</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>提供的密码不一致。</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>钱包解锁失败</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>输入用来解密钱包的密码不正确。</translation>
     </message>
     <message>
@@ -212,7 +212,7 @@
         <translation>钱包解密失败</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>钱包密码修改成功。</translation>
     </message>
     <message>
@@ -302,7 +302,7 @@
         <translation>备份钱包(&amp;B)...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>更改密码(&amp;C)...</translation>
     </message>
     <message>
@@ -346,7 +346,7 @@
         <translation>备份钱包到其他文件夹</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>更改钱包加密口令</translation>
     </message>
     <message>

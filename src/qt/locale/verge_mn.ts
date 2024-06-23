@@ -42,17 +42,17 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Нууц үгийг оруул</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Шинэ нууц үг</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Шинэ нууц үгийг давтана уу</translation>
     </message>
     </context>
@@ -110,7 +110,7 @@
         <translation>&amp;Түрүйвчийг Жоорлох...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Нууц Үгийг Солих...</translation>
     </message>
     <message>
@@ -118,7 +118,7 @@
         <translation>Хүлээн авах хаяг</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Түрүйвчийг цоожлох нууц үгийг солих</translation>
     </message>
     <message>

@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Pasahitzaren dialogoa</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Pasahitza sartu</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Pasahitz berria</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Pasahitz berria errepiikatu</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Diruzorroa enkriptatu</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Diruzorroaren pasahitza behar du eragiketa honek, diruzorroa desblokeatzeko.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Diruzorroa desblokeatu</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Eragiketa honek zure diruzorroaren pasahitza behar du, diruzorroa desenkriptatzeko.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Diruzorroa desenkriptatu</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Pasahitza aldatu</translation>
     </message>
     <message>
@@ -160,7 +160,7 @@
         <translation>Diruorroaren enkriptazioa berretsi</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Abisua: Diruzorroa enkriptatzen baduzu eta zure pasahitza galtzen baduzu, &lt;b&gt;VERGE GUZTIAK GALDUKO DITUZU&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -184,7 +184,7 @@
         <translation>Diruzorroaren enkriptazioak huts egin du barne-akats baten ondorioz. Zure diruzorroa ez da enkriptatu.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Eman dituzun pasahitzak ez datoz bat.</translation>
     </message>
     <message>
@@ -192,7 +192,7 @@
         <translation>Zorroaren desblokeoak huts egin du</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Zorroa desenkriptatzeko sartutako pasahitza okerra da.</translation>
     </message>
     <message>
@@ -250,7 +250,7 @@
         <translation>&amp;Helbideak jasotzen...</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Diruzorroa enkriptatzeko erabilitako pasahitza aldatu</translation>
     </message>
     <message>

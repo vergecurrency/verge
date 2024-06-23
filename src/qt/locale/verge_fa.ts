@@ -110,21 +110,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>پنجرهٔ گذرواژه</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>گذرواژه را وارد کنید</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>گذرواژهٔ جدید</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>تکرار گذرواژهٔ جدید</translation>
     </message>
     <message>
@@ -132,7 +132,7 @@
         <translation>رمزنگاری کیف پول</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>این عملیات نیاز به عبارت کیف پول شما برای بازگشایی کیف پول دارد</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>باز کردن قفل کیف پول</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>این عملیات نیاز به عبارت کیف پول شما برای رمزگشایی کیف پول دارد.</translation>
     </message>
     <message>
@@ -148,11 +148,11 @@
         <translation>رمزگشایی کیف پول</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>تغییر گذرواژه</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>عبارت کهنه و جدید کیف پول را وارد کنید.</translation>
     </message>
     <message>
@@ -184,7 +184,7 @@
         <translation>رمزگشایی کیف پول با شکست مواجه شد</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>گذرواژهٔ کیف پول با موفقیت عوض شد.</translation>
     </message>
     <message>
@@ -274,7 +274,7 @@
         <translation>&amp;پیشتیبان‌گیری از کیف پول...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;تغییر گذرواژه...</translation>
     </message>
     <message>
@@ -314,7 +314,7 @@
         <translation>تهیهٔ پشتیبان از کیف پول در یک مکان دیگر</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>تغییر گذرواژهٔ مورد استفاده در رمزنگاری کیف پول</translation>
     </message>
     <message>

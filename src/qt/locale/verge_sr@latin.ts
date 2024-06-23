@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Dialog pristupne fraze</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Unesi pristupnu frazu</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nova pristupna fraza</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Ponovo unesite pristupnu frazu</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Unesite novu pristupnu frazu u novčanik. &lt;br/&gt;Molimo, koristite pristupnu frazu koja ima &lt;b&gt; deset ili više nasumičnih znakova&lt;/b&gt;, ili &lt;b&gt;osam ili više reči&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>Šifrujte novčanik</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Da biste otključali novčanik potrebno je da unesete svoju pristupnu frazu.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>Otključajte novčanik</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Da biste dešifrovali novčanik, potrebno je da unesete svoju pristupnu frazu.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>Dešifrujte novčanik</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Promenite pristupnu frazu</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Unesite u novčanik staru pristupnu frazu i novu pristupnu frazu.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>Potvrdite šifrovanje novčanika</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Upozorenje: Ako šifrujete svoj novčanik, i potom izgubite svoju pristupnu frazu &lt;b&gt;IZGUBIĆETE SVE SVOJE BITKOINE&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>Enkripcija novčanika nije uspela zbog greške u programu. Vaš novčanik nije enkriptovan.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Unete pristupne fraze nisu tačne.</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>Otključavanje novčanika neuspešno</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Pristupna fraza za dekriptovanje novčanika nije tačna.</translation>
     </message>
     <message>
@@ -212,7 +212,7 @@
         <translation>Dekriptovanje novčanika neuspešno</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Pristupna fraza novčanika je uspešno promenjena.</translation>
     </message>
     <message>
@@ -302,7 +302,7 @@
         <translation>&amp;Rezervna Kopija Novčanika...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Izmeni pristupnu frazu...</translation>
     </message>
     <message>
@@ -346,7 +346,7 @@
         <translation>Napravite rezervnu kopiju novčanika na drugom mestu</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Promenite pristupnu frazu za enkiptovanje novčanika</translation>
     </message>
     <message>

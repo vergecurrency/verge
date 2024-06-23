@@ -42,21 +42,21 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Diálogo de Contrasinal</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Introduce contrasinal</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Novo contrasinal</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Repite novo contrasinal</translation>
     </message>
     </context>
@@ -118,7 +118,7 @@
         <translation>Copia de &amp;Seguridade do Moedeiro...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Cambiar contrasinal...</translation>
     </message>
     <message>
@@ -138,7 +138,7 @@
         <translation>Facer copia de seguridade do moedeiro noutra localización</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Cambiar o contrasinal empregado para a encriptación do moedeiro</translation>
     </message>
     <message>

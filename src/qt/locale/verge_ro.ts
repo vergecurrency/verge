@@ -110,25 +110,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Secventa de cuvinte a parolei</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Introduceti parola</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Noua parolă</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Repetati noua parolă</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Introduceti o parola noua pentru portofel.&lt;br/&gt;Va rugam sa folositi o parola de  &lt;b&gt; zece sau mai multe caractere&lt;/b&gt;, sau &lt;b&gt;mai mult de opt cuvinte&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Incripteaza portofelul</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Această operație cere parola portofelului pentru a debloca portofelul.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Deblochează portofelul</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Aceastea procedură necesită parola partofelului pentru a decripta portofelul</translation>
     </message>
     <message>
@@ -152,11 +152,11 @@
         <translation>Decriptează portofelul</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Schimbă parola</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Introdu parola veche si parola nouă pentru portofel</translation>
     </message>
     <message>
@@ -164,7 +164,7 @@
         <translation>Confirmă criptarea portofelului</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Atenție: Dacă îți criptezi portofelul și uiți parola, îți vei &lt;b&gt; PIERDE TOȚI VERGES&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -180,7 +180,7 @@
         <translation>Criptarea portofelului a eșuat</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Parola furnizată nu se potrivește.</translation>
     </message>
     <message>
@@ -192,7 +192,7 @@
         <translation>Decriptarea portofelului a eșuat</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Parola portofelului a fost schimbată cu succes</translation>
     </message>
     <message>
@@ -266,7 +266,7 @@
         <translation>&amp;Backup portofel</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Schimbă parola...</translation>
     </message>
     <message>
@@ -294,7 +294,7 @@
         <translation>Fă o copie de rezervă a portofelului într-o altă locație</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Schimbă parola folosită pentru criptarea portofelului</translation>
     </message>
     <message>

@@ -86,21 +86,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Vnos gesla</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Vnesite geslo</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Novo geslo</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Ponovite novo geslo</translation>
     </message>
     <message>
@@ -182,7 +182,7 @@
         <translation>Shrani &amp;varnostno kopijo denarnice ...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Spremeni geslo ...</translation>
     </message>
     <message>
@@ -210,7 +210,7 @@
         <translation>Shranite varnostno kopijo svoje denarnice na drugo lokacijo</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Spremenite geslo za šifriranje denarnice</translation>
     </message>
     <message>

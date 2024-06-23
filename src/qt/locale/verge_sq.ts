@@ -98,17 +98,17 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Futni frazkalimin</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Frazkalim i ri</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Përsërisni frazkalimin e ri</translation>
     </message>
     <message>
@@ -116,7 +116,7 @@
         <translation>Kripto portofolin</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Ky veprim ka nevojë per frazkalimin e portofolit tuaj që të ç'kyç portofolin.</translation>
     </message>
     <message>
@@ -124,7 +124,7 @@
         <translation>ç'kyç portofolin.</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Ky veprim kërkon frazkalimin e portofolit tuaj që të dekriptoj portofolin.</translation>
     </message>
     <message>
@@ -132,7 +132,7 @@
         <translation>Dekripto portofolin</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Ndrysho frazkalimin</translation>
     </message>
     <message>
@@ -156,7 +156,7 @@
         <translation>Enkriptimi i portofolit dështoi për shkak të një gabimi të brëndshëm. portofoli juaj nuk u enkriptua.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Frazkalimet e plotësuara nuk përputhen.</translation>
     </message>
     <message>
@@ -164,7 +164,7 @@
         <translation>ç'kyçja e portofolit dështoi</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Frazkalimi i futur për dekriptimin e portofolit nuk ishte i saktë.</translation>
     </message>
     <message>
@@ -210,7 +210,7 @@
         <translation>Duke marr adresen</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Ndrysho frazkalimin e përdorur per enkriptimin e portofolit</translation>
     </message>
     <message>

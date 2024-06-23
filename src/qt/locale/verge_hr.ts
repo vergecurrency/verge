@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Dijalog lozinke</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Unesite lozinku</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nova lozinka</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Ponovite novu lozinku</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Unesite novu lozinku za novčanik. &lt;br/&gt;Molimo Vas da koristite zaporku od &lt;b&gt;deset ili više slučajnih znakova&lt;/b&gt;, ili &lt;b&gt;osam ili više riječi.&lt;/b&gt;</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>Šifriranje novčanika</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Ova operacija treba lozinku vašeg novčanika kako bi se novčanik otključao.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>Otključaj novčanik</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Ova operacija treba lozinku vašeg novčanika kako bi se novčanik dešifrirao.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>Dešifriranje novčanika.</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Promjena lozinke</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Unesite staru i novu lozinku za novčanik.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>Potvrdi šifriranje novčanika</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Upozorenje: Ako šifrirate vaš novčanik i izgubite lozinku, &lt;b&gt;IZGUBIT ĆETE SVE SVOJE VERGEE!&lt;/b&gt;</translation>
     </message>
     <message>
@@ -192,7 +192,7 @@
         <translation>Šifriranje novčanika nije uspjelo zbog interne pogreške. Vaš novčanik nije šifriran.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Priložene lozinke se ne podudaraju.</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Otključavanje novčanika nije uspjelo</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Lozinka za dešifriranje novčanika nije točna.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Dešifriranje novčanika nije uspjelo</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Lozinka novčanika je uspješno promijenjena.</translation>
     </message>
     <message>
@@ -282,7 +282,7 @@
         <translation>Spremi &amp;kopiju novčanika...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Promjena &amp;lozinke...</translation>
     </message>
     <message>
@@ -310,7 +310,7 @@
         <translation>Napravite sigurnosnu kopiju novčanika na drugoj lokaciji</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Promijenite lozinku za šifriranje novčanika</translation>
     </message>
     <message>

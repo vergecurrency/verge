@@ -30,17 +30,17 @@
     <name>AddressTableModel</name>
     </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Құпия сөзді енгізу</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Жаңа құпия сөзі</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Жаңа құпия сөзді қайта енгізу</translation>
     </message>
     </context>
@@ -66,7 +66,7 @@
         <translation>Әмиянды жасыру</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Құпия сөзді өзгерту</translation>
     </message>
     <message>

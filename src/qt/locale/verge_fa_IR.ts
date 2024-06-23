@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>دیالوگ رمزعبور</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>رمز/پَس فرِیز را وارد کنید</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>رمز/پَس فرِیز جدید را وارد کنید</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>رمز/پَس فرِیز را دوباره وارد کنید</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>رمز جدید را در کیف‌پول وارد کنید. &lt;br/&gt;لطفا از رمزی استفاده کنید که&lt;b&gt; حداقل ۱۰ کاراکتر راندوم&lt;/b&gt;یا&lt;b&gt;حداقل ۸ کلمه داشته باشد&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>رمزگذاری کیف پول</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>برای انجام این عملیات، باید رمز کیف‌پول را وارد کنید.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>بازکردن کیف‌پول</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>برای انجام این عملیات، باید رمز کیف‌پول را وارد کنید.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>رمزگشایی کیف پول</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>تغییر رمزعبور</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>رمز قدیمی و جدید کیف پول را وارد کنید.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>تایید رمزگذاری کیف پول</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>اخطار: اگر کیف‌پول خود را رمزگذاری کرده و رمز خود را فراموش کنید، شما &lt;b&gt;تمام بیت‌کوین‌های خود را از دست خواهید داد&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>رمزگذاری به علت خطای داخلی تایید نشد. کیف‌پول شما رمزگذاری نشد.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>رمزهای واردشده تطابق ندارند.</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>خطا در بازکردن کیف‌پول</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>رمز واردشده برای رمزگشایی کیف‌پول اشتباه است.</translation>
     </message>
     <message>
@@ -212,7 +212,7 @@
         <translation>خطا در رمزگشایی کیف‌پول</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>رمز کیف‌پول با موفقیت تغییر یافت.</translation>
     </message>
     <message>
@@ -294,7 +294,7 @@
         <translation>تهیه نسخه پشتیبان از کیف پول</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>تغییر رمز/پَس فرِیز</translation>
     </message>
     <message>
@@ -334,7 +334,7 @@
         <translation>گرفتن نسخه پیشتیبان در آدرسی دیگر</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>رمز عبور مربوط به رمزگذاریِ کیف پول  را تغییر دهید</translation>
     </message>
     <message>

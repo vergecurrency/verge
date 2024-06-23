@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Wachtwoordzindialoog</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Voer wachtwoordzin in</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nieuwe wachtwoordzin</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Herhaal nieuwe wachtwoordzin</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Laat wachtwoord zien</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Voer een nieuw wachtwoord in voor uw portemonnee.&lt;br/&gt;Gebruik een wachtwoord van &lt;b&gt;tien of meer willekeurige karakters&lt;/b&gt;, of &lt;b&gt;acht of meer woorden&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Versleutel portemonnee</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Deze operatie vereist uw portemonneewachtwoord om de portemonnee te openen.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Open portemonnee</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Deze operatie vereist uw portemonneewachtwoord om de portemonnee te ontsleutelen</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>Ontsleutel portemonnee</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Wijzig wachtwoord</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Voer het oude en nieuwe wachtwoord in voor uw portemonnee.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>Bevestig versleuteling van de portemonnee</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Waarschuwing: Als u uw portemonnee versleutelt en uw wachtwoord vergeet, zult u &lt;b&gt;AL UW VERGES VERLIEZEN&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Portemonneeversleuteling mislukt door een interne fout. Uw portemonnee is niet versleuteld.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>De opgegeven wachtwoorden komen niet overeen</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Portemonnee openen mislukt</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Het opgegeven wachtwoord voor de portemonnee-ontsleuteling is niet correct.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>Portemonnee-ontsleuteling mislukt</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Portemonneewachtwoord is met succes gewijzigd.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>&amp;Backup Portemonnee...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Wijzig Wachtwoord</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>Backup portemonnee naar een andere locatie</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Wijzig het wachtwoord voor uw portemonneversleuteling</translation>
     </message>
     <message>

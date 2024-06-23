@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Salafraasi dialoog</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Sisesta salafraas</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Uus salafraas</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Korda salafraasi</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Sisesta uus salafraas rahakotti.&lt;br/&gt;Kasuta salafraasi millles on&lt;b&gt;kümme või rohkem juhuslikku sümbolit&lt;b&gt;,või&lt;b&gt;kaheksa või rohkem sõna&lt;b/&gt;.</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>Krüpteeri rahakott</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Antud operatsioon vajab rahakoti lahtilukustamiseks salafraasi.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>Ava rahakoti lukk</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Antud operatsioon vajab rahakoti dekrüpteerimiseks salafraasi.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>Dekrüpteeri rahakott</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Vaheta salafraasi</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Sisesta vana salafraas ja uus salafraas rahakotti.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>Kinnita rahakoti krüpteerimine.</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Hoiatus:Kui sa krüpteerid oma rahakoti ja kaotad salafraasi, siis sa&lt;b&gt;KAOTAD OMA VERGEID&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -188,7 +188,7 @@
         <translation>Rahakoti krüpteerimine ebaõnnestus sisemise tõrke tõttu. Sinu rahakott ei ole krüpteeritud.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Sisestatud salafraasid ei kattu.</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>Rahakoti lahtilukustamine ebaõnnestus</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Rahakoti dekrüpteerimiseks sisestatud salafraas ei ole õige.</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>Rahakoti dekrüpteerimine ebaõnnestus</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Rahakoti salafraas on edukalt vahetatud.</translation>
     </message>
     <message>
@@ -278,7 +278,7 @@
         <translation>&amp;Varunda Rahakott</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Salafraasi muutmine</translation>
     </message>
     <message>
@@ -298,7 +298,7 @@
         <translation>Varunda rahakott teise asukohta</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Rahakoti krüpteerimise salafraasi muutmine</translation>
     </message>
     <message>

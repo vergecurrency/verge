@@ -114,21 +114,21 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Janela da Frase de Segurança</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Insira a frase de segurança</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nova frase de frase de segurança</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Repita a nova frase de frase de segurança</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Mostrar palavra-passe</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Insira a nova frase de segurança para a carteira. &lt;br/&gt; Por favor, utilize uma frase de segurança de &lt;b&gt;10 ou mais carateres aleatórios,&lt;/b&gt; ou &lt;b&gt;oito ou mais palavras&lt;/b&gt;.</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Encriptar carteira</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Esta operação precisa da sua frase de segurança da carteira para desbloquear a mesma.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Desbloquear carteira</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Esta operação precisa da sua frase de segurança da carteira para desencriptar a mesma.</translation>
     </message>
     <message>
@@ -160,11 +160,11 @@
         <translation>Desencriptar carteira</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Alterar frase de segurança</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Insira a frase de segurança antiga e a nova frase de segurança para a carteira.</translation>
     </message>
     <message>
@@ -172,7 +172,7 @@
         <translation>Confirmar encriptação da carteira</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Aviso: se encriptar a sua carteira e perder a sua frase de segurnça, &lt;b&gt;PERDERÁ TODOS OS SEUS VERGES&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>A encriptação da carteira falhou devido a um erro interno. A carteira não foi encriptada.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>As frases de segurança fornecidas não coincidem.</translation>
     </message>
     <message>
@@ -208,7 +208,7 @@
         <translation>Desbloqueio da carteira falhou</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>A frase de segurança introduzida para a desencriptação da carteira estava incorreta.</translation>
     </message>
     <message>
@@ -216,7 +216,7 @@
         <translation>Desencriptação da carteira falhou</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>A frase de segurança da carteira foi alterada com sucesso.</translation>
     </message>
     <message>
@@ -306,7 +306,7 @@
         <translation>Efetuar &amp;Cópia de Segurança da Carteira...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>Alterar &amp;Frase de Segurança...</translation>
     </message>
     <message>
@@ -350,7 +350,7 @@
         <translation>Efetue uma cópia de segurança da carteira para outra localização</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Alterar a frase de segurança utilizada na encriptação da carteira</translation>
     </message>
     <message>

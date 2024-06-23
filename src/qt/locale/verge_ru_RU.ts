@@ -110,25 +110,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Ввод пароля</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Введите пароль</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Новый пароль</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Повторите новый пароль</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Введите новый пароль для кошелька.&lt;br/&gt; Пожалуйста используйте пароль из &lt;b&gt; десяти или более произвольных символов&lt;/b&gt;, или &lt;b&gt;восемь или боле слов&lt;/b&gt;</translation>
     </message>
     <message>
@@ -136,7 +136,7 @@
         <translation>Зашифровать бумажник</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Эта операция требует вашего пароля для разблокировки бумажника</translation>
     </message>
     <message>
@@ -144,7 +144,7 @@
         <translation>Разблокировать бумажник</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Эта операция требует пароль от вашего кошелька для его расшифровки.</translation>
     </message>
     <message>
@@ -152,11 +152,11 @@
         <translation>Расшифровать бумажник</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Изменить пароль</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Введите старый и новый пароль для кошелька.</translation>
     </message>
     <message>
@@ -164,7 +164,7 @@
         <translation>Подтвердите шифрование бумажника</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Внимание: если вы зашифруете ваш кошелек и потеряете ваш пароль, то вы &lt;b&gt;ПОТЕРЯЕТЕ ВСЕ ВАШИ БИТКОЙНЫ&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -192,7 +192,7 @@
         <translation>Ошибка разблокировки кошелька</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Пароль, введенный при шифровании кошелька, некорректен.</translation>
     </message>
     <message>
@@ -200,7 +200,7 @@
         <translation>Расшифровка кошелька завершилась неудачно.</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Пароль для кошелька был успешно изменен.</translation>
     </message>
     <message>
@@ -270,7 +270,7 @@
         <translation>&amp;Создать резервную копию бумажника</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Изменить пароль...</translation>
     </message>
     <message>
@@ -310,7 +310,7 @@
         <translation>Послать средства на биткойн адрес</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Изменить пароль, используемый для шифрования кошелька</translation>
     </message>
     <message>

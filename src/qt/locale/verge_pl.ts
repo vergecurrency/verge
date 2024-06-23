@@ -114,25 +114,25 @@
     </message>
 </context>
 <context>
-    <name>AskPassphraseDialog</name>
+    <name>AskPasswordDialog</name>
     <message>
-        <source>Passphrase Dialog</source>
+        <source>Password Dialog</source>
         <translation>Okienko Hasła</translation>
     </message>
     <message>
-        <source>Enter passphrase</source>
+        <source>Enter password</source>
         <translation>Wpisz hasło</translation>
     </message>
     <message>
-        <source>New passphrase</source>
+        <source>New password</source>
         <translation>Nowe hasło</translation>
     </message>
     <message>
-        <source>Repeat new passphrase</source>
+        <source>Repeat new password</source>
         <translation>Powtórz nowe hasło</translation>
     </message>
     <message>
-        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <source>Enter the new password to the wallet.&lt;br/&gt;Please use a password of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>Wprowadź nowe hasło do portfela.&lt;br/&gt;Proszę używać hasła złożonego z &lt;b&gt;10 lub więcej losowych znaków&lt;/b&gt; albo &lt;b&gt;8 lub więcej słów.&lt;/b&gt;</translation>
     </message>
     <message>
@@ -140,7 +140,7 @@
         <translation>Zaszyfruj portfel</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <source>This operation needs your wallet password to unlock the wallet.</source>
         <translation>Ta operacja wymaga hasła do portfela aby odblokować portfel.</translation>
     </message>
     <message>
@@ -148,7 +148,7 @@
         <translation>Odblokuj portfel</translation>
     </message>
     <message>
-        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <source>This operation needs your wallet password to decrypt the wallet.</source>
         <translation>Ta operacja wymaga hasła portfela, aby go odszyfrować.</translation>
     </message>
     <message>
@@ -156,11 +156,11 @@
         <translation>Odszyfruj portfel</translation>
     </message>
     <message>
-        <source>Change passphrase</source>
+        <source>Change password</source>
         <translation>Zmień hasło</translation>
     </message>
     <message>
-        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <source>Enter the old password and new password to the wallet.</source>
         <translation>Podaj stare i nowe hasło do portfela.</translation>
     </message>
     <message>
@@ -168,7 +168,7 @@
         <translation>Potwierdź szyfrowanie portfela</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your password, you will &lt;b&gt;LOSE ALL OF YOUR VERGE&lt;/b&gt;!</source>
         <translation>Uwaga: jeśli zaszyfrujesz swój portfel i zgubisz hasło &lt;b&gt;STRACISZ WSZYSTKIE SWOJE VERGEY&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -196,7 +196,7 @@
         <translation>Szyfrowanie portfela nie powiodło się z powodu wewnętrznego błędu. Twój portfel nie został zaszyfrowany.</translation>
     </message>
     <message>
-        <source>The supplied passphrases do not match.</source>
+        <source>The supplied passwords do not match.</source>
         <translation>Podane hasła nie są takie same.</translation>
     </message>
     <message>
@@ -204,7 +204,7 @@
         <translation>Odblokowanie portfela nie powiodło się</translation>
     </message>
     <message>
-        <source>The passphrase entered for the wallet decryption was incorrect.</source>
+        <source>The password entered for the wallet decryption was incorrect.</source>
         <translation>Wprowadzone hasło do odszyfrowania portfela jest niepoprawne.</translation>
     </message>
     <message>
@@ -212,7 +212,7 @@
         <translation>Odszyfrowanie portfela nie powiodło się</translation>
     </message>
     <message>
-        <source>Wallet passphrase was successfully changed.</source>
+        <source>Wallet password was successfully changed.</source>
         <translation>Hasło do portfela zostało pomyślnie zmienione.</translation>
     </message>
     <message>
@@ -302,7 +302,7 @@
         <translation>Wykonaj kopię zapasową...</translation>
     </message>
     <message>
-        <source>&amp;Change Passphrase...</source>
+        <source>&amp;Change Password...</source>
         <translation>&amp;Zmień hasło...</translation>
     </message>
     <message>
@@ -346,7 +346,7 @@
         <translation>Zapasowy portfel w innej lokalizacji</translation>
     </message>
     <message>
-        <source>Change the passphrase used for wallet encryption</source>
+        <source>Change the password used for wallet encryption</source>
         <translation>Zmień hasło użyte do szyfrowania portfela</translation>
     </message>
     <message>
