@@ -20,11 +20,9 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_build_cmds
-	$(MAKE) libminiupnpc.a $($(package)_build_opts)
+  $(MAKE)
 endef
 
 define $(package)_stage_cmds
-	mkdir -p $($(package)_staging_prefix_dir)/include/miniupnpc $($(package)_staging_prefix_dir)/lib &&\
-	install *.h $($(package)_staging_prefix_dir)/include/miniupnpc &&\
-	install libminiupnpc.a $($(package)_staging_prefix_dir)/lib
+  cmake --install . --prefix $($(package)_staging_prefix_dir)
 endef
