@@ -4,12 +4,13 @@ $(package)_download_path=http://miniupnp.free.fr/files/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=b0c3a27056840fd0ec9328a5a9bac3dc5e0ec6d2e8733349cf577b0aa1e70ac1
 $(package)_patches=dont_leak_info.patch cmake_get_src_addr.patch fix_windows_snprintf.patch
-$(package)_build_subdir=build
 
+# Next time this package is updated, ensure that _WIN32_WINNT is still properly set.
+# See discussion in https://github.com/bitcoin/bitcoin/pull/25964.
 define $(package)_set_vars
-$(package)_config_opts = -DUPNPC_BUILD_SAMPLE=OFF -DUPNPC_BUILD_SHARED=OFF
-$(package)_config_opts += -DUPNPC_BUILD_STATIC=ON -DUPNPC_BUILD_TESTS=OFF
-$(package)_config_opts_mingw32 += -DMINIUPNPC_TARGET_WINDOWS_VERSION=0x0601
+$(package)_build_opts=CC="$($(package)_cc)"
+$(package)_build_opts_mingw32=-f Makefile.mingw CFLAGS="$($(package)_cflags) -D_WIN32_WINNT=0x0601"
+$(package)_build_env+=CFLAGS="$($(package)_cflags) $($(package)_cppflags)" AR="$($(package)_ar)"
 endef
 
 define $(package)_preprocess_cmds
@@ -18,14 +19,12 @@ define $(package)_preprocess_cmds
   patch -p1 < $($(package)_patch_dir)/fix_windows_snprintf.patch
 endef
 
-define $(package)_config_cmds
-  $($(package)_cmake) -S .. -B .
-endef
-
 define $(package)_build_cmds
-  $(MAKE)
+	$(MAKE) libminiupnpc.a $($(package)_build_opts)
 endef
 
 define $(package)_stage_cmds
-  cmake --install . --prefix $($(package)_staging_prefix_dir)
+	mkdir -p $($(package)_staging_prefix_dir)/include/miniupnpc $($(package)_staging_prefix_dir)/lib &&\
+	install *.h $($(package)_staging_prefix_dir)/include/miniupnpc &&\
+	install libminiupnpc.a $($(package)_staging_prefix_dir)/lib
 endef
