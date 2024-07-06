@@ -176,7 +176,7 @@ jobs:
           name: verge-ubuntu22.zip
 
       - name: push zips to release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v7.5.0
           files: |
