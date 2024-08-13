@@ -328,7 +328,7 @@ public:
             
             return FailedErrorShown;
         };
-         // Add addresses / update labels that we've sent to to the address book
+         // Add addresses / update labels that we've sent to the address book
         std::string strAddress = rcp.address.toStdString();
         CTxDestination dest = CDarkSilkAddress(strAddress).Get();
         std::string strLabel = rcp.label.toStdString();
