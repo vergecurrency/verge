@@ -32,8 +32,8 @@ jobs:
       - name: make .dmg
         run: make deploy
 
-  linux:
-    runs-on: ubuntu-latest
+  ubuntu22:
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
       - name: make check
         run: make check -j4
         
-  linux2:
+  ubuntu20:
     runs-on: ubuntu-20.04
 
     steps:
@@ -87,7 +87,7 @@ jobs:
         run: make check -j4
 
   windows:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4

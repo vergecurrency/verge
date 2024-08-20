@@ -79,7 +79,7 @@ jobs:
             ./src/qt/verge-qt
   
   linux-ubuntu22:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
             ./src/qt/verge-qt
 
   windows:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4

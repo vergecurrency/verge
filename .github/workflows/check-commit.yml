@@ -37,8 +37,8 @@ jobs:
           path: |
             *.dmg
 
-  linux:
-    runs-on: ubuntu-latest
+  ubuntu22:
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
             ./src/verge-tx
             ./src/qt/verge-qt
             
-  linux2:
+  ubuntu20:
     runs-on: ubuntu-20.04
 
     steps:
@@ -110,7 +110,7 @@ jobs:
             ./src/qt/verge-qt
 
   windows:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
