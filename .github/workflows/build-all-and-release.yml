@@ -52,7 +52,7 @@ jobs:
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+        run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3 libevent-dev
 
       - name: Build depends
         run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
