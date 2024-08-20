@@ -31,6 +31,33 @@ jobs:
 
       - name: make .dmg
         run: make deploy
+        
+  ubuntu24:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+
+      - name: Build depends
+        run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
+
+      - name: make check
+        run: make check -j4     
 
   ubuntu22:
     runs-on: ubuntu-22.04
