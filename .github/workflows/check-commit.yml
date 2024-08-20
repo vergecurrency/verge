@@ -155,7 +155,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/i686-w64-mingw32 --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: make
         run: make -j2
