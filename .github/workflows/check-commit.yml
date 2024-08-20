@@ -56,7 +56,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: make
         run: make -j4
@@ -92,7 +92,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: make
         run: make -j4
@@ -128,7 +128,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: make
         run: make -j4
