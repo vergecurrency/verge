@@ -11,7 +11,7 @@ git submodule update --init --recursive
 
 srcdir="$(dirname $0)"
 cd "$srcdir"
-if [ -z ${LIBTOOLIZE} ] && GLIBTOOLIZE="`command -v glibtoolize 2>/dev/null`"; then
+if [ -z "${LIBTOOLIZE}" ] && GLIBTOOLIZE="$(command -v glibtoolize)"; then
   LIBTOOLIZE="${GLIBTOOLIZE}"
   export LIBTOOLIZE
 fi
