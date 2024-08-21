@@ -15,6 +15,8 @@ AC_CONFIG_HEADERS([src/config/verge-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
+AC_PROG_CXX
+
 VERGE_DAEMON_NAME=verged
 VERGE_GUI_NAME=verge-qt
 VERGE_CLI_NAME=verge-cli
