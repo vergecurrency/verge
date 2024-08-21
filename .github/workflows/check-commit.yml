@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos.zip
+          name: verge-macos12.zip
           path: |
             *.dmg
   
@@ -63,7 +63,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos.zip
+          name: verge-macos13.zip
           path: |
             *.dmg
   
@@ -96,7 +96,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos.zip
+          name: verge-macos14.zip
           path: |
             *.dmg
             
@@ -231,7 +231,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows.zip
+          name: verge-windows-ubuntu22.zip
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
@@ -270,7 +270,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows.zip
+          name: verge-windows-ubuntu24.zip
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
