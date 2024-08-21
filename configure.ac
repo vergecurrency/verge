@@ -1040,7 +1040,7 @@ else
   AC_CHECK_HEADER([openssl/ssl.h],, AC_MSG_ERROR(libssl headers missing),)
   AC_CHECK_LIB([ssl],         [main],SSL_LIBS=-lssl, AC_MSG_ERROR(libssl missing))
 
-  if test x$build_verge_utils$BUILD_VERGEd$verge_enable_qt$use_tests != xnononono; then
+  if test x$build_verge_utils$build_verged$verge_enable_qt$use_tests != xnononono; then
     AC_CHECK_HEADER([event2/event.h],, AC_MSG_ERROR(libevent headers missing),)
     AC_CHECK_LIB([event],[main],EVENT_LIBS=-levent,AC_MSG_ERROR(libevent missing))
     if test x$TARGET_OS != xwindows; then
@@ -1387,7 +1387,7 @@ fi
 
 AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with-bignum=no], [--enable-module-recovery], [--enable-experimental], [--enable-module-ecdh]])
 
-ac_configure_args="${ac_configure_args} --disable-shared --disable-gcc-hardening --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc --disable-gcc-hardening --disable-unittests"
+ac_configure_args="${ac_configure_args} -levent --disable-shared --disable-gcc-hardening --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc --disable-gcc-hardening --disable-unittests"
 AC_CONFIG_SUBDIRS([src/tor])
 
 AC_OUTPUT
