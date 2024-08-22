@@ -169,6 +169,45 @@ jobs:
             ./src/verge-tx
             ./src/qt/verge-qt
 
+  windows-ubuntu20:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+
+      - name: Force Posix
+        run: sudo apt-get install  g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+
+      - name: Build depends for MingW32 Cross Compile
+        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/
+
+      - name: make
+        run: make -j2
+        
+      - name: strip
+        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-windows-ubuntu20.zip
+          path: |
+            /home/runner/work/verge/verge/src/verged.exe
+            /home/runner/work/verge/verge/src/verge-cli.exe
+            /home/runner/work/verge/verge/src/verge-tx.exe
+            /home/runner/work/verge/verge/src/qt/verge-qt.exe
+  
   windows-ubuntu22:
     runs-on: ubuntu-22.04
 
@@ -230,7 +269,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/i686-w64-mingw32 --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure
 
       - name: make
         run: make -j2

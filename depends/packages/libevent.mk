@@ -18,7 +18,6 @@ define $(package)_set_vars
   $(package)_config_opts_openbsd=--with-pic
   $(package)_config_opts_android=--with-pic
   $(package)_cppflags_mingw32=-D_WIN32_WINNT=0x0601
-#  $(package)_config_opts_mingw32=LIBS=-liphlpapi
   $(package)_config_opts_mingw32=LIBS=-liphlpapi
 endef
 
