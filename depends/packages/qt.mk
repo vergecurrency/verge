@@ -86,6 +86,7 @@ $(package)_config_opts += -no-feature-textodfwriter
 $(package)_config_opts += -no-feature-udpsocket
 $(package)_config_opts += -no-feature-wizard
 $(package)_config_opts += -no-feature-xml
+$(package)_config_opts += -Wno-deprecated-copy
 
 ifneq ($(build_os),darwin)
 $(package)_config_opts_darwin = -no-dbus
