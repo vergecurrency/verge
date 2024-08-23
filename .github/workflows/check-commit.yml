@@ -169,7 +169,7 @@ jobs:
             ./src/verge-tx
             ./src/qt/verge-qt
 
-  windows-ubuntu20:
+  windows32-ubuntu20:
     runs-on: ubuntu-20.04
 
     steps:
@@ -201,14 +201,14 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows-ubuntu20.zip
+          name: verge-windows32-ubuntu20.zip
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
             /home/runner/work/verge/verge/src/verge-tx.exe
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
   
-  windows-ubuntu22:
+  windows32-ubuntu22:
     runs-on: ubuntu-22.04
 
     steps:
@@ -240,15 +240,15 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows-ubuntu22.zip
+          name: verge-windows32-ubuntu22.zip
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
             /home/runner/work/verge/verge/src/verge-tx.exe
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
-
-  windows-ubuntu24:
-    runs-on: ubuntu-24.04
+            
+  windows64-ubuntu22:
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -260,16 +260,16 @@ jobs:
         run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
 
       - name: Force Posix
-        run: sudo apt-get install  g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+        run: sudo apt install g++-mingw-w64-x86-64 && sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-win32
 
       - name: Build depends for MingW32 Cross Compile
-        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
+        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=x86_64-w64-mingw32 -j2
 
       - name: Auto generate
         run: ./autogen.sh
 
       - name: configure
-        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+        run: CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
 
       - name: make
         run: make -j2
@@ -279,10 +279,9 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows-ubuntu24.zip
+          name: verge-windows64bit-ubuntu22.zip
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
             /home/runner/work/verge/verge/src/verge-tx.exe
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
-            
