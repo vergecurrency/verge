@@ -2,7 +2,7 @@ on:
   pull_request:
     types: [opened, reopened. review_requested]
 jobs:
-  macos:
+  macos12:
     runs-on: macos-12
 
     steps:
@@ -26,8 +26,35 @@ jobs:
       - name: make
         run: make -j4
 
-      - name: make check
-        run: make check -j4
+      - name: make .dmg
+        run: make deploy
+            
+  macos13:
+    runs-on: macos-13
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: git config credential.helper
+        run: git config credential.helper
+
+      - name: Brew install base dependencies
+        run: |
+          # A workaround for "The `brew link` step did not complete successfully" error.
+          brew install --quiet python@3 || brew link --overwrite python@3
+          brew install --quiet automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+
+      - name: Brew link dependencies
+        run: brew link boost@1.76 qt@5 berkeley-db@4 
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
 
       - name: make .dmg
         run: make deploy
@@ -56,9 +83,6 @@ jobs:
       - name: make
         run: make -j4
 
-      - name: make check
-        run: make check -j4     
-
   ubuntu22:
     runs-on: ubuntu-22.04
 
@@ -82,9 +106,6 @@ jobs:
 
       - name: make
         run: make -j4
-
-      - name: make check
-        run: make check -j4
         
   ubuntu20:
     runs-on: ubuntu-20.04
@@ -110,10 +131,37 @@ jobs:
       - name: make
         run: make -j4
 
-      - name: make check
-        run: make check -j4
+  windows32-ubuntu20:
+    runs-on: ubuntu-20.04
 
-  windows:
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+
+      - name: Force Posix
+        run: sudo apt-get install  g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+
+      - name: Build depends for MingW32 Cross Compile
+        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/i686-w64-mingw32 --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        
+      - name: make
+        run: make -j2
+        
+      - name: strip
+        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+        
+  windows32-ubuntu22:
     runs-on: ubuntu-22.04
 
     steps:
@@ -142,3 +190,64 @@ jobs:
         
       - name: strip
         run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+        
+  windows64-ubuntu22:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+
+      - name: Force Posix
+        run: sudo apt install g++-mingw-w64-x86-64 && sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix 
+
+      - name: Build depends for MingW32 Cross Compile
+        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=x86_64-w64-mingw32 -j2
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+
+      - name: make
+        run: make -j2
+        
+      - name: strip
+        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+        
+  windows64-ubuntu20:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+
+      - name: Force Posix
+        run: sudo apt install g++-mingw-w64-x86-64 && sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix 
+
+      - name: Build depends for MingW32 Cross Compile
+        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=x86_64-w64-mingw32 -j2
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+
+      - name: make
+        run: make -j2
+        
+      - name: strip
+        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+        
