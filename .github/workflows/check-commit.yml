@@ -89,6 +89,9 @@ jobs:
 
       - name: Auto generate
         run: ./autogen.sh
+        
+      - name: autoconf
+        run: autoreconf
 
       - name: configure
         run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
