@@ -69,6 +69,42 @@ jobs:
           name: verge-macos13.zip
           path: |
             *.dmg
+  macos14:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: git config credential.helper
+        run: git config credential.helper
+
+      - name: Brew install base dependencies
+        run: |
+          # A workaround for "The `brew link` step did not complete successfully" error.
+          brew install --quiet python@3 || brew link --overwrite python@3
+          brew install --quiet automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+
+      - name: Brew link dependencies
+        run: brew link boost@1.76 qt@5 berkeley-db@4 
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+
+      - name: make
+        run: make -j4
+
+      - name: make .dmg
+        run: make deploy
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos14.zip
+          path: |
+            *.dmg
+  
   
   ubuntu24:
     runs-on: ubuntu-24.04
