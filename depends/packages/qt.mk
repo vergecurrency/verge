@@ -29,6 +29,7 @@ $(package)_config_opts += -dbus-runtime
 $(package)_config_opts += -hostprefix $(build_prefix)
 $(package)_config_opts += -no-compile-examples
 $(package)_config_opts += -no-cups
+$(package)_config_opts += -no-direct2d
 $(package)_config_opts += -no-egl
 $(package)_config_opts += -no-eglfs
 $(package)_config_opts += -no-freetype
