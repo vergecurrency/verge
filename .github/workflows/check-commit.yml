@@ -85,10 +85,7 @@ jobs:
           brew install --quiet automake autoconf pkg-config berkeley-db@4 openssl@3 boost@1.76 miniupnpc zeromq libevent libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
       - name: Brew link dependencies
-        run: brew link boost@1.76 qt@5 berkeley-db@4
-        
-      - name: install libevent
-        run: sudo port install libevent Copy
+        run: brew link boost@1.76 qt@5 berkeley-db@4 libevent
 
       - name: Auto generate
         run: ./autogen.sh
