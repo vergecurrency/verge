@@ -117,6 +117,7 @@ static leveldb::Options GetOptions(size_t nCacheSize)
 }
 
 CDBWrapper::CDBWrapper(const boost::filesystem::path& path, size_t nCacheSize, bool fMemory, bool fWipe, bool obfuscate)
+	: m_name(fs::basename(path))
 {
     penv = NULL;
     readoptions.verify_checksums = true;
