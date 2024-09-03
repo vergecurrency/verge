@@ -7,7 +7,7 @@
 
 #include <memory>
 #include <random.h>
-#include <boost/filesystem.hpp>
+
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
