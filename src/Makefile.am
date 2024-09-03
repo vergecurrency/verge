@@ -348,7 +348,7 @@ libverge_wallet_a_SOURCES = \
   $(VERGE_CORE_H)
 
 # crypto primitives library
-crypto_libverge_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS) $(SSL_CFLAGS)
+crypto_libverge_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_libverge_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_libverge_crypto_base_a_SOURCES = \
   crypto/aes.cpp \
@@ -639,8 +639,8 @@ if GLIBC_BACK_COMPAT
 endif
 
 libvergeconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-libvergeconsensus_la_LIBADD = $(LIBSECP256K1) $(CRYPTO_LIBS)
-libvergeconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_VERGE_INTERNAL $(SSL_CFLAGS)
+libvergeconsensus_la_LIBADD = $(LIBSECP256K1)
+libvergeconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_VERGE_INTERNAL
 libvergeconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 endif

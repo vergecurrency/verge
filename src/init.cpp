@@ -68,10 +68,6 @@
 #include <zmq/zmqnotificationinterface.h>
 #endif
 
-#ifdef USE_SSE2
-#include <crypto/pow/scrypt.h>
-#endif
-
 bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
@@ -1334,11 +1330,6 @@ bool AppInitMain()
         if (!AppInitServers())
             return InitError(_("Unable to start HTTP server. See debug log for details."));
     }
-	
-	#if defined(USE_SSE2)
-    std::string sse2detect = scrypt_detect_sse2();
-    LogPrintf("%s\n", sse2detect);
-	#endif
 
     int64_t nStart;
 
