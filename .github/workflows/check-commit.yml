@@ -84,7 +84,7 @@ jobs:
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake autoconf berkeley-db@4 openssl@3 boost@1.76 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
           brew upgrade openssl@3 && brew link --force openssl@3
-          brew upgrade libevent && brew l[ink --force libevent
+          brew upgrade libevent && brew link --force libevent
           
           # brew unlink libevent && curl -L https://raw.githubusercontent.com/vergecurrency/libevent/master/libevent.rb > libevent.rb && brew install libevent.rb
 
