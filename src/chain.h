@@ -290,11 +290,6 @@ public:
     {
         return *phashBlock;
     }
-	
-	uint256 GetBlockPoWHash() const
-    {
-        return GetBlockHeader().GetPoWHash();
-    }
     
     int GetAlgo() const
     {
