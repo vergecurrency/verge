@@ -254,8 +254,6 @@ jobs:
         with:
           tag_name: v7.6.0
           files: |
-            /home/runner/downloads/artifacts/verge-*.*
             /home/runner/work/verge/verge/verge-*.*
-            ./verge*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
