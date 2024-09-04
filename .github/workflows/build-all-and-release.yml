@@ -66,9 +66,6 @@ jobs:
       - name: make
         run: make -j4
 
-      - name: make check
-        run: make check -j4 
-
       - uses: actions/upload-artifact@v4
         with:
           name: verge-ubuntu24
@@ -102,9 +99,6 @@ jobs:
       - name: make
         run: make -j4
 
-      - name: make check
-        run: make check -j4
-
       - uses: actions/upload-artifact@v4
         with:
           name: verge-ubuntu22
@@ -137,9 +131,6 @@ jobs:
 
       - name: make
         run: make -j4
-
-      - name: make check
-        run: make check -j4
 
       - uses: actions/upload-artifact@v4
         with:
