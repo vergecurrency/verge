@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos12.zip
+          name: verge-macos12
           path: |
             *.dmg
   
@@ -66,7 +66,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos13.zip
+          name: verge-macos13
           path: |
             *.dmg
 # macos14:
@@ -134,7 +134,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu24.zip
+          name: verge-ubuntu24
           path: |
             ./src/verged
             ./src/verge-cli
@@ -167,7 +167,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu22.zip
+          name: verge-ubuntu22
           path: |
             ./src/verged
             ./src/verge-cli
@@ -200,7 +200,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu20.zip
+          name: verge-ubuntu20
           path: |
             ./src/verged
             ./src/verge-cli
@@ -239,7 +239,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows32-ubuntu20.zip
+          name: verge-windows32-ubuntu20
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
@@ -278,7 +278,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows32-ubuntu22.zip
+          name: verge-windows32-ubuntu22
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
@@ -317,7 +317,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows64bit-ubuntu22.zip
+          name: verge-windows64bit-ubuntu22
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
@@ -356,7 +356,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows64bit-ubuntu20.zip
+          name: verge-windows64bit-ubuntu20
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
