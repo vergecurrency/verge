@@ -254,11 +254,8 @@ jobs:
         with:
           tag_name: v7.6.0
           files: |
-            /home/runner/work/verge/verge/verge-windows32.zip
-            /home/runner/work/verge/verge/verge-windows64.zip
-            /home/runner/work/verge/verge/verge-macos.zip
-            /home/runner/work/verge/verge/verge-ubuntu20.zip
-            /home/runner/work/verge/verge/verge-ubuntu22.zip
-            /home/runner/work/verge/verge/verge-ubuntu24.zip
+            /home/runner/downloads/artifacts/verge-*.*
+            /home/runner/work/verge/verge/verge-*.*
+            ./verge*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
