@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
+  release:
+    types: [published]
 
 jobs:
   macos13:
@@ -252,11 +254,11 @@ jobs:
         with:
           tag_name: v7.6.0
           files: |
-            verge-windows32
-            verge-windows64
-            verge-macos
-            verge-ubuntu20
-            verge-ubuntu22
-            verge-ubuntu24
+            /home/runner/work/verge/verge/verge-windows32.zip
+            /home/runner/work/verge/verge/verge-windows64.zip
+            /home/runner/work/verge/verge/verge-macos.zip
+            /home/runner/work/verge/verge/verge-ubuntu20.zip
+            /home/runner/work/verge/verge/verge-ubuntu22.zip
+            /home/runner/work/verge/verge/verge-ubuntu24.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
