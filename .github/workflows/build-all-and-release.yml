@@ -245,7 +245,7 @@ jobs:
           name: verge-windows64
       - uses: actions/download-artifact@v4
         with:
-          name: verge-macos
+          name: verge-macos13
       - uses: actions/download-artifact@v4
         with:
           name: verge-ubuntu20
