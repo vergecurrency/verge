@@ -252,11 +252,11 @@ jobs:
         with:
           tag_name: v7.6.0
           files: |
-            verge-windows32.zip
-            verge-windows64.zip
-            verge-macos.zip
-            verge-ubuntu20.zip
-            verge-ubuntu22.zip
-            verge-ubuntu24.zip
+            verge-windows32
+            verge-windows64
+            verge-macos
+            verge-ubuntu20
+            verge-ubuntu22
+            verge-ubuntu24
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

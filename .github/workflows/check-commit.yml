@@ -27,6 +27,8 @@ jobs:
 
       - name: make .dmg
         run: make deploy
+        
+      - 
 
       - uses: actions/upload-artifact@v4
         with:
@@ -131,6 +133,9 @@ jobs:
 
       - name: make
         run: make -j4
+        
+      - name: strip
+        run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -164,6 +169,9 @@ jobs:
 
       - name: make
         run: make -j4
+        
+      - name: strip
+        run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -196,7 +204,10 @@ jobs:
         run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: make
-        run: make -j4  
+        run: make -j4
+        
+      - name: strip
+        run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
 
       - uses: actions/upload-artifact@v4
         with:
