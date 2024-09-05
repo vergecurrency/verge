@@ -268,7 +268,7 @@ jobs:
         run: ls -lR
       
       - name: sha256
-        run: find . -type f | xargs sha256sum -b
+        run: find . -type f -name "*.zip" | xargs sha256sum -b
 
       - name: push zips to release
         uses: softprops/action-gh-release@v2
