@@ -23,8 +23,17 @@
 #include <sync.h>
 #include <random.h>
 
-#include <boost/multi_index_container.hpp>
+// This works around a bug in Boost <= 1.80.0 when using Clang >=18.
+// See https://github.com/bitcoin/bitcoin/issues/30751.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wenum-constexpr-conversion"
+#endif
 #include <boost/multi_index/hashed_index.hpp>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+#include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/signals2/signal.hpp>
