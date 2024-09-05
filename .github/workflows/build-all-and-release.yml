@@ -233,21 +233,27 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: verge-windows32
+          path: verge-windows32
       - uses: actions/download-artifact@v4
         with:
           name: verge-windows64
+          path: verge-windows64
       - uses: actions/download-artifact@v4
         with:
           name: verge-macos13
+          path: verge-macos13
       - uses: actions/download-artifact@v4
         with:
           name: verge-ubuntu20
+          path: verge-ubuntu20
       - uses: actions/download-artifact@v4
         with:
           name: verge-ubuntu22
+          path: verge-ubuntu22
       - uses: actions/download-artifact@v4
         with:
           name: verge-ubuntu24
+          path: verge-ubuntu24
           
       - name: Create zips
         run: |
@@ -257,17 +263,20 @@ jobs:
             zip -r verge-ubuntu20.zip verge-ubuntu20/
             zip -r verge-ubuntu22.zip verge-ubuntu22/
             zip -r verge-ubuntu24.zip verge-ubuntu24/
+       
+      - name: List downloaded artifacts
+        run: ls -lR
 
       - name: push zips to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v7.6.0
           files: |
-            ${{ github.workspace }}/verge-windows32/*
-            ${{ github.workspace }}/verge-windows64/*
-            ${{ github.workspace }}/verge-macos13/*
-            ${{ github.workspace }}/verge-ubuntu20/*
-            ${{ github.workspace }}/verge-ubuntu22/*
-            ${{ github.workspace }}/verge-ubuntu24/*
+            verge-windows32.zip
+            verge-windows64.zip
+            verge-macos13.zip
+            verge-ubuntu20.zip
+            verge-ubuntu22.zip
+            verge-ubuntu24.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
