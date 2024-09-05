@@ -266,6 +266,9 @@ jobs:
        
       - name: List downloaded artifacts
         run: ls -lR
+      
+      - name: sha256
+        run: shasum -a 256 *.* && sha256sum *.*
 
       - name: push zips to release
         uses: softprops/action-gh-release@v2
