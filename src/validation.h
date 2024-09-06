@@ -21,7 +21,6 @@
 #include <versionbits.h>
 
 #include <algorithm>
-#include <list>
 #include <exception>
 #include <map>
 #include <memory>
