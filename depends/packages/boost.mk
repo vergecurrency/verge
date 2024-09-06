@@ -1,8 +1,8 @@
 package=boost
-$(package)_version=1.79.0
+$(package)_version=1.80.0
 $(package)_download_path=https://boostorg.jfrog.io/artifactory/main/release/$($(package)_version)/source/
 $(package)_file_name=boost_$(subst .,_,$($(package)_version)).tar.bz2
-$(package)_sha256_hash=475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39
+$(package)_sha256_hash=1e19565d82e43bc59209a168f5ac899d3ba471d55c7610c677d4ccf2c9c500c0
 
 $(package)_compiler=
 ifeq ($(CLANG_ARG),true)
