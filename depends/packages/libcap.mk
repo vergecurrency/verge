@@ -1,8 +1,8 @@
 package=libcap
-$(package)_version=2.69
+$(package)_version=2.70
 $(package)_download_path=https://mirrors.edge.kernel.org/pub/linux/libs/security/linux-privs/libcap2/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=3a99ec26452e328e0ea408efd67096ef914f4ee4788fa8e8e21f214e2bd670b9
+$(package)_sha256_hash=D3B777ED413C9FAFFACE03B917E171854709B5E4BE38DBFB9219AAF7DFD4EEA6
 
 define $(package)_set_vars
   $(package)_config_opts=--disable-static
