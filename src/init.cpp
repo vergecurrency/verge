@@ -17,7 +17,7 @@
 #include <checkpoints.h>
 #include <compat/sanity.h>
 #include <consensus/validation.h>
-#include "crypto/pow/scrypt.h" // for scrypt_detect_sse2
+#include <crypto/pow/scrypt.h> // for scrypt_detect_sse2
 #include <fs.h>
 #include <httpserver.h>
 #include <httprpc.h>
