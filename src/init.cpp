@@ -1335,13 +1335,11 @@ bool AppInitMain()
     int64_t nStart;
 	
 #if defined(USE_SSE2)
-	if (scrypt_detect_sse2()) {
+    if (scrypt_detect_sse2()) {
         LogPrintf("scrypt: using SSE2 implementation\n");
     } else {
         LogPrintf("scrypt: using generic implementation\n");
-    }
-#endif	
-
+    }	
     // ********************************************************* Step 5: verify wallet database integrity
     if (!g_wallet_init_interface.Verify()) return false;
 
