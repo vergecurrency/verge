@@ -9,6 +9,9 @@ jobs:
 
       - name: git config credential.helper
         run: git config credential.helper
+        
+      - name: which clang
+        run: clang --version
 
       - name: Brew install base dependencies
         run: brew install automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb 
@@ -51,6 +54,9 @@ jobs:
 
       - name: Brew link dependencies
         run: brew link boost@1.76 qt@5 berkeley-db@4 
+        
+      - name: which clang
+        run: clang --version
 
       - name: Auto generate
         run: ./autogen.sh
@@ -90,6 +96,9 @@ jobs:
 
       - name: Brew link dependencies
         run: brew link --force boost qt@5 berkeley-db@4 libevent
+        
+      - name: which clang
+        run: clang --version
 
       - name: export boost flags and run Auto generate
         run: ./autogen.sh
