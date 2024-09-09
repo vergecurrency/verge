@@ -106,7 +106,6 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        - name: configure
         run: export LDFLAGS="-L/opt/homebrew/Cellar/boost/1.86.0/lib" && export CPPFLAGS="-I/opt/homebrew/Cellar/boost/1.86.0/include" && ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.3.1 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost=/opt/homebrew/Cellar/boost/1.86.0
 
       - name: make
