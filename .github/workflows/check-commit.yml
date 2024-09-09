@@ -93,6 +93,8 @@ jobs:
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake autoconf berkeley-db@4 boost pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+          brew upgrade libevent && brew link --force libevent
+          # brew unlink libevent && curl -L https://raw.githubusercontent.com/vergecurrency/libevent/master/libevent.rb > libevent.rb && brew install libevent.rb
 
       - name: Brew link dependencies
         run: brew link --force boost qt@5 berkeley-db@4 libevent
@@ -104,7 +106,8 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        - name: configure
+        run: export LDFLAGS="-L/opt/homebrew/Cellar/boost/1.86.0/lib" && export CPPFLAGS="-I/opt/homebrew/Cellar/boost/1.86.0/include" && ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.3.1 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost=/opt/homebrew/Cellar/boost/1.86.0
 
       - name: make
         run: make -j4
