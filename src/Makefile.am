@@ -428,7 +428,7 @@ crypto_libverge_crypto_base_a_SOURCES = \
   
 # only include SSE2 scrypt sources if USE_SCRYPT_SSE2 is defined
 if USE_SCRYPT_SSE2
-crypto_libverge_crypto_a_SOURCES += crypto/pow/scrypt-sse2.cpp
+crypto_libverge_crypto_base_a_SOURCES += crypto/pow/scrypt-sse2.cpp
 endif
 
 
