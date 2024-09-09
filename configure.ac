@@ -1003,8 +1003,6 @@ if test x$use_boost = xyes; then
 
 BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB $BOOST_CHRONO_LIB"
 
-fi
-
 # Configure Scrypt SSE2
 if test x$use_scrypt_sse2 = xyes; then
   AC_DEFINE(USE_SSE2, 1, [Define this symbol if SSE2 works])
