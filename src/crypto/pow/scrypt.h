@@ -46,5 +46,4 @@ static inline void le32enc(void *pp, uint32_t x)
         p[2] = (x >> 16) & 0xff;
         p[3] = (x >> 24) & 0xff;
 }
-#endif
 #endif // VERGE_CRYPTO_POW_SCRYPT_H
