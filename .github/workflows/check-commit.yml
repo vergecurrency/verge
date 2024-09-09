@@ -84,6 +84,9 @@ jobs:
 
       - name: git config credential.helper
         run: git config credential.helper
+        
+      - name: get previous xcode and switch to it
+        run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
 
       - name: Brew install base dependencies
         run: |
