@@ -10,7 +10,7 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
         
-      - name: which clang
+      - name: which clang/xcode
         run: clang --version
 
       - name: Brew install base dependencies
@@ -55,7 +55,7 @@ jobs:
       - name: Brew link dependencies
         run: brew link boost@1.76 qt@5 berkeley-db@4 
         
-      - name: which clang
+      - name: which clang/xcode
         run: clang --version
 
       - name: Auto generate
@@ -81,6 +81,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
+      - name: get previous xcode and switch to it
+        run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
 
       - name: git config credential.helper
         run: git config credential.helper
@@ -97,7 +100,7 @@ jobs:
       - name: Brew link dependencies
         run: brew link --force boost qt@5 berkeley-db@4 libevent
         
-      - name: which clang
+      - name: which clang/xcode
         run: clang --version
 
       - name: export boost flags and run Auto generate
