@@ -92,7 +92,8 @@ jobs:
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+          brew install --quiet automake autoconf berkeley-db@4 boost pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+          brew unlink libevent && curl -L https://raw.githubusercontent.com/vergecurrency/libevent/master/libevent.rb > libevent.rb && brew install libevent.rb
 
       - name: Brew link dependencies
         run: brew link boost@1.76 qt@5 berkeley-db@4 
