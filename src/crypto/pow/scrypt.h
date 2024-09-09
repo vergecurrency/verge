@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#if defined(HAVE_CONFIG_H)
+#include "verge-config.h" // for USE_SSE2
+#endif
+
 static const int SCRYPT_SCRATCHPAD_SIZE = 131072 + 63;
 
 void scrypt_1024_1_1_256(const char *input, char *output);
@@ -16,7 +20,7 @@ void scrypt_1024_1_1_256_sp_generic(const char *input, char *output, char *scrat
 #define scrypt_1024_1_1_256_sp(input, output, scratchpad) scrypt_1024_1_1_256_sp_detected((input), (output), (scratchpad))
 #endif
 
-void scrypt_detect_sse2();
+bool scrypt_detect_sse2();
 void scrypt_1024_1_1_256_sp_sse2(const char *input, char *output, char *scratchpad);
 extern void (*scrypt_1024_1_1_256_sp_detected)(const char *input, char *output, char *scratchpad);
 #else

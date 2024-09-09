@@ -419,13 +419,17 @@ crypto_libverge_crypto_base_a_SOURCES = \
   crypto/pow/Lyra2RE.h \
   crypto/pow/scrypt.cpp \
   crypto/pow/scrypt.h \
-  crypto/pow/scrypt-sse2.cpp \
   crypto/pow/shabal.c \
   crypto/pow/shavite.c \
   crypto/pow/simd.c \
   crypto/pow/skein.c \
   crypto/pow/Sponge.c \
   crypto/pow/sph_bmw.h
+  
+# only include SSE2 scrypt sources if USE_SCRYPT_SSE2 is defined
+if USE_SCRYPT_SSE2
+crypto_libverge_crypto_a_SOURCES += crypto/pow/scrypt-sse2.cpp
+endif
 
 
 if USE_ASM
