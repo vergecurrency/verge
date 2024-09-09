@@ -1339,7 +1339,8 @@ bool AppInitMain()
         LogPrintf("scrypt: using SSE2 implementation\n");
     } else {
         LogPrintf("scrypt: using generic implementation\n");
-    }	
+    }
+#endif
     // ********************************************************* Step 5: verify wallet database integrity
     if (!g_wallet_init_interface.Verify()) return false;
 
