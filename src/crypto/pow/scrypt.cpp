@@ -37,13 +37,24 @@
 // #include <openssl/sha.h>
 #include <crypto/hmac_sha256.h>
 
-// #if defined(_MSC_VER)
-// #include <immintrin.h>
-// #elif defined(__GNUC__)
-// #include <x86intrin.h>
-// #endif
+#if defined(USE_SSE2) && !defined(USE_SSE2_ALWAYS)
 
-/*
+#ifdef _MSC_VER
+
+// MSVC 64bit is unable to use inline asm
+
+#include <intrin.h>
+
+#else
+	// GCC Linux or i686-w64-mingw32
+
+#include <cpuid.h>
+
+#endif
+
+#endif
+
+#ifndef __FreeBSD__
 static inline uint32_t be32dec(const void *pp)
 {
 	const uint8_t *p = (uint8_t const *)pp;
@@ -60,6 +71,8 @@ static inline void be32enc(void *pp, uint32_t x)
 	p[1] = (x >> 16) & 0xff;
 	p[0] = (x >> 24) & 0xff;
 }
+
+#endif
 
 /**
  * PBKDF2_SHA256(passwd, passwdlen, salt, saltlen, c, buf, dkLen):
@@ -220,7 +233,7 @@ void scrypt_1024_1_1_256_sp_generic(const char *input, char *output, char *scrat
 	PBKDF2_SHA256((const uint8_t *)input, 80, B, 128, 1, (uint8_t *)output, 32);
 }
 
-#if defined(HAVE_SSE2)
+#if defined(USE_SSE2)
 // By default, set to generic scrypt function. This will prevent crash in case when scrypt_detect_sse2() wasn't called
 void (*scrypt_1024_1_1_256_sp_detected)(const char *input, char *output, char *scratchpad) = &scrypt_1024_1_1_256_sp_generic;
 
