@@ -93,11 +93,10 @@ jobs:
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake autoconf berkeley-db@4 boost@1.76 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
-          brew upgrade libevent && brew link --force libevent
-          # brew unlink libevent && curl -L https://raw.githubusercontent.com/vergecurrency/libevent/master/libevent.rb > libevent.rb && brew install libevent.rb
+          brew upgrade libevent
 
       - name: Brew link dependencies
-        run: brew link boost@1.76 qt@5 berkeley-db@4 libevent
+        run: brew link boost@1.76 qt@5 berkeley-db@4
         
       - name: which clang/xcode
         run: clang --version
@@ -306,65 +305,6 @@ jobs:
             /home/runner/work/verge/verge/src/verge-tx.exe
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
             
-  windows32-ubuntu24:
-    runs-on: ubuntu-24.04
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Update apt repos
-        run: sudo apt-get update
-
-      - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
-
-      - name: Check policy for g++-mingw-w64-i686
-        run: apt-cache policy g++-mingw-w64-i686
-
-      - name: Add Ubuntu Jammy PPA
-        run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu jammy main universe'
-
-      - name: pin pin  
-        run: |
-            sudo tee /etc/apt/preferences.d/pin-jammy <<EOF
-            Package: *
-            Pin: release a=jammy
-            Pin-Priority: 100
-            EOF
-
-      - name: Update apt after adding Jammy repository
-        run: sudo apt-get update
-
-      - name: Install Jammy gcc-mingw packages
-        run: sudo apt-get install -t jammy g++-mingw-w64-i686 mingw-w64-i686-dev
-
-      - name: Build depends for MingW32 Cross Compile
-        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
-
-      - name: Auto generate
-        run: ./autogen.sh
-
-      - name: Configure
-        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
-
-      - name: Make
-        run: make -j2
-
-      - name: Strip binaries
-        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
-
-      - name: Unpin Jammy packages
-        run: sudo rm /etc/apt/preferences.d/pin-jammy
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-windows32-ubuntu24
-          path: |
-            /home/runner/work/verge/verge/src/verged.exe
-            /home/runner/work/verge/verge/src/verge-cli.exe
-            /home/runner/work/verge/verge/src/verge-tx.exe
-            /home/runner/work/verge/verge/src/qt/verge-qt.exe
-           
 
   windows64-ubuntu22:
     runs-on: ubuntu-22.04
@@ -438,45 +378,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-windows64bit-ubuntu20
-          path: |
-            /home/runner/work/verge/verge/src/verged.exe
-            /home/runner/work/verge/verge/src/verge-cli.exe
-            /home/runner/work/verge/verge/src/verge-tx.exe
-            /home/runner/work/verge/verge/src/qt/verge-qt.exe
-
-  windows64-ubuntu24:
-    runs-on: ubuntu-24.04
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Update apt repos
-        run: sudo apt-get update
-
-      - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
-
-      - name: Force Posix
-        run: sudo apt install g++-mingw-w64-x86-64 && sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix 
-
-      - name: Build depends for MingW32 Cross Compile
-        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=x86_64-w64-mingw32 -j2
-
-      - name: Auto generate
-        run: ./autogen.sh
-
-      - name: configure
-        run: CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests
-
-      - name: make
-        run: make -j2
-        
-      - name: strip
-        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-windows64bit-ubuntu24
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
