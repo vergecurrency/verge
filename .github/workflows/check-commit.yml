@@ -324,6 +324,7 @@ jobs:
       - name: Add Ubuntu Jammy PPA
         run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu jammy main universe'
 
+      - name: pin pin  
         run: |
             sudo tee /etc/apt/preferences.d/pin-jammy <<EOF
             Package: *
