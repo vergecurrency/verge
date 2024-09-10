@@ -29,7 +29,7 @@
 
 #include <config/verge-config.h>
 
-#include "scrypt.h"
+#include <crypto/pow/scrypt.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -41,7 +41,7 @@
 #include <sys/endian.h>
 #endif
 
-#if defined(HAVE_SSE2)
+#if defined(USE_SSE2)
 
 static inline void xor_salsa8_sse2(__m128i B[4], const __m128i Bx[4])
 {

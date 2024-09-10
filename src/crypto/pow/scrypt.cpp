@@ -29,12 +29,10 @@
 
 #include <config/verge-config.h>
 
-#include "scrypt.h"
-// #include "util.h"
+#include <crypto/pow/scrypt.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-// #include <openssl/sha.h>
 #include <crypto/hmac_sha256.h>
 
 #if defined(USE_SSE2) && !defined(USE_SSE2_ALWAYS)
@@ -273,6 +271,7 @@ bool scrypt_detect_sse2()
 
 void scrypt_1024_1_1_256(const char *input, char *output)
 {
-	char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+    thread_local char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+    memset(scratchpad, 0, sizeof(scratchpad));
     scrypt_1024_1_1_256_sp(input, output, scratchpad);
 }
