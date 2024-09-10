@@ -423,7 +423,7 @@ jobs:
             /home/runner/work/verge/verge/src/verge-tx.exe
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
 
-windows64-ubuntu24:
+  windows64-ubuntu24:
     runs-on: ubuntu-24.04
 
     steps:
