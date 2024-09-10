@@ -319,7 +319,7 @@ jobs:
         run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
 
       - name: check versions available
-        run: sudo add-apt-repository universe && sudo add-apt-repository multiverse && sudo apt updateapt-cache showpkg gcc-mingw-w64-base
+        run: sudo add-apt-repository universe && sudo add-apt-repository multiverse && sudo apt update && apt-cache showpkg gcc-mingw-w64-base
 
       - name: Build depends for MingW32 Cross Compile
         run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
