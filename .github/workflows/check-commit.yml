@@ -325,7 +325,10 @@ jobs:
         run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu jammy main universe'
         
       - name: pin the uybuntu jammy packages and update
-        run: echo -e "Package: *\nPin: release a=jammy\nPin-Priority: 100" | sudo tee /etc/apt/preferences.d/pin-jammy && sudo apt-get update
+        run: echo -e "Package: *\nPin: release a=jammy\nPin-Priority: 100" | sudo tee /etc/apt/preferences.d/pin-jammy
+        
+      - name: Update
+        run:  sudo apt-get update
         
       - name: install jammy gcc
         run: sudo apt-get install g++-mingw-w64-i686/jammy && sudo apt-get install mingw-w64-i686-dev/jammy
