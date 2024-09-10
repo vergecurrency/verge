@@ -324,8 +324,12 @@ jobs:
       - name: Add Ubuntu Jammy PPA
         run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu jammy main universe'
 
-      - name: Pin the Ubuntu Jammy packages and update
-        run: echo -e 'Package: *\nPin: release a=jammy\nPin-Priority: 100' | sudo tee /etc/apt/preferences.d/pin-jammy
+        run: |
+            sudo tee /etc/apt/preferences.d/pin-jammy <<EOF
+            Package: *
+            Pin: release a=jammy
+            Pin-Priority: 100
+            EOF
 
       - name: Update apt after adding Jammy repository
         run: sudo apt-get update
