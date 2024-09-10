@@ -324,7 +324,7 @@ jobs:
       - name: add ubuntu jammy ppa!
         run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu jammy main universe'
         
-      - name: pin the uybuntu jammy packages and update: 
+      - name: pin the uybuntu jammy packages and update
         run: echo -e "Package: *\nPin: release a=jammy\nPin-Priority: 100" | sudo tee /etc/apt/preferences.d/pin-jammy && sudo apt-get update
         
       - name: install jammy gcc
