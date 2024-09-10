@@ -321,9 +321,14 @@ jobs:
       - name: check politicy/apt-cache policy g++-mingw-w64-i686
         run: apt-cache policy g++-mingw-w64-i686
 
-      - name: Install MingW32 version 10
-        run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install g++-mingw-w64-i686=10.3.0-2 gcc-mingw-w64-i686=10.3.0-2 mingw-w64-i686-dev=10.3.0-2
+      - name: add ubuntu jammy ppa!
+        run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu jammy main universe'
+        
+      - name: pin the uybuntu jammy packages and update: 
+        run: echo -e "Package: *\nPin: release a=jammy\nPin-Priority: 100" | sudo tee /etc/apt/preferences.d/pin-jammy && sudo apt-get update
+        
+      - name: install jammy gcc
+        run: sudo apt-get install g++-mingw-w64-i686/jammy && sudo apt-get install mingw-w64-i686-dev/jammy
 
       - name: Build depends for MingW32 Cross Compile
         run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
@@ -339,6 +344,9 @@ jobs:
         
       - name: strip
         run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+        
+      - name: unpin jammy!
+        run: sudo rm /etc/apt/preferences.d/pin-jammy
 
       - uses: actions/upload-artifact@v4
         with:
