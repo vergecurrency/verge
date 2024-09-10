@@ -280,7 +280,7 @@ jobs:
         run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
 
       - name: Force Posix
-        run: sudo apt-get install  g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+        run: sudo apt-get install g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
       - name: Build depends for MingW32 Cross Compile
         run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
@@ -317,10 +317,13 @@ jobs:
 
       - name: Install base dependencies
         run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+        
+      - name: check politicy/apt-cache policy g++-mingw-w64-i686
+        run: apt-cache policy g++-mingw-w64-i686
 
       - name: Install MingW32 version 10
         run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa && sudo apt-get update && sudo apt-get install g++-mingw-w64-i686=10.3.0-2 gcc-mingw-w64-i686=10.3.0-2 mingw-w64-i686-dev=10.3.0-2
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install g++-mingw-w64-i686=10.3.0-2 gcc-mingw-w64-i686=10.3.0-2 mingw-w64-i686-dev=10.3.0-2
 
       - name: Build depends for MingW32 Cross Compile
         run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
