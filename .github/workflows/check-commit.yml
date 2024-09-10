@@ -320,7 +320,7 @@ jobs:
 
       - name: Install MingW32 version 10
         run: |
-          sudo apt-get install g++-mingw-w64-i686=10.3.0-2 gcc-mingw-w64-i686=10.3.0-2 mingw-w64-i686-dev=10.3.0-2
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa && sudo apt-get update && sudo apt-get install g++-mingw-w64-i686=10.3.0-2 gcc-mingw-w64-i686=10.3.0-2 mingw-w64-i686-dev=10.3.0-2
 
       - name: Build depends for MingW32 Cross Compile
         run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
