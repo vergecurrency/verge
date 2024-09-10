@@ -317,21 +317,21 @@ jobs:
 
       - name: Install base dependencies
         run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
-        
-      - name: check politicy/apt-cache policy g++-mingw-w64-i686
+
+      - name: Check policy for g++-mingw-w64-i686
         run: apt-cache policy g++-mingw-w64-i686
 
-      - name: add ubuntu jammy ppa!
+      - name: Add Ubuntu Jammy PPA
         run: sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu jammy main universe'
-        
-      - name: pin the uybuntu jammy packages and update
-        run: echo -e "Package: *\nPin: release a=jammy\nPin-Priority: 100" | sudo tee /etc/apt/preferences.d/pin-jammy
-        
-      - name: Update
-        run:  sudo apt-get update
-        
-      - name: install jammy gcc
-        run: sudo apt-get install g++-mingw-w64-i686/jammy && sudo apt-get install mingw-w64-i686-dev/jammy
+
+      - name: Pin the Ubuntu Jammy packages and update
+        run: echo -e 'Package: *\nPin: release a=jammy\nPin-Priority: 100' | sudo tee /etc/apt/preferences.d/pin-jammy
+
+      - name: Update apt after adding Jammy repository
+        run: sudo apt-get update
+
+      - name: Install Jammy gcc-mingw packages
+        run: sudo apt-get install -t jammy g++-mingw-w64-i686 mingw-w64-i686-dev
 
       - name: Build depends for MingW32 Cross Compile
         run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
@@ -339,16 +339,16 @@ jobs:
       - name: Auto generate
         run: ./autogen.sh
 
-      - name: configure
+      - name: Configure
         run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
 
-      - name: make
+      - name: Make
         run: make -j2
-        
-      - name: strip
+
+      - name: Strip binaries
         run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
-        
-      - name: unpin jammy!
+
+      - name: Unpin Jammy packages
         run: sudo rm /etc/apt/preferences.d/pin-jammy
 
       - uses: actions/upload-artifact@v4
@@ -358,7 +358,8 @@ jobs:
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
             /home/runner/work/verge/verge/src/verge-tx.exe
-            /home/runner/work/verge/verge/src/qt/verge-qt.exe            
+            /home/runner/work/verge/verge/src/qt/verge-qt.exe
+           
 
   windows64-ubuntu22:
     runs-on: ubuntu-22.04
