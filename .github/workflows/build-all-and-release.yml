@@ -19,7 +19,6 @@ jobs:
 
       - name: Brew install base dependencies
         run: |
-          # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
@@ -109,7 +108,7 @@ jobs:
             ./src/verge-cli
             ./src/verge-tx
             ./src/qt/verge-qt            
-  
+
   ubuntu20:
     runs-on: ubuntu-20.04
 
@@ -268,7 +267,9 @@ jobs:
         run: ls -lR
       
       - name: sha256
-        run: find . -type f -name "*.zip" | xargs sha256sum -b
+        run: |
+          find . -type f -name "*.zip" | xargs sha256sum -b > SHA256SUMS.txt
+          cat SHA256SUMS.txt
 
       - name: push zips to release
         uses: softprops/action-gh-release@v2
@@ -281,5 +282,6 @@ jobs:
             verge-ubuntu20.zip
             verge-ubuntu22.zip
             verge-ubuntu24.zip
+            SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
