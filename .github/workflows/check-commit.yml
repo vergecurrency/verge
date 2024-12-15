@@ -1,42 +1,6 @@
 on:
   push
 jobs:
-  macos12:
-    runs-on: macos-12
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: git config credential.helper
-        run: git config credential.helper
-        
-      - name: which clang/xcode
-        run: clang --version
-
-      - name: Brew install base dependencies
-        run: brew install --quiet automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb 
-
-      - name: Brew link dependencies
-        run: brew link --overwrite boost@1.76 && brew link boost@1.76 qt@5 berkeley-db@4
-
-      - name: Auto generate
-        run: ./autogen.sh
-
-      - name: configure
-        run: ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
-
-      - name: make
-        run: make -j4
-
-      - name: make .dmg
-        run: make deploy
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-macos12
-          path: |
-            *.dmg
-  
   macos13:
     runs-on: macos-13
 
