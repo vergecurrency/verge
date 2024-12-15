@@ -8,7 +8,7 @@ class Boost176 < Formula
 
   keg_only :versioned_formula
 
-  depends_on "icu4c@74"
+  depends_on "icu4c@76.1"
 
   uses_from_macos "bzip2"
   uses_from_macos "zlib"
