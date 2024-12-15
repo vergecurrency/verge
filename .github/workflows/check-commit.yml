@@ -67,10 +67,16 @@ jobs:
       - name: Brew link dependencies
         run: brew link boost176 qt@5 berkeley-db@4
         
+      - name: check cellar for openssl 
+        run: cd /opt/homebrew/Cellar/openssl@3/ && ls
+        
+      - name: where is openssl
+        run: openssl --version
+        
       - name: which clang/xcode
         run: clang --version
 
-      - name: export boost flags and run Auto generate
+      - name: Auto generate
         run: ./autogen.sh
 
       - name: configure
