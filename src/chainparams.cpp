@@ -203,14 +203,14 @@ vSeeds.emplace_back("fkkznbzmdpyk65swgux63fv2ybez5i4aojcxcry3oavb4qj5czvwdhad.on
 vSeeds.emplace_back("igt6e3eui3j4hp5ewjrohzpdbrlfklhnbsf3f6tif5gakn6xrac3s5yd.onion");
 vSeeds.emplace_back("ou46wbarsnmet3i3nsbs7zrg5bfisjrp4p7h5gemi2ricdzn6wjrxmad.onion");
 vSeeds.emplace_back("r5tg55r2xnexcnk6yrzekxmv34ysqn7xvpv7vz7ebent7znppw32geyd.onion");
+vSeeds.emplace_back("5tmfjfa7ftdbotoarkwbu7h7xuleahq47lumvnwdqnwoef3zbvanf3qd.onion");
+vSeeds.emplace_back("cydj7pocjyvdvl3nkrb5kxow6wga24oyzfik7ycpe5xlphvlastfhqyd.onion");
 }
 
 if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
 vSeeds.emplace_back("seed1.verge-blockchain.com"); //swat
 vSeeds.emplace_back("seed2.verge-blockchain.com"); //swat
 }
-
-
 
 base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
 base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,33);
