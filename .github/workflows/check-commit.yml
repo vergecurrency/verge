@@ -53,7 +53,7 @@ jobs:
           brew install --quiet automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
       - name: Brew link dependencies
-        run: brew link boost@1.76 qt@5 berkeley-db@4 
+        run: brew link boost@1.76
         
       - name: which clang/xcode
         run: clang --version
@@ -95,7 +95,7 @@ jobs:
           brew install --quiet automake autoconf berkeley-db@4 boost@1.76 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
       - name: Brew link dependencies
-        run: brew link boost@1.76 qt@5 berkeley-db@4
+        run: brew link boost@1.76
         
       - name: which clang/xcode
         run: clang --version
