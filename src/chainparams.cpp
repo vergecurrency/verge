@@ -191,6 +191,8 @@ vSeeds.emplace_back("ou46wbarsnmet3i3nsbs7zrg5bfisjrp4p7h5gemi2ricdzn6wjrxmad.on
 vSeeds.emplace_back("r5tg55r2xnexcnk6yrzekxmv34ysqn7xvpv7vz7ebent7znppw32geyd.onion");
 vSeeds.emplace_back("5tmfjfa7ftdbotoarkwbu7h7xuleahq47lumvnwdqnwoef3zbvanf3qd.onion");
 vSeeds.emplace_back("cydj7pocjyvdvl3nkrb5kxow6wga24oyzfik7ycpe5xlphvlastfhqyd.onion");
+vSeeds.emplace_back("segvmars637oxuy224gclsupzws7567vcuqonqx24j2iephrer2v4ryd.onion");
+vSeeds.emplace_back("tjupazrghiqqotro6yzlsla3zkxe6vfc4odpozgcft4bv5a6xrpnlbqd.onion");
 }
 
 if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
