@@ -199,6 +199,7 @@ if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false
 vSeeds.emplace_back("seed1.verge-blockchain.com"); //swat
 vSeeds.emplace_back("seed2.verge-blockchain.com"); //swat
 vSeeds.emplace_back("xvg.nownodes.io"); //NOWnodes seed
+vSeeds.emplace_back("seed3.verge-blockchain.com"); //swat
 }
 
 base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
