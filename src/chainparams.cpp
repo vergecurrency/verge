@@ -193,12 +193,24 @@ vSeeds.emplace_back("5tmfjfa7ftdbotoarkwbu7h7xuleahq47lumvnwdqnwoef3zbvanf3qd.on
 vSeeds.emplace_back("cydj7pocjyvdvl3nkrb5kxow6wga24oyzfik7ycpe5xlphvlastfhqyd.onion");
 vSeeds.emplace_back("segvmars637oxuy224gclsupzws7567vcuqonqx24j2iephrer2v4ryd.onion");
 vSeeds.emplace_back("tjupazrghiqqotro6yzlsla3zkxe6vfc4odpozgcft4bv5a6xrpnlbqd.onion");
+vSeeds.emplace_back("gaw7kjhgsfjlt4hxvxxoqlewjj7e43spzuubgcfrndglr3rmqb7kebqd.onion");
 }
 
 if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
 vSeeds.emplace_back("seed1.verge-blockchain.com"); //swat
 vSeeds.emplace_back("seed2.verge-blockchain.com"); //swat
 vSeeds.emplace_back("xvg.nownodes.io"); //NOWnodes seed
+vSeeds.emplace_back("139.59.172.93");
+vSeeds.emplace_back("35.79.207.60");
+vSeeds.emplace_back("34.195.53.91");
+vSeeds.emplace_back("52.4.132.28");
+vSeeds.emplace_back("51.178.179.75");
+vSeeds.emplace_back("162.55.208.7");
+vSeeds.emplace_back("54.247.115.161");
+vSeeds.emplace_back("18.176.159.242");
+vSeeds.emplace_back("85.106.4.146");
+vSeeds.emplace_back("195.62.62.248");
+vSeeds.emplace_back("185.220.101.170");
 }
 
 base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
