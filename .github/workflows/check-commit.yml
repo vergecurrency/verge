@@ -17,10 +17,10 @@ jobs:
           brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
       - name: Brew install boost from our homebrew deps
-        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb > boost176.rb && brew install boost176.rb 
+        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost179.rb > boost179.rb && brew install boost179.rb 
       
       - name: Brew link dependencies
-        run: brew link qt@5 berkeley-db@4 boost176
+        run: brew link qt@5 berkeley-db@4 boost179
         
       - name: which clang/xcode
         run: clang --version

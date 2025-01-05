@@ -1,10 +1,10 @@
-class Boost176 < Formula
+class Boost179 < Formula
   desc "Collection of portable C++ source libraries"
   homepage "https://www.boost.org/"
-  url "https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2"
-  sha256 "79e6d3f986444e5a80afbeccdaf2d1c1cf964baa8d766d20859d653a16c39848"
+  url "https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.bz2"
+  sha256 "475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39"
   license "BSL-1.0"
-  revision 6
+  head "https://github.com/boostorg/boost.git", branch: "master"
 
   keg_only :versioned_formula
 
@@ -12,16 +12,6 @@ class Boost176 < Formula
 
   uses_from_macos "bzip2"
   uses_from_macos "zlib"
-
-  # Backport fixes for newer Clang
-  patch :p2 do
-    url "https://github.com/boostorg/numeric_conversion/commit/50a1eae942effb0a9b90724323ef8f2a67e7984a.patch?full_index=1"
-    sha256 "d96761257f7efc2edc8414f1a2522fc07a3d7d56bb55a51d14af9abd39e389c8"
-  end
-  patch :p2 do
-    url "https://github.com/boostorg/mpl/commit/b37b709cbdb6b2c285fb808dab985aa005786351.patch?full_index=1"
-    sha256 "b8013ad3e6b63698158319f5efc2fe1558a00c1d2e32193086f741e774acc3e4"
-  end
 
   def install
     # Force boost to compile with the desired compiler
@@ -34,7 +24,7 @@ class Boost176 < Formula
     end
 
     # libdir should be set by --prefix but isn't
-    icu4c_prefix = Formula["icu4c@74"].opt_prefix
+    icu4c_prefix = Formula["icu4c"].opt_prefix
     bootstrap_args = %W[
       --prefix=#{prefix}
       --libdir=#{lib}
@@ -76,7 +66,7 @@ class Boost176 < Formula
   end
 
   test do
-    (testpath/"test.cpp").write <<~CPP
+    (testpath/"test.cpp").write <<~EOS
       #include <boost/algorithm/string.hpp>
       #include <string>
       #include <vector>
@@ -94,8 +84,8 @@ class Boost176 < Formula
         assert(strVec[1]=="b");
         return 0;
       }
-    CPP
-    system ENV.cxx, "-I#{Formula["boost@1.76"].opt_include}", "test.cpp", "-std=c++14", "-o", "test"
+    EOS
+    system ENV.cxx, "test.cpp", "-std=c++14", "-o", "test"
     system "./test"
   end
 end
