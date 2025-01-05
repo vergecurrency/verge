@@ -2,7 +2,7 @@ class Boost179 < Formula
   desc "Collection of portable C++ source libraries"
   homepage "https://www.boost.org/"
   url "https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.bz2"
-  sha256 "475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39"
+  sha256 "79e6d3f986444e5a80afbeccdaf2d1c1cf964baa8d766d20859d653a16c39848"
   license "BSL-1.0"
   head "https://github.com/boostorg/boost.git", branch: "master"
 
