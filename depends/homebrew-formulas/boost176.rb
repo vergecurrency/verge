@@ -2,7 +2,7 @@ class Boost176 < Formula
   desc "Collection of portable C++ source libraries"
   homepage "https://www.boost.org/"
   url "https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2"
-  sha256 "f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41"
+  sha256 "79e6d3f986444e5a80afbeccdaf2d1c1cf964baa8d766d20859d653a16c39848"
   license "BSL-1.0"
   revision 6
 
