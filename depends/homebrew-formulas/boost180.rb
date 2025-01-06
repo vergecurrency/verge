@@ -1,7 +1,7 @@
 class Boost180 < Formula
   desc "Collection of portable C++ source libraries"
   homepage "https://www.boost.org/"
-  url "https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2"
+  url "https://sourceforge.net/projects/boost/files/boost/1.80.0/boost_1_80_0.tar.bz2/download"
   sha256 "1e19565d82e43bc59209a168f5ac899d3ba471d55c7610c677d4ccf2c9c500c0"
   license "BSL-1.0"
   
