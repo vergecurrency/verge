@@ -1,18 +1,27 @@
-class Boost179 < Formula
+class Boost176 < Formula
   desc "Collection of portable C++ source libraries"
   homepage "https://www.boost.org/"
-  url "https://sourceforge.net/projects/boost/files/boost/1.79.0/boost_1_79_0.tar.bz2/download"
-  sha256 "475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39"
+  url "https://sourceforge.net/projects/boost/files/boost/1.76.0/boost_1_76_0.tar.bz2/download"
+  sha256 "f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41"
   license "BSL-1.0"
-  revision 2
+  revision 6
 
   keg_only :versioned_formula
-  depends_on "icu4c"
-  depends_on "xz"
-  depends_on "zstd"
+
+  depends_on "icu4c@76"
 
   uses_from_macos "bzip2"
   uses_from_macos "zlib"
+
+  # Backport fixes for newer Clang
+  patch :p2 do
+    url "https://github.com/boostorg/numeric_conversion/commit/50a1eae942effb0a9b90724323ef8f2a67e7984a.patch?full_index=1"
+    sha256 "d96761257f7efc2edc8414f1a2522fc07a3d7d56bb55a51d14af9abd39e389c8"
+  end
+  patch :p2 do
+    url "https://github.com/boostorg/mpl/commit/b37b709cbdb6b2c285fb808dab985aa005786351.patch?full_index=1"
+    sha256 "b8013ad3e6b63698158319f5efc2fe1558a00c1d2e32193086f741e774acc3e4"
+  end
 
   def install
     # Force boost to compile with the desired compiler
@@ -25,7 +34,7 @@ class Boost179 < Formula
     end
 
     # libdir should be set by --prefix but isn't
-    icu4c_prefix = Formula["icu4c"].opt_prefix
+    icu4c_prefix = Formula["icu4c@76"].opt_prefix
     bootstrap_args = %W[
       --prefix=#{prefix}
       --libdir=#{lib}
@@ -49,6 +58,8 @@ class Boost179 < Formula
       -j#{ENV.make_jobs}
       --layout=tagged-1.66
       --user-config=user-config.jam
+      -sNO_LZMA=1
+      -sNO_ZSTD=1
       install
       threading=multi,single
       link=shared,static
@@ -65,21 +76,12 @@ class Boost179 < Formula
   end
 
   test do
-    (testpath/"test.cpp").write <<~EOS
+    (testpath/"test.cpp").write <<~CPP
       #include <boost/algorithm/string.hpp>
-      #include <boost/iostreams/device/array.hpp>
-      #include <boost/iostreams/device/back_inserter.hpp>
-      #include <boost/iostreams/filter/zstd.hpp>
-      #include <boost/iostreams/filtering_stream.hpp>
-      #include <boost/iostreams/stream.hpp>
-
       #include <string>
-      #include <iostream>
       #include <vector>
       #include <assert.h>
-
       using namespace boost::algorithm;
-      using namespace boost::iostreams;
       using namespace std;
 
       int main()
@@ -90,30 +92,10 @@ class Boost179 < Formula
         assert(strVec.size()==2);
         assert(strVec[0]=="a");
         assert(strVec[1]=="b");
-
-        // Test boost::iostreams::zstd_compressor() linking
-        std::vector<char> v;
-        back_insert_device<std::vector<char>> snk{v};
-        filtering_ostream os;
-        os.push(zstd_compressor());
-        os.push(snk);
-        os << "Boost" << std::flush;
-        os.pop();
-
-        array_source src{v.data(), v.size()};
-        filtering_istream is;
-        is.push(zstd_decompressor());
-        is.push(src);
-        std::string s;
-        is >> s;
-
-        assert(s == "Boost");
-
         return 0;
       }
-    EOS
-    system ENV.cxx, "test.cpp", "-std=c++14", "-o", "test", "-L#{lib}", "-lboost_iostreams",
-                    "-L#{Formula["zstd"].opt_lib}", "-lzstd"
+    CPP
+    system ENV.cxx, "-I#{Formula["boost@1.76"].opt_include}", "test.cpp", "-std=c++14", "-o", "test"
     system "./test"
   end
 end
