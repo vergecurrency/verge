@@ -17,10 +17,10 @@ jobs:
           brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf icu4c@75 qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
       - name: Brew install boost from our homebrew deps
-        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost180.rb > boost180.rb && brew install boost180.rb 
+        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost179.rb > boost179.rb && brew install boost179.rb 
       
       - name: Brew link dependencies
-        run: brew link qt@5 berkeley-db@4 boost180
+        run: brew link qt@5 berkeley-db@4 boost179
         
       - name: which clang/xcode
         run: clang --version
@@ -62,10 +62,10 @@ jobs:
           brew install --quiet automake autoconf berkeley-db@4 icu4c@75 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
         
       - name: Brew install boost from our homebrew deps
-        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost180.rb > boost180.rb && brew install boost180.rb 
+        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost179.rb > boost179.rb && brew install boost179.rb 
         
       - name: Brew link dependencies
-        run: brew link boost180 qt@5 berkeley-db@4
+        run: brew link boost179 qt@5 berkeley-db@4
         
       - name: check cellar for openssl 
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls

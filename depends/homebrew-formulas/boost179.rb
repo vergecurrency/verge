@@ -1,10 +1,11 @@
-class Boost180 < Formula
+class Boost179 < Formula
   desc "Collection of portable C++ source libraries"
   homepage "https://www.boost.org/"
-  url "https://sourceforge.net/projects/boost/files/boost/1.80.0/boost_1_80_0.tar.bz2/download"
-  sha256 "1e19565d82e43bc59209a168f5ac899d3ba471d55c7610c677d4ccf2c9c500c0"
+  url "https://sourceforge.net/projects/boost/files/boost/1.79.0/boost_1_79_0.tar.bz2/download"
+  sha256 "475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39"
   license "BSL-1.0"
-  
+  revision 2
+
   keg_only :versioned_formula
   depends_on "icu4c"
   depends_on "xz"
