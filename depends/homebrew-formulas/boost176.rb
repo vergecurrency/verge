@@ -6,7 +6,7 @@ class Boost176 < Formula
   license "BSL-1.0"
   revision 6
   keg_only :versioned_formula
-  depends_on "icu4c@74"
+  depends_on "icu4c@75"
   uses_from_macos "bzip2"
   uses_from_macos "zlib"
   # Backport fixes for newer Clang
@@ -28,7 +28,7 @@ class Boost176 < Formula
       end
     end
     # libdir should be set by --prefix but isn't
-    icu4c_prefix = Formula["icu4c@74"].opt_prefix
+    icu4c_prefix = Formula["icu4c@75"].opt_prefix
     bootstrap_args = %W[
       --prefix=#{prefix}
       --libdir=#{lib}
