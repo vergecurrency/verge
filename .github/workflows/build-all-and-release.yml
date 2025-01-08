@@ -19,11 +19,15 @@ jobs:
 
       - name: Brew install base dependencies
         run: |
+          # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake berkeley-db@4 boost@1.76 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+          brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
 
+      - name: Brew install boost from our homebrew deps
+        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb > boost176.rb && brew install boost176.rb 
+      
       - name: Brew link dependencies
-        run: brew link boost@1.76 qt@5 berkeley-db@4 
+        run: brew link qt@5 berkeley-db@4 boost176 
 
       - name: Auto generate
         run: ./autogen.sh
@@ -42,7 +46,55 @@ jobs:
           name: verge-macos13
           path: |
             *.dmg
-            
+  
+  macos14:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: git config credential.helper
+        run: git config credential.helper
+        
+      - name: get previous xcode and switch to it
+        run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
+
+      - name: Brew install base dependencies
+        run: |
+          # A workaround for "The `brew link` step did not complete successfully" error.
+          brew install --quiet python@3 || brew link --overwrite python@3
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+        
+      - name: Brew install boost from our homebrew deps
+        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb > boost176.rb && brew install boost176.rb 
+        
+      - name: Brew link dependencies
+        run: brew link boost176 qt@5 berkeley-db@4
+        
+      - name: check cellar for openssl 
+        run: cd /opt/homebrew/Cellar/openssl@3/ && ls
+        
+      - name: which clang/xcode
+        run: clang --version
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: export LDFLAGS="-L/opt/homebrew/opt/boost176/lib" && export CPPFLAGS="-I/opt/homebrew/opt/boost176/include" && ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.4.0 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost=/opt/homebrew/Cellar/boost176/1.76.0_6
+
+      - name: make
+        run: make -j4
+
+      - name: make .dmg
+        run: make deploy
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos14
+          path: |
+            *.dmg  
+  
   ubuntu24:
     runs-on: ubuntu-24.04
 
@@ -222,7 +274,7 @@ jobs:
 
   SendReleases:
     runs-on: ubuntu-latest
-    needs: [macos13, ubuntu20, ubuntu22, ubuntu24, windows32, windows64]
+    needs: [macos13, macos14, ubuntu20, ubuntu22, ubuntu24, windows32, windows64]
 
     steps:
 
@@ -243,6 +295,10 @@ jobs:
           path: verge-macos13
       - uses: actions/download-artifact@v4
         with:
+          name: verge-macos14
+          path: verge-macos14
+      - uses: actions/download-artifact@v4
+        with:
           name: verge-ubuntu20
           path: verge-ubuntu20
       - uses: actions/download-artifact@v4
@@ -259,6 +315,7 @@ jobs:
             zip -r verge-windows32.zip verge-windows32/
             zip -r verge-windows64.zip verge-windows64/
             zip -r verge-macos13.zip verge-macos13/
+            zip -r verge-macos14.zip verge-macos14/
             zip -r verge-ubuntu20.zip verge-ubuntu20/
             zip -r verge-ubuntu22.zip verge-ubuntu22/
             zip -r verge-ubuntu24.zip verge-ubuntu24/
@@ -274,11 +331,12 @@ jobs:
       - name: push zips to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v7.7.0
+          tag_name: v7.8.0
           files: |
             verge-windows32.zip
             verge-windows64.zip
             verge-macos13.zip
+            verge-macos14.zip
             verge-ubuntu20.zip
             verge-ubuntu22.zip
             verge-ubuntu24.zip
