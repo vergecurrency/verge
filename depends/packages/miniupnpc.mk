@@ -1,8 +1,8 @@
 package=miniupnpc
-$(package)_version=2.2.8
+$(package)_version=2.3.0
 $(package)_download_path=https://miniupnp.tuxfamily.org/files/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=05B929679091B9921B6B6C1F25E39E4C8D1F4D46C8FEB55A412AA697AEE03A93
+$(package)_sha256_hash=025C9AB95677F02A69BC64AC0A747F07E02BA99CF797BC679A5A552FED8D990C
 $(package)_patches=dont_leak_info.patch fix_windows_build.patch
 
 define $(package)_set_vars
