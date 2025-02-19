@@ -201,6 +201,7 @@ if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false
 vSeeds.emplace_back("seed1.verge-blockchain.com"); //swat
 vSeeds.emplace_back("seed2.verge-blockchain.com"); //swat
 vSeeds.emplace_back("xvg.nownodes.io"); //NOWnodes seed
+vSeeds.emplace_back("seed3.verge-blockchain.com"); //swat
 vSeeds.emplace_back("139.59.172.93");
 vSeeds.emplace_back("35.79.207.60");
 vSeeds.emplace_back("34.195.53.91");
