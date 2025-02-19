@@ -1,7 +1,7 @@
 class Boost176 < Formula
   desc "Collection of portable C++ source libraries"
   homepage "https://www.boost.org/"
-  url "https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2"
+  url "https://sourceforge.net/projects/boost/files/boost/1.76.0/boost_1_76_0.tar.bz2/download"
   sha256 "f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41"
   license "BSL-1.0"
   revision 6
@@ -34,7 +34,7 @@ class Boost176 < Formula
     end
 
     # libdir should be set by --prefix but isn't
-    icu4c_prefix = Formula["icu4c@74"].opt_prefix
+    icu4c_prefix = Formula["icu4c@76"].opt_prefix
     bootstrap_args = %W[
       --prefix=#{prefix}
       --libdir=#{lib}
