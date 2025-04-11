@@ -1,8 +1,8 @@
 package=expat
-$(package)_version=2.6.4
+$(package)_version=2.7.1
 $(package)_download_path=https://github.com/libexpat/libexpat/releases/download/R_$(subst .,_,$($(package)_version))/
 $(package)_file_name=$(package)-$($(package)_version).tar.xz
-$(package)_sha256_hash=A695629DAE047055B37D50A0FF4776D1D45D0A4C842CF4CCEE158441F55FF7EE
+$(package)_sha256_hash=354552544B8F99012E5062F7D570EC77F14B412A3FF5C7D8D0DAE62C0D217C30
 
 # -D_DEFAULT_SOURCE defines __USE_MISC, which exposes additional
 # definitions in endian.h, which are required for a working
