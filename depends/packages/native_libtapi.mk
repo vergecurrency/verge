@@ -3,7 +3,7 @@ $(package)_version=54c9044082ba35bdb2b0edf282ba1a340096154c
 $(package)_download_path=https://github.com/tpoechtrager/apple-libtapi/archive
 $(package)_file_name=$($(package)_version).tar.gz
 $(package)_sha256_hash=d4d46c64622f13d6938cecf989046d9561011bb59e8ee835f8f39825d67f578f
-$(package)_patches=disable_zlib.patch
+$(package)_patches=disable_zlib.patch no_embed_git_rev.patch
 
 ifeq ($(strip $(FORCE_USE_SYSTEM_CLANG)),)
 $(package)_dependencies=native_llvm
