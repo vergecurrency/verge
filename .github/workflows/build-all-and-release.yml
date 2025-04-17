@@ -241,7 +241,7 @@ jobs:
 
   SendReleases:
     runs-on: ubuntu-latest
-    needs: [macos13, macos14, ubuntu20, ubuntu22, ubuntu24, windows32, windows64]
+    needs: [macos13, macos14, ubuntu22, ubuntu24, windows32, windows64]
 
     steps:
 
@@ -279,7 +279,6 @@ jobs:
             zip -r verge-windows64.zip verge-windows64/
             zip -r verge-macos13.zip verge-macos13/
             zip -r verge-macos14.zip verge-macos14/
-            zip -r verge-ubuntu20.zip verge-ubuntu20/
             zip -r verge-ubuntu22.zip verge-ubuntu22/
             zip -r verge-ubuntu24.zip verge-ubuntu24/
        
@@ -300,7 +299,6 @@ jobs:
             verge-windows64.zip
             verge-macos13.zip
             verge-macos14.zip
-            verge-ubuntu20.zip
             verge-ubuntu22.zip
             verge-ubuntu24.zip
             SHA256SUMS.txt
