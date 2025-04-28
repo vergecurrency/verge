@@ -293,7 +293,7 @@ jobs:
       - name: push zips to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v7.10.0
+          tag_name: v7.11.0
           files: |
             verge-windows32.zip
             verge-windows64.zip
