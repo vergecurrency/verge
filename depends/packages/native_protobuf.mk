@@ -1,8 +1,8 @@
 package=native_protobuf
-$(package)_version=3.10.1
+$(package)_version=3.15.1
 $(package)_download_path=https://github.com/google/protobuf/releases/download/v$($(package)_version)
 $(package)_file_name=protobuf-cpp-$($(package)_version).tar.gz
-$(package)_sha256_hash=E82EE5BDDE198E0A1935E280748A86A7989474EA771418A2FD90F03E2E65B99B
+$(package)_sha256_hash=D12060F1A5AF8C12DE7B5631465E3F6F29BE0AE218396C1E75EE89CACFD4B739
 
 define $(package)_set_vars
 $(package)_config_opts=--disable-shared
