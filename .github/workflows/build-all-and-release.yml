@@ -239,68 +239,81 @@ jobs:
             /home/runner/work/verge/verge/src/verge-tx.exe
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
 
-  SendReleases:
-    runs-on: ubuntu-latest
-    needs: [macos13, macos14, ubuntu22, ubuntu24, windows32, windows64]
+ SendReleases:
+  runs-on: ubuntu-latest
+  needs: [macos13, macos14, ubuntu22, ubuntu24, windows32, windows64]
 
-    steps:
+  steps:
 
-      - name: Generate Changelog
-        run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
-      
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-windows32
-          path: verge-windows32
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-windows64
-          path: verge-windows64
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-macos13
-          path: verge-macos13
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-macos14
-          path: verge-macos14
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-ubuntu22
-          path: verge-ubuntu22
-      - uses: actions/download-artifact@v4
-        with:
-          name: verge-ubuntu24
-          path: verge-ubuntu24
+    - name: Generate Changelog
+      run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-windows32
+        path: verge-windows32
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-windows64
+        path: verge-windows64
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-macos13
+        path: verge-macos13
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-macos14
+        path: verge-macos14
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-ubuntu22
+        path: verge-ubuntu22
+    - uses: actions/download-artifact@v4
+      with:
+        name: verge-ubuntu24
+        path: verge-ubuntu24
+        
+    - name: Create zips
+      run: |
+          zip -r verge-windows32.zip verge-windows32/
+          zip -r verge-windows64.zip verge-windows64/
+          zip -r verge-macos13.zip verge-macos13/
+          zip -r verge-macos14.zip verge-macos14/
+          zip -r verge-ubuntu22.zip verge-ubuntu22/
+          zip -r verge-ubuntu24.zip verge-ubuntu24/
+     
+    - name: List downloaded artifacts
+      run: ls -lR
+
+    - name: sha256
+      run: |
+        find . -type f -name "*.zip" | xargs sha256sum -b > SHA256SUMS.txt
+        cat SHA256SUMS.txt
+
+    - name: Read SHA256SUMS into a variable
+      id: checksums
+      run: |
+        echo "SHA256SUMS<<EOF" >> $GITHUB_ENV
+        cat SHA256SUMS.txt >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Push zips to release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v7.11.0
+        files: |
+          verge-windows32.zip
+          verge-windows64.zip
+          verge-macos13.zip
+          verge-macos14.zip
+          verge-ubuntu22.zip
+          verge-ubuntu24.zip
+          SHA256SUMS.txt
+        body: |
+          # Changelog
+
+          ## SHA256 Checksums
           
-      - name: Create zips
-        run: |
-            zip -r verge-windows32.zip verge-windows32/
-            zip -r verge-windows64.zip verge-windows64/
-            zip -r verge-macos13.zip verge-macos13/
-            zip -r verge-macos14.zip verge-macos14/
-            zip -r verge-ubuntu22.zip verge-ubuntu22/
-            zip -r verge-ubuntu24.zip verge-ubuntu24/
-       
-      - name: List downloaded artifacts
-        run: ls -lR
-      
-      - name: sha256
-        run: |
-          find . -type f -name "*.zip" | xargs sha256sum -b > SHA256SUMS.txt
-          cat SHA256SUMS.txt
-
-      - name: push zips to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v7.11.0
-          files: |
-            verge-windows32.zip
-            verge-windows64.zip
-            verge-macos13.zip
-            verge-macos14.zip
-            verge-ubuntu22.zip
-            verge-ubuntu24.zip
-            SHA256SUMS.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.SHA256SUMS }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
