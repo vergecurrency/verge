@@ -77,7 +77,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: export LDFLAGS="-L/opt/homebrew/opt/boost176/lib" && export CPPFLAGS="-I/opt/homebrew/opt/boost176/include" && ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.4.1 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost=/opt/homebrew/Cellar/boost176/1.76.0_6
+        run: export LDFLAGS="-L/opt/homebrew/opt/boost176/lib" && export CPPFLAGS="-I/opt/homebrew/opt/boost176/include" && ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.5.0 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost=/opt/homebrew/Cellar/boost176/1.76.0_6
 
       - name: make
         run: make -j4
