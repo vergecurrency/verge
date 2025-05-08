@@ -10,7 +10,7 @@ EXTRA_LIBRARIES += $(LIBMEMENV_INT)
 
 LIBLEVELDB += $(LIBLEVELDB_INT)
 LIBMEMENV += $(LIBMEMENV_INT)
-
+LEVELDB_CPPFLAGS = -std=c++17
 LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/include
 LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/helpers/memenv
 

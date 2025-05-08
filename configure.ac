@@ -886,7 +886,7 @@ if test x$use_reduce_exports = xyes; then
   [AC_MSG_ERROR([Cannot set default symbol visibility. Use --disable-reduce-exports.])])
 fi
 
-LEVELDB_CPPFLAGS="-std=c++17"
+LEVELDB_CPPFLAGS=
 LIBLEVELDB=
 LIBMEMENV=
 AM_CONDITIONAL([EMBEDDED_LEVELDB],[true])
