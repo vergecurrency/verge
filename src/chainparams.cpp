@@ -194,6 +194,7 @@ vSeeds.emplace_back("cydj7pocjyvdvl3nkrb5kxow6wga24oyzfik7ycpe5xlphvlastfhqyd.on
 vSeeds.emplace_back("segvmars637oxuy224gclsupzws7567vcuqonqx24j2iephrer2v4ryd.onion");
 vSeeds.emplace_back("tjupazrghiqqotro6yzlsla3zkxe6vfc4odpozgcft4bv5a6xrpnlbqd.onion");
 vSeeds.emplace_back("gaw7kjhgsfjlt4hxvxxoqlewjj7e43spzuubgcfrndglr3rmqb7kebqd.onion");
+vSeeds.emplace_back("prd2sniu2n6cnv3tyu74dqvcbqsiy6ehcz2k2kiu32fkibwylzvd67qd.onion");
 vSeeds.emplace_back("me42s2jffdmv2j5lq74y5dfrhjwvnh27cc7k4uleccbojcfmwfsxqzad.onion");
 }
 
