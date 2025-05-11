@@ -126,6 +126,13 @@ jobs:
 
       - name: make
         run: make -j4
+       
+      - name: strip
+        run: |
+          strip ./src/verged
+          strip ./src/verge-cli
+          strip ./src/verge-tx
+          strip ./src/qt/verge-qt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -158,6 +165,13 @@ jobs:
 
       - name: make
         run: make -j4
+        
+      - name: strip
+        run: |
+          strip ./src/verged
+          strip ./src/verge-cli
+          strip ./src/verge-tx
+          strip ./src/qt/verge-qt
 
       - uses: actions/upload-artifact@v4
         with:
