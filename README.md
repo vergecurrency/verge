@@ -54,15 +54,15 @@ Block Number Range | Reward
 
 ## Resources
 
-* [Blockchain Explorer](https://verge-blockchain.info/)https://verge-blockchain.info/
-* [Blockchain Explorer Testnet](https://testnet.verge-blockchain.info/)https://testnet.verge-blockchain.info/
-* [Blockchain Explorer](https://xvgblockexplorer.com/)https://xvgblockexplorer.com/
-* [Mining Pool List](https://vergecurrency.com/community/xvg-mining-pools/) (needs updating)
+* [Blockchain Explorer](https://verge-blockchain.info/) https://verge-blockchain.info/
+* [Blockchain Explorer Testnet](https://testnet.verge-blockchain.info/) https://testnet.verge-blockchain.info/
+* [Blockchain Explorer](https://xvgblockexplorer.com/) https://xvgblockexplorer.com/
+* [Mining Pool List](https://miningpoolstats.stream/) Most pools of our 5 algorithms can be found here
 * [Black Paper](https://vergecurrency.com/static/blackpaper/verge-blackpaper-v5.0.pdf)
 
 ### Community
 
-* [Telegram](https://t.me/VERGExvg)
+* [Telegram](https://t.me/officialxvg)
 * [Discord](https://discord.gg/vergecurrency)
 * [Twitter](https://www.twitter.com/vergecurrency)
 * [Facebook](https://www.facebook.com/VERGEcurrency/)
