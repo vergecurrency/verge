@@ -50,6 +50,7 @@ Block Number Range | Reward
 5,700,001 to 6,200,000 | 25  coins
 6,200,001 to 6,700,000 | 12.5 coins
 6,700,001 to 7,200,000 | 6.25 coins
+7,200,001+             | 0.0 coins
 
 ## Resources
 
