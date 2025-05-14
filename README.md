@@ -57,7 +57,7 @@ Block Number Range | Reward
 * [Blockchain Explorer] (https://verge-blockchain.info/) https://verge-blockchain.info/
 * [Blockchain Explorer] (https://xvgblockexplorer.com/) https://xvgblockexplorer.com/
 * [Blockchain Explorer Testnet] (https://testnet.verge-blockchain.info/) https://testnet.verge-blockchain.info/
-* [Network Hash and Difficulty] (https://vergecurrency.network/d/VmzuEE5Mk/verge-blockchain?) nhttps://vergecurrency.network/d/VmzuEE5Mk/verge-blockchain
+* [Network Hash and Difficulty] (https://vergecurrency.network/d/VmzuEE5Mk/verge-blockchain?) https://vergecurrency.network/d/VmzuEE5Mk/verge-blockchain
 * [Network Transaction Information] (https://network.verge-blockchain.com/d/e8a7802b-23c3-4d81-88f3-fcd0e2efb235/) https://network.verge-blockchain.com/d/e8a7802b-23c3-4d81-88f3-fcd0e2efb235/ (all real transactions only! empty blocks, mining pool txs, etc are filtered out!)
 * [Mining Pool List] (https://miningpoolstats.stream/) Most pools of our 5 algorithms can be found here!
 * [Black Paper] (https://vergecurrency.com/static/blackpaper/verge-blackpaper-v5.0.pdf) Verge's whitepaper can be found here!
