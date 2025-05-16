@@ -24,6 +24,10 @@ docker-compose ps
 docker exec -i -t container_verge /bin/bash
 
 
+For the latest maintained Verge Core Docker: 
+[Docker-Verge-Daemon](https://github.com/vergecurrency/Docker-Verge-Daemon)
+
+
 
 
 
