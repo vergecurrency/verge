@@ -1,81 +1,72 @@
-# Dockerfile for Verge
-# http://vergecurrency.com/
-# https://bitcointalk.org/index.php?topic=1365894
+# Dockerfile for Verge Daemon
+# https://vergecurrency.com/
 # https://github.com/vergecurrency/verge
-
-# https://github.com/vergecurrency/Docker-Verge-Daemon.git
-#  Jeremiah Buddenhagen <bitspill@bitspill.net>
 
 FROM ubuntu:22.04
 
-MAINTAINER Mike Kinney <mike.kinney@gmail.com> / Sunerok
+ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DEBIAN_FRONTEND noninteractive
+# Set base working directory
+WORKDIR /coin
 
-RUN apt-get update --yes > /dev/null && \
-    apt-get upgrade --yes > /dev/null && \
-    apt-get install --yes -qq software-properties-common > /dev/null && \
-    cd ~ \
-	wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz' \
-	tar -xzvf db-4.8.30.NC.tar.gz \
-	cd db-4.8.30.NC/build_unix/ \
-	sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' ~/db-4.8.30.NC/dbinc/atomic.h \
-	../dist/configure --enable-cxx && make && make install \
-	sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb-4.8.so /usr/lib/libdb-4.8.so \
-    sudo ln -s /usr/local/BerkeleyDB.4.8/lib/libdb_cxx-4.8.so /usr/lib/libdb_cxx-4.8.so \
-	cd ~ \
-    apt-get install --yes -qq \
-       autoconf \
-       automake \
-       autotools-dev \
-	   bison \
-	   byacc \
-       bsdmainutils \
-       build-essential \
-       git \
-       libboost-all-dev \
-       libboost-filesystem-dev \
-       libboost-program-options-dev \
-       libboost-system-dev \
-       libboost-test-dev \
-       libboost-thread-dev \
-       libcap-dev \
-       libncap-dev \
-       libdb4.8++-dev \
-       libdb4.8-dev \
-       libevent-dev \
-       libminiupnpc-dev \
-       libprotobuf-dev \
-       libqrencode-dev \
-       libqt5core5a \
-       libqt5dbus5 \
-       libqt5gui5 \
-       libseccomp-dev \
-       libsqlite3-dev \
-       libssl-dev \
-       libtool \
-       pkg-config \
-       protobuf-compiler \
-       qt5-default \
-       qtbase5-dev \
-       qtdeclarative5-dev \
-       qttools5-dev \
-       qttools5-dev-tools \
-       zlib1g-dev \
-      > /dev/null
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    apt-get update && \
+    apt-get install -y \
+    build-essential \
+    git \
+    libboost-all-dev \
+    libtool \
+    autotools-dev \
+    automake \
+    pkg-config \
+    libssl-dev \
+    libevent-dev \
+    bsdmainutils \
+    libminiupnpc-dev \
+    libqt5gui5 \
+    libqt5core5a \
+    libqt5dbus5 \
+    qttools5-dev \
+    qttools5-dev-tools \
+    libprotobuf-dev \
+    protobuf-compiler \
+    zlib1g-dev \
+    libseccomp-dev \
+    libcap-dev \
+    libncap-dev \
+    libqrencode-dev \
+    curl
 
-RUN git clone https://github.com/vergecurrency/VERGE.git /coin/git
+# Clone Verge source
+RUN git clone https://github.com/vergecurrency/verge.git /coin/verge
 
-WORKDIR /coin/git
+# Build db4 from source
+WORKDIR /coin/verge/contrib
+RUN ./install_db4.sh ..
 
-RUN ./autogen.sh && ./configure --with-gui=qt5 && make && mv src/verged /coin/verged
+# list files
+WORKDIR /coin/verge/contrib
+RUN ls
 
+# Configure and build Verge
+WORKDIR /coin/verge
+RUN ./autogen.sh && \
+    ./configure LDFLAGS="-L/coin/verge/db4/lib/" CPPFLAGS="-I/coin/verge/db4/include/" --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui=no && \
+    make -j$(nproc)
+
+# Move final binary to standard location
+RUN mv /coin/verge/src/verged /coin/vergedaemon && \
+    rm -rf /coin/verge
+
+# Define runtime environment
 WORKDIR /coin
 VOLUME ["/coin/home"]
-
 ENV HOME /coin/home
 
-CMD ["/coin/verged"]
+# Default command
+ENTRYPOINT ["/coin/vergedaemon"]
 
-# P2P, RPC
+# Expose Verge P2P and RPC ports
 EXPOSE 21102 20102
