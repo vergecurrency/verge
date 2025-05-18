@@ -80,7 +80,7 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 ### Windows Wallet Usage
 
-1. Download the pre-compiled software.
+1. Download the pre-compiled software from the releases section here.
 2. Install
 3. In windows file explorer, open `c:\Users\XXX\AppData\Roaming\VERGE` (be sure to change XXX to your windows user)
 4. Right click and create a new file `verge.txt`
@@ -102,9 +102,9 @@ Binary (pre-compiled) wallets are available on all platforms at [https://vergecu
 
 > **Note:** You must re-start the wallet after making changes to `verge.conf`.
 
-### OS X Wallet
+### MacOS Wallet
 
-1. Download the pre-compiled software.
+1. Download the pre-compiled macos software from the releases section here.
 2. Double click the DMG
 3. Drag the Verge-Qt to your Applications folder
 4. Double click the Verge-Qt application to open it.
@@ -205,7 +205,7 @@ The _slightly_ longer version:
     sudo make install
     ```
 
-> **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
+> **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-22-04)
 
 
 
