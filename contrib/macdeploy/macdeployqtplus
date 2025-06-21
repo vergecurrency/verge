@@ -893,7 +893,7 @@ if config.dmg is not None:
 
         if verbose >= 2:
             print("+ Finalizing .dmg disk image +")
-            time.sleep(5)
+            time.sleep(15)
         
         try:
             runHDIUtil("convert", dmg_name + ".temp", format="UDBZ", o=dmg_name + ".dmg", ov=True)
