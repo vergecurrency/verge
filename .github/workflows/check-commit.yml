@@ -84,7 +84,6 @@ jobs:
 
       - name: make .dmg
         run: |
-          sed -i.bak '1s|^#!.*|#!/usr/local/bin/python3|' ./contrib/macdeploy/macdeployqtplus
           make deploy
 
       - uses: actions/upload-artifact@v4
