@@ -44,7 +44,7 @@ jobs:
             *.dmg
 
   macos14:
-    runs-on: macos-14
+    runs-on: macos-14-xl
 
     steps:
       - uses: actions/checkout@v4
@@ -72,14 +72,6 @@ jobs:
         
       - name: which clang/xcode
         run: clang --version
-        
-      - name: Create 2GB swap file
-        run: |
-          sudo fallocate -l 2G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          free -h
 
       - name: Auto generate
         run: ./autogen.sh
