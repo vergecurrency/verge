@@ -30,9 +30,13 @@ jobs:
 
       - name: configure
         run: ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        
+      - name: Free up memory (optional)
+        run: |
+          sudo purge || true  # purge helps clear memory cache (no guarantee)  
 
       - name: make
-        run: make -j4
+        run: make -j2
 
       - name: make .dmg
         run: make deploy
