@@ -1,5 +1,5 @@
 #!/bin/bash
-#// full deployement :   wget -O - https://raw.githubusercontent.com/vergecurrency/VERGE/master/go.sh | bash
+#// full deployment :   wget -O - https://raw.githubusercontent.com/vergecurrency/VERGE/master/go.sh | bash
 var=`date +"%FORMAT_STRING"`
 now=`date +"%m_%d_%Y"`
 now=`date +"%Y-%m-%d-%s"`
@@ -220,7 +220,7 @@ echo "There is only 1 libboost library present. We choose for you 0"
 answer=0
 fi
 
-echo "You have choosen $answer"
+echo "You have chosen $answer"
 
 if [ $(dirname "$(cat wrd00.txt)") = "/usr/lib/arm-linux-gnueabihf" ]
 then
