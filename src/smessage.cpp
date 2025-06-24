@@ -99,8 +99,6 @@ CCriticalSection cs_smsgDB;
 leveldb::DB *smsgDB = NULL;
 
 
-namespace fs = boost::filesystem;
-
 bool SecMsgCrypter::SetKey(const std::vector<unsigned char>& vchNewKey, unsigned char* chNewIV)
 {
     
@@ -2307,7 +2305,7 @@ bool SecureMsgScanBuckets()
             // -- remove wl file when scanned
             try {
                 fs::remove((*itd).path());
-            } catch (const boost::filesystem::filesystem_error& ex)
+            } catch (const filesystem_error& ex)
             {
                 printf("Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
                 return 1;
@@ -2387,7 +2385,7 @@ int SecureMsgWalletUnlocked()
             printf("Dropping wallet locked file %s, expired.\n", fileName.c_str());
             try {
                 fs::remove((*itd).path());
-            } catch (const boost::filesystem::filesystem_error& ex)
+            } catch (const filesystem_error& ex)
             {
                 printf("Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
                 return 1;
@@ -2455,7 +2453,7 @@ int SecureMsgWalletUnlocked()
             // -- remove wl file when scanned
             try {
                 fs::remove((*itd).path());
-            } catch (const boost::filesystem::filesystem_error& ex)
+            } catch (const filesystem_error& ex)
             {
                 printf("Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
                 return 1;
@@ -2954,7 +2952,7 @@ int SecureMsgStoreUnscanned(unsigned char *pHeader, unsigned char *pPayload, uin
     try {
         pathSmsgDir = GetDataDir() / "smsgStore";
         fs::create_directory(pathSmsgDir);
-    } catch (const boost::filesystem::filesystem_error& ex)
+    } catch (const filesystem_error& ex)
     {
         printf("Error: Failed to create directory %s - %s\n", pathSmsgDir.string().c_str(), ex.what());
         return 1;
@@ -3019,7 +3017,7 @@ int SecureMsgStore(unsigned char *pHeader, unsigned char *pPayload, uint32_t nPa
     try {
         pathSmsgDir = GetDataDir() / "smsgStore";
         fs::create_directory(pathSmsgDir);
-    } catch (const boost::filesystem::filesystem_error& ex)
+    } catch (const filesystem_error& ex)
     {
         printf("Error: Failed to create directory %s - %s\n", pathSmsgDir.string().c_str(), ex.what());
         return 1;

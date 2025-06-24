@@ -16,7 +16,6 @@
 #include <string> 
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include <util/system.h>
 #include <threadinterrupt.h>
