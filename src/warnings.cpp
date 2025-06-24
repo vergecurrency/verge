@@ -10,20 +10,22 @@
 #include <util/system.h>
 #include <warnings.h>
 
-CCriticalSection cs_warnings;
+// Modern C++ Migration: Use non-recursive mutex for better performance  
+VergeStdMutex cs_warnings;
 std::string strMiscWarning GUARDED_BY(cs_warnings);
 bool fLargeWorkForkFound GUARDED_BY(cs_warnings) = false;
 bool fLargeWorkInvalidChainFound GUARDED_BY(cs_warnings) = false;
 
 void SetMiscWarning(const std::string& strWarning)
 {
-    LOCK(cs_warnings);
+    // Modern C++ Migration: Use LOCK_GUARD for simple cases
+    LOCK_GUARD(cs_warnings);
     strMiscWarning = strWarning;
 }
 
 void SetfLargeWorkForkFound(bool flag)
 {
-    LOCK(cs_warnings);
+    LOCK_GUARD(cs_warnings);
     fLargeWorkForkFound = flag;
 }
 
