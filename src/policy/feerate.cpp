@@ -18,7 +18,7 @@ CFeeRate::CFeeRate(const CAmount& nFeePaid, size_t nBytes_)
     int64_t nSize = int64_t(nBytes_);
 
     if (nSize > 0)
-        // we don't have dynamic fees and therefor you 
+        // we don't have dynamic fees and therefore you 
         // have to at least pay 0.1 XVG for each KB
         nSatoshisPerK = 10 * CENT;
     else

@@ -192,7 +192,7 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             const std::vector<unsigned char> &vchCryptedSecret = (*mi).second.second;
             CKey key;
 
-            if (vchCryptedSecret.size() < 1) // key was recieved from stealth/anon txn with wallet locked, will be expanded after this
+            if (vchCryptedSecret.size() < 1) // key was received from stealth/anon txn with wallet locked, will be expanded after this
             {
                 LogPrintf("Skipping unexpanded key %s.\n", vchPubKey.GetHash().ToString().c_str());
                 continue;
