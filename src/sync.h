@@ -109,6 +109,41 @@ typedef AnnotatedMixin<std::recursive_mutex> CCriticalSection;
 /** Wrapped mutex: supports waiting but not recursive locking */
 typedef AnnotatedMixin<std::mutex> Mutex;
 
+// Modern C++ Migration: Enhanced synchronization primitives
+namespace verge {
+    namespace sync {
+        /** Modern mutex: fast, non-recursive, preferred for new code */
+        using Mutex = AnnotatedMixin<std::mutex>;
+        
+        /** Recursive mutex: when recursive locking is actually needed */
+        using RecursiveMutex = AnnotatedMixin<std::recursive_mutex>;
+        
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L && __has_include(<shared_mutex>)
+        /** Shared mutex: reader-writer lock for high-read, low-write scenarios */
+        using SharedMutex = AnnotatedMixin<std::shared_mutex>;
+        #define VERGE_HAVE_SHARED_MUTEX 1
+#else
+        #define VERGE_HAVE_SHARED_MUTEX 0
+#endif
+        
+        /** RAII lock guards for better exception safety */
+        template<typename MutexType>
+        using LockGuard = std::lock_guard<MutexType>;
+        
+        template<typename MutexType>
+        using UniqueLock = std::unique_lock<MutexType>;
+        
+#if VERGE_HAVE_SHARED_MUTEX
+        template<typename SharedMutexType>
+        using SharedLock = std::shared_lock<SharedMutexType>;
+#endif
+    }
+}
+
+// Modern C++ Migration: Preferred type aliases for gradual migration
+using VergeStdMutex = verge::sync::Mutex;                    // Modern non-recursive mutex
+using VergeRecursiveMutex = verge::sync::RecursiveMutex;     // When recursion is needed
+
 #ifdef DEBUG_LOCKCONTENTION
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
 #endif
@@ -184,6 +219,14 @@ using DebugLock = UniqueLock<typename std::remove_reference<typename std::remove
     DebugLock<decltype(cs2)> criticalblock2(cs2, #cs2, __FILE__, __LINE__);
 #define TRY_LOCK(cs, name) DebugLock<decltype(cs)> name(cs, #cs, __FILE__, __LINE__, true)
 #define WAIT_LOCK(cs, name) DebugLock<decltype(cs)> name(cs, #cs, __FILE__, __LINE__)
+
+// Modern C++ Migration: Additional lock macros for better control
+#define LOCK_GUARD(cs) std::lock_guard<decltype(cs)> PASTE2(lockguard, __COUNTER__)(cs)
+#define UNIQUE_LOCK(cs, name) std::unique_lock<decltype(cs)> name(cs)
+
+#if VERGE_HAVE_SHARED_MUTEX
+#define SHARED_LOCK(cs, name) std::shared_lock<decltype(cs)> name(cs)
+#endif
 
 #define ENTER_CRITICAL_SECTION(cs)                            \
     {                                                         \

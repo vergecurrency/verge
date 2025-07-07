@@ -13,6 +13,10 @@
 #include <wallet.h>
 #include <lz4/lz4.h>
 
+// Modern C++ Migration: Smart pointer and algorithm support
+#include <memory>
+#include <algorithm>
+
 
 const unsigned int SMSG_HDR_LEN         = 104;               // length of unencrypted header, 4 + 2 + 1 + 8 + 16 + 33 + 32 + 4 +4
 const unsigned int SMSG_PL_HDR_LEN      = 1+20+65+4;         // length of encrypted header in payload
@@ -71,15 +75,11 @@ public:
     SecureMessage()
     {
         nPayload = 0;
-        pPayload = NULL;
-    };
+        pPayload = nullptr;
+    }
     
-    ~SecureMessage()
-    {
-        if (pPayload)
-            delete[] pPayload;
-        pPayload = NULL;
-    };
+    // Modern C++ Migration: Vector handles memory automatically
+    ~SecureMessage() = default;
     
     unsigned char   hash[4];
     unsigned char   version[2];
@@ -90,7 +90,9 @@ public:
     unsigned char   mac[32];
     unsigned char   nonse[4];
     uint32_t        nPayload;
-    unsigned char*  pPayload;
+    // Modern C++ Migration: Safe memory management
+    std::vector<unsigned char> vchPayload;  // Modern container
+    unsigned char*  pPayload;               // Legacy compatibility pointer
         
 };
 #pragma pack(pop)
@@ -281,18 +283,9 @@ public:
 class SecMsgDB
 {
 public:
-    SecMsgDB()
-    {
-        activeBatch = NULL;
-    };
+    SecMsgDB() = default;
     
-    ~SecMsgDB()
-    {
-        // -- deletes only data scoped to this TxDB object.
-        
-        if (activeBatch)
-            delete activeBatch;
-    };
+    ~SecMsgDB() = default; // Modern C++ Migration: Smart pointer handles cleanup automatically
     
     bool Open(const char* pszMode="r+");
     
@@ -314,7 +307,8 @@ public:
     bool EraseSmesg(unsigned char* chKey);
     
     leveldb::DB *pdb;       // points to the global instance
-    leveldb::WriteBatch *activeBatch;
+    // Modern C++ Migration: Smart pointer for automatic memory management
+    std::unique_ptr<leveldb::WriteBatch> activeBatch;
     
 };
 

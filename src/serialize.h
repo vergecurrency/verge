@@ -240,6 +240,16 @@ template<typename Stream> inline void Unserialize(Stream& s, bool& a) { char f=s
  * size <= UINT_MAX   -- 5 bytes  (254 + 4 bytes)
  * size >  UINT_MAX   -- 9 bytes  (255 + 8 bytes)
  */
+// Modern C++ Migration: constexpr for compile-time evaluation when possible
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+constexpr unsigned int GetSizeOfCompactSize(uint64_t nSize)
+{
+    if (nSize < 253)             return sizeof(unsigned char);
+    else if (nSize <= std::numeric_limits<unsigned short>::max()) return sizeof(unsigned char) + sizeof(unsigned short);
+    else if (nSize <= std::numeric_limits<unsigned int>::max())  return sizeof(unsigned char) + sizeof(unsigned int);
+    else                         return sizeof(unsigned char) + sizeof(uint64_t);
+}
+#else
 inline unsigned int GetSizeOfCompactSize(uint64_t nSize)
 {
     if (nSize < 253)             return sizeof(unsigned char);
@@ -247,6 +257,7 @@ inline unsigned int GetSizeOfCompactSize(uint64_t nSize)
     else if (nSize <= std::numeric_limits<unsigned int>::max())  return sizeof(unsigned char) + sizeof(unsigned int);
     else                         return sizeof(unsigned char) + sizeof(uint64_t);
 }
+#endif
 
 inline void WriteCompactSize(CSizeComputer& os, uint64_t nSize);
 

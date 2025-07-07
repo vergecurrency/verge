@@ -306,6 +306,18 @@ bool IsReachable(const CNetAddr& addr)
 }
 
 
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+std::optional<CNode*> CConnman::FindNode(const CNetAddr& ip)
+{
+    LOCK(cs_vNodes);
+    for (CNode* pnode : vNodes) {
+        if (static_cast<CNetAddr>(pnode->addr) == ip) {
+            return pnode;  // Automatic conversion to optional
+        }
+    }
+    return std::nullopt;  // Modern null optional
+}
+#else
 CNode* CConnman::FindNode(const CNetAddr& ip)
 {
     LOCK(cs_vNodes);
@@ -316,7 +328,20 @@ CNode* CConnman::FindNode(const CNetAddr& ip)
     }
     return nullptr;
 }
+#endif
 
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+std::optional<CNode*> CConnman::FindNode(const CSubNet& subNet)
+{
+    LOCK(cs_vNodes);
+    for (CNode* pnode : vNodes) {
+        if (subNet.Match(static_cast<CNetAddr>(pnode->addr))) {
+            return pnode;
+        }
+    }
+    return std::nullopt;
+}
+#else
 CNode* CConnman::FindNode(const CSubNet& subNet)
 {
     LOCK(cs_vNodes);
@@ -327,7 +352,20 @@ CNode* CConnman::FindNode(const CSubNet& subNet)
     }
     return nullptr;
 }
+#endif
 
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+std::optional<CNode*> CConnman::FindNode(const std::string& addrName)
+{
+    LOCK(cs_vNodes);
+    for (CNode* pnode : vNodes) {
+        if (pnode->GetAddrName() == addrName) {
+            return pnode;
+        }
+    }
+    return std::nullopt;
+}
+#else
 CNode* CConnman::FindNode(const std::string& addrName)
 {
     LOCK(cs_vNodes);
@@ -338,7 +376,20 @@ CNode* CConnman::FindNode(const std::string& addrName)
     }
     return nullptr;
 }
+#endif
 
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+std::optional<CNode*> CConnman::FindNode(const CService& addr)
+{
+    LOCK(cs_vNodes);
+    for (CNode* pnode : vNodes) {
+        if (static_cast<CService>(pnode->addr) == addr) {
+            return pnode;
+        }
+    }
+    return std::nullopt;
+}
+#else
 CNode* CConnman::FindNode(const CService& addr)
 {
     LOCK(cs_vNodes);
@@ -349,6 +400,7 @@ CNode* CConnman::FindNode(const CService& addr)
     }
     return nullptr;
 }
+#endif
 
 bool CConnman::CheckIncomingNonce(uint64_t nonce)
 {
@@ -382,6 +434,13 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
         if (IsLocal(addrConnect))
             return nullptr;
 
+        // Modern C++ Migration: Demonstrate optional usage
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+        if (auto existingNode = FindNode(static_cast<CService>(addrConnect))) {
+            LogPrintf("Failed to open new connection, already connected\n");
+            return nullptr;
+        }
+#else
         // Look for an existing connection
         CNode* pnode = FindNode(static_cast<CService>(addrConnect));
         if (pnode)
@@ -389,6 +448,7 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
             LogPrintf("Failed to open new connection, already connected\n");
             return nullptr;
         }
+#endif
     }
 
     /// debug print
@@ -411,6 +471,14 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
             // Also store the name we used to connect in that CNode, so that future FindNode() calls to that
             // name catch this early.
             LOCK(cs_vNodes);
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+            // Modern C++ Migration: Optional with structured pattern
+            if (auto existingNode = FindNode(static_cast<CService>(addrConnect))) {
+                (*existingNode)->MaybeSetAddrName(std::string(pszDest));
+                LogPrintf("Failed to open new connection, already connected\n");
+                return nullptr;
+            }
+#else
             CNode* pnode = FindNode(static_cast<CService>(addrConnect));
             if (pnode)
             {
@@ -418,6 +486,7 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
                 LogPrintf("Failed to open new connection, already connected\n");
                 return nullptr;
             }
+#endif
         }
     }
 

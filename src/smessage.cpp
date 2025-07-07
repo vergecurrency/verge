@@ -99,8 +99,6 @@ CCriticalSection cs_smsgDB;
 leveldb::DB *smsgDB = NULL;
 
 
-namespace fs = boost::filesystem;
-
 bool SecMsgCrypter::SetKey(const std::vector<unsigned char>& vchNewKey, unsigned char* chNewIV)
 {
     
@@ -293,9 +291,10 @@ bool SecMsgDB::TxnBegin()
 {
     if (activeBatch)
         return true;
-    activeBatch = new leveldb::WriteBatch();
+    // Modern C++ Migration: Use smart pointer for automatic memory management
+    activeBatch = std::make_unique<leveldb::WriteBatch>();
     return true;
-};
+}
 
 bool SecMsgDB::TxnCommit()
 {
@@ -304,25 +303,25 @@ bool SecMsgDB::TxnCommit()
     
     leveldb::WriteOptions writeOptions;
     writeOptions.sync = true;
-    leveldb::Status status = pdb->Write(writeOptions, activeBatch);
-    delete activeBatch;
-    activeBatch = NULL;
+    leveldb::Status status = pdb->Write(writeOptions, activeBatch.get());
+    // Modern C++ Migration: Smart pointer automatically cleans up when reset
+    activeBatch.reset();
     
     if (!status.ok())
     {
         printf("SecMsgDB batch commit failure: %s\n", status.ToString().c_str());
         return false;
-    };
+    }
     
     return true;
-};
+}
 
 bool SecMsgDB::TxnAbort()
 {
-    delete activeBatch;
-    activeBatch = NULL;
+    // Modern C++ Migration: Smart pointer cleanup
+    activeBatch.reset();
     return true;
-};
+}
 
 bool SecMsgDB::ReadPK(CKeyID& addr, CPubKey& pubkey)
 {
@@ -670,9 +669,9 @@ void ThreadSecureMsg(void* parg)
                             
                             if (fDebug)
                                 printf("Lock on bucket %" PRId64 " for peer %u timed out.\n", it->first, nPeerId);
-                            // -- look through the nodes for the peer that locked this bucket
+                            // Modern C++ Migration: Range-based for loop
                             LOCK(cs_vNodes);
-                            BOOST_FOREACH(CNode* pnode, vNodes)
+                            for (CNode* pnode : vNodes)
                             {
                                 if (pnode->smsgData.nPeerId != nPeerId)
                                     continue;
@@ -687,7 +686,7 @@ void ThreadSecureMsg(void* parg)
                                 if (fDebug)
                                     printf("This node will ignore peer %u until %" PRId64 ".\n", nPeerId, ignoreUntil);
                                 break;
-                            };
+                            }
                             it->second.nLockPeerId = 0;
                         }; // if (it->second.nLockCount == 0)
                     };
@@ -963,7 +962,8 @@ int SecureMsgAddWalletAddresses()
         printf("SecureMsgAddWalletAddresses()\n");
     
     uint32_t nAdded = 0;
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& entry, pwalletMain->mapAddressBook)
+    // Modern C++ Migration: Range-based for loop with auto type deduction
+    for (const auto& entry : pwalletMain->mapAddressBook)
     {
         if (!IsMine(*pwalletMain, entry.first))
             continue;
@@ -1254,14 +1254,14 @@ bool SecureMsgEnable()
         return false;
     };
     
-    // -- ping each peer, don't know which have messaging enabled
+    // Modern C++ Migration: Range-based for loop for peer messaging
     {
         LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        for (CNode* pnode : vNodes)
         {
             pnode->PushMessage("smsgPing");
             pnode->PushMessage("smsgPong"); // Send pong as have missed initial ping sent by peer when it connected
-        };
+        }
     }
     
     printf("Secure messaging enabled.\n");
@@ -1290,17 +1290,17 @@ bool SecureMsgDisable()
         };
         smsgBuckets.clear();
         
-        // -- tell each smsg enabled peer that this node is disabling
+        // Modern C++ Migration: Range-based for loop for disabling secure messaging
         {
             LOCK(cs_vNodes);
-            BOOST_FOREACH(CNode* pnode, vNodes)
+            for (CNode* pnode : vNodes)
             {
                 if (!pnode->smsgData.fEnabled)
                     continue;
                 
                 pnode->PushMessage("smsgDisabled");
                 pnode->smsgData.fEnabled = false;
-            };
+            }
         }
     
         if (SecureMsgWriteIni() != 0)
@@ -1948,8 +1948,8 @@ int SecureMsgInsertAddress(CKeyID& hashKey, CPubKey& pubKey)
 static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb,
     uint32_t& nTransactions, uint32_t& nInputs, uint32_t& nPubkeys, uint32_t& nDuplicates)
 {
-    // -- should have LOCK(cs_smsg) where db is opened
-    BOOST_FOREACH(CTransaction& tx, block.vtx)
+    // Modern C++ Migration: Range-based for loop for block transactions
+    for (CTransaction& tx : block.vtx)
     {
         if (!IsStandardTx(tx))
             continue; // leave out coinbase and others
@@ -2307,7 +2307,7 @@ bool SecureMsgScanBuckets()
             // -- remove wl file when scanned
             try {
                 fs::remove((*itd).path());
-            } catch (const boost::filesystem::filesystem_error& ex)
+            } catch (const filesystem_error& ex)
             {
                 printf("Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
                 return 1;
@@ -2387,7 +2387,7 @@ int SecureMsgWalletUnlocked()
             printf("Dropping wallet locked file %s, expired.\n", fileName.c_str());
             try {
                 fs::remove((*itd).path());
-            } catch (const boost::filesystem::filesystem_error& ex)
+            } catch (const filesystem_error& ex)
             {
                 printf("Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
                 return 1;
@@ -2455,7 +2455,7 @@ int SecureMsgWalletUnlocked()
             // -- remove wl file when scanned
             try {
                 fs::remove((*itd).path());
-            } catch (const boost::filesystem::filesystem_error& ex)
+            } catch (const filesystem_error& ex)
             {
                 printf("Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
                 return 1;
@@ -2954,7 +2954,7 @@ int SecureMsgStoreUnscanned(unsigned char *pHeader, unsigned char *pPayload, uin
     try {
         pathSmsgDir = GetDataDir() / "smsgStore";
         fs::create_directory(pathSmsgDir);
-    } catch (const boost::filesystem::filesystem_error& ex)
+    } catch (const filesystem_error& ex)
     {
         printf("Error: Failed to create directory %s - %s\n", pathSmsgDir.string().c_str(), ex.what());
         return 1;
@@ -3019,7 +3019,7 @@ int SecureMsgStore(unsigned char *pHeader, unsigned char *pPayload, uint32_t nPa
     try {
         pathSmsgDir = GetDataDir() / "smsgStore";
         fs::create_directory(pathSmsgDir);
-    } catch (const boost::filesystem::filesystem_error& ex)
+    } catch (const filesystem_error& ex)
     {
         printf("Error: Failed to create directory %s - %s\n", pathSmsgDir.string().c_str(), ex.what());
         return 1;
@@ -3543,16 +3543,17 @@ int SecureMsgEncrypt(SecureMessage& smsg, std::string& addressFrom, std::string&
         return 11;
     };
     
+    // Modern C++ Migration: Use vector instead of raw array for better memory safety
     try {
-        smsg.pPayload = new unsigned char[vchCiphertext.size()];
+        smsg.vchPayload.resize(vchCiphertext.size());
+        std::copy(vchCiphertext.begin(), vchCiphertext.end(), smsg.vchPayload.begin());
+        smsg.nPayload = vchCiphertext.size();
+        smsg.pPayload = smsg.vchPayload.data(); // Compatibility pointer
     } catch (std::exception& e)
     {
         printf("Could not allocate pPayload, exception: %s.\n", e.what());
         return 8;
-    };
-    
-    memcpy(smsg.pPayload, &vchCiphertext[0], vchCiphertext.size());
-    smsg.nPayload = vchCiphertext.size();
+    }
     
     
     // -- Calculate a 32 byte MAC with HMACSHA256, using key_m as salt
@@ -3678,7 +3679,8 @@ int SecureMsgSend(std::string& addressFrom, std::string& addressTo, std::string&
     std::string addressOutbox = "None";
     CBitcoinAddress coinAddrOutbox;
     
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& entry, pwalletMain->mapAddressBook)
+    // Modern C++ Migration: Range-based for loop with auto type deduction
+    for (const auto& entry : pwalletMain->mapAddressBook)
     {
         // -- get first owned address
         if (!IsMine(*pwalletMain, entry.first))
@@ -3690,7 +3692,7 @@ int SecureMsgSend(std::string& addressFrom, std::string& addressTo, std::string&
         if (!coinAddrOutbox.SetString(addressOutbox)) // test valid
             continue;
         break;
-    };
+    }
     
     if (addressOutbox == "None")
     {

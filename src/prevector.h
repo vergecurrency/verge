@@ -408,6 +408,19 @@ public:
         // representation (with capacity N and size <= N).
         iterator p = first;
         char* endp = (char*)&(*end());
+        
+        // Modern C++ Migration: if constexpr for compile-time optimization
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+        if constexpr (!std::is_trivially_destructible<T>::value) {
+            while (p != last) {
+                (*p).~T();
+                _size--;
+                ++p;
+            }
+        } else {
+            _size -= last - p;
+        }
+#else
         if (!std::is_trivially_destructible<T>::value) {
             while (p != last) {
                 (*p).~T();
@@ -417,6 +430,7 @@ public:
         } else {
             _size -= last - p;
         }
+#endif
         memmove(&(*first), &(*last), endp - ((char*)(&(*last))));
         return first;
     }
@@ -456,9 +470,16 @@ public:
     }
 
     ~prevector() {
+        // Modern C++ Migration: if constexpr eliminates runtime check for trivial types
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+        if constexpr (!std::is_trivially_destructible<T>::value) {
+            clear();
+        }
+#else
         if (!std::is_trivially_destructible<T>::value) {
             clear();
         }
+#endif
         if (!is_direct()) {
             free(_union.indirect);
             _union.indirect = nullptr;
