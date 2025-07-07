@@ -17,7 +17,8 @@
 #include <warnings.h>
 
 
-static CCriticalSection cs_nTimeOffset;
+// Modern C++ Migration: Use non-recursive mutex for better performance
+static VergeStdMutex cs_nTimeOffset;
 static int64_t nTimeOffset GUARDED_BY(cs_nTimeOffset) = 0;
 
 /**
