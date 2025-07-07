@@ -10,7 +10,13 @@
 #include <stdlib.h>
 #include <string>
 
-void SetMiscWarning(const std::string& strWarning);
+// Modern C++ Migration: Performance optimization with string_view
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+    #include <string_view>
+    void SetMiscWarning(std::string_view strWarning);
+#else
+    void SetMiscWarning(const std::string& strWarning);
+#endif
 void SetfLargeWorkForkFound(bool flag);
 bool GetfLargeWorkForkFound();
 void SetfLargeWorkInvalidChainFound(bool flag);
@@ -20,6 +26,10 @@ void SetfLargeWorkInvalidChainFound(bool flag);
  * - "gui": get all warnings, translated (where possible) for GUI
  * This function only returns the highest priority warning of the set selected by strFor.
  */
-std::string GetWarnings(const std::string& strFor);
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+    std::string GetWarnings(std::string_view strFor);
+#else
+    std::string GetWarnings(const std::string& strFor);
+#endif
 
 #endif //  VERGE_WARNINGS_H

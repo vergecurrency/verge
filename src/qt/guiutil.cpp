@@ -462,10 +462,10 @@ void openDebugLogfile()
 
 bool openVERGEConf()
 {
-    boost::filesystem::path pathConfig = GetConfigFile(gArgs.GetArg("-conf", VERGE_CONF_FILENAME));
+    fs::path pathConfig = GetConfigFile(gArgs.GetArg("-conf", VERGE_CONF_FILENAME));
 
     /* Create the file */
-    boost::filesystem::ofstream configFile(pathConfig, std::ios_base::app);
+    std::ofstream configFile(pathConfig.string(), std::ios_base::app);
     
     if (!configFile.good())
         return false;
