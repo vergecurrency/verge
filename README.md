@@ -14,8 +14,8 @@
 # VERGE Source Code [XVG]
 
 <p align="left">
-  <a href="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml">
-  <img src="https://github.com/vergecurrency/verge/actions/workflows/build-all-and-release.yml/badge.svg">
+  <a href="https://github.com/vergecurrency/verge/actions/workflows/check-commit.yml">
+  <img src="https://github.com/vergecurrency/verge/actions/workflows/check-commit.yml/badge.svg">
   </a>
 </p>
 ## Specifications
