@@ -13,6 +13,7 @@
 
 # VERGE Source Code [XVG]
 
+Latest commit is stable, building on all platforms?:
 <p align="left">
   <a href="https://github.com/vergecurrency/verge/actions/workflows/check-commit.yml">
   <img src="https://github.com/vergecurrency/verge/actions/workflows/check-commit.yml/badge.svg">
