@@ -1,5 +1,6 @@
 on:
-  push
+  push:
+  pull_request:
 jobs:
   macos13:
     runs-on: macos-13
