@@ -2,6 +2,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/status-stable-green.svg">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+  <img src="https://img.shields.io/badge/C%2B%2B-17%2F20-blue.svg">
+  <img src="https://img.shields.io/badge/boost-reduced-orange.svg">
   <a href="https://codecov.io/gh/vergecurrency/VERGE"><img src="https://codecov.io/gh/vergecurrency/VERGE/branch/master/graph/badge.svg"></a>
   <a href="https://github.com/vergecurrency/verge/releases/latest"><img alt="GitHub all releases" src="https://img.shields.io/github/downloads/vergecurrency/verge/total?logo=GitHub"></a>
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
@@ -19,6 +21,55 @@ Latest commit is stable, building on all platforms?:
   <img src="https://github.com/vergecurrency/verge/actions/workflows/check-commit.yml/badge.svg">
   </a>
 </p>
+
+## Build Requirements
+
+Verge Core requires a modern C++ toolchain and has migrated to reduce external dependencies for better performance and maintainability.
+
+### Minimum Requirements
+
+| Component | Requirement | Notes |
+|-----------|-------------|--------|
+| **Compiler** | GCC 9.0+ / Clang 10.0+ / MSVC 2019+ | C++17 support required |
+| **C++ Standard** | C++17 (targeting C++20) | Modern features for better performance |
+| **CMake** | 3.16+ | Recommended build system |
+| **Boost** | 1.70+ (selective components) | Reduced dependency footprint |
+
+### Supported Operating Systems
+
+| OS | Version | Architecture |
+|----|---------|--------------|
+| **Ubuntu** | 20.04+ | x64, ARM64 |
+| **Debian** | 11+ | x64, ARM64 |
+| **CentOS/RHEL** | 8+ | x64 |
+| **macOS** | 12.0+ (Monterey) | x64, ARM64 (Apple Silicon) |
+| **Windows** | 10/11 | x64 |
+
+## Modern C++ Migration Benefits
+
+### 🚀 **Performance Improvements**
+- **Faster Compilation**: Reduced template instantiation overhead
+- **Better Optimization**: Modern compiler optimizations with C++17/20
+- **Memory Efficiency**: Smart pointers and RAII reduce memory leaks
+- **Parallel Processing**: Standard library threading primitives
+
+### 📦 **Reduced Dependencies**
+- **Smaller Binary Size**: Less dependency on external libraries
+- **Easier Deployment**: Fewer runtime dependencies to manage
+- **Simplified Building**: Standard library features reduce complex linking
+
+### 🛡️ **Enhanced Security & Reliability**
+- **Memory Safety**: Smart pointers prevent common vulnerabilities
+- **Type Safety**: Modern C++ type system catches errors at compile time
+- **Thread Safety**: Better concurrency primitives prevent race conditions
+- **Exception Safety**: RAII patterns ensure proper resource cleanup
+
+### 🔧 **Developer Experience**
+- **Modern Tooling**: Better IDE support and debugging
+- **Cleaner Code**: More expressive and maintainable codebase
+- **Faster Development**: Standard library features reduce boilerplate
+- **Better Testing**: Modern testing frameworks and practices
+
 ## Specifications
 
 Specification | Value
@@ -171,85 +222,94 @@ To use VERGE with Unstoppable Domains for sending coins using Web3 Domains (know
 
 ## Developer Notes
 
-The Easy Method:
+### Modern C++ Migration
 
-> **Note**: Sometimes linux user permissions are not set up properly, and causes failed compiling in linux. Please ensure your user has access or do the install from root if these problems arise.
+Verge Core is actively migrating to modern C++ standards and practices:
+
+- **C++17 Standard**: Full adoption with selective C++20 features
+- **Reduced Boost Dependencies**: Migrating to standard library equivalents
+- **Smart Pointers**: RAII and memory safety improvements
+- **Thread Safety**: Modern concurrency patterns with `std::mutex` and `std::atomic`
+
+### Coding Standards
+
+- Use `std::filesystem` instead of `boost::filesystem`
+- Prefer `std::thread` over `boost::thread`
+- Use `std::unique_ptr`/`std::shared_ptr` instead of raw pointers
+- Apply `const` correctness and `noexcept` specifications
+- Follow RAII principles for resource management
+
+### Quick Build (Ubuntu/Debian)
 
 ```shell
-sudo rm -Rf ~/VERGE  #(if you already have it)
-sudo apt-get -y install git && cd ~ && git clone https://github.com/vergecurrency/VERGE && cd VERGE && sh go.sh
+# Install modern dependencies
+sudo apt update
+sudo apt install -y \
+    build-essential cmake git \
+    libssl-dev libevent-dev \
+    libdb4.8-dev libdb4.8++-dev \
+    libboost-system-dev libboost-filesystem-dev libboost-test-dev \
+    libminiupnpc-dev libqt5gui5 libqt5core5a libqt5dbus5 \
+    qttools5-dev qttools5-dev-tools \
+    libprotobuf-dev protobuf-compiler \
+    libqrencode-dev libseccomp-dev libcap-dev
+
+# Clone and build
+git clone https://github.com/vergecurrency/VERGE && cd VERGE
+./autogen.sh && ./configure --enable-cxx17 && make -j$(nproc)
 ```
 
-The _slightly_ longer version:
+### Advanced Build with CMake (Recommended)
 
-1. Install the dependencies. **Note**: If you are on debian, you will also need to `apt-get install libcanberra-gtk-module`.
+```shell
+# Modern build approach
+mkdir build && cd build
+cmake .. -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release
+cmake --build . --parallel $(nproc)
+```
 
-    ```shell
-    sudo add-apt-repository ppa:bitcoin/bitcoin
-    sudo apt-get update
-    sudo apt-get install \
-        libdb4.8-dev libdb4.8++-dev build-essential \
-        libtool autotools-dev automake pkg-config libssl-dev libevent-dev \
-        bsdmainutils git libboost-all-dev libminiupnpc-dev libqt5gui5 \
-        libqt5core5a libqt5dbus5 libevent-dev qttools5-dev \
-        qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev \
-        libseccomp-dev libcap-dev
-    ```
+> **Performance Tip**: Use `make -j$(nproc)` or `cmake --build . --parallel` to utilize all CPU cores.
 
-2. Clone the git repository and compile the daemon and gui wallet:
-
-    ```shell
-    git clone https://github.com/vergecurrency/VERGE && cd VERGE && ./autogen.sh && ./configure && make
-    ```
-    If updating from previous version, dont forget to:
-    ```shell
-    sudo make install
-    ```
-
-> **Note**: If you get a "memory exhausted" error, make a swap file. (https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-22-04)
+> **Memory Note**: If you encounter memory issues, either add swap space or reduce parallelism with `-j2`.
 
 
 
 
-### Mac OS X Wallet
+### macOS Development
 
-> **Note:** This has only been confirmed to work on OS X Sierra (10.12) and OS X High Sierra (10.13) with XCode 9.2 and `Apple LLVM version 9.0.0 (clang-900.0.39.2)`.
+> **Requirements:** macOS 12.0+ (Monterey), Xcode 13.0+, Command Line Tools
 
-1. Ensure you have mysql and boost installed.
-    
-    ```shell
-    brew install mysql boost
-    ```
+#### Intel and Apple Silicon Support
 
-2. Ensure you have python 2.7 installed and in your path (OS X comes with this by default)
+```shell
+# Install Homebrew dependencies
+brew install cmake boost openssl libevent berkeley-db4
+brew install qt5 protobuf qrencode miniupnpc
 
-    ```shell
-    python --version
-    ```
+# For Apple Silicon Macs, you may need to specify paths
+export PATH="/opt/homebrew/bin:$PATH"
+export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
 
-3. Export the required environment variables
+# Clone and build
+git clone https://github.com/vergecurrency/VERGE && cd VERGE
+./autogen.sh
+./configure --enable-cxx17 --with-boost=/opt/homebrew
+make -j$(sysctl -n hw.ncpu)
+```
 
-    ```shell
-    export VERGE_PLATFORM='mac'
-    export CXX=clang++
-    export CC=clang
-    ```
+#### CMake Build (Recommended for macOS)
 
-4. Run your build commands
+```shell
+mkdir build && cd build
+cmake .. \
+    -DCMAKE_CXX_STANDARD=17 \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/qt5" \
+    -DOPENSSL_ROOT_DIR="/opt/homebrew/opt/openssl"
+cmake --build . --parallel $(sysctl -n hw.ncpu)
+```
 
-    ```shell
-    ./building/common.sh
-    ./building/mac/requirements.sh
-    ./building/mac/build.sh
-    ```
-
-5. Grab a :coffee: and wait it out
-
-6. Create the `.dmg` file
-
-    ```shell
-    ./building/mac/dist.sh
-    ```
+> **Apple Silicon Note**: Some dependencies may need explicit paths. Use `brew --prefix` to find installation directories.
 
 ### Windows Wallet
 
