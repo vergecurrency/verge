@@ -17,6 +17,11 @@
 #include <string>
 #include <vector>
 
+// Modern C++ Migration: string_view for performance optimization
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+    #include <string_view>
+#endif
+
 static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS        = false;
 static const bool DEFAULT_LOGTIMESTAMPS = true;
@@ -74,7 +79,12 @@ namespace BCLog {
         /** Log categories bitfield. */
         std::atomic<uint32_t> m_categories{0};
 
+        // Modern C++ Migration: string_view for performance optimization
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+        std::string LogTimestampStr(std::string_view str);
+#else
         std::string LogTimestampStr(const std::string& str);
+#endif
 
     public:
         bool m_print_to_console = false;
@@ -87,7 +97,11 @@ namespace BCLog {
         std::atomic<bool> m_reopen_file{false};
 
         /** Send a string to the log output */
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+        void LogPrintStr(std::string_view str);
+#else
         void LogPrintStr(const std::string &str);
+#endif
 
         /** Returns whether logs will be written to any output */
         bool Enabled() const { return m_print_to_console || m_print_to_file; }
@@ -98,9 +112,17 @@ namespace BCLog {
         uint32_t GetCategoryMask() const { return m_categories.load(); }
 
         void EnableCategory(LogFlags flag);
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+        bool EnableCategory(std::string_view str);
+#else
         bool EnableCategory(const std::string& str);
+#endif
         void DisableCategory(LogFlags flag);
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+        bool DisableCategory(std::string_view str);
+#else
         bool DisableCategory(const std::string& str);
+#endif
 
         bool WillLogCategory(LogFlags category) const;
 
@@ -124,7 +146,11 @@ std::string ListLogCategories();
 std::vector<CLogCategoryActive> ListActiveLogCategories();
 
 /** Return true if str parses as a log category and set the flag */
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+bool GetLogCategory(BCLog::LogFlags& flag, std::string_view str);
+#else
 bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str);
+#endif
 
 /** Get format string from VA_ARGS for error reporting */
 template<typename... Args> std::string FormatStringFromLogArgs(const char *fmt, const Args&... args) { return fmt; }

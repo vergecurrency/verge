@@ -335,10 +335,19 @@ private:
 
     uint64_t CalculateKeyedNetGroup(const CAddress& ad) const;
 
+    // Modern C++ Migration: std::optional for safer nullable returns
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+    #include <optional>
+    std::optional<CNode*> FindNode(const CNetAddr& ip);
+    std::optional<CNode*> FindNode(const CSubNet& subNet);
+    std::optional<CNode*> FindNode(const std::string& addrName);
+    std::optional<CNode*> FindNode(const CService& addr);
+#else
     CNode* FindNode(const CNetAddr& ip);
     CNode* FindNode(const CSubNet& subNet);
     CNode* FindNode(const std::string& addrName);
     CNode* FindNode(const CService& addr);
+#endif
 
     bool AttemptToEvictConnection();
     CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure, bool manual_connection);
