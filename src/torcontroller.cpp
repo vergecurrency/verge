@@ -7,6 +7,7 @@
 #endif
 
 #include <torcontroller.h>
+#include <fs.h>
 
 extern "C" {
     int tor_main(int argc, char *argv[]);

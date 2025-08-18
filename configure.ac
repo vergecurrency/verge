@@ -97,8 +97,21 @@ case $host in
      lt_cv_apple_cc_single_mod="yes"
   ;;
 esac
-dnl Require C++14 compiler (no GNU extensions)
-AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory], [nodefault])
+dnl Modern C++ Migration: Support C++17 with fallback to C++14
+AC_ARG_ENABLE([cxx17],
+  [AS_HELP_STRING([--enable-cxx17],
+  [Enable C++17 standard (default is C++14 for compatibility)])],
+  [enable_cxx17=$enableval],
+  [enable_cxx17=no])
+
+if test "x$enable_cxx17" = "xyes"; then
+  dnl C++17 standard for modern migration
+  AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory], [nodefault])
+  AC_DEFINE([ENABLE_CXX17], [1], [Define to enable C++17 features])
+else
+  dnl C++14 standard for legacy compatibility
+  AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory], [nodefault])
+fi
 dnl Check if -latomic is required for <std::atomic>
 CHECK_ATOMIC
 

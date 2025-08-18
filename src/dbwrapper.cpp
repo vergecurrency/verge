@@ -7,7 +7,6 @@
 
 #include <memory>
 #include <random.h>
-#include <boost/filesystem.hpp>
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
@@ -33,7 +32,9 @@ public:
                 }
                 else {
                     bufsize = 30000;
-                    base = new char[bufsize];
+                    // Modern C++ Migration: Use vector for safe memory management
+                    std::vector<char> large_buffer(bufsize);
+                    base = large_buffer.data();
                 }
                 char* p = base;
                 char* limit = base + bufsize;
@@ -65,9 +66,7 @@ public:
                 assert(p <= limit);
                 base[std::min(bufsize - 1, (int)(p - base))] = '\0';
                 LogPrintf("leveldb: %s", base);  /* Continued */
-                if (base != buffer) {
-                    delete[] base;
-                }
+                // Modern C++ Migration: vector automatically cleans up
                 break;
             }
     }
@@ -105,6 +104,7 @@ static leveldb::Options GetOptions(size_t nCacheSize)
     options.write_buffer_size = nCacheSize / 4; // up to two write buffers may be held in memory simultaneously
     options.filter_policy = leveldb::NewBloomFilterPolicy(10);
     options.compression = leveldb::kNoCompression;
+    // Modern C++ Migration: Smart pointer management, but still need raw pointer for leveldb
     options.info_log = new CVERGELevelDBLogger();
     if (leveldb::kMajorVersion > 1 || (leveldb::kMajorVersion == 1 && leveldb::kMinorVersion >= 16)) {
         // LevelDB versions before 1.16 consider short writes to be corruption. Only trigger error

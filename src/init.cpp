@@ -636,6 +636,16 @@ static void CleanupBlockRevFiles()
     // keeping a separate counter.  Once we hit a gap (or if 0 doesn't exist)
     // start removing block files.
     int nContigCounter = 0;
+#if defined(ENABLE_CXX17) && __cplusplus >= 201703L
+    // Modern C++ Migration: C++17 structured bindings for cleaner code
+    for (const auto& [fileIndex, filePath] : mapBlockFiles) {
+        if (atoi(fileIndex) == nContigCounter) {
+            nContigCounter++;
+            continue;
+        }
+        remove(filePath);
+    }
+#else
     for (const std::pair<const std::string, fs::path>& item : mapBlockFiles) {
         if (atoi(item.first) == nContigCounter) {
             nContigCounter++;
@@ -643,6 +653,7 @@ static void CleanupBlockRevFiles()
         }
         remove(item.second);
     }
+#endif
 }
 
 static void ThreadImport(std::vector<fs::path> vImportFiles)
