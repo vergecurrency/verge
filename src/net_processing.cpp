@@ -1057,18 +1057,23 @@ static void RelayAddress(const CAddress& addr, bool fReachable, CConnman* connma
     std::array<std::pair<uint64_t, CNode*>, 2> best = {{{0, nullptr}, {0, nullptr}}};
     assert(nRelayNodes <= best.size());
 
-    auto sortfunc = [&best, &hasher, nRelayNodes](CNode* pnode) {
-        if (pnode->nVersion >= CADDR_TIME_VERSION) {
-            uint64_t hashKey = CSipHasher(hasher).Write(pnode->GetId()).Finalize();
-            for (unsigned int i = 0; i < nRelayNodes; i++) {
-                 if (hashKey > best[i].first) {
-                     std::copy(best.begin() + i, best.begin() + nRelayNodes - 1, best.begin() + i + 1);
-                     best[i] = std::make_pair(hashKey, pnode);
-                     break;
-                 }
+    auto sortfunc = [&best, seed = hasher, n = nRelayNodes](CNode* pnode) {
+    if (!pnode || pnode->nVersion < CADDR_TIME_VERSION) return;
+
+    const uint64_t hashKey = CSipHasher(seed).Write(pnode->GetId()).Finalize();
+
+    // Find insertion slot (descending by hashKey), shift tail, insert.
+    for (std::size_t i = 0; i < n; ++i) {
+        if (hashKey > best[i].first) {
+            // shift right one position [i, n-2] -> [i+1, n-1]
+            if (n > 1 && i < n - 1) {
+                std::copy_backward(best.begin() + i, best.begin() + (n - 1), best.begin() + n);
             }
+            best[i] = std::make_pair(hashKey, pnode);
+            break;
         }
-    };
+    }
+};
 
     auto pushfunc = [&addr, &best, nRelayNodes, &insecure_rand] {
         for (unsigned int i = 0; i < nRelayNodes && best[i].first != 0; i++) {
