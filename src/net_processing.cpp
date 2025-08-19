@@ -16,6 +16,7 @@
 #include <init.h>
 #include <validation.h>
 #include <merkleblock.h>
+#include <net.h>
 #include <netmessagemaker.h>
 #include <netbase.h>
 #include <policy/fees.h>
@@ -1053,7 +1054,7 @@ static void RelayAddress(const CAddress& addr, bool fReachable, CConnman* connma
     const CSipHasher hasher = connman->GetDeterministicRandomizer(RANDOMIZER_ID_ADDRESS_RELAY).Write(hashAddr << 32).Write((GetTime() + hashAddr) / (24*60*60));
     FastRandomContext insecure_rand;
 
-    std::array<std::pair<uint64_t, CNode*>,2> best{{{0, nullptr}, {0, nullptr}}};
+    std::array<std::pair<uint64_t, CNode*>, 2> best = {{{0, nullptr}, {0, nullptr}}};
     assert(nRelayNodes <= best.size());
 
     auto sortfunc = [&best, &hasher, nRelayNodes](CNode* pnode) {
