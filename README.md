@@ -3,8 +3,6 @@
   <img src="https://img.shields.io/badge/status-stable-green.svg">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg">
   <img src="https://img.shields.io/badge/C%2B%2B-17%2F20-blue.svg">
-  <img src="https://img.shields.io/badge/boost-reduced-orange.svg">
-  <a href="https://codecov.io/gh/vergecurrency/VERGE"><img src="https://codecov.io/gh/vergecurrency/VERGE/branch/master/graph/badge.svg"></a>
   <a href="https://github.com/vergecurrency/verge/releases/latest"><img alt="GitHub all releases" src="https://img.shields.io/github/downloads/vergecurrency/verge/total?logo=GitHub"></a>
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
   <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/vergecurrency/verge">
