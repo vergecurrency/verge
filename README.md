@@ -124,7 +124,7 @@ Block Number Range | Reward
 
 ## Wallets
 
-Binary (pre-compiled) wallets are available on all platforms at [https://vergecurrency.com](https://vergecurrency.com/#wallets).
+Binary (pre-compiled) wallets are available on all platforms here in [Releases](https://github.com/vergecurrency/verge/releases).
 
 > **Note:** **Important!** Only download pre-compiled wallets from the official Verge website or official Github repos.
 
