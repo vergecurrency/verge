@@ -72,7 +72,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     // draw the verge icon, expected size of PNG: 1024x1024
     QRect rectIcon(QPoint(0,0), QSize(500,500));
 
-    const QSize requiredSize(1024,390);
+    const QSize requiredSize(1024,1024);
     QPixmap icon(":/icons/splash1");
     // QPixmap icon(splashmap);
 
