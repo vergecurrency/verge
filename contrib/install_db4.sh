@@ -235,6 +235,8 @@ CONFIG_GUESS_HASH='c8f530e01840719871748a8071113435bdfdf75b74c57e78e47898edea875
 CONFIG_SUB_URL='https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=4550d2f15b3a7ce2451c1f29500b9339430c877f'
 CONFIG_SUB_HASH='3969f7d5f6967ccc6f792401b8ef3916a1d1b1d0f0de5a4e354c95addb8b800e'
 
+wget -O ../dist/config.guess 'https://git.savannah.gnu.org/cgit/config.git/plain/config.guess'
+
 rm -f "dist/config.guess"
 rm -f "dist/config.sub"
 
