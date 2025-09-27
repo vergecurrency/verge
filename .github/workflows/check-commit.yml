@@ -25,25 +25,25 @@ jobs:
         run: |
           pwd
           ls -lah
-        
-      - name: Create local tap & install protobuf
+
+      - name: Reset any old tap remotes (avoid remote mismatch)
+        run: |
+          brew untap vergecurrency/local || true
+          brew tap --list
+
+      - name: Create local tap & install protobuf261
         run: |
           set -euo pipefail
-          # Create an empty tap in Homebrew’s taps dir
-          brew tap-new vergecurrency/local
 
-          # Show where the tap lives
+          brew tap-new vergecurrency/local
           TAP_DIR="$(brew --repo vergecurrency/local)"
           echo "Tap dir: $TAP_DIR"
-
-          # Copy your formula into the tap
           mkdir -p "$TAP_DIR/Formula"
           cp ./depends/homebrew-formulas/protobuf261.rb "$TAP_DIR/Formula/"
-
-          # Install from the tap
           brew install vergecurrency/local/protobuf261
+          brew tap --list
         
-      # --- New: create local tap and install boost176 from it ---
+      # --- boost176 ---
       - name: Create local Homebrew tap
         run: |
           mkdir -p "$HOME/homebrew-tap/Formula"
