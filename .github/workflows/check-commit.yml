@@ -16,7 +16,7 @@ jobs:
       - name: Create local Homebrew tap
         run: |
           mkdir -p "$HOME/homebrew-tap/Formula"
-          cp ./protobuf271.rb "$HOME/homebrew-tap/Formula/"
+          cp ./depends/homebrew-formulas/protobuf271.rb "$HOME/homebrew-tap/Formula/"
           brew tap vergecurrency/local "$HOME/homebrew-tap"
 
       - name: Install protobuf271 via tap
