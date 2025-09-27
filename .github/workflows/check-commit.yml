@@ -126,7 +126,7 @@ jobs:
           brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
         
       - name: Brew link dependencies
-        run: brew link boost176 qt@5 berkeley-db@4
+        run: brew link qt@5 berkeley-db@4
         
       - name: check cellar for openssl 
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
