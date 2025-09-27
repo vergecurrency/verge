@@ -56,10 +56,6 @@ jobs:
 
       - name: Create local tap & stage boost176.rb
         run: |
-          set -euo pipefail
-          brew tap-new vergecurrency/local
-          TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
           mkdir -p "$TAP_DIR/Formula"
           FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
           if [ -f "$FORMULA_LOCAL" ]; then
@@ -165,9 +161,6 @@ jobs:
 
       - name: Create local tap & stage boost176.rb
         run: |
-          set -euo pipefail
-          brew tap-new vergecurrency/local
-          TAP_DIR="$(brew --repo vergecurrency/local)"
           echo "Tap dir: $TAP_DIR"
           mkdir -p "$TAP_DIR/Formula"
           FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
