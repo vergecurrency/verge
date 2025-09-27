@@ -51,8 +51,8 @@ jobs:
           echo "Current taps:"
           brew tap
 
-- name: Install protobuf271 via tap
-  run: brew install vergecurrency/local/protobuf271
+      - name: Install protobuf271 via tap
+        run: brew install vergecurrency/local/protobuf271
         
       # --- boost176 ---
       - name: Create local Homebrew tap
