@@ -23,11 +23,11 @@ jobs:
         
       - name: Show current directory
         run: |
-    pwd
-    git rev-parse --short HEAD
-    ls -lah
-    ls -lah depends || true
-    ls -lah depends/homebrew-formulas || true
+          pwd
+          git rev-parse --short HEAD
+          ls -lah
+          ls -lah depends || true
+          ls -lah depends/homebrew-formulas || true
 
       - name: Create local tap & stage protobuf271.rb
         run: |
