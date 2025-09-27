@@ -1,5 +1,5 @@
 package=native_cctools
-$(package)_version=81f205e8ca6bbf2fdbcb6948132454fd1f97839e
+$(package)_version=55943b0c68c0eaf8b8ad2f51f63738bbc7b0c86b
 $(package)_download_path=https://github.com/tpoechtrager/cctools-port/archive
 $(package)_file_name=$($(package)_version).tar.gz
 #$(package)_sha256_hash=e2c1588d505a69c32e079f4e616e0f117d5478429040e394f624f43f2796e6bc
