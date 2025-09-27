@@ -38,7 +38,7 @@ jobs:
 
           # Copy your formula into the tap
           mkdir -p "$TAP_DIR/Formula"
-          cp ./depends/homebrew-formulas/protobuf271.rb "$TAP_DIR/Formula/"
+          cp ./depends/homebrew-formulas/protobuf261.rb "$TAP_DIR/Formula/"
 
           # Install from the tap
           brew install vergecurrency/local/protobuf271
