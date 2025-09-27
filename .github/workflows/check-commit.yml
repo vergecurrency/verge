@@ -56,7 +56,6 @@ jobs:
 
       - name: Create local tap & stage boost176.rb
         run: |
-          mkdir -p "$TAP_DIR/Formula"
           FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
           if [ -f "$FORMULA_LOCAL" ]; then
             echo "Using local $FORMULA_LOCAL"
