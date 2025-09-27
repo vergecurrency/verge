@@ -29,30 +29,30 @@ jobs:
           ls -lah depends || true
           ls -lah depends/homebrew-formulas || true
 
-      - name: Create local tap & stage protobuf271.rb
+      - name: Create local tap & stage protobuf261.rb
         run: |
           set -euo pipefail
           brew tap-new vergecurrency/local
           TAP_DIR="$(brew --repo vergecurrency/local)"
           echo "Tap dir: $TAP_DIR"
           mkdir -p "$TAP_DIR/Formula"
-          FORMULA_LOCAL="depends/homebrew-formulas/protobuf271.rb"
+          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
           if [ -f "$FORMULA_LOCAL" ]; then
             echo "Using local $FORMULA_LOCAL"
             cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
           else
             echo "Local formula not found; fetching from repo"
             REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf271.rb"
+            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
             echo "Fetching: $URL"
-            curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf271.rb"
+            curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
           fi
           
           echo "Current taps:"
           brew tap
 
-      - name: Install protobuf271 via tap
-        run: brew install vergecurrency/local/protobuf271
+      - name: Install protobuf261 via tap
+        run: brew install vergecurrency/local/protobuf261
         
       # --- boost176 ---
       - name: Create local Homebrew tap
