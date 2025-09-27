@@ -35,8 +35,8 @@ jobs:
           mkdir -p "$TAP_DIR/Formula"
           cp ./depends/homebrew-formulas/protobuf271.rb "$TAP_DIR/Formula/"
 
-    # Install from the tap
-    brew install vergecurrency/local/protobuf271
+          # Install from the tap
+          brew install vergecurrency/local/protobuf271
         
       # --- New: create local tap and install boost176 from it ---
       - name: Create local Homebrew tap
