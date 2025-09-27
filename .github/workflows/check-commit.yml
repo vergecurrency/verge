@@ -50,16 +50,31 @@ jobs:
           
           echo "Current taps:"
           brew tap
-
+          
       - name: Install protobuf261 via tap
         run: brew install vergecurrency/local/protobuf261
-        
-      # --- boost176 ---
-      - name: Create local Homebrew tap
+
+      - name: Create local tap & stage boost176.rb
         run: |
-          mkdir -p "$HOME/homebrew-tap/Formula"
-          cp ./depends/homebrew-formulas/boost176.rb "$HOME/homebrew-tap/Formula/"
-          brew tap vergecurrency/local "$HOME/homebrew-tap"
+          set -euo pipefail
+          brew tap-new vergecurrency/local
+          TAP_DIR="$(brew --repo vergecurrency/local)"
+          echo "Tap dir: $TAP_DIR"
+          mkdir -p "$TAP_DIR/Formula"
+          FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
+          if [ -f "$FORMULA_LOCAL" ]; then
+            echo "Using local $FORMULA_LOCAL"
+            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+          else
+            echo "Local formula not found; fetching from repo"
+            REF="${GITHUB_REF_NAME:-master}"
+            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/boost176.rb"
+            echo "Fetching: $URL"
+            curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
+          fi
+          
+          echo "Current taps:"
+          brew tap
 
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
@@ -99,15 +114,6 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
         
-      # --- New: create local tap and install protobuf271 from it ---
-      - name: Create local Homebrew tap
-        run: |
-          mkdir -p "$HOME/homebrew-tap/Formula"
-          cp ./depends/homebrew-formulas/protobuf271.rb "$HOME/homebrew-tap/Formula/"
-          brew tap vergecurrency/local "$HOME/homebrew-tap"
-
-      - name: Install protobuf271 via tap
-        run: brew install vergecurrency/local/protobuf271
         
       - name: get previous xcode and switch to it
         run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
@@ -116,16 +122,71 @@ jobs:
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
-        
-      - name: Brew install boost from our homebrew deps
-        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb > boost176.rb && brew install boost176.rb 
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
         
       - name: Brew link dependencies
         run: brew link boost176 qt@5 berkeley-db@4
         
       - name: check cellar for openssl 
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
+        
+      - name: Show current directory
+        run: |
+          pwd
+          git rev-parse --short HEAD
+          ls -lah
+          ls -lah depends || true
+          ls -lah depends/homebrew-formulas || true
+
+      - name: Create local tap & stage protobuf261.rb
+        run: |
+          set -euo pipefail
+          brew tap-new vergecurrency/local
+          TAP_DIR="$(brew --repo vergecurrency/local)"
+          echo "Tap dir: $TAP_DIR"
+          mkdir -p "$TAP_DIR/Formula"
+          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
+          if [ -f "$FORMULA_LOCAL" ]; then
+            echo "Using local $FORMULA_LOCAL"
+            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+          else
+            echo "Local formula not found; fetching from repo"
+            REF="${GITHUB_REF_NAME:-master}"
+            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
+            echo "Fetching: $URL"
+            curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
+          fi
+          
+          echo "Current taps:"
+          brew tap
+          
+      - name: Install protobuf261 via tap
+        run: brew install vergecurrency/local/protobuf261
+
+      - name: Create local tap & stage boost176.rb
+        run: |
+          set -euo pipefail
+          brew tap-new vergecurrency/local
+          TAP_DIR="$(brew --repo vergecurrency/local)"
+          echo "Tap dir: $TAP_DIR"
+          mkdir -p "$TAP_DIR/Formula"
+          FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
+          if [ -f "$FORMULA_LOCAL" ]; then
+            echo "Using local $FORMULA_LOCAL"
+            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+          else
+            echo "Local formula not found; fetching from repo"
+            REF="${GITHUB_REF_NAME:-master}"
+            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/boost176.rb"
+            echo "Fetching: $URL"
+            curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
+          fi
+          
+          echo "Current taps:"
+          brew tap
+
+      - name: Install boost176 via tap
+        run: brew install vergecurrency/local/boost176
         
       - name: which clang/xcode
         run: clang --version
