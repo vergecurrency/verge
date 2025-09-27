@@ -12,17 +12,6 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
 
-      # --- New: create local tap and install protobuf271 from it ---
-      - name: Create local Homebrew tap
-        run: |
-          mkdir -p "$HOME/homebrew-tap/Formula"
-          cp ./depends/homebrew-formulas/protobuf271.rb "$HOME/homebrew-tap/Formula/"
-          brew tap vergecurrency/local "$HOME/homebrew-tap"
-
-      - name: Install protobuf271 via tap
-        run: brew install vergecurrency/local/protobuf271
-
-      # Keep the rest of your dependencies exactly as they were
       - name: Brew install base dependencies
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
@@ -34,6 +23,16 @@ jobs:
 
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4 boost176
+        
+      # --- New: create local tap and install protobuf271 from it ---
+      - name: Create local Homebrew tap
+        run: |
+          mkdir -p "$HOME/homebrew-tap/Formula"
+          cp ./depends/homebrew-formulas/protobuf271.rb "$HOME/homebrew-tap/Formula/"
+          brew tap vergecurrency/local "$HOME/homebrew-tap"
+
+      - name: Install protobuf271 via tap
+        run: brew install vergecurrency/local/protobuf271
 
       - name: which clang/xcode
         run: clang --version
