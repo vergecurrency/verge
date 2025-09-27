@@ -21,6 +21,11 @@ jobs:
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
         
+      - name: Show current directory
+        run: |
+          pwd
+          ls -lah
+        
       - name: Create local tap & install protobuf
         run: |
           set -euo pipefail
@@ -33,7 +38,7 @@ jobs:
 
           # Copy your formula into the tap
           mkdir -p "$TAP_DIR/Formula"
-          cp ./depends/homebrew-formulas/protobuf271.rb "$TAP_DIR/Formula/"
+          cp /depends/homebrew-formulas/protobuf271.rb "$TAP_DIR/Formula/"
 
           # Install from the tap
           brew install vergecurrency/local/protobuf271
