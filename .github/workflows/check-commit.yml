@@ -70,6 +70,16 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
         
+      # --- New: create local tap and install protobuf271 from it ---
+      - name: Create local Homebrew tap
+        run: |
+          mkdir -p "$HOME/homebrew-tap/Formula"
+          cp ./depends/homebrew-formulas/protobuf271.rb "$HOME/homebrew-tap/Formula/"
+          brew tap vergecurrency/local "$HOME/homebrew-tap"
+
+      - name: Install protobuf271 via tap
+        run: brew install vergecurrency/local/protobuf271
+        
       - name: get previous xcode and switch to it
         run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
 
