@@ -21,15 +21,15 @@ jobs:
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
         
-      # --- New: create local tap and install protobuf271 from it ---
+      # --- New: create local tap and install protobuf261 from it ---
       - name: Create local Homebrew tap
         run: |
           mkdir -p "$HOME/homebrew-tap/Formula"
-          cp ./depends/homebrew-formulas/protobuf271.rb "$HOME/homebrew-tap/Formula/"
+          cp ./depends/homebrew-formulas/protobuf261.rb "$HOME/homebrew-tap/Formula/"
           brew tap vergecurrency/local "$HOME/homebrew-tap"
 
       - name: Install protobuf271 via tap
-        run: brew install vergecurrency/local/protobuf271
+        run: brew install vergecurrency/local/protobuf261
         
       # --- New: create local tap and install boost176 from it ---
       - name: Create local Homebrew tap
