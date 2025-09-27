@@ -1,6 +1,7 @@
 on:
   push:
   pull_request:
+
 jobs:
   macos13:
     runs-on: macos-13
@@ -11,18 +12,29 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
 
+      # --- New: create local tap and install protobuf271 from it ---
+      - name: Create local Homebrew tap
+        run: |
+          mkdir -p "$HOME/homebrew-tap/Formula"
+          cp ./protobuf271.rb "$HOME/homebrew-tap/Formula/"
+          brew tap vergecurrency/local "$HOME/homebrew-tap"
+
+      - name: Install protobuf271 via tap
+        run: brew install vergecurrency/local/protobuf271
+
+      # Keep the rest of your dependencies exactly as they were
       - name: Brew install base dependencies
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+          brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg
 
       - name: Brew install boost from our homebrew deps
-        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb > boost176.rb && brew install boost176.rb 
-      
+        run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb > boost176.rb && brew install boost176.rb
+
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4 boost176
-        
+
       - name: which clang/xcode
         run: clang --version
 
@@ -31,10 +43,10 @@ jobs:
 
       - name: configure
         run: ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
-        
+
       - name: Free up memory (optional)
         run: |
-          sudo purge || true  # purge helps clear memory cache (no guarantee)  
+          sudo purge || true  # purge helps clear memory cache (no guarantee)
 
       - name: make
         run: make -j2
@@ -47,6 +59,7 @@ jobs:
           name: verge-macos13
           path: |
             *.dmg
+
 
   macos14:
     runs-on: macos-14
