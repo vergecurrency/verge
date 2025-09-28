@@ -87,7 +87,7 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: export LDFLAGS="-L/opt/homebrew/opt/boost176/lib" && export CPPFLAGS="-I/opt/homebrew/opt/boost176/include" && ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: export LDFLAGS="-L/opt/local/opt/boost176/lib" && export CPPFLAGS="-I/opt/local/opt/boost176/include" && ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
       - name: Free up memory (optional)
         run: |
