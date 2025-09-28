@@ -8,7 +8,7 @@ class Boost176 < Formula
 
   keg_only :versioned_formula
 
-  depends_on "icu4c@76"
+  depends_on "icu4c@77"
 
   uses_from_macos "bzip2"
   uses_from_macos "zlib"
@@ -34,7 +34,7 @@ class Boost176 < Formula
     end
 
     # libdir should be set by --prefix but isn't
-    icu4c_prefix = Formula["icu4c@76"].opt_prefix
+    icu4c_prefix = Formula["icu4c@77"].opt_prefix
     bootstrap_args = %W[
       --prefix=#{prefix}
       --libdir=#{lib}
