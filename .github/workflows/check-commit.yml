@@ -4,502 +4,506 @@ on:
 
 jobs:
   macos13:
-    runs-on: macos-13
+	runs-on: macos-13
 
-    steps:
-      - uses: actions/checkout@v4
+	steps:
+	  - uses: actions/checkout@v4
 
-      - name: git config credential.helper
-        run: git config credential.helper
+	  - name: git config credential.helper
+		run: git config credential.helper
 
-      - name: Brew install base dependencies
-        run: |
-          # A workaround for "The `brew link` step did not complete successfully" error.
-          brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg
+	  - name: Brew install base dependencies
+		run: |
+		  # A workaround for "The `brew link` step did not complete successfully" error.
+		  brew install --quiet python@3 || brew link --overwrite python@3
+		  brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg
 
-      - name: Brew link dependencies
-        run: brew link qt@5 berkeley-db@4
-        
-      - name: Show current directory
-        run: |
-          pwd
-          git rev-parse --short HEAD
-          ls -lah
-          ls -lah depends || true
-          ls -lah depends/homebrew-formulas || true
+	  - name: Brew link dependencies
+		run: brew link qt@5 berkeley-db@4
+		
+	  - name: Show current directory
+		run: |
+		  pwd
+		  git rev-parse --short HEAD
+		  ls -lah
+		  ls -lah depends || true
+		  ls -lah depends/homebrew-formulas || true
 
-      - name: Create local tap & stage protobuf261.rb
-        run: |
-          set -euo pipefail
-          brew tap-new vergecurrency/local
-          TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
-          mkdir -p "$TAP_DIR/Formula"
-          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
-          if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
-            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
-          else
-            echo "Local formula not found; fetching from repo"
-            REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
-            echo "Fetching: $URL"
-            curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
-          fi
-          
-          echo "Current taps:"
-          brew tap
-          
-      - name: Install protobuf261 via tap
-        run: brew install vergecurrency/local/protobuf261
+	  - name: Create local tap & stage protobuf261.rb
+		run: |
+		  set -euo pipefail
+		  brew tap-new vergecurrency/local
+		  TAP_DIR="$(brew --repo vergecurrency/local)"
+		  echo "Tap dir: $TAP_DIR"
+		  mkdir -p "$TAP_DIR/Formula"
+		  FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
+		  if [ -f "$FORMULA_LOCAL" ]; then
+			echo "Using local $FORMULA_LOCAL"
+			cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+		  else
+			echo "Local formula not found; fetching from repo"
+			REF="${GITHUB_REF_NAME:-master}"
+			URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
+			echo "Fetching: $URL"
+			curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
+		  fi
+		  
+		  echo "Current taps:"
+		  brew tap
+		  
+	  - name: Install protobuf261 via tap
+		run: brew install vergecurrency/local/protobuf261
 
-      - name: Stage boost176.rb into existing tap
-        run: |
-          set -euo pipefail
-          if ! brew tap | grep -q '^vergecurrency/local$'; then
-            brew tap-new vergecurrency/local
-          fi
-          TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
-          mkdir -p "$TAP_DIR/Formula"
-          FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
-          if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
-            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
-          else
-            echo "Local formula not found; fetching from repo"
-            REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/boost176.rb"
-            echo "Fetching: $URL"
-            curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
-          fi
-          echo "Current taps:"
-          brew tap
+	  - name: Stage boost176.rb into existing tap
+		run: |
+		  set -euo pipefail
+		  if ! brew tap | grep -q '^vergecurrency/local$'; then
+			brew tap-new vergecurrency/local
+		  fi
+		  TAP_DIR="$(brew --repo vergecurrency/local)"
+		  echo "Tap dir: $TAP_DIR"
+		  mkdir -p "$TAP_DIR/Formula"
+		  FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
+		  if [ -f "$FORMULA_LOCAL" ]; then
+			echo "Using local $FORMULA_LOCAL"
+			cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+		  else
+			echo "Local formula not found; fetching from repo"
+			REF="${GITHUB_REF_NAME:-master}"
+			URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/boost176.rb"
+			echo "Fetching: $URL"
+			curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
+		  fi
+		  echo "Current taps:"
+		  brew tap
 
-      - name: Install boost176 via tap
-        run: brew install vergecurrency/local/boost176
+	  - name: Install boost176 via tap
+		run: brew install vergecurrency/local/boost176
 
-      - name: which clang/xcode
-        run: clang --version
+	  - name: which clang/xcode
+		run: clang --version
 
-      - name: Auto generate
-        run: ./autogen.sh
+	  - name: Auto generate
+		run: ./autogen.sh
 
-      - name: configure
-        run: export LDFLAGS="-L/usr/local/opt/boost176/lib" && export CPPFLAGS="-I/usr/local/opt/boost176/include" && ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+	  - name: configure
+		run: export LDFLAGS="-L/usr/local/opt/boost176/lib" && export CPPFLAGS="-I/usr/local/opt/boost176/include" && ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
-      - name: Free up memory (optional)
-        run: |
-          sudo purge || true  # purge helps clear memory cache (no guarantee)
+	  - name: Free up memory (optional)
+		run: |
+		  sudo purge || true  # purge helps clear memory cache (no guarantee)
 
-      - name: make
-        run: make -j2
+	  - name: make
+		run: make -j2
 
-      - name: make .dmg
-        run: make deploy
+	  - name: make .dmg
+		run: make deploy
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-macos13
-          path: |
-            *.dmg
+	  - uses: actions/upload-artifact@v4
+		with:
+		  name: verge-macos13
+		  path: |
+			*.dmg
 
 
   macos14:
-    runs-on: macos-14
+	runs-on: macos-14
 
-    steps:
-      - uses: actions/checkout@v4
+	steps:
+	  - uses: actions/checkout@v4
 
-      - name: git config credential.helper
-        run: git config credential.helper
-        
-        
-      - name: get previous xcode and switch to it
-        run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
+	  - name: git config credential.helper
+		run: git config credential.helper
+		
+		
+	  - name: get previous xcode and switch to it
+		run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
 
-      - name: Brew install base dependencies
-        run: |
-          # A workaround for "The `brew link` step did not complete successfully" error.
-          brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
-        
-      - name: Brew link dependencies
-        run: brew link qt@5 berkeley-db@4
-        
-      - name: check cellar for openssl 
-        run: cd /opt/homebrew/Cellar/openssl@3/ && ls
-        
-      - name: Show current directory
-        run: |
-          pwd
-          git rev-parse --short HEAD
-          ls -lah
-          ls -lah depends || true
-          ls -lah depends/homebrew-formulas || true
+	  - name: Brew install base dependencies
+		run: |
+		  # A workaround for "The `brew link` step did not complete successfully" error.
+		  brew install --quiet python@3 || brew link --overwrite python@3
+		  brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
+		
+	  - name: Brew link dependencies
+		run: brew link qt@5 berkeley-db@4
+		
+	  - name: check cellar for openssl 
+		run: cd /opt/homebrew/Cellar/openssl@3/ && ls
+		
+	  - name: Show current directory
+		run: |
+		  pwd
+		  git rev-parse --short HEAD
+		  ls -lah
+		  ls -lah depends || true
+		  ls -lah depends/homebrew-formulas || true
 
-      - name: Create local tap & stage protobuf261.rb
-        run: |
-          set -euo pipefail
-          brew tap-new vergecurrency/local
-          TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
-          mkdir -p "$TAP_DIR/Formula"
-          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
-          if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
-            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
-          else
-            echo "Local formula not found; fetching from repo"
-            REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
-            echo "Fetching: $URL"
-            curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
-          fi
-          
-          echo "Current taps:"
-          brew tap
-          
-      - name: Install protobuf261 via tap
-        run: brew install vergecurrency/local/protobuf261
+	  - name: Create local tap & stage protobuf261.rb
+		run: |
+		  set -euo pipefail
+		  brew tap-new vergecurrency/local
+		  TAP_DIR="$(brew --repo vergecurrency/local)"
+		  echo "Tap dir: $TAP_DIR"
+		  mkdir -p "$TAP_DIR/Formula"
+		  FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
+		  if [ -f "$FORMULA_LOCAL" ]; then
+			echo "Using local $FORMULA_LOCAL"
+			cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+		  else
+			echo "Local formula not found; fetching from repo"
+			REF="${GITHUB_REF_NAME:-master}"
+			URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
+			echo "Fetching: $URL"
+			curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
+		  fi
+		  
+		  echo "Current taps:"
+		  brew tap
+		  
+	  - name: Install protobuf261 via tap
+		run: brew install vergecurrency/local/protobuf261
 
-      - name: Stage boost176.rb into existing tap
-        run: |
-          set -euo pipefail
-          if ! brew tap | grep -q '^vergecurrency/local$'; then
-            brew tap-new vergecurrency/local
-          fi
-          TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
-          mkdir -p "$TAP_DIR/Formula"
-          FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
-          if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
-            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
-          else
-            echo "Local formula not found; fetching from repo"
-            REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/boost176.rb"
-            echo "Fetching: $URL"
-            curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
-          fi
-          echo "Current taps:"
-          brew tap
+	  - name: Stage boost176.rb into existing tap
+		run: |
+		  set -euo pipefail
+		  if ! brew tap | grep -q '^vergecurrency/local$'; then
+			brew tap-new vergecurrency/local
+		  fi
+		  TAP_DIR="$(brew --repo vergecurrency/local)"
+		  echo "Tap dir: $TAP_DIR"
+		  mkdir -p "$TAP_DIR/Formula"
+		  FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
+		  if [ -f "$FORMULA_LOCAL" ]; then
+			echo "Using local $FORMULA_LOCAL"
+			cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+		  else
+			echo "Local formula not found; fetching from repo"
+			REF="${GITHUB_REF_NAME:-master}"
+			URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/boost176.rb"
+			echo "Fetching: $URL"
+			curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
+		  fi
+		  echo "Current taps:"
+		  brew tap
 
-      - name: Install boost176 via tap
-        run: brew install vergecurrency/local/boost176
-        
-      - name: Set Boost 1.76 env
-        run: |
-          BOOST_PREFIX="$(brew --prefix boost176)"
-          echo "BOOST_ROOT=$BOOST_PREFIX" >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BOOST_PREFIX/include" >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BOOST_PREFIX/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BOOST_PREFIX/include $CPPFLAGS" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BOOST_PREFIX/lib $LDFLAGS" >> $GITHUB_ENV
-        
-      - name: which clang/xcode
-        run: clang --version
+	  - name: Install boost176 via tap
+		run: brew install vergecurrency/local/boost176
+		
+	  - name: Set Boost 1.76 env
+		run: |
+		  BOOST_PREFIX="$(brew --prefix boost176)"
+		  echo "BOOST_ROOT=$BOOST_PREFIX" >> $GITHUB_ENV
+		  echo "BOOST_INCLUDEDIR=$BOOST_PREFIX/include" >> $GITHUB_ENV
+		  echo "BOOST_LIBRARYDIR=$BOOST_PREFIX/lib" >> $GITHUB_ENV
+		  echo "CPPFLAGS=-I$BOOST_PREFIX/include $CPPFLAGS" >> $GITHUB_ENV
+		  echo "LDFLAGS=-L$BOOST_PREFIX/lib $LDFLAGS" >> $GITHUB_ENV
+		
+	  - name: which clang/xcode
+		run: clang --version
 
-      - name: Auto generate
-        run: ./autogen.sh
+	  - name: Auto generate
+		run: ./autogen.sh
 
-      - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.5.2 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost="$BOOST_ROOT" --with-boost-libdir="$BOOST_LIBRARYDIR"
+	  - name: configure
+		run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.5.2 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost="$BOOST_ROOT" --with-boost-libdir="$BOOST_LIBRARYDIR"
 
-      - name: make
-        run: make -j4
+	  - name: make
+		run: make -j4
 
-      - name: make .dmg
-        run: |
-          make deploy
+	  - name: make .dmg
+		run: |
+		  make deploy
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-macos14
-          path: |
-            *.dmg 
+	  - uses: actions/upload-artifact@v4
+		with:
+		  name: verge-macos14
+		  path: |
+			*.dmg 
   
-  ubuntu24:
-    runs-on: ubuntu-24.04
+  ubuntu24: 
+  runs-on: ubuntu-24.04
 
-    steps:
-    - uses: actions/checkout@v4
+   steps:
+	- uses: actions/checkout@v4
 
-    - name: Cache depends artifacts
-      uses: actions/cache@v4
-      with:
-        path: |
-          depends/built
-          depends/x86_64-linux-gnu
-          depends/work
-          depends/sources
-        key: depends-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-        restore-keys: |
-          depends-${{ runner.os }}-linux64-
+	- name: Cache depends artifacts
+	  uses: actions/cache@v4
+	  with:
+	  path: |
+		depends/built
+		depends/x86_64-linux-gnu
+		depends/work
+		depends/sources
+	  key: depends-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+	  restore-keys: |
+		depends-${{ runner.os }}-linux64-
 
-    - name: Cache ccache
-      uses: actions/cache@v4
-      with:
-        path: ~/.ccache
-        key: ccache-${{ runner.os }}-linux64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-        restore-keys: |
-          ccache-${{ runner.os }}-linux64-
+  - name: Cache ccache
+	uses: actions/cache@v4
+	with:
+	  path: ~/.ccache
+	  key: ccache-${{ runner.os }}-linux64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+	  restore-keys: |
+		ccache-${{ runner.os }}-linux64-
 
-    - name: Update apt repos
-      run: sudo apt-get update
+  - name: Update apt repos
+	run: sudo apt-get update
 
-    - name: Install base dependencies
-      run: |
-        sudo apt-get install -y \
-          build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
-          bsdmainutils libattr1-dev make automake bison byacc cmake curl \
-          g++-multilib binutils-gold python3 ccache
+  - name: Install base dependencies
+	run: |
+	  sudo apt-get install -y \
+		build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
+		bsdmainutils libattr1-dev make automake bison byacc cmake curl \
+		g++-multilib binutils-gold python3 ccache
 
-    - name: Configure ccache
-      run: |
-        mkdir -p ~/.ccache
-        echo 'max_size = 2G' > ~/.ccache/ccache.conf
-        echo 'compression = true' >> ~/.ccache/ccache.conf
-        ccache -z || true
-      env:
-        CCACHE_DIR: ~/.ccache
+  - name: Enable ccache wrappers
+	run: |
+	  sudo /usr/sbin/update-ccache-symlinks || true
+	  echo "/usr/lib/ccache" >> $GITHUB_PATH
 
-    - name: Export toolchain env
-      run: |
-        echo "CC=gcc"        >> $GITHUB_ENV
-        echo "CXX=g++"       >> $GITHUB_ENV
-        echo "AR=ar"         >> $GITHUB_ENV
-        echo "RANLIB=ranlib" >> $GITHUB_ENV
-        echo "STRIP=strip"   >> $GITHUB_ENV
-        echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
-        echo "CCACHE_PREFIX=ccache"     >> $GITHUB_ENV
+  - name: Configure ccache
+	run: |
+	  mkdir -p ~/.ccache
+	  echo 'max_size = 2G' > ~/.ccache/ccache.conf
+	  echo 'compression = true' >> ~/.ccache/ccache.conf
+	  ccache -z || true
+	env:
+	  CCACHE_DIR: ~/.ccache
 
-    - name: Build depends
-      run: |
-        cd depends/
-        make -j4 HOST=x86_64-linux-gnu
+  - name: Export toolchain env
+	run: |
+	  echo "CC=gcc"        >> $GITHUB_ENV
+	  echo "CXX=g++"       >> $GITHUB_ENV
+	  echo "AR=ar"         >> $GITHUB_ENV
+	  echo "RANLIB=ranlib" >> $GITHUB_ENV
+	  echo "STRIP=strip"   >> $GITHUB_ENV
+	  echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
 
-    - name: Auto generate
-      run: ./autogen.sh
+  - name: Build depends
+	run: |
+	  cd depends/
+	  make -j4 HOST=x86_64-linux-gnu
 
-    - name: configure
-      run: |
-        CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
-        ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
-          --disable-dependency-tracking --disable-werror \
-          --prefix="$(pwd)/depends/x86_64-linux-gnu" \
-          --bindir="$(pwd)/release/bin" \
-          --libdir="$(pwd)/release/lib"
+  - name: Auto generate
+	run: ./autogen.sh
 
-    - name: make
-      run: make -j4
+  - name: configure
+	run: |
+	  CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
+	  ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
+		--disable-dependency-tracking --disable-werror \
+		--prefix="$(pwd)/depends/x86_64-linux-gnu" \
+		--bindir="$(pwd)/release/bin" \
+		--libdir="$(pwd)/release/lib"
 
-    - name: strip
-      run: |
-        cd ./src && strip verged verge-cli verge-tx
-        cd ./qt && strip verge-qt
+  - name: make
+	run: make -j4
 
-    - name: ccache stats
-      run: ccache -s || true
-      env:
-        CCACHE_DIR: ~/.ccache
+  - name: strip
+	run: |
+	  cd ./src && strip verged verge-cli verge-tx
+	  cd ./qt && strip verge-qt
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: verge-ubuntu24
-        path: |
-          ./src/verged
-          ./src/verge-cli
-          ./src/verge-tx
-          ./src/qt/verge-qt
+  - name: ccache stats
+	run: ccache -s || true
+	env:
+	  CCACHE_DIR: ~/.ccache
+
+  - uses: actions/upload-artifact@v4
+	with:
+	  name: verge-ubuntu24
+	  path: |
+		./src/verged
+		./src/verge-cli
+		./src/verge-tx
+		./src/qt/verge-qt
 
   ubuntu22:
-    runs-on: ubuntu-22.04
+	runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v4
+	steps:
+	  - uses: actions/checkout@v4
 
-      - name: Update apt repos
-        run: sudo apt-get update
+	  - name: Update apt repos
+		run: sudo apt-get update
 
-      - name: Install base dependencies
-        run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+	  - name: Install base dependencies
+		run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
 
-      - name: Build depends
-        run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+	  - name: Build depends
+		run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
 
-      - name: Auto generate
-        run: ./autogen.sh
+	  - name: Auto generate
+		run: ./autogen.sh
 
-      - name: configure
-        run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+	  - name: configure
+		run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
-      - name: make
-        run: make -j4
-        
-      - name: strip
-        run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
+	  - name: make
+		run: make -j4
+		
+	  - name: strip
+		run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-ubuntu22
-          path: |
-            ./src/verged
-            ./src/verge-cli
-            ./src/verge-tx
-            ./src/qt/verge-qt
+	  - uses: actions/upload-artifact@v4
+		with:
+		  name: verge-ubuntu22
+		  path: |
+			./src/verged
+			./src/verge-cli
+			./src/verge-tx
+			./src/qt/verge-qt
 
   windows32-ubuntu22:
-    runs-on: ubuntu-22.04
+	runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v4
+	steps:
+	  - uses: actions/checkout@v4
 
-      - name: Update apt repos
-        run: sudo apt-get update
+	  - name: Update apt repos
+		run: sudo apt-get update
 
-      - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+	  - name: Install base dependencies
+		run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
 
-      - name: Force Posix
-        run: sudo apt-get install g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+	  - name: Force Posix
+		run: sudo apt-get install g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
-      - name: Build depends for MingW32 Cross Compile
-        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
+	  - name: Build depends for MingW32 Cross Compile
+		run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
 
-      - name: Auto generate
-        run: ./autogen.sh
+	  - name: Auto generate
+		run: ./autogen.sh
 
-      - name: configure
-        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+	  - name: configure
+		run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
 
-      - name: make
-        run: make -j2
-        
-      - name: strip
-        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+	  - name: make
+		run: make -j2
+		
+	  - name: strip
+		run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-windows32-ubuntu22
-          path: |
-            /home/runner/work/verge/verge/src/verged.exe
-            /home/runner/work/verge/verge/src/verge-cli.exe
-            /home/runner/work/verge/verge/src/verge-tx.exe
-            /home/runner/work/verge/verge/src/qt/verge-qt.exe
-            
+	  - uses: actions/upload-artifact@v4
+		with:
+		  name: verge-windows32-ubuntu22
+		  path: |
+			/home/runner/work/verge/verge/src/verged.exe
+			/home/runner/work/verge/verge/src/verge-cli.exe
+			/home/runner/work/verge/verge/src/verge-tx.exe
+			/home/runner/work/verge/verge/src/qt/verge-qt.exe
+			
 
   windows64-ubuntu22:
-    runs-on: ubuntu-22.04
+	runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v4
+	steps:
+	  - uses: actions/checkout@v4
 
-      - name: Cache depends artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            depends/built
-            depends/x86_64-w64-mingw32
-            depends/work
-            depends/sources
-          key: depends-${{ runner.os }}-mingw64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-          restore-keys: |
-            depends-${{ runner.os }}-mingw64-
+	  - name: Cache depends artifacts
+		uses: actions/cache@v4
+		with:
+		  path: |
+			depends/built
+			depends/x86_64-w64-mingw32
+			depends/work
+			depends/sources
+		  key: depends-${{ runner.os }}-mingw64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+		  restore-keys: |
+			depends-${{ runner.os }}-mingw64-
 
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-mingw64-
+	  - name: Cache ccache
+		uses: actions/cache@v4
+		with:
+		  path: ~/.ccache
+		  key: ccache-${{ runner.os }}-mingw64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+		  restore-keys: |
+			ccache-${{ runner.os }}-mingw64-
 
-      - name: Update apt repos
-        run: sudo apt-get update
+	  - name: Update apt repos
+		run: sudo apt-get update
 
-      - name: Install base dependencies
-        run: |
-          sudo apt-get install -y \
-            build-essential libtool gperf autotools-dev automake pkg-config \
-            bsdmainutils curl git bison byacc python3 nsis ccache
+	  - name: Install base dependencies
+		run: |
+		  sudo apt-get install -y \
+			build-essential libtool gperf autotools-dev automake pkg-config \
+			bsdmainutils curl git bison byacc python3 nsis ccache
 
-      - name: Force Posix
-        run: |
-          sudo apt-get install -y g++-mingw-w64-x86-64
-          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+	  - name: Force Posix
+		run: |
+		  sudo apt-get install -y g++-mingw-w64-x86-64
+		  sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
-      - name: Configure ccache
-        run: |
-          mkdir -p ~/.ccache
-          echo 'max_size = 2G' > ~/.ccache/ccache.conf
-          echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true
-        env:
-          CCACHE_DIR: ~/.ccache
+	  - name: Configure ccache
+		run: |
+		  mkdir -p ~/.ccache
+		  echo 'max_size = 2G' > ~/.ccache/ccache.conf
+		  echo 'compression = true' >> ~/.ccache/ccache.conf
+		  ccache -z || true
+		env:
+		  CCACHE_DIR: ~/.ccache
 
-      - name: Export toolchain env
-        run: |
-          echo "CC=x86_64-w64-mingw32-gcc-posix"  >> $GITHUB_ENV
-          echo "CXX=x86_64-w64-mingw32-g++-posix" >> $GITHUB_ENV
-          echo "AR=x86_64-w64-mingw32-ar"         >> $GITHUB_ENV
-          echo "RANLIB=x86_64-w64-mingw32-ranlib" >> $GITHUB_ENV
-          echo "STRIP=x86_64-w64-mingw32-strip"   >> $GITHUB_ENV
-          echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache"         >> $GITHUB_ENV
-          echo "CCACHE_PREFIX=ccache"             >> $GITHUB_ENV
-          echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
+	  - name: Export toolchain env
+		run: |
+		  echo "CC=x86_64-w64-mingw32-gcc-posix"  >> $GITHUB_ENV
+		  echo "CXX=x86_64-w64-mingw32-g++-posix" >> $GITHUB_ENV
+		  echo "AR=x86_64-w64-mingw32-ar"         >> $GITHUB_ENV
+		  echo "RANLIB=x86_64-w64-mingw32-ranlib" >> $GITHUB_ENV
+		  echo "STRIP=x86_64-w64-mingw32-strip"   >> $GITHUB_ENV
+		  echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> $GITHUB_ENV
+		  echo "CCACHE_DIR=$HOME/.ccache"         >> $GITHUB_ENV
+		  echo "CCACHE_PREFIX=ccache"             >> $GITHUB_ENV
+		  echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
 
-      - name: Toolchain sanity
-        run: |
-          echo "CC=$CC"
-          echo "CXX=$CXX"
-          which "$CC" || true
-          which "$CXX" || true
-          $CC --version
-          $CXX --version
+	  - name: Toolchain sanity
+		run: |
+		  echo "CC=$CC"
+		  echo "CXX=$CXX"
+		  which "$CC" || true
+		  which "$CXX" || true
+		  $CC --version
+		  $CXX --version
 
-      - name: Build depends for MingW32 Cross Compile
-        run: |
-          PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
-          cd depends/
-          make HOST=x86_64-w64-mingw32 -j2
+	  - name: Build depends for MingW32 Cross Compile
+		run: |
+		  PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
+		  cd depends/
+		  make HOST=x86_64-w64-mingw32 -j2
 
-      - name: Auto generate
-        run: ./autogen.sh
+	  - name: Auto generate
+		run: ./autogen.sh
 
-      - name: configure
-        run: |
-          CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
-          ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests
+	  - name: configure
+		run: |
+		  CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
+		  ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests
 
-      - name: make
-        run: make -j2
+	  - name: make
+		run: make -j2
 
-      - name: strip
-        run: |
-          cd ./src && strip verged.exe verge-cli.exe verge-tx.exe
-          cd ./qt && strip verge-qt.exe
+	  - name: strip
+		run: |
+		  cd ./src && strip verged.exe verge-cli.exe verge-tx.exe
+		  cd ./qt && strip verge-qt.exe
 
-      - name: ccache stats
-        run: ccache -s || true
-        env:
-          CCACHE_DIR: ~/.ccache
+	  - name: ccache stats
+		run: ccache -s || true
+		env:
+		  CCACHE_DIR: ~/.ccache
 
-      - name: Dump config.log on failure
-        if: failure()
-        run: test -f config.log && sed -n '1,200p' config.log || true
+	  - name: Dump config.log on failure
+		if: failure()
+		run: test -f config.log && sed -n '1,200p' config.log || true
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-windows64bit-ubuntu22
-          path: |
-            /home/runner/work/verge/verge/src/verged.exe
-            /home/runner/work/verge/verge/src/verge-cli.exe
-            /home/runner/work/verge/verge/src/verge-tx.exe
-            /home/runner/work/verge/verge/src/qt/verge-qt.exe
+	  - uses: actions/upload-artifact@v4
+		with:
+		  name: verge-windows64bit-ubuntu22
+		  path: |
+			/home/runner/work/verge/verge/src/verged.exe
+			/home/runner/work/verge/verge/src/verge-cli.exe
+			/home/runner/work/verge/verge/src/verge-tx.exe
+			/home/runner/work/verge/verge/src/qt/verge-qt.exe
 
 
 
