@@ -6,15 +6,15 @@ jobs:
   macos13:
     runs-on: macos-13
 
-    steps:
-      - uses: actions/checkout@v4
+  steps:
+    - uses: actions/checkout@v4
 
-      - name: git config credential.helper
+    - name: git config credential.helper
     run: git config credential.helper
        
-      - name: Brew install base dependencies
-  run: |
-    # A workaround for "The `brew link` step did not complete successfully" error.
+    - name: Brew install base dependencies
+    run: |
+      # A workaround for "The `brew link` step did not complete successfully" error.
     brew install --quiet python@3 || brew link --overwrite python@3
     brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg
 
@@ -22,7 +22,7 @@ jobs:
     run: brew link qt@5 berkeley-db@4
     
     - name: Show current directory
-  run: |
+    run: |
     pwd
     git rev-parse --short HEAD
     ls -lah
@@ -30,7 +30,7 @@ jobs:
     ls -lah depends/homebrew-formulas || true
 
     - name: Create local tap & stage protobuf261.rb
-  run: |
+    run: |
     set -euo pipefail
     brew tap-new vergecurrency/local
     TAP_DIR="$(brew --repo vergecurrency/local)"
@@ -55,7 +55,7 @@ jobs:
     run: brew install vergecurrency/local/protobuf261
 
     - name: Stage boost176.rb into existing tap
-  run: |
+    run: |
     set -euo pipefail
     if ! brew tap | grep -q '^vergecurrency/local$'; then
     brew tap-new vergecurrency/local
@@ -90,7 +90,7 @@ jobs:
     run: export LDFLAGS="-L/usr/local/opt/boost176/lib" && export CPPFLAGS="-I/usr/local/opt/boost176/include" && ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
     - name: Free up memory (optional)
-  run: |
+    run: |
     sudo purge || true  # purge helps clear memory cache (no guarantee)
 
     - name: make
@@ -102,26 +102,26 @@ jobs:
     - uses: actions/upload-artifact@v4
   with:
     name: verge-macos13
-  path: |
+    path: |
     *.dmg
 
 
   macos14:
     runs-on: macos-14
 
-    steps:
-      - uses: actions/checkout@v4
+  steps:
+    - uses: actions/checkout@v4
 
-      - name: git config credential.helper
+    - name: git config credential.helper
     run: git config credential.helper
     
     
-      - name: get previous xcode and switch to it
+    - name: get previous xcode and switch to it
     run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
 
-      - name: Brew install base dependencies
-  run: |
-    # A workaround for "The `brew link` step did not complete successfully" error.
+    - name: Brew install base dependencies
+    run: |
+      # A workaround for "The `brew link` step did not complete successfully" error.
     brew install --quiet python@3 || brew link --overwrite python@3
     brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
     
@@ -132,7 +132,7 @@ jobs:
     run: cd /opt/homebrew/Cellar/openssl@3/ && ls
     
     - name: Show current directory
-  run: |
+    run: |
     pwd
     git rev-parse --short HEAD
     ls -lah
@@ -140,7 +140,7 @@ jobs:
     ls -lah depends/homebrew-formulas || true
 
     - name: Create local tap & stage protobuf261.rb
-  run: |
+    run: |
     set -euo pipefail
     brew tap-new vergecurrency/local
     TAP_DIR="$(brew --repo vergecurrency/local)"
@@ -165,7 +165,7 @@ jobs:
     run: brew install vergecurrency/local/protobuf261
 
     - name: Stage boost176.rb into existing tap
-  run: |
+    run: |
     set -euo pipefail
     if ! brew tap | grep -q '^vergecurrency/local$'; then
     brew tap-new vergecurrency/local
@@ -191,7 +191,7 @@ jobs:
     run: brew install vergecurrency/local/boost176
     
     - name: Set Boost 1.76 env
-  run: |
+    run: |
     BOOST_PREFIX="$(brew --prefix boost176)"
     echo "BOOST_ROOT=$BOOST_PREFIX" >> $GITHUB_ENV
     echo "BOOST_INCLUDEDIR=$BOOST_PREFIX/include" >> $GITHUB_ENV
@@ -212,31 +212,31 @@ jobs:
     run: make -j4
 
     - name: make .dmg
-  run: |
+    run: |
     make deploy
 
     - uses: actions/upload-artifact@v4
   with:
     name: verge-macos14
-  path: |
+    path: |
     *.dmg 
   
   ubuntu24: 
     runs-on: ubuntu-24.04
 
-    steps:
-      - uses: actions/checkout@v4
+  steps:
+    - uses: actions/checkout@v4
 
-      - name: Cache depends artifacts
+    - name: Cache depends artifacts
     uses: actions/cache@v4
   with:
-  path: |
+    path: |
     depends/built
     depends/x86_64-linux-gnu
     depends/work
     depends/sources
     key: depends-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-  restore-keys: |
+    restore-keys: |
     depends-${{ runner.os }}-linux64-
 
     - name: Cache ccache
@@ -244,35 +244,35 @@ jobs:
   with:
     path: ~/.ccache
     key: ccache-${{ runner.os }}-linux64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-  restore-keys: |
+    restore-keys: |
     ccache-${{ runner.os }}-linux64-
 
     - name: Update apt repos
     run: sudo apt-get update
 
     - name: Install base dependencies
-  run: |
+    run: |
     sudo apt-get install -y \
     build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
     bsdmainutils libattr1-dev make automake bison byacc cmake curl \
     g++-multilib binutils-gold python3 ccache
 
     - name: Enable ccache wrappers
-  run: |
+    run: |
     sudo /usr/sbin/update-ccache-symlinks || true
     echo "/usr/lib/ccache" >> $GITHUB_PATH
 
     - name: Configure ccache
-  run: |
+    run: |
     mkdir -p ~/.ccache
     echo 'max_size = 2G' > ~/.ccache/ccache.conf
     echo 'compression = true' >> ~/.ccache/ccache.conf
     ccache -z || true
-    env:
+  env:
     CCACHE_DIR: ~/.ccache
 
     - name: Export toolchain env
-  run: |
+    run: |
     echo "CC=gcc"        >> $GITHUB_ENV
     echo "CXX=g++"       >> $GITHUB_ENV
     echo "AR=ar"         >> $GITHUB_ENV
@@ -281,7 +281,7 @@ jobs:
     echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
 
     - name: Build depends
-  run: |
+    run: |
     cd depends/
     make -j4 HOST=x86_64-linux-gnu
 
@@ -289,7 +289,7 @@ jobs:
     run: ./autogen.sh
 
     - name: configure
-  run: |
+    run: |
     CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
     ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
     --disable-dependency-tracking --disable-werror \
@@ -301,19 +301,19 @@ jobs:
     run: make -j4
 
     - name: strip
-  run: |
+    run: |
     cd ./src && strip verged verge-cli verge-tx
     cd ./qt && strip verge-qt
 
     - name: ccache stats
     run: ccache -s || true
-    env:
+  env:
     CCACHE_DIR: ~/.ccache
 
     - uses: actions/upload-artifact@v4
   with:
     name: verge-ubuntu24
-  path: |
+    path: |
     ./src/verged
     ./src/verge-cli
     ./src/verge-tx
@@ -322,34 +322,34 @@ jobs:
   ubuntu22:
     runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v4
+  steps:
+    - uses: actions/checkout@v4
 
-      - name: Update apt repos
+    - name: Update apt repos
     run: sudo apt-get update
 
-      - name: Install base dependencies
+    - name: Install base dependencies
     run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
 
-      - name: Build depends
+    - name: Build depends
     run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
 
-      - name: Auto generate
+    - name: Auto generate
     run: ./autogen.sh
 
-      - name: configure
+    - name: configure
     run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
 
-      - name: make
+    - name: make
     run: make -j4
     
-      - name: strip
+    - name: strip
     run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
 
-      - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
   with:
     name: verge-ubuntu22
-  path: |
+    path: |
     ./src/verged
     ./src/verge-cli
     ./src/verge-tx
@@ -358,37 +358,37 @@ jobs:
   windows32-ubuntu22:
     runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v4
+  steps:
+    - uses: actions/checkout@v4
 
-      - name: Update apt repos
+    - name: Update apt repos
     run: sudo apt-get update
 
-      - name: Install base dependencies
+    - name: Install base dependencies
     run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
 
-      - name: Force Posix
+    - name: Force Posix
     run: sudo apt-get install g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
-      - name: Build depends for MingW32 Cross Compile
+    - name: Build depends for MingW32 Cross Compile
     run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
 
-      - name: Auto generate
+    - name: Auto generate
     run: ./autogen.sh
 
-      - name: configure
+    - name: configure
     run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
 
-      - name: make
+    - name: make
     run: make -j2
     
-      - name: strip
+    - name: strip
     run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
 
-      - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
   with:
     name: verge-windows32-ubuntu22
-  path: |
+    path: |
     /home/runner/work/verge/verge/src/verged.exe
     /home/runner/work/verge/verge/src/verge-cli.exe
     /home/runner/work/verge/verge/src/verge-tx.exe
@@ -398,19 +398,19 @@ jobs:
   windows64-ubuntu22:
     runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v4
+  steps:
+    - uses: actions/checkout@v4
 
-      - name: Cache depends artifacts
+    - name: Cache depends artifacts
     uses: actions/cache@v4
   with:
-  path: |
+    path: |
     depends/built
     depends/x86_64-w64-mingw32
     depends/work
     depends/sources
     key: depends-${{ runner.os }}-mingw64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-  restore-keys: |
+    restore-keys: |
     depends-${{ runner.os }}-mingw64-
 
     - name: Cache ccache
@@ -418,34 +418,34 @@ jobs:
   with:
     path: ~/.ccache
     key: ccache-${{ runner.os }}-mingw64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-  restore-keys: |
+    restore-keys: |
     ccache-${{ runner.os }}-mingw64-
 
     - name: Update apt repos
     run: sudo apt-get update
 
     - name: Install base dependencies
-  run: |
+    run: |
     sudo apt-get install -y \
     build-essential libtool gperf autotools-dev automake pkg-config \
     bsdmainutils curl git bison byacc python3 nsis ccache
 
     - name: Force Posix
-  run: |
+    run: |
     sudo apt-get install -y g++-mingw-w64-x86-64
     sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
     - name: Configure ccache
-  run: |
+    run: |
     mkdir -p ~/.ccache
     echo 'max_size = 2G' > ~/.ccache/ccache.conf
     echo 'compression = true' >> ~/.ccache/ccache.conf
     ccache -z || true
-    env:
+  env:
     CCACHE_DIR: ~/.ccache
 
     - name: Export toolchain env
-  run: |
+    run: |
     echo "CC=x86_64-w64-mingw32-gcc-posix"  >> $GITHUB_ENV
     echo "CXX=x86_64-w64-mingw32-g++-posix" >> $GITHUB_ENV
     echo "AR=x86_64-w64-mingw32-ar"         >> $GITHUB_ENV
@@ -457,7 +457,7 @@ jobs:
     echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
 
     - name: Toolchain sanity
-  run: |
+    run: |
     echo "CC=$CC"
     echo "CXX=$CXX"
     which "$CC" || true
@@ -466,7 +466,7 @@ jobs:
     $CXX --version
 
     - name: Build depends for MingW32 Cross Compile
-  run: |
+    run: |
     PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
     cd depends/
     make HOST=x86_64-w64-mingw32 -j2
@@ -475,7 +475,7 @@ jobs:
     run: ./autogen.sh
 
     - name: configure
-  run: |
+    run: |
     CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
     ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests
 
@@ -483,13 +483,13 @@ jobs:
     run: make -j2
 
     - name: strip
-  run: |
+    run: |
     cd ./src && strip verged.exe verge-cli.exe verge-tx.exe
     cd ./qt && strip verge-qt.exe
 
     - name: ccache stats
     run: ccache -s || true
-    env:
+  env:
     CCACHE_DIR: ~/.ccache
 
     - name: Dump config.log on failure
@@ -499,9 +499,10 @@ jobs:
     - uses: actions/upload-artifact@v4
   with:
     name: verge-windows64bit-ubuntu22
-  path: |
+    path: |
     /home/runner/work/verge/verge/src/verged.exe
     /home/runner/work/verge/verge/src/verge-cli.exe
     /home/runner/work/verge/verge/src/verge-tx.exe
     /home/runner/work/verge/verge/src/qt/verge-qt.exe
+
 
