@@ -375,6 +375,7 @@ jobs:
 
       - name: Configure ccache
         run: |
+          mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true   # zero stats (optional)
