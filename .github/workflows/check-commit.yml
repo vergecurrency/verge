@@ -334,7 +334,7 @@ jobs:
             
 
   windows64-ubuntu22:
-  runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
