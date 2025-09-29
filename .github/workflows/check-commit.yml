@@ -386,8 +386,8 @@ jobs:
           echo "CC='ccache x86_64-w64-mingw32-gcc-posix'"  >> $GITHUB_ENV
           echo "CXX='ccache x86_64-w64-mingw32-g++-posix'" >> $GITHUB_ENV
           echo "AR=x86_64-w64-mingw32-ar"                  >> $GITHUB_ENV
-         echo "RANLIB=x86_64-w64-mingw32-ranlib"          >> $GITHUB_ENV
-         echo "STRIP=x86_64-w64-mingw32-strip"            >> $GITHUB_ENV
+          echo "RANLIB=x86_64-w64-mingw32-ranlib"          >> $GITHUB_ENV
+          echo "STRIP=x86_64-w64-mingw32-strip"            >> $GITHUB_ENV
           echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
 
       - name: Build depends for MingW32 Cross Compile
