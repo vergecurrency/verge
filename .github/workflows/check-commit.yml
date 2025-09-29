@@ -221,10 +221,10 @@ jobs:
           path: |
             *.dmg 
   
-ubuntu24:
-  runs-on: ubuntu-24.04
+  ubuntu24:
+    runs-on: ubuntu-24.04
 
-  steps:
+    steps:
     - uses: actions/checkout@v4
 
     - name: Cache depends artifacts
@@ -314,6 +314,7 @@ ubuntu24:
           ./src/verge-cli
           ./src/verge-tx
           ./src/qt/verge-qt
+
   ubuntu22:
     runs-on: ubuntu-22.04
 
