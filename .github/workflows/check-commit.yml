@@ -379,7 +379,7 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true   # zero stats (optional)
         env:
-        CCACHE_DIR: ~/.ccache
+          CCACHE_DIR: ~/.ccache
 
       - name: Export ccache wrappers
         run: |
