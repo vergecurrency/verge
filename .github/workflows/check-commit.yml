@@ -334,7 +334,7 @@ jobs:
             
 
   windows64-ubuntu22:
-    runs-on: ubuntu-22.04
+  runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -346,7 +346,7 @@ jobs:
             depends/built
             depends/x86_64-w64-mingw32
             depends/work
-            depends/sources   # avoids re-downloading tarballs
+            depends/sources
           key: depends-${{ runner.os }}-mingw64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
             depends-${{ runner.os }}-mingw64-
@@ -365,31 +365,43 @@ jobs:
       - name: Install base dependencies
         run: |
           sudo apt-get install -y \
-          build-essential libtool gperf autotools-dev automake pkg-config \
-          bsdmainutils curl git bison byacc python3 nsis ccache
+            build-essential libtool gperf autotools-dev automake pkg-config \
+            bsdmainutils curl git bison byacc python3 nsis ccache
 
       - name: Force Posix
         run: |
           sudo apt-get install -y g++-mingw-w64-x86-64
-          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix 
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
       - name: Configure ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true   # zero stats (optional)
+          ccache -z || true
         env:
           CCACHE_DIR: ~/.ccache
 
-      - name: Export ccache wrappers
+      - name: Export toolchain env
         run: |
-          echo "CC='ccache x86_64-w64-mingw32-gcc-posix'"  >> $GITHUB_ENV
-          echo "CXX='ccache x86_64-w64-mingw32-g++-posix'" >> $GITHUB_ENV
-          echo "AR=x86_64-w64-mingw32-ar"                  >> $GITHUB_ENV
-          echo "RANLIB=x86_64-w64-mingw32-ranlib"          >> $GITHUB_ENV
-          echo "STRIP=x86_64-w64-mingw32-strip"            >> $GITHUB_ENV
+          echo "CC=x86_64-w64-mingw32-gcc-posix"  >> $GITHUB_ENV
+          echo "CXX=x86_64-w64-mingw32-g++-posix" >> $GITHUB_ENV
+          echo "AR=x86_64-w64-mingw32-ar"         >> $GITHUB_ENV
+          echo "RANLIB=x86_64-w64-mingw32-ranlib" >> $GITHUB_ENV
+          echo "STRIP=x86_64-w64-mingw32-strip"   >> $GITHUB_ENV
+          echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache"         >> $GITHUB_ENV
+          echo "CCACHE_PREFIX=ccache"             >> $GITHUB_ENV
           echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
+
+      - name: Toolchain sanity
+        run: |
+          echo "CC=$CC"
+          echo "CXX=$CXX"
+          which "$CC" || true
+          which "$CXX" || true
+          $CC --version
+          $CXX --version
 
       - name: Build depends for MingW32 Cross Compile
         run: |
@@ -418,12 +430,18 @@ jobs:
         env:
           CCACHE_DIR: ~/.ccache
 
+      - name: Dump config.log on failure
+        if: failure()
+        run: test -f config.log && sed -n '1,200p' config.log || true
+
       - uses: actions/upload-artifact@v4
         with:
           name: verge-windows64bit-ubuntu22
           path: |
-           /home/runner/work/verge/verge/src/verged.exe
-           /home/runner/work/verge/verge/src/verge-cli.exe
-           /home/runner/work/verge/verge/src/verge-tx.exe
-           /home/runner/work/verge/verge/src/qt/verge-qt.exe
+            /home/runner/work/verge/verge/src/verged.exe
+            /home/runner/work/verge/verge/src/verge-cli.exe
+            /home/runner/work/verge/verge/src/verge-tx.exe
+            /home/runner/work/verge/verge/src/qt/verge-qt.exe
+
+
 
