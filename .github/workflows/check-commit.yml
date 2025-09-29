@@ -4,13 +4,13 @@ on:
 
 jobs:
   macos13:
-	runs-on: macos-13
+    runs-on: macos-13
 
-	steps:
-	  - uses: actions/checkout@v4
+    steps:
+     - uses: actions/checkout@v4
 
-	  - name: git config credential.helper
-		run: git config credential.helper
+      - name: git config credential.helper
+        run: git config credential.helper
 
 	  - name: Brew install base dependencies
 		run: |
