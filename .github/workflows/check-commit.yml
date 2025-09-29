@@ -342,22 +342,22 @@ jobs:
       - name: Cache depends artifacts
         uses: actions/cache@v4
         with:
-        path: |
-          depends/built
-          depends/x86_64-w64-mingw32
-          depends/work
-          depends/sources   # avoids re-downloading tarballs
-        key: depends-${{ runner.os }}-mingw64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-        restore-keys: |
-          depends-${{ runner.os }}-mingw64-
+          path: |
+            depends/built
+            depends/x86_64-w64-mingw32
+            depends/work
+            depends/sources   # avoids re-downloading tarballs
+          key: depends-${{ runner.os }}-mingw64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-${{ runner.os }}-mingw64-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
-        path: ~/.ccache
-        key: ccache-${{ runner.os }}-mingw64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-        restore-keys: |
-          ccache-${{ runner.os }}-mingw64-
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-mingw64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-mingw64-
 
       - name: Update apt repos
         run: sudo apt-get update
