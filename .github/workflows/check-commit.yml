@@ -396,22 +396,21 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
       - name: Cache depends (sources only)
         uses: actions/cache@v4
         with:
           path: depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-v6-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-v5-
+            depends-${{ runner.os }}-mingw32-32-v6-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-v5-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-v6-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-v5-
+            ccache-${{ runner.os }}-mingw32-32-v6-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -440,15 +439,16 @@ jobs:
 
       - name: Export toolchain env (target)
         run: |
-          echo "CC=i686-w64-mingw32-gcc-posix"      >> $GITHUB_ENV
-          echo "CXX=i686-w64-mingw32-g++-posix"     >> $GITHUB_ENV
-          echo "AR=i686-w64-mingw32-ar"             >> $GITHUB_ENV
-          echo "RANLIB=i686-w64-mingw32-ranlib"     >> $GITHUB_ENV
-          echo "WINDRES=i686-w64-mingw32-windres"   >> $GITHUB_ENV
+          echo "CC=i686-w64-mingw32-gcc-posix"        >> $GITHUB_ENV
+          echo "CXX=i686-w64-mingw32-g++-posix"       >> $GITHUB_ENV
+          echo "AR=i686-w64-mingw32-ar"               >> $GITHUB_ENV
+          echo "RANLIB=i686-w64-mingw32-ranlib"       >> $GITHUB_ENV
+          echo "WINDRES=i686-w64-mingw32-windres"     >> $GITHUB_ENV
           echo "PKG_CONFIG=i686-w64-mingw32-pkg-config" >> $GITHUB_ENV
-          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"    >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache"            >> $GITHUB_ENV
-          echo "CCACHE_PREFIX=ccache"                >> $GITHUB_ENV
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"      >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache"              >> $GITHUB_ENV
+          echo "CCACHE_DISABLE=1"                      >> $GITHUB_ENV   # TEMP: isolate ccache
+          echo "ARFLAGS=rcs"                           >> $GITHUB_ENV   # stable archiving flags
 
       - name: Configure ccache
         run: |
@@ -464,24 +464,25 @@ jobs:
           CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site \
           ./configure --prefix=/ --disable-bench --disable-tests
 
-      - name: make (serialized, verbose, no-strip, heartbeat)
+      - name: make (serialized, verbose, heartbeat)
         env:
           STRIP: ""
+          V: "1"
         run: |
           set -e
           ( while true; do
             echo "---- heartbeat $(date) ----"
             ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
             sleep 60
-          done ) &
+            done ) &
           HB=$!
-          timeout 60m make -j1 V=1 --output-sync=recurse
+          timeout 60m make -j1 --output-sync=recurse
           kill $HB || true
 
-      - name: strip
+      - name: strip (cross)
         run: |
-          cd ./src && strip verged.exe verge-cli.exe verge-tx.exe
-          cd ./qt && strip verge-qt.exe
+          cd ./src && i686-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
+          cd ./qt && i686-w64-mingw32-strip verge-qt.exe
 
       - name: ccache stats
         run: ccache -s || true
@@ -498,6 +499,7 @@ jobs:
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
 
 
+
   windows64-ubuntu22:
     runs-on: ubuntu-22.04
     steps:
@@ -507,17 +509,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-v6-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v5-
+            depends-${{ runner.os }}-mingw64-64-v6-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v5-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v6-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v5-
+            ccache-${{ runner.os }}-mingw64-64-v6-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -546,15 +548,16 @@ jobs:
 
       - name: Export toolchain env
         run: |
-          echo "CC=x86_64-w64-mingw32-gcc-posix"   >> $GITHUB_ENV
-          echo "CXX=x86_64-w64-mingw32-g++-posix"  >> $GITHUB_ENV
-          echo "AR=x86_64-w64-mingw32-ar"          >> $GITHUB_ENV
-          echo "RANLIB=x86_64-w64-mingw32-ranlib"  >> $GITHUB_ENV
-          echo "WINDRES=x86_64-w64-mingw32-windres" >> $GITHUB_ENV
+          echo "CC=x86_64-w64-mingw32-gcc-posix"       >> $GITHUB_ENV
+          echo "CXX=x86_64-w64-mingw32-g++-posix"      >> $GITHUB_ENV
+          echo "AR=x86_64-w64-mingw32-ar"              >> $GITHUB_ENV
+          echo "RANLIB=x86_64-w64-mingw32-ranlib"      >> $GITHUB_ENV
+          echo "WINDRES=x86_64-w64-mingw32-windres"    >> $GITHUB_ENV
           echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> $GITHUB_ENV
-          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"   >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache"           >> $GITHUB_ENV
-          echo "CCACHE_PREFIX=ccache"               >> $GITHUB_ENV
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"       >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache"               >> $GITHUB_ENV
+          echo "CCACHE_DISABLE=1"                       >> $GITHUB_ENV   # TEMP: isolate ccache
+          echo "ARFLAGS=rcs"                            >> $GITHUB_ENV
 
       - name: Configure ccache
         run: |
@@ -570,24 +573,25 @@ jobs:
           CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
           ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests
 
-      - name: make (serialized, verbose, no-strip, heartbeat)
+      - name: make (serialized, verbose, heartbeat)
         env:
           STRIP: ""
+          V: "1"
         run: |
           set -e
           ( while true; do
             echo "---- heartbeat $(date) ----"
             ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
             sleep 60
-          done ) &
+            done ) &
           HB=$!
-          timeout 60m make -j1 V=1 --output-sync=recurse
+          timeout 60m make -j1 --output-sync=recurse
           kill $HB || true
 
-      - name: strip
+      - name: strip (cross)
         run: |
-          cd ./src && strip verged.exe verge-cli.exe verge-tx.exe
-          cd ./qt && strip verge-qt.exe
+          cd ./src && x86_64-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
+          cd ./qt && x86_64-w64-mingw32-strip verge-qt.exe
 
       - name: ccache stats
         run: ccache -s || true
