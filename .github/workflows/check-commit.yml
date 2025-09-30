@@ -405,17 +405,18 @@ jobs:
             depends/i686-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          # bump the prefix to v2 to clear any bad native_protobuf from cache
+          key: depends-${{ runner.os }}-mingw32-32-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-
+            depends-${{ runner.os }}-mingw32-32-v2-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-v2-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-
+            ccache-${{ runner.os }}-mingw32-32-v2-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -430,16 +431,21 @@ jobs:
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
-      - name: Configure ccache
+      # IMPORTANT: build depends BEFORE exporting STRIP for the target
+      - name: Build depends for MingW32 Cross Compile
         run: |
-          mkdir -p ~/.ccache
-          echo 'max_size = 2G' > ~/.ccache/ccache.conf
-          echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true
-        env:
-          CCACHE_DIR: ~/.ccache
+          # ensure we don't pass the target STRIP into native_* builds
+          unset STRIP || true
+          PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
+          cd depends/
+          # extra safety: force the host stripper for native tools
+          make HOST=i686-w64-mingw32 -j2 STRIP=strip
 
-      - name: Export toolchain env
+      - name: Auto generate
+        run: ./autogen.sh
+
+      # Now export target toolchain (after depends so native_* used host strip)
+      - name: Export toolchain env (target)
         run: |
           echo "CC=i686-w64-mingw32-gcc-posix"  >> $GITHUB_ENV
           echo "CXX=i686-w64-mingw32-g++-posix" >> $GITHUB_ENV
@@ -451,19 +457,17 @@ jobs:
           echo "CCACHE_PREFIX=ccache"           >> $GITHUB_ENV
           echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
 
-      - name: Build depends for MingW32 Cross Compile
+      - name: Configure ccache
         run: |
-          PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
-          cd depends/
-          make HOST=i686-w64-mingw32 -j2
-
-      - name: Auto generate
-        run: ./autogen.sh
+          mkdir -p ~/.ccache
+          echo 'max_size = 2G' > ~/.ccache/ccache.conf
+          echo 'compression = true' >> ~/.ccache/ccache.conf
+          ccache -z || true
+        env:
+          CCACHE_DIR: ~/.ccache
 
       - name: configure
-        run: |
-          CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site \
-          ./configure --prefix=/ --disable-bench --disable-tests
+        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
 
       - name: make
         run: make -j2
