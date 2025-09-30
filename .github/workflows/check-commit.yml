@@ -414,25 +414,30 @@ jobs:
             ./src/verge-tx
             ./src/qt/verge-qt
 
-  windows32-ubuntu22:
+  windows32-ubuntu22: 
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Cache depends (sources only)
+
+      - name: Cache depends artifacts
         uses: actions/cache@v4
         with:
-          path: depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-v6-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          path: |
+            depends/built
+            depends/i686-w64-mingw32
+            depends/work
+            depends/sources
+          key: depends-${{ runner.os }}-mingw32-32-v7-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-v6-
+            depends-${{ runner.os }}-mingw32-32-v7-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-v6-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-v7-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-v6-
+            ccache-${{ runner.os }}-mingw32-32-v7-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -446,9 +451,6 @@ jobs:
 
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
-
-      - name: Clean stale depends (if present)
-        run: make -C depends HOST=i686-w64-mingw32 clean || true
 
       - name: Build depends for MingW32 Cross Compile
         run: |
@@ -469,8 +471,7 @@ jobs:
           echo "PKG_CONFIG=i686-w64-mingw32-pkg-config" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"      >> $GITHUB_ENV
           echo "CCACHE_DIR=$HOME/.ccache"              >> $GITHUB_ENV
-          echo "CCACHE_DISABLE=1"                      >> $GITHUB_ENV   # TEMP: isolate ccache
-          echo "ARFLAGS=rcs"                           >> $GITHUB_ENV   # stable archiving flags
+          echo "ARFLAGS=rcs"                           >> $GITHUB_ENV
 
       - name: Configure ccache
         run: |
@@ -521,27 +522,30 @@ jobs:
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
 
 
-
   windows64-ubuntu22:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache depends (sources only)
+      - name: Cache depends artifacts
         uses: actions/cache@v4
         with:
-          path: depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v6-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          path: |
+            depends/built
+            depends/x86_64-w64-mingw32
+            depends/work
+            depends/sources
+          key: depends-${{ runner.os }}-mingw64-64-v7-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v6-
+            depends-${{ runner.os }}-mingw64-64-v7-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v6-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v7-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v6-
+            ccache-${{ runner.os }}-mingw64-64-v7-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -555,9 +559,6 @@ jobs:
 
       - name: Force Posix
         run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
-
-      - name: Clean stale depends (if present)
-        run: make -C depends HOST=x86_64-w64-mingw32 clean || true
 
       - name: Build depends for MingW64 Cross Compile
         run: |
@@ -578,7 +579,6 @@ jobs:
           echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"       >> $GITHUB_ENV
           echo "CCACHE_DIR=$HOME/.ccache"               >> $GITHUB_ENV
-          echo "CCACHE_DISABLE=1"                       >> $GITHUB_ENV   # TEMP: isolate ccache
           echo "ARFLAGS=rcs"                            >> $GITHUB_ENV
 
       - name: Configure ccache
