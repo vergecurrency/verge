@@ -451,6 +451,9 @@ jobs:
           echo "CCACHE_DIR=$HOME/.ccache"       >> $GITHUB_ENV
           echo "CCACHE_PREFIX=ccache"           >> $GITHUB_ENV
           echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache"        >> $GITHUB_ENV
+          echo "CCACHE_PREFIX=ccache"            >> $GITHUB_ENV
 
       - name: Configure ccache
         run: |
@@ -543,6 +546,9 @@ jobs:
           echo "CCACHE_DIR=$HOME/.ccache"         >> $GITHUB_ENV
           echo "CCACHE_PREFIX=ccache"             >> $GITHUB_ENV
           echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache"        >> $GITHUB_ENV
+          echo "CCACHE_PREFIX=ccache"            >> $GITHUB_ENV
 
       - name: Toolchain sanity
         run: |
@@ -555,9 +561,11 @@ jobs:
 
       - name: Build depends for MingW32 Cross Compile
         run: |
+          unset STRIP || true
           PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
           cd depends/
-          make HOST=x86_64-w64-mingw32 -j2
+          make HOST=x86_64-w64-mingw32 -j2 STRIP=strip
+          
 
       - name: Auto generate
         run: ./autogen.sh
