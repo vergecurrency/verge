@@ -490,7 +490,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
       - name: Cache depends artifacts
         uses: actions/cache@v4
         with:
@@ -498,8 +497,8 @@ jobs:
             depends/built
             depends/x86_64-w64-mingw32
             depends/sources
-         key: depends-${{ runner.os }}-mingw64-64-v3-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-         restore-keys: |
+          key: depends-${{ runner.os }}-mingw64-64-v3-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
            depends-${{ runner.os }}-mingw64-64-v3-
 
       - name: Cache ccache
