@@ -403,12 +403,10 @@ jobs:
           path: |
             depends/built
             depends/i686-w64-mingw32
-            depends/work
             depends/sources
-          # bump the prefix to v2 to clear any bad native_protobuf from cache
-          key: depends-${{ runner.os }}-mingw32-32-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-v3-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-v2-
+            depends-${{ runner.os }}-mingw32-32-v3-
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -431,20 +429,17 @@ jobs:
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
-      # IMPORTANT: build depends BEFORE exporting STRIP for the target
       - name: Build depends for MingW32 Cross Compile
         run: |
           # ensure we don't pass the target STRIP into native_* builds
           unset STRIP || true
           PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
           cd depends/
-          # extra safety: force the host stripper for native tools
           make HOST=i686-w64-mingw32 -j2 STRIP=strip
 
       - name: Auto generate
         run: ./autogen.sh
 
-      # Now export target toolchain (after depends so native_* used host strip)
       - name: Export toolchain env (target)
         run: |
           echo "CC=i686-w64-mingw32-gcc-posix"  >> $GITHUB_ENV
@@ -502,11 +497,10 @@ jobs:
           path: |
             depends/built
             depends/x86_64-w64-mingw32
-            depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-          restore-keys: |
-            depends-${{ runner.os }}-mingw64-
+         key: depends-${{ runner.os }}-mingw64-64-v3-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+         restore-keys: |
+           depends-${{ runner.os }}-mingw64-64-v3-
 
       - name: Cache ccache
         uses: actions/cache@v4
