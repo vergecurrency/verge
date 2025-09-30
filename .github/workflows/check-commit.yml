@@ -397,29 +397,86 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache depends artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            depends/built
+            depends/i686-w64-mingw32
+            depends/work
+            depends/sources
+          key: depends-${{ runner.os }}-mingw32-32-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-${{ runner.os }}-mingw32-32-
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-mingw32-32-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-mingw32-32-
+
       - name: Update apt repos
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential libtool gperf autotools-dev automake pkg-config bsdmainutils curl git bison byacc python3 nsis
+        run: |
+          sudo apt-get install -y \
+          build-essential libtool gperf autotools-dev automake pkg-config \
+          bsdmainutils curl git bison byacc python3 nsis ccache \
+          g++-mingw-w64-i686 mingw-w64-i686-dev
 
       - name: Force Posix
-        run: sudo apt-get install g++-mingw-w64-i686 mingw-w64-i686-dev && sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+        run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.ccache
+          echo 'max_size = 2G' > ~/.ccache/ccache.conf
+          echo 'compression = true' >> ~/.ccache/ccache.conf
+          ccache -z || true
+        env:
+          CCACHE_DIR: ~/.ccache
+
+      - name: Export toolchain env
+        run: |
+          echo "CC=i686-w64-mingw32-gcc-posix"  >> $GITHUB_ENV
+          echo "CXX=i686-w64-mingw32-g++-posix" >> $GITHUB_ENV
+          echo "AR=i686-w64-mingw32-ar"         >> $GITHUB_ENV
+          echo "RANLIB=i686-w64-mingw32-ranlib" >> $GITHUB_ENV
+          echo "STRIP=i686-w64-mingw32-strip"   >> $GITHUB_ENV
+          echo "PKG_CONFIG=i686-w64-mingw32-pkg-config" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache"       >> $GITHUB_ENV
+          echo "CCACHE_PREFIX=ccache"           >> $GITHUB_ENV
+          echo "PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')" >> $GITHUB_ENV
 
       - name: Build depends for MingW32 Cross Compile
-        run: PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') && cd depends/ && make HOST=i686-w64-mingw32 -j2
+        run: |
+          PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
+          cd depends/
+          make HOST=i686-w64-mingw32 -j2
 
       - name: Auto generate
         run: ./autogen.sh
 
       - name: configure
-        run: CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/ --disable-bench --disable-tests
+        run: |
+          CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site \
+          ./configure --prefix=/ --disable-bench --disable-tests
 
       - name: make
         run: make -j2
 
       - name: strip
-        run: cd ./src && strip verged.exe verge-cli.exe verge-tx.exe && cd ./qt && strip verge-qt.exe
+        run: |
+          cd ./src && strip verged.exe verge-cli.exe verge-tx.exe
+          cd ./qt && strip verge-qt.exe
+
+      - name: ccache stats
+        run: ccache -s || true
+        env:
+          CCACHE_DIR: ~/.ccache
 
       - uses: actions/upload-artifact@v4
         with:
