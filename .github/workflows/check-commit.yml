@@ -42,7 +42,7 @@ jobs:
           else
             echo "Local formula not found; fetching from repo"
             REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
+            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
             echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
           fi
@@ -79,6 +79,17 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
+      - name: Set Boost 1.76 env (macOS 13)
+        run: |
+          BOOST_PREFIX="$(brew --prefix boost176)"
+          echo "BOOST_ROOT=$BOOST_PREFIX" >> $GITHUB_ENV
+          echo "BOOST_INCLUDEDIR=$BOOST_PREFIX/include" >> $GITHUB_ENV
+          echo "BOOST_LIBRARYDIR=$BOOST_PREFIX/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$BOOST_PREFIX/include $CPPFLAGS" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$BOOST_PREFIX/lib $LDFLAGS" >> $GITHUB_ENV
+          echo "Using BOOST at: $BOOST_PREFIX"
+          ls -lah "$BOOST_PREFIX/lib" | grep -E 'boost_filesystem|filesystem' || true
+
       - name: which clang/xcode
         run: clang --version
 
@@ -86,7 +97,18 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: export LDFLAGS="-L/usr/local/opt/boost176/lib" && export CPPFLAGS="-I/usr/local/opt/boost176/include" && ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: |
+          ./configure \
+            --enable-scrypt-sse2 \
+            --disable-bench \
+            --disable-tests \
+            --disable-dependency-tracking \
+            --disable-werror \
+            --with-gui \
+            --with-boost="$BOOST_ROOT" \
+            --with-boost-libdir="$BOOST_LIBRARYDIR" \
+            --bindir="$(pwd)/release/bin" \
+            --libdir="$(pwd)/release/lib"
 
       - name: Free up memory (optional)
         run: |
