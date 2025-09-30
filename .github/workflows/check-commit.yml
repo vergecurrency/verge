@@ -319,11 +319,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache depends artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            depends/built
+            depends/x86_64-linux-gnu
+            depends/work
+            depends/sources
+          key: depends-${{ runner.os }}-linux64-22-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-${{ runner.os }}-linux64-22-
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-linux64-22-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-linux64-22-
+
       - name: Update apt repos
         run: sudo apt-get update
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+        run: |
+          sudo apt-get install -y \
+          build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
+          bsdmainutils libattr1-dev make automake bison byacc cmake curl \
+          g++-multilib binutils-gold python3 ccache
+
+      - name: Enable ccache wrappers
+        run: |
+          sudo /usr/sbin/update-ccache-symlinks || true
+          echo "/usr/lib/ccache" >> $GITHUB_PATH
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.ccache
+          echo 'max_size = 2G' > ~/.ccache/ccache.conf
+          echo 'compression = true' >> ~/.ccache/ccache.conf
+          ccache -z || true
+        env:
+          CCACHE_DIR: ~/.ccache
 
       - name: Build depends
         run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
@@ -339,6 +377,11 @@ jobs:
 
       - name: strip
         run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
+
+      - name: ccache stats
+        run: ccache -s || true
+        env:
+          CCACHE_DIR: ~/.ccache
 
       - uses: actions/upload-artifact@v4
         with:
