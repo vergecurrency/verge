@@ -8,6 +8,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Cache Homebrew downloads (bottles & tarballs) and ccache
+      - name: Cache Homebrew downloads
+        id: cache-brew-13
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /Users/runner/Library/Caches/Homebrew
+          key: brew-cache-${{ runner.os }}-mac13-v1
+          restore-keys: |
+            brew-cache-${{ runner.os }}-mac13-
+
+      - name: Cache ccache
+        id: cache-ccache-13
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-mac13-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-mac13-v1-
+
       - name: git config credential.helper
         run: git config credential.helper
 
@@ -15,10 +36,22 @@ jobs:
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg
+          brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg ccache
 
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.ccache
+          echo 'max_size = 2G' > ~/.ccache/ccache.conf
+          echo 'compression = true' >> ~/.ccache/ccache.conf
+          ccache -z || true
+          # Use ccache-wrapped compilers for the build
+          echo "CC=ccache clang" >> $GITHUB_ENV
+          echo "CXX=ccache clang++" >> $GITHUB_ENV
+        env:
+          CCACHE_DIR: ~/.ccache
 
       - name: Show current directory
         run: |
@@ -131,6 +164,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Cache Homebrew downloads (arm64 prefix still uses the same caches dir)
+      - name: Cache Homebrew downloads
+        id: cache-brew-14
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /Users/runner/Library/Caches/Homebrew
+          key: brew-cache-${{ runner.os }}-mac14-v1
+          restore-keys: |
+            brew-cache-${{ runner.os }}-mac14-
+
+      - name: Cache ccache
+        id: cache-ccache-14
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-mac14-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-mac14-v1-
+
       - name: git config credential.helper
         run: git config credential.helper
 
@@ -141,13 +195,24 @@ jobs:
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg ccache
 
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
 
       - name: check cellar for openssl
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.ccache
+          echo 'max_size = 2G' > ~/.ccache/ccache.conf
+          echo 'compression = true' >> ~/.ccache/ccache.conf
+          ccache -z || true
+          echo "CC=ccache clang" >> $GITHUB_ENV
+          echo "CXX=ccache clang++" >> $GITHUB_ENV
+        env:
+          CCACHE_DIR: ~/.ccache
 
       - name: Show current directory
         run: |
@@ -171,7 +236,7 @@ jobs:
           else
             echo "Local formula not found; fetching from repo"
             REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/heads/master/depends/homebrew-formulas/protobuf261.rb"
+            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
             echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
           fi
