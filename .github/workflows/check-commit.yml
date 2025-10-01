@@ -164,7 +164,7 @@ jobs:
 
       - name: Free up memory (optional)
         run: |
-          sudo purge || true  # purge helps clear memory cache (no guarantee)
+          sudo purge || true
 
       - name: make
         run: make -j2
