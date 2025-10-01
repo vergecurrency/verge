@@ -420,29 +420,24 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Cache depends artifacts
-        id: cache-depends-32
         uses: actions/cache@v4
         with:
           path: |
             depends/built
             depends/i686-w64-mingw32
+            depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-v8-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-v7-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-v8-
-      - name: Debug cache (depends 32-bit)
-        run: echo "depends cache hit (32-bit) = ${{ steps.cache-depends-32.outputs.cache-hit }}"
+            depends-${{ runner.os }}-mingw32-32-v7-
 
       - name: Cache ccache
-        id: cache-ccache-32
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-v8-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-v7-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-v8-
-      - name: Debug cache (ccache 32-bit)
-        run: echo "ccache cache hit (32-bit) = ${{ steps.cache-ccache-32.outputs.cache-hit }}"
+            ccache-${{ runner.os }}-mingw32-32-v7-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -461,7 +456,6 @@ jobs:
         run: |
           unset STRIP || true
           cd depends/
-          # If the cache hit above was "true", this should be a quick no-op
           timeout 45m make HOST=i686-w64-mingw32 -j2 STRIP=strip V=1 --output-sync=recurse
 
       - name: Auto generate
@@ -500,9 +494,9 @@ jobs:
         run: |
           set -e
           ( while true; do
-              echo "---- heartbeat $(date) ----"
-              ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
-              sleep 60
+            echo "---- heartbeat $(date) ----"
+            ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
+            sleep 60
             done ) &
           HB=$!
           timeout 60m make -j1 --output-sync=recurse
