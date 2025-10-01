@@ -32,8 +32,7 @@ jobs:
         id: cache-boost13
         uses: actions/cache@v4
         with:
-          path: |
-            /usr/local/Cellar/boost176
+          path: /usr/local/Cellar/boost176
           key: boost176-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/boost176.rb') }}
           restore-keys: |
             boost176-${{ runner.os }}-mac13-
@@ -42,8 +41,7 @@ jobs:
         id: cache-protobuf13
         uses: actions/cache@v4
         with:
-          path: |
-            /usr/local/Cellar/protobuf261
+          path: /usr/local/Cellar/protobuf261
           key: protobuf261-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
             protobuf261-${{ runner.os }}-mac13-
@@ -53,7 +51,6 @@ jobs:
 
       - name: Brew install base dependencies
         run: |
-          # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg ccache
 
@@ -66,7 +63,6 @@ jobs:
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
-          # Use ccache-wrapped compilers for the build
           echo "CC=ccache clang" >> $GITHUB_ENV
           echo "CXX=ccache clang++" >> $GITHUB_ENV
         env:
@@ -98,7 +94,6 @@ jobs:
             echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
           fi
-
           echo "Current taps:"
           brew tap
 
@@ -133,14 +128,16 @@ jobs:
 
       - name: Set Boost 1.76 env (macOS 13)
         run: |
-          BOOST_PREFIX="$(brew --prefix boost176)"
-          echo "BOOST_ROOT=$BOOST_PREFIX" >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BOOST_PREFIX/include" >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BOOST_PREFIX/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BOOST_PREFIX/include $CPPFLAGS" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BOOST_PREFIX/lib $LDFLAGS" >> $GITHUB_ENV
-          echo "Using BOOST at: $BOOST_PREFIX"
-          ls -lah "$BOOST_PREFIX/lib" | grep -E 'boost_filesystem|filesystem' || true
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_OPT="$BREW_PREFIX/opt/boost176"
+          echo "BOOST_ROOT=$BREW_OPT"           >> $GITHUB_ENV
+          echo "BOOST_INCLUDEDIR=$BREW_OPT/include" >> $GITHUB_ENV
+          echo "BOOST_LIBRARYDIR=$BREW_OPT/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$BREW_OPT/include $CPPFLAGS" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$BREW_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
+          echo "Using BOOST opt path: $BREW_OPT"
+          ls -lah "$BREW_OPT" || true
+          ls -lah "$BREW_OPT/lib" | grep -E 'boost_filesystem|filesystem' || true
 
       - name: which clang/xcode
         run: clang --version
@@ -157,14 +154,13 @@ jobs:
             --disable-dependency-tracking \
             --disable-werror \
             --with-gui \
-            --with-boost="$BOOST_ROOT" \
-            --with-boost-libdir="$BOOST_LIBRARYDIR" \
+            --with-boost="${BOOST_ROOT}" \
+            --with-boost-libdir="${BOOST_LIBRARYDIR}" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib"
 
       - name: Free up memory (optional)
-        run: |
-          sudo purge || true
+        run: sudo purge || true
 
       - name: make
         run: make -j2
@@ -207,8 +203,7 @@ jobs:
         id: cache-boost14
         uses: actions/cache@v4
         with:
-          path: |
-            /opt/homebrew/Cellar/boost176
+          path: /opt/homebrew/Cellar/boost176
           key: boost176-${{ runner.os }}-mac14-v1-${{ hashFiles('depends/homebrew-formulas/boost176.rb') }}
           restore-keys: |
             boost176-${{ runner.os }}-mac14-
@@ -217,8 +212,7 @@ jobs:
         id: cache-protobuf14
         uses: actions/cache@v4
         with:
-          path: |
-            /opt/homebrew/Cellar/protobuf261
+          path: /opt/homebrew/Cellar/protobuf261
           key: protobuf261-${{ runner.os }}-mac14-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
             protobuf261-${{ runner.os }}-mac14-
@@ -231,7 +225,6 @@ jobs:
 
       - name: Brew install base dependencies
         run: |
-          # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg ccache
 
@@ -278,7 +271,6 @@ jobs:
             echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
           fi
-
           echo "Current taps:"
           brew tap
 
@@ -311,14 +303,18 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
-      - name: Set Boost 1.76 env
+      - name: Set Boost 1.76 env (macOS 14)
         run: |
-          BOOST_PREFIX="$(brew --prefix boost176)"
-          echo "BOOST_ROOT=$BOOST_PREFIX" >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BOOST_PREFIX/include" >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BOOST_PREFIX/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BOOST_PREFIX/include $CPPFLAGS" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BOOST_PREFIX/lib $LDFLAGS" >> $GITHUB_ENV
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_OPT="$BREW_PREFIX/opt/boost176"
+          echo "BOOST_ROOT=$BREW_OPT"           >> $GITHUB_ENV
+          echo "BOOST_INCLUDEDIR=$BREW_OPT/include" >> $GITHUB_ENV
+          echo "BOOST_LIBRARYDIR=$BREW_OPT/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$BREW_OPT/include $CPPFLAGS" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$BREW_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
+          echo "Using BOOST opt path: $BREW_OPT"
+          ls -lah "$BREW_OPT" || true
+          ls -lah "$BREW_OPT/lib" | grep -E 'boost_filesystem|filesystem' || true
 
       - name: which clang/xcode
         run: clang --version
@@ -327,14 +323,25 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.5.2 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost="$BOOST_ROOT" --with-boost-libdir="$BOOST_LIBRARYDIR"
+        run: |
+          ./configure \
+            --disable-bench \
+            --disable-tests \
+            --disable-dependency-tracking \
+            --disable-werror \
+            --with-gui \
+            --with-boost="${BOOST_ROOT}" \
+            --with-boost-libdir="${BOOST_LIBRARYDIR}" \
+            --bindir="$(pwd)/release/bin" \
+            --libdir="$(pwd)/release/lib" \
+            --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.5.2 \
+            --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1
 
       - name: make
         run: make -j4
 
       - name: make .dmg
-        run: |
-          make deploy
+        run: make deploy
 
       - uses: actions/upload-artifact@v4
         with:
