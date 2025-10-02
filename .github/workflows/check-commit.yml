@@ -447,7 +447,7 @@ jobs:
             echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
             echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
             echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig" >> "$GITHUB_ENV"
-            echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
+            echo "PATH=$PROTO_DIR/bin:$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH" >> "$GITHUB_ENV"
             echo "CPPFLAGS=-I$PROTO_DIR/include"            >> "$GITHUB_ENV"
             echo "LDFLAGS=-L$PROTO_DIR/lib"                 >> "$GITHUB_ENV"
             
