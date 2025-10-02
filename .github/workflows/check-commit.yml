@@ -476,7 +476,9 @@ jobs:
         run: make -j4
 
       - name: make .dmg
-        run: make deploy
+        run: |
+          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+          make deploy
 
       - uses: actions/upload-artifact@v4
         with:
