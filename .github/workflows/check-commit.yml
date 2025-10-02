@@ -478,9 +478,8 @@ jobs:
       - name: Prepare Boost dylib names for macdeploy
         run: |
           set -euo pipefail
-         BREW_PREFIX="$(brew --prefix)"
+          BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
-          # Resolve the real boost lib dir
           if [ -n "${BOOST_LIBRARYDIR:-}" ] && [ -d "$BOOST_LIBRARYDIR" ]; then
             BOOST_LIB_DIR="$BOOST_LIBRARYDIR"
             BOOST_DIR="$(dirname "$BOOST_LIBRARYDIR")"
