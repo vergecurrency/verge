@@ -131,7 +131,7 @@ jobs:
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
-          
+
           if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
           else
@@ -144,11 +144,11 @@ jobs:
               fi
             fi
           fi
-          
+
           echo "BREW_PREFIX=$BREW_PREFIX"
           echo "BREW_CELLAR=$BREW_CELLAR"
           echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
-          
+
           if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
             echo "::error::Boost libdir not found. Dumping diagnostics..."
             brew info boost176 || true
@@ -156,7 +156,7 @@ jobs:
             ls -lah "$BREW_CELLAR/boost176" || true
             exit 1
           fi
-          
+
           echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
           echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
           echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
@@ -167,46 +167,46 @@ jobs:
 
       - name: Resolve Protobuf 2.6.1 env (robust)
         run: |
-            set -euo pipefail
-            
-            BREW_PREFIX="$(brew --prefix)"
-            BREW_CELLAR="$(brew --cellar)"
-            
-            if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+          set -euo pipefail
+
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
+
+          if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
             PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
-            else
+          else
             CELLAR_DIR="$BREW_CELLAR/protobuf261"
             echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
-                PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-                if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
+              PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+              if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
                 PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
-                fi
+              fi
             fi
-            fi
-            
-            echo "BREW_PREFIX=$BREW_PREFIX"
-            echo "BREW_CELLAR=$BREW_CELLAR"
-            echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
-            
-            if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
+          fi
+
+          echo "BREW_PREFIX=$BREW_PREFIX"
+          echo "BREW_CELLAR=$BREW_CELLAR"
+          echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
+
+          if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
             echo "::error::Protobuf libdir not found. Dumping diagnostics..."
             brew info protobuf261 || true
             ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
             ls -lah "$BREW_CELLAR/protobuf261" || true
             exit 1
-            fi
-            
-            echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
-            echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
-            echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
-            echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig" >> "$GITHUB_ENV"
-            echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
-            echo "CPPFLAGS=-I$PROTO_DIR/include"            >> "$GITHUB_ENV"
-            echo "LDFLAGS=-L$PROTO_DIR/lib"                 >> "$GITHUB_ENV"
-            
-            echo "Using Protobuf at: $PROTO_DIR"
-            ls -lah "$PROTO_DIR/lib" | egrep 'libprotobuf|protobuf' || true
+          fi
+
+          echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
+          echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
+          echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
+          echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig" >> "$GITHUB_ENV"
+          echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
+          echo "CPPFLAGS=-I$PROTO_DIR/include"            >> "$GITHUB_ENV"
+          echo "LDFLAGS=-L$PROTO_DIR/lib"                 >> "$GITHUB_ENV"
+
+          echo "Using Protobuf at: $PROTO_DIR"
+          ls -lah "$PROTO_DIR/lib" | egrep 'libprotobuf|protobuf' || true
 
       - name: which clang/xcode
         run: clang --version
@@ -234,8 +234,91 @@ jobs:
       - name: make
         run: make -j2
 
+      - name: Prepare Boost dylib names for macdeploy
+        run: |
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
+          if [ -n "${BOOST_LIBRARYDIR:-}" ] && [ -d "$BOOST_LIBRARYDIR" ]; then
+            BOOST_LIB_DIR="$BOOST_LIBRARYDIR"
+            BOOST_DIR="$(dirname "$BOOST_LIBRARYDIR")"
+          else
+            if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
+              BOOST_DIR="$BREW_PREFIX/opt/boost176"
+              BOOST_LIB_DIR="$BOOST_DIR/lib"
+            else
+              CELLAR_DIR="$BREW_CELLAR/boost176"
+              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+              BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
+              BOOST_LIB_DIR="$BOOST_DIR/lib"
+            fi
+          fi
+          echo "Using BOOST_DIR=$BOOST_DIR"
+          echo "Using BOOST_LIB_DIR=$BOOST_LIB_DIR"
+          ls -lah "$BOOST_LIB_DIR" | head -n 120 || true
+
+          OPT_DIR="$BREW_PREFIX/opt/boost176"
+          if [ ! -L "$OPT_DIR" ] || [ "$(readlink "$OPT_DIR" || true)" != "$BOOST_DIR" ]; then
+            sudo mkdir -p "$(dirname "$OPT_DIR")"
+            sudo rm -rf "$OPT_DIR" || true
+            sudo ln -s "$BOOST_DIR" "$OPT_DIR"
+            echo "Created opt symlink: $OPT_DIR -> $BOOST_DIR"
+          fi
+
+          for LIBBASE in filesystem program_options thread chrono system; do
+            for BASE in "$BOOST_LIB_DIR" "$OPT_DIR/lib"; do
+              [ -d "$BASE" ] || continue
+              MT="$BASE/libboost_${LIBBASE}-mt.dylib"
+              GEN="$BASE/libboost_${LIBBASE}.dylib"
+              if [ -f "$MT" ] && [ ! -e "$GEN" ]; then
+                echo "symlink: $GEN -> $(basename "$MT")"
+                ln -sf "$(basename "$MT")" "$GEN"
+              fi
+            done
+          done
+
+          echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$OPT_DIR/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          echo "Done preparing Boost dylibs for macdeploy."
+
+      - name: Prepare Protobuf dylib for macdeploy
+        run: |
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
+          if [ -n "${PROTOBUF_LIBRARYDIR:-}" ] && [ -d "$PROTOBUF_LIBRARYDIR" ]; then
+            PROTO_DIR="$(dirname "$PROTOBUF_LIBRARYDIR")"
+            PROTO_LIB_DIR="$PROTOBUF_LIBRARYDIR"
+          elif [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
+            PROTO_LIB_DIR="$PROTO_DIR/lib"
+          else
+            CELLAR_DIR="$BREW_CELLAR/protobuf261"
+            PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+            PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
+            PROTO_LIB_DIR="$PROTO_DIR/lib"
+          fi
+          echo "Using PROTO_DIR=$PROTO_DIR"
+          echo "Using PROTO_LIB_DIR=$PROTO_LIB_DIR"
+          
+          OPT_DIR="$BREW_PREFIX/opt/protobuf261"
+          if [ ! -L "$OPT_DIR" ] || [ "$(readlink "$OPT_DIR" || true)" != "$PROTO_DIR" ]; then
+            sudo mkdir -p "$(dirname "$OPT_DIR")"
+            sudo rm -rf "$OPT_DIR" || true
+            sudo ln -s "$PROTO_DIR" "$OPT_DIR"
+            echo "Created opt symlink: $OPT_DIR -> $PROTO_DIR"
+          fi
+          
+          if [ ! -f "$PROTO_LIB_DIR/libprotobuf.9.dylib" ] && [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ]; then
+            ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
+            echo "symlink: libprotobuf.9.dylib -> libprotobuf.dylib"
+          fi
+          
+          echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+
       - name: make .dmg
-        run: make deploy
+        run: |
+          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+          make deploy
 
       - uses: actions/upload-artifact@v4
         with:
