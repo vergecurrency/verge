@@ -501,22 +501,22 @@ jobs:
           
           OPT_DIR="$BREW_PREFIX/opt/boost176"
           if [ ! -L "$OPT_DIR" ] || [ "$(readlink "$OPT_DIR" || true)" != "$BOOST_DIR" ]; then
-          sudo mkdir -p "$(dirname "$OPT_DIR")"
-          sudo rm -rf "$OPT_DIR" || true
-          sudo ln -s "$BOOST_DIR" "$OPT_DIR"
-          echo "Created opt symlink: $OPT_DIR -> $BOOST_DIR"
+            sudo mkdir -p "$(dirname "$OPT_DIR")"
+            sudo rm -rf "$OPT_DIR" || true
+            sudo ln -s "$BOOST_DIR" "$OPT_DIR"
+            echo "Created opt symlink: $OPT_DIR -> $BOOST_DIR"
           fi
           
           for LIBBASE in filesystem program_options thread chrono system; do
-          for BASE in "$BOOST_LIB_DIR" "$OPT_DIR/lib"; do
-            [ -d "$BASE" ] || continue
-            MT="$BASE/libboost_${LIBBASE}-mt.dylib"
-            GEN="$BASE/libboost_${LIBBASE}.dylib"
-            if [ -f "$MT" ] && [ ! -e "$GEN" ]; then
-              echo "symlink: $GEN -> $(basename "$MT")"
-              ln -sf "$(basename "$MT")" "$GEN"
-            fi
-          done
+            for BASE in "$BOOST_LIB_DIR" "$OPT_DIR/lib"; do
+              [ -d "$BASE" ] || continue
+              MT="$BASE/libboost_${LIBBASE}-mt.dylib"
+              GEN="$BASE/libboost_${LIBBASE}.dylib"
+              if [ -f "$MT" ] && [ ! -e "$GEN" ]; then
+                echo "symlink: $GEN -> $(basename "$MT")"
+                ln -sf "$(basename "$MT")" "$GEN"
+              fi
+            done
           done
           
           echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$OPT_DIR/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
