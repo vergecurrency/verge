@@ -126,44 +126,46 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
-      - name: Resolve Boost 1.76 env (macOS 13)
+      - name: Resolve Boost 1.76 env (robust)
         run: |
-          set -euo pipefail
-          # Try Homebrew's known prefix for the keg-only boost176
-          BOOST_OPT="$(brew --prefix boost176 || true || printf '')"
-          
-          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
-            for CAND in /usr/local/opt/boost176 /opt/homebrew/opt/boost176; do
-              if [ -d "$CAND/lib" ]; then
-                BOOST_OPT="$CAND"
-                break
+            set -euo pipefail
+            BREW_PREFIX="$(brew --prefix)"
+            BREW_CELLAR="$(brew --cellar)"
+            
+            if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
+            BOOST_DIR="$BREW_PREFIX/opt/boost176"
+            else
+            CELLAR_DIR="$BREW_CELLAR/boost176"
+            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
+            if [ -d "$CELLAR_DIR" ]; then
+                # pick newest (lexicographically versions can be sorted with sort -V)
+                BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+                if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
+                BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
+                fi
               fi
-            done
-          fi
-          
-          echo "Detected BOOST_OPT: ${BOOST_OPT:-<empty>}"
-          echo "Listing possible locations:"
-          ls -ld /usr/local/opt/boost176 || true
-          ls -ld /opt/homebrew/opt/boost176 || true
-          
-          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
-            echo "::error::Boost libdir not found. Dumping brew info & Cellar:"
-            brew --prefix || true
-            brew --cellar || true
+            fi
+            
+            echo "BREW_PREFIX=$BREW_PREFIX"
+            echo "BREW_CELLAR=$BREW_CELLAR"
+            echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
+            
+            if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
+            echo "::error::Boost libdir not found. Dumping diagnostics..."
             brew info boost176 || true
-            ls -lah /usr/local/Cellar/boost176 || true
-            ls -lah /opt/homebrew/Cellar/boost176 || true
+            ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
+            ls -lah "$BREW_CELLAR/boost176" || true
             exit 1
-          fi
-          
-          echo "BOOST_ROOT=$BOOST_OPT"                 >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BOOST_OPT/include"   >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BOOST_OPT/lib"       >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BOOST_OPT/include $CPPFLAGS" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BOOST_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
-          
-          echo "Using BOOST at: $BOOST_OPT"
-          ls -lah "$BOOST_OPT/lib" | egrep 'boost_filesystem|filesystem' || true
+            fi
+            echo "BOOST_ROOT=$BOOST_DIR"               >> $GITHUB_ENV
+            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> $GITHUB_ENV
+            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> $GITHUB_ENV
+            echo "CPPFLAGS=-I$BOOST_DIR/include $CPPFLAGS" >> $GITHUB_ENV
+            echo "LDFLAGS=-L$BOOST_DIR/lib $LDFLAGS"       >> $GITHUB_ENV
+            
+            echo "Using BOOST at: $BOOST_DIR"
+            ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
+
 
       - name: which clang/xcode
         run: clang --version
@@ -329,42 +331,45 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
-      - name: Resolve Boost 1.76 env (macOS 14)
+      - name: Resolve Boost 1.76 env (robust)
         run: |
-          set -euo pipefail
-          BOOST_OPT="$(brew --prefix boost176 || true || printf '')"
-          
-          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
-            for CAND in /opt/homebrew/opt/boost176 /usr/local/opt/boost176; do
-              if [ -d "$CAND/lib" ]; then
-                BOOST_OPT="$CAND"
-                break
+            set -euo pipefail
+            BREW_PREFIX="$(brew --prefix)"
+            BREW_CELLAR="$(brew --cellar)"
+            
+            if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
+            BOOST_DIR="$BREW_PREFIX/opt/boost176"
+            else
+            CELLAR_DIR="$BREW_CELLAR/boost176"
+            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
+            if [ -d "$CELLAR_DIR" ]; then
+                # pick newest (lexicographically versions can be sorted with sort -V)
+                BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+                if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
+                BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
+                fi
               fi
-            done
-          fi
-          
-          echo "Detected BOOST_OPT: ${BOOST_OPT:-<empty>}"
-          ls -ld /opt/homebrew/opt/boost176 || true
-          ls -ld /usr/local/opt/boost176 || true
-          
-          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
-            echo "::error::Boost libdir not found. Dumping brew info & Cellar:"
-            brew --prefix || true
-            brew --cellar || true
+            fi
+            
+            echo "BREW_PREFIX=$BREW_PREFIX"
+            echo "BREW_CELLAR=$BREW_CELLAR"
+            echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
+            
+            if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
+            echo "::error::Boost libdir not found. Dumping diagnostics..."
             brew info boost176 || true
-            ls -lah /opt/homebrew/Cellar/boost176 || true
-            ls -lah /usr/local/Cellar/boost176 || true
+            ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
+            ls -lah "$BREW_CELLAR/boost176" || true
             exit 1
-          fi
-          
-          echo "BOOST_ROOT=$BOOST_OPT"                 >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BOOST_OPT/include"   >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BOOST_OPT/lib"       >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BOOST_OPT/include $CPPFLAGS" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BOOST_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
-          
-          echo "Using BOOST at: $BOOST_OPT"
-          ls -lah "$BOOST_OPT/lib" | egrep 'boost_filesystem|filesystem' || true
+            fi
+            echo "BOOST_ROOT=$BOOST_DIR"               >> $GITHUB_ENV
+            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> $GITHUB_ENV
+            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> $GITHUB_ENV
+            echo "CPPFLAGS=-I$BOOST_DIR/include $CPPFLAGS" >> $GITHUB_ENV
+            echo "LDFLAGS=-L$BOOST_DIR/lib $LDFLAGS"       >> $GITHUB_ENV
+            
+            echo "Using BOOST at: $BOOST_DIR"
+            ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
 
       - name: which clang/xcode
         run: clang --version
