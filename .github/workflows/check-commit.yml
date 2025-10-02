@@ -520,6 +520,43 @@ jobs:
           
           echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$OPT_DIR/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
           echo "Done preparing Boost dylibs for macdeploy."
+          
+      - name: Prepare Protobuf dylib for macdeploy
+        run: |
+            set -euo pipefail
+            BREW_PREFIX="$(brew --prefix)"
+            BREW_CELLAR="$(brew --cellar)"
+            
+            if [ -n "${PROTOBUF_LIBRARYDIR:-}" ] && [ -d "$PROTOBUF_LIBRARYDIR" ]; then
+            PROTO_DIR="$(dirname "$PROTOBUF_LIBRARYDIR")"
+            PROTO_LIB_DIR="$PROTOBUF_LIBRARYDIR"
+            elif [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
+            PROTO_LIB_DIR="$PROTO_DIR/lib"
+            else
+            CELLAR_DIR="$BREW_CELLAR/protobuf261"
+            PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+            PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
+            PROTO_LIB_DIR="$PROTO_DIR/lib"
+            fi
+            
+            echo "Using PROTO_DIR=$PROTO_DIR"
+            echo "Using PROTO_LIB_DIR=$PROTO_LIB_DIR"
+            
+            OPT_DIR="$BREW_PREFIX/opt/protobuf261"
+            if [ ! -L "$OPT_DIR" ] || [ "$(readlink "$OPT_DIR" || true)" != "$PROTO_DIR" ]; then
+            sudo mkdir -p "$(dirname "$OPT_DIR")"
+            sudo rm -rf "$OPT_DIR" || true
+            sudo ln -s "$PROTO_DIR" "$OPT_DIR"
+            echo "Created opt symlink: $OPT_DIR -> $PROTO_DIR"
+            fi
+            
+            if [ ! -f "$PROTO_LIB_DIR/libprotobuf.9.dylib" ] && [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ]; then
+            ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
+            echo "symlink: libprotobuf.9.dylib -> libprotobuf.dylib"
+            fi
+            
+            echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
       - name: make .dmg
         run: |
