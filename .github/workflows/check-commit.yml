@@ -165,6 +165,48 @@ jobs:
           echo "Using BOOST at: $BOOST_DIR"
           ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
 
+      - name: Resolve Protobuf 2.6.1 env (robust)
+        run: |
+            set -euo pipefail
+            
+            BREW_PREFIX="$(brew --prefix)"
+            BREW_CELLAR="$(brew --cellar)"
+            
+            if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
+            else
+            CELLAR_DIR="$BREW_CELLAR/protobuf261"
+            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
+            if [ -d "$CELLAR_DIR" ]; then
+                PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+                if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
+                PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
+                fi
+            fi
+            fi
+            
+            echo "BREW_PREFIX=$BREW_PREFIX"
+            echo "BREW_CELLAR=$BREW_CELLAR"
+            echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
+            
+            if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
+            echo "::error::Protobuf libdir not found. Dumping diagnostics..."
+            brew info protobuf261 || true
+            ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
+            ls -lah "$BREW_CELLAR/protobuf261" || true
+            exit 1
+            fi
+            
+            echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
+            echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
+            echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
+            echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig" >> "$GITHUB_ENV"
+            echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
+            echo "CPPFLAGS=-I$PROTO_DIR/include"            >> "$GITHUB_ENV"
+            echo "LDFLAGS=-L$PROTO_DIR/lib"                 >> "$GITHUB_ENV"
+            
+            echo "Using Protobuf at: $PROTO_DIR"
+            ls -lah "$PROTO_DIR/lib" | egrep 'libprotobuf|protobuf' || true
 
       - name: which clang/xcode
         run: clang --version
@@ -368,6 +410,49 @@ jobs:
           echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
           echo "Using BOOST at: $BOOST_DIR"
           ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
+
+      - name: Resolve Protobuf 2.6.1 env (robust)
+        run: |
+            set -euo pipefail
+            
+            BREW_PREFIX="$(brew --prefix)"
+            BREW_CELLAR="$(brew --cellar)"
+            
+            if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
+            else
+            CELLAR_DIR="$BREW_CELLAR/protobuf261"
+            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
+            if [ -d "$CELLAR_DIR" ]; then
+                PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+                if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
+                PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
+                fi
+            fi
+            fi
+            
+            echo "BREW_PREFIX=$BREW_PREFIX"
+            echo "BREW_CELLAR=$BREW_CELLAR"
+            echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
+            
+            if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
+            echo "::error::Protobuf libdir not found. Dumping diagnostics..."
+            brew info protobuf261 || true
+            ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
+            ls -lah "$BREW_CELLAR/protobuf261" || true
+            exit 1
+            fi
+            
+            echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
+            echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
+            echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
+            echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig" >> "$GITHUB_ENV"
+            echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
+            echo "CPPFLAGS=-I$PROTO_DIR/include"            >> "$GITHUB_ENV"
+            echo "LDFLAGS=-L$PROTO_DIR/lib"                 >> "$GITHUB_ENV"
+            
+            echo "Using Protobuf at: $PROTO_DIR"
+            ls -lah "$PROTO_DIR/lib" | egrep 'libprotobuf|protobuf' || true
 
       - name: which clang/xcode
         run: clang --version
