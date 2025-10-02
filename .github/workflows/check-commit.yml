@@ -329,7 +329,7 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
-            - name: Resolve Boost 1.76 env (macOS 14)
+      - name: Resolve Boost 1.76 env (macOS 14)
         run: |
           set -euo pipefail
           BOOST_OPT="$(brew --prefix boost176 || true || printf '')"
