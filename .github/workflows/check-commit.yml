@@ -40,8 +40,8 @@ jobs:
       - name: Cache Protobuf tap build (macOS 13)
         id: cache-protobuf13
         uses: actions/cache@v4
-        with:
-          path: /usr/local/Cellar/protobuf261
+      with:
+        path: /usr/local/Cellar/protobuf261
           key: protobuf261-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
             protobuf261-${{ runner.os }}-mac13-
@@ -131,24 +131,23 @@ jobs:
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
-
+          
           if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
           else
             CELLAR_DIR="$BREW_CELLAR/boost176"
             echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
-              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+               BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
               if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
                 BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
               fi
             fi
           fi
-
           echo "BREW_PREFIX=$BREW_PREFIX"
           echo "BREW_CELLAR=$BREW_CELLAR"
           echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
-
+          
           if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
             echo "::error::Boost libdir not found. Dumping diagnostics..."
             brew info boost176 || true
@@ -156,7 +155,7 @@ jobs:
             ls -lah "$BREW_CELLAR/boost176" || true
             exit 1
           fi
-
+          
           echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
           echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
           echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
@@ -165,13 +164,13 @@ jobs:
           echo "Using BOOST at: $BOOST_DIR"
           ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
 
-      - name: Resolve Protobuf 2.6.1 env (robust)
+      - name: Resolve Protobuf 2.6.1 env (robust, preserve flags)
         run: |
           set -euo pipefail
-
+          
           BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
-
+          
           if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
             PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
           else
@@ -184,11 +183,11 @@ jobs:
               fi
             fi
           fi
-
+          
           echo "BREW_PREFIX=$BREW_PREFIX"
           echo "BREW_CELLAR=$BREW_CELLAR"
           echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
-
+          
           if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
             echo "::error::Protobuf libdir not found. Dumping diagnostics..."
             brew info protobuf261 || true
@@ -196,15 +195,21 @@ jobs:
             ls -lah "$BREW_CELLAR/protobuf261" || true
             exit 1
           fi
-
-          echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
-          echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
-          echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
-          echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig" >> "$GITHUB_ENV"
+          
+          CUR_CPP="${CPPFLAGS:-}"
+          CUR_LD="${LDFLAGS:-}"
+          BOOST_INC="${BOOST_INCLUDEDIR:-}"
+          BOOST_LIB="${BOOST_LIBRARYDIR:-}"
+          
+          echo "PROTOBUF_ROOT=$PROTO_DIR"               >> "$GITHUB_ENV"
+          echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include" >> "$GITHUB_ENV"
+          echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"     >> "$GITHUB_ENV"
+          echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
           echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
-          echo "CPPFLAGS=-I$PROTO_DIR/include"            >> "$GITHUB_ENV"
-          echo "LDFLAGS=-L$PROTO_DIR/lib"                 >> "$GITHUB_ENV"
-
+          
+          echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include ${CUR_CPP}" >> "$GITHUB_ENV"
+          echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib ${CUR_LD}"       >> "$GITHUB_ENV"
+          
           echo "Using Protobuf at: $PROTO_DIR"
           ls -lah "$PROTO_DIR/lib" | egrep 'libprotobuf|protobuf' || true
 
@@ -256,7 +261,7 @@ jobs:
           echo "Using BOOST_DIR=$BOOST_DIR"
           echo "Using BOOST_LIB_DIR=$BOOST_LIB_DIR"
           ls -lah "$BOOST_LIB_DIR" | head -n 120 || true
-
+          
           OPT_DIR="$BREW_PREFIX/opt/boost176"
           if [ ! -L "$OPT_DIR" ] || [ "$(readlink "$OPT_DIR" || true)" != "$BOOST_DIR" ]; then
             sudo mkdir -p "$(dirname "$OPT_DIR")"
@@ -264,7 +269,7 @@ jobs:
             sudo ln -s "$BOOST_DIR" "$OPT_DIR"
             echo "Created opt symlink: $OPT_DIR -> $BOOST_DIR"
           fi
-
+          
           for LIBBASE in filesystem program_options thread chrono system; do
             for BASE in "$BOOST_LIB_DIR" "$OPT_DIR/lib"; do
               [ -d "$BASE" ] || continue
@@ -276,7 +281,7 @@ jobs:
               fi
             done
           done
-
+          
           echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$OPT_DIR/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
           echo "Done preparing Boost dylibs for macdeploy."
 
@@ -285,6 +290,7 @@ jobs:
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
+          
           if [ -n "${PROTOBUF_LIBRARYDIR:-}" ] && [ -d "$PROTOBUF_LIBRARYDIR" ]; then
             PROTO_DIR="$(dirname "$PROTOBUF_LIBRARYDIR")"
             PROTO_LIB_DIR="$PROTOBUF_LIBRARYDIR"
@@ -297,6 +303,7 @@ jobs:
             PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
             PROTO_LIB_DIR="$PROTO_DIR/lib"
           fi
+          
           echo "Using PROTO_DIR=$PROTO_DIR"
           echo "Using PROTO_LIB_DIR=$PROTO_LIB_DIR"
           
@@ -325,6 +332,7 @@ jobs:
           name: verge-macos13
           path: |
             *.dmg
+
 
   macos14:
     runs-on: macos-14
