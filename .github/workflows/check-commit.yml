@@ -40,7 +40,7 @@ jobs:
       - name: Cache Protobuf tap build (macOS 13)
         id: cache-protobuf13
         uses: actions/cache@v4
-      with:
+        with:
         path: /usr/local/Cellar/protobuf261
           key: protobuf261-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
