@@ -128,43 +128,42 @@ jobs:
 
       - name: Resolve Boost 1.76 env (robust)
         run: |
-            set -euo pipefail
-            BREW_PREFIX="$(brew --prefix)"
-            BREW_CELLAR="$(brew --cellar)"
-            
-            if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
+          
+          if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
-            else
+          else
             CELLAR_DIR="$BREW_CELLAR/boost176"
             echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
-                # pick newest (lexicographically versions can be sorted with sort -V)
-                BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-                if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
+              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+              if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
                 BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
-                fi
               fi
             fi
-            
-            echo "BREW_PREFIX=$BREW_PREFIX"
-            echo "BREW_CELLAR=$BREW_CELLAR"
-            echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
-            
-            if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
+          fi
+          
+          echo "BREW_PREFIX=$BREW_PREFIX"
+          echo "BREW_CELLAR=$BREW_CELLAR"
+          echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
+          
+          if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
             echo "::error::Boost libdir not found. Dumping diagnostics..."
             brew info boost176 || true
             ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
             ls -lah "$BREW_CELLAR/boost176" || true
             exit 1
-            fi
-            echo "BOOST_ROOT=$BOOST_DIR"               >> $GITHUB_ENV
-            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> $GITHUB_ENV
-            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> $GITHUB_ENV
-            echo "CPPFLAGS=-I$BOOST_DIR/include $CPPFLAGS" >> $GITHUB_ENV
-            echo "LDFLAGS=-L$BOOST_DIR/lib $LDFLAGS"       >> $GITHUB_ENV
-            
-            echo "Using BOOST at: $BOOST_DIR"
-            ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
+          fi
+          
+          echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
+          echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
+          echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
+          echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
+          echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
+          echo "Using BOOST at: $BOOST_DIR"
+          ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
 
 
       - name: which clang/xcode
@@ -333,43 +332,42 @@ jobs:
 
       - name: Resolve Boost 1.76 env (robust)
         run: |
-            set -euo pipefail
-            BREW_PREFIX="$(brew --prefix)"
-            BREW_CELLAR="$(brew --cellar)"
-            
-            if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
+          
+          if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
-            else
+          else
             CELLAR_DIR="$BREW_CELLAR/boost176"
             echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
-                # pick newest (lexicographically versions can be sorted with sort -V)
-                BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-                if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
+              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+              if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
                 BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
-                fi
               fi
             fi
-            
-            echo "BREW_PREFIX=$BREW_PREFIX"
-            echo "BREW_CELLAR=$BREW_CELLAR"
-            echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
-            
-            if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
+          fi
+          
+          echo "BREW_PREFIX=$BREW_PREFIX"
+          echo "BREW_CELLAR=$BREW_CELLAR"
+          echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
+          
+          if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
             echo "::error::Boost libdir not found. Dumping diagnostics..."
             brew info boost176 || true
             ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
             ls -lah "$BREW_CELLAR/boost176" || true
             exit 1
-            fi
-            echo "BOOST_ROOT=$BOOST_DIR"               >> $GITHUB_ENV
-            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> $GITHUB_ENV
-            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> $GITHUB_ENV
-            echo "CPPFLAGS=-I$BOOST_DIR/include $CPPFLAGS" >> $GITHUB_ENV
-            echo "LDFLAGS=-L$BOOST_DIR/lib $LDFLAGS"       >> $GITHUB_ENV
-            
-            echo "Using BOOST at: $BOOST_DIR"
-            ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
+          fi
+          
+          echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
+          echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
+          echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
+          echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
+          echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
+          echo "Using BOOST at: $BOOST_DIR"
+          ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
 
       - name: which clang/xcode
         run: clang --version
