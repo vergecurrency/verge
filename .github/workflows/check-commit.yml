@@ -41,7 +41,7 @@ jobs:
         id: cache-protobuf13
         uses: actions/cache@v4
         with:
-        path: /usr/local/Cellar/protobuf261
+          path: /usr/local/Cellar/protobuf261
           key: protobuf261-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
             protobuf261-${{ runner.os }}-mac13-
