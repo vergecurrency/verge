@@ -659,7 +659,11 @@ jobs:
           name: verge-macos14
           path: |
             *.dmg
-
+  macos-latest:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      
   ubuntu24:
     runs-on: ubuntu-24.04
     steps:
