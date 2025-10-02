@@ -126,18 +126,44 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
-      - name: Set Boost 1.76 env (macOS 13)
+      - name: Resolve Boost 1.76 env (macOS 13)
         run: |
-          BREW_PREFIX="$(brew --prefix)"
-          BREW_OPT="$BREW_PREFIX/opt/boost176"
-          echo "BOOST_ROOT=$BREW_OPT"           >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BREW_OPT/include" >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BREW_OPT/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BREW_OPT/include $CPPFLAGS" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BREW_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
-          echo "Using BOOST opt path: $BREW_OPT"
-          ls -lah "$BREW_OPT" || true
-          ls -lah "$BREW_OPT/lib" | grep -E 'boost_filesystem|filesystem' || true
+          set -euo pipefail
+          # Try Homebrew's known prefix for the keg-only boost176
+          BOOST_OPT="$(brew --prefix boost176 || true || printf '')"
+          
+          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
+            for CAND in /usr/local/opt/boost176 /opt/homebrew/opt/boost176; do
+              if [ -d "$CAND/lib" ]; then
+                BOOST_OPT="$CAND"
+                break
+              fi
+            done
+          fi
+          
+          echo "Detected BOOST_OPT: ${BOOST_OPT:-<empty>}"
+          echo "Listing possible locations:"
+          ls -ld /usr/local/opt/boost176 || true
+          ls -ld /opt/homebrew/opt/boost176 || true
+          
+          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
+            echo "::error::Boost libdir not found. Dumping brew info & Cellar:"
+            brew --prefix || true
+            brew --cellar || true
+            brew info boost176 || true
+            ls -lah /usr/local/Cellar/boost176 || true
+            ls -lah /opt/homebrew/Cellar/boost176 || true
+            exit 1
+          fi
+          
+          echo "BOOST_ROOT=$BOOST_OPT"                 >> $GITHUB_ENV
+          echo "BOOST_INCLUDEDIR=$BOOST_OPT/include"   >> $GITHUB_ENV
+          echo "BOOST_LIBRARYDIR=$BOOST_OPT/lib"       >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$BOOST_OPT/include $CPPFLAGS" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$BOOST_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
+          
+          echo "Using BOOST at: $BOOST_OPT"
+          ls -lah "$BOOST_OPT/lib" | egrep 'boost_filesystem|filesystem' || true
 
       - name: which clang/xcode
         run: clang --version
@@ -303,18 +329,42 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
-      - name: Set Boost 1.76 env (macOS 14)
+            - name: Resolve Boost 1.76 env (macOS 14)
         run: |
-          BREW_PREFIX="$(brew --prefix)"
-          BREW_OPT="$BREW_PREFIX/opt/boost176"
-          echo "BOOST_ROOT=$BREW_OPT"           >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BREW_OPT/include" >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BREW_OPT/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BREW_OPT/include $CPPFLAGS" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BREW_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
-          echo "Using BOOST opt path: $BREW_OPT"
-          ls -lah "$BREW_OPT" || true
-          ls -lah "$BREW_OPT/lib" | grep -E 'boost_filesystem|filesystem' || true
+          set -euo pipefail
+          BOOST_OPT="$(brew --prefix boost176 || true || printf '')"
+          
+          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
+            for CAND in /opt/homebrew/opt/boost176 /usr/local/opt/boost176; do
+              if [ -d "$CAND/lib" ]; then
+                BOOST_OPT="$CAND"
+                break
+              fi
+            done
+          fi
+          
+          echo "Detected BOOST_OPT: ${BOOST_OPT:-<empty>}"
+          ls -ld /opt/homebrew/opt/boost176 || true
+          ls -ld /usr/local/opt/boost176 || true
+          
+          if [ -z "${BOOST_OPT:-}" ] || [ ! -d "$BOOST_OPT/lib" ]; then
+            echo "::error::Boost libdir not found. Dumping brew info & Cellar:"
+            brew --prefix || true
+            brew --cellar || true
+            brew info boost176 || true
+            ls -lah /opt/homebrew/Cellar/boost176 || true
+            ls -lah /usr/local/Cellar/boost176 || true
+            exit 1
+          fi
+          
+          echo "BOOST_ROOT=$BOOST_OPT"                 >> $GITHUB_ENV
+          echo "BOOST_INCLUDEDIR=$BOOST_OPT/include"   >> $GITHUB_ENV
+          echo "BOOST_LIBRARYDIR=$BOOST_OPT/lib"       >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$BOOST_OPT/include $CPPFLAGS" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$BOOST_OPT/lib $LDFLAGS"       >> $GITHUB_ENV
+          
+          echo "Using BOOST at: $BOOST_OPT"
+          ls -lah "$BOOST_OPT/lib" | egrep 'boost_filesystem|filesystem' || true
 
       - name: which clang/xcode
         run: clang --version
