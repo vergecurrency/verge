@@ -474,6 +474,53 @@ jobs:
 
       - name: make
         run: make -j4
+        
+      - name: Prepare Boost dylib names for macdeploy
+        run: |
+          set -euo pipefail
+         BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
+          # Resolve the real boost lib dir
+          if [ -n "${BOOST_LIBRARYDIR:-}" ] && [ -d "$BOOST_LIBRARYDIR" ]; then
+            BOOST_LIB_DIR="$BOOST_LIBRARYDIR"
+            BOOST_DIR="$(dirname "$BOOST_LIBRARYDIR")"
+          else
+            if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
+              BOOST_DIR="$BREW_PREFIX/opt/boost176"
+              BOOST_LIB_DIR="$BOOST_DIR/lib"
+            else
+              CELLAR_DIR="$BREW_CELLAR/boost176"
+              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+              BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
+              BOOST_LIB_DIR="$BOOST_DIR/lib"
+            fi
+          fi
+          echo "Using BOOST_DIR=$BOOST_DIR"
+          echo "Using BOOST_LIB_DIR=$BOOST_LIB_DIR"
+          ls -lah "$BOOST_LIB_DIR" | head -n 120 || true
+          
+          OPT_DIR="$BREW_PREFIX/opt/boost176"
+          if [ ! -L "$OPT_DIR" ] || [ "$(readlink "$OPT_DIR" || true)" != "$BOOST_DIR" ]; then
+          sudo mkdir -p "$(dirname "$OPT_DIR")"
+          sudo rm -rf "$OPT_DIR" || true
+          sudo ln -s "$BOOST_DIR" "$OPT_DIR"
+          echo "Created opt symlink: $OPT_DIR -> $BOOST_DIR"
+          fi
+          
+          for LIBBASE in filesystem program_options thread chrono system; do
+          for BASE in "$BOOST_LIB_DIR" "$OPT_DIR/lib"; do
+            [ -d "$BASE" ] || continue
+            MT="$BASE/libboost_${LIBBASE}-mt.dylib"
+            GEN="$BASE/libboost_${LIBBASE}.dylib"
+            if [ -f "$MT" ] && [ ! -e "$GEN" ]; then
+              echo "symlink: $GEN -> $(basename "$MT")"
+              ln -sf "$(basename "$MT")" "$GEN"
+            fi
+          done
+          done
+          
+          echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$OPT_DIR/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          echo "Done preparing Boost dylibs for macdeploy."
 
       - name: make .dmg
         run: |
