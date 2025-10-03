@@ -659,6 +659,7 @@ jobs:
           name: verge-macos14
           path: |
             *.dmg
+
   macos-latest:
     runs-on: macos-13
     steps:
