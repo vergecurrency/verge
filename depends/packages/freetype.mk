@@ -1,8 +1,8 @@
 package=freetype
-$(package)_version=2.13.3
+$(package)_version=2.14.1
 $(package)_download_path=https://sourceforge.net/projects/freetype/files/freetype2/$($(package)_version)/
 $(package)_file_name=freetype-$($(package)_version).tar.xz
-$(package)_sha256_hash=0550350666D427C74DAEB85D5AC7BB353ACBA5F76956395995311A9C6F063289
+$(package)_sha256_hash=32427E8C471AC095853212A37AEF816C60B42052D4D9E48230BAB3BDF2936CCC
 
 define $(package)_set_vars
   $(package)_config_opts  = --without-zlib --without-png --without-harfbuzz --without-bzip2 --enable-static --disable-shared
