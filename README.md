@@ -38,11 +38,11 @@ Verge Core requires a modern C++ toolchain and has migrated to reduce external d
 
 | OS | Version | Architecture |
 |----|---------|--------------|
-| **Ubuntu** | 20.04+ | x64, ARM64 |
+| **Ubuntu** | 22.04, 24.04 | x64, ARM64 |
 | **Debian** | 11+ | x64, ARM64 |
 | **CentOS/RHEL** | 8+ | x64 |
-| **macOS** | 12.0+ (Monterey) | x64, ARM64 (Apple Silicon) |
-| **Windows** | 10/11 | x64 |
+| **macOS** | 13.0+ (Ventura), 14.0 (Sonoma) |x64, ARM64 (Apple Silicon) |
+| **Windows** | 10 32bit/64bit, 11 32bit/64bit | x64
 
 ## Modern C++ Migration Benefits
 
