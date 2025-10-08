@@ -664,7 +664,105 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
-      
+  
+  ubuntu25:
+    runs-on: ubuntu-25.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache depends artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            depends/built
+            depends/x86_64-linux-gnu
+            depends/work
+            depends/sources
+          key: depends-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-${{ runner.os }}-linux64-
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-linux64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-linux64-
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: |
+          sudo apt-get install -y \
+          build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
+          bsdmainutils libattr1-dev make automake bison byacc cmake curl \
+          g++-multilib binutils-gold python3 ccache
+
+      - name: Enable ccache wrappers
+        run: |
+          sudo /usr/sbin/update-ccache-symlinks || true
+          echo "/usr/lib/ccache" >> $GITHUB_PATH
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.ccache
+          echo 'max_size = 2G' > ~/.ccache/ccache.conf
+          echo 'compression = true' >> ~/.ccache/ccache.conf
+          ccache -z || true
+        env:
+          CCACHE_DIR: ~/.ccache
+
+      - name: Export toolchain env
+        run: |
+          echo "CC=gcc"        >> $GITHUB_ENV
+          echo "CXX=g++"       >> $GITHUB_ENV
+          echo "AR=ar"         >> $GITHUB_ENV
+          echo "RANLIB=ranlib" >> $GITHUB_ENV
+          echo "STRIP=strip"   >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+
+      - name: Build depends
+        run: |
+          cd depends/
+          make -j4 HOST=x86_64-linux-gnu
+
+      - name: Auto generate
+        run: ./autogen.sh
+
+      - name: configure
+        run: |
+          CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
+          ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
+          --disable-dependency-tracking --disable-werror \
+          --prefix="$(pwd)/depends/x86_64-linux-gnu" \
+          --bindir="$(pwd)/release/bin" \
+          --libdir="$(pwd)/release/lib"
+
+      - name: make
+        run: make -j4
+
+      - name: strip
+        run: |
+          cd ./src && strip verged verge-cli verge-tx
+          cd ./qt && strip verge-qt
+
+      - name: ccache stats
+        run: ccache -s || true
+        env:
+          CCACHE_DIR: ~/.ccache
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-ubuntu25
+          path: |
+            ./src/verged
+            ./src/verge-cli
+            ./src/verge-tx
+            ./src/qt/verge-qt  
+
+  
   ubuntu24:
     runs-on: ubuntu-24.04
     steps:
