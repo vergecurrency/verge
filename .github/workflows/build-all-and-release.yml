@@ -269,35 +269,37 @@ jobs:
   SendReleases:
     runs-on: ubuntu-latest
     needs: [macos13, macos14, ubuntu22, ubuntu24, windows32, windows64]
+     env:
+     TAG_NAME: v8.0.1
     steps:
-      - name: Generate Changelog
+      - name: Checkout (full history for changelog/contributors)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate empty Changelog (fallback)
         run: echo "# Changelog" > ${{ github.workspace }}-CHANGELOG.txt
 
       - uses: actions/download-artifact@v4
         with:
           name: verge-windows32
           path: verge-windows32
-
       - uses: actions/download-artifact@v4
         with:
           name: verge-windows64
           path: verge-windows64
-
       - uses: actions/download-artifact@v4
         with:
           name: verge-macos13
           path: verge-macos13
-
       - uses: actions/download-artifact@v4
         with:
           name: verge-macos14
           path: verge-macos14
-
       - uses: actions/download-artifact@v4
         with:
           name: verge-ubuntu22
           path: verge-ubuntu22
-
       - uses: actions/download-artifact@v4
         with:
           name: verge-ubuntu24
@@ -317,20 +319,132 @@ jobs:
 
       - name: sha256
         run: |
-          find . -type f -name "*.zip" | xargs sha256sum -b > SHA256SUMS.txt
+          find . -type f -name "*.zip" | LC_ALL=C sort | xargs sha256sum -b > SHA256SUMS.txt
           cat SHA256SUMS.txt
+
+      - name: Derive previous tag and metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${TAG_NAME}"
+          if git rev-parse -q --verify "refs/tags/${TAG}^{}" >/dev/null 2>&1; then
+            PREV_TAG="$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)"
+            RANGE_START="${PREV_TAG:-$(git rev-list --max-parents=0 HEAD)}"
+            RANGE_END="${TAG}"
+          else
+            PREV_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+            RANGE_START="${PREV_TAG:-$(git rev-list --max-parents=0 HEAD)}"
+            RANGE_END="HEAD"
+          fi
+          COMMIT_SHA="$(git rev-parse --short HEAD)"
+          COMMIT_DATE="$(git show -s --format=%cI HEAD)"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "prev_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
+          echo "range_start=${RANGE_START}" >> "$GITHUB_OUTPUT"
+          echo "range_end=${RANGE_END}" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=${COMMIT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "commit_date=${COMMIT_DATE}" >> "$GITHUB_OUTPUT"
+
+      - name: Build contributors list (names only)
+        id: contrib
+        shell: bash
+        run: |
+          set -euo pipefail
+          start="${{ steps.meta.outputs.range_start }}"
+          end="${{ steps.meta.outputs.range_end }}"
+          git shortlog -sn "${start}..${end}" > CONTRIBUTORS.txt || true
+          echo "contributors<<EOF" >> "$GITHUB_OUTPUT"
+          cat CONTRIBUTORS.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize commits (since previous tag)
+        id: commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          start="${{ steps.meta.outputs.range_start }}"
+          end="${{ steps.meta.outputs.range_end }}"
+          {
+            echo "### Commits since ${start:0:20}"
+            echo
+            git log --no-merges --pretty=format:'- %h %ad %an: %s' --date=short "${start}..${end}" || true
+            echo
+          } > COMMITS.md
+          echo "commits<<EOF" >> "$GITHUB_OUTPUT"
+          cat COMMITS.md >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Artifact sizes table
+        id: sizes
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "| File | Size |"
+            echo "|------|------|"
+            for f in verge-windows32.zip verge-windows64.zip verge-macos13.zip verge-macos14.zip verge-ubuntu22.zip verge-ubuntu24.zip; do
+              if [ -f "$f" ]; then
+                sz=$(du -h "$f" | awk '{print $1}')
+                echo "| $f | $sz |"
+              fi
+            done
+          } > SIZES.md
+          echo "sizes<<EOF" >> "$GITHUB_OUTPUT"
+          cat SIZES.md >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Read SHA256SUMS into a variable
         id: checksums
         run: |
-          echo "SHA256SUMS<<EOF" >> $GITHUB_ENV
-          cat SHA256SUMS.txt >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "SHA256SUMS<<EOF" >> $GITHUB_OUTPUT
+          cat SHA256SUMS.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Compose RELEASE.md
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "# Verge Core ${TAG_NAME}"
+            echo
+            echo "**Commit:** ${{ steps.meta.outputs.commit_sha }} &nbsp;&nbsp; **Date:** ${{ steps.meta.outputs.commit_date }}"
+            if [ -n "${{ steps.meta.outputs.prev_tag }}" ]; then
+              echo "**Changes since:** ${{ steps.meta.outputs.prev_tag }}"
+            fi
+            echo
+            echo "## Downloads"
+            echo
+            cat SIZES.md
+            echo
+            echo "## SHA256 Checksums"
+            echo
+            echo '```txt'
+            cat SHA256SUMS.txt
+            echo '```'
+            echo
+            echo "## Contributors (this release window)"
+            echo
+            if [ -s CONTRIBUTORS.txt ]; then
+              awk '{c=$1; $1=""; sub(/^ /,""); print "- " $0 "  _(commits: " c ")_"}' CONTRIBUTORS.txt
+            else
+              echo "_No contributor deltas in this range_"
+            fi
+            echo
+            echo "## Commit Summary"
+            echo
+            cat COMMITS.md
+            echo
+            echo "## Notes"
+            echo "- Release artifacts are built via automated, cached CI across Windows, macOS (Intel/Apple Silicon), and Linux."
+            echo "- Each artifact above is produced from the exact commit listed and can be verified with the checksums."
+          } > RELEASE.md
+          sed -n '1,200p' RELEASE.md
 
       - name: Push zips to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v8.0.0
+          tag_name: ${{ env.TAG_NAME }}
           files: |
             verge-windows32.zip
             verge-windows64.zip
@@ -339,11 +453,6 @@ jobs:
             verge-ubuntu22.zip
             verge-ubuntu24.zip
             SHA256SUMS.txt
-          body: |
-            # Changelog
-
-            ## SHA256 Checksums
-
-            ${{ env.SHA256SUMS }}
+          body_path: RELEASE.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
