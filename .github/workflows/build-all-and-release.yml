@@ -417,13 +417,13 @@ jobs:
             echo
             cat SIZES.md
             echo
-            echo "## SHA256 Checksums"
+            echo "## SHA256 Checksums:"
             echo
             echo '```txt'
             cat SHA256SUMS.txt
             echo '```'
             echo
-            echo "## Contributors (this release window)"
+            echo "## Contributors: "
             echo
             if [ -s CONTRIBUTORS.txt ]; then
               awk '{c=$1; $1=""; sub(/^ /,""); print "- " $0 "  _(commits: " c ")_"}' CONTRIBUTORS.txt
