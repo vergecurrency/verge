@@ -1002,8 +1002,8 @@ jobs:
             cat COMMITS.md
             echo
             echo "## Notes"
-            echo "- Release artifacts are built via automated CI across Windows, macOS (Intel/Apple Silicon), and Linux."
-            echo "- Each artifact above is produced from the exact commit listed and can be verified with the checksums."
+            echo "- elease artifacts are built via Github automated CI across Windows, macOS (Intel/Apple Silicon), and Linux."
+            echo "- Each artifact above is produced by Github automated CI from the exact commit listed, and can be verified with the SHA256 checksums."
           } > RELEASE.md
           sed -n '1,200p' RELEASE.md
 
