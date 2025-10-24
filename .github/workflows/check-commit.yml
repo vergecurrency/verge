@@ -324,7 +324,23 @@ jobs:
 
       - name: make .dmg
         run: |
-          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+          set -euo pipefail
+          echo "Pre-macdeploy DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH:-}"
+          
+          BOOST_DIR="${BOOST_LIBRARYDIR:-/opt/homebrew/opt/boost176/lib}"
+          PROTO_DIR="${PROTOBUF_LIBRARYDIR:-/opt/homebrew/opt/protobuf261/lib}"
+          ZMQ_DIR="$(brew --prefix)/opt/zeromq/lib"
+          OPENSSL_DIR="$(brew --prefix)/opt/openssl@3/lib"
+          
+          ls -lah "$BOOST_DIR" || true
+          test -r "/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
+          
+          DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}" \
+          /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus verge-qt.app \
+            -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
+            -translations-dir= \
+            -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
+          
           make deploy
 
       - uses: actions/upload-artifact@v4
@@ -704,19 +720,22 @@ jobs:
       - name: make .dmg
         run: |
           set -euo pipefail
-          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+          echo "Pre-macdeploy DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH:-}"
           
           BOOST_DIR="${BOOST_LIBRARYDIR:-/opt/homebrew/opt/boost176/lib}"
           PROTO_DIR="${PROTOBUF_LIBRARYDIR:-/opt/homebrew/opt/protobuf261/lib}"
           ZMQ_DIR="$(brew --prefix)/opt/zeromq/lib"
           OPENSSL_DIR="$(brew --prefix)/opt/openssl@3/lib"
           
+          ls -lah "$BOOST_DIR" || true
+          test -r "/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
+          
+          DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}" \
           /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus verge-qt.app \
             -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
             -translations-dir= \
-            -libdir="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}" \
             -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
-
+          
           make deploy
 
       - uses: actions/upload-artifact@v4
