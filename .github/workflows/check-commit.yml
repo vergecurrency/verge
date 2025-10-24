@@ -649,10 +649,83 @@ jobs:
             
             echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
+      - name: Preflight Boost libs for macdeploy
+        run: |
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
+          CELLAR_DIR="$BREW_CELLAR/boost176"
+          [ -d "$CELLAR_DIR" ] || { echo "::error::No boost176 Cellar at $CELLAR_DIR"; exit 1; }
+          
+          KEG="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1)"
+          [ -n "$KEG" ] || { echo "::error::No boost176 kegs found in $CELLAR_DIR"; exit 1; }
+          BOOST_DIR="$CELLAR_DIR/$KEG"
+          BOOST_LIB_DIR="$BOOST_DIR/lib"
+          OPT_DIR="$BREW_PREFIX/opt/boost176"
+          
+          echo "Re-linking opt symlink: $OPT_DIR -> $BOOST_DIR"
+          sudo rm -f "$OPT_DIR" || true
+          sudo ln -s "$BOOST_DIR" "$OPT_DIR"
+          
+          echo "Inventory ($BOOST_LIB_DIR):"
+          ls -lah "$BOOST_LIB_DIR" | sed -n '1,120p' || true
+          
+          need=(filesystem program_options thread chrono system)
+          for lib in "${need[@]}"; do
+            base="$BOOST_LIB_DIR/libboost_${lib}"
+            target=""
+            if [ -f "${base}.dylib" ]; then
+              target="$(basename "${base}.dylib")"
+            elif compgen -G "${base}-mt*.dylib" > /dev/null; then
+              target="$(basename "$(ls -1 ${base}-mt*.dylib | sort -V | tail -n1)")"
+              ln -sf "$target" "${base}.dylib"
+              echo "symlink: $(basename "${base}.dylib") -> $target"
+            elif compgen -G "${base}.*.dylib" > /dev/null; then
+              target="$(basename "$(ls -1 ${base}.*.dylib | sort -V | tail -n1)")"
+              ln -sf "$target" "${base}.dylib"
+              echo "symlink: $(basename "${base}.dylib") -> $target"
+            fi
+          done
+          
+          FILE="/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
+          echo "Verifying file: $FILE"
+          if [ ! -r "$FILE" ]; then
+            echo "::error::File not readable/existing at $FILE"
+            ls -lah /opt/homebrew/opt/boost176/lib || true
+            exit 1
+          fi
+          python3 - <<'PY'
+          
+         import os
+         p="/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
+         print("Resolved:", os.path.realpath(p))
+         print("Exists:", os.path.exists(p), "Readable:", os.access(p, os.R_OK))
+         PY
+         
+         if [ -f ./src/qt/verge-qt ]; then
+            echo "otool -L ./src/qt/verge-qt"
+            otool -L ./src/qt/verge-qt | egrep 'boost|protobuf|zmq' || true
+         fi
+         
+         echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+      
       - name: make .dmg
         run: |
+          set -euo pipefail
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
-          make deploy
+          
+          BOOST_DIR="${BOOST_LIBRARYDIR:-/opt/homebrew/opt/boost176/lib}"
+          PROTO_DIR="${PROTOBUF_LIBRARYDIR:-/opt/homebrew/opt/protobuf261/lib}"
+          ZMQ_DIR="$(brew --prefix)/opt/zeromq/lib"
+          OPENSSL_DIR="$(brew --prefix)/opt/openssl@3/lib"
+          
+          /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus verge-qt.app \
+            -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
+            -translations-dir= \
+            -libdir="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}" \
+            -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
+
+    make deploy
 
       - uses: actions/upload-artifact@v4
         with:
