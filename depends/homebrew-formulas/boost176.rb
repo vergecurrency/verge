@@ -56,12 +56,12 @@ class Boost176 < Formula
       --libdir=#{lib}
       -d2
       -j#{ENV.make_jobs}
-      --layout=tagged-1.66
+      --layout=system
       --user-config=user-config.jam
       -sNO_LZMA=1
       -sNO_ZSTD=1
       install
-      threading=multi,single
+      threading=multi
       link=shared,static
     ]
 
