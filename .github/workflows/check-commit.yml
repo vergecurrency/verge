@@ -831,7 +831,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-ubuntu22
-        ...
+          path: |
             ./src/verged
             ./src/verge-cli
             ./src/verge-tx
