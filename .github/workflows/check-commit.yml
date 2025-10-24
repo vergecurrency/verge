@@ -182,7 +182,7 @@ jobs:
                 PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
               fi
             fi
-          fi]
+          fi
           
           echo "BREW_PREFIX=$BREW_PREFIX"
           echo "BREW_CELLAR=$BREW_CELLAR"
@@ -325,29 +325,80 @@ jobs:
       - name: make .dmg
         run: |
           set -euo pipefail
-          echo "Pre-macdeploy DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH:-}"
-          
-          BOOST_DIR="${BOOST_LIBRARYDIR:-/opt/homebrew/opt/boost176/lib}"
-          PROTO_DIR="${PROTOBUF_LIBRARYDIR:-/opt/homebrew/opt/protobuf261/lib}"
-          ZMQ_DIR="$(brew --prefix)/opt/zeromq/lib"
-          OPENSSL_DIR="$(brew --prefix)/opt/openssl@3/lib"
-          
-          ls -lah "$BOOST_DIR" || true
-          test -r "/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
-          
-          DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}" \
-          /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus verge-qt.app \
+
+          # 1) Find the .app bundle (handle different names/locations)
+          find_bundle() {
+            for p in \
+              "./verge-qt.app" \
+              "./Verge-Qt.app" \
+              "./src/qt/verge-qt.app" \
+              "./src/qt/Verge-Qt.app" \
+              "./dist/Verge-Qt.app" \
+              "./dist/verge-qt.app"
+            do
+              if [ -d "$p" ]; then
+                echo "$p"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          APP_BUNDLE="$(find_bundle || true)"
+          if [ -z "${APP_BUNDLE:-}" ]; then
+            echo "No app bundle found; trying to build the bundle target…"
+            # 2) Try to build the app bundle explicitly (names vary by project)
+            make -j2 VERBOSE=1 verge-qt.app || true
+            make -j2 VERBOSE=1 Verge-Qt.app || true
+            make -C src/qt -j2 VERBOSE=1 verge-qt.app || true
+            make -C src/qt -j2 VERBOSE=1 Verge-Qt.app || true
+
+            APP_BUNDLE="$(find_bundle || true)"
+          fi
+
+          if [ -z "${APP_BUNDLE:-}" ]; then
+            echo "::error::Could not locate a built .app bundle. Check earlier build logs (make step)."
+            ls -lah .
+            ls -lah src/qt || true
+            ls -lah dist || true
+            exit 1
+          fi
+
+          echo "Using app bundle: $APP_BUNDLE"
+
+          # 3) Set library search path so macdeployqtplus can resolve dylibs
+          BREW_PREFIX="$(brew --prefix)"
+          BOOST_DIR="${BOOST_LIBRARYDIR:-$BREW_PREFIX/opt/boost176/lib}"
+          PROTO_DIR="${PROTOBUF_LIBRARYDIR:-$BREW_PREFIX/opt/protobuf261/lib}"
+          ZMQ_DIR="$BREW_PREFIX/opt/zeromq/lib"
+          OPENSSL_DIR="$BREW_PREFIX/opt/openssl@3/lib"
+          export DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}"
+
+          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+
+          # Optional sanity check for Boost FS dylib (helps fail fast with context)
+          test -r "$BREW_PREFIX/opt/boost176/lib/libboost_filesystem.dylib" || {
+            echo "::error::Missing $BREW_PREFIX/opt/boost176/lib/libboost_filesystem.dylib"
+            ls -lah "$BREW_PREFIX/opt/boost176/lib" || true
+            exit 1
+          }
+
+          # 4) Run macdeployqtplus on the located bundle
+          /usr/local/bin/python3 ./contrib/macdeploy/macdeployqtplus "$APP_BUNDLE" \
             -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
             -translations-dir= \
             -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
-          
+
+          # If your Makefile performs additional packaging, keep this:
           make deploy
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos13
+        # upload ANY DMG produced anywhere (dist/ or project root)
           path: |
             *.dmg
+            dist/*.dmg
 
 
   macos14:
@@ -695,11 +746,11 @@ jobs:
             elif compgen -G "${base}-mt*.dylib" > /dev/null; then
               target="$(basename "$(ls -1 ${base}-mt*.dylib | sort -V | tail -n1)")"
               ln -sf "$target" "${base}.dylib"
-              echo "symlink: $(basename "${base}.dylib}") -> $target"
+              echo "symlink: $(basename "${base}.dylib") -> $target"
             elif compgen -G "${base}.*.dylib" > /dev/null; then
               target="$(basename "$(ls -1 ${base}.*.dylib | sort -V | tail -n1)")"
               ln -sf "$target" "${base}.dylib"
-              echo "symlink: $(basename "${base}.dylib}") -> $target"
+              echo "symlink: $(basename "${base}.dylib") -> $target"
             fi
           done
           
@@ -720,29 +771,80 @@ jobs:
       - name: make .dmg
         run: |
           set -euo pipefail
-          echo "Pre-macdeploy DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH:-}"
-          
-          BOOST_DIR="${BOOST_LIBRARYDIR:-/opt/homebrew/opt/boost176/lib}"
-          PROTO_DIR="${PROTOBUF_LIBRARYDIR:-/opt/homebrew/opt/protobuf261/lib}"
-          ZMQ_DIR="$(brew --prefix)/opt/zeromq/lib"
-          OPENSSL_DIR="$(brew --prefix)/opt/openssl@3/lib"
-          
-          ls -lah "$BOOST_DIR" || true
-          test -r "/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
-          
-          DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}" \
-          /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus verge-qt.app \
+
+          # 1) Find the .app bundle (handle different names/locations)
+          find_bundle() {
+            for p in \
+              "./verge-qt.app" \
+              "./Verge-Qt.app" \
+              "./src/qt/verge-qt.app" \
+              "./src/qt/Verge-Qt.app" \
+              "./dist/Verge-Qt.app" \
+              "./dist/verge-qt.app"
+            do
+              if [ -d "$p" ]; then
+                echo "$p"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          APP_BUNDLE="$(find_bundle || true)"
+          if [ -z "${APP_BUNDLE:-}" ]; then
+            echo "No app bundle found; trying to build the bundle target…"
+            # 2) Try to build the app bundle explicitly (names vary by project)
+            make -j2 VERBOSE=1 verge-qt.app || true
+            make -j2 VERBOSE=1 Verge-Qt.app || true
+            make -C src/qt -j2 VERBOSE=1 verge-qt.app || true
+            make -C src/qt -j2 VERBOSE=1 Verge-Qt.app || true
+
+            APP_BUNDLE="$(find_bundle || true)"
+          fi
+
+          if [ -z "${APP_BUNDLE:-}" ]; then
+            echo "::error::Could not locate a built .app bundle. Check earlier build logs (make step)."
+            ls -lah .
+            ls -lah src/qt || true
+            ls -lah dist || true
+            exit 1
+          fi
+
+          echo "Using app bundle: $APP_BUNDLE"
+
+          # 3) Set library search path so macdeployqtplus can resolve dylibs
+          BREW_PREFIX="$(brew --prefix)"
+          BOOST_DIR="${BOOST_LIBRARYDIR:-$BREW_PREFIX/opt/boost176/lib}"
+          PROTO_DIR="${PROTOBUF_LIBRARYDIR:-$BREW_PREFIX/opt/protobuf261/lib}"
+          ZMQ_DIR="$BREW_PREFIX/opt/zeromq/lib"
+          OPENSSL_DIR="$BREW_PREFIX/opt/openssl@3/lib"
+          export DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}"
+
+          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+
+          # Optional sanity check for Boost FS dylib (helps fail fast with context)
+          test -r "$BREW_PREFIX/opt/boost176/lib/libboost_filesystem.dylib" || {
+            echo "::error::Missing $BREW_PREFIX/opt/boost176/lib/libboost_filesystem.dylib"
+            ls -lah "$BREW_PREFIX/opt/boost176/lib" || true
+            exit 1
+          }
+
+          # 4) Run macdeployqtplus on the located bundle
+          /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus "$APP_BUNDLE" \
             -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
             -translations-dir= \
             -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
-          
+
+          # If your Makefile performs additional packaging, keep this:
           make deploy
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos14
+        # upload ANY DMG produced anywhere (dist/ or project root)
           path: |
             *.dmg
+            dist/*.dmg
 
   macos-latest:
     runs-on: macos-13
