@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  push:
-  pull_request:
+  push: {}
+  pull_request: {}
 
 jobs:
   macos13:
@@ -263,20 +263,17 @@ jobs:
       - name: make .dmg
         run: |
           set -euo pipefail
-
           ROOT_DIR="$(pwd)"
           BIN_PATH="./src/qt/verge-qt"
           APP_DIR="./Verge-Qt.app"
           MACOS_DIR="$APP_DIR/Contents/MacOS"
           RES_DIR="$APP_DIR/Contents/Resources"
           PLIST="$APP_DIR/Contents/Info.plist"
-
           if [ ! -x "$BIN_PATH" ]; then
             echo "::error::Expected GUI binary not found at $BIN_PATH"
             ls -lah "./src/qt" || true
             exit 1
           fi
-
           if [ ! -d "$APP_DIR" ]; then
             mkdir -p "$MACOS_DIR" "$RES_DIR"
             printf '%s\n' \
@@ -297,7 +294,6 @@ jobs:
             cp "$BIN_PATH" "$MACOS_DIR/Verge-Qt"
             chmod +x "$MACOS_DIR/Verge-Qt"
           fi
-
           BREW_PREFIX="$(brew --prefix)"
           BOOST_DIR="${BOOST_LIBRARYDIR:-$BREW_PREFIX/opt/boost176/lib}"
           PROTO_DIR="${PROTOBUF_LIBRARYDIR:-$BREW_PREFIX/opt/protobuf261/lib}"
@@ -305,12 +301,10 @@ jobs:
           OPENSSL_DIR="$BREW_PREFIX/opt/openssl@3/lib"
           export DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
-
           /usr/local/bin/python3 ./contrib/macdeploy/macdeployqtplus "$APP_DIR" \
             -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
             -translations-dir= \
             -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
-
           make deploy || true
 
       - uses: actions/upload-artifact@v4
@@ -602,20 +596,17 @@ jobs:
       - name: make .dmg
         run: |
           set -euo pipefail
-
           ROOT_DIR="$(pwd)"
           BIN_PATH="./src/qt/verge-qt"
           APP_DIR="./Verge-Qt.app"
           MACOS_DIR="$APP_DIR/Contents/MacOS"
           RES_DIR="$APP_DIR/Contents/Resources"
           PLIST="$APP_DIR/Contents/Info.plist"
-
           if [ ! -x "$BIN_PATH" ]; then
             echo "::error::Expected GUI binary not found at $BIN_PATH"
             ls -lah "./src/qt" || true
             exit 1
           fi
-
           if [ ! -d "$APP_DIR" ]; then
             mkdir -p "$MACOS_DIR" "$RES_DIR"
             printf '%s\n' \
@@ -636,7 +627,6 @@ jobs:
             cp "$BIN_PATH" "$MACOS_DIR/Verge-Qt"
             chmod +x "$MACOS_DIR/Verge-Qt"
           fi
-
           BREW_PREFIX="$(brew --prefix)"
           BOOST_DIR="${BOOST_LIBRARYDIR:-$BREW_PREFIX/opt/boost176/lib}"
           PROTO_DIR="${PROTOBUF_LIBRARYDIR:-$BREW_PREFIX/opt/protobuf261/lib}"
@@ -644,12 +634,10 @@ jobs:
           OPENSSL_DIR="$BREW_PREFIX/opt/openssl@3/lib"
           export DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
-
           /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus "$APP_DIR" \
             -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
             -translations-dir= \
             -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
-
           make deploy || true
 
       - uses: actions/upload-artifact@v4
@@ -843,7 +831,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-ubuntu22
-          path: |
+        ...
             ./src/verged
             ./src/verge-cli
             ./src/verge-tx
