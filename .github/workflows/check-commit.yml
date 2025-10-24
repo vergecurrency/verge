@@ -153,11 +153,13 @@ jobs:
             ls -lah "$BREW_CELLAR/boost176" || true
             exit 1
           fi
-          echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
-          echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
-          echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
-          echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
-          echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
+          {
+            echo "BOOST_ROOT=$BOOST_DIR"
+            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include"
+            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"
+            echo "CPPFLAGS=-I$BOOST_DIR/include"
+            echo "LDFLAGS=-L$BOOST_DIR/lib"
+          } >> "$GITHUB_ENV"
 
       - name: Resolve Protobuf 2.6.1 env (robust, preserve flags)
         run: |
@@ -190,13 +192,15 @@ jobs:
           CUR_LD="${LDFLAGS:-}"
           BOOST_INC="${BOOST_INCLUDEDIR:-}"
           BOOST_LIB="${BOOST_LIBRARYDIR:-}"
-          echo "PROTOBUF_ROOT=$PROTO_DIR"               >> "$GITHUB_ENV"
-          echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include" >> "$GITHUB_ENV"
-          echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"     >> "$GITHUB_ENV"
-          echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
-          echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
-          echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include ${CUR_CPP}" >> "$GITHUB_ENV"
-          echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib ${CUR_LD}"       >> "$GITHUB_ENV"
+          {
+            echo "PROTOBUF_ROOT=$PROTO_DIR"
+            echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"
+            echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"
+            echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+            echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin"
+            echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include ${CUR_CPP}"
+            echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib ${CUR_LD}"
+          } >> "$GITHUB_ENV"
 
       - name: which clang/xcode
         run: clang --version
@@ -250,7 +254,7 @@ jobs:
               [ -d "$BASE" ] || continue
               [ -f "$BASE/libboost_${LIB}.dylib" ] || {
                 if compgen -G "$BASE/libboost_${LIB}-mt*.dylib" > /dev/null; then
-                  ln -sf "$(basename "$(ls -1 $BASE/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)")" "$BASE/libboost_${LIB}.dylib"
+                  ln -sf "$(basename "$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)")" "$BASE/libboost_${LIB}.dylib"
                 fi
               }
             done
@@ -504,11 +508,13 @@ PLIST
             echo "::error::Boost libdir not found."
             exit 1
           fi
-          echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
-          echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
-          echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
-          echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
-          echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
+          {
+            echo "BOOST_ROOT=$BOOST_DIR"
+            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include"
+            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"
+            echo "CPPFLAGS=-I$BOOST_DIR/include"
+            echo "LDFLAGS=-L$BOOST_DIR/lib"
+          } >> "$GITHUB_ENV"
 
       - name: Resolve Protobuf 2.6.1 env (robust)
         run: |
@@ -531,15 +537,19 @@ PLIST
             echo "::error::Protobuf libdir not found."
             exit 1
           fi
-          echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
-          echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
-          echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
-          echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
-          echo "PATH=$PROTO_DIR/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> "$GITHUB_ENV"
+          {
+            echo "PROTOBUF_ROOT=$PROTO_DIR"
+            echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"
+            echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"
+            echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+            echo "PATH=$PROTO_DIR/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}"
+          } >> "$GITHUB_ENV"
           BOOST_INC="${BOOST_INCLUDEDIR:-}"
           BOOST_LIB="${BOOST_LIBRARYDIR:-}"
-          echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include"  >> "$GITHUB_ENV"
-          echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib"       >> "$GITHUB_ENV"
+          {
+            echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include"
+            echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib"
+          } >> "$GITHUB_ENV"
 
       - name: which clang/xcode
         run: clang --version
@@ -589,7 +599,7 @@ PLIST
               [ -d "$BASE" ] || continue
               [ -f "$BASE/libboost_${LIB}.dylib" ] || {
                 if compgen -G "$BASE/libboost_${LIB}-mt*.dylib" > /dev/null; then
-                  ln -sf "$(basename "$(ls -1 $BASE/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)")" "$BASE/libboost_${LIB}.dylib"
+                  ln -sf "$(basename "$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)")" "$BASE/libboost_${LIB}.dylib"
                 fi
               }
             done
@@ -862,13 +872,21 @@ PLIST
         run: ./autogen.sh
 
       - name: configure
-        run: CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --enable-scrypt-sse2 --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+        run: |
+          CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
+          ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
+          --disable-dependency-tracking --disable-werror \
+          --prefix="$(pwd)/depends/x86_64-linux-gnu" \
+          --bindir="$(pwd)/release/bin" \
+          --libdir="$(pwd)/release/lib"
 
       - name: make
         run: make -j4
 
       - name: strip
-        run: cd ./src && strip verged verge-cli verge-tx && cd ./qt && strip verge-qt
+        run: |
+          cd ./src && strip verged verge-cli verge-tx
+          cd ./qt && strip verge-qt
 
       - name: ccache stats
         run: ccache -s || true
@@ -884,7 +902,7 @@ PLIST
             ./src/verge-tx
             ./src/qt/verge-qt
 
-  windows32-ubuntu22: 
+  windows32-ubuntu22:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
