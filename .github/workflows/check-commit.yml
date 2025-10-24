@@ -93,7 +93,7 @@ jobs:
             URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
             echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
-          fi
+          fi>
           echo "Current taps:"
           brew tap
 
@@ -695,19 +695,16 @@ jobs:
             exit 1
           fi
           python3 - <<'PY'
-          
-         import os
-         p="/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
-         print("Resolved:", os.path.realpath(p))
-         print("Exists:", os.path.exists(p), "Readable:", os.access(p, os.R_OK))
-         PY
-         
-         if [ -f ./src/qt/verge-qt ]; then
+import os
+p="/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
+print("Resolved:", os.path.realpath(p))
+print("Exists:", os.path.exists(p), "Readable:", os.access(p, os.R_OK))
+PY
+          if [ -f ./src/qt/verge-qt ]; then
             echo "otool -L ./src/qt/verge-qt"
             otool -L ./src/qt/verge-qt | egrep 'boost|protobuf|zmq' || true
-         fi
-         
-         echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          fi
+          echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
       
       - name: make .dmg
         run: |
@@ -1014,7 +1011,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-windows32-ubuntu22
-          path: |
+        path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
             /home/runner/work/verge/verge/src/verge-tx.exe
