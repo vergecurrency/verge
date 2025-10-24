@@ -182,7 +182,7 @@ jobs:
                 PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
               fi
             fi
-          fi
+          fi]
           
           echo "BREW_PREFIX=$BREW_PREFIX"
           echo "BREW_CELLAR=$BREW_CELLAR"
@@ -679,11 +679,11 @@ jobs:
             elif compgen -G "${base}-mt*.dylib" > /dev/null; then
               target="$(basename "$(ls -1 ${base}-mt*.dylib | sort -V | tail -n1)")"
               ln -sf "$target" "${base}.dylib"
-              echo "symlink: $(basename "${base}.dylib") -> $target"
+              echo "symlink: $(basename "${base}.dylib}") -> $target"
             elif compgen -G "${base}.*.dylib" > /dev/null; then
               target="$(basename "$(ls -1 ${base}.*.dylib | sort -V | tail -n1)")"
               ln -sf "$target" "${base}.dylib"
-              echo "symlink: $(basename "${base}.dylib") -> $target"
+              echo "symlink: $(basename "${base}.dylib}") -> $target"
             fi
           done
           
@@ -694,12 +694,7 @@ jobs:
             ls -lah /opt/homebrew/opt/boost176/lib || true
             exit 1
           fi
-          python3 - <<'PY'
-import os
-p="/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"
-print("Resolved:", os.path.realpath(p))
-print("Exists:", os.path.exists(p), "Readable:", os.access(p, os.R_OK))
-PY
+          /opt/homebrew/bin/python3 -c 'import os,sys; p="/opt/homebrew/opt/boost176/lib/libboost_filesystem.dylib"; print("Resolved:", os.path.realpath(p)); print("Exists:", os.path.exists(p), "Readable:", os.access(p, os.R_OK))'
           if [ -f ./src/qt/verge-qt ]; then
             echo "otool -L ./src/qt/verge-qt"
             otool -L ./src/qt/verge-qt | egrep 'boost|protobuf|zmq' || true
