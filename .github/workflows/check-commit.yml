@@ -304,28 +304,25 @@ jobs:
             exit 1
           fi
 
-          # 2) If no .app bundle exists, synthesize one
+          # 2) If no .app bundle exists, synthesize one (no heredoc to avoid YAML issues)
           if [ ! -d "$APP_DIR" ]; then
             echo "Synthesizing $APP_DIR around $BIN_PATH"
             mkdir -p "$MACOS_DIR" "$RES_DIR"
-            # Minimal Info.plist (HEREDOC END TOKEN MUST BE FLUSH-LEFT)
-            cat > "$PLIST" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>CFBundleName</key><string>Verge-Qt</string>
-    <key>CFBundleDisplayName</key><string>Verge-Qt</string>
-    <key>CFBundleIdentifier</key><string>org.vergecurrency.verge-qt</string>
-    <key>CFBundleExecutable</key><string>Verge-Qt</string>
-    <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleVersion</key><string>1.0</string>
-    <key>CFBundleShortVersionString</key><string>1.0</string>
-    <key>LSMinimumSystemVersion</key><string>10.13</string>
-  </dict>
-</plist>
-PLIST
-            # Place the binary
+            printf '%s\n' \
+'<?xml version="1.0" encoding="UTF-8"?>' \
+'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+'<plist version="1.0">' \
+'  <dict>' \
+'    <key>CFBundleName</key><string>Verge-Qt</string>' \
+'    <key>CFBundleDisplayName</key><string>Verge-Qt</string>' \
+'    <key>CFBundleIdentifier</key><string>org.vergecurrency.verge-qt</string>' \
+'    <key>CFBundleExecutable</key><string>Verge-Qt</string>' \
+'    <key>CFBundlePackageType</key><string>APPL</string>' \
+'    <key>CFBundleVersion</key><string>1.0</string>' \
+'    <key>CFBundleShortVersionString</key><string>1.0</string>' \
+'    <key>LSMinimumSystemVersion</key><string>10.13</string>' \
+'  </dict>' \
+'</plist>' > "$PLIST"
             cp "$BIN_PATH" "$MACOS_DIR/Verge-Qt"
             chmod +x "$MACOS_DIR/Verge-Qt"
           else
@@ -661,28 +658,25 @@ PLIST
             exit 1
           fi
 
-          # 2) If no .app bundle exists, synthesize one
+          # 2) If no .app bundle exists, synthesize one (no heredoc to avoid YAML issues)
           if [ ! -d "$APP_DIR" ]; then
             echo "Synthesizing $APP_DIR around $BIN_PATH"
             mkdir -p "$MACOS_DIR" "$RES_DIR"
-            # Minimal Info.plist (HEREDOC END TOKEN MUST BE FLUSH-LEFT)
-            cat > "$PLIST" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>CFBundleName</key><string>Verge-Qt</string>
-    <key>CFBundleDisplayName</key><string>Verge-Qt</string>
-    <key>CFBundleIdentifier</key><string>org.vergecurrency.verge-qt</string>
-    <key>CFBundleExecutable</key><string>Verge-Qt</string>
-    <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleVersion</key><string>1.0</string>
-    <key>CFBundleShortVersionString</key><string>1.0</string>
-    <key>LSMinimumSystemVersion</key><string>11.0</string>
-  </dict>
-</plist>
-PLIST
-            # Place the binary
+            printf '%s\n' \
+'<?xml version="1.0" encoding="UTF-8"?>' \
+'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+'<plist version="1.0">' \
+'  <dict>' \
+'    <key>CFBundleName</key><string>Verge-Qt</string>' \
+'    <key>CFBundleDisplayName</key><string>Verge-Qt</string>' \
+'    <key>CFBundleIdentifier</key><string>org.vergecurrency.verge-qt</string>' \
+'    <key>CFBundleExecutable</key><string>Verge-Qt</string>' \
+'    <key>CFBundlePackageType</key><string>APPL</string>' \
+'    <key>CFBundleVersion</key><string>1.0</string>' \
+'    <key>CFBundleShortVersionString</key><string>1.0</string>' \
+'    <key>LSMinimumSystemVersion</key><string>11.0</string>' \
+'  </dict>' \
+'</plist>' > "$PLIST"
             cp "$BIN_PATH" "$MACOS_DIR/Verge-Qt"
             chmod +x "$MACOS_DIR/Verge-Qt"
           else
