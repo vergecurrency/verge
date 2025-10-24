@@ -1,3 +1,5 @@
+name: CI
+
 on:
   push:
   pull_request:
@@ -58,15 +60,15 @@ jobs:
         run: brew link qt@5 berkeley-db@4
 
       - name: Configure ccache
+        env:
+          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
-          echo "CC=ccache clang" >> $GITHUB_ENV
-          echo "CXX=ccache clang++" >> $GITHUB_ENV
-        env:
-          CCACHE_DIR: ~/.ccache
+          echo "CC=ccache clang" >> "$GITHUB_ENV"
+          echo "CXX=ccache clang++" >> "$GITHUB_ENV"
 
       - name: Show current directory
         run: |
@@ -81,20 +83,15 @@ jobs:
           set -euo pipefail
           brew tap-new vergecurrency/local
           TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
           mkdir -p "$TAP_DIR/Formula"
           FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
           if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
             cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
           else
-            echo "Local formula not found; fetching from repo"
             REF="${GITHUB_REF_NAME:-master}"
             URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
-            echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
           fi
-          echo "Current taps:"
           brew tap
 
       - name: Install protobuf261 via tap
@@ -107,20 +104,15 @@ jobs:
             brew tap-new vergecurrency/local
           fi
           TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
           mkdir -p "$TAP_DIR/Formula"
           FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
           if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
             cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
           else
-            echo "Local formula not found; fetching from repo"
             REF="${GITHUB_REF_NAME:-master}"
             URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/boost176.rb"
-            echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
           fi
-          echo "Current taps:"
           brew tap
 
       - name: Install boost176 via tap
@@ -135,22 +127,15 @@ jobs:
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
           else
             CELLAR_DIR="$BREW_CELLAR/boost176"
-            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
-               BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
               if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
                 BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
               fi
             fi
           fi
-          echo "BREW_PREFIX=$BREW_PREFIX"
-          echo "BREW_CELLAR=$BREW_CELLAR"
-          echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
           if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
-            echo "::error::Boost libdir not found. Dumping diagnostics..."
-            brew info boost176 || true
-            ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
-            ls -lah "$BREW_CELLAR/boost176" || true
+            echo "::error::Boost libdir not found."
             exit 1
           fi
           {
@@ -170,7 +155,6 @@ jobs:
             PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
           else
             CELLAR_DIR="$BREW_CELLAR/protobuf261"
-            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
               PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
               if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
@@ -178,14 +162,8 @@ jobs:
               fi
             fi
           fi
-          echo "BREW_PREFIX=$BREW_PREFIX"
-          echo "BREW_CELLAR=$BREW_CELLAR"
-          echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
           if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
-            echo "::error::Protobuf libdir not found. Dumping diagnostics..."
-            brew info protobuf261 || true
-            ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
-            ls -lah "$BREW_CELLAR/protobuf261" || true
+            echo "::error::Protobuf libdir not found."
             exit 1
           fi
           CUR_CPP="${CPPFLAGS:-}"
@@ -247,16 +225,15 @@ jobs:
               BOOST_LIB_DIR="$BOOST_DIR/lib"
             fi
           fi
-          echo "Using BOOST_DIR=$BOOST_DIR"
-          echo "Using BOOST_LIB_DIR=$BOOST_LIB_DIR"
           for LIB in filesystem program_options thread chrono system; do
             for BASE in "$BOOST_LIB_DIR" "$BREW_PREFIX/opt/boost176/lib"; do
               [ -d "$BASE" ] || continue
-              [ -f "$BASE/libboost_${LIB}.dylib" ] || {
+              if [ ! -f "$BASE/libboost_${LIB}.dylib" ]; then
                 if compgen -G "$BASE/libboost_${LIB}-mt*.dylib" > /dev/null; then
-                  ln -sf "$(basename "$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)")" "$BASE/libboost_${LIB}.dylib"
+                  LN_TGT="$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)"
+                  ln -sf "$(basename "$LN_TGT")" "$BASE/libboost_${LIB}.dylib"
                 fi
-              }
+              fi
             done
           done
           echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$BREW_PREFIX/opt/boost176/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
@@ -278,18 +255,15 @@ jobs:
             PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
             PROTO_LIB_DIR="$PROTO_DIR/lib"
           fi
-          echo "Using PROTO_DIR=$PROTO_DIR"
-          echo "Using PROTO_LIB_DIR=$PROTO_LIB_DIR"
-          [ -f "$PROTO_LIB_DIR/libprotobuf.9.dylib" ] || {
-            [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ] && ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
-          }
+          if [ ! -f "$PROTO_LIB_DIR/libprotobuf.9.dylib" ] && [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ]; then
+            ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
+          fi
           echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
       - name: make .dmg
         run: |
           set -euo pipefail
 
-          # 0) Paths
           ROOT_DIR="$(pwd)"
           BIN_PATH="./src/qt/verge-qt"
           APP_DIR="./Verge-Qt.app"
@@ -297,16 +271,13 @@ jobs:
           RES_DIR="$APP_DIR/Contents/Resources"
           PLIST="$APP_DIR/Contents/Info.plist"
 
-          # 1) Ensure the verge-qt binary exists
           if [ ! -x "$BIN_PATH" ]; then
             echo "::error::Expected GUI binary not found at $BIN_PATH"
             ls -lah "./src/qt" || true
             exit 1
           fi
 
-          # 2) If no .app bundle exists, synthesize one (no heredoc to avoid YAML issues)
           if [ ! -d "$APP_DIR" ]; then
-            echo "Synthesizing $APP_DIR around $BIN_PATH"
             mkdir -p "$MACOS_DIR" "$RES_DIR"
             printf '%s\n' \
 '<?xml version="1.0" encoding="UTF-8"?>' \
@@ -325,11 +296,8 @@ jobs:
 '</plist>' > "$PLIST"
             cp "$BIN_PATH" "$MACOS_DIR/Verge-Qt"
             chmod +x "$MACOS_DIR/Verge-Qt"
-          else
-            echo "Found existing app bundle: $APP_DIR"
           fi
 
-          # 3) Library search path for deploy
           BREW_PREFIX="$(brew --prefix)"
           BOOST_DIR="${BOOST_LIBRARYDIR:-$BREW_PREFIX/opt/boost176/lib}"
           PROTO_DIR="${PROTOBUF_LIBRARYDIR:-$BREW_PREFIX/opt/protobuf261/lib}"
@@ -338,13 +306,11 @@ jobs:
           export DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
 
-          # 4) macdeployqtplus on the synthesized bundle
           /usr/local/bin/python3 ./contrib/macdeploy/macdeployqtplus "$APP_DIR" \
             -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
             -translations-dir= \
             -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
 
-          # Optional: project-specific deploy
           make deploy || true
 
       - uses: actions/upload-artifact@v4
@@ -415,15 +381,15 @@ jobs:
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
 
       - name: Configure ccache
+        env:
+          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
-          echo "CC=ccache clang" >> $GITHUB_ENV
-          echo "CXX=ccache clang++" >> $GITHUB_ENV
-        env:
-          CCACHE_DIR: ~/.ccache
+          echo "CC=ccache clang" >> "$GITHUB_ENV"
+          echo "CXX=ccache clang++" >> "$GITHUB_ENV"
 
       - name: Show current directory
         run: |
@@ -438,20 +404,15 @@ jobs:
           set -euo pipefail
           brew tap-new vergecurrency/local
           TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
           mkdir -p "$TAP_DIR/Formula"
           FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
           if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
             cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
           else
-            echo "Local formula not found; fetching from repo"
             REF="${GITHUB_REF_NAME:-master}"
             URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
-            echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
           fi
-          echo "Current taps:"
           brew tap
 
       - name: Install protobuf261 via tap
@@ -464,20 +425,15 @@ jobs:
             brew tap-new vergecurrency/local
           fi
           TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
           mkdir -p "$TAP_DIR/Formula"
           FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
           if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
             cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
           else
-            echo "Local formula not found; fetching from repo"
             REF="${GITHUB_REF_NAME:-master}"
             URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/boost176.rb"
-            echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
           fi
-          echo "Current taps:"
           brew tap
 
       - name: Install boost176 via tap
@@ -492,7 +448,6 @@ jobs:
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
           else
             CELLAR_DIR="$BREW_CELLAR/boost176"
-            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
               BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
               if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
@@ -500,7 +455,6 @@ jobs:
               fi
             fi
           fi
-          echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
           if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
             echo "::error::Boost libdir not found."
             exit 1
@@ -529,7 +483,6 @@ jobs:
               fi
             fi
           fi
-          echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
           if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
             echo "::error::Protobuf libdir not found."
             exit 1
@@ -594,11 +547,12 @@ jobs:
           for LIB in filesystem program_options thread chrono system; do
             for BASE in "$BOOST_LIB_DIR" "$BREW_PREFIX/opt/boost176/lib"; do
               [ -d "$BASE" ] || continue
-              [ -f "$BASE/libboost_${LIB}.dylib" ] || {
+              if [ ! -f "$BASE/libboost_${LIB}.dylib" ]; then
                 if compgen -G "$BASE/libboost_${LIB}-mt*.dylib" > /dev/null; then
-                  ln -sf "$(basename "$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)")" "$BASE/libboost_${LIB}.dylib"
+                  LN_TGT="$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)"
+                  ln -sf "$(basename "$LN_TGT")" "$BASE/libboost_${LIB}.dylib"
                 fi
-              }
+              fi
             done
           done
           echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$BREW_PREFIX/opt/boost176/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
@@ -620,9 +574,9 @@ jobs:
             PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
             PROTO_LIB_DIR="$PROTO_DIR/lib"
           fi
-          [ -f "$PROTO_LIB_DIR/libprotobuf.9.dylib" ] || {
-            [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ] && ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
-          }
+          if [ ! -f "$PROTO_LIB_DIR/libprotobuf.9.dylib" ] && [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ]; then
+            ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
+          fi
           echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
       - name: Preflight Boost libs for macdeploy
@@ -631,9 +585,15 @@ jobs:
           BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
           CELLAR_DIR="$BREW_CELLAR/boost176"
-          [ -d "$CELLAR_DIR" ] || { echo "::error::No boost176 Cellar at $CELLAR_DIR"; exit 1; }
+          if [ ! -d "$CELLAR_DIR" ]; then
+            echo "::error::No boost176 Cellar at $CELLAR_DIR"
+            exit 1
+          fi
           KEG="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1)"
-          [ -n "$KEG" ] || { echo "::error::No boost176 kegs found in $CELLAR_DIR"; exit 1; }
+          if [ -z "$KEG" ]; then
+            echo "::error::No boost176 kegs found in $CELLAR_DIR"
+            exit 1
+          fi
           BOOST_DIR="$CELLAR_DIR/$KEG"
           OPT_DIR="$BREW_PREFIX/opt/boost176"
           sudo rm -f "$OPT_DIR" || true
@@ -643,7 +603,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # 0) Paths
           ROOT_DIR="$(pwd)"
           BIN_PATH="./src/qt/verge-qt"
           APP_DIR="./Verge-Qt.app"
@@ -651,16 +610,13 @@ jobs:
           RES_DIR="$APP_DIR/Contents/Resources"
           PLIST="$APP_DIR/Contents/Info.plist"
 
-          # 1) Ensure the verge-qt binary exists
           if [ ! -x "$BIN_PATH" ]; then
             echo "::error::Expected GUI binary not found at $BIN_PATH"
             ls -lah "./src/qt" || true
             exit 1
           fi
 
-          # 2) If no .app bundle exists, synthesize one (no heredoc to avoid YAML issues)
           if [ ! -d "$APP_DIR" ]; then
-            echo "Synthesizing $APP_DIR around $BIN_PATH"
             mkdir -p "$MACOS_DIR" "$RES_DIR"
             printf '%s\n' \
 '<?xml version="1.0" encoding="UTF-8"?>' \
@@ -679,11 +635,8 @@ jobs:
 '</plist>' > "$PLIST"
             cp "$BIN_PATH" "$MACOS_DIR/Verge-Qt"
             chmod +x "$MACOS_DIR/Verge-Qt"
-          else
-            echo "Found existing app bundle: $APP_DIR"
           fi
 
-          # 3) Library search path for deploy
           BREW_PREFIX="$(brew --prefix)"
           BOOST_DIR="${BOOST_LIBRARYDIR:-$BREW_PREFIX/opt/boost176/lib}"
           PROTO_DIR="${PROTOBUF_LIBRARYDIR:-$BREW_PREFIX/opt/protobuf261/lib}"
@@ -692,13 +645,11 @@ jobs:
           export DYLD_LIBRARY_PATH="${BOOST_DIR}:${PROTO_DIR}:${ZMQ_DIR}:${OPENSSL_DIR}:${DYLD_LIBRARY_PATH:-}"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
 
-          # 4) macdeployqtplus on the synthesized bundle
           /opt/homebrew/bin/python3 ./contrib/macdeploy/macdeployqtplus "$APP_DIR" \
             -add-qt-tr da,de,es,hu,ru,uk,zh_CN,zh_TW \
             -translations-dir= \
             -dmg -fancy ./contrib/macdeploy/fancy.plist -verbose 2
 
-          # Optional: project-specific deploy
           make deploy || true
 
       - uses: actions/upload-artifact@v4
@@ -751,25 +702,25 @@ jobs:
       - name: Enable ccache wrappers
         run: |
           sudo /usr/sbin/update-ccache-symlinks || true
-          echo "/usr/lib/ccache" >> $GITHUB_PATH
+          echo "/usr/lib/ccache" >> "$GITHUB_PATH"
 
       - name: Configure ccache
+        env:
+          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
-        env:
-          CCACHE_DIR: ~/.ccache
 
       - name: Export toolchain env
         run: |
-          echo "CC=gcc"        >> $GITHUB_ENV
-          echo "CXX=g++"       >> $GITHUB_ENV
-          echo "AR=ar"         >> $GITHUB_ENV
-          echo "RANLIB=ranlib" >> $GITHUB_ENV
-          echo "STRIP=strip"   >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+          echo "CC=gcc"        >> "$GITHUB_ENV"
+          echo "CXX=g++"       >> "$GITHUB_ENV"
+          echo "AR=ar"         >> "$GITHUB_ENV"
+          echo "RANLIB=ranlib" >> "$GITHUB_ENV"
+          echo "STRIP=strip"   >> "$GITHUB_ENV"
+          echo "CCACHE_DIR=$HOME/.ccache" >> "$GITHUB_ENV"
 
       - name: Build depends
         run: |
@@ -797,9 +748,9 @@ jobs:
           cd ./qt && strip verge-qt
 
       - name: ccache stats
-        run: ccache -s || true
         env:
           CCACHE_DIR: ~/.ccache
+        run: ccache -s || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -848,19 +799,21 @@ jobs:
       - name: Enable ccache wrappers
         run: |
           sudo /usr/sbin/update-ccache-symlinks || true
-          echo "/usr/lib/ccache" >> $GITHUB_PATH
+          echo "/usr/lib/ccache" >> "$GITHUB_PATH"
 
       - name: Configure ccache
+        env:
+          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
-        env:
-          CCACHE_DIR: ~/.ccache
 
       - name: Build depends
-        run: cd depends/ && make -j4 HOST=x86_64-linux-gnu
+        run: |
+          cd depends/
+          make -j4 HOST=x86_64-linux-gnu
 
       - name: Auto generate
         run: ./autogen.sh
@@ -883,9 +836,9 @@ jobs:
           cd ./qt && strip verge-qt
 
       - name: ccache stats
-        run: ccache -s || true
         env:
           CCACHE_DIR: ~/.ccache
+        run: ccache -s || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -945,24 +898,24 @@ jobs:
 
       - name: Export toolchain env (target)
         run: |
-          echo "CC=i686-w64-mingw32-gcc-posix"        >> $GITHUB_ENV
-          echo "CXX=i686-w64-mingw32-g++-posix"       >> $GITHUB_ENV
-          echo "AR=i686-w64-mingw32-ar"               >> $GITHUB_ENV
-          echo "RANLIB=i686-w64-mingw32-ranlib"       >> $GITHUB_ENV
-          echo "WINDRES=i686-w64-mingw32-windres"     >> $GITHUB_ENV
-          echo "PKG_CONFIG=i686-w64-mingw32-pkg-config" >> $GITHUB_ENV
-          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"      >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache"              >> $GITHUB_ENV
-          echo "ARFLAGS=rcs"                           >> $GITHUB_ENV
+          echo "CC=i686-w64-mingw32-gcc-posix"          >> "$GITHUB_ENV"
+          echo "CXX=i686-w64-mingw32-g++-posix"         >> "$GITHUB_ENV"
+          echo "AR=i686-w64-mingw32-ar"                 >> "$GITHUB_ENV"
+          echo "RANLIB=i686-w64-mingw32-ranlib"         >> "$GITHUB_ENV"
+          echo "WINDRES=i686-w64-mingw32-windres"       >> "$GITHUB_ENV"
+          echo "PKG_CONFIG=i686-w64-mingw32-pkg-config" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"       >> "$GITHUB_ENV"
+          echo "CCACHE_DIR=$HOME/.ccache"               >> "$GITHUB_ENV"
+          echo "ARFLAGS=rcs"                            >> "$GITHUB_ENV"
 
       - name: Configure ccache
+        env:
+          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
-        env:
-          CCACHE_DIR: ~/.ccache
 
       - name: configure
         run: |
@@ -976,13 +929,13 @@ jobs:
         run: |
           set -e
           ( while true; do
-            echo "---- heartbeat $(date) ----"
-            ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
-            sleep 60
+              echo "---- heartbeat $(date) ----"
+              ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
+              sleep 60
             done ) &
           HB=$!
           timeout 60m make -j1 --output-sync=recurse
-          kill $HB || true
+          kill "$HB" || true
 
       - name: strip (cross)
         run: |
@@ -990,9 +943,9 @@ jobs:
           cd ./qt && i686-w64-mingw32-strip verge-qt.exe
 
       - name: ccache stats
-        run: ccache -s || true
         env:
           CCACHE_DIR: ~/.ccache
+        run: ccache -s || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -1052,24 +1005,24 @@ jobs:
 
       - name: Export toolchain env
         run: |
-          echo "CC=x86_64-w64-mingw32-gcc-posix"       >> $GITHUB_ENV
-          echo "CXX=x86_64-w64-mingw32-g++-posix"      >> $GITHUB_ENV
-          echo "AR=x86_64-w64-mingw32-ar"              >> $GITHUB_ENV
-          echo "RANLIB=x86_64-w64-mingw32-ranlib"      >> $GITHUB_ENV
-          echo "WINDRES=x86_64-w64-mingw32-windres"    >> $GITHUB_ENV
-          echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> $GITHUB_ENV
-          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"       >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache"               >> $GITHUB_ENV
-          echo "ARFLAGS=rcs"                            >> $GITHUB_ENV
+          echo "CC=x86_64-w64-mingw32-gcc-posix"          >> "$GITHUB_ENV"
+          echo "CXX=x86_64-w64-mingw32-g++-posix"         >> "$GITHUB_ENV"
+          echo "AR=x86_64-w64-mingw32-ar"                 >> "$GITHUB_ENV"
+          echo "RANLIB=x86_64-w64-mingw32-ranlib"         >> "$GITHUB_ENV"
+          echo "WINDRES=x86_64-w64-mingw32-windres"       >> "$GITHUB_ENV"
+          echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"         >> "$GITHUB_ENV"
+          echo "CCACHE_DIR=$HOME/.ccache"                 >> "$GITHUB_ENV"
+          echo "ARFLAGS=rcs"                               >> "$GITHUB_ENV"
 
       - name: Configure ccache
+        env:
+          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
-        env:
-          CCACHE_DIR: ~/.ccache
 
       - name: configure
         run: |
@@ -1083,13 +1036,13 @@ jobs:
         run: |
           set -e
           ( while true; do
-            echo "---- heartbeat $(date) ----"
-            ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
-            sleep 60
+              echo "---- heartbeat $(date) ----"
+              ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
+              sleep 60
             done ) &
           HB=$!
           timeout 60m make -j1 --output-sync=recurse
-          kill $HB || true
+          kill "$HB" || true
 
       - name: strip (cross)
         run: |
@@ -1097,9 +1050,9 @@ jobs:
           cd ./qt && x86_64-w64-mingw32-strip verge-qt.exe
 
       - name: ccache stats
-        run: ccache -s || true
         env:
           CCACHE_DIR: ~/.ccache
+        run: ccache -s || true
 
       - name: Dump config.log on failure
         if: failure()
