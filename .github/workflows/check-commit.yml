@@ -249,7 +249,7 @@ jobs:
               if [ ! -f "$BASE/libboost_${LIB}.dylib" ]; then
                 if compgen -G "$BASE/libboost_${LIB}-mt*.dylib" > /dev/null; then
                   LN_TGT="$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)"
-                  ln -sf "$(basename "$LN_TGT")" "$BASE/libboost_${LIB}.dylib"
+                  [ "$(basename "$LN_TGT")" = "libboost_${LIB}.dylib" ] || ln -sf "$(basename "$LN_TGT")" "$BASE/libboost_${LIB}.dylib"
                 fi
               fi
             done
@@ -420,7 +420,6 @@ jobs:
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
           else
             CELLAR_DIR="$BREW_CELLAR/boost176"
-            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
               BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
               if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
@@ -518,7 +517,7 @@ jobs:
               CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${base}*.dylib 2>/dev/null | \
                       grep -Ev '/libboost_'"$base"'\.dylib$' | sort -V | tail -n1 || true)"
               if [ -n "$CAND" ]; then
-                ln -sf "$(basename "$CAND")" "$plain"
+                [ "$(basename "$CAND")" = "libboost_${base}.dylib" ] || ln -sf "$(basename "$CAND")" "$plain"
               fi
             fi
             ( ls -l "$BOOST_LIB_DIR"/libboost_${base}*.dylib || true ) | sed -n '1,10p'
@@ -558,50 +557,55 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
 
-          # --- Protobuf: ensure /opt path points at the active keg and .9 shim exists ---
+          # --- Protobuf: ensure /opt points at the active keg and .9 shim exists ---
           PROTO_DIR="${PROTOBUF_ROOT:?missing PROTOBUF_ROOT}"
-          if [ ! -L "$BREW_PREFIX/opt/protobuf261" ] || [ "$(readlink "$BREW_PREFIX/opt/protobuf261" || true)" != "$PROTO_DIR" ]; then
+          # Normalize to real keg path
+          if [ -L "$PROTO_DIR" ]; then PROTO_DIR="$(realpath "$PROTO_DIR")"; fi
+          if [ ! -L "$BREW_PREFIX/opt/protobuf261" ] || [ "$(realpath "$BREW_PREFIX/opt/protobuf261" || true)" != "$PROTO_DIR" ]; then
             sudo rm -rf "$BREW_PREFIX/opt/protobuf261" || true
             sudo ln -s "$PROTO_DIR" "$BREW_PREFIX/opt/protobuf261"
           fi
           for BASE in "$PROTO_DIR/lib" "$BREW_PREFIX/opt/protobuf261/lib"; do
             [ -d "$BASE" ] || continue
             for LIB in protobuf protobuf-lite; do
-              if [ ! -f "$BASE/lib${LIB}.9.dylib" ]; then
-                if [ -f "$BASE/lib${LIB}.dylib" ]; then
-                  ln -sf "lib${LIB}.dylib" "$BASE/lib${LIB}.9.dylib"
-                fi
+              if [ ! -f "$BASE/lib${LIB}.9.dylib" ] && [ -f "$BASE/lib${LIB}.dylib" ]; then
+                ln -sf "lib${LIB}.dylib" "$BASE/lib${LIB}.9.dylib"
               fi
             done
           done
-          echo "Protobuf opt target -> $(readlink $BREW_PREFIX/opt/protobuf261)"
-          ls -l "$BREW_PREFIX/opt/protobuf261/lib" | sed -n '1,120p'
+          echo "Protobuf opt target -> $(readlink $BREW_PREFIX/opt/protobuf261 || true)"
+          ls -ld "$BREW_PREFIX/opt/protobuf261" || true
+          ls -l "$BREW_PREFIX/opt/protobuf261/lib" | sed -n '1,80p' || true
 
-          # --- Boost: keep opt pointing at active keg and provide unversioned names ---
-          BOOST_DIR="${BOOST_ROOT:?missing BOOST_ROOT}"
-          if [ ! -L "$BREW_PREFIX/opt/boost176" ] || [ "$(readlink "$BREW_PREFIX/opt/boost176" || true)" != "$BOOST_DIR" ]; then
+          # --- Boost: relink /opt to the REAL keg (avoid self-loop) ---
+          KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
+          [ -n "$KEG_DIR" ] || { echo "::error::No boost176 keg found"; exit 1; }
+          BOOST_KEG="$KEG_DIR"
+          if [ ! -L "$BREW_PREFIX/opt/boost176" ] || [ "$(realpath "$BREW_PREFIX/opt/boost176" || true)" != "$BOOST_KEG" ]; then
             sudo rm -rf "$BREW_PREFIX/opt/boost176" || true
-            sudo ln -s "$BOOST_DIR" "$BREW_PREFIX/opt/boost176"
+            sudo ln -s "$BOOST_KEG" "$BREW_PREFIX/opt/boost176"
           fi
-          BOOST_LIB_DIR="$BOOST_DIR/lib"
+          BOOST_LIB_DIR="$BOOST_KEG/lib"
           for L in filesystem program_options thread chrono system; do
             PLAIN="$BOOST_LIB_DIR/libboost_${L}.dylib"
             if [ ! -e "$PLAIN" ]; then
               CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${L}*.dylib 2>/dev/null | grep -v '/libboost_'"$L"'\.dylib$' | sort -V | tail -n1 || true)"
-              [ -n "$CAND" ] && ln -sf "$(basename "$CAND")" "$PLAIN"
+              [ -n "$CAND" ] && [ "$(basename "$CAND")" = "libboost_${L}.dylib" ] || { [ -n "$CAND" ] && ln -sf "$(basename "$CAND")" "$PLAIN"; }
             fi
           done
-          echo "Boost opt target -> $(readlink $BREW_PREFIX/opt/boost176)"
+          echo "Boost opt target -> $(readlink $BREW_PREFIX/opt/boost176 || true)"
+          ls -ld "$BREW_PREFIX/opt/boost176" || true
           ls -l "$BOOST_LIB_DIR" | grep -E 'boost_(filesystem|program_options|thread|chrono|system).*dylib' || true
 
-          # Export for macdeployqtplus & DYLD
-          echo "DYLD_LIBRARY_PATH=$PROTO_DIR/lib:$BOOST_DIR/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          # Export final DYLD path from real kegs
+          echo "DYLD_LIBRARY_PATH=$PROTO_DIR/lib:$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
       - name: make .dmg
         run: |
           set -euo pipefail
-          # Guard: verify plain-name Boost dylibs from the real keg
+          # Guard: verify plain-name Boost dylibs from the REAL keg (not /opt, to avoid loops)
           BREW_CELLAR="$(brew --cellar)"
           KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
           BOOST_LIB_DIR="${BOOST_LIBS:-${BOOST_LIBRARYDIR:-${KEG_DIR}/lib}}"
