@@ -86,7 +86,7 @@ jobs:
             URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
             echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
-          fi"
+          fi
           echo "Current taps:"
           brew tap
 
