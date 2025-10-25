@@ -553,6 +553,51 @@ jobs:
           }
           echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
+      # ---- REPAIR /opt SYMLINKS & ASSERT DYLIBS (protobuf + boost) ----
+      - name: Repair /opt symlinks & assert dylibs (protobuf+boost)
+        run: |
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+
+          # --- Protobuf: ensure /opt path points at the active keg and .9 shim exists ---
+          PROTO_DIR="${PROTOBUF_ROOT:?missing PROTOBUF_ROOT}"
+          if [ ! -L "$BREW_PREFIX/opt/protobuf261" ] || [ "$(readlink "$BREW_PREFIX/opt/protobuf261" || true)" != "$PROTO_DIR" ]; then
+            sudo rm -rf "$BREW_PREFIX/opt/protobuf261" || true
+            sudo ln -s "$PROTO_DIR" "$BREW_PREFIX/opt/protobuf261"
+          fi
+          for BASE in "$PROTO_DIR/lib" "$BREW_PREFIX/opt/protobuf261/lib"; do
+            [ -d "$BASE" ] || continue
+            for LIB in protobuf protobuf-lite; do
+              if [ ! -f "$BASE/lib${LIB}.9.dylib" ]; then
+                if [ -f "$BASE/lib${LIB}.dylib" ]; then
+                  ln -sf "lib${LIB}.dylib" "$BASE/lib${LIB}.9.dylib"
+                fi
+              fi
+            done
+          done
+          echo "Protobuf opt target -> $(readlink $BREW_PREFIX/opt/protobuf261)"
+          ls -l "$BREW_PREFIX/opt/protobuf261/lib" | sed -n '1,120p'
+
+          # --- Boost: keep opt pointing at active keg and provide unversioned names ---
+          BOOST_DIR="${BOOST_ROOT:?missing BOOST_ROOT}"
+          if [ ! -L "$BREW_PREFIX/opt/boost176" ] || [ "$(readlink "$BREW_PREFIX/opt/boost176" || true)" != "$BOOST_DIR" ]; then
+            sudo rm -rf "$BREW_PREFIX/opt/boost176" || true
+            sudo ln -s "$BOOST_DIR" "$BREW_PREFIX/opt/boost176"
+          fi
+          BOOST_LIB_DIR="$BOOST_DIR/lib"
+          for L in filesystem program_options thread chrono system; do
+            PLAIN="$BOOST_LIB_DIR/libboost_${L}.dylib"
+            if [ ! -e "$PLAIN" ]; then
+              CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${L}*.dylib 2>/dev/null | grep -v '/libboost_'"$L"'\.dylib$' | sort -V | tail -n1 || true)"
+              [ -n "$CAND" ] && ln -sf "$(basename "$CAND")" "$PLAIN"
+            fi
+          done
+          echo "Boost opt target -> $(readlink $BREW_PREFIX/opt/boost176)"
+          ls -l "$BOOST_LIB_DIR" | grep -E 'boost_(filesystem|program_options|thread|chrono|system).*dylib' || true
+
+          # Export for macdeployqtplus & DYLD
+          echo "DYLD_LIBRARY_PATH=$PROTO_DIR/lib:$BOOST_DIR/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+
       - name: make .dmg
         run: |
           set -euo pipefail
@@ -567,6 +612,8 @@ jobs:
               exit 1
             }
           done
+          # Final guard for the exact path macdeployqtplus wants:
+          test -f /opt/homebrew/opt/protobuf261/lib/libprotobuf.9.dylib
           echo "Boost dylibs OK in $BOOST_LIB_DIR"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
@@ -868,7 +915,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-windows32-ubuntu22
-          path: |
+        path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
             /home/runner/work/verge/verge/src/verge-tx.exe
