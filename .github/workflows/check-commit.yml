@@ -20,7 +20,6 @@ jobs:
           key: brew-cache-${{ runner.os }}-mac13-v1
           restore-keys: |
             brew-cache-${{ runner.os }}-mac13-
-
       - name: Cache ccache
         id: cache-ccache-13
         uses: actions/cache@v4
@@ -29,7 +28,6 @@ jobs:
           key: ccache-${{ runner.os }}-mac13-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
             ccache-${{ runner.os }}-mac13-v1-
-
       - name: Cache Boost tap build (macOS 13)
         id: cache-boost13
         uses: actions/cache@v4
@@ -38,7 +36,6 @@ jobs:
           key: boost176-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/boost176.rb') }}
           restore-keys: |
             boost176-${{ runner.os }}-mac13-
-
       - name: Cache Protobuf tap build (macOS 13)
         id: cache-protobuf13
         uses: actions/cache@v4
@@ -47,7 +44,6 @@ jobs:
           key: protobuf261-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
             protobuf261-${{ runner.os }}-mac13-
-
       - name: git config credential.helper
         run: git config credential.helper
 
@@ -55,7 +51,6 @@ jobs:
         run: |
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg ccache
-
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
 
@@ -69,7 +64,6 @@ jobs:
           ccache -z || true
           echo "CC=ccache clang" >> "$GITHUB_ENV"
           echo "CXX=ccache clang++" >> "$GITHUB_ENV"
-
       - name: Show current directory
         run: |
           pwd
@@ -77,7 +71,6 @@ jobs:
           ls -lah
           ls -lah depends || true
           ls -lah depends/homebrew-formulas || true
-
       - name: Create local tap & stage protobuf261.rb
         run: |
           set -euo pipefail
@@ -98,7 +91,6 @@ jobs:
           fi
           echo "Current taps:"
           brew tap
-
       - name: Install protobuf261 via tap
         run: brew install vergecurrency/local/protobuf261
 
@@ -124,7 +116,6 @@ jobs:
           fi
           echo "Current taps:"
           brew tap
-
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
@@ -162,7 +153,6 @@ jobs:
           echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
           echo "Using BOOST at: $BOOST_DIR"
           ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
-
       - name: Resolve Protobuf 2.6.1 env (robust, preserve flags)
         run: |
           set -euo pipefail
@@ -203,7 +193,6 @@ jobs:
           echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib ${CUR_LD}"       >> "$GITHUB_ENV"
           echo "Using Protobuf at: $PROTO_DIR"
           ls -lah "$PROTO_DIR/lib" | egrep 'libprotobuf|protobuf' || true
-
       - name: which clang/xcode
         run: clang --version
 
@@ -223,7 +212,6 @@ jobs:
             --with-boost-libdir="${BOOST_LIBRARYDIR}" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib"
-
       - name: Free up memory (optional)
         run: sudo purge || true
 
@@ -264,7 +252,6 @@ jobs:
             done
           done
           echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$BREW_PREFIX/opt/boost176/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
-
       - name: Prepare Protobuf dylib for macdeploy
         run: |
           set -euo pipefail
@@ -288,18 +275,15 @@ jobs:
             [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ] && ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
           }
           echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
-
       - name: make .dmg
         run: |
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
-
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos13
           path: |
             *.dmg
-
   macos14:
     runs-on: macos-14
     steps:
@@ -315,7 +299,6 @@ jobs:
           key: brew-cache-${{ runner.os }}-mac14-v1
           restore-keys: |
             brew-cache-${{ runner.os }}-mac14-
-
       - name: Cache ccache
         id: cache-ccache-14
         uses: actions/cache@v4
@@ -324,7 +307,6 @@ jobs:
           key: ccache-${{ runner.os }}-mac14-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
             ccache-${{ runner.os }}-mac14-v1-
-
       - name: Cache Boost tap build (macOS 14)
         id: cache-boost14
         uses: actions/cache@v4
@@ -333,7 +315,6 @@ jobs:
           key: boost176-${{ runner.os }}-mac14-v1-${{ hashFiles('depends/homebrew-formulas/boost176.rb') }}
           restore-keys: |
             boost176-${{ runner.os }}-mac14-
-
       - name: Cache Protobuf tap build (macOS 14)
         id: cache-protobuf14
         uses: actions/cache@v4
@@ -342,7 +323,6 @@ jobs:
           key: protobuf261-${{ runner.os }}-mac14-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
             protobuf261-${{ runner.os }}-mac14-
-
       - name: git config credential.helper
         run: git config credential.helper
 
@@ -353,7 +333,6 @@ jobs:
         run: |
           brew install --quiet python@3 || brew link --overwrite python@3
           brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg ccache
-
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
 
@@ -370,7 +349,6 @@ jobs:
           ccache -z || true
           echo "CC=ccache clang" >> "$GITHUB_ENV"
           echo "CXX=ccache clang++" >> "$GITHUB_ENV"
-
       - name: Show current directory
         run: |
           pwd
@@ -378,7 +356,6 @@ jobs:
           ls -lah
           ls -lah depends || true
           ls -lah depends/homebrew-formulas || true
-
       - name: Create local tap & stage protobuf261.rb
         run: |
           set -euo pipefail
@@ -399,7 +376,6 @@ jobs:
           fi
           echo "Current taps:"
           brew tap
-
       - name: Install protobuf261 via tap
         run: brew install vergecurrency/local/protobuf261
 
@@ -425,7 +401,6 @@ jobs:
           fi
           echo "Current taps:"
           brew tap
-
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
@@ -456,7 +431,6 @@ jobs:
           echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
           echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
-
       - name: Resolve Protobuf 2.6.1 env (robust)
         run: |
           set -euo pipefail
@@ -489,7 +463,6 @@ jobs:
           echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib"       >> "$GITHUB_ENV"
           [ -z "${BOOST_INC}" ] || test -f "$BOOST_INC/boost/filesystem.hpp" || { echo "::warning::boost/filesystem.hpp not found under $BOOST_INC"; ls -R "$BOOST_INC" | head -n 50 || true; }
           ls -lah "$PROTO_DIR/lib" | grep -E 'libprotobuf|protobuf' || true
-
       - name: which clang/xcode
         run: clang --version
 
@@ -510,7 +483,6 @@ jobs:
             --libdir="$(pwd)/release/lib" \
             --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.6.0 \
             --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1
-
       - name: make
         run: make -j4
 
@@ -546,7 +518,6 @@ jobs:
           done
           echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
           echo "BOOST_LIBS=$BOOST_LIB_DIR" >> "$GITHUB_ENV"
-
       - name: Prepare Protobuf dylib for macdeploy
         run: |
           set -euo pipefail
@@ -570,7 +541,6 @@ jobs:
             [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ] && ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
           }
           echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
-
       - name: make .dmg
         run: |
           set -euo pipefail
@@ -588,17 +558,11 @@ jobs:
           echo "Boost dylibs OK in $BOOST_LIB_DIR"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
-
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos14
           path: |
             *.dmg
-
-  macos-latest:
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v4
 
   ubuntu24:
     runs-on: ubuntu-24.04
