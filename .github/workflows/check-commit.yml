@@ -30,15 +30,6 @@ jobs:
           restore-keys: |
             ccache-${{ runner.os }}-mac13-v1-
 
-      - name: Cache Boost tap build (macOS 13)
-        id: cache-boost13
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/Cellar/boost176
-          key: boost176-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/boost176.rb') }}
-          restore-keys: |
-            boost176-${{ runner.os }}-mac13-
-
       - name: Cache Protobuf tap build (macOS 13)
         id: cache-protobuf13
         uses: actions/cache@v4
@@ -95,7 +86,7 @@ jobs:
             URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
             echo "Fetching: $URL"
             curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
-          fi
+          fi"
           echo "Current taps:"
           brew tap
 
@@ -324,15 +315,6 @@ jobs:
           key: ccache-${{ runner.os }}-mac14-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
             ccache-${{ runner.os }}-mac14-v1-
-
-      - name: Cache Boost tap build (macOS 14)
-        id: cache-boost14
-        uses: actions/cache@v4
-        with:
-          path: /opt/homebrew/Cellar/boost176
-          key: boost176-${{ runner.os }}-mac14-v1-${{ hashFiles('depends/homebrew-formulas/boost176.rb') }}
-          restore-keys: |
-            boost176-${{ runner.os }}-mac14-
 
       - name: Cache Protobuf tap build (macOS 14)
         id: cache-protobuf14
