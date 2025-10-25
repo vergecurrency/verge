@@ -179,7 +179,7 @@ jobs:
           echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
           echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
           echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
-          echo "PATH=$PROTO_DIR/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> "$GITHUB_ENV"
+          echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
           BOOST_INC="${BOOST_INCLUDEDIR:-}"
           BOOST_LIB="${BOOST_LIBRARYDIR:-}"
           echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include"  >> "$GITHUB_ENV"
@@ -272,8 +272,71 @@ jobs:
           }
           echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
+      # ---- REPAIR /usr/local/opt SYMLINKS & ASSERT DYLIBS (protobuf + boost) ----
+      - name: Repair /opt symlinks & assert dylibs (protobuf+boost) [macOS 13]
+        run: |
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"   # /usr/local on macOS 13
+          BREW_CELLAR="$(brew --cellar)"
+
+          # --- Protobuf: ensure /usr/local/opt/protobuf261 -> real keg and .9 shim exists ---
+          PROTO_DIR="${PROTOBUF_ROOT:?missing PROTOBUF_ROOT}"
+          if [ -L "$PROTO_DIR" ]; then PROTO_DIR="$(realpath "$PROTO_DIR")"; fi
+          if [ ! -L "$BREW_PREFIX/opt/protobuf261" ] || [ "$(realpath "$BREW_PREFIX/opt/protobuf261" || true)" != "$PROTO_DIR" ]; then
+            sudo rm -rf "$BREW_PREFIX/opt/protobuf261" || true
+            sudo ln -s "$PROTO_DIR" "$BREW_PREFIX/opt/protobuf261"
+          fi
+          for BASE in "$PROTO_DIR/lib" "$BREW_PREFIX/opt/protobuf261/lib"; do
+            [ -d "$BASE" ] || continue
+            for LIB in protobuf protobuf-lite; do
+              if [ ! -f "$BASE/lib${LIB}.9.dylib" ] && [ -f "$BASE/lib${LIB}.dylib" ]; then
+                ln -sf "lib${LIB}.dylib" "$BASE/lib${LIB}.9.dylib"
+              fi
+            done
+          done
+          echo "Protobuf opt target -> $(readlink $BREW_PREFIX/opt/protobuf261 || true)"
+          ls -ld "$BREW_PREFIX/opt/protobuf261" || true
+          ls -l "$BREW_PREFIX/opt/protobuf261/lib" | sed -n '1,80p' || true
+
+          # --- Boost: ensure /usr/local/opt/boost176 points to the real keg (no loops) ---
+          KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
+          [ -n "$KEG_DIR" ] || { echo "::error::No boost176 keg found"; exit 1; }
+          if [ ! -L "$BREW_PREFIX/opt/boost176" ] || [ "$(realpath "$BREW_PREFIX/opt/boost176" || true)" != "$KEG_DIR" ]; then
+            sudo rm -rf "$BREW_PREFIX/opt/boost176" || true
+            sudo ln -s "$KEG_DIR" "$BREW_PREFIX/opt/boost176"
+          fi
+          BOOST_LIB_DIR="$KEG_DIR/lib"
+          for L in filesystem program_options thread chrono system; do
+            PLAIN="$BOOST_LIB_DIR/libboost_${L}.dylib"
+            if [ ! -e "$PLAIN" ]; then
+              CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${L}*.dylib 2>/dev/null | grep -v '/libboost_'"$L"'\.dylib$' | sort -V | tail -n1 || true)"
+              [ -n "$CAND" ] && [ "$(basename "$CAND")" = "libboost_${L}.dylib" ] || { [ -n "$CAND" ] && ln -sf "$(basename "$CAND")" "$PLAIN"; }
+            fi
+          done
+          echo "Boost opt target -> $(readlink $BREW_PREFIX/opt/boost176 || true)"
+          ls -ld "$BREW_PREFIX/opt/boost176" || true
+          ls -l "$BOOST_LIB_DIR" | grep -E 'boost_(filesystem|program_options|thread|chrono|system).*dylib' || true
+
+          # Export final DYLD path from real kegs
+          echo "DYLD_LIBRARY_PATH=$PROTO_DIR/lib:$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+
       - name: make .dmg
         run: |
+          set -euo pipefail
+          # Guard: verify plain-name Boost dylibs from the REAL keg (not /opt)
+          BREW_CELLAR="$(brew --cellar)"
+          KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
+          BOOST_LIB_DIR="${BOOST_LIBS:-${BOOST_LIBRARYDIR:-${KEG_DIR}/lib}}"
+          for L in filesystem program_options thread chrono system; do
+            test -f "$BOOST_LIB_DIR/libboost_${L}.dylib" || {
+              echo "::error::Missing $BOOST_LIB_DIR/libboost_${L}.dylib"
+              ls -lah "$BOOST_LIB_DIR" | sed -n '1,200p' || true
+              exit 1
+            }
+          done
+          # Final guard for the exact path macdeployqtplus uses on Intel macOS:
+          test -f /usr/local/opt/protobuf261/lib/libprotobuf.9.dylib
+          echo "Boost dylibs OK in $BOOST_LIB_DIR"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
 
