@@ -623,6 +623,28 @@ jobs:
             echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
       - name: make .dmg
         run: |
+          # --- Sanity: ensure unversioned Boost dylib symlinks exist ---
+          BREW_PREFIX="$(brew --prefix)"
+          BOOST_LIB_DIR="${BOOST_LIBRARYDIR:-$BREW_PREFIX/opt/boost176/lib}"
+          
+          fix_boost_symlink() {
+          local base="$1"  # e.g., filesystem, program_options, thread, chrono, system
+          if [ ! -e "$BOOST_LIB_DIR/libboost_${base}.dylib" ]; then
+            CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${base}*.dylib 2>/dev/null | sort -V | tail -n1 || true)"
+            if [ -n "$CAND" ]; then
+              ln -sf "$(basename "$CAND")" "$BOOST_LIB_DIR/libboost_${base}.dylib"
+            fi
+          fi
+          ls -l "$BOOST_LIB_DIR"/libboost_${base}*.dylib || true
+}
+
+for L in filesystem program_options thread chrono system; do
+  fix_boost_symlink "$L"
+done
+
+# Help some macdeployqtplus variants find Boost explicitly
+export BOOST_LIBS="$BOOST_LIB_DIR"
+
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
       - uses: actions/upload-artifact@v4
