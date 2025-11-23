@@ -362,14 +362,15 @@ jobs:
           restore-keys: |
             brew-cache-${{ runner.os }}-mac14-
 
-      - name: Cache ccache
+       - name: Cache ccache
         id: cache-ccache-14
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mac14-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: "ccache-${{ runner.os }}-mac14-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}"
           restore-keys: |
             ccache-${{ runner.os }}-mac14-v1-
+
 
       - name: Cache Protobuf tap build (macOS 14)
         id: cache-protobuf14
