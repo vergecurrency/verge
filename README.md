@@ -4,8 +4,8 @@
   <a href="https://github.com/vergecurrency/verge/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg">
   <img src="https://img.shields.io/badge/C%2B%2B-17%2F20-blue.svg">
   <a href="https://github.com/vergecurrency/verge/releases/latest"><img alt="GitHub all releases" src="https://img.shields.io/github/downloads/vergecurrency/verge/total?logo=GitHub"></a>
-  <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
-  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/vergecurrency/verge">
+  <a href="https://github.com/vergecurrency/VERGE/commits"><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/vergecurrency/VERGE">
+  <a href="https://github.com/vergecurrency/verge/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/vergecurrency/verge">
   <a href="https://discord.gg/vergecurrency"><img alt="Discord" src="https://img.shields.io/discord/325024453065179137">
   <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/vergecurrency/verge">
  <a href="https://x.com/vergecurrency"><img alt="X (formerly Twitter) Follow VergeCurrency!" src="https://img.shields.io/twitter/follow/vergecurrency?logo=twitter&logoColor=teal&labelColor=black&color=black">
