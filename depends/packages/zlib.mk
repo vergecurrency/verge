@@ -1,8 +1,8 @@
 package=zlib
-$(package)_version=1.3.1
-$(package)_download_path=http://www.zlib.net
+$(package)_version=1.3.1.2
+$(package)_download_path=https://github.com/madler/zlib/archive/refs/tags/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
+$(package)_sha256_hash=FBF1C8476136693E6C3F1FA26E6D8C4F2C8B5A5C44340C04DF349DAD02EED09E
 
 define $(package)_set_vars
 $(package)_config_opts= CC="$($(package)_cc)"
