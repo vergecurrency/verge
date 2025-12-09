@@ -5,8 +5,8 @@ on:
   pull_request:
 
 jobs:
-  macos15-arm:
-    runs-on: macos-15-arm64
+  macos-15:
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
