@@ -1032,7 +1032,7 @@
         <translation>مبلغ</translation>
     </message>
     <message>
-        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)</source>
         <translation>یک آدرس بیت‌کوین وارد کنید (مثلاً %1)</translation>
     </message>
     <message>

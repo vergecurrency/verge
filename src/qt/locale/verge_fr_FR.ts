@@ -1060,7 +1060,7 @@
         <translation>Montant</translation>
     </message>
     <message>
-        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)</source>
         <translation>Entrer une adresse VERGE (e.g. %1)</translation>
     </message>
     <message>

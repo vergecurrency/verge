@@ -1440,7 +1440,7 @@
         <translation>Bedrag</translation>
     </message>
     <message>
-        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)</source>
         <translation>Voer een VERGEadres in (bijv. %1)</translation>
     </message>
     <message>

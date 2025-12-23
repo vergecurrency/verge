@@ -1393,7 +1393,7 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>Összeg</translation>
     </message>
     <message>
-        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sandy.nft)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)</source>
         <translation>Ad meg egy VERGE címet (pl: %1)</translation>
     </message>
     <message>
