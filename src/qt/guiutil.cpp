@@ -172,8 +172,8 @@ QString resolveUnsDomain(QString domain)
 }
 
 
-bool unsEnabled(){
-    return gArgs.GetBoolArg("-with-unstoppable", false);
+bool unsEnabled({
+    return gArgs.GetBoolArg("-with-unstoppable", true);
 }
 
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
