@@ -172,7 +172,7 @@ QString resolveUnsDomain(QString domain)
 }
 
 
-bool unsEnabled({
+bool unsEnabled(){
     return gArgs.GetBoolArg("-with-unstoppable", true);
 }
 
