@@ -346,7 +346,7 @@ jobs:
           path: |
             *.dmg
 
-  macos14:
+  macos-14:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
