@@ -207,6 +207,7 @@ vSeeds.emplace_back("aj5ykqxwgesuruyalrlm75jvu3im6yrbm5omlzesooj4g6ojpaleziad.on
 vSeeds.emplace_back("m7432l6hli33g2kbm4ammghqbjvgpegnhee7ycia5fve6kxjkrs4pyyd.onion");
 vSeeds.emplace_back("mny6whwahgqr23eozqi5sl2x26jovetzkpf7nfff4i2gcd3f5zwebbid.onion");
 vSeeds.emplace_back("q5mhsugjs7ermqycm6lxcuz5lin44jthmpwttziznyuw2zie7gx745id.onion");
+vSeeds.emplace_back("vpbngvax6f2vxpf5kldjmacpi3k4zyvh53khoab4gqiicluwqu5e2qad.onion");
 }
 
 if (gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
@@ -228,6 +229,23 @@ vSeeds.emplace_back("185.220.101.170");
 vSeeds.emplace_back("162.55.208.7");
 vSeeds.emplace_back("49.12.231.33");
 vSeeds.emplace_back("188.34.183.235");
+vSeeds.emplace_back("104.62.118.170");
+vSeeds.emplace_back("78.29.12.80");
+vSeeds.emplace_back("116.203.21.184");
+vSeeds.emplace_back("54.229.85.145");
+vSeeds.emplace_back("108.91.11.33");
+vSeeds.emplace_back("45.84.107.74");
+vSeeds.emplace_back("34.84.22.11");
+vSeeds.emplace_back("35.243.80.95");
+vSeeds.emplace_back("198.244.167.143");
+vSeeds.emplace_back("167.86.116.187");
+vSeeds.emplace_back("37.27.70.18");
+vSeeds.emplace_back("18.134.196.91");
+vSeeds.emplace_back("206.189.118.128");
+vSeeds.emplace_back("176.34.134.0");
+vSeeds.emplace_back("47.242.186.213");
+vSeeds.emplace_back("43.163.239.28");
+vSeeds.emplace_back("51.81.185.115");
 }
 
 base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
