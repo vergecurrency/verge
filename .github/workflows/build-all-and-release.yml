@@ -8,50 +8,57 @@ on:
     types: [published]
 
 jobs:
-  macos13:
-    runs-on: macos-13
+  macos-15:
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
       - name: Cache Homebrew downloads
-        id: cache-brew-13
+        id: cache-brew-15
         uses: actions/cache@v4
         with:
           path: |
             ~/Library/Caches/Homebrew
             /Users/runner/Library/Caches/Homebrew
-          key: brew-cache-${{ runner.os }}-mac13-v1
+          key: brew-cache-${{ runner.os }}-mac15-v1
           restore-keys: |
-            brew-cache-${{ runner.os }}-mac13-
+            brew-cache-${{ runner.os }}-mac15-
 
       - name: Cache ccache
-        id: cache-ccache-13
+        id: cache-ccache-15
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mac13-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: "ccache-${{ runner.os }}-mac15-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}"
           restore-keys: |
-            ccache-${{ runner.os }}-mac13-v1-
+            ccache-${{ runner.os }}-mac15-v1-
 
-      - name: Cache Protobuf tap build (macOS 13)
-        id: cache-protobuf13
+
+      - name: Cache Protobuf tap build (macOS 15)
+        id: cache-protobuf15
         uses: actions/cache@v4
         with:
-          path: /usr/local/Cellar/protobuf261
-          key: protobuf261-${{ runner.os }}-mac13-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
+          path: /opt/homebrew/Cellar/protobuf261
+          key: protobuf261-${{ runner.os }}-mac15-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
           restore-keys: |
-            protobuf261-${{ runner.os }}-mac13-
+            protobuf261-${{ runner.os }}-mac15-
 
       - name: git config credential.helper
         run: git config credential.helper
 
+      - name: get previous xcode and switch to it
+        run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_16.4.app
+
       - name: Brew install base dependencies
         run: |
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake berkeley-db@4 miniupnpc qt@5 gperf qrencode librsvg ccache
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg ccache
 
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
+
+      - name: check cellar for openssl
+        run: cd /opt/homebrew/Cellar/openssl@3/ && ls
 
       - name: Configure ccache
         env:
@@ -131,22 +138,16 @@ jobs:
             BOOST_DIR="$BREW_PREFIX/opt/boost176"
           else
             CELLAR_DIR="$BREW_CELLAR/boost176"
-            echo "No opt symlink found, falling back to Cellar at: $CELLAR_DIR"
             if [ -d "$CELLAR_DIR" ]; then
-               BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
               if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
                 BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
               fi
             fi
           fi
-          echo "BREW_PREFIX=$BREW_PREFIX"
-          echo "BREW_CELLAR=$BREW_CELLAR"
           echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
           if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
-            echo "::error::Boost libdir not found. Dumping diagnostics..."
-            brew info boost176 || true
-            ls -lah "$BREW_PREFIX/opt" | sed -n '1,120p' || true
-            ls -lah "$BREW_CELLAR/boost176" || true
+            echo "::error::Boost libdir not found."
             exit 1
           fi
           echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
@@ -154,8 +155,6 @@ jobs:
           echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
           echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
           echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
-          echo "Using BOOST at: $BOOST_DIR"
-          ls -lah "$BOOST_DIR/lib" | egrep 'boost_filesystem|filesystem' || true
 
       - name: Resolve Protobuf 2.6.1 env (robust)
         run: |
@@ -182,7 +181,7 @@ jobs:
           echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
           echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
           echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
-          echo "PATH=$PROTO_DIR/bin:/usr/local/bin:/usr/bin:/bin" >> "$GITHUB_ENV"
+          echo "PATH=$PROTO_DIR/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> "$GITHUB_ENV"
           BOOST_INC="${BOOST_INCLUDEDIR:-}"
           BOOST_LIB="${BOOST_LIBRARYDIR:-}"
           echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include"  >> "$GITHUB_ENV"
@@ -199,7 +198,6 @@ jobs:
       - name: configure
         run: |
           ./configure \
-            --enable-scrypt-sse2 \
             --disable-bench \
             --disable-tests \
             --disable-dependency-tracking \
@@ -208,48 +206,45 @@ jobs:
             --with-boost="${BOOST_ROOT}" \
             --with-boost-libdir="${BOOST_LIBRARYDIR}" \
             --bindir="$(pwd)/release/bin" \
-            --libdir="$(pwd)/release/lib"
-
-      - name: Free up memory (optional)
-        run: sudo purge || true
+            --libdir="$(pwd)/release/lib" \
+            --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.6.0 \
+            --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1
 
       - name: make
-        run: make -j2
+        run: make -j4
 
-      - name: Prepare Boost dylib names for macdeploy
+      # ---- SAFE BOOST SETUP (no /opt relink, no self-loop symlinks) ----
+      - name: Prepare Boost dylib names for macdeploy (safe, no opt relink)
         run: |
           set -euo pipefail
-          BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
+          # Prefer real keg path
           if [ -n "${BOOST_LIBRARYDIR:-}" ] && [ -d "$BOOST_LIBRARYDIR" ]; then
             BOOST_LIB_DIR="$BOOST_LIBRARYDIR"
-            BOOST_DIR="$(dirname "$BOOST_LIBRARYDIR")"
           else
-            if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
-              BOOST_DIR="$BREW_PREFIX/opt/boost176"
-              BOOST_LIB_DIR="$BOOST_DIR/lib"
-            else
-              CELLAR_DIR="$BREW_CELLAR/boost176"
-              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-              BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
-              BOOST_LIB_DIR="$BOOST_DIR/lib"
-            fi
+            KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
+            [ -n "$KEG_DIR" ] || { echo "::error::No boost176 keg found in $BREW_CELLAR/boost176"; exit 1; }
+            BOOST_LIB_DIR="$KEG_DIR/lib"
           fi
-          echo "Using BOOST_DIR=$BOOST_DIR"
           echo "Using BOOST_LIB_DIR=$BOOST_LIB_DIR"
-          ls -lah "$BOOST_LIB_DIR" | head -n 120 || true
-          for LIB in filesystem program_options thread chrono system; do
-            for BASE in "$BOOST_LIB_DIR" "$BREW_PREFIX/opt/boost176/lib"; do
-              [ -d "$BASE" ] || continue
-              if [ ! -f "$BASE/libboost_${LIB}.dylib" ]; then
-                if compgen -G "$BASE/libboost_${LIB}-mt*.dylib" > /dev/null; then
-                  LN_TGT="$(ls -1 "$BASE"/libboost_${LIB}-mt*.dylib | sort -V | tail -n1)"
-                  [ "$(basename "$LN_TGT")" = "libboost_${LIB}.dylib" ] || ln -sf "$(basename "$LN_TGT")" "$BASE/libboost_${LIB}.dylib"
-                fi
+          fix_boost_symlink() {
+            local base="$1"
+            local plain="$BOOST_LIB_DIR/libboost_${base}.dylib"
+            if [ ! -e "$plain" ]; then
+              # choose a candidate that is NOT the plain name to avoid self-loop
+              CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${base}*.dylib 2>/dev/null | \
+                      grep -Ev '/libboost_'"$base"'\.dylib$' | sort -V | tail -n1 || true)"
+              if [ -n "$CAND" ]; then
+                [ "$(basename "$CAND")" = "libboost_${base}.dylib" ] || ln -sf "$(basename "$CAND")" "$plain"
               fi
-            done
+            fi
+            ( ls -l "$BOOST_LIB_DIR"/libboost_${base}*.dylib || true ) | sed -n '1,10p'
+          }
+          for L in filesystem program_options thread chrono system; do
+            fix_boost_symlink "$L"
           done
-          echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:$BREW_PREFIX/opt/boost176/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          echo "BOOST_LIBS=$BOOST_LIB_DIR" >> "$GITHUB_ENV"
 
       - name: Prepare Protobuf dylib for macdeploy
         run: |
@@ -275,15 +270,16 @@ jobs:
           }
           echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
 
-      # ---- REPAIR /usr/local/opt SYMLINKS & ASSERT DYLIBS (protobuf + boost) ----
-      - name: Repair /opt symlinks & assert dylibs (protobuf+boost) [macOS 13]
+      # ---- REPAIR /opt SYMLINKS & ASSERT DYLIBS (protobuf + boost) ----
+      - name: Repair /opt symlinks & assert dylibs (protobuf+boost)
         run: |
           set -euo pipefail
-          BREW_PREFIX="$(brew --prefix)"   # /usr/local on macOS 13
+          BREW_PREFIX="$(brew --prefix)"
           BREW_CELLAR="$(brew --cellar)"
 
-          # --- Protobuf: ensure /usr/local/opt/protobuf261 -> real keg and .9 shim exists ---
+          # --- Protobuf: ensure /opt points at the active keg and .9 shim exists ---
           PROTO_DIR="${PROTOBUF_ROOT:?missing PROTOBUF_ROOT}"
+          # Normalize to real keg path
           if [ -L "$PROTO_DIR" ]; then PROTO_DIR="$(realpath "$PROTO_DIR")"; fi
           if [ ! -L "$BREW_PREFIX/opt/protobuf261" ] || [ "$(realpath "$BREW_PREFIX/opt/protobuf261" || true)" != "$PROTO_DIR" ]; then
             sudo rm -rf "$BREW_PREFIX/opt/protobuf261" || true
@@ -301,14 +297,15 @@ jobs:
           ls -ld "$BREW_PREFIX/opt/protobuf261" || true
           ls -l "$BREW_PREFIX/opt/protobuf261/lib" | sed -n '1,80p' || true
 
-          # --- Boost: ensure /usr/local/opt/boost176 points to the real keg (no loops) ---
+          # --- Boost: relink /opt to the REAL keg (avoid self-loop) ---
           KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
           [ -n "$KEG_DIR" ] || { echo "::error::No boost176 keg found"; exit 1; }
-          if [ ! -L "$BREW_PREFIX/opt/boost176" ] || [ "$(realpath "$BREW_PREFIX/opt/boost176" || true)" != "$KEG_DIR" ]; then
+          BOOST_KEG="$KEG_DIR"
+          if [ ! -L "$BREW_PREFIX/opt/boost176" ] || [ "$(realpath "$BREW_PREFIX/opt/boost176" || true)" != "$BOOST_KEG" ]; then
             sudo rm -rf "$BREW_PREFIX/opt/boost176" || true
-            sudo ln -s "$KEG_DIR" "$BREW_PREFIX/opt/boost176"
+            sudo ln -s "$BOOST_KEG" "$BREW_PREFIX/opt/boost176"
           fi
-          BOOST_LIB_DIR="$KEG_DIR/lib"
+          BOOST_LIB_DIR="$BOOST_KEG/lib"
           for L in filesystem program_options thread chrono system; do
             PLAIN="$BOOST_LIB_DIR/libboost_${L}.dylib"
             if [ ! -e "$PLAIN" ]; then
@@ -326,7 +323,7 @@ jobs:
       - name: make .dmg
         run: |
           set -euo pipefail
-          # Guard: verify plain-name Boost dylibs from the REAL keg (not /opt)
+          # Guard: verify plain-name Boost dylibs from the REAL keg (not /opt, to avoid loops)
           BREW_CELLAR="$(brew --cellar)"
           KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
           BOOST_LIB_DIR="${BOOST_LIBS:-${BOOST_LIBRARYDIR:-${KEG_DIR}/lib}}"
@@ -337,15 +334,15 @@ jobs:
               exit 1
             }
           done
-          # Final guard for the exact path macdeployqtplus uses on Intel macOS:
-          test -f /usr/local/opt/protobuf261/lib/libprotobuf.9.dylib
+          # Final guard for the exact path macdeployqtplus wants:
+          test -f /opt/homebrew/opt/protobuf261/lib/libprotobuf.9.dylib
           echo "Boost dylibs OK in $BOOST_LIB_DIR"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos13
+          name: verge-macos15
           path: |
             *.dmg
 
