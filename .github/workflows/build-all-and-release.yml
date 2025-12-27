@@ -339,6 +339,34 @@ jobs:
           echo "Boost dylibs OK in $BOOST_LIB_DIR"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
+          
+      - name: Ad-hoc sign Verge binaries (macOS 15)
+        run: |
+          set -euo pipefail
+          
+          echo "Searching for Verge binaries to sign…"
+          find . -type f \( \
+            -name "verge-qt" -o \
+            -name "verged" -o \
+            -name "verge-cli" -o \
+            -name "verge-tx" \
+          \) -print -exec codesign --force --sign - {} \;
+          
+          # If Qt app exists, sign the whole bundle (important)
+          if ls *.app >/dev/null 2>&1; then
+            for APP in *.app; do
+              echo "Ad-hoc signing app bundle: $APP"
+              codesign --force --deep --sign - "$APP"
+            done
+          fi
+          
+          echo "Verifying signatures:"
+          find . -type f \( \
+            -name "verge-qt" -o \
+            -name "verged" -o \
+            -name "verge-cli" -o \
+            -name "verge-tx" \
+          \) -exec codesign -vv {} \; || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -676,6 +704,33 @@ jobs:
           echo "Boost dylibs OK in $BOOST_LIB_DIR"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
+      
+      - name: Ad-hoc sign Verge binaries (macOS 14)
+        run: |
+          set -euo pipefail
+          
+          echo "Searching for Verge binaries to sign…"
+          find . -type f \( \
+            -name "verge-qt" -o \
+            -name "verged" -o \
+            -name "verge-cli" -o \
+            -name "verge-tx" \
+          \) -print -exec codesign --force --sign - {} \;
+          
+          if ls *.app >/dev/null 2>&1; then
+            for APP in *.app; do
+              echo "Ad-hoc signing app bundle: $APP"
+              codesign --force --deep --sign - "$APP"
+            done
+          fi
+          
+          echo "Verifying signatures:"
+          find . -type f \( \
+            -name "verge-qt" -o \
+            -name "verged" -o \
+            -name "verge-cli" -o \
+            -name "verge-tx" \
+          \) -exec codesign -vv {} \; || true
 
       - uses: actions/upload-artifact@v4
         with:
