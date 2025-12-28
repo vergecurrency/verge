@@ -1444,7 +1444,7 @@
         <translation>Suma</translation>
     </message>
     <message>
-        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or snerok.wallet)</source>
         <translation>Zadajte VERGE adresu (napr. %1)</translation>
     </message>
     <message>

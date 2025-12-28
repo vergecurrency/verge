@@ -1836,7 +1836,7 @@
     </message>
     <message>
         <location filename="../guiutil.cpp" line="+130"/>
-        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or snerok.wallet)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

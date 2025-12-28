@@ -1432,7 +1432,7 @@
         <translation>Částka</translation>
     </message>
     <message>
-        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)</source>
+        <source>Enter a VERGE address or Web3 Domain(e.g. %1 or snerok.wallet)</source>
         <translation>Zadej vergeovou adresu (např. %1)</translation>
     </message>
     <message>

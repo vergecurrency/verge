@@ -185,7 +185,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
     if(unsEnabled()){
-        widget->setPlaceholderText(QObject::tr("Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.verge)").arg(
+        widget->setPlaceholderText(QObject::tr("Enter a VERGE address or Web3 Domain(e.g. %1 or sunerok.wallet)").arg(
             QString::fromStdString(DummyAddress(Params()))));
     }else{
         widget->setPlaceholderText(QObject::tr("Enter a VERGE address(e.g. %1)").arg(
