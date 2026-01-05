@@ -1,8 +1,8 @@
 package=native_ds_store
-$(package)_version=1.3.1
+$(package)_version=1.3.2
 $(package)_download_path=https://github.com/dmgbuild/ds_store/archive/refs/tags/
 $(package)_file_name=v$($(package)_version).tar.gz
-$(package)_sha256_hash=4B09F5EB6BA13C4F2350EB8761726E88E30AA329BF790DE7AE513E465A681E57
+$(package)_sha256_hash=48BE8EBB432889EBED4877762779D87126AFF5CEF9E57D7174E1CDCDCD120C17
 $(package)_install_libdir=$(build_prefix)/lib/python3/dist-packages
 
 define $(package)_build_cmds
