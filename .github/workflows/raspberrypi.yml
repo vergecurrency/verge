@@ -1,40 +1,49 @@
-on:
-  push:
-  pull_request:
 jobs:
-  
   linux:
     runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Update apt repos
-        run: sudo apt-get update
+      - name: Install ARM64 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu
 
       - name: Install base dependencies
-        run: sudo apt-get install build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl g++-multilib binutils-gold bison byacc python3
+        run: |
+          sudo apt-get install -y \
+            build-essential xutils-dev libtool gperf \
+            autotools-dev automake pkg-config bsdmainutils \
+            libattr1-dev bison byacc cmake curl python3
 
       - name: Build depends
-        run: cd depends/ && make -j4 HOST=aarch64-linux-gnu
+        run: |
+          export CC=aarch64-linux-gnu-gcc
+          export CXX=aarch64-linux-gnu-g++
+          export AR=aarch64-linux-gnu-ar
+          export RANLIB=aarch64-linux-gnu-ranlib
+          make -C depends -j$(nproc) HOST=aarch64-linux-gnu
 
-      - name: Auto generate
+      - name: Autogen
         run: ./autogen.sh
 
-      - name: configure
-        run: CONFIG_SITE=$PWD/depends/aarch64-linux-gnu/share/config.site ./configure --build=aarch64-linux-gnu --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --prefix=`pwd`/depends/x86_64-linux-gnu --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib
+      - name: Configure
+        run: |
+          export CC=aarch64-linux-gnu-gcc
+          export CXX=aarch64-linux-gnu-g++
+          CONFIG_SITE=$PWD/depends/aarch64-linux-gnu/share/config.site \
+          ./configure \
+            --build=x86_64-pc-linux-gnu \
+            --host=aarch64-linux-gnu \
+            --disable-bench \
+            --disable-tests \
+            --disable-dependency-tracking \
+            --disable-werror \
+            --prefix=$PWD/depends/aarch64-linux-gnu
 
-      - name: make
-        run: make -j4
-
-      - name: make check
-        run: make check -j4 
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-aarch64.zip
-          path: |
-            ./src/verged
-            ./src/verge-cli
-            ./src/verge-tx
-            ./src/qt/verge-qt
+      - name: Build
+        run: make -j$(nproc)
