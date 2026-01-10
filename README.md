@@ -113,6 +113,13 @@ Block Number Range | Reward
 * [Mining Pool List] (https://miningpoolstats.stream/) Most pools of our 5 algorithms can be found here!
 * [Black Paper] (https://vergecurrency.com/static/blackpaper/verge-blackpaper-v5.0.pdf) Verge's whitepaper can be found here!
 
+## Building From Source
+
+* [Unix Instructions](doc/build-unix.md)
+* [OS X Instructions](doc/build-osx.md)
+* [Windows Instructions](doc/build-windows.md)
+* [Raspberry Pi/aarch64 Instructions](doc/build-pi-aarch64.md)
+
 ### Community
 
 * [Telegram](https://t.me/officialxvg)
@@ -207,12 +214,6 @@ Binary (pre-compiled) wallets are available on all platforms here in [Releases](
 > **Note**: If you see something like 'Killed (program cc1plus)' run ```dmesg``` to see the error(s)/problems(s). This is most likely caused by running out of resources. You may need to add some RAM or add some swap space.
 
 You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.com/watch?v=WYe75b6RWes).
-
-## Building From Source
-
-* [Unix Instructions](doc/build-unix.md)
-* [OS X Instructions](doc/build-osx.md)
-* [Windows Instructions](doc/build-windows.md)
 
 
 ## Use [Unstoppable Domains](https://unstoppabledomains.com)
