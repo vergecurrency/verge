@@ -1,5 +1,10 @@
 ## Building on Raspberry Pi 5
 
+System:	64-bit
+Kernel version:	6.12
+Debian version:	13 (trixie)
+
+
 Step 1. Install/Build all dependencies for aarch64 
 ```
 apt install libseccomp-dev git build-essential xutils-dev libtool gperf autotools-dev automake pkg-config bsdmainutils libattr1-dev make automake bison byacc cmake curl bison byacc python3 libcap-dev
