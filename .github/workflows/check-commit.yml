@@ -969,11 +969,6 @@ jobs:
           cd ./src && strip verged verge-cli verge-tx
           cd ./qt && strip verge-qt
 
-      - name: ccache stats
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: ccache -s || true
-
       - uses: actions/upload-artifact@v4
         with:
           name: verge-aarch64-pi5
