@@ -934,7 +934,7 @@ jobs:
           sudo apt-get install -y \
           libseccomp-dev git build-essential xutils-dev libtool gperf autotools-dev \
           automake pkg-config bsdmainutils libattr1-dev make automake bison byacc \
-          cmake curl bison byacc python3 libcap-dev
+          cmake curl bison byacc python3 libcap-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Export toolchain env
         run: |
@@ -943,7 +943,6 @@ jobs:
           echo "AR=ar"         >> "$GITHUB_ENV"
           echo "RANLIB=ranlib" >> "$GITHUB_ENV"
           echo "STRIP=strip"   >> "$GITHUB_ENV"
-          echo "CCACHE_DIR=$HOME/.ccache" >> "$GITHUB_ENV"
 
       - name: Build depends
         run: |
