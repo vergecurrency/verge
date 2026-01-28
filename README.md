@@ -218,7 +218,7 @@ You can also check out this [Linux Wallet Video Tutorial](https://www.youtube.co
 
 ## Use [Unstoppable Domains](https://unstoppabledomains.com)
 
-To use VERGE with Unstoppable Domains for sending coins using Web3 Domains (know more about [Unstoppable Domains here](https://unstoppabledomains.com)), use this command to start the app "./verge-qt --with-unstoppable".
+To use VERGE with Unstoppable Domains for sending coins using Web3 Domains just put the name of the domain (ie: sunerok.crypto) in the "Pay To:" input in the Send tab of the wallet.
 
 ## Developer Notes
 
