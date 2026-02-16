@@ -750,12 +750,28 @@ jobs:
         
       - name: get previous xcode and switch to it
         run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
+        
+      - name: Create local tap for protobuf
+        run: |
+          brew tap-new verge/local
+          mkdir -p $(brew --repo verge/local)/Formula
+          curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb \
+          -o $(brew --repo verge/local)/Formula/protobuf261.rb
+          brew install verge/local/protobuf261
+          
+      - name: Install boost176 via temporary tap
+        run: |
+          brew tap-new verge/local || true
+          mkdir -p $(brew --repo verge/local)/Formula
+          curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb \
+          -o $(brew --repo verge/local)/Formula/boost176.rb
+          brew install verge/local/boost176
 
       - name: Brew install base dependencies
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg && curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb > protobuf261.rb && brew install protobuf261.rb
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
         
       - name: Brew install boost from our homebrew deps
         run: curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb > boost176.rb && brew install boost176.rb 
