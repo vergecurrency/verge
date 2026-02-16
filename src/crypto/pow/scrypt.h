@@ -34,8 +34,7 @@ extern void (*scrypt_1024_1_1_256_sp_detected)(const char *input, char *output, 
 void PBKDF2_SHA256(const uint8_t *passwd, size_t passwdlen, const uint8_t *salt,
                    size_t saltlen, uint64_t c, uint8_t *buf, size_t dkLen);
 
-#ifndef __FreeBSD__
-
+#if !defined(__FreeBSD__) && !defined(__APPLE__)
 #ifndef le32dec
 static inline uint32_t le32dec(const void *pp)
 {
@@ -57,7 +56,6 @@ static inline void le32enc(void *pp, uint32_t x)
     p[3] = (x >> 24) & 0xff;
 }
 #endif
-
-#endif // __FreeBSD__
+#endif // !FreeBSD && !APPLE
 
 #endif // VERGE_CRYPTO_POW_SCRYPT_H
