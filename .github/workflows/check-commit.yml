@@ -127,65 +127,68 @@ jobs:
       - name: Install boost176 via tap
         run: brew install vergecurrency/local/boost176
 
-      - name: Resolve Boost 1.76 env (robust)
+      - name: Resolve Boost 1.76 env (real keg preferred)
         run: |
-          set -euo pipefail
-          BREW_PREFIX="$(brew --prefix)"
-          BREW_CELLAR="$(brew --cellar)"
-          if [ -d "$BREW_PREFIX/opt/boost176/lib" ]; then
-            BOOST_DIR="$BREW_PREFIX/opt/boost176"
-          else
-            CELLAR_DIR="$BREW_CELLAR/boost176"
-            if [ -d "$CELLAR_DIR" ]; then
-              BOOST_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-              if [ -n "${BOOST_VER:-}" ] && [ -d "$CELLAR_DIR/$BOOST_VER/lib" ]; then
-                BOOST_DIR="$CELLAR_DIR/$BOOST_VER"
-              fi
-            fi
-          fi
-          echo "Resolved BOOST_DIR=${BOOST_DIR:-<empty>}"
-          if [ -z "${BOOST_DIR:-}" ] || [ ! -d "$BOOST_DIR/lib" ]; then
-            echo "::error::Boost libdir not found."
+            set -euo pipefail
+            BREW_CELLAR="$(brew --cellar)"
+            
+            KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
+            if [ -z "$KEG_DIR" ] || [ ! -d "$KEG_DIR/lib" ]; then
+            echo "::error::No valid boost176 keg found"
             exit 1
-          fi
-          echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
-          echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
-          echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
-          echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
-          echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
+            fi
+            
+            BOOST_DIR="$KEG_DIR"
+            echo "Using real Boost keg: $BOOST_DIR"
+            
+            echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
+            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
+            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
+            echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
+            echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
 
       - name: Resolve Protobuf 2.6.1 env (robust)
         run: |
-          set -euo pipefail
-          BREW_PREFIX="$(brew --prefix)"
-          BREW_CELLAR="$(brew --cellar)"
-          if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            set -euo pipefail
+            BREW_PREFIX="$(brew --prefix)"
+            BREW_CELLAR="$(brew --cellar)"
+            
+            if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
             PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
-          else
+            else
             CELLAR_DIR="$BREW_CELLAR/protobuf261"
             if [ -d "$CELLAR_DIR" ]; then
-              PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-              if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
+                PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
+                if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
                 PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
-              fi
+                fi
             fi
-          fi
-          echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
-          if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
+            fi
+            
+            echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
+            if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
             echo "::error::Protobuf libdir not found."
             exit 1
-          fi
-          echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
-          echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
-          echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
-          echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
-          echo "PATH=$PROTO_DIR/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> "$GITHUB_ENV"
-          BOOST_INC="${BOOST_INCLUDEDIR:-}"
-          BOOST_LIB="${BOOST_LIBRARYDIR:-}"
-          echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include"  >> "$GITHUB_ENV"
-          echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib"       >> "$GITHUB_ENV"
-          [ -z "${BOOST_INC}" ] || test -f "$BOOST_INC/boost/filesystem.hpp" || { echo "::warning::boost/filesystem.hpp not found under $BOOST_INC"; ls -R "$BOOST_INC" | head -n 50 || true; }
-          ls -lah "$PROTO_DIR/lib" | grep -E 'libprotobuf|protobuf' || true
+            fi
+            
+            echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
+            echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
+            echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
+            echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
+            echo "PATH=$PROTO_DIR/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> "$GITHUB_ENV"
+            
+            BOOST_INC="${BOOST_INCLUDEDIR:-}"
+            BOOST_LIB="${BOOST_LIBRARYDIR:-}"
+            
+            echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include"  >> "$GITHUB_ENV"
+            echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib"       >> "$GITHUB_ENV"
+            
+            [ -z "${BOOST_INC}" ] || test -f "$BOOST_INC/boost/filesystem.hpp" || {
+            echo "::warning::boost/filesystem.hpp not found under $BOOST_INC"
+            ls -R "$BOOST_INC" | head -n 50 || true
+            }
+            
+            ls -lah "$PROTO_DIR/lib" | grep -E 'libprotobuf|protobuf' || true
 
       - name: which clang/xcode
         run: clang --version
@@ -195,8 +198,8 @@ jobs:
 
       - name: configure
         run: |
-          export CXXFLAGS="-Wno-error"
-          export CFLAGS="-Wno-error"
+          export CXXFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
+          export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           ./configure \
             --disable-bench \
             --disable-tests \
