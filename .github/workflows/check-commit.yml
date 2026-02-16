@@ -748,9 +748,6 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
         
-      - name: get previous xcode and switch to it
-        run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_15.2.app
-        
       - name: Create local tap for protobuf
         run: |
           brew tap-new verge/local
@@ -790,6 +787,11 @@ jobs:
 
       - name: make
         run: make -j4
+        
+      - name: Sign app bundle
+        run: |
+          APP=$(find . -name "*.app" -type d | head -n 1)
+          codesign --force --deep --sign - "$APP"
 
       - name: make .dmg
         run: make deploy
