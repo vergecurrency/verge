@@ -7,7 +7,6 @@
 #define VERGE_CRYPTO_POW_SCRYPT_H
 #include <stdlib.h>
 #include <stdint.h>
-
 #if defined(HAVE_CONFIG_H)
 #include "verge-config.h" // for USE_SSE2
 #endif
@@ -32,9 +31,8 @@ extern void (*scrypt_1024_1_1_256_sp_detected)(const char *input, char *output, 
 #define scrypt_1024_1_1_256_sp(input, output, scratchpad) scrypt_1024_1_1_256_sp_generic((input), (output), (scratchpad))
 #endif
 
-void
-PBKDF2_SHA256(const uint8_t *passwd, size_t passwdlen, const uint8_t *salt,
-    size_t saltlen, uint64_t c, uint8_t *buf, size_t dkLen);
+void PBKDF2_SHA256(const uint8_t *passwd, size_t passwdlen, const uint8_t *salt,
+                   size_t saltlen, uint64_t c, uint8_t *buf, size_t dkLen);
 
 #ifndef __FreeBSD__
 
@@ -59,4 +57,7 @@ static inline void le32enc(void *pp, uint32_t x)
     p[3] = (x >> 24) & 0xff;
 }
 #endif
+
+#endif // __FreeBSD__
+
 #endif // VERGE_CRYPTO_POW_SCRYPT_H
