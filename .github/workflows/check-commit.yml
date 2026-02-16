@@ -788,13 +788,13 @@ jobs:
       - name: make
         run: make -j4
         
+      - name: make .dmg
+        run: make deploy
+        
       - name: Sign app bundle
         run: |
           APP=$(find . -name "*.app" -type d | head -n 1)
           codesign --force --deep --sign - "$APP"
-
-      - name: make .dmg
-        run: make deploy
 
       - uses: actions/upload-artifact@v4
         with:
