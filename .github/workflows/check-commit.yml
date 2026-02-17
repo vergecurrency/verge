@@ -81,6 +81,34 @@ jobs:
 
       - name: Build
         run: make -j4
+        
+      - name: Test verged daemon
+        run: |
+            # Locate the verged binary
+            VERGED_BIN="./verged"
+            if [ ! -f "$VERGED_BIN" ]; then
+            echo "::error::verged not found after make"
+            exit 1
+            fi
+
+            # Run the daemon in the background
+            "$VERGED_BIN" -daemon
+
+            #Wait a few seconds to verify it starts
+            sleep 5
+
+            # Check if the daemon process is running
+            if ! pgrep -f verged >/dev/null; then
+            echo "::error::verged failed to start"
+            exit 1
+            fi
+            
+            # Optionally show the version or status
+            ./verge-cli getinfo || true
+
+
+            # Stop the daemon cleanly
+            ./verge-cli stop
 
       - name: Wrap binary into .app bundle
         run: |
