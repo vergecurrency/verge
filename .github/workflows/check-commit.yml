@@ -145,7 +145,7 @@ jobs:
 
       - name: Bundle with macdeployqt
         run: |
-          APP_NAME="Verge.app"
+          APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
 
       - name: Fix dylib install names
