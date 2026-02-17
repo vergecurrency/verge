@@ -201,7 +201,6 @@ jobs:
           export CXXFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           ./configure \
-            --enable-scrypt-sse2 \
             --disable-bench \
             --disable-tests \
             --disable-dependency-tracking \
