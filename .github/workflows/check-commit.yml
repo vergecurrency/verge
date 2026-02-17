@@ -281,7 +281,7 @@ jobs:
 
           # Export final DYLD path from real kegs
           echo "DYLD_LIBRARY_PATH=$PROTO_DIR/lib:$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
-
+      
       - name: make .dmg
         run: |
           set -euo pipefail
@@ -307,16 +307,12 @@ jobs:
             set -euo pipefail
             find . -name "*.app" -type d -exec xattr -cr {} +
             
-      - name: Rebuild dmg clean
-        run: |
-            make deploy
-          
       - name: Ad-hoc hardened sign Verge app
         run: |
             set -euo pipefail
             for APP in *.app; do
             echo "Signing $APP"
-            codesign --force --deep --options runtime --sign - "$APP"
+            codesign --force --deep --strict --options runtime --sign - "$APP"
             done
             
       - name: Gatekeeper deep diagnostics
@@ -341,12 +337,19 @@ jobs:
             codesign -d --entitlements :- "$APP" 2>/dev/null || true
 
             echo
-            echo "=== Quarantine flags ==="
-            xattr -l "$APP" || true
+            echo "=== Quarantine flags (recursive) ==="
+            xattr -lr "$APP" || true
 
             echo
-            echo "=== Binary dylib check ==="
+            echo "=== Main binary dylibs ==="
             otool -L "$BIN" || true
+
+            echo
+            echo "=== Embedded frameworks ==="
+            find "$APP" -name "*.dylib" -o -name "*.so" -o -name "*.framework" | while read f; do
+                echo "--- $f ---"
+                otool -L "$f" || true
+            done
 
       - uses: actions/upload-artifact@v4
         with:
