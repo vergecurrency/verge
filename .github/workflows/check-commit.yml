@@ -121,7 +121,7 @@ jobs:
             echo "Found verge-qt at $BINARY"
             
             # Create .app bundle
-            APP_NAME="Verge.app"
+            APP_NAME="Verge-Qt.app"
             mkdir -p "$APP_NAME/Contents/MacOS"
             cp "$BINARY" "$APP_NAME/Contents/MacOS/"
             
