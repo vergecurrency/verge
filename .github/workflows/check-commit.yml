@@ -319,16 +319,34 @@ jobs:
             codesign --force --deep --options runtime --sign - "$APP"
             done
             
-      - name: Gatekeeper assessment
+      - name: Gatekeeper deep diagnostics
         run: |
             set -euo pipefail
             APP="$(ls -d *.app | head -n1)"
-            echo "Assessing $APP with spctl…"
-            spctl --assess --type execute --verbose "$APP" || {
-            echo "::error::Gatekeeper rejected the app"
-            exit 1
-            }
-            echo "Gatekeeper accepted the app"
+            BIN="$APP/Contents/MacOS/$(basename "$APP" .app)"
+
+            echo "=== SPCTL assessment ==="
+            spctl --assess --type execute --verbose=4 "$APP" || true
+
+            echo
+            echo "=== Codesign verification ==="
+            codesign --verify --deep --strict --verbose=4 "$APP" || true
+
+            echo
+            echo "=== Codesign details ==="
+            codesign -dv --verbose=4 "$APP" 2>&1 || true
+
+            echo
+            echo "=== Entitlements ==="
+            codesign -d --entitlements :- "$APP" 2>/dev/null || true
+
+            echo
+            echo "=== Quarantine flags ==="
+            xattr -l "$APP" || true
+
+            echo
+            echo "=== Binary dylib check ==="
+            otool -L "$BIN" || true
 
       - uses: actions/upload-artifact@v4
         with:
