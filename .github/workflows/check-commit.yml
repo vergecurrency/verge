@@ -186,7 +186,7 @@ jobs:
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
       - name: Codesign app
-        run: codesign --force --deep --options runtime --sign - "Verge.app"
+        run: codesign --force --deep --options runtime --sign - "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge.dmg -srcfolder "Verge.app" -ov -format UDZO
