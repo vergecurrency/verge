@@ -85,18 +85,18 @@ jobs:
       - name: Wrap binary into .app bundle
         run: |
             # Locate the verge-qt binary
-            BINARY=$(find ./release/bin -name "verge-qt" | head -n1)
+            BINARY=$(find . -name "verge-qt" -type f | head -n1)
             if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
-            echo "::error::verge-qt binary not found in release/bin"
+            echo "::error::verge-qt binary not found after make"
             exit 1
             fi
             echo "Found verge-qt at $BINARY"
-
+            
             # Create .app bundle
             APP_NAME="Verge.app"
             mkdir -p "$APP_NAME/Contents/MacOS"
             cp "$BINARY" "$APP_NAME/Contents/MacOS/"
-
+            
             # Minimal Info.plist
             echo '<?xml version="1.0" encoding="UTF-8"?>' > "$APP_NAME/Contents/Info.plist"
             echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> "$APP_NAME/Contents/Info.plist"
