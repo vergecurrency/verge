@@ -84,33 +84,36 @@ jobs:
 
       - name: Wrap binary into .app bundle
         run: |
-          BINARY="verge-qt"
-          if [ ! -f "$BINARY" ]; then
-            echo "::error::$BINARY not found after make"
+            # Locate the verge-qt binary
+            BINARY=$(find ./release/bin -name "verge-qt" | head -n1)
+            if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
+            echo "::error::verge-qt binary not found in release/bin"
             exit 1
-          fi
-          APP_NAME="Verge.app"
-          mkdir -p "$APP_NAME/Contents/MacOS"
-          cp "$BINARY" "$APP_NAME/Contents/MacOS/"
-          # Minimal Info.plist for macOS
-          cat > "$APP_NAME/Contents/Info.plist" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleName</key>
-  <string>Verge</string>
-  <key>CFBundleIdentifier</key>
-  <string>org.vergefoundation.verge-qt</string>
-  <key>CFBundleVersion</key>
-  <string>1.0</string>
-  <key>CFBundleExecutable</key>
-  <string>verge-qt</string>
-  <key>CFBundlePackageType</key>
-  <string>APPL</string>
-</dict>
-</plist>
-EOF
+            fi
+            echo "Found verge-qt at $BINARY"
+
+            # Create .app bundle
+            APP_NAME="Verge.app"
+            mkdir -p "$APP_NAME/Contents/MacOS"
+            cp "$BINARY" "$APP_NAME/Contents/MacOS/"
+
+            # Minimal Info.plist
+            echo '<?xml version="1.0" encoding="UTF-8"?>' > "$APP_NAME/Contents/Info.plist"
+            echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> "$APP_NAME/Contents/Info.plist"
+            echo '<plist version="1.0">' >> "$APP_NAME/Contents/Info.plist"
+            echo '<dict>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <key>CFBundleName</key>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <string>Verge</string>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <key>CFBundleIdentifier</key>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <string>org.vergefoundation.verge-qt</string>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <key>CFBundleVersion</key>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <string>1.0</string>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <key>CFBundleExecutable</key>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <string>verge-qt</string>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <key>CFBundlePackageType</key>' >> "$APP_NAME/Contents/Info.plist"
+            echo '  <string>APPL</string>' >> "$APP_NAME/Contents/Info.plist"
+            echo '</dict>' >> "$APP_NAME/Contents/Info.plist"
+            echo '</plist>' >> "$APP_NAME/Contents/Info.plist"
 
       - name: Bundle with macdeployqt
         run: |
