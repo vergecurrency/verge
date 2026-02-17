@@ -86,29 +86,52 @@ jobs:
         run: |
             VERGED_BIN="./src/verged"
             CLI_BIN="./src/verge-cli"
-
             if [ ! -f "$VERGED_BIN" ]; then
             echo "::error::verged not found at $VERGED_BIN"
             exit 1
             fi
-
+            
             # Run daemon in background
             "$VERGED_BIN" -daemon
-
+            
             # Give it a few seconds to start
             sleep 5
-
+            
             # Verify it's running
             if ! pgrep -f verged >/dev/null; then
             echo "::error::verged failed to start"
             exit 1
             fi
-
+            
             # Query info with CLI
             "$CLI_BIN" getinfo || true
-
+            
             # Stop the daemon
             "$CLI_BIN" stop
+      
+      - name: Test verge-qt directly
+        run: |
+            QT_BIN="./src/qt/verge-qt"
+            
+            if [ ! -f "$QT_BIN" ]; then
+            echo "::error::verge-qt not found at $QT_BIN"
+            exit 1
+            fi
+            
+            chmod +x "$QT_BIN"
+            
+            echo "Launching verge-qt..."
+            "$QT_BIN" &
+            
+            sleep 5
+            
+            if ! pgrep -f verge-qt >/dev/null; then
+            echo "::error::verge-qt failed to start"
+            exit 1
+            fi
+            
+            echo "verge-qt started successfully"
+            pkill verge-qt || true
 
       - name: Wrap binary into .app bundle
         run: |
