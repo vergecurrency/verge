@@ -11,36 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Homebrew downloads
-        id: cache-brew-26
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/Homebrew
-            /Users/runner/Library/Caches/Homebrew
-          key: brew-cache-${{ runner.os }}-mac26-v1
-          restore-keys: |
-            brew-cache-${{ runner.os }}-mac26-
-
-      - name: Cache ccache
-        id: cache-ccache-26
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: "ccache-${{ runner.os }}-mac26-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}"
-          restore-keys: |
-            ccache-${{ runner.os }}-mac26-v1-
-
-
-      - name: Cache Protobuf tap build (macOS 26)
-        id: cache-protobuf26
-        uses: actions/cache@v4
-        with:
-          path: /opt/homebrew/Cellar/protobuf261
-          key: protobuf261-${{ runner.os }}-mac26-v1-${{ hashFiles('depends/homebrew-formulas/protobuf261.rb') }}
-          restore-keys: |
-            protobuf261-${{ runner.os }}-mac26-
-
       - name: git config credential.helper
         run: git config credential.helper
 
@@ -50,24 +20,13 @@ jobs:
       - name: Brew install base dependencies
         run: |
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg ccache
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
 
       - name: Brew link dependencies
         run: brew link qt@5 berkeley-db@4
 
       - name: check cellar for openssl
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
-
-      - name: Configure ccache
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: |
-          mkdir -p ~/.ccache
-          echo 'max_size = 2G' > ~/.ccache/ccache.conf
-          echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true
-          echo "CC=ccache clang" >> "$GITHUB_ENV"
-          echo "CXX=ccache clang++" >> "$GITHUB_ENV"
 
       - name: Show current directory
         run: |
@@ -343,33 +302,22 @@ jobs:
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           make deploy
           
-      - name: Ad-hoc sign Verge binaries (macOS 26)
+      - name: Remove quarantine attributes
         run: |
-          set -euo pipefail
+            set -euo pipefail
+            find . -name "*.app" -type d -exec xattr -cr {} +
+            
+      - name: Rebuild dmg clean
+        run: |
+            make deploy
           
-          echo "Searching for Verge binaries to sign…"
-          find . -type f \( \
-            -name "verge-qt" -o \
-            -name "verged" -o \
-            -name "verge-cli" -o \
-            -name "verge-tx" \
-          \) -print -exec codesign --force --sign - {} \;
-          
-          # If Qt app exists, sign the whole bundle (important)
-          if ls *.app >/dev/null 2>&1; then
+      - name: Ad-hoc hardened sign Verge app
+        run: |
+            set -euo pipefail
             for APP in *.app; do
-              echo "Ad-hoc signing app bundle: $APP"
-              codesign --force --deep --sign - "$APP"
+            echo "Signing $APP"
+            codesign --force --deep --options runtime --sign - "$APP"
             done
-          fi
-          
-          echo "Verifying signatures:"
-          find . -type f \( \
-            -name "verge-qt" -o \
-            -name "verged" -o \
-            -name "verge-cli" -o \
-            -name "verge-tx" \
-          \) -exec codesign -vv {} \; || true
 
       - uses: actions/upload-artifact@v4
         with:
