@@ -196,7 +196,7 @@ jobs:
         run: codesign --force --deep --options runtime --sign - "Verge-Qt.app"
 
       - name: Create DMG
-        run: hdiutil create Verge.dmg -srcfolder "Verge.app" -ov -format UDZO
+        run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
 
       - name: Gatekeeper check
         run: spctl --assess --type execute --verbose Verge.dmg || true
