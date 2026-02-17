@@ -5,368 +5,121 @@ on:
   pull_request:
 
 jobs:
-
   macos-26:
     runs-on: macos-26
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: git config credential.helper
-        run: git config credential.helper
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_26.0.1.app
 
-      - name: get previous xcode and switch to it
-        run: ls -la /Applications/Xcode* && sudo xcode-select -switch /Applications/Xcode_26.0.1.app
-
-      - name: Brew install base dependencies
+      - name: Install dependencies
         run: |
-          brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
+          brew install automake autoconf pkg-config libtool \
+            berkeley-db@4 zeromq miniupnpc \
+            qt@5 gperf qrencode librsvg
 
-      - name: Brew link dependencies
+      - name: Link brew deps
         run: brew link qt@5 berkeley-db@4
 
-      - name: check cellar for openssl
-        run: cd /opt/homebrew/Cellar/openssl@3/ && ls
+      - name: Create local tap
+        run: brew tap-new vergecurrency/local
 
-      - name: Show current directory
+      - name: Install protobuf 2.6.1
         run: |
-          pwd
-          git rev-parse --short HEAD
-          ls -lah
-          ls -lah depends || true
-          ls -lah depends/homebrew-formulas || true
+          FORMULA="depends/homebrew-formulas/protobuf261.rb"
+          TAP_DIR="$(brew --repo vergecurrency/local)/Formula"
+          mkdir -p "$TAP_DIR"
+          cp "$FORMULA" "$TAP_DIR/"
+          brew install vergecurrency/local/protobuf261
 
-      - name: Create local tap & stage protobuf261.rb
+      - name: Install boost 1.76
         run: |
-          set -euo pipefail
-          brew tap-new vergecurrency/local
-          TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
-          mkdir -p "$TAP_DIR/Formula"
-          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
-          if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
-            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
-          else
-            echo "Local formula not found; fetching from repo"
-            REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb"
-            echo "Fetching: $URL"
-            curl -fL "$URL" -o "$TAP_DIR/Formula/protobuf261.rb"
-          fi
-          echo "Current taps:"
-          brew tap
+          FORMULA="depends/homebrew-formulas/boost176.rb"
+          TAP_DIR="$(brew --repo vergecurrency/local)/Formula"
+          mkdir -p "$TAP_DIR"
+          cp "$FORMULA" "$TAP_DIR/"
+          brew install vergecurrency/local/boost176
 
-      - name: Install protobuf261 via tap
-        run: brew install vergecurrency/local/protobuf261
-
-      - name: Stage boost176.rb into existing tap
+      - name: Resolve build environment
         run: |
-          set -euo pipefail
-          if ! brew tap | grep -q '^vergecurrency/local$'; then
-            brew tap-new vergecurrency/local
-          fi
-          TAP_DIR="$(brew --repo vergecurrency/local)"
-          echo "Tap dir: $TAP_DIR"
-          mkdir -p "$TAP_DIR/Formula"
-          FORMULA_LOCAL="depends/homebrew-formulas/boost176.rb"
-          if [ -f "$FORMULA_LOCAL" ]; then
-            echo "Using local $FORMULA_LOCAL"
-            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
-          else
-            echo "Local formula not found; fetching from repo"
-            REF="${GITHUB_REF_NAME:-master}"
-            URL="https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/boost176.rb"
-            echo "Fetching: $URL"
-            curl -fL "$URL" -o "$TAP_DIR/Formula/boost176.rb"
-          fi
-          echo "Current taps:"
-          brew tap
+          BOOST="$(brew --cellar)/boost176/$(ls $(brew --cellar)/boost176 | sort -V | tail -n1)"
+          PROTO="$(brew --cellar)/protobuf261/$(ls $(brew --cellar)/protobuf261 | sort -V | tail -n1)"
 
-      - name: Install boost176 via tap
-        run: brew install vergecurrency/local/boost176
+          echo "BOOST_ROOT=$BOOST" >> $GITHUB_ENV
+          echo "BOOST_INCLUDEDIR=$BOOST/include" >> $GITHUB_ENV
+          echo "BOOST_LIBRARYDIR=$BOOST/lib" >> $GITHUB_ENV
 
-      - name: Resolve Boost 1.76 env (real keg preferred)
-        run: |
-            set -euo pipefail
-            BREW_CELLAR="$(brew --cellar)"
-            
-            KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
-            if [ -z "$KEG_DIR" ] || [ ! -d "$KEG_DIR/lib" ]; then
-            echo "::error::No valid boost176 keg found"
-            exit 1
-            fi
-            
-            BOOST_DIR="$KEG_DIR"
-            echo "Using real Boost keg: $BOOST_DIR"
-            
-            echo "BOOST_ROOT=$BOOST_DIR"               >> "$GITHUB_ENV"
-            echo "BOOST_INCLUDEDIR=$BOOST_DIR/include" >> "$GITHUB_ENV"
-            echo "BOOST_LIBRARYDIR=$BOOST_DIR/lib"     >> "$GITHUB_ENV"
-            echo "CPPFLAGS=-I$BOOST_DIR/include"       >> "$GITHUB_ENV"
-            echo "LDFLAGS=-L$BOOST_DIR/lib"            >> "$GITHUB_ENV"
+          echo "PROTOBUF_ROOT=$PROTO" >> $GITHUB_ENV
+          echo "PROTOBUF_INCLUDEDIR=$PROTO/include" >> $GITHUB_ENV
+          echo "PROTOBUF_LIBRARYDIR=$PROTO/lib" >> $GITHUB_ENV
 
-      - name: Resolve Protobuf 2.6.1 env (robust)
-        run: |
-            set -euo pipefail
-            BREW_PREFIX="$(brew --prefix)"
-            BREW_CELLAR="$(brew --cellar)"
-            
-            if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
-            PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
-            else
-            CELLAR_DIR="$BREW_CELLAR/protobuf261"
-            if [ -d "$CELLAR_DIR" ]; then
-                PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-                if [ -n "${PROTO_VER:-}" ] && [ -d "$CELLAR_DIR/$PROTO_VER/lib" ]; then
-                PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
-                fi
-            fi
-            fi
-            
-            echo "Resolved PROTO_DIR=${PROTO_DIR:-<empty>}"
-            if [ -z "${PROTO_DIR:-}" ] || [ ! -d "$PROTO_DIR/lib" ]; then
-            echo "::error::Protobuf libdir not found."
-            exit 1
-            fi
-            
-            echo "PROTOBUF_ROOT=$PROTO_DIR"                 >> "$GITHUB_ENV"
-            echo "PROTOBUF_INCLUDEDIR=$PROTO_DIR/include"   >> "$GITHUB_ENV"
-            echo "PROTOBUF_LIBRARYDIR=$PROTO_DIR/lib"       >> "$GITHUB_ENV"
-            echo "PKG_CONFIG_PATH=$PROTO_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> "$GITHUB_ENV"
-            echo "PATH=$PROTO_DIR/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> "$GITHUB_ENV"
-            
-            BOOST_INC="${BOOST_INCLUDEDIR:-}"
-            BOOST_LIB="${BOOST_LIBRARYDIR:-}"
-            
-            echo "CPPFLAGS=${BOOST_INC:+-I$BOOST_INC }-I$PROTO_DIR/include"  >> "$GITHUB_ENV"
-            echo "LDFLAGS=${BOOST_LIB:+-L$BOOST_LIB }-L$PROTO_DIR/lib"       >> "$GITHUB_ENV"
-            
-            [ -z "${BOOST_INC}" ] || test -f "$BOOST_INC/boost/filesystem.hpp" || {
-            echo "::warning::boost/filesystem.hpp not found under $BOOST_INC"
-            ls -R "$BOOST_INC" | head -n 50 || true
-            }
-            
-            ls -lah "$PROTO_DIR/lib" | grep -E 'libprotobuf|protobuf' || true
+          echo "CPPFLAGS=-I$BOOST/include -I$PROTO/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$BOOST/lib -L$PROTO/lib" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$PROTO/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
+          echo "PATH=$PROTO/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> $GITHUB_ENV
 
-      - name: which clang/xcode
-        run: clang --version
-
-      - name: Auto generate
+      - name: Autogen
         run: ./autogen.sh
 
-      - name: configure
+      - name: Configure
         run: |
           export CXXFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           ./configure \
-            --disable-bench \
             --disable-tests \
-            --disable-dependency-tracking \
+            --disable-bench \
             --disable-werror \
             --with-gui \
-            --with-boost="${BOOST_ROOT}" \
-            --with-boost-libdir="${BOOST_LIBRARYDIR}" \
+            --with-boost="$BOOST_ROOT" \
+            --with-boost-libdir="$BOOST_LIBRARYDIR" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
             --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.6.1 \
             --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1
 
-      - name: make
+      - name: Build
         run: make -j4
 
-      # ---- SAFE BOOST SETUP (no /opt relink, no self-loop symlinks) ----
-      - name: Prepare Boost dylib names for macdeploy (safe, no opt relink)
+      - name: Bundle with macdeployqt
         run: |
-          set -euo pipefail
-          BREW_CELLAR="$(brew --cellar)"
-          # Prefer real keg path
-          if [ -n "${BOOST_LIBRARYDIR:-}" ] && [ -d "$BOOST_LIBRARYDIR" ]; then
-            BOOST_LIB_DIR="$BOOST_LIBRARYDIR"
-          else
-            KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
-            [ -n "$KEG_DIR" ] || { echo "::error::No boost176 keg found in $BREW_CELLAR/boost176"; exit 1; }
-            BOOST_LIB_DIR="$KEG_DIR/lib"
-          fi
-          echo "Using BOOST_LIB_DIR=$BOOST_LIB_DIR"
-          fix_boost_symlink() {
-            local base="$1"
-            local plain="$BOOST_LIB_DIR/libboost_${base}.dylib"
-            if [ ! -e "$plain" ]; then
-              # choose a candidate that is NOT the plain name to avoid self-loop
-              CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${base}*.dylib 2>/dev/null | \
-                      grep -Ev '/libboost_'"$base"'\.dylib$' | sort -V | tail -n1 || true)"
-              if [ -n "$CAND" ]; then
-                [ "$(basename "$CAND")" = "libboost_${base}.dylib" ] || ln -sf "$(basename "$CAND")" "$plain"
-              fi
-            fi
-            ( ls -l "$BOOST_LIB_DIR"/libboost_${base}*.dylib || true ) | sed -n '1,10p'
-          }
-          for L in filesystem program_options thread chrono system; do
-            fix_boost_symlink "$L"
-          done
-          echo "DYLD_LIBRARY_PATH=$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
-          echo "BOOST_LIBS=$BOOST_LIB_DIR" >> "$GITHUB_ENV"
+          APP=$(ls -d *.app | head -n1)
+          macdeployqt "$APP" -verbose=2
 
-      - name: Prepare Protobuf dylib for macdeploy
+      - name: Fix dylib install names
         run: |
-          set -euo pipefail
-          BREW_PREFIX="$(brew --prefix)"
-          BREW_CELLAR="$(brew --cellar)"
-          if [ -n "${PROTOBUF_LIBRARYDIR:-}" ] && [ -d "$PROTOBUF_LIBRARYDIR" ]; then
-            PROTO_DIR="$(dirname "$PROTOBUF_LIBRARYDIR")"
-            PROTO_LIB_DIR="$PROTOBUF_LIBRARYDIR"
-          elif [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
-            PROTO_DIR="$BREW_PREFIX/opt/protobuf261"
-            PROTO_LIB_DIR="$PROTO_DIR/lib"
-          else
-            CELLAR_DIR="$BREW_CELLAR/protobuf261"
-            PROTO_VER="$(ls -1 "$CELLAR_DIR" | sort -V | tail -n1 || true)"
-            PROTO_DIR="$CELLAR_DIR/$PROTO_VER"
-            PROTO_LIB_DIR="$PROTO_DIR/lib"
-          fi
-          echo "Using PROTO_DIR=$PROTO_DIR"
-          echo "Using PROTO_LIB_DIR=$PROTO_LIB_DIR"
-          [ -f "$PROTO_LIB_DIR/libprotobuf.9.dylib" ] || {
-            [ -f "$PROTO_LIB_DIR/libprotobuf.dylib" ] && ln -sf "libprotobuf.dylib" "$PROTO_LIB_DIR/libprotobuf.9.dylib"
-          }
-          echo "DYLD_LIBRARY_PATH=$PROTO_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          APP=$(ls -d *.app | head -n1)
 
-      # ---- REPAIR /opt SYMLINKS & ASSERT DYLIBS (protobuf + boost) ----
-      - name: Repair /opt symlinks & assert dylibs (protobuf+boost)
-        run: |
-          set -euo pipefail
-          BREW_PREFIX="$(brew --prefix)"
-          BREW_CELLAR="$(brew --cellar)"
-
-          # --- Protobuf: ensure /opt points at the active keg and .9 shim exists ---
-          PROTO_DIR="${PROTOBUF_ROOT:?missing PROTOBUF_ROOT}"
-          # Normalize to real keg path
-          if [ -L "$PROTO_DIR" ]; then PROTO_DIR="$(realpath "$PROTO_DIR")"; fi
-          if [ ! -L "$BREW_PREFIX/opt/protobuf261" ] || [ "$(realpath "$BREW_PREFIX/opt/protobuf261" || true)" != "$PROTO_DIR" ]; then
-            sudo rm -rf "$BREW_PREFIX/opt/protobuf261" || true
-            sudo ln -s "$PROTO_DIR" "$BREW_PREFIX/opt/protobuf261"
-          fi
-          for BASE in "$PROTO_DIR/lib" "$BREW_PREFIX/opt/protobuf261/lib"; do
-            [ -d "$BASE" ] || continue
-            for LIB in protobuf protobuf-lite; do
-              if [ ! -f "$BASE/lib${LIB}.9.dylib" ] && [ -f "$BASE/lib${LIB}.dylib" ]; then
-                ln -sf "lib${LIB}.dylib" "$BASE/lib${LIB}.9.dylib"
-              fi
+          find "$APP" -type f -perm +111 | while read f; do
+            otool -L "$f" | grep /opt/homebrew | awk '{print $1}' | while read dep; do
+              base=$(basename "$dep")
+              new="@executable_path/../Frameworks/$base"
+              install_name_tool -change "$dep" "$new" "$f" || true
             done
           done
-          echo "Protobuf opt target -> $(readlink $BREW_PREFIX/opt/protobuf261 || true)"
-          ls -ld "$BREW_PREFIX/opt/protobuf261" || true
-          ls -l "$BREW_PREFIX/opt/protobuf261/lib" | sed -n '1,80p' || true
 
-          # --- Boost: relink /opt to the REAL keg (avoid self-loop) ---
-          KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
-          [ -n "$KEG_DIR" ] || { echo "::error::No boost176 keg found"; exit 1; }
-          BOOST_KEG="$KEG_DIR"
-          if [ ! -L "$BREW_PREFIX/opt/boost176" ] || [ "$(realpath "$BREW_PREFIX/opt/boost176" || true)" != "$BOOST_KEG" ]; then
-            sudo rm -rf "$BREW_PREFIX/opt/boost176" || true
-            sudo ln -s "$BOOST_KEG" "$BREW_PREFIX/opt/boost176"
-          fi
-          BOOST_LIB_DIR="$BOOST_KEG/lib"
-          for L in filesystem program_options thread chrono system; do
-            PLAIN="$BOOST_LIB_DIR/libboost_${L}.dylib"
-            if [ ! -e "$PLAIN" ]; then
-              CAND="$(ls -1 "$BOOST_LIB_DIR"/libboost_${L}*.dylib 2>/dev/null | grep -v '/libboost_'"$L"'\.dylib$' | sort -V | tail -n1 || true)"
-              [ -n "$CAND" ] && [ "$(basename "$CAND")" = "libboost_${L}.dylib" ] || { [ -n "$CAND" ] && ln -sf "$(basename "$CAND")" "$PLAIN"; }
-            fi
-          done
-          echo "Boost opt target -> $(readlink $BREW_PREFIX/opt/boost176 || true)"
-          ls -ld "$BREW_PREFIX/opt/boost176" || true
-          ls -l "$BOOST_LIB_DIR" | grep -E 'boost_(filesystem|program_options|thread|chrono|system).*dylib' || true
+      - name: Remove quarantine
+        run: find . -name "*.app" -type d -exec xattr -cr {} +
 
-          # Export final DYLD path from real kegs
-          echo "DYLD_LIBRARY_PATH=$PROTO_DIR/lib:$BOOST_LIB_DIR:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
-      
-      - name: make .dmg
+      - name: Codesign app
         run: |
-          set -euo pipefail
-          # Guard: verify plain-name Boost dylibs from the REAL keg (not /opt, to avoid loops)
-          BREW_CELLAR="$(brew --cellar)"
-          KEG_DIR="$(ls -1d "$BREW_CELLAR/boost176"/* 2>/dev/null | sort -V | tail -n1 || true)"
-          BOOST_LIB_DIR="${BOOST_LIBS:-${BOOST_LIBRARYDIR:-${KEG_DIR}/lib}}"
-          for L in filesystem program_options thread chrono system; do
-            test -f "$BOOST_LIB_DIR/libboost_${L}.dylib" || {
-              echo "::error::Missing $BOOST_LIB_DIR/libboost_${L}.dylib"
-              ls -lah "$BOOST_LIB_DIR" | sed -n '1,200p' || true
-              exit 1
-            }
-          done
-          # Final guard for the exact path macdeployqtplus wants:
-          test -f /opt/homebrew/opt/protobuf261/lib/libprotobuf.9.dylib
-          echo "Boost dylibs OK in $BOOST_LIB_DIR"
-          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
-          make deploy
-          
-      - name: Remove quarantine attributes
+          APP=$(ls -d *.app | head -n1)
+          codesign --force --deep --options runtime --sign - "$APP"
+
+      - name: Create DMG
         run: |
-            set -euo pipefail
-            find . -name "*.app" -type d -exec xattr -cr {} +
-            
-      - name: Ad-hoc hardened sign Verge app
+          APP=$(ls -d *.app | head -n1)
+          hdiutil create Verge.dmg -srcfolder "$APP" -ov -format UDZO
+
+      - name: Gatekeeper check
         run: |
-            set -euo pipefail
-            for APP in *.app; do
-            echo "Signing $APP"
-            codesign --force --deep --strict --options runtime --sign - "$APP"
-            done
-            
-      - name: Gatekeeper deep diagnostics
-        run: |
-            set -euo pipefail
-            APP="$(ls -d *.app | head -n1)"
-            BIN="$APP/Contents/MacOS/$(basename "$APP" .app)"
-
-            echo "=== SPCTL assessment ==="
-            spctl --assess --type execute --verbose=4 "$APP" || true
-
-            echo
-            echo "=== Codesign verification ==="
-            codesign --verify --deep --strict --verbose=4 "$APP" || true
-
-            echo
-            echo "=== Codesign details ==="
-            codesign -dv --verbose=4 "$APP" 2>&1 || true
-
-            echo
-            echo "=== Entitlements ==="
-            codesign -d --entitlements :- "$APP" 2>/dev/null || true
-
-            echo
-            echo "=== Quarantine flags (recursive) ==="
-            xattr -lr "$APP" || true
-
-            echo
-            echo "=== Main binary dylibs ==="
-            otool -L "$BIN" || true
-
-            echo
-            echo "=== Embedded frameworks ==="
-            find "$APP" -name "*.dylib" -o -name "*.so" -o -name "*.framework" | while read f; do
-                echo "--- $f ---"
-                otool -L "$f" || true
-            done
-            
-      - name: Gatekeeper assessment
-        run: |
-            set -euo pipefail
-            APP="$(ls -d *.app | head -n1)"
-            echo "Assessing $APP with spctl…"
-            spctl --assess --type execute --verbose "$APP" || {
-            echo "::error::Gatekeeper rejected the app"
-            exit 1
-            }
-            echo "Gatekeeper accepted the app"
+          spctl --assess --type execute --verbose Verge.dmg || true
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos26
-          path: |
-            *.dmg
+          path: Verge.dmg
 
   macos14:
     runs-on: macos-14
