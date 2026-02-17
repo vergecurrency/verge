@@ -132,6 +132,13 @@ jobs:
             
             echo "verge-qt started successfully"
             pkill verge-qt || true
+            
+      - name: Upload verge-qt raw binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-qt-raw
+          path: src/qt/verge-qt
+          if-no-files-found: error
 
       - name: Wrap binary into .app bundle
         run: |
