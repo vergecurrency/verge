@@ -350,6 +350,17 @@ jobs:
                 echo "--- $f ---"
                 otool -L "$f" || true
             done
+            
+      - name: Gatekeeper assessment
+        run: |
+            set -euo pipefail
+            APP="$(ls -d *.app | head -n1)"
+            echo "Assessing $APP with spctl…"
+            spctl --assess --type execute --verbose "$APP" || {
+            echo "::error::Gatekeeper rejected the app"
+            exit 1
+            }
+            echo "Gatekeeper accepted the app"
 
       - uses: actions/upload-artifact@v4
         with:
