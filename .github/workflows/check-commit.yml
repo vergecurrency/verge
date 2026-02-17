@@ -82,15 +82,44 @@ jobs:
       - name: Build
         run: make -j4
 
+      - name: Wrap binary into .app bundle
+        run: |
+          BINARY="verge-qt"
+          if [ ! -f "$BINARY" ]; then
+            echo "::error::$BINARY not found after make"
+            exit 1
+          fi
+          APP_NAME="Verge.app"
+          mkdir -p "$APP_NAME/Contents/MacOS"
+          cp "$BINARY" "$APP_NAME/Contents/MacOS/"
+          # Minimal Info.plist for macOS
+          cat > "$APP_NAME/Contents/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>Verge</string>
+  <key>CFBundleIdentifier</key>
+  <string>org.vergefoundation.verge-qt</string>
+  <key>CFBundleVersion</key>
+  <string>1.0</string>
+  <key>CFBundleExecutable</key>
+  <string>verge-qt</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+</dict>
+</plist>
+EOF
+
       - name: Bundle with macdeployqt
         run: |
-          APP=$(ls -d *.app | head -n1)
-          macdeployqt "$APP" -verbose=2
+          APP_NAME="Verge.app"
+          macdeployqt "$APP_NAME" -verbose=2
 
       - name: Fix dylib install names
         run: |
-          APP=$(ls -d *.app | head -n1)
-
+          APP="Verge.app"
           find "$APP" -type f -perm +111 | while read f; do
             otool -L "$f" | grep /opt/homebrew | awk '{print $1}' | while read dep; do
               base=$(basename "$dep")
@@ -103,23 +132,19 @@ jobs:
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
       - name: Codesign app
-        run: |
-          APP=$(ls -d *.app | head -n1)
-          codesign --force --deep --options runtime --sign - "$APP"
+        run: codesign --force --deep --options runtime --sign - "Verge.app"
 
       - name: Create DMG
-        run: |
-          APP=$(ls -d *.app | head -n1)
-          hdiutil create Verge.dmg -srcfolder "$APP" -ov -format UDZO
+        run: hdiutil create Verge.dmg -srcfolder "Verge.app" -ov -format UDZO
 
       - name: Gatekeeper check
-        run: |
-          spctl --assess --type execute --verbose Verge.dmg || true
+        run: spctl --assess --type execute --verbose Verge.dmg || true
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos26
           path: Verge.dmg
+
 
   macos14:
     runs-on: macos-14
