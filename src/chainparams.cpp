@@ -246,6 +246,8 @@ vSeeds.emplace_back("176.34.134.0");
 vSeeds.emplace_back("47.242.186.213");
 vSeeds.emplace_back("43.163.239.28");
 vSeeds.emplace_back("51.81.185.115");
+vSeeds.emplace_back("68.183.133.141");
+vSeeds.emplace_back("68.183.133.16");
 }
 
 base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
