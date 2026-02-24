@@ -13,6 +13,7 @@
 
 #include <QDebug>
 
+#include <openssl/opensslv.h>
 #include <openssl/rand.h>
 
 // If we don't want a message to be processed by Qt, return true and set result to
@@ -23,7 +24,9 @@ bool WinShutdownMonitor::nativeEventFilter(const QByteArray &eventType, void *pM
 
        MSG *pMsg = static_cast<MSG *>(pMessage);
 
-       // Seed OpenSSL PRNG with Windows event data (e.g.  mouse movements and other user interactions)
+       // Seed OpenSSL PRNG with Windows event data (e.g. mouse movements and other user interactions).
+       // RAND_event is deprecated in OpenSSL 3 and may be unavailable when deprecated APIs are disabled.
+#if OPENSSL_VERSION_NUMBER < 0x30000000L && !defined(OPENSSL_NO_DEPRECATED_3_0)
        if (RAND_event(pMsg->message, pMsg->wParam, pMsg->lParam) == 0) {
             // Warn only once as this is performance-critical
             static bool warned = false;
@@ -32,6 +35,7 @@ bool WinShutdownMonitor::nativeEventFilter(const QByteArray &eventType, void *pM
                 warned = true;
             }
        }
+#endif
 
        switch(pMsg->message)
        {

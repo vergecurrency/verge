@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("verge-qt-test");
 
-    SSL_library_init();
+    OPENSSL_init_ssl(0, nullptr);
 
     URITests test1;
     if (QTest::qExec(&test1) != 0) {
