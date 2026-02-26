@@ -11,9 +11,9 @@
 #include <cstdlib>
 
 // Earliest date that can be represented (far in the past)
-const QDateTime TransactionFilterProxy::MIN_DATE = QDateTime::fromTime_t(0);
+const QDateTime TransactionFilterProxy::MIN_DATE = QDateTime::fromSecsSinceEpoch(0);
 // Last date that can be represented (far in the future)
-const QDateTime TransactionFilterProxy::MAX_DATE = QDateTime::fromTime_t(0xFFFFFFFF);
+const QDateTime TransactionFilterProxy::MAX_DATE = QDateTime::fromSecsSinceEpoch(0xFFFFFFFF);
 
 TransactionFilterProxy::TransactionFilterProxy(QObject *parent) :
     QSortFilterProxyModel(parent),
