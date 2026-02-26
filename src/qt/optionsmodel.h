@@ -9,7 +9,8 @@
 #include <amount.h>
 
 #include <QAbstractListModel>
-#include <QNetworkProxy>
+
+class QNetworkProxy;
 
 namespace interfaces {
 class Node;
