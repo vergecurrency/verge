@@ -45,6 +45,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDateTime>
+#include <QDesktopServices>
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFont>
