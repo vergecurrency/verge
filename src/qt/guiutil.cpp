@@ -51,6 +51,7 @@
 #include <QFont>
 #include <QLineEdit>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
 #include <QMouseEvent>
@@ -95,7 +96,7 @@ QString dateTimeStr(const QDateTime &date)
 
 QString dateTimeStr(qint64 nTime)
 {
-    return dateTimeStr(QDateTime::fromTime_t((qint32)nTime));
+    return dateTimeStr(QDateTime::fromSecsSinceEpoch((qint64)nTime));
 }
 
 QFont fixedPitchFont()
@@ -347,7 +348,7 @@ QString getSaveFileName(QWidget *parent, const QString &caption, const QString &
     if(dir.isEmpty()) // Default to user documents location
     {
 #if QT_VERSION < 0x050000
-        myDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+        myDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #else
         myDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
@@ -397,7 +398,7 @@ QString getOpenFileName(QWidget *parent, const QString &caption, const QString &
     if(dir.isEmpty()) // Default to user documents location
     {
 #if QT_VERSION < 0x050000
-        myDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+        myDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #else
         myDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
@@ -1044,7 +1045,11 @@ qreal calculateIdealFontSize(int width, const QString& text, QFont font, qreal m
     while(font_size >= minPointSize) {
         font.setPointSizeF(font_size);
         QFontMetrics fm(font);
+#if QT_VERSION >= 0x050b00
+        if (fm.horizontalAdvance(text) < width) {
+#else
         if (fm.width(text) < width) {
+#endif
             break;
         }
         font_size -= 0.5;
