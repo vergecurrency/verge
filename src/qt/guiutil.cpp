@@ -1044,7 +1044,11 @@ qreal calculateIdealFontSize(int width, const QString& text, QFont font, qreal m
     while(font_size >= minPointSize) {
         font.setPointSizeF(font_size);
         QFontMetrics fm(font);
+#if QT_VERSION >= 0x050b00
+        if (fm.horizontalAdvance(text) < width) {
+#else
         if (fm.width(text) < width) {
+#endif
             break;
         }
         font_size -= 0.5;
