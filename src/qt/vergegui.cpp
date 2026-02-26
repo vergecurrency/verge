@@ -43,9 +43,9 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDateTime>
-#include <QDesktopWidget>
 #include <QDragEnterEvent>
 #include <QFontDatabase>
+#include <QGuiApplication>
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -56,6 +56,7 @@
 #include <QStackedWidget>
 #include <QStatusBar>
 #include <QStyle>
+#include <QScreen>
 #include <QTimer>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -128,7 +129,10 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     QSettings settings;
     if (!restoreGeometry(settings.value("MainWindowGeometry").toByteArray())) {
         // Restore failed (perhaps missing setting), center the window
-        move(QApplication::desktop()->availableGeometry().center() - frameGeometry().center());
+        QScreen* const screen = QGuiApplication::primaryScreen();
+        if (screen) {
+            move(screen->availableGeometry().center() - frameGeometry().center());
+        }
     }
 
     QString windowTitle = tr(PACKAGE_NAME) + " - ";

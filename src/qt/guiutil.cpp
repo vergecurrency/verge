@@ -46,7 +46,6 @@
 #include <QClipboard>
 #include <QDateTime>
 #include <QDesktopServices>
-#include <QDesktopWidget>
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFont>
@@ -55,6 +54,7 @@
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
 #include <QMouseEvent>
+#include <QRegularExpression>
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -360,11 +360,11 @@ QString getSaveFileName(QWidget *parent, const QString &caption, const QString &
     QString result = QDir::toNativeSeparators(QFileDialog::getSaveFileName(parent, caption, myDir, filter, &selectedFilter));
 
     /* Extract first suffix from filter pattern "Description (*.foo)" or "Description (*.foo *.bar ...) */
-    QRegExp filter_re(".* \\(\\*\\.(.*)[ \\)]");
+    const QRegularExpression filter_re(".* \\(\\*\\.([^ )]+)");
     QString selectedSuffix;
-    if(filter_re.exactMatch(selectedFilter))
+    if (const QRegularExpressionMatch match = filter_re.match(selectedFilter); match.hasMatch())
     {
-        selectedSuffix = filter_re.cap(1);
+        selectedSuffix = match.captured(1);
     }
 
     /* Add suffix if needed */
@@ -412,11 +412,11 @@ QString getOpenFileName(QWidget *parent, const QString &caption, const QString &
     if(selectedSuffixOut)
     {
         /* Extract first suffix from filter pattern "Description (*.foo)" or "Description (*.foo *.bar ...) */
-        QRegExp filter_re(".* \\(\\*\\.(.*)[ \\)]");
+        const QRegularExpression filter_re(".* \\(\\*\\.([^ )]+)");
         QString selectedSuffix;
-        if(filter_re.exactMatch(selectedFilter))
+        if (const QRegularExpressionMatch match = filter_re.match(selectedFilter); match.hasMatch())
         {
-            selectedSuffix = filter_re.cap(1);
+            selectedSuffix = match.captured(1);
         }
         *selectedSuffixOut = selectedSuffix;
     }
