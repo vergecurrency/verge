@@ -363,7 +363,8 @@ QString getSaveFileName(QWidget *parent, const QString &caption, const QString &
     /* Extract first suffix from filter pattern "Description (*.foo)" or "Description (*.foo *.bar ...) */
     const QRegularExpression filter_re(".* \\(\\*\\.([^ )]+)");
     QString selectedSuffix;
-    if (const QRegularExpressionMatch match = filter_re.match(selectedFilter); match.hasMatch())
+    const QRegularExpressionMatch match = filter_re.match(selectedFilter);
+    if (match.hasMatch())
     {
         selectedSuffix = match.captured(1);
     }
@@ -415,7 +416,8 @@ QString getOpenFileName(QWidget *parent, const QString &caption, const QString &
         /* Extract first suffix from filter pattern "Description (*.foo)" or "Description (*.foo *.bar ...) */
         const QRegularExpression filter_re(".* \\(\\*\\.([^ )]+)");
         QString selectedSuffix;
-        if (const QRegularExpressionMatch match = filter_re.match(selectedFilter); match.hasMatch())
+        const QRegularExpressionMatch match = filter_re.match(selectedFilter);
+        if (match.hasMatch())
         {
             selectedSuffix = match.captured(1);
         }
@@ -1045,11 +1047,7 @@ qreal calculateIdealFontSize(int width, const QString& text, QFont font, qreal m
     while(font_size >= minPointSize) {
         font.setPointSizeF(font_size);
         QFontMetrics fm(font);
-#if QT_VERSION >= 0x050b00
         if (fm.horizontalAdvance(text) < width) {
-#else
-        if (fm.width(text) < width) {
-#endif
             break;
         }
         font_size -= 0.5;
