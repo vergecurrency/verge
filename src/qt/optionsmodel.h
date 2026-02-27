@@ -10,12 +10,11 @@
 
 #include <QAbstractListModel>
 
-#include <QtNetwork/QNetworkProxy>
+#include <QNetworkProxy>
 
 namespace interfaces {
 class Node;
 }
-
 
 extern const char *DEFAULT_GUI_PROXY_HOST;
 static constexpr unsigned short DEFAULT_GUI_PROXY_PORT = 9050;
