@@ -15,6 +15,8 @@ $(1)_cppflags=$($($(1)_type)_CPPFLAGS) $($($(1)_type)_$(release_type)_CPPFLAGS) 
 $(1)_recipe_hash:=
 endef
 
+build_DOWNLOAD := curl --location --fail --connect-timeout 30 --retry 3 --user-agent "Mozilla/5.0" -o
+
 define int_get_all_dependencies
 $(sort $(foreach dep,$(2),$(2) $(call int_get_all_dependencies,$(1),$($(dep)_dependencies))))
 endef
@@ -22,7 +24,7 @@ endef
 define download_and_check_file
 ($(build_DOWNLOAD) --user-agent "Mozilla/5.0" "$(1)/$(2).temp" $(3) && \
  echo "$(4)  $(1)/$(2).temp" > $(1)/.$(2).hash && \
- $(build_SHA256SUM) -c $(1)/.$(2).hash)
+ $(build_SHA256SUM) -c $(1)/.$(2).hash))
 endef
 
 define fetch_file
