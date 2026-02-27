@@ -1,3 +1,4 @@
+
 define int_vars
 #Set defaults for vars which may be overridden per-package
 $(1)_cc=$($($(1)_type)_CC)
@@ -21,6 +22,7 @@ endef
 
 define download_and_check_file
 ($(build_DOWNLOAD) "$(1)/$(2).temp" $(3) && echo "$(4)  $(1)/$(2).temp" > $(1)/.$(2).hash && $(build_SHA256SUM) -c $(1)/.$(2).hash)
+endef
 
 define fetch_file
 (test -f $$($(1)_source_dir)/$(4) || \
