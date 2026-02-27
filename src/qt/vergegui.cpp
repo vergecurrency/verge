@@ -1161,7 +1161,12 @@ void VERGEGUI::updateProxyIcon()
     bool proxy_enabled = clientModel->getProxyInfo(ip_port);
 
     if (proxy_enabled) {
-        if (labelProxyIcon->pixmap() == 0) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        const bool has_proxy_icon = !labelProxyIcon->pixmap(Qt::ReturnByValue).isNull();
+#else
+        const bool has_proxy_icon = labelProxyIcon->pixmap() != nullptr;
+#endif
+        if (!has_proxy_icon) {
             QString ip_port_q = QString::fromStdString(ip_port);
             labelProxyIcon->setPixmap(platformStyle->SingleColorIcon(":/icons/proxy").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
             labelProxyIcon->setToolTip(tr("Proxy is <b>enabled</b>: %1").arg(ip_port_q));
