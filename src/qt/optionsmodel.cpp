@@ -20,9 +20,9 @@
 #include <txdb.h> // for -dbcache defaults
 #include <qt/intro.h>
 
-#include <QNetworkProxy>
 #include <QSettings>
 #include <QStringList>
+#include <QtNetwork/QNetworkProxy>
 
 const char *DEFAULT_GUI_PROXY_HOST = "127.0.0.1";
 
