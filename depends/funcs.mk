@@ -20,9 +20,7 @@ $(sort $(foreach dep,$(2),$(2) $(call int_get_all_dependencies,$(1),$($(dep)_dep
 endef
 
 define download_and_check_file
-($(build_DOWNLOAD) --user-agent "Mozilla/5.0" "$(1)/$(2).temp" $(3) && \
- echo "$(4)  $(1)/$(2).temp" > $(1)/.$(2).hash && \
- $(build_SHA256SUM) -c $(1)/.$(2).hash)
+($(build_DOWNLOAD) "$(1)/$(2).temp" $(3) && echo "$(4)  $(1)/$(2).temp" > $(1)/.$(2).hash && $(build_SHA256SUM) -c $(1)/.$(2).hash)
 endef
 
 define fetch_file
