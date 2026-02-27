@@ -36,9 +36,11 @@
 #include <QNetworkProxy>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#if !defined(QT_NO_SSL)
 #include <QSslCertificate>
 #include <QSslError>
 #include <QSslSocket>
+#endif
 #include <QStringList>
 #include <QTextDocument>
 
@@ -98,6 +100,7 @@ static QString ipcServerName()
 
 static QList<QString> savedPaymentRequests;
 
+#if !defined(QT_NO_SSL)
 static void ReportInvalidCertificate(const QSslCertificate& cert)
 {
 #if QT_VERSION < 0x050000
@@ -106,6 +109,7 @@ static void ReportInvalidCertificate(const QSslCertificate& cert)
     qDebug() << QString("%1: Payment server found an invalid certificate: ").arg(__func__) << cert.serialNumber() << cert.subjectInfo(QSslCertificate::CommonName) << cert.subjectInfo(QSslCertificate::DistinguishedNameQualifier) << cert.subjectInfo(QSslCertificate::OrganizationalUnitName);
 #endif
 }
+#endif
 
 //
 // Load OpenSSL's list of root certificate authorities
@@ -119,6 +123,11 @@ void PaymentServer::LoadRootCAs(X509_STORE* _store)
         return;
     }
 
+#if defined(QT_NO_SSL)
+    certStore.reset(X509_STORE_new());
+    qWarning() << "PaymentServer::LoadRootCAs: Qt SSL support is disabled; payment request certificate verification is unavailable.";
+    return;
+#else
     // Normal execution, use either -rootcertificates or system certs:
     certStore.reset(X509_STORE_new());
 
@@ -190,6 +199,7 @@ void PaymentServer::LoadRootCAs(X509_STORE* _store)
     //   would it be easier to just use a compiled-in blacklist?
     //    or use Qt's blacklist?
     //   "certificate stapling" with server-side caching is more efficient
+#endif
 }
 
 //
@@ -367,6 +377,7 @@ void PaymentServer::initNetManager()
     // netManager is used to fetch paymentrequests given in verge: URIs
     netManager = new QNetworkAccessManager(this);
 
+#if !defined(QT_NO_NETWORKPROXY)
     QNetworkProxy proxy;
 
     // Query active SOCKS5 proxy
@@ -377,11 +388,16 @@ void PaymentServer::initNetManager()
     }
     else
         qDebug() << "PaymentServer::initNetManager: No active proxy server found.";
+#else
+    qDebug() << "PaymentServer::initNetManager: Qt built without QNetworkProxy support.";
+#endif
 
     connect(netManager, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(netRequestFinished(QNetworkReply*)));
+#if !defined(QT_NO_SSL)
     connect(netManager, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)),
             this, SLOT(reportSslErrors(QNetworkReply*, const QList<QSslError> &)));
+#endif
 }
 
 void PaymentServer::uiReady()
@@ -737,6 +753,11 @@ void PaymentServer::netRequestFinished(QNetworkReply* reply)
 
 void PaymentServer::reportSslErrors(QNetworkReply* reply, const QList<QSslError> &errs)
 {
+#if defined(QT_NO_SSL)
+    Q_UNUSED(reply);
+    Q_UNUSED(errs);
+    qWarning() << "PaymentServer::reportSslErrors called, but Qt SSL support is disabled.";
+#else
     Q_UNUSED(reply);
 
     QString errString;
@@ -745,6 +766,7 @@ void PaymentServer::reportSslErrors(QNetworkReply* reply, const QList<QSslError>
         errString += err.errorString() + "\n";
     }
     Q_EMIT message(tr("Network request error"), errString, CClientUIInterface::MSG_ERROR);
+#endif
 }
 
 void PaymentServer::setOptionsModel(OptionsModel *_optionsModel)

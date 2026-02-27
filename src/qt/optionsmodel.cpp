@@ -22,7 +22,9 @@
 
 #include <QSettings>
 #include <QStringList>
+#if !defined(QT_NO_NETWORKPROXY)
 #include <QtNetwork/QNetworkProxy>
+#endif
 
 const char *DEFAULT_GUI_PROXY_HOST = "127.0.0.1";
 
@@ -473,6 +475,7 @@ void OptionsModel::setDisplayUnit(const QVariant &value)
     }
 }
 
+#if !defined(QT_NO_NETWORKPROXY)
 bool OptionsModel::getProxySettings(QNetworkProxy& proxy) const
 {
     // Directly query current base proxy, because
@@ -490,6 +493,7 @@ bool OptionsModel::getProxySettings(QNetworkProxy& proxy) const
 
     return false;
 }
+#endif
 
 void OptionsModel::setRestartRequired(bool fRequired)
 {
