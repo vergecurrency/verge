@@ -59,4 +59,8 @@ if test -z "@allow_host_packages@"; then
 fi
 
 CPPFLAGS="-I$depends_prefix/include/ $CPPFLAGS"
-LDFLAGS="-L$depends_prefix/lib $LDFLAGS"
+if test x@host_os@ = xlinux; then
+  LDFLAGS="-L$depends_prefix/lib -Wl,-rpath,$depends_prefix/lib $LDFLAGS"
+else
+  LDFLAGS="-L$depends_prefix/lib $LDFLAGS"
+fi
