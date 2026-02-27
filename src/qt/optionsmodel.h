@@ -10,7 +10,7 @@
 
 #include <QAbstractListModel>
 
-class QNetworkProxy;
+#include <QtNetwork/QNetworkProxy>
 
 namespace interfaces {
 class Node;
