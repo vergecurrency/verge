@@ -354,6 +354,13 @@ dnl Internal. Find paths necessary for linking qt static plugins
 dnl Inputs: qt_plugin_path. optional.
 dnl Outputs: QT_LIBS is appended
 AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
+    if test "x$qt_plugin_path" = x && test "x$use_pkgconfig" = xyes; then
+      qt_pkg_prefix=`$PKG_CONFIG --variable=prefix Qt5Core 2>/dev/null`
+      if test "x$qt_pkg_prefix" != x; then
+        qt_plugin_path="$qt_pkg_prefix/plugins"
+      fi
+    fi
+
     if test "x$qt_plugin_path" != x; then
       QT_LIBS="$QT_LIBS -L$qt_plugin_path/platforms"
       if test -d "$qt_plugin_path/accessible"; then
@@ -365,11 +372,13 @@ AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
        if test x$verge_cv_qt58 = xno; then
          PKG_CHECK_MODULES([QTPLATFORM], [Qt5PlatformSupport], [QT_LIBS="$QTPLATFORM_LIBS $QT_LIBS"])
        else
+         QT_LIBS="$QT_LIBS -lqtlibpng"
          PKG_CHECK_MODULES([QTFONTDATABASE], [Qt5FontDatabaseSupport], [QT_LIBS="-lQt5FontDatabaseSupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTEVENTDISPATCHER], [Qt5EventDispatcherSupport], [QT_LIBS="-lQt5EventDispatcherSupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTTHEME], [Qt5ThemeSupport], [QT_LIBS="-lQt5ThemeSupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTDEVICEDISCOVERY], [Qt5DeviceDiscoverySupport], [QT_LIBS="-lQt5DeviceDiscoverySupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTACCESSIBILITY], [Qt5AccessibilitySupport], [QT_LIBS="-lQt5AccessibilitySupport $QT_LIBS"])
+         PKG_CHECK_MODULES([QTWINDOWSUIA], [Qt5WindowsUIAutomationSupport], [QT_LIBS="-lQt5WindowsUIAutomationSupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTFB], [Qt5FbSupport], [QT_LIBS="-lQt5FbSupport $QT_LIBS"])
                 fi
        if test "x$TARGET_OS" = xlinux; then
@@ -410,7 +419,9 @@ AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FbSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXFbSupport not found)))
              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}DeviceDiscoverySupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXDeviceDiscoverySupport not found)))
              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}AccessibilitySupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXAccessibilitySupport not found)))
-             QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme"
+             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}WindowsUIAutomationSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXWindowsUIAutomationSupport not found)))
+             QT_LIBS="$QT_LIBS -lqtlibpng"
+             QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme -lwtsapi32 -lnetapi32 -luserenv"
            fi
          fi
        fi
