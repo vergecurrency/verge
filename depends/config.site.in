@@ -45,6 +45,11 @@ if test x@host_os@ = xmingw32; then
   if test -z $with_qt_libdir; then
     with_qt_libdir=$depends_prefix/lib
   fi
+  # Tor's AC_CHECK_FUNCS can mis-detect these in MinGW cross builds.
+  # Force known OpenSSL >=1.1 APIs from depends to avoid fallback shims.
+  ac_cv_func_SSL_get_client_random=yes
+  ac_cv_func_SSL_get_server_random=yes
+  ac_cv_func_SSL_SESSION_get_master_key=yes
 fi
 
 PATH=$depends_prefix/native/bin:$PATH
