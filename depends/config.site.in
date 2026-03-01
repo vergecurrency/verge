@@ -50,6 +50,7 @@ if test x@host_os@ = xmingw32; then
   ac_cv_func_SSL_get_client_random=yes
   ac_cv_func_SSL_get_server_random=yes
   ac_cv_func_SSL_SESSION_get_master_key=yes
+  ac_cv_func_SSL_get_client_ciphers=yes
 fi
 
 PATH=$depends_prefix/native/bin:$PATH
