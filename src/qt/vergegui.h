@@ -226,12 +226,15 @@ private Q_SLOTS:
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
-    void gotoSendCoinsPage(QString addr = "");
+    void gotoSendCoinsPage();
+    void gotoSendCoinsPage(QString addr);
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
-    void gotoSignMessageTab(QString addr = "");
+    void gotoSignMessageTab();
+    void gotoSignMessageTab(QString addr);
     /** Show Sign/Verify Message dialog and switch to verify message tab */
-    void gotoVerifyMessageTab(QString addr = "");
+    void gotoVerifyMessageTab();
+    void gotoVerifyMessageTab(QString addr);
 
     /** Show open dialog */
     void openClicked();
