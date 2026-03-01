@@ -3,7 +3,6 @@ $(package)_version=1.85.0
 $(package)_download_path=https://archives.boost.io/release/$($(package)_version)/source/
 $(package)_file_name=$(package)_$(subst .,_,$($(package)_version)).tar.gz
 $(package)_sha256_hash=be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b
-$(package)_patches=process_macos_sdk.patch
 
 $(package)_compiler=
 ifeq ($(CLANG_ARG),true)
@@ -34,7 +33,6 @@ $(package)_cxxflags_freebsd=-fPIC
 endef
 
 define $(package)_preprocess_cmds
-  patch -p1 -i $($(package)_patch_dir)/filesystem_macos_sdk.patch && \
   echo "using $(boost_toolset_$(host_os)) : : $($(package)_cxx) : <cxxflags>\"$($(package)_cxxflags) $($(package)_cppflags)\" <linkflags>\"$($(package)_ldflags)\" <archiver>\"$(boost_archiver_$(host_os))\" <arflags>\"$($(package)_arflags)\" <striper>\"$(host_STRIP)\"  <ranlib>\"$(host_RANLIB)\" <rc>\"$(host_WINDRES)\" : ;" > user-config.jam
 endef
 
