@@ -93,6 +93,8 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     progressBarLabel(0),
     progressBar(0),
     progressDialog(0),
+    m_syncProgressBarTimer(0),
+    m_syncProgressBarOffset(0),
     appMenuBar(0),
     appToolBar(0),
     overviewAction(0),
@@ -244,14 +246,14 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     progressBar->setAlignment(Qt::AlignCenter);
     progressBar->setVisible(false);
 
-    // Override style sheet for progress bar for styles that have a segmented progress bar,
-    // as they make the text unreadable (workaround for issue #1071)
-    // See https://qt-project.org/doc/qt-4.8/gallery.html
-    QString curStyle = QApplication::style()->metaObject()->className();
-    if(curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
-    {
-        progressBar->setStyleSheet("QProgressBar { background-color: #e8e8e8; border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; } QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 orange); border-radius: 7px; margin: 0px; }");
-    }
+    updateSyncProgressBarStyle();
+    m_syncProgressBarTimer = new QTimer(this);
+    m_syncProgressBarTimer->setInterval(50);
+    connect(m_syncProgressBarTimer, &QTimer::timeout, this, [this]() {
+        m_syncProgressBarOffset = (m_syncProgressBarOffset + 2) % 100;
+        updateSyncProgressBarStyle();
+    });
+    m_syncProgressBarTimer->start();
 
     statusBar()->addWidget(progressBarLabel);
     statusBar()->addWidget(progressBar);
@@ -827,6 +829,32 @@ void VERGEGUI::updateHeadersSyncProgressLabel()
     int estHeadersLeft = (GetTime() - headersTipTime) / CalculateAvgBlockTimeForHeight(headersTipHeight); //Params().GetConsensus().nPowTargetSpacing;
     if (estHeadersLeft > HEADER_HEIGHT_DELTA_SYNC)
         progressBarLabel->setText(tr("Syncing Headers (%1%)...").arg(QString::number(100.0 / (headersTipHeight+estHeadersLeft)*headersTipHeight, 'f', 1)));
+}
+
+void VERGEGUI::updateSyncProgressBarStyle()
+{
+    const double center = static_cast<double>(m_syncProgressBarOffset) / 100.0;
+    const double leftFade = qMax(0.0, center - 0.18);
+    const double rightFade = qMin(1.0, center + 0.18);
+    progressBar->setStyleSheet(QString(
+        "QProgressBar {"
+        " background-color: #0f1414;"
+        " border: 1px solid #314343;"
+        " border-radius: 7px;"
+        " padding: 1px;"
+        " text-align: center;"
+        " color: white;"
+        "}"
+        "QProgressBar::chunk {"
+        " background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0,"
+        " stop: 0.00 #ffffff,"
+        " stop: %1 #dcffff,"
+        " stop: %2 #005c5c,"
+        " stop: %3 #dcffff,"
+        " stop: 1.00 #ffffff);"
+        " border-radius: 7px;"
+        " margin: 0px;"
+        "}").arg(leftFade, 0, 'f', 2).arg(center, 0, 'f', 2).arg(rightFade, 0, 'f', 2));
 }
 
 void VERGEGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool header)

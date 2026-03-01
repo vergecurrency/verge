@@ -45,6 +45,7 @@ class QComboBox;
 class QDateTime;
 class QProgressBar;
 class QProgressDialog;
+class QTimer;
 QT_END_NAMESPACE
 
 /**
@@ -100,6 +101,8 @@ private:
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
     QProgressDialog *progressDialog;
+    QTimer* m_syncProgressBarTimer;
+    int m_syncProgressBarOffset;
 
     QMenuBar *appMenuBar;
     QToolBar *appToolBar;
@@ -164,6 +167,7 @@ private:
     void updateNetworkState();
 
     void updateHeadersSyncProgressLabel();
+    void updateSyncProgressBarStyle();
 
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */

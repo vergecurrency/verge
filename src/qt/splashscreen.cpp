@@ -23,12 +23,13 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QGuiApplication>
+#include <QLinearGradient>
 #include <QScreen>
 #include <QPainter>
 #include <QRadialGradient>
 
 SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const NetworkStyle *networkStyle) :
-    QWidget(0, f), curAlignment(0), m_node(node)
+    QWidget(0, f), curAlignment(0), m_node(node), m_textGradientOffset(0)
 {
     // set reference point, paddings
     int paddingRight            = 15;
@@ -137,6 +138,13 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
     subscribeToCoreSignals();
     installEventFilter(this);
+
+    m_textGradientTimer.setInterval(50);
+    connect(&m_textGradientTimer, &QTimer::timeout, this, [this]() {
+        m_textGradientOffset = (m_textGradientOffset + 4) % 800;
+        update();
+    });
+    m_textGradientTimer.start();
 }
 
 SplashScreen::~SplashScreen()
@@ -224,11 +232,22 @@ void SplashScreen::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.drawPixmap(0, 0, pixmap);
-    // QRect r = rect().adjusted(5, 5, -5, -5);
+    Q_UNUSED(event);
+
+    const QRect textRect(100, 360, 300, 150);
     painter.setFont(QFont(QApplication::font().toString(), 13));
-    painter.setPen(curColor);
-    //void QPainter::drawText(int x, int y, int width, int height, int flags, const QString & text, QRect * boundingRect = 0)
-    painter.drawText(100, 325, 300, 150, Qt::AlignCenter|Qt::AlignHCenter, curMessage);
+
+    QLinearGradient gradient(textRect.left() - textRect.width() + m_textGradientOffset, textRect.center().y(),
+                             textRect.left() + m_textGradientOffset, textRect.center().y());
+    gradient.setSpread(QGradient::RepeatSpread);
+    gradient.setColorAt(0.00, QColor(255, 255, 255, curColor.alpha()));
+    gradient.setColorAt(0.35, QColor(220, 255, 255, curColor.alpha()));
+    gradient.setColorAt(0.50, QColor(0, 92, 92, curColor.alpha()));
+    gradient.setColorAt(0.65, QColor(220, 255, 255, curColor.alpha()));
+    gradient.setColorAt(1.00, QColor(255, 255, 255, curColor.alpha()));
+
+    painter.setPen(QPen(QBrush(gradient), 0));
+    painter.drawText(textRect, curAlignment, curMessage);
 }
 
 void SplashScreen::closeEvent(QCloseEvent *event)
