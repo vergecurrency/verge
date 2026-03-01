@@ -1,8 +1,9 @@
 package=boost
-$(package)_version=1.80.0
-$(package)_download_path=https://archives.boost.io/release/$($(package)_version)/source/
+$(package)_version=1.81.0
+$(package)_download_path=https://boostorg.jfrog.io/artifactory/main/release/$($(package)_version)/source/
 $(package)_file_name=boost_$(subst .,_,$($(package)_version)).tar.bz2
-$(package)_sha256_hash=1e19565d82e43bc59209a168f5ac899d3ba471d55c7610c677d4ccf2c9c500c0
+$(package)_sha256_hash=71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa
+$(package)_patches=process_macos_sdk.patch
 
 $(package)_compiler=
 ifeq ($(CLANG_ARG),true)
@@ -30,6 +31,10 @@ $(package)_config_libraries=chrono,filesystem,program_options,system,thread,test
 $(package)_cxxflags=-std=c++17 -fvisibility=hidden
 $(package)_cxxflags_linux=-fPIC
 $(package)_cxxflags_freebsd=-fPIC
+endef
+
+define $(package)_preprocess_cmds
+  patch -p1 < $($(package)_patch_dir)/process_macos_sdk.patch
 endef
 
 define $(package)_config_cmds
