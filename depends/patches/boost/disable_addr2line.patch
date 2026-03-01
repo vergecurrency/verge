@@ -1,0 +1,42 @@
+Fixes a reproducibility defect. We don't need the library.
+
+diff --git a/libs/stacktrace/build/Jamfile.v2 b/libs/stacktrace/build/Jamfile.v2
+index 230d5a8b4..d3d74599b 100644
+--- a/libs/stacktrace/build/Jamfile.v2
++++ b/libs/stacktrace/build/Jamfile.v2
+@@ -48,9 +48,6 @@ rule mp-run-simple ( sources + : args * : input-files * : requirements * : targe
+ mp-run-simple has_backtrace.cpp : : : <library>backtrace : libbacktrace ;
+ explicit libbacktrace ;
+
+-mp-run-simple has_addr2line.cpp : : : : addr2line ;
+-explicit addr2line ;
+-
+ mp-run-simple has_windbg.cpp : : : <library>Dbgeng <library>ole32 : WinDbg ;
+ explicit WinDbg ;
+
+@@ -82,19 +79,6 @@ lib boost_stacktrace_backtrace
+     #<link>shared:<define>BOOST_STACKTRACE_DYN_LINK=1
+   ;
+
+-lib boost_stacktrace_addr2line
+-  : # sources
+-    ../src/addr2line.cpp
+-  : # requirements
+-    <warnings>all
+-    <target-os>linux:<library>dl
+-    <link>shared:<define>BOOST_STACKTRACE_DYN_LINK=1
+-    [ check-target-builds ../build//addr2line : : <build>no ]
+-  : # default build
+-  : # usage-requirements
+-    #<link>shared:<define>BOOST_STACKTRACE_DYN_LINK=1
+-  ;
+-
+ lib boost_stacktrace_basic
+   : # sources
+     ../src/basic.cpp
+@@ -152,4 +136,4 @@ lib boost_stacktrace_from_exception
+     #<link>shared:<define>BOOST_STACKTRACE_DYN_LINK=1
+   ;
+
+-boost-install boost_stacktrace_noop boost_stacktrace_backtrace boost_stacktrace_addr2line boost_stacktrace_basic boost_stacktrace_windbg boost_stacktrace_windbg_cached boost_stacktrace_from_exception ;
++boost-install boost_stacktrace_noop boost_stacktrace_backtrace boost_stacktrace_basic boost_stacktrace_windbg boost_stacktrace_windbg_cached boost_stacktrace_from_exception ;

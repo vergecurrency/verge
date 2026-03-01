@@ -1,9 +1,9 @@
 package=boost
-$(package)_version=1.81.0
-$(package)_download_path=https://boostorg.jfrog.io/artifactory/main/release/$($(package)_version)/source/
-$(package)_file_name=boost_$(subst .,_,$($(package)_version)).tar.bz2
-$(package)_sha256_hash=71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa
-$(package)_patches=process_macos_sdk.patch
+$(package)_version=1.85.0
+$(package)_download_path=https://archives.boost.io/release/$($(package)_version)/source/
+$(package)_file_name=$(package)_$(subst .,_,$($(package)_version)).tar.gz
+$(package)_sha256_hash=be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b
+$(package)_patches=process_macos_sdk.patch disable_addr2line.patch
 
 $(package)_compiler=
 ifeq ($(CLANG_ARG),true)
@@ -34,7 +34,9 @@ $(package)_cxxflags_freebsd=-fPIC
 endef
 
 define $(package)_preprocess_cmds
-  patch -p1 < $($(package)_patch_dir)/process_macos_sdk.patch
+  patch -p1 -i $($(package)_patch_dir)/disable_addr2line.patch && \
+  patch -p1 -i $($(package)_patch_dir)/filesystem_macos_sdk.patch && \
+  echo "using $(boost_toolset_$(host_os)) : : $($(package)_cxx) : <cxxflags>\"$($(package)_cxxflags) $($(package)_cppflags)\" <linkflags>\"$($(package)_ldflags)\" <archiver>\"$(boost_archiver_$(host_os))\" <arflags>\"$($(package)_arflags)\" <striper>\"$(host_STRIP)\"  <ranlib>\"$(host_RANLIB)\" <rc>\"$(host_WINDRES)\" : ;" > user-config.jam
 endef
 
 define $(package)_config_cmds
