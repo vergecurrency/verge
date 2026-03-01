@@ -488,7 +488,7 @@ jobs:
 
       - name: configure
         run: |
-          CONFIG_SITE=$PWD/depends/aarch64-linux-gnu/share/config.site ./configure --build=aarch64-linux-gnu -disable-bench \
+          CONFIG_SITE=$PWD/depends/aarch64-linux-gnu/share/config.site ./configure --build=aarch64-linux-gnu --disable-bench \
           --disable-tests --disable-dependency-tracking --disable-werror --bindir=`pwd`/release/bin \
           --prefix="$(pwd)/depends/aarch64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
