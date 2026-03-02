@@ -32,16 +32,22 @@
 
 #include <QDateTime>
 #include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QScreen>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QScrollBar>
 #include <QSettings>
 #include <QSignalMapper>
+#include <QStyle>
 #include <QTime>
 #include <QTimer>
+#include <QToolButton>
 #include <QStringList>
+#include <QVBoxLayout>
 
 #if QT_VERSION < 0x050000
 #include <QUrl>
@@ -462,6 +468,50 @@ RPCConsole::RPCConsole(interfaces::Node& node, const PlatformStyle *_platformSty
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
+    setObjectName("RPCConsole");
+#ifndef Q_OS_MAC
+    setWindowFlag(Qt::FramelessWindowHint, true);
+    if (auto* rootLayout = qobject_cast<QVBoxLayout*>(layout())) {
+        m_titleBar = new QWidget(this);
+        m_titleBar->setObjectName("CustomTitleBar");
+        auto* titleLayout = new QHBoxLayout(m_titleBar);
+        titleLayout->setContentsMargins(10, 4, 6, 4);
+        titleLayout->setSpacing(6);
+
+        m_titleLabel = new QLabel(windowTitle(), m_titleBar);
+        m_titleLabel->setObjectName("CustomTitleLabel");
+        titleLayout->addWidget(m_titleLabel);
+        titleLayout->addStretch();
+
+        m_minimizeButton = new QToolButton(m_titleBar);
+        m_minimizeButton->setObjectName("CustomTitleButton");
+        m_minimizeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarMinButton));
+        m_minimizeButton->setToolTip(tr("Minimize"));
+        connect(m_minimizeButton, &QToolButton::clicked, this, &QWidget::showMinimized);
+        titleLayout->addWidget(m_minimizeButton);
+
+        m_maximizeButton = new QToolButton(m_titleBar);
+        m_maximizeButton->setObjectName("CustomTitleButton");
+        connect(m_maximizeButton, &QToolButton::clicked, this, [this]() {
+            isMaximized() ? showNormal() : showMaximized();
+            updateMaximizeRestoreButton();
+        });
+        titleLayout->addWidget(m_maximizeButton);
+
+        m_closeButton = new QToolButton(m_titleBar);
+        m_closeButton->setObjectName("CustomTitleCloseButton");
+        m_closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+        m_closeButton->setToolTip(tr("Close"));
+        connect(m_closeButton, &QToolButton::clicked, this, &QWidget::close);
+        titleLayout->addWidget(m_closeButton);
+
+        m_titleBar->installEventFilter(this);
+        m_titleLabel->installEventFilter(this);
+        rootLayout->insertWidget(0, m_titleBar);
+        updateMaximizeRestoreButton();
+    }
+#endif
+
     QSettings settings;
     if (!restoreGeometry(settings.value("RPCConsoleWindowGeometry").toByteArray())) {
         // Restore failed (perhaps missing setting), center the window
@@ -526,6 +576,42 @@ RPCConsole::~RPCConsole()
 
 bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
 {
+#ifndef Q_OS_MAC
+    if ((obj == m_titleBar || obj == m_titleLabel) && event) {
+        switch (event->type()) {
+        case QEvent::MouseButtonPress: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (me->button() == Qt::LeftButton && !isMaximized()) {
+                m_titleBarDragging = true;
+                m_dragOffset = me->globalPos() - frameGeometry().topLeft();
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseMove: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (m_titleBarDragging && (me->buttons() & Qt::LeftButton)) {
+                move(me->globalPos() - m_dragOffset);
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseButtonRelease:
+            m_titleBarDragging = false;
+            break;
+        case QEvent::MouseButtonDblClick:
+            if (static_cast<QMouseEvent*>(event)->button() == Qt::LeftButton) {
+                isMaximized() ? showNormal() : showMaximized();
+                updateMaximizeRestoreButton();
+                return true;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+#endif
+
     if(event->type() == QEvent::KeyPress) // Special key handling
     {
         QKeyEvent *keyevt = static_cast<QKeyEvent*>(event);
@@ -566,6 +652,15 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
         }
     }
     return QWidget::eventFilter(obj, event);
+}
+
+void RPCConsole::updateMaximizeRestoreButton()
+{
+#ifndef Q_OS_MAC
+    if (!m_maximizeButton) return;
+    m_maximizeButton->setIcon(style()->standardIcon(isMaximized() ? QStyle::SP_TitleBarNormalButton : QStyle::SP_TitleBarMaxButton));
+    m_maximizeButton->setToolTip(isMaximized() ? tr("Restore") : tr("Maximize"));
+#endif
 }
 
 void RPCConsole::setClientModel(ClientModel *model)
@@ -794,11 +889,12 @@ void RPCConsole::clear(bool clearHistory)
         QString(
                 "table { }"
                 "td.time { color: #808080; font-size: %2; padding-top: 3px; } "
-                "td.message { font-family: %1; font-size: %2; white-space:pre-wrap; } "
-                "td.cmd-request { color: #006060; } "
-                "td.cmd-error { color: red; } "
-                ".secwarning { color: red; }"
-                "b { color: #006060; } "
+                "td.message { color: #d7dbe5; font-family: %1; font-size: %2; white-space:pre-wrap; } "
+                "td.cmd-request { color: #7bd6e6; } "
+                "td.cmd-reply { color: #d7dbe5; } "
+                "td.cmd-error { color: #ff8e9a; } "
+                ".secwarning { color: #ff8e9a; }"
+                "b { color: #9bc2ff; } "
             ).arg(fixedFontInfo.family(), QString("%1pt").arg(consoleFontSize))
         );
 

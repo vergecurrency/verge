@@ -295,6 +295,32 @@ QToolTip {
     border-radius: 6px;
     padding: 4px 6px;
 }
+
+QWidget#RPCConsole {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QWidget#RPCConsole QTabWidget::pane {
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    background-color: #151b27;
+}
+
+QWidget#RPCConsole QGroupBox {
+    background-color: #171d2a;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+QWidget#RPCConsole QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+    color: #dfe6f7;
+}
 )");
 }
 

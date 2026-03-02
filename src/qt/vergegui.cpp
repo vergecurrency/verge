@@ -327,7 +327,8 @@ void VERGEGUI::setupCustomTitleBar()
 
     m_minimizeButton = new QToolButton(m_titleBar);
     m_minimizeButton->setObjectName("CustomTitleButton");
-    m_minimizeButton->setText("-");
+    m_minimizeButton->setText(QString());
+    m_minimizeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarMinButton));
     m_minimizeButton->setToolTip(tr("Minimize"));
     connect(m_minimizeButton, &QToolButton::clicked, this, &QWidget::showMinimized);
     titleLayout->addWidget(m_minimizeButton);
@@ -343,7 +344,8 @@ void VERGEGUI::setupCustomTitleBar()
 
     m_closeButton = new QToolButton(m_titleBar);
     m_closeButton->setObjectName("CustomTitleCloseButton");
-    m_closeButton->setText("x");
+    m_closeButton->setText(QString());
+    m_closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
     m_closeButton->setToolTip(tr("Close"));
     connect(m_closeButton, &QToolButton::clicked, this, &QWidget::close);
     titleLayout->addWidget(m_closeButton);
@@ -368,7 +370,8 @@ void VERGEGUI::updateMaximizeRestoreButton()
 {
 #ifndef Q_OS_MAC
     if (!m_maximizeButton) return;
-    m_maximizeButton->setText(isMaximized() ? "[]" : "+");
+    m_maximizeButton->setText(QString());
+    m_maximizeButton->setIcon(style()->standardIcon(isMaximized() ? QStyle::SP_TitleBarNormalButton : QStyle::SP_TitleBarMaxButton));
     m_maximizeButton->setToolTip(isMaximized() ? tr("Restore") : tr("Maximize"));
 #endif
 }
