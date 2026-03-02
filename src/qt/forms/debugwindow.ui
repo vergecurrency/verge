@@ -27,6 +27,9 @@
        <property name="horizontalSpacing">
         <number>12</number>
        </property>
+       <property name="verticalSpacing">
+        <number>6</number>
+       </property>
        <item row="0" column="0">
         <widget class="QLabel" name="label_9">
          <property name="font">
@@ -89,17 +92,14 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_berkeleyDBVersion">
+       <item row="16" column="0">
+       <widget class="QLabel" name="label_berkeleyDBVersion">
          <property name="text">
           <string>Using BerkeleyDB version</string>
          </property>
-         <property name="indent">
-          <number>10</number>
-         </property>
         </widget>
        </item>
-       <item row="3" column="1" colspan="2">
+       <item row="16" column="1" colspan="2">
         <widget class="QLabel" name="berkeleyDBVersion">
          <property name="cursor">
           <cursorShape>IBeamCursor</cursorShape>
@@ -354,14 +354,14 @@
          </property>
         </widget>
        </item>
-       <item row="16" column="0">
+       <item row="17" column="0">
         <widget class="QLabel" name="labelOpenSSLVersion">
          <property name="text">
           <string>OpenSSL version</string>
          </property>
         </widget>
        </item>
-       <item row="16" column="1" colspan="2">
+       <item row="17" column="1" colspan="2">
         <widget class="QLabel" name="opensslVersion">
          <property name="cursor">
           <cursorShape>IBeamCursor</cursorShape>
@@ -377,14 +377,14 @@
          </property>
         </widget>
        </item>
-       <item row="17" column="0">
+       <item row="18" column="0">
         <widget class="QLabel" name="labelTorVersion">
          <property name="text">
           <string>Tor version</string>
          </property>
         </widget>
        </item>
-       <item row="17" column="1" colspan="2">
+       <item row="18" column="1" colspan="2">
         <widget class="QLabel" name="torVersion">
          <property name="cursor">
           <cursorShape>IBeamCursor</cursorShape>
@@ -406,9 +406,12 @@
           <number>3</number>
          </property>
          <item>
-          <spacer name="verticalSpacer_2">
+         <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
