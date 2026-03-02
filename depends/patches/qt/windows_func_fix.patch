@@ -1,0 +1,48 @@
+From aaae4d700b339491d9c90d12f38ac26186980305 Mon Sep 17 00:00:00 2001
+From: tobtoht <tob@featherwallet.org>
+Date: Tue, 15 Nov 2022 15:48:09 +0100
+Subject: [PATCH] Windows: don't use GetFileVersionInfoSize,
+ GetFileVersionInfo, VerQueryValue
+
+---
+ src/corelib/kernel/qcoreapplication_win.cpp | 24 ---------------------
+ 1 file changed, 24 deletions(-)
+
+diff --git a/qtbase/src/corelib/kernel/qcoreapplication_win.cpp b/qtbase/src/corelib/kernel/qcoreapplication_win.cpp
+index 0fe14af798..e46384a6a5 100644
+--- a/qtbase/src/corelib/kernel/qcoreapplication_win.cpp
++++ b/qtbase/src/corelib/kernel/qcoreapplication_win.cpp
+@@ -60,30 +60,6 @@ QString QCoreApplicationPrivate::appName() const
+ QString QCoreApplicationPrivate::appVersion() const
+ {
+     QString applicationVersion;
+-#ifndef QT_BOOTSTRAPPED
+-    const QString appFileName = qAppFileName();
+-    QVarLengthArray<wchar_t> buffer(appFileName.size() + 1);
+-    buffer[appFileName.toWCharArray(buffer.data())] = 0;
+-
+-    DWORD versionInfoSize = GetFileVersionInfoSize(buffer.data(), nullptr);
+-    if (versionInfoSize) {
+-        QVarLengthArray<BYTE> info(static_cast<int>(versionInfoSize));
+-        if (GetFileVersionInfo(buffer.data(), 0, versionInfoSize, info.data())) {
+-            UINT size;
+-            DWORD *fi;
+-
+-            if (VerQueryValue(info.data(), __TEXT("\\"),
+-                              reinterpret_cast<void **>(&fi), &size) && size) {
+-                const VS_FIXEDFILEINFO *verInfo = reinterpret_cast<const VS_FIXEDFILEINFO *>(fi);
+-                applicationVersion = QStringLiteral("%1.%2.%3.%4")
+-                        .arg(HIWORD(verInfo->dwProductVersionMS))
+-                        .arg(LOWORD(verInfo->dwProductVersionMS))
+-                        .arg(HIWORD(verInfo->dwProductVersionLS))
+-                        .arg(LOWORD(verInfo->dwProductVersionLS));
+-            }
+-        }
+-    }
+-#endif
+     return applicationVersion;
+ }
+ 
+-- 
+2.38.1
+

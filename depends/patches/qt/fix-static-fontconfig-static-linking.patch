@@ -1,0 +1,72 @@
+diff --git a/cmake/FindExpat.cmake b/cmake/FindExpat.cmake
+new file mode 100644
+index 0000000000..cdba26e72e
+--- /dev/null
++++ b/cmake/FindExpat.cmake
+@@ -0,0 +1,9 @@
++set(Expat_FOUND 0)
++
++find_package(PkgConfig QUIET)
++
++pkg_check_modules(EXPAT expat IMPORTED_TARGET)
++
++if(TARGET PkgConfig::EXPAT)
++    set(Expat_FOUND 1)
++endif()
+diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
+index b29be1a768..7446d7b1ae 100644
+--- a/src/gui/CMakeLists.txt
++++ b/src/gui/CMakeLists.txt
+@@ -673,6 +673,14 @@ qt_internal_extend_target(Gui CONDITION QT_FEATURE_cssparser
+         text/qcssparser.cpp text/qcssparser_p.h
+ )
+ 
++qt_internal_extend_target(Gui CONDITION QT_FEATURE_fontconfig AND QT_FEATURE_freetype AND UNIX AND NOT APPLE
++    SOURCES
++        text/unix/qfontconfigdatabase.cpp text/unix/qfontconfigdatabase_p.h
++        text/unix/qfontenginemultifontconfig.cpp text/unix/qfontenginemultifontconfig_p.h
++    LIBRARIES
++        Fontconfig::Fontconfig
++)
++
+ qt_internal_extend_target(Gui CONDITION QT_FEATURE_freetype
+     SOURCES
+         text/freetype/qfontengine_ft.cpp text/freetype/qfontengine_ft_p.h
+@@ -681,17 +689,14 @@ qt_internal_extend_target(Gui CONDITION QT_FEATURE_freetype
+         WrapFreetype::WrapFreetype
+ )
+ 
+-qt_internal_extend_target(Gui CONDITION UNIX AND NOT APPLE
+-    SOURCES
+-        text/unix/qgenericunixfontdatabase_p.h
++qt_internal_extend_target(Gui CONDITION QT_FEATURE_fontconfig AND UNIX AND NOT APPLE
++    LIBRARIES
++        PkgConfig::EXPAT
+ )
+ 
+-qt_internal_extend_target(Gui CONDITION QT_FEATURE_fontconfig AND QT_FEATURE_freetype AND UNIX AND NOT APPLE
++qt_internal_extend_target(Gui CONDITION UNIX AND NOT APPLE
+     SOURCES
+-        text/unix/qfontconfigdatabase.cpp text/unix/qfontconfigdatabase_p.h
+-        text/unix/qfontenginemultifontconfig.cpp text/unix/qfontenginemultifontconfig_p.h
+-    LIBRARIES
+-        Fontconfig::Fontconfig
++        text/unix/qgenericunixfontdatabase_p.h
+ )
+ 
+ qt_internal_extend_target(Gui CONDITION APPLE AND NOT MACOS
+diff --git a/src/gui/configure.cmake b/src/gui/configure.cmake
+index d8319c120b..1ff24eebaf 100644
+--- a/src/gui/configure.cmake
++++ b/src/gui/configure.cmake
+@@ -43,6 +43,7 @@ if(QT_FEATURE_system_zlib)
+     qt_add_qmake_lib_dependency(freetype zlib)
+ endif()
+ qt_find_package(Fontconfig PROVIDED_TARGETS Fontconfig::Fontconfig MODULE_NAME gui QMAKE_LIB fontconfig)
++qt_find_package(Expat PROVIDED_TARGETS PkgConfig::EXPAT MODULE_NAME gui QMAKE_LIB expat)
+ qt_add_qmake_lib_dependency(fontconfig freetype)
+ qt_find_package(gbm PROVIDED_TARGETS gbm::gbm MODULE_NAME gui QMAKE_LIB gbm)
+ qt_find_package(WrapSystemHarfbuzz 2.6.0 PROVIDED_TARGETS WrapSystemHarfbuzz::WrapSystemHarfbuzz MODULE_NAME gui QMAKE_LIB harfbuzz)
+-- 
+2.41.0
+
