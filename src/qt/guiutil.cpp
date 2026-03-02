@@ -49,13 +49,19 @@
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFont>
+#include <QHBoxLayout>
 #include <QLineEdit>
+#include <QMenu>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
+#include <QToolButton>
+#include <QStyle>
+#include <QVBoxLayout>
 #include <QMouseEvent>
 #include <QRegularExpression>
+#include <QDialog>
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -89,6 +95,70 @@ extern double NSAppKitVersionNumber;
 
 namespace GUIUtil {
 
+namespace {
+class ThemedDialogChromeFilter final : public QObject
+{
+public:
+    ThemedDialogChromeFilter(QDialog* dialog, QWidget* titleBar, QLabel* titleLabel)
+        : QObject(dialog), m_dialog(dialog), m_titleBar(titleBar), m_titleLabel(titleLabel) {}
+
+protected:
+    bool eventFilter(QObject* obj, QEvent* event) override
+    {
+        if (!m_dialog || !event) return QObject::eventFilter(obj, event);
+
+        if (obj == m_dialog && event->type() == QEvent::WindowTitleChange && m_titleLabel) {
+            m_titleLabel->setText(m_dialog->windowTitle());
+        }
+
+        if (obj == m_titleBar || obj == m_titleLabel) {
+            switch (event->type()) {
+            case QEvent::MouseButtonPress: {
+                auto* me = static_cast<QMouseEvent*>(event);
+                if (me->button() == Qt::LeftButton) {
+                    m_dragging = true;
+                    m_dragOffset = me->globalPos() - m_dialog->frameGeometry().topLeft();
+                    return true;
+                }
+                if (me->button() == Qt::RightButton) {
+                    QMenu menu(m_dialog);
+                    QAction* minimizeAction = menu.addAction(QObject::tr("Minimize"));
+                    menu.addSeparator();
+                    QAction* closeAction = menu.addAction(QObject::tr("Close"));
+                    QAction* chosen = menu.exec(me->globalPos());
+                    if (chosen == minimizeAction) m_dialog->showMinimized();
+                    if (chosen == closeAction) m_dialog->close();
+                    return true;
+                }
+                break;
+            }
+            case QEvent::MouseMove: {
+                auto* me = static_cast<QMouseEvent*>(event);
+                if (m_dragging && (me->buttons() & Qt::LeftButton)) {
+                    m_dialog->move(me->globalPos() - m_dragOffset);
+                    return true;
+                }
+                break;
+            }
+            case QEvent::MouseButtonRelease:
+                m_dragging = false;
+                break;
+            default:
+                break;
+            }
+        }
+        return QObject::eventFilter(obj, event);
+    }
+
+private:
+    QDialog* m_dialog;
+    QWidget* m_titleBar;
+    QLabel* m_titleLabel;
+    bool m_dragging{false};
+    QPoint m_dragOffset;
+};
+} // namespace
+
 QString dateTimeStr(const QDateTime &date)
 {
     return date.date().toString(Qt::SystemLocaleShortDate) + QString(" ") + date.toString("hh:mm");
@@ -101,17 +171,25 @@ QString dateTimeStr(qint64 nTime)
 
 QFont fixedPitchFont()
 {
-#if QT_VERSION >= 0x50200
-    return QFontDatabase::systemFont(QFontDatabase::FixedFont);
-#else
-    QFont font("Monospace");
+    QFont font("JetBrains Mono");
 #if QT_VERSION >= 0x040800
     font.setStyleHint(QFont::Monospace);
 #else
     font.setStyleHint(QFont::TypeWriter);
 #endif
-    return font;
+    if (!QFontInfo(font).fixedPitch()) {
+#if QT_VERSION >= 0x50200
+        font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+#else
+        font = QFont("Monospace");
+#if QT_VERSION >= 0x040800
+        font.setStyleHint(QFont::Monospace);
+#else
+        font.setStyleHint(QFont::TypeWriter);
 #endif
+#endif
+    }
+    return font;
 }
 
 // Just some dummy data to generate a convincing random-looking (but consistent) address
@@ -357,8 +435,18 @@ QString getSaveFileName(QWidget *parent, const QString &caption, const QString &
     {
         myDir = dir;
     }
-    /* Directly convert path to native OS path separators */
-    QString result = QDir::toNativeSeparators(QFileDialog::getSaveFileName(parent, caption, myDir, filter, &selectedFilter));
+    QString result;
+    QFileDialog fileDialog(parent, caption, myDir, filter);
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+    fileDialog.setFileMode(QFileDialog::AnyFile);
+#ifndef Q_OS_MAC
+    fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+    GUIUtil::EnableThemedDialogChrome(&fileDialog);
+#endif
+    if (fileDialog.exec() == QDialog::Accepted) {
+        result = QDir::toNativeSeparators(fileDialog.selectedFiles().value(0));
+    }
+    selectedFilter = fileDialog.selectedNameFilter();
 
     /* Extract first suffix from filter pattern "Description (*.foo)" or "Description (*.foo *.bar ...) */
     const QRegularExpression filter_re(".* \\(\\*\\.([^ )]+)");
@@ -408,8 +496,18 @@ QString getOpenFileName(QWidget *parent, const QString &caption, const QString &
     {
         myDir = dir;
     }
-    /* Directly convert path to native OS path separators */
-    QString result = QDir::toNativeSeparators(QFileDialog::getOpenFileName(parent, caption, myDir, filter, &selectedFilter));
+    QString result;
+    QFileDialog fileDialog(parent, caption, myDir, filter);
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setFileMode(QFileDialog::ExistingFile);
+#ifndef Q_OS_MAC
+    fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+    GUIUtil::EnableThemedDialogChrome(&fileDialog);
+#endif
+    if (fileDialog.exec() == QDialog::Accepted) {
+        result = QDir::toNativeSeparators(fileDialog.selectedFiles().value(0));
+    }
+    selectedFilter = fileDialog.selectedNameFilter();
 
     if(selectedSuffixOut)
     {
@@ -1053,6 +1151,54 @@ qreal calculateIdealFontSize(int width, const QString& text, QFont font, qreal m
         font_size -= 0.5;
     }
     return font_size;
+}
+
+void EnableThemedDialogChrome(QDialog* dialog)
+{
+#ifdef Q_OS_MAC
+    Q_UNUSED(dialog);
+#else
+    if (!dialog || dialog->property("customChrome").toBool()) return;
+    QLayout* layout = dialog->layout();
+    if (!layout) return;
+
+    dialog->setProperty("customChrome", true);
+    dialog->setWindowFlag(Qt::FramelessWindowHint, true);
+
+    auto* titleBar = new QWidget(dialog);
+    titleBar->setObjectName("CustomTitleBar");
+    auto* titleLayout = new QHBoxLayout(titleBar);
+    titleLayout->setContentsMargins(10, 4, 6, 4);
+    titleLayout->setSpacing(6);
+
+    auto* titleLabel = new QLabel(dialog->windowTitle(), titleBar);
+    titleLabel->setObjectName("CustomTitleLabel");
+    titleLayout->addWidget(titleLabel);
+    titleLayout->addStretch();
+
+    auto* minimizeButton = new QToolButton(titleBar);
+    minimizeButton->setObjectName("CustomTitleButton");
+    minimizeButton->setIcon(dialog->style()->standardIcon(QStyle::SP_TitleBarMinButton));
+    minimizeButton->setToolTip(QObject::tr("Minimize"));
+    QObject::connect(minimizeButton, &QToolButton::clicked, dialog, &QWidget::showMinimized);
+    titleLayout->addWidget(minimizeButton);
+
+    auto* closeButton = new QToolButton(titleBar);
+    closeButton->setObjectName("CustomTitleCloseButton");
+    closeButton->setIcon(dialog->style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+    closeButton->setToolTip(QObject::tr("Close"));
+    QObject::connect(closeButton, &QToolButton::clicked, dialog, &QWidget::close);
+    titleLayout->addWidget(closeButton);
+
+    // Safer than replacing the entire layout: attach title bar as layout menu bar.
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setMenuBar(titleBar);
+
+    auto* filter = new ThemedDialogChromeFilter(dialog, titleBar, titleLabel);
+    titleBar->installEventFilter(filter);
+    titleLabel->installEventFilter(filter);
+    dialog->installEventFilter(filter);
+#endif
 }
 
 void ClickableLabel::mouseReleaseEvent(QMouseEvent *event)

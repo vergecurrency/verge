@@ -48,12 +48,14 @@
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QDialogButtonBox>
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMouseEvent>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QSettings>
 #include <QShortcut>
 #include <QStackedWidget>
 #include <QStatusBar>
@@ -142,18 +144,25 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     ,m_activeResizeEdges(Qt::Edges())
     ,m_resizeStartGeometry()
     ,m_resizeStartGlobalPos()
-    ,m_resizeMargin(6)
+    ,m_resizeMargin(8)
 #endif
 {
+    setObjectName("VERGEGUI");
 #ifndef Q_OS_MAC
     setWindowFlag(Qt::FramelessWindowHint, true);
+    setMouseTracking(true);
 #endif
 
-    // Use a predictable startup size: ~25% of screen area and wider than tall.
-    // This avoids restoring stale tall/narrow geometries from previous runs.
+    // Use a predictable startup size with preset profiles and a wide aspect ratio.
     if (QScreen* const screen = QGuiApplication::primaryScreen()) {
+        QSettings settings;
+        const QString preset = settings.value("MainWindowStartupSizePreset", "medium").toString().toLower();
+        double areaRatio = 0.25;
+        if (preset == "small") areaRatio = 0.18;
+        else if (preset == "large") areaRatio = 0.33;
+
         const QRect available = screen->availableGeometry();
-        const double targetArea = static_cast<double>(available.width()) * static_cast<double>(available.height()) * 0.25;
+        const double targetArea = static_cast<double>(available.width()) * static_cast<double>(available.height()) * areaRatio;
         const double aspectRatio = 1.6; // width / height
         int targetWidth = static_cast<int>(std::sqrt(targetArea * aspectRatio));
         int targetHeight = static_cast<int>(std::sqrt(targetArea / aspectRatio));
@@ -376,6 +385,30 @@ void VERGEGUI::updateMaximizeRestoreButton()
 #endif
 }
 
+void VERGEGUI::showWindowSystemMenu(const QPoint& globalPos)
+{
+#ifndef Q_OS_MAC
+    QMenu menu(this);
+    QAction* restoreAction = menu.addAction(tr("Restore"));
+    QAction* minimizeAction = menu.addAction(tr("Minimize"));
+    QAction* maximizeAction = menu.addAction(tr("Maximize"));
+    menu.addSeparator();
+    QAction* closeAction = menu.addAction(tr("Close"));
+
+    restoreAction->setEnabled(isMaximized() || isMinimized());
+    maximizeAction->setEnabled(!isMaximized());
+
+    QAction* chosen = menu.exec(globalPos);
+    if (chosen == restoreAction) showNormal();
+    else if (chosen == minimizeAction) showMinimized();
+    else if (chosen == maximizeAction) showMaximized();
+    else if (chosen == closeAction) close();
+    updateMaximizeRestoreButton();
+#else
+    Q_UNUSED(globalPos);
+#endif
+}
+
 #ifndef Q_OS_MAC
 Qt::Edges VERGEGUI::hitTestResizeEdges(const QPoint& localPos) const
 {
@@ -541,7 +574,7 @@ void VERGEGUI::createActions()
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
-    connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+    connect(aboutQtAction, SIGNAL(triggered()), this, SLOT(aboutQtClicked()));
     connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
     connect(showHelpMessageAction, SIGNAL(triggered()), this, SLOT(showHelpMessageClicked()));
@@ -841,6 +874,31 @@ void VERGEGUI::aboutClicked()
         return;
 
     HelpMessageDialog dlg(m_node, this, true);
+    dlg.exec();
+}
+
+void VERGEGUI::aboutQtClicked()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("About Qt"));
+    GUIUtil::EnableThemedDialogChrome(&dlg);
+
+    auto* layout = new QVBoxLayout(&dlg);
+    layout->setContentsMargins(16, 16, 16, 12);
+    layout->setSpacing(10);
+
+    auto* label = new QLabel(
+        tr("<b>Qt</b> is a cross-platform C++ framework for application development.<br><br>"
+           "Runtime version: <b>%1</b>").arg(QString::fromLatin1(qVersion())),
+        &dlg);
+    label->setWordWrap(true);
+    label->setTextFormat(Qt::RichText);
+    layout->addWidget(label);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok, &dlg);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    layout->addWidget(buttons);
+
     dlg.exec();
 }
 
@@ -1217,6 +1275,7 @@ void VERGEGUI::closeEvent(QCloseEvent *event)
 
 void VERGEGUI::showEvent(QShowEvent *event)
 {
+    QMainWindow::showEvent(event);
     updateMaximizeRestoreButton();
     // enable the debug window when the main window shows up
     openRPCConsoleAction->setEnabled(true);
@@ -1272,6 +1331,9 @@ bool VERGEGUI::eventFilter(QObject *object, QEvent *event)
             if (me->button() == Qt::LeftButton && !isMaximized()) {
                 m_titleBarDragging = true;
                 m_dragOffset = me->globalPos() - frameGeometry().topLeft();
+                return true;
+            } else if (me->button() == Qt::RightButton) {
+                showWindowSystemMenu(me->globalPos());
                 return true;
             }
             break;
@@ -1335,7 +1397,7 @@ void VERGEGUI::mouseMoveEvent(QMouseEvent* event)
         event->accept();
         return;
     }
-    updateResizeCursor(event->pos());
+    if (!m_titleBarDragging) updateResizeCursor(event->pos());
 #endif
     QMainWindow::mouseMoveEvent(event);
 }

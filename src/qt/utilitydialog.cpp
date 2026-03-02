@@ -37,7 +37,10 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node& node, QWidget *parent, bo
     QDialog(parent),
     ui(new Ui::HelpMessageDialog)
 {
+    setObjectName("HelpMessageDialog");
     ui->setupUi(this);
+    GUIUtil::EnableThemedDialogChrome(this);
+    ui->aboutMessage->setObjectName("HelpAboutMessage");
 
     QString version = tr(PACKAGE_NAME) + " " + tr("version") + " " + QString::fromStdString(FormatFullVersion());
     /* On x86 add a bit specifier to the version so that users can distinguish between
@@ -63,6 +66,7 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node& node, QWidget *parent, bo
         licenseInfoHTML.replace("\n", "<br>");
 
         ui->aboutMessage->setTextFormat(Qt::RichText);
+        ui->aboutMessage->setStyleSheet("QLabel#HelpAboutMessage { color: #d7dbe5; } QLabel#HelpAboutMessage a { color: #9bc2ff; }");
         ui->scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         text = version + "\n" + licenseInfo;
         ui->aboutMessage->setText(version + "<br><br>" + licenseInfoHTML);
@@ -151,10 +155,15 @@ void HelpMessageDialog::on_okButton_accepted()
 ShutdownWindow::ShutdownWindow(QWidget *parent, Qt::WindowFlags f):
     QWidget(parent, f)
 {
-    QVBoxLayout *layout = new QVBoxLayout();
-    layout->addWidget(new QLabel(
+    setObjectName("ShutdownWindow");
+    QLabel* msgLabel = new QLabel(
         tr("%1 is shutting down...").arg(tr(PACKAGE_NAME)) + "<br /><br />" +
-        tr("Do not shut down the computer until this window disappears.")));
+        tr("Do not shut down the computer until this window disappears."));
+    msgLabel->setObjectName("ShutdownMessage");
+    msgLabel->setWordWrap(true);
+
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addWidget(msgLabel);
     setLayout(layout);
 }
 

@@ -28,6 +28,7 @@ SignVerifyMessageDialog::SignVerifyMessageDialog(const PlatformStyle *_platformS
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
+    GUIUtil::EnableThemedDialogChrome(this);
 
     ui->addressBookButton_SM->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
     ui->pasteButton_SM->setIcon(platformStyle->SingleColorIcon(":/icons/editpaste"));

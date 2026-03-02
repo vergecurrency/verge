@@ -193,6 +193,7 @@ private:
     void updateSyncProgressBarStyle();
     void setupCustomTitleBar();
     void updateMaximizeRestoreButton();
+    void showWindowSystemMenu(const QPoint& globalPos);
 #ifndef Q_OS_MAC
     Qt::Edges hitTestResizeEdges(const QPoint& localPos) const;
     void updateResizeCursor(const QPoint& localPos);
@@ -277,6 +278,8 @@ private Q_SLOTS:
     void optionsClicked();
     /** Show about dialog */
     void aboutClicked();
+    /** Show themed About Qt dialog */
+    void aboutQtClicked();
     /** Show debug window */
     void showDebugWindow();
     /** Show debug window and set focus to the console */

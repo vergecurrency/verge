@@ -121,8 +121,14 @@ QMainWindow, QDialog {
     color: #d7dbe5;
 }
 
+QWidget#VERGEGUI, QWidget#RPCConsole {
+    border: 1px solid #2a3347;
+}
+
 QWidget {
     color: #d7dbe5;
+    font-family: "Inter", "Noto Sans", "DejaVu Sans", sans-serif;
+    font-size: 14px;
 }
 
 QWidget#CustomTitleBar {
@@ -132,7 +138,13 @@ QWidget#CustomTitleBar {
 
 QLabel#CustomTitleLabel {
     color: #f2f5ff;
+    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
     font-weight: 600;
+}
+
+QMenuBar, QToolBar, QGroupBox::title, QTabBar::tab {
+    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-size: 14px;
 }
 
 QToolButton#CustomTitleButton, QToolButton#CustomTitleCloseButton {
@@ -246,6 +258,11 @@ QLineEdit, QPlainTextEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
     selection-background-color: #3e5f9c;
 }
 
+QPlainTextEdit, QTextEdit {
+    font-family: "JetBrains Mono", "Fira Code", "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+}
+
 QAbstractItemView, QTableView, QListView, QTreeView {
     background-color: #151b27;
     alternate-background-color: #1b2231;
@@ -298,6 +315,73 @@ QToolTip {
 
 QWidget#RPCConsole {
     background-color: #121722;
+    color: #d7dbe5;
+}
+
+QDialog#HelpMessageDialog {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QDialog[customChrome="true"] {
+    background-color: #121722;
+    color: #d7dbe5;
+    border: 1px solid #2a3347;
+}
+
+QDialog[customChrome="true"] QWidget#CustomDialogContent {
+    background-color: #121722;
+}
+
+QDialog#HelpMessageDialog QTextEdit,
+QDialog#HelpMessageDialog QScrollArea,
+QDialog#HelpMessageDialog QWidget#scrollAreaWidgetContents {
+    background-color: #171d2a;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+}
+
+QDialog#HelpMessageDialog QLabel#HelpAboutMessage {
+    color: #d7dbe5;
+}
+
+QDialog#HelpMessageDialog QLabel#HelpAboutMessage a {
+    color: #9bc2ff;
+}
+
+QWidget#ShutdownWindow {
+    background-color: #121722;
+    color: #d7dbe5;
+    border: 1px solid #2a3347;
+    border-radius: 8px;
+}
+
+QWidget#ShutdownWindow QLabel#ShutdownMessage {
+    color: #d7dbe5;
+}
+
+QWidget#SplashScreen {
+    background-color: #121722;
+    border: 1px solid #2a3347;
+}
+
+QDialog#SendCoinsDialog {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QDialog#SendCoinsDialog QScrollArea,
+QDialog#SendCoinsDialog QWidget#scrollAreaWidgetContents,
+QDialog#SendCoinsDialog QFrame#frameCoinControl,
+QDialog#SendCoinsDialog QWidget#widgetCoinControl {
+    background-color: #151b27;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+}
+
+QStackedWidget#SendCoinsEntry,
+QFrame#SendCoins {
+    background-color: #151b27;
     color: #d7dbe5;
 }
 

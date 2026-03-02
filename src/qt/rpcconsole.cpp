@@ -585,6 +585,22 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
                 m_titleBarDragging = true;
                 m_dragOffset = me->globalPos() - frameGeometry().topLeft();
                 return true;
+            } else if (me->button() == Qt::RightButton) {
+                QMenu menu(this);
+                QAction* restoreAction = menu.addAction(tr("Restore"));
+                QAction* minimizeAction = menu.addAction(tr("Minimize"));
+                QAction* maximizeAction = menu.addAction(tr("Maximize"));
+                menu.addSeparator();
+                QAction* closeAction = menu.addAction(tr("Close"));
+                restoreAction->setEnabled(isMaximized() || isMinimized());
+                maximizeAction->setEnabled(!isMaximized());
+                QAction* chosen = menu.exec(me->globalPos());
+                if (chosen == restoreAction) showNormal();
+                else if (chosen == minimizeAction) showMinimized();
+                else if (chosen == maximizeAction) showMaximized();
+                else if (chosen == closeAction) close();
+                updateMaximizeRestoreButton();
+                return true;
             }
             break;
         }
@@ -1255,6 +1271,7 @@ void RPCConsole::resizeEvent(QResizeEvent *event)
 void RPCConsole::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
+    updateMaximizeRestoreButton();
 
     if (!clientModel || !clientModel->getPeerTableModel())
         return;

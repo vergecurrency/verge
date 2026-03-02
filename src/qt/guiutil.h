@@ -30,6 +30,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractItemView;
 class QDateTime;
 class QFont;
+class QDialog;
 class QLineEdit;
 class QUrl;
 class QWidget;
@@ -211,6 +212,9 @@ namespace GUIUtil
     QString formatBytes(uint64_t bytes);
 
     qreal calculateIdealFontSize(int width, const QString& text, QFont font, qreal minPointSize = 4, qreal startPointSize = 14);
+
+    // Replace native dialog title bar with themed in-app chrome (non-macOS).
+    void EnableThemedDialogChrome(QDialog* dialog);
 
     class ClickableLabel : public QLabel
     {
