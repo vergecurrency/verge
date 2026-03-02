@@ -113,6 +113,161 @@ static QString GetLangTerritory()
     return lang_territory;
 }
 
+static QString BuildAppStyleSheet()
+{
+    return QStringLiteral(R"(
+QMainWindow, QDialog {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QWidget {
+    color: #d7dbe5;
+}
+
+QFrame, QGroupBox {
+    border-radius: 8px;
+}
+
+QMenuBar {
+    background-color: #171d2a;
+    border-bottom: 1px solid #2a3347;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+QMenuBar::item:selected {
+    background: #24304a;
+}
+
+QMenu {
+    background-color: #171d2a;
+    border: 1px solid #2a3347;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 6px 14px;
+    border-radius: 6px;
+}
+
+QMenu::item:selected {
+    background: #2d3d60;
+}
+
+QToolBar {
+    background-color: #171d2a;
+    border: 0;
+    border-bottom: 1px solid #2a3347;
+    spacing: 6px;
+    padding: 4px 8px;
+}
+
+QToolBar::separator {
+    background: #2a3347;
+    width: 1px;
+    margin: 4px 6px;
+}
+
+QToolButton {
+    color: #d7dbe5;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+QToolButton:hover {
+    background: #24304a;
+    border-color: #2e3f5f;
+}
+
+QToolButton:pressed, QToolButton:checked {
+    background: #2d3d60;
+    border-color: #3a4f79;
+    color: #ecf1ff;
+}
+
+QPushButton {
+    background-color: #25324b;
+    border: 1px solid #3a4c6e;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+QPushButton:hover {
+    background-color: #2d3d60;
+}
+
+QPushButton:pressed {
+    background-color: #1f2a3f;
+}
+
+QLineEdit, QPlainTextEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+    background-color: #171d2a;
+    border: 1px solid #313c52;
+    border-radius: 8px;
+    padding: 4px 8px;
+    selection-background-color: #3e5f9c;
+}
+
+QAbstractItemView, QTableView, QListView, QTreeView {
+    background-color: #151b27;
+    alternate-background-color: #1b2231;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    gridline-color: #2a3347;
+    selection-background-color: #3e5f9c;
+    selection-color: #ecf1ff;
+}
+
+QHeaderView::section {
+    background-color: #1b2231;
+    border: 0;
+    border-bottom: 1px solid #2a3347;
+    padding: 6px;
+}
+
+QTabWidget::pane {
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    top: -1px;
+}
+
+QTabBar::tab {
+    background-color: #1a2231;
+    border: 1px solid #2e394f;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 7px 12px;
+    margin-right: 4px;
+}
+
+QTabBar::tab:selected {
+    background-color: #26324a;
+}
+
+QStatusBar {
+    background-color: #121722;
+    border-top: 1px solid #2a3347;
+}
+
+QToolTip {
+    background-color: #20283a;
+    color: #d7dbe5;
+    border: 1px solid #3a4b69;
+    border-radius: 6px;
+    padding: 4px 6px;
+}
+)");
+}
+
 /** Set up translations */
 static void initTranslations(QTranslator &qtTranslatorBase, QTranslator &qtTranslator, QTranslator &translatorBase, QTranslator &translator)
 {
@@ -625,6 +780,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QAPP_ORG_NAME);
     QApplication::setOrganizationDomain(QAPP_ORG_DOMAIN);
     QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
+    app.setStyleSheet(BuildAppStyleSheet());
     GUIUtil::SubstituteFonts(GetLangTerritory());
 
     /// 4. Initialization of translations, so that intro dialog is in user's language

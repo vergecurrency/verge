@@ -37,6 +37,7 @@
 #include <util/system.h>
 #include <chain.h>
 
+#include <cmath>
 #include <iostream>
 
 #include <QAction>
@@ -51,7 +52,6 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
-#include <QSettings>
 #include <QShortcut>
 #include <QStackedWidget>
 #include <QStatusBar>
@@ -128,13 +128,20 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     spinnerFrame(0),
     platformStyle(_platformStyle)
 {
-    QSettings settings;
-    if (!restoreGeometry(settings.value("MainWindowGeometry").toByteArray())) {
-        // Restore failed (perhaps missing setting), center the window
-        QScreen* const screen = QGuiApplication::primaryScreen();
-        if (screen) {
-            move(screen->availableGeometry().center() - frameGeometry().center());
-        }
+    // Use a predictable startup size: ~25% of screen area and wider than tall.
+    // This avoids restoring stale tall/narrow geometries from previous runs.
+    if (QScreen* const screen = QGuiApplication::primaryScreen()) {
+        const QRect available = screen->availableGeometry();
+        const double targetArea = static_cast<double>(available.width()) * static_cast<double>(available.height()) * 0.25;
+        const double aspectRatio = 1.6; // width / height
+        int targetWidth = static_cast<int>(std::sqrt(targetArea * aspectRatio));
+        int targetHeight = static_cast<int>(std::sqrt(targetArea / aspectRatio));
+
+        targetWidth = qMin(targetWidth, static_cast<int>(available.width() * 0.95));
+        targetHeight = qMin(targetHeight, static_cast<int>(available.height() * 0.95));
+
+        resize(targetWidth, targetHeight);
+        move(available.center() - rect().center());
     }
 
     QString windowTitle = tr(PACKAGE_NAME) + " - ";
@@ -285,8 +292,6 @@ VERGEGUI::~VERGEGUI()
     // Unsubscribe from notifications from core
     unsubscribeFromCoreSignals();
 
-    QSettings settings;
-    settings.setValue("MainWindowGeometry", saveGeometry());
     if(trayIcon) // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
         trayIcon->hide();
 #ifdef Q_OS_MAC
@@ -1345,7 +1350,7 @@ UnitDisplayStatusBarControl::UnitDisplayStatusBarControl(const PlatformStyle *pl
     const QFontMetrics fm(font());
     for (const VERGEUnits::Unit unit : units)
     {
-        max_width = qMax(max_width, fm.width(VERGEUnits::longName(unit)));
+        max_width = qMax(max_width, fm.horizontalAdvance(VERGEUnits::longName(unit)));
     }
     setMinimumSize(max_width, 0);
     setAlignment(Qt::AlignRight | Qt::AlignVCenter);

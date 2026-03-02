@@ -82,21 +82,21 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     // check font size and drawing with
     pixPaint.setFont(QFont(font, 33*fontFactor));
     QFontMetrics fm = pixPaint.fontMetrics();
-    int titleTextWidth = fm.width(titleText);
+    int titleTextWidth = fm.horizontalAdvance(titleText);
     if (titleTextWidth > 176) {
         fontFactor = fontFactor * 176 / titleTextWidth;
     }
 
     pixPaint.setFont(QFont(font, 33*fontFactor));
     fm = pixPaint.fontMetrics();
-    titleTextWidth  = fm.width(titleText);
+    titleTextWidth  = fm.horizontalAdvance(titleText);
     pixPaint.drawText(paddingRight,paddingTop,titleText);
 
     pixPaint.setFont(QFont(font, 13*fontFactor));
 
     // if the version string is too long, reduce size
     fm = pixPaint.fontMetrics();
-    int versionTextWidth  = fm.width(versionText);
+    int versionTextWidth  = fm.horizontalAdvance(versionText);
     if (versionTextWidth > titleTextWidth + paddingRight - 10) {
         pixPaint.setFont(QFont(font, 8*fontFactor));
         titleVersionVSpace -= 5;
@@ -118,7 +118,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
         boldFont.setWeight(QFont::Bold);
         pixPaint.setFont(boldFont);
         fm = pixPaint.fontMetrics();
-        int titleAddTextWidth  = fm.width(titleAddText);
+        int titleAddTextWidth  = fm.horizontalAdvance(titleAddText);
         pixPaint.drawText(pixmap.width()/devicePixelRatio-titleAddTextWidth-10,15,titleAddText);
     }
 
