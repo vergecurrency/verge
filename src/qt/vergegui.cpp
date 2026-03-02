@@ -47,8 +47,10 @@
 #include <QDragEnterEvent>
 #include <QFontDatabase>
 #include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QListWidget>
 #include <QMenuBar>
+#include <QMouseEvent>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
@@ -59,6 +61,7 @@
 #include <QScreen>
 #include <QTimer>
 #include <QToolBar>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #if QT_VERSION < 0x050000
@@ -126,8 +129,26 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     modalOverlay(0),
     prevBlocks(0),
     spinnerFrame(0),
-    platformStyle(_platformStyle)
+    platformStyle(_platformStyle),
+    m_titleBar(nullptr),
+    m_titleLabel(nullptr),
+    m_minimizeButton(nullptr),
+    m_maximizeButton(nullptr),
+    m_closeButton(nullptr),
+    m_titleBarDragging(false),
+    m_dragOffset()
+#ifndef Q_OS_MAC
+    ,m_resizeActive(false)
+    ,m_activeResizeEdges(Qt::Edges())
+    ,m_resizeStartGeometry()
+    ,m_resizeStartGlobalPos()
+    ,m_resizeMargin(6)
+#endif
 {
+#ifndef Q_OS_MAC
+    setWindowFlag(Qt::FramelessWindowHint, true);
+#endif
+
     // Use a predictable startup size: ~25% of screen area and wider than tall.
     // This avoids restoring stale tall/narrow geometries from previous runs.
     if (QScreen* const screen = QGuiApplication::primaryScreen()) {
@@ -162,6 +183,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     MacDockIconHandler::instance()->setIcon(networkStyle->getAppIcon());
 #endif
     setWindowTitle(windowTitle);
+    setupCustomTitleBar();
 
 #if defined(Q_OS_MAC) && QT_VERSION < 0x050000
     // This property is not implemented in Qt 5. Setting it has no effect.
@@ -286,6 +308,114 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     }
 #endif
 }
+
+void VERGEGUI::setupCustomTitleBar()
+{
+#ifndef Q_OS_MAC
+    m_titleBar = new QWidget(this);
+    m_titleBar->setObjectName("CustomTitleBar");
+    m_titleBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    auto* titleLayout = new QHBoxLayout(m_titleBar);
+    titleLayout->setContentsMargins(10, 4, 6, 4);
+    titleLayout->setSpacing(6);
+
+    m_titleLabel = new QLabel(windowTitle(), m_titleBar);
+    m_titleLabel->setObjectName("CustomTitleLabel");
+    titleLayout->addWidget(m_titleLabel);
+    titleLayout->addStretch();
+
+    m_minimizeButton = new QToolButton(m_titleBar);
+    m_minimizeButton->setObjectName("CustomTitleButton");
+    m_minimizeButton->setText("-");
+    m_minimizeButton->setToolTip(tr("Minimize"));
+    connect(m_minimizeButton, &QToolButton::clicked, this, &QWidget::showMinimized);
+    titleLayout->addWidget(m_minimizeButton);
+
+    m_maximizeButton = new QToolButton(m_titleBar);
+    m_maximizeButton->setObjectName("CustomTitleButton");
+    m_maximizeButton->setToolTip(tr("Maximize"));
+    connect(m_maximizeButton, &QToolButton::clicked, this, [this]() {
+        isMaximized() ? showNormal() : showMaximized();
+        updateMaximizeRestoreButton();
+    });
+    titleLayout->addWidget(m_maximizeButton);
+
+    m_closeButton = new QToolButton(m_titleBar);
+    m_closeButton->setObjectName("CustomTitleCloseButton");
+    m_closeButton->setText("x");
+    m_closeButton->setToolTip(tr("Close"));
+    connect(m_closeButton, &QToolButton::clicked, this, &QWidget::close);
+    titleLayout->addWidget(m_closeButton);
+
+    m_titleBar->installEventFilter(this);
+    m_titleLabel->installEventFilter(this);
+
+    appMenuBar = new QMenuBar();
+    QWidget* menuContainer = new QWidget(this);
+    auto* menuLayout = new QVBoxLayout(menuContainer);
+    menuLayout->setContentsMargins(0, 0, 0, 0);
+    menuLayout->setSpacing(0);
+    menuLayout->addWidget(m_titleBar);
+    menuLayout->addWidget(appMenuBar);
+    setMenuWidget(menuContainer);
+
+    updateMaximizeRestoreButton();
+#endif
+}
+
+void VERGEGUI::updateMaximizeRestoreButton()
+{
+#ifndef Q_OS_MAC
+    if (!m_maximizeButton) return;
+    m_maximizeButton->setText(isMaximized() ? "[]" : "+");
+    m_maximizeButton->setToolTip(isMaximized() ? tr("Restore") : tr("Maximize"));
+#endif
+}
+
+#ifndef Q_OS_MAC
+Qt::Edges VERGEGUI::hitTestResizeEdges(const QPoint& localPos) const
+{
+    if (isMaximized()) return Qt::Edges();
+    Qt::Edges edges;
+    if (localPos.x() <= m_resizeMargin) edges |= Qt::LeftEdge;
+    if (localPos.x() >= width() - m_resizeMargin) edges |= Qt::RightEdge;
+    if (localPos.y() <= m_resizeMargin) edges |= Qt::TopEdge;
+    if (localPos.y() >= height() - m_resizeMargin) edges |= Qt::BottomEdge;
+    return edges;
+}
+
+void VERGEGUI::updateResizeCursor(const QPoint& localPos)
+{
+    const Qt::Edges edges = hitTestResizeEdges(localPos);
+    if ((edges & Qt::TopEdge && edges & Qt::LeftEdge) || (edges & Qt::BottomEdge && edges & Qt::RightEdge)) {
+        setCursor(Qt::SizeFDiagCursor);
+    } else if ((edges & Qt::TopEdge && edges & Qt::RightEdge) || (edges & Qt::BottomEdge && edges & Qt::LeftEdge)) {
+        setCursor(Qt::SizeBDiagCursor);
+    } else if (edges & (Qt::TopEdge | Qt::BottomEdge)) {
+        setCursor(Qt::SizeVerCursor);
+    } else if (edges & (Qt::LeftEdge | Qt::RightEdge)) {
+        setCursor(Qt::SizeHorCursor);
+    } else {
+        unsetCursor();
+    }
+}
+
+QRect VERGEGUI::calculateResizedGeometry(const QPoint& globalPos) const
+{
+    QRect r = m_resizeStartGeometry;
+    const QPoint delta = globalPos - m_resizeStartGlobalPos;
+
+    if (m_activeResizeEdges & Qt::LeftEdge) r.setLeft(r.left() + delta.x());
+    if (m_activeResizeEdges & Qt::RightEdge) r.setRight(r.right() + delta.x());
+    if (m_activeResizeEdges & Qt::TopEdge) r.setTop(r.top() + delta.y());
+    if (m_activeResizeEdges & Qt::BottomEdge) r.setBottom(r.bottom() + delta.y());
+
+    if (r.width() < minimumWidth()) r.setWidth(minimumWidth());
+    if (r.height() < minimumHeight()) r.setHeight(minimumHeight());
+    return r;
+}
+#endif
 
 VERGEGUI::~VERGEGUI()
 {
@@ -439,9 +569,11 @@ void VERGEGUI::createMenuBar()
 #ifdef Q_OS_MAC
     // Create a decoupled menu bar on Mac which stays even if the window is closed
     appMenuBar = new QMenuBar();
-#else
-    // Get the main window's menu bar on other platforms
-    appMenuBar = menuBar();
+#elif !defined(Q_OS_MAC)
+    if (!appMenuBar) {
+        appMenuBar = new QMenuBar();
+        setMenuBar(appMenuBar);
+    }
 #endif
 
     // Configure the menus
@@ -1038,6 +1170,7 @@ void VERGEGUI::changeEvent(QEvent *e)
 #ifndef Q_OS_MAC // Ignored on Mac
     if(e->type() == QEvent::WindowStateChange)
     {
+        updateMaximizeRestoreButton();
         if(clientModel && clientModel->getOptionsModel() && clientModel->getOptionsModel()->getMinimizeToTray())
         {
             QWindowStateChangeEvent *wsevt = static_cast<QWindowStateChangeEvent*>(e);
@@ -1081,6 +1214,7 @@ void VERGEGUI::closeEvent(QCloseEvent *event)
 
 void VERGEGUI::showEvent(QShowEvent *event)
 {
+    updateMaximizeRestoreButton();
     // enable the debug window when the main window shows up
     openRPCConsoleAction->setEnabled(true);
     aboutAction->setEnabled(true);
@@ -1127,6 +1261,42 @@ void VERGEGUI::dropEvent(QDropEvent *event)
 
 bool VERGEGUI::eventFilter(QObject *object, QEvent *event)
 {
+#ifndef Q_OS_MAC
+    if ((object == m_titleBar || object == m_titleLabel) && event) {
+        switch (event->type()) {
+        case QEvent::MouseButtonPress: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (me->button() == Qt::LeftButton && !isMaximized()) {
+                m_titleBarDragging = true;
+                m_dragOffset = me->globalPos() - frameGeometry().topLeft();
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseMove: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (m_titleBarDragging && (me->buttons() & Qt::LeftButton)) {
+                move(me->globalPos() - m_dragOffset);
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseButtonRelease:
+            m_titleBarDragging = false;
+            break;
+        case QEvent::MouseButtonDblClick:
+            if (static_cast<QMouseEvent*>(event)->button() == Qt::LeftButton) {
+                isMaximized() ? showNormal() : showMaximized();
+                updateMaximizeRestoreButton();
+                return true;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+#endif
+
     // Catch status tip events
     if (event->type() == QEvent::StatusTip)
     {
@@ -1135,6 +1305,55 @@ bool VERGEGUI::eventFilter(QObject *object, QEvent *event)
             return true;
     }
     return QMainWindow::eventFilter(object, event);
+}
+
+void VERGEGUI::mousePressEvent(QMouseEvent* event)
+{
+#ifndef Q_OS_MAC
+    if (event->button() == Qt::LeftButton && !isMaximized()) {
+        m_activeResizeEdges = hitTestResizeEdges(event->pos());
+        if (m_activeResizeEdges) {
+            m_resizeActive = true;
+            m_resizeStartGeometry = geometry();
+            m_resizeStartGlobalPos = event->globalPos();
+            event->accept();
+            return;
+        }
+    }
+#endif
+    QMainWindow::mousePressEvent(event);
+}
+
+void VERGEGUI::mouseMoveEvent(QMouseEvent* event)
+{
+#ifndef Q_OS_MAC
+    if (m_resizeActive && (event->buttons() & Qt::LeftButton)) {
+        setGeometry(calculateResizedGeometry(event->globalPos()));
+        event->accept();
+        return;
+    }
+    updateResizeCursor(event->pos());
+#endif
+    QMainWindow::mouseMoveEvent(event);
+}
+
+void VERGEGUI::mouseReleaseEvent(QMouseEvent* event)
+{
+#ifndef Q_OS_MAC
+    if (event->button() == Qt::LeftButton) {
+        m_resizeActive = false;
+        m_activeResizeEdges = Qt::Edges();
+    }
+#endif
+    QMainWindow::mouseReleaseEvent(event);
+}
+
+void VERGEGUI::leaveEvent(QEvent* event)
+{
+#ifndef Q_OS_MAC
+    if (!m_resizeActive) unsetCursor();
+#endif
+    QMainWindow::leaveEvent(event);
 }
 
 #ifdef ENABLE_WALLET

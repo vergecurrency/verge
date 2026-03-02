@@ -43,9 +43,14 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QComboBox;
 class QDateTime;
+class QMenuBar;
+class QMouseEvent;
 class QProgressBar;
 class QProgressDialog;
 class QTimer;
+class QToolButton;
+class QToolBar;
+class QWidget;
 QT_END_NAMESPACE
 
 /**
@@ -84,6 +89,10 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
     bool eventFilter(QObject *object, QEvent *event);
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
 private:
     interfaces::Node& m_node;
@@ -143,6 +152,20 @@ private:
     int spinnerFrame;
 
     const PlatformStyle *platformStyle;
+    QWidget* m_titleBar;
+    QLabel* m_titleLabel;
+    QToolButton* m_minimizeButton;
+    QToolButton* m_maximizeButton;
+    QToolButton* m_closeButton;
+    bool m_titleBarDragging;
+    QPoint m_dragOffset;
+#ifndef Q_OS_MAC
+    bool m_resizeActive;
+    Qt::Edges m_activeResizeEdges;
+    QRect m_resizeStartGeometry;
+    QPoint m_resizeStartGlobalPos;
+    int m_resizeMargin;
+#endif
 
     /** Create the main UI actions. */
     void createActions();
@@ -168,6 +191,13 @@ private:
 
     void updateHeadersSyncProgressLabel();
     void updateSyncProgressBarStyle();
+    void setupCustomTitleBar();
+    void updateMaximizeRestoreButton();
+#ifndef Q_OS_MAC
+    Qt::Edges hitTestResizeEdges(const QPoint& localPos) const;
+    void updateResizeCursor(const QPoint& localPos);
+    QRect calculateResizedGeometry(const QPoint& globalPos) const;
+#endif
 
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */

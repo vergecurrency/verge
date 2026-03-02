@@ -125,6 +125,36 @@ QWidget {
     color: #d7dbe5;
 }
 
+QWidget#CustomTitleBar {
+    background-color: #0f1521;
+    border-bottom: 1px solid #2a3347;
+}
+
+QLabel#CustomTitleLabel {
+    color: #f2f5ff;
+    font-weight: 600;
+}
+
+QToolButton#CustomTitleButton, QToolButton#CustomTitleCloseButton {
+    color: #ecf1ff;
+    background: #1a2231;
+    border: 1px solid #2e394f;
+    border-radius: 6px;
+    min-width: 28px;
+    min-height: 22px;
+    padding: 1px 6px;
+}
+
+QToolButton#CustomTitleButton:hover {
+    background: #26324a;
+    border-color: #3a4f79;
+}
+
+QToolButton#CustomTitleCloseButton:hover {
+    background: #8f2f3a;
+    border-color: #b44956;
+}
+
 QFrame, QGroupBox {
     border-radius: 8px;
 }
