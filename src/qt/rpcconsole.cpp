@@ -25,6 +25,8 @@
 
 #include <univalue.h>
 
+extern "C" const char* get_short_version(void);
+
 #ifdef ENABLE_WALLET
 #include <db_cxx.h>
 #include <wallet/wallet.h>
@@ -787,6 +789,12 @@ void RPCConsole::setClientModel(ClientModel *model)
         ui->dataDir->setText(model->dataDir());
         ui->startupTime->setText(model->formatClientStartupTime());
         ui->networkName->setText(QString::fromStdString(Params().NetworkIDString()));
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        ui->opensslVersion->setText(QString::fromUtf8(OpenSSL_version(OPENSSL_VERSION)));
+#else
+        ui->opensslVersion->setText(QString::fromUtf8(SSLeay_version(SSLEAY_VERSION)));
+#endif
+        ui->torVersion->setText(QString::fromUtf8(get_short_version()));
 
         //Setup autocomplete and attach it
         QStringList wordList;
