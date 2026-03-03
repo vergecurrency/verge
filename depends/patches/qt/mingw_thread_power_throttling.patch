@@ -1,0 +1,37 @@
+From 8f0f2f6c3e6f2b5130b2c2f0b30cdb7d2a8a8d9a Mon Sep 17 00:00:00 2001
+From: Verge Build Fix <buildfix@local>
+Date: Tue, 3 Mar 2026 00:00:00 +0000
+Subject: [PATCH] qtbase: fix MinGW THREAD_INFORMATION_CLASS usage for QoS
+
+MinGW headers expose ThreadPowerThrottling as an unscoped enum value in
+some toolchains, so THREAD_INFORMATION_CLASS::ThreadPowerThrottling fails
+to compile for i686-w64-mingw32. Use a MinGW-safe casted value for the
+SetThreadInformation call.
+---
+ qtbase/src/corelib/thread/qthread_win.cpp | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/qtbase/src/corelib/thread/qthread_win.cpp b/qtbase/src/corelib/thread/qthread_win.cpp
+index 04efa46744..f3f21e9f63 100644
+--- a/qtbase/src/corelib/thread/qthread_win.cpp
++++ b/qtbase/src/corelib/thread/qthread_win.cpp
+@@ -220,7 +220,15 @@ void QThreadPrivate::setQualityOfServiceLevel(QThread::QualityOfService qosLevel)
+         state.StateMask = 0; // Ask to disable throttling
+         break;
+     }
+-    if (!SetThreadInformation(::GetCurrentThread(), THREAD_INFORMATION_CLASS::ThreadPowerThrottling,
++
++#if defined(__MINGW32__)
++    // Some MinGW header versions expose this value as an unscoped enum and
++    // reject scoped access via THREAD_INFORMATION_CLASS::ThreadPowerThrottling.
++    constexpr THREAD_INFORMATION_CLASS threadPowerThrottlingClass =
++            static_cast<THREAD_INFORMATION_CLASS>(3);
++#else
++    constexpr THREAD_INFORMATION_CLASS threadPowerThrottlingClass = THREAD_INFORMATION_CLASS::ThreadPowerThrottling;
++#endif
++    if (!SetThreadInformation(::GetCurrentThread(), threadPowerThrottlingClass,
+                               &state, sizeof(state))) {
+         qErrnoWarning("Failed to set thread power throttling state");
+     }
+-- 
+2.43.0

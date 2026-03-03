@@ -14,6 +14,7 @@ $(package)_patches += rcc_hardcode_timestamp.patch
 $(package)_patches += root_CMakeLists.txt
 $(package)_patches += v4l2.patch
 $(package)_patches += windows_func_fix.patch
+$(package)_patches += mingw_thread_power_throttling.patch
 $(package)_patches += libxau-fix.patch
 $(package)_patches += toolchain.cmake
 $(package)_patches += fix_static_qt_darwin_camera_permissions.patch
