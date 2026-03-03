@@ -66,7 +66,9 @@ Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 #if QT_VERSION < 0x050400
 Q_IMPORT_PLUGIN(AccessibleFactory)
 #endif
-#if defined(QT_QPA_PLATFORM_XCB)
+#if defined(Q_OS_LINUX)
+Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
+#elif defined(QT_QPA_PLATFORM_XCB)
 Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
 #elif defined(QT_QPA_PLATFORM_WINDOWS)
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
@@ -639,7 +641,11 @@ VERGEApplication::~VERGEApplication()
     {
         qDebug() << __func__ << ": Stopping thread";
         Q_EMIT stopThread();
-        coreThread->wait();
+        if (!coreThread->wait(15000)) {
+            qWarning() << __func__ << ": Core thread did not stop in time, terminating thread";
+            coreThread->terminate();
+            coreThread->wait(3000);
+        }
         qDebug() << __func__ << ": Stopped thread";
     }
 
@@ -750,6 +756,14 @@ void VERGEApplication::requestShutdown()
 
     // Request shutdown from core thread
     Q_EMIT requestedShutdown();
+
+    // Avoid a permanent hung shutdown window if backend shutdown stalls unexpectedly.
+    QTimer::singleShot(45000, this, [this]() {
+        if (shutdownWindow) {
+            qWarning() << __func__ << ": Shutdown timed out; forcing UI exit";
+            quit();
+        }
+    });
 }
 
 void VERGEApplication::addWallet(WalletModel* walletModel)
@@ -827,6 +841,7 @@ void VERGEApplication::initializeResult(bool success)
 
 void VERGEApplication::shutdownResult()
 {
+    shutdownWindow.reset();
     quit(); // Exit second main loop invocation after shutdown finished
 }
 

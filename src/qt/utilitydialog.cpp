@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #include <QCloseEvent>
+#include <QDialog>
 #include <QLabel>
 #include <QMainWindow>
 #include <QRegularExpression>
@@ -153,9 +154,11 @@ void HelpMessageDialog::on_okButton_accepted()
 
 /** "Shutdown" window */
 ShutdownWindow::ShutdownWindow(QWidget *parent, Qt::WindowFlags f):
-    QWidget(parent, f)
+    QDialog(parent, f)
 {
     setObjectName("ShutdownWindow");
+    setModal(false);
+
     QLabel* msgLabel = new QLabel(
         tr("%1 is shutting down...").arg(tr(PACKAGE_NAME)) + "<br /><br />" +
         tr("Do not shut down the computer until this window disappears."));
@@ -165,6 +168,7 @@ ShutdownWindow::ShutdownWindow(QWidget *parent, Qt::WindowFlags f):
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(msgLabel);
     setLayout(layout);
+    GUIUtil::EnableThemedDialogChrome(this);
 }
 
 QWidget* ShutdownWindow::showShutdownWindow(QMainWindow* window)
@@ -174,7 +178,7 @@ QWidget* ShutdownWindow::showShutdownWindow(QMainWindow* window)
 	assert(window != nullptr);
 
     // Show a simple window indicating shutdown status
-    QWidget *shutdownWindow = new ShutdownWindow();
+    QDialog *shutdownWindow = new ShutdownWindow();
     shutdownWindow->setWindowTitle(window->windowTitle());
 
     // Center shutdown window at where main window was
