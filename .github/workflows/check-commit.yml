@@ -589,10 +589,18 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-      - name: configure
+      - name: configure (require Qt GUI tools)
         run: |
+          set -euo pipefail
+          export QT_HOST_BIN="$PWD/depends/i686-w64-mingw32/native/qt-host/bin"
+          test -x "$QT_HOST_BIN/moc"
+          export PATH="$QT_HOST_BIN:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
+
           CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site \
-          ./configure --prefix=/ --disable-bench --disable-tests
+          MOC="$QT_HOST_BIN/moc" \
+          UIC="$QT_HOST_BIN/uic" \
+          RCC="$QT_HOST_BIN/rcc" \
+          ./configure --prefix=/ --disable-bench --disable-tests --with-gui=qt6
 
       - name: make (serialized, verbose, heartbeat)
         env:
