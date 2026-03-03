@@ -550,10 +550,20 @@ jobs:
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
       - name: Build depends for MingW32 Cross Compile
+        env:
+          STRIP: "strip"
+          V: "1"
         run: |
-          unset STRIP || true
+          set -euo pipefail
           cd depends/
-          timeout 45m make HOST=i686-w64-mingw32 -j2 STRIP=strip V=1 --output-sync=recurse
+          ( while true; do
+              echo "---- depends heartbeat $(date -u +'%Y-%m-%dT%H:%M:%SZ') ----"
+              ps -ef | egrep 'cmake|ninja|mingw|windres|ar|ranlib|ld|gcc|g\+\+|make|libtool' | grep -v egrep || true
+              sleep 60
+            done ) &
+          HB=$!
+          trap 'kill "$HB" || true' EXIT
+          timeout 120m make HOST=i686-w64-mingw32 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
 
       - name: Auto generate
         run: ./autogen.sh
