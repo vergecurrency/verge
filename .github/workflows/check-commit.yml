@@ -511,8 +511,8 @@ jobs:
             ./src/verge-tx
             ./src/qt/verge-qt
 
-  windows32-ubuntu22:
-    runs-on: ubuntu-22.04
+  windows32-ubuntu24:
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -611,15 +611,15 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows32-ubuntu22
+          name: verge-windows32-ubuntu24
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
             /home/runner/work/verge/verge/src/verge-tx.exe
             /home/runner/work/verge/verge/src/qt/verge-qt.exe
 
-  windows64-ubuntu22:
-    runs-on: ubuntu-22.04
+  windows64-ubuntu24:
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -722,7 +722,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows64bit-ubuntu22
+          name: verge-windows64bit-ubuntu24
           path: |
             /home/runner/work/verge/verge/src/verged.exe
             /home/runner/work/verge/verge/src/verge-cli.exe
