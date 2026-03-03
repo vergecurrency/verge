@@ -15,7 +15,7 @@ diff --git a/qtbase/src/corelib/thread/qthread_win.cpp b/qtbase/src/corelib/thre
 index 04efa46744..f3f21e9f63 100644
 --- a/qtbase/src/corelib/thread/qthread_win.cpp
 +++ b/qtbase/src/corelib/thread/qthread_win.cpp
-@@ -220,7 +220,15 @@ void QThreadPrivate::setQualityOfServiceLevel(QThread::QualityOfService qosLevel)
+@@ -220,7 +220,16 @@ void QThreadPrivate::setQualityOfServiceLevel(QThread::QualityOfService qosLevel)
          state.StateMask = 0; // Ask to disable throttling
          break;
      }
