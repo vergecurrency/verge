@@ -524,17 +524,17 @@ jobs:
             depends/i686-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-v8-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-va-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-v8-
+            depends-${{ runner.os }}-mingw32-32-va-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-v8-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-va-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-v8-
+            ccache-${{ runner.os }}-mingw32-32-va-
 
       - name: Update apt repos
         run: sudo apt-get update
