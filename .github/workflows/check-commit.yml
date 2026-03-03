@@ -589,18 +589,30 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-      - name: configure (require Qt GUI tools)
+      - name: configure (Qt6 GUI required)
         run: |
           set -euo pipefail
-          export QT_HOST_BIN="$PWD/depends/i686-w64-mingw32/native/qt-host/bin"
-          test -x "$QT_HOST_BIN/moc"
-          export PATH="$QT_HOST_BIN:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
 
-          CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site \
-          MOC="$QT_HOST_BIN/moc" \
-          UIC="$QT_HOST_BIN/uic" \
-          RCC="$QT_HOST_BIN/rcc" \
-          ./configure --prefix=/ --disable-bench --disable-tests --with-gui=qt6
+          QT_HOST_PREFIX="$PWD/depends/i686-w64-mingw32/native/qt-host"
+          export PATH="$QT_HOST_PREFIX/bin:$QT_HOST_PREFIX/libexec:$PATH"
+
+          # Pick Qt host tools from either bin/ or libexec/ (Qt6 layout can vary)
+          export MOC="$(command -v moc || true)"
+          export UIC="$(command -v uic || true)"
+          export RCC="$(command -v rcc || true)"
+
+          test -n "${MOC}" -a -x "${MOC}"
+          test -n "${UIC}" -a -x "${UIC}"
+          test -n "${RCC}" -a -x "${RCC}"
+
+          CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
+          ./configure --prefix=/ --disable-bench --disable-tests
+
+          # Hard fail if GUI is not enabled with Qt6
+          grep -q "whether to build Verge Octo GUI... yes (Qt6)" config.log || {
+            echo "ERROR: verge-qt (Qt6) was not enabled by configure"
+            exit 1
+          }
 
       - name: make (serialized, verbose, heartbeat)
         env:
