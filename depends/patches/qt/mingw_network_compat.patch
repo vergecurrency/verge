@@ -1,0 +1,80 @@
+From 9f97d1960122a17a4d2abc4f2aa7da6c73bc0ee4 Mon Sep 17 00:00:00 2001
+From: Verge Build Fix <buildfix@local>
+Date: Tue, 3 Mar 2026 00:00:00 +0000
+Subject: [PATCH] qtbase: guard newer Windows net symbols for older MinGW
+
+Older MinGW32 header sets used in Ubuntu 22.04 can miss a subset of newer
+Windows networking and DNS members used by Qt 6.10.2. Guard those uses so the
+Qt Network build still succeeds when those symbols are unavailable.
+---
+ qtbase/src/network/kernel/qdnslookup_win.cpp        | 10 +++++++++-
+ qtbase/src/network/socket/qnativesocketengine_win.cpp |  8 ++++++++
+ 2 files changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/qtbase/src/network/kernel/qdnslookup_win.cpp b/qtbase/src/network/kernel/qdnslookup_win.cpp
+index e4c1f27943..96a70f0b85 100644
+--- a/qtbase/src/network/kernel/qdnslookup_win.cpp
++++ b/qtbase/src/network/kernel/qdnslookup_win.cpp
+@@ -94,7 +94,11 @@ static DNS_STATUS sendAlternate(QDnsLookupRunnable *self, QDnsLookupReply *repl
+     }
+ 
+     // set AD bit: we want to trust this server
++#if defined(__MINGW32__) && !defined(DNS_ADDR_MAX_SOCKADDR_LENGTH)
++    // Older MinGW DNS headers do not expose this bitfield.
++#else
+     dnsBuffer->MessageHead.AuthenticatedData = true;
++#endif
+ 
+     QDnsLookupRunnable::ReplyBuffer replyBuffer;
+     if (!self->sendDnsOverTls(reply, { query.data(), qsizetype(dnsBufferSize) }, replyBuffer))
+@@ -227,6 +231,7 @@ void QDnsLookupRunnable::query(QDnsLookupReply *reply)
+             record.d->timeToLive = ptr->dwTtl;
+             record.d->weight = ptr->Data.Srv.wWeight;
+             reply->serviceRecords.append(record);
++#if !(defined(__MINGW32__) && !defined(DNS_ADDR_MAX_SOCKADDR_LENGTH))
+         } else if (ptr->wType == QDnsLookup::TLSA) {
+             // Note: untested, because the DNS_RECORD reply appears to contain
+             // no records relating to TLSA. Maybe WinDNS filters them out of
+@@ -245,6 +250,7 @@ void QDnsLookupRunnable::query(QDnsLookupReply *reply)
+             record.d->value.assign(tlsa.bCertificateAssociationData,
+                                    tlsa.bCertificateAssociationData + tlsa.bCertificateAssociationDataLength);
+             reply->tlsAssociationRecords.append(std::move(record));
++#endif
+         } else if (ptr->wType == QDnsLookup::TXT) {
+             QDnsTextRecord record;
+             record.d->name = name;
+diff --git a/qtbase/src/network/socket/qnativesocketengine_win.cpp b/qtbase/src/network/socket/qnativesocketengine_win.cpp
+index 2290f73f50..a8bbf3ca02 100644
+--- a/qtbase/src/network/socket/qnativesocketengine_win.cpp
++++ b/qtbase/src/network/socket/qnativesocketengine_win.cpp
+@@ -477,9 +477,11 @@ bool QNativeSocketEnginePrivate::setOption(QNativeSocketEngine::SocketOption op
+             // IPv4 - uses network byte order
+             int netIdx = htonl(v);
+             // Bind outgoing datagrams to the interface
++#if defined(IP_UNICAST_IF)
+             if (!ret) {
+                 ret = ::setsockopt(socketDescriptor, IPPROTO_IP, IP_UNICAST_IF,
+                                    reinterpret_cast<char *>(&netIdx), sizeof(netIdx));
+             }
++#endif
+             if (!ret) {
+                 ret = ::setsockopt(socketDescriptor, IPPROTO_IP, IP_MULTICAST_IF,
+                                    reinterpret_cast<char *>(&netIdx), sizeof(netIdx));
+@@ -487,6 +489,7 @@ bool QNativeSocketEnginePrivate::setOption(QNativeSocketEngine::SocketOption op
+             // Bind incoming datagrams to the interface
+             if (!ret) {
+                 const int enable = 1;
++#if defined(IP_IFLIST) && defined(IP_ADD_IFLIST)
+                 ret = ::setsockopt(socketDescriptor, IPPROTO_IP, IP_IFLIST,
+                                    reinterpret_cast<const char *>(&enable), sizeof(enable));
+                 if (!ret) {
+@@ -494,6 +497,7 @@ bool QNativeSocketEnginePrivate::setOption(QNativeSocketEngine::SocketOption op
+                     ret = ::setsockopt(socketDescriptor, IPPROTO_IP, IP_ADD_IFLIST,
+                                        reinterpret_cast<char *>(&v), sizeof(v));
+                 }
++#endif
+             }
+             if (socketProtocol == QAbstractSocket::IPv4Protocol)
+                 result = !ret;
+-- 
+2.43.0

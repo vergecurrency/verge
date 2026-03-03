@@ -15,6 +15,7 @@ $(package)_patches += root_CMakeLists.txt
 $(package)_patches += v4l2.patch
 $(package)_patches += windows_func_fix.patch
 $(package)_patches += mingw_thread_power_throttling.patch
+$(package)_patches += mingw_network_compat.patch
 $(package)_patches += libxau-fix.patch
 $(package)_patches += toolchain.cmake
 $(package)_patches += fix_static_qt_darwin_camera_permissions.patch
@@ -213,6 +214,7 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/windows_func_fix.patch && \
   cp $($(package)_patch_dir)/toolchain.cmake . && \
   patch -p1 -i $($(package)_patch_dir)/mingw_thread_power_throttling.patch && \
+  patch -p1 -i $($(package)_patch_dir)/mingw_network_compat.patch && \
   sed -i -e 's|@cmake_system_name@|$($(package)_cmake_system_$(host_os))|' \
          -e 's|@target@|$(host)|' \
          -e 's|@host_prefix@|$(host_prefix)|' \
