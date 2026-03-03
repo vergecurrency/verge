@@ -148,6 +148,7 @@ $(package)_config_opts_mingw32 += -DQT_FEATURE_dbus=OFF
 $(package)_config_opts_mingw32 += -DQT_FEATURE_freetype=OFF
 $(package)_config_opts_mingw32 += -DQT_FEATURE_ffmpeg=OFF
 $(package)_config_opts_mingw32 += -DQT_FEATURE_wmf=ON
+$(package)_config_opts_mingw32 += -DFEATURE_intelcet=OFF
 $(package)_config_opts_mingw32 += -DBUILD_WITH_PCH=ON
 
 $(package)_config_opts_darwin += -DQT_QMAKE_TARGET_MKSPEC=macx-clang
