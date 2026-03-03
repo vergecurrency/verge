@@ -388,7 +388,7 @@ VERGE_QT_INCLUDES = -DQT_NO_KEYWORDS -DQT_USE_QSTRINGBUILDER
 
 qt_libvergeqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(VERGE_QT_INCLUDES) \
   $(QT_INCLUDES) $(QT_DBUS_INCLUDES) $(PROTOBUF_CFLAGS) $(QR_CFLAGS) $(BOOST_CPPFLAGS)
-qt_libvergeqt_a_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS)
+qt_libvergeqt_a_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS) $(QT_CXXFLAGS)
 qt_libvergeqt_a_OBJCXXFLAGS = $(AM_OBJCXXFLAGS) $(QT_PIE_FLAGS)
 
 qt_libvergeqt_a_SOURCES = $(VERGE_QT_CPP) $(VERGE_QT_H) $(QT_FORMS_UI) \
@@ -413,7 +413,7 @@ $(QT_MOC_CPP): $(PROTOBUF_H)
 # verge-qt binary #
 qt_verge_qt_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(VERGE_QT_INCLUDES) \
   $(QT_INCLUDES) $(PROTOBUF_CFLAGS) $(QR_CFLAGS)
-qt_verge_qt_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS)
+qt_verge_qt_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS) $(QT_CXXFLAGS)
 
 qt_verge_qt_SOURCES = qt/verge.cpp
 if TARGET_DARWIN
@@ -488,6 +488,9 @@ moc_%.cpp: %.h
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(MOC) $(DEFAULT_INCLUDES) $(QT_INCLUDES_UNSUPPRESSED) $(MOC_DEFS) $< > $@
 
 %.qm: %.ts
-	@test -f $(LRELEASE)
 	@$(MKDIR_P) $(@D)
-	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(LRELEASE) -silent $< -qm $@
+	@if test -n "$(LRELEASE)" && test -f "$(LRELEASE)"; then \
+	  QT_SELECT=$(QT_SELECT) $(LRELEASE) -silent $< -qm $@; \
+	else \
+	  : > $@; \
+	fi

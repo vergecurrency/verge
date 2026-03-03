@@ -791,6 +791,7 @@ BOOST_LDFLAGS
 BOOST_CPPFLAGS
 MOC_DEFS
 QT_SELECT
+QT_CXXFLAGS
 QT_TEST_INCLUDES
 QT_DBUS_INCLUDES
 QT_LDFLAGS
@@ -814,6 +815,8 @@ X11XCB_LIBS
 X11XCB_CFLAGS
 QTFB_LIBS
 QTFB_CFLAGS
+QTWINDOWSUIA_LIBS
+QTWINDOWSUIA_CFLAGS
 QTACCESSIBILITY_LIBS
 QTACCESSIBILITY_CFLAGS
 QTDEVICEDISCOVERY_LIBS
@@ -1116,6 +1119,8 @@ QTDEVICEDISCOVERY_CFLAGS
 QTDEVICEDISCOVERY_LIBS
 QTACCESSIBILITY_CFLAGS
 QTACCESSIBILITY_LIBS
+QTWINDOWSUIA_CFLAGS
+QTWINDOWSUIA_LIBS
 QTFB_CFLAGS
 QTFB_LIBS
 X11XCB_CFLAGS
@@ -1964,6 +1969,10 @@ Some influential environment variables:
               C compiler flags for QTACCESSIBILITY, overriding pkg-config
   QTACCESSIBILITY_LIBS
               linker flags for QTACCESSIBILITY, overriding pkg-config
+  QTWINDOWSUIA_CFLAGS
+              C compiler flags for QTWINDOWSUIA, overriding pkg-config
+  QTWINDOWSUIA_LIBS
+              linker flags for QTWINDOWSUIA, overriding pkg-config
   QTFB_CFLAGS C compiler flags for QTFB, overriding pkg-config
   QTFB_LIBS   linker flags for QTFB, overriding pkg-config
   X11XCB_CFLAGS
@@ -27679,27 +27688,27 @@ fi
     true
 
 
-    QT_LIB_PREFIX=Qt5
-    qt5_modules="Qt5Core Qt5Gui Qt5Network Qt5Widgets"
+    QT_LIB_PREFIX=Qt6
+    qt_modules="Qt6Core Qt6Gui Qt6Network Qt6Widgets"
 
   if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
     true
 
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $qt5_modules" >&5
-printf %s "checking for $qt5_modules... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $qt_modules" >&5
+printf %s "checking for $qt_modules... " >&6; }
 
 if test -n "$QT5_CFLAGS"; then
     pkg_cv_QT5_CFLAGS="$QT5_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\$qt5_modules\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "$qt5_modules") 2>&5
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\$qt_modules\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "$qt_modules") 2>&5
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_QT5_CFLAGS=`$PKG_CONFIG --cflags "$qt5_modules" 2>/dev/null`
+  pkg_cv_QT5_CFLAGS=`$PKG_CONFIG --cflags "$qt_modules" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -27711,12 +27720,12 @@ if test -n "$QT5_LIBS"; then
     pkg_cv_QT5_LIBS="$QT5_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\$qt5_modules\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "$qt5_modules") 2>&5
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\$qt_modules\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "$qt_modules") 2>&5
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_QT5_LIBS=`$PKG_CONFIG --libs "$qt5_modules" 2>/dev/null`
+  pkg_cv_QT5_LIBS=`$PKG_CONFIG --libs "$qt_modules" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -27737,9 +27746,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-                QT5_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$qt5_modules" 2>&1`
+                QT5_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$qt_modules" 2>&1`
         else
-                QT5_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$qt5_modules" 2>&1`
+                QT5_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$qt_modules" 2>&1`
         fi
         # Put the nasty error message in config.log where it belongs
         echo "$QT5_PKG_ERRORS" >&5
@@ -27756,22 +27765,6 @@ else
 printf "%s\n" "yes" >&6; }
         QT_INCLUDES="$QT5_CFLAGS"; QT_LIBS="$QT5_LIBS" have_qt=yes
 fi
-
-      if test "x$have_qt" != xyes; then
-        have_qt=no
-
-  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
-    if test "x$verge_enable_qt" != xno; then
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt dependencies not found; verge-qt frontend will not be built" >&5
-printf "%s\n" "$as_me: WARNING: Qt dependencies not found; verge-qt frontend will not be built" >&2;}
-    fi
-    verge_enable_qt=no
-    verge_enable_qt_test=no
-  else
-    as_fn_error $? "Qt dependencies not found" "$LINENO" 5
-  fi
-
-      fi
 
   else
     true
@@ -27933,20 +27926,44 @@ fi
   fi
 
 
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+      if test "x$QT_LIB_PREFIX" = xQt6 && test "x$TARGET_OS" = xlinux; then
+
+printf "%s\n" "#define QT_STATICPLUGIN 1" >>confdefs.h
+
+        qt6_xcb_tail_deps="-lxkbcommon-x11 -lxkbcommon -lfontconfig -lfreetype -lxcb-cursor -lxcb-icccm -lxcb-util -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render-util -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-render -lxcb-shape -lxcb-xkb -lxcb -lX11-xcb -lX11 -ldl -lm -lrt"
+        if test "x$qt_plugin_path" != x; then
+          QT_LIBS="-L$qt_plugin_path/platforms -lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+        else
+          QT_LIBS="-lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+        fi
+      elif test "x$QT_LIB_PREFIX" = xQt6 && test "x$TARGET_OS" = xwindows; then
+                QT_LIBS="$QT_LIBS -ld2d1 -ld3d11 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp"
+      fi
+
+  else
+    true
+
+  fi
+
+
   true;
   else
     true
 
   fi
 
-  else
+    if test "x$have_qt" != xyes; then
+      use_pkgconfig=no
 
   if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
     true
 
   TEMP_CPPFLAGS="$CPPFLAGS"
   TEMP_CXXFLAGS="$CXXFLAGS"
-  CXXFLAGS="$PIC_FLAGS $CXXFLAGS"
+  CXXFLAGS="$PIC_FLAGS -std=c++17 $CXXFLAGS"
   TEMP_LIBS="$LIBS"
 
   if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
@@ -28090,6 +28107,45 @@ fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_cv_qt5" >&5
 printf "%s\n" "$verge_cv_qt5" >&6; }
 
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt 6" >&5
+printf %s "checking for Qt 6... " >&6; }
+if test ${verge_cv_qt6+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+      #include <QtCore/qconfig.h>
+      #ifndef QT_VERSION
+      #  include <QtCore/qglobal.h>
+      #endif
+
+int
+main (void)
+{
+
+      #if QT_VERSION < 0x060000 || QT_VERSION_MAJOR < 6
+      choke
+      #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  verge_cv_qt6=yes
+else $as_nop
+  verge_cv_qt6=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_cv_qt6" >&5
+printf "%s\n" "$verge_cv_qt6" >&6; }
+
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for > Qt 5.7" >&5
 printf %s "checking for > Qt 5.7... " >&6; }
 if test ${verge_cv_qt58+y}
@@ -28129,7 +28185,11 @@ fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_cv_qt58" >&5
 printf "%s\n" "$verge_cv_qt58" >&6; }
     fi
-    QT_LIB_PREFIX=Qt5
+    if test "x$verge_cv_qt6" = xyes; then
+      QT_LIB_PREFIX=Qt6
+    else
+      QT_LIB_PREFIX=Qt5
+    fi
 
   else
     true
@@ -28950,7 +29010,1772 @@ fi
 
   fi
 
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+    if test "x$QT_LIB_PREFIX" = xQt6; then
+            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing z_inflateInit2_" >&5
+printf %s "checking for library containing z_inflateInit2_... " >&6; }
+if test ${ac_cv_search_z_inflateInit2_+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int z_inflateInit2_ ();
+}
+int
+main (void)
+{
+return conftest::z_inflateInit2_ ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledZLIB
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_z_inflateInit2_=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_z_inflateInit2_+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_z_inflateInit2_+y}
+then :
+
+else $as_nop
+  ac_cv_search_z_inflateInit2_=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_z_inflateInit2_" >&5
+printf "%s\n" "$ac_cv_search_z_inflateInit2_" >&6; }
+ac_res=$ac_cv_search_z_inflateInit2_
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledZLIB not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledZLIB not found" >&2;}
+fi
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing png_create_read_struct" >&5
+printf %s "checking for library containing png_create_read_struct... " >&6; }
+if test ${ac_cv_search_png_create_read_struct+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int png_create_read_struct ();
+}
+int
+main (void)
+{
+return conftest::png_create_read_struct ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledLibpng
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_png_create_read_struct=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_png_create_read_struct+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_png_create_read_struct+y}
+then :
+
+else $as_nop
+  ac_cv_search_png_create_read_struct=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_png_create_read_struct" >&5
+printf "%s\n" "$ac_cv_search_png_create_read_struct" >&6; }
+ac_res=$ac_cv_search_png_create_read_struct
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledLibpng not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledLibpng not found" >&2;}
+fi
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing pcre2_match_16" >&5
+printf %s "checking for library containing pcre2_match_16... " >&6; }
+if test ${ac_cv_search_pcre2_match_16+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int pcre2_match_16 ();
+}
+int
+main (void)
+{
+return conftest::pcre2_match_16 ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledPcre2
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_pcre2_match_16=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_pcre2_match_16+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_pcre2_match_16+y}
+then :
+
+else $as_nop
+  ac_cv_search_pcre2_match_16=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pcre2_match_16" >&5
+printf "%s\n" "$ac_cv_search_pcre2_match_16" >&6; }
+ac_res=$ac_cv_search_pcre2_match_16
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledPcre2 not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledPcre2 not found" >&2;}
+fi
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing hb_ot_tags_from_script" >&5
+printf %s "checking for library containing hb_ot_tags_from_script... " >&6; }
+if test ${ac_cv_search_hb_ot_tags_from_script+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int hb_ot_tags_from_script ();
+}
+int
+main (void)
+{
+return conftest::hb_ot_tags_from_script ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledHarfbuzz
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_hb_ot_tags_from_script=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_hb_ot_tags_from_script+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_hb_ot_tags_from_script+y}
+then :
+
+else $as_nop
+  ac_cv_search_hb_ot_tags_from_script=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_hb_ot_tags_from_script" >&5
+printf "%s\n" "$ac_cv_search_hb_ot_tags_from_script" >&6; }
+ac_res=$ac_cv_search_hb_ot_tags_from_script
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledHarfbuzz not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledHarfbuzz not found" >&2;}
+fi
+
+    fi
+
+  else
+    true
+
+  fi
+
   QT_LIBS="$LIBS"
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+      if test "x$QT_LIB_PREFIX" = xQt6; then
+                QT_LIBS="$QT_LIBS -lQt6BundledZLIB -lQt6BundledLibpng -lQt6BundledPcre2 -lQt6BundledHarfbuzz"
+        if test "x$TARGET_OS" = xlinux; then
+
+printf "%s\n" "#define QT_STATICPLUGIN 1" >>confdefs.h
+
+          qt6_xcb_tail_deps="-lxkbcommon-x11 -lxkbcommon -lfontconfig -lfreetype -lxcb-cursor -lxcb-icccm -lxcb-util -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render-util -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-render -lxcb-shape -lxcb-xkb -lxcb -lX11-xcb -lX11 -ldl -lm -lrt"
+          if test "x$qt_plugin_path" != x; then
+            QT_LIBS="-L$qt_plugin_path/platforms -lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+          else
+            QT_LIBS="-lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+          fi
+        elif test "x$TARGET_OS" = xwindows; then
+                    QT_LIBS="$QT_LIBS -ld2d1 -ld3d11 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp"
+        fi
+      fi
+
+  else
+    true
+
+  fi
+
+  LIBS="$TEMP_LIBS"
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+    LIBS=
+    if test "x$qt_lib_path" != x; then
+      LIBS="-L$qt_lib_path"
+    fi
+    as_ac_Lib=`printf "%s\n" "ac_cv_lib_${QT_LIB_PREFIX}Test""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -l${QT_LIB_PREFIX}Test" >&5
+printf %s "checking for main in -l${QT_LIB_PREFIX}Test... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${QT_LIB_PREFIX}Test  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB${QT_LIB_PREFIX}Test" | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l${QT_LIB_PREFIX}Test $LIBS"
+
+else $as_nop
+  have_qt_test=no
+fi
+
+    ac_fn_cxx_check_header_compile "$LINENO" "QTest" "ac_cv_header_QTest" "$ac_includes_default"
+if test "x$ac_cv_header_QTest" = xyes
+then :
+
+else $as_nop
+  have_qt_test=no
+fi
+
+    QT_TEST_LIBS="$LIBS"
+    if test "x$use_dbus" != xno; then
+      LIBS=
+      if test "x$qt_lib_path" != x; then
+        LIBS="-L$qt_lib_path"
+      fi
+      as_ac_Lib=`printf "%s\n" "ac_cv_lib_${QT_LIB_PREFIX}DBus""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -l${QT_LIB_PREFIX}DBus" >&5
+printf %s "checking for main in -l${QT_LIB_PREFIX}DBus... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${QT_LIB_PREFIX}DBus  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB${QT_LIB_PREFIX}DBus" | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l${QT_LIB_PREFIX}DBus $LIBS"
+
+else $as_nop
+  have_qt_dbus=no
+fi
+
+      ac_fn_cxx_check_header_compile "$LINENO" "QtDBus" "ac_cv_header_QtDBus" "$ac_includes_default"
+if test "x$ac_cv_header_QtDBus" = xyes
+then :
+
+else $as_nop
+  have_qt_dbus=no
+fi
+
+      QT_DBUS_LIBS="$LIBS"
+    fi
+
+  else
+    true
+
+  fi
+
+  CPPFLAGS="$TEMP_CPPFLAGS"
+  CXXFLAGS="$TEMP_CXXFLAGS"
+  LIBS="$TEMP_LIBS"
+
+  else
+    true
+
+  fi
+
+    fi
+  else
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+  TEMP_CPPFLAGS="$CPPFLAGS"
+  TEMP_CXXFLAGS="$CXXFLAGS"
+  CXXFLAGS="$PIC_FLAGS -std=c++17 $CXXFLAGS"
+  TEMP_LIBS="$LIBS"
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+    if test "x$qt_include_path" != x; then
+      QT_INCLUDES="-I$qt_include_path -I$qt_include_path/QtCore -I$qt_include_path/QtGui -I$qt_include_path/QtWidgets -I$qt_include_path/QtNetwork -I$qt_include_path/QtTest -I$qt_include_path/QtDBus"
+      CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
+    fi
+
+  else
+    true
+
+  fi
+
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    ac_fn_cxx_check_header_compile "$LINENO" "QtPlugin" "ac_cv_header_QtPlugin" "$ac_includes_default"
+if test "x$ac_cv_header_QtPlugin" = xyes
+then :
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: QtCore headers missing; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: QtCore headers missing; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "QtCore headers missing" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    ac_fn_cxx_check_header_compile "$LINENO" "QApplication" "ac_cv_header_QApplication" "$ac_includes_default"
+if test "x$ac_cv_header_QApplication" = xyes
+then :
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: QtGui headers missing; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: QtGui headers missing; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "QtGui headers missing" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    ac_fn_cxx_check_header_compile "$LINENO" "QLocalSocket" "ac_cv_header_QLocalSocket" "$ac_includes_default"
+if test "x$ac_cv_header_QLocalSocket" = xyes
+then :
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: QtNetwork headers missing; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: QtNetwork headers missing; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "QtNetwork headers missing" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+    if test "x$verge_qt_want_version" = xauto; then
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt 5" >&5
+printf %s "checking for Qt 5... " >&6; }
+if test ${verge_cv_qt5+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+      #include <QtCore/qconfig.h>
+      #ifndef QT_VERSION
+      #  include <QtCore/qglobal.h>
+      #endif
+
+int
+main (void)
+{
+
+      #if QT_VERSION < 0x050000 || QT_VERSION_MAJOR < 5
+      choke
+      #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  verge_cv_qt5=yes
+else $as_nop
+  verge_cv_qt5=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_cv_qt5" >&5
+printf "%s\n" "$verge_cv_qt5" >&6; }
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt 6" >&5
+printf %s "checking for Qt 6... " >&6; }
+if test ${verge_cv_qt6+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+      #include <QtCore/qconfig.h>
+      #ifndef QT_VERSION
+      #  include <QtCore/qglobal.h>
+      #endif
+
+int
+main (void)
+{
+
+      #if QT_VERSION < 0x060000 || QT_VERSION_MAJOR < 6
+      choke
+      #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  verge_cv_qt6=yes
+else $as_nop
+  verge_cv_qt6=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_cv_qt6" >&5
+printf "%s\n" "$verge_cv_qt6" >&6; }
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for > Qt 5.7" >&5
+printf %s "checking for > Qt 5.7... " >&6; }
+if test ${verge_cv_qt58+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+      #include <QtCore/qconfig.h>
+      #ifndef QT_VERSION
+      #  include <QtCore/qglobal.h>
+      #endif
+
+int
+main (void)
+{
+
+      #if QT_VERSION_MINOR < 8
+      choke
+      #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  verge_cv_qt58=yes
+else $as_nop
+  verge_cv_qt58=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_cv_qt58" >&5
+printf "%s\n" "$verge_cv_qt58" >&6; }
+    fi
+    if test "x$verge_cv_qt6" = xyes; then
+      QT_LIB_PREFIX=Qt6
+    else
+      QT_LIB_PREFIX=Qt5
+    fi
+
+  else
+    true
+
+  fi
+
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+    LIBS=
+    if test "x$qt_lib_path" != x; then
+      LIBS="$LIBS -L$qt_lib_path"
+    fi
+
+    if test "x$TARGET_OS" = xwindows; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -limm32" >&5
+printf %s "checking for main in -limm32... " >&6; }
+if test ${ac_cv_lib_imm32_main+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-limm32  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_lib_imm32_main=yes
+else $as_nop
+  ac_cv_lib_imm32_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_imm32_main" >&5
+printf "%s\n" "$ac_cv_lib_imm32_main" >&6; }
+if test "x$ac_cv_lib_imm32_main" = xyes
+then :
+  printf "%s\n" "#define HAVE_LIBIMM32 1" >>confdefs.h
+
+  LIBS="-limm32 $LIBS"
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: libimm32 not found; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: libimm32 not found; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "libimm32 not found" "$LINENO" 5
+  fi
+
+fi
+
+    fi
+
+  else
+    true
+
+  fi
+
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    as_ac_Lib=`printf "%s\n" "ac_cv_lib_z ""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -lz " >&5
+printf %s "checking for main in -lz ... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lz   $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  printf "%s\n" "#define HAVE_LIBZ_ 1" >>confdefs.h
+
+  LIBS="-lz  $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: zlib not found. Assuming qt has it built-in" >&5
+printf "%s\n" "$as_me: WARNING: zlib not found. Assuming qt has it built-in" >&2;}
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing jpeg_create_decompress " >&5
+printf %s "checking for library containing jpeg_create_decompress ... " >&6; }
+if test ${ac_cv_search_jpeg_create_decompress_+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int jpeg_create_decompress  ();
+}
+int
+main (void)
+{
+return conftest::jpeg_create_decompress  ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' qtjpeg jpeg
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_jpeg_create_decompress_=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_jpeg_create_decompress_+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_jpeg_create_decompress_+y}
+then :
+
+else $as_nop
+  ac_cv_search_jpeg_create_decompress_=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_jpeg_create_decompress_" >&5
+printf "%s\n" "$ac_cv_search_jpeg_create_decompress_" >&6; }
+ac_res=$ac_cv_search_jpeg_create_decompress_
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: libjpeg not found. Assuming qt has it built-in" >&5
+printf "%s\n" "$as_me: WARNING: libjpeg not found. Assuming qt has it built-in" >&2;}
+fi
+
+  else
+    true
+
+  fi
+
+  if test x$verge_cv_qt58 = xno; then
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing png_error " >&5
+printf %s "checking for library containing png_error ... " >&6; }
+if test ${ac_cv_search_png_error_+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int png_error  ();
+}
+int
+main (void)
+{
+return conftest::png_error  ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' qtpng png
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_png_error_=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_png_error_+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_png_error_+y}
+then :
+
+else $as_nop
+  ac_cv_search_png_error_=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_png_error_" >&5
+printf "%s\n" "$ac_cv_search_png_error_" >&6; }
+ac_res=$ac_cv_search_png_error_
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: libpng not found. Assuming qt has it built-in" >&5
+printf "%s\n" "$as_me: WARNING: libpng not found. Assuming qt has it built-in" >&2;}
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing pcre16_exec" >&5
+printf %s "checking for library containing pcre16_exec... " >&6; }
+if test ${ac_cv_search_pcre16_exec+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int pcre16_exec ();
+}
+int
+main (void)
+{
+return conftest::pcre16_exec ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' qtpcre pcre16
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_pcre16_exec=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_pcre16_exec+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_pcre16_exec+y}
+then :
+
+else $as_nop
+  ac_cv_search_pcre16_exec=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pcre16_exec" >&5
+printf "%s\n" "$ac_cv_search_pcre16_exec" >&6; }
+ac_res=$ac_cv_search_pcre16_exec
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: libpcre16 not found. Assuming qt has it built-in" >&5
+printf "%s\n" "$as_me: WARNING: libpcre16 not found. Assuming qt has it built-in" >&2;}
+fi
+
+  else
+    true
+
+  fi
+
+  else
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing png_error " >&5
+printf %s "checking for library containing png_error ... " >&6; }
+if test ${ac_cv_search_png_error_+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int png_error  ();
+}
+int
+main (void)
+{
+return conftest::png_error  ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' qtlibpng png
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_png_error_=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_png_error_+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_png_error_+y}
+then :
+
+else $as_nop
+  ac_cv_search_png_error_=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_png_error_" >&5
+printf "%s\n" "$ac_cv_search_png_error_" >&6; }
+ac_res=$ac_cv_search_png_error_
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: libpng not found. Assuming qt has it built-in" >&5
+printf "%s\n" "$as_me: WARNING: libpng not found. Assuming qt has it built-in" >&2;}
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing pcre2_match_16" >&5
+printf %s "checking for library containing pcre2_match_16... " >&6; }
+if test ${ac_cv_search_pcre2_match_16+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int pcre2_match_16 ();
+}
+int
+main (void)
+{
+return conftest::pcre2_match_16 ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' qtpcre2 libqtpcre2
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_pcre2_match_16=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_pcre2_match_16+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_pcre2_match_16+y}
+then :
+
+else $as_nop
+  ac_cv_search_pcre2_match_16=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pcre2_match_16" >&5
+printf "%s\n" "$ac_cv_search_pcre2_match_16" >&6; }
+ac_res=$ac_cv_search_pcre2_match_16
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: libqtpcre2 not found. Assuming qt has it built-in" >&5
+printf "%s\n" "$as_me: WARNING: libqtpcre2 not found. Assuming qt has it built-in" >&2;}
+fi
+
+  else
+    true
+
+  fi
+
+  fi
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing hb_ot_tags_from_script " >&5
+printf %s "checking for library containing hb_ot_tags_from_script ... " >&6; }
+if test ${ac_cv_search_hb_ot_tags_from_script_+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int hb_ot_tags_from_script  ();
+}
+int
+main (void)
+{
+return conftest::hb_ot_tags_from_script  ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' qtharfbuzzng qtharfbuzz harfbuzz
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_hb_ot_tags_from_script_=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_hb_ot_tags_from_script_+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_hb_ot_tags_from_script_+y}
+then :
+
+else $as_nop
+  ac_cv_search_hb_ot_tags_from_script_=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_hb_ot_tags_from_script_" >&5
+printf "%s\n" "$ac_cv_search_hb_ot_tags_from_script_" >&6; }
+ac_res=$ac_cv_search_hb_ot_tags_from_script_
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: libharfbuzz not found. Assuming qt has it built-in or support is disabled" >&5
+printf "%s\n" "$as_me: WARNING: libharfbuzz not found. Assuming qt has it built-in or support is disabled" >&2;}
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    as_ac_Lib=`printf "%s\n" "ac_cv_lib_${QT_LIB_PREFIX}Core   ""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -l${QT_LIB_PREFIX}Core   " >&5
+printf %s "checking for main in -l${QT_LIB_PREFIX}Core   ... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${QT_LIB_PREFIX}Core     $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB${QT_LIB_PREFIX}Core   " | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l${QT_LIB_PREFIX}Core    $LIBS"
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: lib${QT_LIB_PREFIX}Core not found; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: lib${QT_LIB_PREFIX}Core not found; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "lib${QT_LIB_PREFIX}Core not found" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    as_ac_Lib=`printf "%s\n" "ac_cv_lib_${QT_LIB_PREFIX}Gui    ""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -l${QT_LIB_PREFIX}Gui    " >&5
+printf %s "checking for main in -l${QT_LIB_PREFIX}Gui    ... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${QT_LIB_PREFIX}Gui      $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB${QT_LIB_PREFIX}Gui    " | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l${QT_LIB_PREFIX}Gui     $LIBS"
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: lib${QT_LIB_PREFIX}Gui not found; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: lib${QT_LIB_PREFIX}Gui not found; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "lib${QT_LIB_PREFIX}Gui not found" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    as_ac_Lib=`printf "%s\n" "ac_cv_lib_${QT_LIB_PREFIX}Network""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -l${QT_LIB_PREFIX}Network" >&5
+printf %s "checking for main in -l${QT_LIB_PREFIX}Network... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${QT_LIB_PREFIX}Network  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB${QT_LIB_PREFIX}Network" | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l${QT_LIB_PREFIX}Network $LIBS"
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: lib${QT_LIB_PREFIX}Network not found; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: lib${QT_LIB_PREFIX}Network not found; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "lib${QT_LIB_PREFIX}Network not found" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    as_ac_Lib=`printf "%s\n" "ac_cv_lib_${QT_LIB_PREFIX}Widgets""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -l${QT_LIB_PREFIX}Widgets" >&5
+printf %s "checking for main in -l${QT_LIB_PREFIX}Widgets... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${QT_LIB_PREFIX}Widgets  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB${QT_LIB_PREFIX}Widgets" | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l${QT_LIB_PREFIX}Widgets $LIBS"
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: lib${QT_LIB_PREFIX}Widgets not found; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: lib${QT_LIB_PREFIX}Widgets not found; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "lib${QT_LIB_PREFIX}Widgets not found" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+    if test "x$QT_LIB_PREFIX" = xQt6; then
+            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing z_inflateInit2_" >&5
+printf %s "checking for library containing z_inflateInit2_... " >&6; }
+if test ${ac_cv_search_z_inflateInit2_+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int z_inflateInit2_ ();
+}
+int
+main (void)
+{
+return conftest::z_inflateInit2_ ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledZLIB
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_z_inflateInit2_=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_z_inflateInit2_+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_z_inflateInit2_+y}
+then :
+
+else $as_nop
+  ac_cv_search_z_inflateInit2_=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_z_inflateInit2_" >&5
+printf "%s\n" "$ac_cv_search_z_inflateInit2_" >&6; }
+ac_res=$ac_cv_search_z_inflateInit2_
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledZLIB not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledZLIB not found" >&2;}
+fi
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing png_create_read_struct" >&5
+printf %s "checking for library containing png_create_read_struct... " >&6; }
+if test ${ac_cv_search_png_create_read_struct+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int png_create_read_struct ();
+}
+int
+main (void)
+{
+return conftest::png_create_read_struct ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledLibpng
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_png_create_read_struct=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_png_create_read_struct+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_png_create_read_struct+y}
+then :
+
+else $as_nop
+  ac_cv_search_png_create_read_struct=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_png_create_read_struct" >&5
+printf "%s\n" "$ac_cv_search_png_create_read_struct" >&6; }
+ac_res=$ac_cv_search_png_create_read_struct
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledLibpng not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledLibpng not found" >&2;}
+fi
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing pcre2_match_16" >&5
+printf %s "checking for library containing pcre2_match_16... " >&6; }
+if test ${ac_cv_search_pcre2_match_16+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int pcre2_match_16 ();
+}
+int
+main (void)
+{
+return conftest::pcre2_match_16 ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledPcre2
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_pcre2_match_16=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_pcre2_match_16+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_pcre2_match_16+y}
+then :
+
+else $as_nop
+  ac_cv_search_pcre2_match_16=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pcre2_match_16" >&5
+printf "%s\n" "$ac_cv_search_pcre2_match_16" >&6; }
+ac_res=$ac_cv_search_pcre2_match_16
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledPcre2 not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledPcre2 not found" >&2;}
+fi
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing hb_ot_tags_from_script" >&5
+printf %s "checking for library containing hb_ot_tags_from_script... " >&6; }
+if test ${ac_cv_search_hb_ot_tags_from_script+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int hb_ot_tags_from_script ();
+}
+int
+main (void)
+{
+return conftest::hb_ot_tags_from_script ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' Qt6BundledHarfbuzz
+do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_search_hb_ot_tags_from_script=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext
+  if test ${ac_cv_search_hb_ot_tags_from_script+y}
+then :
+  break
+fi
+done
+if test ${ac_cv_search_hb_ot_tags_from_script+y}
+then :
+
+else $as_nop
+  ac_cv_search_hb_ot_tags_from_script=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_hb_ot_tags_from_script" >&5
+printf "%s\n" "$ac_cv_search_hb_ot_tags_from_script" >&6; }
+ac_res=$ac_cv_search_hb_ot_tags_from_script
+if test "$ac_res" != no
+then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Qt6BundledHarfbuzz not found" >&5
+printf "%s\n" "$as_me: WARNING: Qt6BundledHarfbuzz not found" >&2;}
+fi
+
+    fi
+
+  else
+    true
+
+  fi
+
+  QT_LIBS="$LIBS"
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+
+      if test "x$QT_LIB_PREFIX" = xQt6; then
+                QT_LIBS="$QT_LIBS -lQt6BundledZLIB -lQt6BundledLibpng -lQt6BundledPcre2 -lQt6BundledHarfbuzz"
+        if test "x$TARGET_OS" = xlinux; then
+
+printf "%s\n" "#define QT_STATICPLUGIN 1" >>confdefs.h
+
+          qt6_xcb_tail_deps="-lxkbcommon-x11 -lxkbcommon -lfontconfig -lfreetype -lxcb-cursor -lxcb-icccm -lxcb-util -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render-util -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-render -lxcb-shape -lxcb-xkb -lxcb -lX11-xcb -lX11 -ldl -lm -lrt"
+          if test "x$qt_plugin_path" != x; then
+            QT_LIBS="-L$qt_plugin_path/platforms -lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+          else
+            QT_LIBS="-lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+          fi
+        elif test "x$TARGET_OS" = xwindows; then
+                    QT_LIBS="$QT_LIBS -ld2d1 -ld3d11 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp"
+        fi
+      fi
+
+  else
+    true
+
+  fi
+
   LIBS="$TEMP_LIBS"
 
 
@@ -29097,6 +30922,10 @@ fi
   fi
 
   fi
+  QT_CXXFLAGS=
+  if test "x$QT_LIB_PREFIX" = xQt6; then
+    QT_CXXFLAGS="-std=c++17"
+  fi
 
 
   if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
@@ -29105,7 +30934,7 @@ fi
   TEMP_CPPFLAGS=$CPPFLAGS
   TEMP_CXXFLAGS=$CXXFLAGS
   CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
-  CXXFLAGS="$PIC_FLAGS $CXXFLAGS"
+  CXXFLAGS="$PIC_FLAGS $QT_CXXFLAGS $CXXFLAGS"
 
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for static Qt" >&5
 printf %s "checking for static Qt... " >&6; }
@@ -29127,6 +30956,10 @@ main (void)
 {
 
         #if !defined(QT_STATIC)
+        choke
+        #endif
+        /* Skip Qt6 static-plugin probing in this legacy Qt5-oriented macro path. */
+        #if QT_VERSION >= 0x060000
         choke
         #endif
 
@@ -29152,6 +30985,13 @@ printf "%s\n" "#define QT_STATICPLUGIN 1" >>confdefs.h
   fi
 
   if test "x$verge_cv_static_qt" = xyes; then
+
+    if test "x$qt_plugin_path" = x && test "x$use_pkgconfig" = xyes; then
+      qt_pkg_prefix=`$PKG_CONFIG --variable=prefix Qt5Core 2>/dev/null`
+      if test "x$qt_pkg_prefix" != x; then
+        qt_plugin_path="$qt_pkg_prefix/plugins"
+      fi
+    fi
 
     if test "x$qt_plugin_path" != x; then
       QT_LIBS="$QT_LIBS -L$qt_plugin_path/platforms"
@@ -29253,6 +31093,7 @@ printf "%s\n" "yes" >&6; }
         QT_LIBS="$QTPLATFORM_LIBS $QT_LIBS"
 fi
        else
+         QT_LIBS="$QT_LIBS -lqtlibpng"
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt5FontDatabaseSupport" >&5
@@ -29708,6 +31549,99 @@ else
 printf "%s\n" "yes" >&6; }
         QT_LIBS="-lQt5AccessibilitySupport $QT_LIBS"
 fi
+         if test "x$TARGET_OS" = xwindows; then
+
+pkg_failed=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt5WindowsUIAutomationSupport" >&5
+printf %s "checking for Qt5WindowsUIAutomationSupport... " >&6; }
+
+if test -n "$QTWINDOWSUIA_CFLAGS"; then
+    pkg_cv_QTWINDOWSUIA_CFLAGS="$QTWINDOWSUIA_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Qt5WindowsUIAutomationSupport\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Qt5WindowsUIAutomationSupport") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_QTWINDOWSUIA_CFLAGS=`$PKG_CONFIG --cflags "Qt5WindowsUIAutomationSupport" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$QTWINDOWSUIA_LIBS"; then
+    pkg_cv_QTWINDOWSUIA_LIBS="$QTWINDOWSUIA_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Qt5WindowsUIAutomationSupport\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Qt5WindowsUIAutomationSupport") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_QTWINDOWSUIA_LIBS=`$PKG_CONFIG --libs "Qt5WindowsUIAutomationSupport" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+                QTWINDOWSUIA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "Qt5WindowsUIAutomationSupport" 2>&1`
+        else
+                QTWINDOWSUIA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "Qt5WindowsUIAutomationSupport" 2>&1`
+        fi
+        # Put the nasty error message in config.log where it belongs
+        echo "$QTWINDOWSUIA_PKG_ERRORS" >&5
+
+        as_fn_error $? "Package requirements (Qt5WindowsUIAutomationSupport) were not met:
+
+$QTWINDOWSUIA_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables QTWINDOWSUIA_CFLAGS
+and QTWINDOWSUIA_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+        { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables QTWINDOWSUIA_CFLAGS
+and QTWINDOWSUIA_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+        QTWINDOWSUIA_CFLAGS=$pkg_cv_QTWINDOWSUIA_CFLAGS
+        QTWINDOWSUIA_LIBS=$pkg_cv_QTWINDOWSUIA_LIBS
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+        QT_LIBS="-lQt5WindowsUIAutomationSupport $QT_LIBS"
+fi
+         fi
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt5FbSupport" >&5
@@ -30773,7 +32707,75 @@ fi
 
   fi
 
-             QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme"
+
+  if test "x$verge_enable_qt" != xno && test "x$verge_qt_want_version" != xno; then
+    true
+    as_ac_Lib=`printf "%s\n" "ac_cv_lib_${QT_LIB_PREFIX}WindowsUIAutomationSupport""_main" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for main in -l${QT_LIB_PREFIX}WindowsUIAutomationSupport" >&5
+printf %s "checking for main in -l${QT_LIB_PREFIX}WindowsUIAutomationSupport... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${QT_LIB_PREFIX}WindowsUIAutomationSupport  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int main ();
+}
+int
+main (void)
+{
+return conftest::main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB${QT_LIB_PREFIX}WindowsUIAutomationSupport" | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l${QT_LIB_PREFIX}WindowsUIAutomationSupport $LIBS"
+
+else $as_nop
+
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: lib$QT_LIB_PREFIXWindowsUIAutomationSupport not found; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: lib$QT_LIB_PREFIXWindowsUIAutomationSupport not found; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "lib$QT_LIB_PREFIXWindowsUIAutomationSupport not found" "$LINENO" 5
+  fi
+
+fi
+
+  else
+    true
+
+  fi
+
+             QT_LIBS="$QT_LIBS -lqtlibpng"
+             QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme -lwtsapi32 -lnetapi32 -luserenv"
            fi
          fi
        fi
@@ -30957,7 +32959,48 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 printf "%s\n" "#define QT_QPA_PLATFORM_WINDOWS 1" >>confdefs.h
 
     elif test "x$TARGET_OS" = xlinux; then
-      _VERGE_QT_CHECK_STATIC_PLUGIN(QXcbIntegrationPlugin, -lqxcb)
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for static Qt plugins: -lqxcb" >&5
+printf %s "checking for static Qt plugins: -lqxcb... " >&6; }
+  CHECK_STATIC_PLUGINS_TEMP_LIBS="$LIBS"
+  LIBS="-lqxcb $QT_LIBS $LIBS"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+    #define QT_STATICPLUGIN
+    #include <QtPlugin>
+    Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
+int
+main (void)
+{
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }; QT_LIBS="-lqxcb $QT_LIBS"
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; };
+  if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
+    if test "x$verge_enable_qt" != xno; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Could not resolve: -lqxcb; verge-qt frontend will not be built" >&5
+printf "%s\n" "$as_me: WARNING: Could not resolve: -lqxcb; verge-qt frontend will not be built" >&2;}
+    fi
+    verge_enable_qt=no
+    verge_enable_qt_test=no
+  else
+    as_fn_error $? "Could not resolve: -lqxcb" "$LINENO" 5
+  fi
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+  LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
+
 
 printf "%s\n" "#define QT_QPA_PLATFORM_XCB 1" >>confdefs.h
 
@@ -31058,7 +33101,7 @@ printf "%s\n" "#define QT_QPA_PLATFORM_COCOA 1" >>confdefs.h
 
 
   if test "x$use_pkgconfig$qt_bin_path" = xyes; then
-    qt_bin_path="`$PKG_CONFIG --variable=host_bins Qt5Core 2>/dev/null`"
+    qt_bin_path="`$PKG_CONFIG --variable=host_bins ${QT_LIB_PREFIX}Core 2>/dev/null`"
   fi
 
   if test "x$use_hardening" != xno; then
@@ -31071,7 +33114,7 @@ printf %s "checking whether -fPIE can be used with this Qt config... " >&6; }
     TEMP_CPPFLAGS=$CPPFLAGS
     TEMP_CXXFLAGS=$CXXFLAGS
     CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
-    CXXFLAGS="$PIE_FLAGS $CXXFLAGS"
+    CXXFLAGS="$PIE_FLAGS $QT_CXXFLAGS $CXXFLAGS"
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -31164,7 +33207,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
     true
 
     if test "x$qt_bin_path" != x; then
-      for ac_prog in moc-qt5 moc5 moc
+      for ac_prog in moc-qt6 moc6 moc-qt5 moc5 moc
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31215,7 +33258,7 @@ fi
 done
 
     else
-      for ac_prog in moc-qt5 moc5 moc
+      for ac_prog in moc-qt6 moc6 moc-qt5 moc5 moc
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31293,7 +33336,7 @@ printf "%s\n" "$as_me: WARNING: MOC not found; verge-qt frontend will not be bui
     true
 
     if test "x$qt_bin_path" != x; then
-      for ac_prog in uic-qt5 uic5 uic
+      for ac_prog in uic-qt6 uic6 uic-qt5 uic5 uic
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31344,7 +33387,7 @@ fi
 done
 
     else
-      for ac_prog in uic-qt5 uic5 uic
+      for ac_prog in uic-qt6 uic6 uic-qt5 uic5 uic
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31422,7 +33465,7 @@ printf "%s\n" "$as_me: WARNING: UIC not found; verge-qt frontend will not be bui
     true
 
     if test "x$qt_bin_path" != x; then
-      for ac_prog in rcc-qt5 rcc5 rcc
+      for ac_prog in rcc-qt6 rcc6 rcc-qt5 rcc5 rcc
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31473,7 +33516,7 @@ fi
 done
 
     else
-      for ac_prog in rcc-qt5 rcc5 rcc
+      for ac_prog in rcc-qt6 rcc6 rcc-qt5 rcc5 rcc
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31551,7 +33594,7 @@ printf "%s\n" "$as_me: WARNING: RCC not found; verge-qt frontend will not be bui
     true
 
     if test "x$qt_bin_path" != x; then
-      for ac_prog in lrelease-qt5 lrelease5 lrelease
+      for ac_prog in lrelease-qt6 lrelease6 lrelease-qt5 lrelease5 lrelease
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31602,7 +33645,7 @@ fi
 done
 
     else
-      for ac_prog in lrelease-qt5 lrelease5 lrelease
+      for ac_prog in lrelease-qt6 lrelease6 lrelease-qt5 lrelease5 lrelease
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31653,7 +33696,7 @@ fi
 done
 
     fi
-    if test "x$LRELEASE" = x && test "x" != xyes; then
+    if test "x$LRELEASE" = x && test "xyes" != xyes; then
 
   if test "x$verge_qt_want_version" = xauto && test "x$verge_qt_force" != xyes; then
     if test "x$verge_enable_qt" != xno; then
@@ -31680,7 +33723,7 @@ printf "%s\n" "$as_me: WARNING: LRELEASE not found; verge-qt frontend will not b
     true
 
     if test "x$qt_bin_path" != x; then
-      for ac_prog in lupdate-qt5 lupdate5 lupdate
+      for ac_prog in lupdate-qt6 lupdate6 lupdate-qt5 lupdate5 lupdate
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31731,7 +33774,7 @@ fi
 done
 
     else
-      for ac_prog in lupdate-qt5 lupdate5 lupdate
+      for ac_prog in lupdate-qt6 lupdate6 lupdate-qt5 lupdate5 lupdate
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -31933,9 +33976,13 @@ printf %s "checking whether to build Verge Octo GUI... " >&6; }
     if test "x$use_dbus" = xyes && test "x$have_qt_dbus" = xno; then
       as_fn_error $? "libQtDBus not found. Install libQtDBus or remove --with-qtdbus." "$LINENO" 5
     fi
+    if test "x$LRELEASE" = x; then
+      LRELEASE="${TRUE}"
+    fi
     if test "x$LUPDATE" = x; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: lupdate is required to update qt translations" >&5
 printf "%s\n" "$as_me: WARNING: lupdate is required to update qt translations" >&2;}
+      LUPDATE="${TRUE}"
     fi
 
   else
@@ -31945,8 +33992,8 @@ printf "%s\n" "$as_me: WARNING: lupdate is required to update qt translations" >
 
   fi
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_enable_qt (Qt5)" >&5
-printf "%s\n" "$verge_enable_qt (Qt5)" >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $verge_enable_qt ($QT_LIB_PREFIX)" >&5
+printf "%s\n" "$verge_enable_qt ($QT_LIB_PREFIX)" >&6; }
 
 
 
@@ -31956,7 +34003,8 @@ printf "%s\n" "$verge_enable_qt (Qt5)" >&6; }
 
 
 
-  QT_SELECT=qt5
+
+  QT_SELECT=qt6
 
 
 
@@ -35163,6 +37211,95 @@ fi
   fi
 
   fi
+fi
+
+if test x$TARGET_OS = xlinux; then
+  if test "x$LIBSECCOMP_LIBS" = x; then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for seccomp_init in -lseccomp" >&5
+printf %s "checking for seccomp_init in -lseccomp... " >&6; }
+if test ${ac_cv_lib_seccomp_seccomp_init+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lseccomp  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int seccomp_init ();
+}
+int
+main (void)
+{
+return conftest::seccomp_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_lib_seccomp_seccomp_init=yes
+else $as_nop
+  ac_cv_lib_seccomp_seccomp_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_seccomp_seccomp_init" >&5
+printf "%s\n" "$ac_cv_lib_seccomp_seccomp_init" >&6; }
+if test "x$ac_cv_lib_seccomp_seccomp_init" = xyes
+then :
+  LIBSECCOMP_LIBS=-lseccomp
+else $as_nop
+  as_fn_error $? "libseccomp not found" "$LINENO" 5
+fi
+
+  fi
+fi
+if test "x$ZLIB_LIBS" = x; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for zlibVersion in -lz" >&5
+printf %s "checking for zlibVersion in -lz... " >&6; }
+if test ${ac_cv_lib_z_zlibVersion+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lz  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int zlibVersion ();
+}
+int
+main (void)
+{
+return conftest::zlibVersion ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  ac_cv_lib_z_zlibVersion=yes
+else $as_nop
+  ac_cv_lib_z_zlibVersion=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_z_zlibVersion" >&5
+printf "%s\n" "$ac_cv_lib_z_zlibVersion" >&6; }
+if test "x$ac_cv_lib_z_zlibVersion" = xyes
+then :
+  ZLIB_LIBS=-lz
+else $as_nop
+  as_fn_error $? "zlib not found" "$LINENO" 5
+fi
+
 fi
 
 save_CXXFLAGS="${CXXFLAGS}"

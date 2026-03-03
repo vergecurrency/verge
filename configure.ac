@@ -1138,6 +1138,15 @@ else
   fi
 fi
 
+if test x$TARGET_OS = xlinux; then
+  if test "x$LIBSECCOMP_LIBS" = x; then
+    AC_CHECK_LIB([seccomp], [seccomp_init], [LIBSECCOMP_LIBS=-lseccomp], [AC_MSG_ERROR([libseccomp not found])])
+  fi
+fi
+if test "x$ZLIB_LIBS" = x; then
+  AC_CHECK_LIB([z], [zlibVersion], [ZLIB_LIBS=-lz], [AC_MSG_ERROR([zlib not found])])
+fi
+
 save_CXXFLAGS="${CXXFLAGS}"
 CXXFLAGS="${CXXFLAGS} ${CRYPTO_CFLAGS} ${SSL_CFLAGS}"
 AC_CHECK_DECLS([EVP_MD_CTX_new],,,[AC_INCLUDES_DEFAULT

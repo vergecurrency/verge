@@ -38,6 +38,9 @@
 
 #include <QObject>
 #include <QString>
+#if !defined(QT_NO_SSL)
+#include <QSslError>
+#endif
 
 class OptionsModel;
 
@@ -47,7 +50,6 @@ class QByteArray;
 class QLocalServer;
 class QNetworkAccessManager;
 class QNetworkReply;
-class QSslError;
 class QUrl;
 QT_END_NAMESPACE
 

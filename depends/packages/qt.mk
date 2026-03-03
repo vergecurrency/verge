@@ -6,8 +6,8 @@ $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=aeb78d29291a2b5fd53cb55950f8f5065b4978c25fb1d77f627d695ab9adf21e
 
 # Keep dependencies compatible with packages currently present in this repo.
-$(package)_darwin_dependencies=openssl
-$(package)_mingw32_dependencies=openssl
+$(package)_darwin_dependencies=openssl native_qt
+$(package)_mingw32_dependencies=openssl native_qt
 $(package)_linux_dependencies=openssl freetype fontconfig libX11 libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm libxcb_util_cursor
 
 $(package)_patches += rcc_hardcode_timestamp.patch
@@ -139,6 +139,8 @@ $(package)_config_opts_linux += -DQT_FEATURE_wayland_server=OFF
 $(package)_config_opts_linux += -DBUILD_WITH_PCH=OFF
 
 $(package)_config_opts_mingw32 += -DQT_QMAKE_TARGET_MKSPEC=win32-g++
+$(package)_config_opts_mingw32 += -DQT_HOST_PATH=$(build_prefix)/qt-host
+$(package)_config_opts_mingw32 += -DQT_HOST_PATH_CMAKE_DIR=$(build_prefix)/qt-host/lib/cmake
 $(package)_config_opts_mingw32 += -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake
 $(package)_config_opts_mingw32 += -DINPUT_opengl=no
 $(package)_config_opts_mingw32 += -DQT_FEATURE_dbus=OFF
@@ -148,6 +150,8 @@ $(package)_config_opts_mingw32 += -DQT_FEATURE_wmf=ON
 $(package)_config_opts_mingw32 += -DBUILD_WITH_PCH=ON
 
 $(package)_config_opts_darwin += -DQT_QMAKE_TARGET_MKSPEC=macx-clang
+$(package)_config_opts_darwin += -DQT_HOST_PATH=$(build_prefix)/qt-host
+$(package)_config_opts_darwin += -DQT_HOST_PATH_CMAKE_DIR=$(build_prefix)/qt-host/lib/cmake
 $(package)_config_opts_darwin += -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake
 $(package)_config_opts_darwin += -DQT_FEATURE_accessibility=OFF
 $(package)_config_opts_darwin += -DQT_FEATURE_dbus=OFF
@@ -224,6 +228,7 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_config_cmds
+  mkdir -p $(build_prefix)/qt-host $(build_prefix)/qt-host/lib/cmake && \
   export OPENSSL_LIBS=${$(package)_openssl_flags_$(host_os)} && \
   export PKG_CONFIG_SYSROOT_DIR=/ && \
   export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig && \

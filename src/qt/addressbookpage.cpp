@@ -20,6 +20,7 @@
 #include <QIcon>
 #include <QMenu>
 #include <QMessageBox>
+#include <QRegularExpression>
 #include <QSortFilterProxyModel>
 
 class AddressBookSortFilterProxyModel final : public QSortFilterProxyModel
@@ -48,8 +49,9 @@ protected:
 
         auto address = model->index(row, AddressTableModel::Address, parent);
 
-        if (filterRegExp().indexIn(model->data(address).toString()) < 0 &&
-            filterRegExp().indexIn(model->data(label).toString()) < 0) {
+        const QRegularExpression re = filterRegularExpression();
+        if (!re.match(model->data(address).toString()).hasMatch() &&
+            !re.match(model->data(label).toString()).hasMatch()) {
             return false;
         }
 
