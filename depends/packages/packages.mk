@@ -3,7 +3,7 @@ packages:=openssl libevent libcap libseccomp zeromq boost
 qt_native_packages = native_protobuf
 qt_packages = qrencode protobuf zlib
 
-qt_linux_packages:=qt expat libX11 libxcb libxkbcommon libxcb_util xcb_proto libXau freetype fontconfig xextproto xtrans libxcb_util_render libxcb_util_keysyms xproto libxcb_util_image libxcb_util_wm util-macros
+qt_linux_packages:=qt expat libX11 libxcb libxkbcommon libxcb_util xcb_proto libXau freetype fontconfig xextproto xtrans libxcb_util_render libxcb_util_keysyms xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros
 
 qt_darwin_packages=qt
 qt_mingw32_packages=qt
