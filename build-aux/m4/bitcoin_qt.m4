@@ -57,7 +57,7 @@ dnl CAUTION: Do not use this inside of a conditional.
 AC_DEFUN([VERGE_QT_INIT],[
   dnl enable qt support
   AC_ARG_WITH([gui],
-    [AS_HELP_STRING([--with-gui@<:@=no|qt5|auto@:>@],
+    [AS_HELP_STRING([--with-gui@<:@=no|qt5|qt6|auto@:>@],
     [build verge-qt GUI (default=auto)])],
     [
      verge_qt_want_version=$withval
@@ -537,8 +537,24 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
       _VERGE_QT_CHECK_QT5
       _VERGE_QT_CHECK_QT6
       _VERGE_QT_CHECK_QT58
+    elif test "x$verge_qt_want_version" = xqt6; then
+      _VERGE_QT_CHECK_QT6
+      _VERGE_QT_CHECK_QT58
+      if test "x$verge_cv_qt6" != xyes; then
+        VERGE_QT_FAIL([Qt6 requested but not found])
+      fi
+    elif test "x$verge_qt_want_version" = xqt5; then
+      _VERGE_QT_CHECK_QT5
+      _VERGE_QT_CHECK_QT58
+      if test "x$verge_cv_qt5" != xyes; then
+        VERGE_QT_FAIL([Qt5 requested but not found])
+      fi
     fi
-    if test "x$verge_cv_qt6" = xyes; then
+    if test "x$verge_qt_want_version" = xqt5; then
+      QT_LIB_PREFIX=Qt5
+    elif test "x$verge_qt_want_version" = xqt6; then
+      QT_LIB_PREFIX=Qt6
+    elif test "x$verge_cv_qt6" = xyes; then
       QT_LIB_PREFIX=Qt6
     else
       QT_LIB_PREFIX=Qt5
