@@ -666,16 +666,9 @@ jobs:
             done
           }
 
-          DYNAMIC_QT=0
           if i686-w64-mingw32-objdump -p "$BUNDLE/verge-qt.exe" | grep -qi 'Qt6Core.dll'; then
-            DYNAMIC_QT=1
-            echo "Detected dynamic Qt linkage; bundling Qt runtime DLLs."
-            find "$PREFIX" -type f \( \
-              -name 'Qt6*.dll' -o \
-              -name 'libgcc_s_dw2-1.dll' -o \
-              -name 'libstdc++-6.dll' -o \
-              -name 'libwinpthread-1.dll' \
-            \) -exec cp -n {} "$BUNDLE/" \;
+            echo "ERROR: dynamic Qt linkage detected in verge-qt.exe; windows32 build must be fully static"
+            exit 1
           else
             echo "Detected static Qt linkage."
           fi
@@ -685,9 +678,6 @@ jobs:
             cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
             cp "$QWINDOWS_DLL" "$BUNDLE/plugins/platforms/"
             copy_local_dll_deps_recursive "$BUNDLE/platforms/qwindows.dll"
-          elif [ "$DYNAMIC_QT" -eq 1 ]; then
-            echo "ERROR: dynamic Qt detected but qwindows.dll was not found"
-            exit 1
           fi
 
           copy_local_dll_deps_recursive "$BUNDLE/verge-qt.exe"

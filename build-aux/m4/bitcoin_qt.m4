@@ -155,7 +155,7 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
         AC_MSG_CHECKING(for Qt6 static Windows integration plugin)
         CHECK_STATIC_PLUGINS_TEMP_LIBS="$LIBS"
         verge_qt6_windows_plugin_ok=no
-        for verge_qt6_windows_plugin_libs in "-lQt6QWindowsIntegrationPlugin -lqwindows" "-lqwindows"; do
+        for verge_qt6_windows_plugin_libs in "-lQt6QWindowsIntegrationPlugin -lqwindows -lqdirect2d" "-lqwindows -lqdirect2d" "-lQt6QWindowsIntegrationPlugin -lqwindows" "-lqwindows"; do
           LIBS="$verge_qt6_windows_plugin_libs $QT_LIBS $CHECK_STATIC_PLUGINS_TEMP_LIBS"
           AC_LINK_IFELSE([AC_LANG_PROGRAM([[
             #define QT_STATICPLUGIN
@@ -171,7 +171,7 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
           AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
         else
           AC_MSG_RESULT(no)
-          AC_MSG_WARN([Qt6 static Windows integration plugin not linkable; expecting dynamic qwindows platform plugin at runtime])
+          AC_MSG_ERROR([Qt6 static Windows integration plugin not linkable (tried qwindows/qdirect2d variants)])
         fi
       else
         _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindows])
