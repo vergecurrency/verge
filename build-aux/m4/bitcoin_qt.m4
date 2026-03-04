@@ -155,7 +155,7 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
         AC_MSG_CHECKING(for Qt6 static Windows integration plugin)
         CHECK_STATIC_PLUGINS_TEMP_LIBS="$LIBS"
         verge_qt6_windows_plugin_ok=no
-        for verge_qt6_windows_plugin_libs in "-lQt6QWindowsIntegrationPlugin -lqwindows -lqdirect2d" "-lqwindows -lqdirect2d" "-lQt6QWindowsIntegrationPlugin -lqwindows" "-lqwindows"; do
+        for verge_qt6_windows_plugin_libs in "-lQt6QWindowsIntegrationPlugin -lqwindows" "-lqwindows"; do
           LIBS="$verge_qt6_windows_plugin_libs $QT_LIBS $CHECK_STATIC_PLUGINS_TEMP_LIBS"
           AC_LINK_IFELSE([AC_LANG_PROGRAM([[
             #define QT_STATICPLUGIN
@@ -168,6 +168,24 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
         LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
         if test "x$verge_qt6_windows_plugin_ok" = xyes; then
           AC_MSG_RESULT(yes)
+          dnl qwindows/qdirect2d .prl files include extra static resource objects.
+          dnl Autotools does not parse .prl, so add known Qt6 windows resource objects explicitly.
+          qt6_windows_objects_root=
+          if test "x$qt_pkg_prefix" != x; then
+            qt6_windows_objects_root="$qt_pkg_prefix/lib/objects-Release"
+          elif test "x$qt_lib_path" != x; then
+            qt6_windows_objects_root="$qt_lib_path/objects-Release"
+          fi
+          if test "x$qt6_windows_objects_root" != x && test -d "$qt6_windows_objects_root"; then
+            for qt6_windows_obj in \
+              "$qt6_windows_objects_root/QWindowsIntegrationPlugin_resources_1/.qt/rcc/qrc_openglblacklists_init.cpp.obj" \
+              "$qt6_windows_objects_root/QWindowsIntegrationPlugin_resources_2/.qt/rcc/qrc_cursors_init.cpp.obj" \
+              "$qt6_windows_objects_root/Gui_resources_1/.qt/rcc/qrc_gui_shaders_init.cpp.obj"; do
+              if test -f "$qt6_windows_obj"; then
+                QT_LIBS="$qt6_windows_obj $QT_LIBS"
+              fi
+            done
+          fi
           AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
         else
           AC_MSG_RESULT(no)

@@ -615,6 +615,13 @@ jobs:
           # Hard requirement: verge-qt target exists in generated makefiles
           grep -Fq 'qt/verge-qt$(EXEEXT)' src/Makefile
 
+          # Hard requirement: Qt6 windows static resource objects are present in link flags.
+          # They are listed in qwindows/qdirect2d .prl, but autotools must wire them explicitly.
+          if ! rg -n 'qrc_(openglblacklists|cursors|gui_shaders)_init\\.cpp\\.obj' src/Makefile; then
+            echo "ERROR: Missing Qt6 static resource object files in src/Makefile link flags"
+            exit 1
+          fi
+
 
       - name: make (serialized, verbose, heartbeat)
         env:
@@ -702,6 +709,25 @@ jobs:
           copy_local_dll_deps_recursive "$BUNDLE/verge-qt.exe"
 
           test -f "$BUNDLE/verge-qt.exe"
+
+      - name: Verify verge-qt binary shape and plugin linkage
+        run: |
+          set -euo pipefail
+          EXE="$PWD/release/windows32/verge-qt.exe"
+          test -f "$EXE"
+
+          file "$EXE"
+          i686-w64-mingw32-objdump -p "$EXE" | awk '/DLL Name:/{print}'
+
+          if i686-w64-mingw32-objdump -p "$EXE" | grep -qi 'DLL Name:.*Qt6'; then
+            echo "ERROR: dynamic Qt DLL dependency detected"
+            exit 1
+          fi
+
+          if ! strings "$EXE" | grep -qi 'QWindowsIntegrationPlugin'; then
+            echo "ERROR: QWindowsIntegrationPlugin string not found in verge-qt.exe"
+            exit 1
+          fi
 
       - name: ccache stats
         env:
