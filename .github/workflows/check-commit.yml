@@ -594,8 +594,7 @@ jobs:
           set -euo pipefail
 
           QT_HOST_PREFIX="$PWD/depends/i686-w64-mingw32/native/qt-host"
-          export PATH="$QT_HOST_PREFIX/bin:$QT_HOST_PREFIX/libexec:$PWD/depends/
-      i686-w64-mingw32/native/bin:$PATH"
+          export PATH="$QT_HOST_PREFIX/bin:$QT_HOST_PREFIX/libexec:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
 
           # Ensure Qt host tools exist
           command -v moc >/dev/null
