@@ -589,30 +589,28 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-      - name: configure (Qt6 GUI required)
+       name: configure (Qt6 GUI required)
         run: |
           set -euo pipefail
 
           QT_HOST_PREFIX="$PWD/depends/i686-w64-mingw32/native/qt-host"
-          export PATH="$QT_HOST_PREFIX/bin:$QT_HOST_PREFIX/libexec:$PATH"
+          export PATH="$QT_HOST_PREFIX/bin:$QT_HOST_PREFIX/libexec:$PWD/depends/
+      i686-w64-mingw32/native/bin:$PATH"
 
-          # Pick Qt host tools from either bin/ or libexec/ (Qt6 layout can vary)
-          export MOC="$(command -v moc || true)"
-          export UIC="$(command -v uic || true)"
-          export RCC="$(command -v rcc || true)"
-
-          test -n "${MOC}" -a -x "${MOC}"
-          test -n "${UIC}" -a -x "${UIC}"
-          test -n "${RCC}" -a -x "${RCC}"
+          # Ensure Qt host tools exist
+          command -v moc >/dev/null
+          command -v uic >/dev/null
+          command -v rcc >/dev/null
 
           CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
           ./configure --prefix=/ --disable-bench --disable-tests
 
-          # Hard fail if GUI is not enabled with Qt6
-          grep -q "whether to build Verge Octo GUI... yes (Qt6)" config.log || {
-            echo "ERROR: verge-qt (Qt6) was not enabled by configure"
+          # Reliable GUI check: qt makefile must be generated
+          test -f src/qt/Makefile || {
+            echo "ERROR: src/qt/Makefile missing; verge-qt was not configured"
             exit 1
           }
+
 
       - name: make (serialized, verbose, heartbeat)
         env:
