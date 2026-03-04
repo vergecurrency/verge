@@ -23,21 +23,18 @@ jobs:
       - name: Link brew deps
         run: brew link qt berkeley-db@4 boost
 
-      - name: Put Qt on PATH (immediate + next steps)
+      - name: Add Qt tools to PATH
         run: |
-          QT_PREFIX="$(brew --prefix qt)"
-          echo "QT_PREFIX=$QT_PREFIX" >> "$GITHUB_ENV"
+          echo "$(brew --prefix qtbase)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix qtbase)/libexec" >> "$GITHUB_PATH"
+          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
 
-          # for subsequent steps
-          echo "$QT_PREFIX/bin" >> "$GITHUB_PATH"
-          echo "$QT_PREFIX/libexec" >> "$GITHUB_PATH"
-
-          # for THIS step immediately (so checks here work)
-          export PATH="$QT_PREFIX/bin:$QT_PREFIX/libexec:$PATH"
-
-          echo "QT_PREFIX=$QT_PREFIX"
-          ls -la "$QT_PREFIX/bin" | egrep 'moc|qmake|qtpaths|cmake' || true
-          which moc
+      - name: Verify Qt tools
+        run: |
+          which moc || true
+          which moc6 || true
+          ls -l "$(brew --prefix qtbase)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
           moc -v
 
       - name: Autogen
