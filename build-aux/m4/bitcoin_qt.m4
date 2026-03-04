@@ -168,14 +168,15 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
         LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
         if test "x$verge_qt6_windows_plugin_ok" = xyes; then
           AC_MSG_RESULT(yes)
+          AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
         else
           AC_MSG_RESULT(no)
           AC_MSG_WARN([Qt6 static Windows integration plugin not linkable; expecting dynamic qwindows platform plugin at runtime])
         fi
       else
         _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindows])
+        AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
       fi
-      AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
     elif test "x$TARGET_OS" = xlinux; then
       _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)],[-lqxcb])
       AC_DEFINE(QT_QPA_PLATFORM_XCB, 1, [Define this symbol if the qt platform is xcb])
