@@ -617,6 +617,35 @@ jobs:
           cd ./src && i686-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
           cd ./qt && i686-w64-mingw32-strip verge-qt.exe
 
+      - name: Bundle win32 runtime for verge-qt
+        run: |
+          set -euo pipefail
+
+          PREFIX="$PWD/depends/i686-w64-mingw32"
+          BUNDLE="$PWD/release/windows32"
+
+          mkdir -p "$BUNDLE/platforms"
+
+          cp "$PWD/src/verged.exe" "$BUNDLE/"
+          cp "$PWD/src/verge-cli.exe" "$BUNDLE/"
+          cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
+          cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
+
+          # Qt runtime and MinGW runtime DLLs required by verge-qt.exe.
+          find "$PREFIX" -type f \( \
+            -name 'Qt6*.dll' -o \
+            -name 'libgcc_s_dw2-1.dll' -o \
+            -name 'libstdc++-6.dll' -o \
+            -name 'libwinpthread-1.dll' \
+          \) -exec cp -n {} "$BUNDLE/" \;
+
+          QWINDOWS_DLL="$(find "$PREFIX" -type f -path '*/platforms/qwindows.dll' | head -n1)"
+          test -n "$QWINDOWS_DLL"
+          cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
+
+          test -f "$BUNDLE/verge-qt.exe"
+          test -f "$BUNDLE/platforms/qwindows.dll"
+
       - name: ccache stats
         env:
           CCACHE_DIR: ~/.ccache
@@ -625,11 +654,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-windows32-ubuntu24
-          path: |
-            /home/runner/work/verge/verge/src/verged.exe
-            /home/runner/work/verge/verge/src/verge-cli.exe
-            /home/runner/work/verge/verge/src/verge-tx.exe
-            /home/runner/work/verge/verge/src/qt/verge-qt.exe
+          path: /home/runner/work/verge/verge/release/windows32
 
   windows64-ubuntu24:
     runs-on: ubuntu-24.04
