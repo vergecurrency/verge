@@ -579,8 +579,8 @@ jobs:
           # Hard requirement: automake conditional ENABLE_QT must be enabled
           grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
 
-          # Hard requirement: Qt makefiles were generated
-          test -f src/qt/Makefile
+          # Hard requirement: verge-qt target exists in generated makefiles
+          grep -Fq 'qt/verge-qt$(EXEEXT)' src/Makefile
 
 
       - name: make (serialized, verbose, heartbeat)
