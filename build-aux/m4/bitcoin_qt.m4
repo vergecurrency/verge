@@ -530,7 +530,8 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITH_PKGCONFIG],[
         fi
       elif test "x$QT_LIB_PREFIX" = xQt6 && test "x$TARGET_OS" = xwindows; then
         dnl Qt6 static MinGW requires additional Windows system import libs.
-        QT_LIBS="$QT_LIBS -ld2d1 -ld3d11 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp"
+        qt6_windows_tail_deps="-ld2d1 -ld3d11 -ldxguid -ld3d12 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp -lmpr -lsetupapi -lshcore -ld3d9 -lruntimeobject"
+        QT_LIBS="$QT_LIBS $qt6_windows_tail_deps"
       fi
     ])
   ])
@@ -637,7 +638,8 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
           fi
         elif test "x$TARGET_OS" = xwindows; then
           dnl Qt6 static MinGW requires additional Windows system import libs.
-          QT_LIBS="$QT_LIBS -ld2d1 -ld3d11 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp"
+          qt6_windows_tail_deps="-ld2d1 -ld3d11 -ldxguid -ld3d12 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp -lmpr -lsetupapi -lshcore -ld3d9 -lruntimeobject"
+          QT_LIBS="$QT_LIBS $qt6_windows_tail_deps"
         fi
       fi
   ])

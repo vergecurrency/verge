@@ -260,6 +260,10 @@ define $(package)_stage_cmds
   fi && \
   if test -f qtbase/plugins/platforms/qdirect2d.prl; then \
     cp qtbase/plugins/platforms/qdirect2d.prl $($(package)_staging_dir)$(host_prefix)/plugins/platforms/; \
+  fi && \
+  if test -d qtbase/lib/objects-Release; then \
+    mkdir -p $($(package)_staging_dir)$(host_prefix)/lib && \
+    cp -a qtbase/lib/objects-Release $($(package)_staging_dir)$(host_prefix)/lib/; \
   fi
 endef
 

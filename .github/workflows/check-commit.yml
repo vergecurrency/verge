@@ -570,6 +570,7 @@ jobs:
 
           QT_HOST_PREFIX="$PWD/depends/i686-w64-mingw32/native/qt-host"
           QT_HOST_BIN="$QT_HOST_PREFIX/bin"
+          QT_TARGET_PREFIX="$PWD/depends/i686-w64-mingw32"
 
           test -x "$QT_HOST_BIN/moc"
           test -x "$QT_HOST_BIN/uic"
@@ -585,10 +586,28 @@ jobs:
           export UIC="$QT_HOST_BIN/uic"
           export RCC="$QT_HOST_BIN/rcc"
 
-          CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
-          ./configure --prefix=/ --disable-bench --disable-tests \
-            --with-gui=qt6 \
-            --with-qt-bindir="$QT_HOST_BIN"
+          echo "Qt target plugin dir snapshot:"
+          find "$QT_TARGET_PREFIX/plugins/platforms" -maxdepth 1 -type f 2>/dev/null | sort || true
+          echo "Qt target static resource object snapshot:"
+          find "$QT_TARGET_PREFIX/lib/objects-Release" -type f \( \
+            -name 'qrc_openglblacklists_init.cpp.obj' -o \
+            -name 'qrc_cursors_init.cpp.obj' -o \
+            -name 'qrc_gui_shaders_init.cpp.obj' \
+          \) 2>/dev/null | sort || true
+          if [ -f "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl" ]; then
+            echo "qwindows.prl:"
+            sed -n '1,80p' "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl"
+          fi
+
+          if ! CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
+            ./configure --prefix=/ --disable-bench --disable-tests \
+              --with-gui=qt6 \
+              --with-qt-bindir="$QT_HOST_BIN"; then
+            echo "configure failed; dumping Qt static plugin diagnostics from config.log"
+            rg -n "qwindows|QWindowsIntegrationPlugin|qdirect2d|Could not resolve|Qt6 static Windows integration plugin" config.log || true
+            tail -n 240 config.log || true
+            exit 1
+          fi
 
           # Hard requirement: automake conditional ENABLE_QT must be enabled
           grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
