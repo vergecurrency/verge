@@ -23,6 +23,16 @@ jobs:
       - name: Link brew deps
         run: brew link qt6 berkeley-db@4 boost
 
+      - name: Add Qt to PATH
+        run: |
+          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
+
+      - name: Verify Qt tools
+        run: |
+          which moc
+          moc -v
+
       - name: Autogen
         run: ./autogen.sh
 
