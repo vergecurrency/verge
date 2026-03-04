@@ -23,29 +23,6 @@ jobs:
       - name: Link brew deps
         run: brew link qt6 berkeley-db@4 boost
 
-      - name: Create local tap
-        run: brew tap-new vergecurrency/local
-
-      - name: Install protobuf 2.6.1
-        run: |
-          FORMULA="depends/homebrew-formulas/protobuf261.rb"
-          TAP_DIR="$(brew --repo vergecurrency/local)/Formula"
-          mkdir -p "$TAP_DIR"
-          cp "$FORMULA" "$TAP_DIR/"
-          brew install vergecurrency/local/protobuf261
-
-      - name: Resolve build environment
-        run: |
-          PROTO="$(brew --cellar)/protobuf261/$(ls $(brew --cellar)/protobuf261 | sort -V | tail -n1)"
-          echo "PROTOBUF_ROOT=$PROTO" >> $GITHUB_ENV
-          echo "PROTOBUF_INCLUDEDIR=$PROTO/include" >> $GITHUB_ENV
-          echo "PROTOBUF_LIBRARYDIR=$PROTO/lib" >> $GITHUB_ENV
-
-          echo "CPPFLAGS=-I$BOOST/include -I$PROTO/include" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$BOOST/lib -L$PROTO/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=$PROTO/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
-          echo "PATH=$PROTO/bin:$(brew --prefix)/bin:$(brew --prefix)/sbin:${PATH:-/usr/bin:/bin}" >> $GITHUB_ENV
-
       - name: Autogen
         run: ./autogen.sh
 
