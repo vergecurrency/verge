@@ -631,21 +631,26 @@ jobs:
           cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
           cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
 
+          DYNAMIC_QT=0
           if i686-w64-mingw32-objdump -p "$BUNDLE/verge-qt.exe" | grep -qi 'Qt6Core.dll'; then
-            echo "Detected dynamic Qt linkage; bundling Qt runtime/plugin DLLs."
+            DYNAMIC_QT=1
+            echo "Detected dynamic Qt linkage; bundling Qt runtime DLLs."
             find "$PREFIX" -type f \( \
               -name 'Qt6*.dll' -o \
               -name 'libgcc_s_dw2-1.dll' -o \
               -name 'libstdc++-6.dll' -o \
               -name 'libwinpthread-1.dll' \
             \) -exec cp -n {} "$BUNDLE/" \;
-
-            QWINDOWS_DLL="$(find "$PREFIX" -type f -path '*/platforms/qwindows.dll' | head -n1)"
-            test -n "$QWINDOWS_DLL"
-            cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
-            test -f "$BUNDLE/platforms/qwindows.dll"
           else
-            echo "Detected static Qt linkage; no Qt platform plugin DLL bundling needed."
+            echo "Detected static Qt linkage."
+          fi
+
+          QWINDOWS_DLL="$(find "$PREFIX" -type f -path '*/platforms/qwindows.dll' | head -n1 || true)"
+          if [ -n "$QWINDOWS_DLL" ] && [ -f "$QWINDOWS_DLL" ]; then
+            cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
+          elif [ "$DYNAMIC_QT" -eq 1 ]; then
+            echo "ERROR: dynamic Qt detected but qwindows.dll was not found"
+            exit 1
           fi
 
           test -f "$BUNDLE/verge-qt.exe"

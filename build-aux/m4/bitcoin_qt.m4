@@ -150,8 +150,28 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
     AC_DEFINE(QT_QPA_PLATFORM_MINIMAL, 1, [Define this symbol if the minimal qt platform exists])
     if test "x$TARGET_OS" = xwindows; then
       if test "x$QT_LIB_PREFIX" = xQt6; then
-        dnl Qt6 static Windows integration plugin library naming differs by build.
-        _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lQt6QWindowsIntegrationPlugin -lqwindows])
+        dnl Qt6 may provide Windows integration as static lib, dynamic plugin, or with differing lib names.
+        dnl Probe common static names, but do not fail configure if unresolved.
+        AC_MSG_CHECKING(for Qt6 static Windows integration plugin)
+        CHECK_STATIC_PLUGINS_TEMP_LIBS="$LIBS"
+        verge_qt6_windows_plugin_ok=no
+        for verge_qt6_windows_plugin_libs in "-lQt6QWindowsIntegrationPlugin -lqwindows" "-lqwindows"; do
+          LIBS="$verge_qt6_windows_plugin_libs $QT_LIBS $CHECK_STATIC_PLUGINS_TEMP_LIBS"
+          AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+            #define QT_STATICPLUGIN
+            #include <QtPlugin>
+            Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)]],
+            [[return 0;]])],
+            [QT_LIBS="$verge_qt6_windows_plugin_libs $QT_LIBS"; verge_qt6_windows_plugin_ok=yes; break],
+            [])
+        done
+        LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
+        if test "x$verge_qt6_windows_plugin_ok" = xyes; then
+          AC_MSG_RESULT(yes)
+        else
+          AC_MSG_RESULT(no)
+          AC_MSG_WARN([Qt6 static Windows integration plugin not linkable; expecting dynamic qwindows platform plugin at runtime])
+        fi
       else
         _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindows])
       fi
