@@ -18,10 +18,10 @@ jobs:
         run: |
           brew install automake autoconf pkg-config libtool \
             berkeley-db@4 zeromq miniupnpc \
-            qt@5 gperf qrencode librsvg
+            qt6 gperf qrencode librsvg boost
 
       - name: Link brew deps
-        run: brew link qt@5 berkeley-db@4
+        run: brew link qt6 berkeley-db@4 boost
 
       - name: Create local tap
         run: brew tap-new vergecurrency/local
@@ -34,23 +34,9 @@ jobs:
           cp "$FORMULA" "$TAP_DIR/"
           brew install vergecurrency/local/protobuf261
 
-      - name: Install boost 1.76
-        run: |
-          FORMULA="depends/homebrew-formulas/boost176.rb"
-          TAP_DIR="$(brew --repo vergecurrency/local)/Formula"
-          mkdir -p "$TAP_DIR"
-          cp "$FORMULA" "$TAP_DIR/"
-          brew install vergecurrency/local/boost176
-
       - name: Resolve build environment
         run: |
-          BOOST="$(brew --cellar)/boost176/$(ls $(brew --cellar)/boost176 | sort -V | tail -n1)"
           PROTO="$(brew --cellar)/protobuf261/$(ls $(brew --cellar)/protobuf261 | sort -V | tail -n1)"
-
-          echo "BOOST_ROOT=$BOOST" >> $GITHUB_ENV
-          echo "BOOST_INCLUDEDIR=$BOOST/include" >> $GITHUB_ENV
-          echo "BOOST_LIBRARYDIR=$BOOST/lib" >> $GITHUB_ENV
-
           echo "PROTOBUF_ROOT=$PROTO" >> $GITHUB_ENV
           echo "PROTOBUF_INCLUDEDIR=$PROTO/include" >> $GITHUB_ENV
           echo "PROTOBUF_LIBRARYDIR=$PROTO/lib" >> $GITHUB_ENV
@@ -72,8 +58,6 @@ jobs:
             --disable-bench \
             --disable-werror \
             --with-gui \
-            --with-boost="$BOOST_ROOT" \
-            --with-boost-libdir="$BOOST_LIBRARYDIR" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
             --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.6.1 \
