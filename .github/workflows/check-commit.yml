@@ -617,7 +617,7 @@ jobs:
 
           # Hard requirement: Qt6 windows static resource objects are present in link flags.
           # They are listed in qwindows/qdirect2d .prl, but autotools must wire them explicitly.
-          if ! grep -nE 'qrc_(openglblacklists|cursors|gui_shaders)_init\\.cpp\\.obj' src/Makefile; then
+          if ! grep -nE 'qrc_(openglblacklists|cursors|gui_shaders)_init[.]cpp[.]obj' src/Makefile; then
             echo "ERROR: Missing Qt6 static resource object files in src/Makefile link flags"
             exit 1
           fi
