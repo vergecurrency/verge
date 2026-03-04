@@ -18,18 +18,25 @@ jobs:
         run: |
           brew install automake autoconf pkg-config libtool \
             berkeley-db@4 zeromq miniupnpc \
-            qt6 gperf qrencode librsvg boost
+            qt gperf qrencode librsvg boost
 
       - name: Link brew deps
-        run: brew link qt6 berkeley-db@4 boost
+        run: brew link qt berkeley-db@4 boost
 
-      - name: Add Qt to PATH
+      - name: Put Qt on PATH (immediate + next steps)
         run: |
-          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
+          QT_PREFIX="$(brew --prefix qt)"
+          echo "QT_PREFIX=$QT_PREFIX" >> "$GITHUB_ENV"
 
-      - name: Verify Qt tools
-        run: |
+          # for subsequent steps
+          echo "$QT_PREFIX/bin" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/libexec" >> "$GITHUB_PATH"
+
+          # for THIS step immediately (so checks here work)
+          export PATH="$QT_PREFIX/bin:$QT_PREFIX/libexec:$PATH"
+
+          echo "QT_PREFIX=$QT_PREFIX"
+          ls -la "$QT_PREFIX/bin" | egrep 'moc|qmake|qtpaths|cmake' || true
           which moc
           moc -v
 
