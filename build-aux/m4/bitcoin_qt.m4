@@ -359,10 +359,6 @@ AC_DEFUN([_VERGE_QT_IS_STATIC],[
         #if !defined(QT_STATIC)
         choke
         #endif
-        /* Skip Qt6 static-plugin probing in this legacy Qt5-oriented macro path. */
-        #if QT_VERSION >= 0x060000
-        choke
-        #endif
       ]])],
       [verge_cv_static_qt=yes],
       [verge_cv_static_qt=no])
@@ -396,7 +392,7 @@ dnl Inputs: qt_plugin_path. optional.
 dnl Outputs: QT_LIBS is appended
 AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
     if test "x$qt_plugin_path" = x && test "x$use_pkgconfig" = xyes; then
-      qt_pkg_prefix=`$PKG_CONFIG --variable=prefix Qt5Core 2>/dev/null`
+      qt_pkg_prefix=`$PKG_CONFIG --variable=prefix ${QT_LIB_PREFIX}Core 2>/dev/null`
       if test "x$qt_pkg_prefix" != x; then
         qt_plugin_path="$qt_pkg_prefix/plugins"
       fi
