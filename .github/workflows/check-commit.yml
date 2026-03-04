@@ -589,7 +589,7 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-       name: configure (Qt6 GUI required)
+      - name: configure (Qt6 GUI required)
         run: |
           set -euo pipefail
 
