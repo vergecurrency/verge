@@ -624,15 +624,12 @@ jobs:
           PREFIX="$PWD/depends/i686-w64-mingw32"
           BUNDLE="$PWD/release/windows32"
 
-          mkdir -p "$BUNDLE/platforms"
+          mkdir -p "$BUNDLE/platforms" "$BUNDLE/plugins/platforms"
 
           cp "$PWD/src/verged.exe" "$BUNDLE/"
           cp "$PWD/src/verge-cli.exe" "$BUNDLE/"
           cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
           cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
-
-          # Force Qt to load plugins from ./platforms next to verge-qt.exe.
-          printf '[Paths]\nPlugins=platforms\n' > "$BUNDLE/qt.conf"
 
           copy_local_dll_deps() {
             local target="$1"
@@ -686,6 +683,7 @@ jobs:
           QWINDOWS_DLL="$(find "$PREFIX" -type f -path '*/platforms/qwindows.dll' | head -n1 || true)"
           if [ -n "$QWINDOWS_DLL" ] && [ -f "$QWINDOWS_DLL" ]; then
             cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
+            cp "$QWINDOWS_DLL" "$BUNDLE/plugins/platforms/"
             copy_local_dll_deps_recursive "$BUNDLE/platforms/qwindows.dll"
           elif [ "$DYNAMIC_QT" -eq 1 ]; then
             echo "ERROR: dynamic Qt detected but qwindows.dll was not found"
@@ -695,7 +693,6 @@ jobs:
           copy_local_dll_deps_recursive "$BUNDLE/verge-qt.exe"
 
           test -f "$BUNDLE/verge-qt.exe"
-          test -f "$BUNDLE/qt.conf"
 
       - name: ccache stats
         env:
