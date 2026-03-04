@@ -37,6 +37,10 @@ AC_DEFUN([VERGE_QT_PATH_PROGS],[
   VERGE_QT_CHECK([
     if test "x$3" != x; then
       AC_PATH_PROGS($1,$2,,$3)
+      dnl Fallback to PATH if tool was not found in explicit qt_bin_path.
+      if test "x$$1" = x; then
+        AC_PATH_PROGS($1,$2)
+      fi
     else
       AC_PATH_PROGS($1,$2)
     fi

@@ -611,7 +611,9 @@ jobs:
           export RCC="$QT_HOST_BIN/rcc"
 
           CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
-          ./configure --prefix=/ --disable-bench --disable-tests
+          ./configure --prefix=/ --disable-bench --disable-tests \
+            --with-gui=qt6 \
+            --with-qt-bindir="$QT_HOST_BIN"
 
           # Hard requirement: automake conditional ENABLE_QT must be enabled
           grep -q 'S\\["ENABLE_QT_TRUE"\\]=""' config.status
