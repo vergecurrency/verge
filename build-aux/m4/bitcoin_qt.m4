@@ -432,38 +432,43 @@ AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
        fi
      ])
      else
-       if test "x$TARGET_OS" = xwindows; then
-         AC_CACHE_CHECK(for Qt >= 5.6, verge_cv_need_platformsupport,[
-           AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-               #include <QtCore/qconfig.h>
-               #ifndef QT_VERSION
-               #  include <QtCore/qglobal.h>
-               #endif
-             ]],
-             [[
-               #if QT_VERSION < 0x050600 || QT_VERSION_MINOR < 6
-               choke
-               #endif
-             ]])],
-           [verge_cv_need_platformsupport=yes],
-           [verge_cv_need_platformsupport=no])
-         ])
-         if test "x$verge_cv_need_platformsupport" = xyes; then
-           if test x$verge_cv_qt58 = xno; then
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}PlatformSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXPlatformSupport not found)))
-           else
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FontDatabaseSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXFontDatabaseSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}EventDispatcherSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXEventDispatcherSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}ThemeSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXThemeSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FbSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXFbSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}DeviceDiscoverySupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXDeviceDiscoverySupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}AccessibilitySupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXAccessibilitySupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}WindowsUIAutomationSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXWindowsUIAutomationSupport not found)))
-             QT_LIBS="$QT_LIBS -lqtlibpng"
-             QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme -lwtsapi32 -lnetapi32 -luserenv"
-           fi
-         fi
-       fi
+      if test "x$TARGET_OS" = xwindows; then
+        if test "x$QT_LIB_PREFIX" = xQt6; then
+          dnl Qt6 static plugin/runtime deps are handled by Qt6-specific logic elsewhere.
+          true
+        else
+          AC_CACHE_CHECK(for Qt >= 5.6, verge_cv_need_platformsupport,[
+            AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+                #include <QtCore/qconfig.h>
+                #ifndef QT_VERSION
+                #  include <QtCore/qglobal.h>
+                #endif
+              ]],
+              [[
+                #if QT_VERSION < 0x050600 || QT_VERSION_MINOR < 6
+                choke
+                #endif
+              ]])],
+            [verge_cv_need_platformsupport=yes],
+            [verge_cv_need_platformsupport=no])
+          ])
+          if test "x$verge_cv_need_platformsupport" = xyes; then
+            if test x$verge_cv_qt58 = xno; then
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}PlatformSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}PlatformSupport not found])))
+            else
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FontDatabaseSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}FontDatabaseSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}EventDispatcherSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}EventDispatcherSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}ThemeSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}ThemeSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FbSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}FbSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}DeviceDiscoverySupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}DeviceDiscoverySupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}AccessibilitySupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}AccessibilitySupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}WindowsUIAutomationSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}WindowsUIAutomationSupport not found])))
+              QT_LIBS="$QT_LIBS -lqtlibpng"
+              QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme -lwtsapi32 -lnetapi32 -luserenv"
+            fi
+          fi
+        fi
+      fi
      fi
    fi
 ])
