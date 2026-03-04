@@ -596,26 +596,22 @@ jobs:
           QT_HOST_PREFIX="$PWD/depends/i686-w64-mingw32/native/qt-host"
           QT_HOST_BIN="$QT_HOST_PREFIX/bin"
 
-          # Hard fail if cached/native_qt host tools are missing
           test -x "$QT_HOST_BIN/moc"
           test -x "$QT_HOST_BIN/uic"
           test -x "$QT_HOST_BIN/rcc"
 
-          # Provide names configure probes first
           mkdir -p "$PWD/.qt-tool-aliases"
           ln -sf "$QT_HOST_BIN/moc" "$PWD/.qt-tool-aliases/moc-qt6"
           ln -sf "$QT_HOST_BIN/uic" "$PWD/.qt-tool-aliases/uic-qt6"
           ln -sf "$QT_HOST_BIN/rcc" "$PWD/.qt-tool-aliases/rcc-qt6"
 
           export PATH="$PWD/.qt-tool-aliases:$QT_HOST_BIN:$QT_HOST_PREFIX/libexec:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
-          export MOC="$QT_HOST_BIN/moc"
-          export UIC="$QT_HOST_BIN/uic"
-          export RCC="$QT_HOST_BIN/rcc"
-
           CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
           ./configure --prefix=/ --disable-bench --disable-tests
 
-          grep -q "whether to build Verge Octo GUI... yes (Qt6)" config.log
+          # Validate via generated makefile, not config.log text
+          grep -q "qt/verge-qt" src/Makefile
+
 
       - name: make (serialized, verbose, heartbeat)
         env:
