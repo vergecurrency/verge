@@ -611,12 +611,10 @@ jobs:
           export RCC="$QT_HOST_BIN/rcc"
 
           CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
-          ./configure --prefix=/ --disable-bench --disable-tests 2>&1 | tee configure-win32.log
+          ./configure --prefix=/ --disable-bench --disable-tests
 
-          # Hard requirements for GUI cross-build
-          grep -q "checking for moc-qt6... " configure-win32.log
-          grep -q "checking whether to build Verge Octo GUI... yes (Qt6)" configure-win32.log
-          grep -q "with gui / qt = yes" configure-win32.log
+          # Hard requirement: automake conditional ENABLE_QT must be enabled
+          grep -q 'S\\["ENABLE_QT_TRUE"\\]=""' config.status
 
 
       - name: make (serialized, verbose, heartbeat)
