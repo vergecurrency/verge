@@ -594,22 +594,28 @@ jobs:
           set -euo pipefail
 
           QT_HOST_PREFIX="$PWD/depends/i686-w64-mingw32/native/qt-host"
-          export PATH="$QT_HOST_PREFIX/bin:$QT_HOST_PREFIX/libexec:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
+          QT_HOST_BIN="$QT_HOST_PREFIX/bin"
 
-          # Ensure Qt host tools exist
-          command -v moc >/dev/null
-          command -v uic >/dev/null
-          command -v rcc >/dev/null
+          # Hard fail if cached/native_qt host tools are missing
+          test -x "$QT_HOST_BIN/moc"
+          test -x "$QT_HOST_BIN/uic"
+          test -x "$QT_HOST_BIN/rcc"
+
+          # Provide names configure probes first
+          mkdir -p "$PWD/.qt-tool-aliases"
+          ln -sf "$QT_HOST_BIN/moc" "$PWD/.qt-tool-aliases/moc-qt6"
+          ln -sf "$QT_HOST_BIN/uic" "$PWD/.qt-tool-aliases/uic-qt6"
+          ln -sf "$QT_HOST_BIN/rcc" "$PWD/.qt-tool-aliases/rcc-qt6"
+
+          export PATH="$PWD/.qt-tool-aliases:$QT_HOST_BIN:$QT_HOST_PREFIX/libexec:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
+          export MOC="$QT_HOST_BIN/moc"
+          export UIC="$QT_HOST_BIN/uic"
+          export RCC="$QT_HOST_BIN/rcc"
 
           CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
           ./configure --prefix=/ --disable-bench --disable-tests
 
-          # Reliable GUI check: qt makefile must be generated
-          test -f src/qt/Makefile || {
-            echo "ERROR: src/qt/Makefile missing; verge-qt was not configured"
-            exit 1
-          }
-
+          grep -q "whether to build Verge Octo GUI... yes (Qt6)" config.log
 
       - name: make (serialized, verbose, heartbeat)
         env:
