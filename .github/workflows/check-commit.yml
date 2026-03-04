@@ -616,7 +616,10 @@ jobs:
             --with-qt-bindir="$QT_HOST_BIN"
 
           # Hard requirement: automake conditional ENABLE_QT must be enabled
-          grep -q 'S\\["ENABLE_QT_TRUE"\\]=""' config.status
+          grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
+
+          # Hard requirement: Qt makefiles were generated
+          test -f src/qt/Makefile
 
 
       - name: make (serialized, verbose, heartbeat)
