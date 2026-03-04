@@ -604,7 +604,7 @@ jobs:
               --with-gui=qt6 \
               --with-qt-bindir="$QT_HOST_BIN"; then
             echo "configure failed; dumping Qt static plugin diagnostics from config.log"
-            rg -n "qwindows|QWindowsIntegrationPlugin|qdirect2d|Could not resolve|Qt6 static Windows integration plugin" config.log || true
+            grep -nE "qwindows|QWindowsIntegrationPlugin|qdirect2d|Could not resolve|Qt6 static Windows integration plugin" config.log || true
             tail -n 240 config.log || true
             exit 1
           fi
@@ -617,7 +617,7 @@ jobs:
 
           # Hard requirement: Qt6 windows static resource objects are present in link flags.
           # They are listed in qwindows/qdirect2d .prl, but autotools must wire them explicitly.
-          if ! rg -n 'qrc_(openglblacklists|cursors|gui_shaders)_init\\.cpp\\.obj' src/Makefile; then
+          if ! grep -nE 'qrc_(openglblacklists|cursors|gui_shaders)_init\\.cpp\\.obj' src/Makefile; then
             echo "ERROR: Missing Qt6 static resource object files in src/Makefile link flags"
             exit 1
           fi
