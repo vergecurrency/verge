@@ -606,11 +606,17 @@ jobs:
           ln -sf "$QT_HOST_BIN/rcc" "$PWD/.qt-tool-aliases/rcc-qt6"
 
           export PATH="$PWD/.qt-tool-aliases:$QT_HOST_BIN:$QT_HOST_PREFIX/libexec:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
+          export MOC="$QT_HOST_BIN/moc"
+          export UIC="$QT_HOST_BIN/uic"
+          export RCC="$QT_HOST_BIN/rcc"
+
           CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
           ./configure --prefix=/ --disable-bench --disable-tests 2>&1 | tee configure-win32.log
 
-          # Validate via actual configure output
+          # Hard requirements for GUI cross-build
+          grep -q "checking for moc-qt6... " configure-win32.log
           grep -q "checking whether to build Verge Octo GUI... yes (Qt6)" configure-win32.log
+          grep -q "with gui / qt = yes" configure-win32.log
 
 
       - name: make (serialized, verbose, heartbeat)
