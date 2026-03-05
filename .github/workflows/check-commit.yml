@@ -30,11 +30,61 @@ jobs:
           echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
           echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
 
+      - name: Resolve Qt host tools
+        run: |
+          set -euo pipefail
+
+          QT_PREFIX="$(brew --prefix qt)"
+          QTBASE_PREFIX="$(brew --prefix qtbase)"
+          ALIAS_DIR="$PWD/.qt-tool-aliases"
+          mkdir -p "$ALIAS_DIR"
+
+          find_qt_tool() {
+            local base="$1"
+            for cand in \
+              "$QTBASE_PREFIX/libexec/$base" \
+              "$QTBASE_PREFIX/bin/$base" \
+              "$QT_PREFIX/libexec/$base" \
+              "$QT_PREFIX/bin/$base" \
+              "$QTBASE_PREFIX/libexec/${base}6" \
+              "$QTBASE_PREFIX/bin/${base}6" \
+              "$QT_PREFIX/libexec/${base}6" \
+              "$QT_PREFIX/bin/${base}6"
+            do
+              if [ -x "$cand" ]; then
+                echo "$cand"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          MOC_REAL="$(find_qt_tool moc)"
+          UIC_REAL="$(find_qt_tool uic)"
+          RCC_REAL="$(find_qt_tool rcc)"
+
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc"
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc-qt6"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic-qt6"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc-qt6"
+
+          echo "$ALIAS_DIR" >> "$GITHUB_PATH"
+          echo "MOC=$ALIAS_DIR/moc" >> "$GITHUB_ENV"
+          echo "UIC=$ALIAS_DIR/uic" >> "$GITHUB_ENV"
+          echo "RCC=$ALIAS_DIR/rcc" >> "$GITHUB_ENV"
+
       - name: Verify Qt tools
         run: |
+          set -euo pipefail
           which moc || true
           which moc6 || true
+          ls -l "$PWD/.qt-tool-aliases" || true
           ls -l "$(brew --prefix qtbase)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$(brew --prefix qtbase)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$(brew --prefix qt)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$(brew --prefix qt)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
           moc -v
 
       - name: Autogen
@@ -48,7 +98,8 @@ jobs:
             --disable-tests \
             --disable-bench \
             --disable-werror \
-            --with-gui \
+            --with-gui=qt6 \
+            --with-qt-bindir="$PWD/.qt-tool-aliases" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
             --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.6.1 \
