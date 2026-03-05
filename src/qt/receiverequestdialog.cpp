@@ -29,6 +29,19 @@
 #include <qrencode.h>
 #endif
 
+
+namespace {
+QPixmap GetLabelPixmap(const QLabel* label)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return label->pixmap(Qt::ReturnByValue);
+#else
+    const QPixmap* pixmap = label->pixmap();
+    return pixmap ? *pixmap : QPixmap();
+#endif
+}
+} // namespace
+
 QRImageWidget::QRImageWidget(QWidget *parent):
     QLabel(parent), contextMenu(0)
 {
@@ -43,14 +56,15 @@ QRImageWidget::QRImageWidget(QWidget *parent):
 
 QImage QRImageWidget::exportImage()
 {
-    if(!pixmap())
+    const QPixmap pm = GetLabelPixmap(this);
+    if (pm.isNull())
         return QImage();
-    return pixmap()->toImage();
+    return pm.toImage();
 }
 
 void QRImageWidget::mousePressEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::LeftButton && pixmap())
+    if (event->button() == Qt::LeftButton && !GetLabelPixmap(this).isNull())
     {
         event->accept();
         QMimeData *mimeData = new QMimeData;
@@ -66,7 +80,7 @@ void QRImageWidget::mousePressEvent(QMouseEvent *event)
 
 void QRImageWidget::saveImage()
 {
-    if(!pixmap())
+    if (GetLabelPixmap(this).isNull())
         return;
     QString fn = GUIUtil::getSaveFileName(this, tr("Save QR Code"), QString(), tr("PNG Image (*.png)"), nullptr);
     if (!fn.isEmpty())
@@ -77,14 +91,14 @@ void QRImageWidget::saveImage()
 
 void QRImageWidget::copyImage()
 {
-    if(!pixmap())
+    if (GetLabelPixmap(this).isNull())
         return;
     QApplication::clipboard()->setImage(exportImage());
 }
 
 void QRImageWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-    if(!pixmap())
+    if (GetLabelPixmap(this).isNull())
         return;
     contextMenu->exec(event->globalPos());
 }

@@ -49,11 +49,13 @@ const std::string CLIENT_NAME("verge");
 #define GIT_COMMIT_DATE "Mon, 2 Sep 2024 22:22:58 -0400"
 #endif
 
-// define BUILD_DESC_WITH_SUFFIX(maj, min, rev, build, suffix) \
-//    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-" DO_STRINGIZE(suffix)
+/* #define BUILD_DESC_WITH_SUFFIX(maj, min, rev, build, suffix)
+ *    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-" DO_STRINGIZE(suffix)
+ */
 
-// define BUILD_DESC_FROM_COMMIT(maj, min, rev, build, commit) \
-//    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-g" commit
+/* #define BUILD_DESC_FROM_COMMIT(maj, min, rev, build, commit)
+ *    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-g" commit
+ */
 
 #define BUILD_DESC_FROM_UNKNOWN(maj, min, rev, build) \
     "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build)

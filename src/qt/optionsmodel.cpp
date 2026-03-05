@@ -20,9 +20,11 @@
 #include <txdb.h> // for -dbcache defaults
 #include <qt/intro.h>
 
-#include <QNetworkProxy>
 #include <QSettings>
 #include <QStringList>
+#if !defined(QT_NO_NETWORKPROXY)
+#include <QtNetwork/QNetworkProxy>
+#endif
 
 const char *DEFAULT_GUI_PROXY_HOST = "127.0.0.1";
 
@@ -224,7 +226,7 @@ static ProxySetting GetProxySetting(QSettings &settings, const QString &name)
         return default_val;
     }
     // contains IP at index 0 and port at index 1
-    QStringList ip_port = settings.value(name).toString().split(":", QString::SkipEmptyParts);
+    QStringList ip_port = settings.value(name).toString().split(":", Qt::SkipEmptyParts);
     if (ip_port.size() == 2) {
         return {true, ip_port.at(0), ip_port.at(1)};
     } else { // Invalid: return default
@@ -473,6 +475,7 @@ void OptionsModel::setDisplayUnit(const QVariant &value)
     }
 }
 
+#if !defined(QT_NO_NETWORKPROXY)
 bool OptionsModel::getProxySettings(QNetworkProxy& proxy) const
 {
     // Directly query current base proxy, because
@@ -490,6 +493,7 @@ bool OptionsModel::getProxySettings(QNetworkProxy& proxy) const
 
     return false;
 }
+#endif
 
 void OptionsModel::setRestartRequired(bool fRequired)
 {

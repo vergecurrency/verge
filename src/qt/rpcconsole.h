@@ -32,6 +32,8 @@ QT_BEGIN_NAMESPACE
 class QDateTime;
 class QMenu;
 class QItemSelection;
+class QLabel;
+class QToolButton;
 QT_END_NAMESPACE
 
 /** Local VERGE RPC console. */
@@ -161,9 +163,17 @@ private:
     QCompleter *autoCompleter = nullptr;
     QThread thread;
     QString m_last_wallet_id;
+    QWidget* m_titleBar = nullptr;
+    QLabel* m_titleLabel = nullptr;
+    QToolButton* m_minimizeButton = nullptr;
+    QToolButton* m_maximizeButton = nullptr;
+    QToolButton* m_closeButton = nullptr;
+    bool m_titleBarDragging = false;
+    QPoint m_dragOffset;
 
     /** Update UI with latest network info from model. */
     void updateNetworkState();
+    void updateMaximizeRestoreButton();
 };
 
 #endif // VERGE_QT_RPCCONSOLE_H

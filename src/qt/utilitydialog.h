@@ -43,12 +43,12 @@ private Q_SLOTS:
 
 
 /** "Shutdown" window */
-class ShutdownWindow : public QWidget
+class ShutdownWindow : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ShutdownWindow(QWidget *parent=nullptr, Qt::WindowFlags f=Qt::Widget);
+    explicit ShutdownWindow(QWidget *parent=nullptr, Qt::WindowFlags f=Qt::Dialog);
     static QWidget* showShutdownWindow(QMainWindow* window);
 
 protected:

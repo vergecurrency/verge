@@ -100,7 +100,7 @@ public:
 
             const QFontMetrics fm(fontMetrics());
             int h = lineEdit()->minimumSizeHint().height();
-            int w = fm.width(VERGEUnits::format(VERGEUnits::XVG, VERGEUnits::maxMoney(), false, VERGEUnits::separatorAlways));
+            int w = fm.horizontalAdvance(VERGEUnits::format(VERGEUnits::XVG, VERGEUnits::maxMoney(), false, VERGEUnits::separatorAlways));
             w += 2; // cursor blinking space
 
             QStyleOptionSpinBox opt;
@@ -120,7 +120,7 @@ public:
             opt.rect = rect();
 
             cachedMinimumSizeHint = style()->sizeFromContents(QStyle::CT_SpinBox, &opt, hint, this)
-                                    .expandedTo(QApplication::globalStrut());
+                                    .expandedTo(QSize(0, 0));
         }
         return cachedMinimumSizeHint;
     }
@@ -172,7 +172,7 @@ protected:
         if (text().isEmpty()) // Allow step-up with empty field
             return StepUpEnabled;
 
-        StepEnabled rv = 0;
+        StepEnabled rv;
         bool valid = false;
         CAmount val = value(&valid);
         if(valid)

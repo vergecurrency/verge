@@ -1,0 +1,12 @@
+diff --git a/src/gui/configure.cmake b/src/gui/configure.cmake
+index 1ff24eebaf..1ce02f058e 100644
+--- a/src/gui/configure.cmake
++++ b/src/gui/configure.cmake
+@@ -499,6 +499,7 @@ qt_config_compile_test(xcb_syslibs
+         XCB::XFIXES
+         XCB::XKB
+         XCB::XCB
++        X11::Xau
+     CODE
+ "// xkb.h is using a variable called 'explicit', which is a reserved keyword in C++
+ #define explicit dont_use_cxx_explicit

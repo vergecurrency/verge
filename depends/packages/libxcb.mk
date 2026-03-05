@@ -1,8 +1,8 @@
 package=libxcb
-$(package)_version=1.17.0
+$(package)_version=1.14
 $(package)_download_path=https://xcb.freedesktop.org/dist
-$(package)_file_name=libxcb-$($(package)_version).tar.gz
-$(package)_sha256_hash=2c69287424c9e2128cb47ffe92171e10417041ec2963bceafb65cb3fcf8f0b85
+$(package)_file_name=$(package)-$($(package)_version).tar.xz
+$(package)_sha256_hash=a55ed6db98d43469801262d81dc2572ed124edc3db31059d4e9916eb9f844c34
 $(package)_dependencies=xcb_proto libXau
 $(package)_patches = remove_pthread_stubs.patch
 
@@ -10,7 +10,7 @@ define $(package)_set_vars
 $(package)_config_opts=--disable-static --disable-devel-docs --without-doxygen --without-launchd
 $(package)_config_opts += --disable-dependency-tracking --enable-option-checking
 # Disable unneeded extensions.
-# More info is available from: https://doc.qt.io/qt-6.5/linux-requirements.html
+# More info is available from: https://doc.qt.io/qt-5.15/linux-requirements.html
 $(package)_config_opts += --disable-composite --disable-damage --disable-dpms
 $(package)_config_opts += --disable-dri2 --disable-dri3 --disable-glx
 $(package)_config_opts += --disable-present --disable-record --disable-resource
@@ -20,10 +20,6 @@ $(package)_config_opts += --disable-xtest --disable-xv --disable-xvmc
 endef
 
 define $(package)_preprocess_cmds
-  find . -type f -name 'Makefile.in' -exec rm {} + && \
-  rm -rf build-aux/* && \
-  rm ChangeLog INSTALL aclocal.m4 configure m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 m4/lt~obsolete.m4 src/config.h.in && \
-  autoreconf -fi && \
   cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub build-aux && \
   patch -p1 -i $($(package)_patch_dir)/remove_pthread_stubs.patch
 endef

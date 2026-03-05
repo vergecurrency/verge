@@ -25,9 +25,10 @@
 #include <stdio.h>
 
 #include <QCloseEvent>
+#include <QDialog>
 #include <QLabel>
 #include <QMainWindow>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QTextCursor>
 #include <QTextTable>
 #include <QVBoxLayout>
@@ -37,7 +38,10 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node& node, QWidget *parent, bo
     QDialog(parent),
     ui(new Ui::HelpMessageDialog)
 {
+    setObjectName("HelpMessageDialog");
     ui->setupUi(this);
+    GUIUtil::EnableThemedDialogChrome(this);
+    ui->aboutMessage->setObjectName("HelpAboutMessage");
 
     QString version = tr(PACKAGE_NAME) + " " + tr("version") + " " + QString::fromStdString(FormatFullVersion());
     /* On x86 add a bit specifier to the version so that users can distinguish between
@@ -57,13 +61,13 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node& node, QWidget *parent, bo
         QString licenseInfo = QString::fromStdString(LicenseInfo());
         QString licenseInfoHTML = licenseInfo;
         // Make URLs clickable
-        QRegExp uri("<(.*)>", Qt::CaseSensitive, QRegExp::RegExp2);
-        uri.setMinimal(true); // use non-greedy matching
+        const QRegularExpression uri("<(.*?)>");
         licenseInfoHTML.replace(uri, "<a href=\"\\1\">\\1</a>");
         // Replace newlines with HTML breaks
         licenseInfoHTML.replace("\n", "<br>");
 
         ui->aboutMessage->setTextFormat(Qt::RichText);
+        ui->aboutMessage->setStyleSheet("QLabel#HelpAboutMessage { color: #d7dbe5; } QLabel#HelpAboutMessage a { color: #9bc2ff; }");
         ui->scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         text = version + "\n" + licenseInfo;
         ui->aboutMessage->setText(version + "<br><br>" + licenseInfoHTML);
@@ -150,13 +154,21 @@ void HelpMessageDialog::on_okButton_accepted()
 
 /** "Shutdown" window */
 ShutdownWindow::ShutdownWindow(QWidget *parent, Qt::WindowFlags f):
-    QWidget(parent, f)
+    QDialog(parent, f)
 {
-    QVBoxLayout *layout = new QVBoxLayout();
-    layout->addWidget(new QLabel(
+    setObjectName("ShutdownWindow");
+    setModal(false);
+
+    QLabel* msgLabel = new QLabel(
         tr("%1 is shutting down...").arg(tr(PACKAGE_NAME)) + "<br /><br />" +
-        tr("Do not shut down the computer until this window disappears.")));
+        tr("Do not shut down the computer until this window disappears."));
+    msgLabel->setObjectName("ShutdownMessage");
+    msgLabel->setWordWrap(true);
+
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addWidget(msgLabel);
     setLayout(layout);
+    GUIUtil::EnableThemedDialogChrome(this);
 }
 
 QWidget* ShutdownWindow::showShutdownWindow(QMainWindow* window)
@@ -166,7 +178,7 @@ QWidget* ShutdownWindow::showShutdownWindow(QMainWindow* window)
 	assert(window != nullptr);
 
     // Show a simple window indicating shutdown status
-    QWidget *shutdownWindow = new ShutdownWindow();
+    QDialog *shutdownWindow = new ShutdownWindow();
     shutdownWindow->setWindowTitle(window->windowTitle());
 
     // Center shutdown window at where main window was

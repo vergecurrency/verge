@@ -37,6 +37,10 @@ AC_DEFUN([VERGE_QT_PATH_PROGS],[
   VERGE_QT_CHECK([
     if test "x$3" != x; then
       AC_PATH_PROGS($1,$2,,$3)
+      dnl Fallback to PATH if tool was not found in explicit qt_bin_path.
+      if test "x$$1" = x; then
+        AC_PATH_PROGS($1,$2)
+      fi
     else
       AC_PATH_PROGS($1,$2)
     fi
@@ -53,7 +57,7 @@ dnl CAUTION: Do not use this inside of a conditional.
 AC_DEFUN([VERGE_QT_INIT],[
   dnl enable qt support
   AC_ARG_WITH([gui],
-    [AS_HELP_STRING([--with-gui@<:@=no|qt5|auto@:>@],
+    [AS_HELP_STRING([--with-gui@<:@=no|qt5|qt6|auto@:>@],
     [build verge-qt GUI (default=auto)])],
     [
      verge_qt_want_version=$withval
@@ -95,8 +99,16 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
 
   if test "x$use_pkgconfig" = xyes; then
     VERGE_QT_CHECK([_VERGE_QT_FIND_LIBS_WITH_PKGCONFIG])
+    if test "x$have_qt" != xyes; then
+      use_pkgconfig=no
+      VERGE_QT_CHECK([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG])
+    fi
   else
     VERGE_QT_CHECK([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG])
+  fi
+  QT_CXXFLAGS=
+  if test "x$QT_LIB_PREFIX" = xQt6; then
+    QT_CXXFLAGS="-std=c++17"
   fi
 
   dnl This is ugly and complicated. Yuck. Works as follows:
@@ -111,7 +123,7 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
   TEMP_CPPFLAGS=$CPPFLAGS
   TEMP_CXXFLAGS=$CXXFLAGS
   CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
-  CXXFLAGS="$PIC_FLAGS $CXXFLAGS"
+  CXXFLAGS="$PIC_FLAGS $QT_CXXFLAGS $CXXFLAGS"
   _VERGE_QT_IS_STATIC
   if test "x$verge_cv_static_qt" = xyes; then
     _VERGE_QT_FIND_STATIC_PLUGINS
@@ -137,10 +149,54 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
     _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QMinimalIntegrationPlugin)],[-lqminimal])
     AC_DEFINE(QT_QPA_PLATFORM_MINIMAL, 1, [Define this symbol if the minimal qt platform exists])
     if test "x$TARGET_OS" = xwindows; then
-      _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindows])
-      AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
+      if test "x$QT_LIB_PREFIX" = xQt6; then
+        dnl Qt6 may provide Windows integration as static lib, dynamic plugin, or with differing lib names.
+        dnl Probe common static names, but do not fail configure if unresolved.
+        AC_MSG_CHECKING(for Qt6 static Windows integration plugin)
+        CHECK_STATIC_PLUGINS_TEMP_LIBS="$LIBS"
+        verge_qt6_windows_plugin_ok=no
+        for verge_qt6_windows_plugin_libs in "-lQt6QWindowsIntegrationPlugin -lqwindows" "-lqwindows"; do
+          LIBS="$verge_qt6_windows_plugin_libs $QT_LIBS $CHECK_STATIC_PLUGINS_TEMP_LIBS"
+          AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+            #define QT_STATICPLUGIN
+            #include <QtPlugin>
+            Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)]],
+            [[return 0;]])],
+            [QT_LIBS="$verge_qt6_windows_plugin_libs $QT_LIBS"; verge_qt6_windows_plugin_ok=yes; break],
+            [])
+        done
+        LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
+        if test "x$verge_qt6_windows_plugin_ok" = xyes; then
+          AC_MSG_RESULT(yes)
+          dnl qwindows/qdirect2d .prl files include extra static resource objects.
+          dnl Autotools does not parse .prl, so add known Qt6 windows resource objects explicitly.
+          qt6_windows_objects_root=
+          if test "x$qt_pkg_prefix" != x; then
+            qt6_windows_objects_root="$qt_pkg_prefix/lib/objects-Release"
+          elif test "x$qt_lib_path" != x; then
+            qt6_windows_objects_root="$qt_lib_path/objects-Release"
+          fi
+          if test "x$qt6_windows_objects_root" != x && test -d "$qt6_windows_objects_root"; then
+            for qt6_windows_obj in \
+              "$qt6_windows_objects_root/QWindowsIntegrationPlugin_resources_1/.qt/rcc/qrc_openglblacklists_init.cpp.obj" \
+              "$qt6_windows_objects_root/QWindowsIntegrationPlugin_resources_2/.qt/rcc/qrc_cursors_init.cpp.obj" \
+              "$qt6_windows_objects_root/Gui_resources_1/.qt/rcc/qrc_gui_shaders_init.cpp.obj"; do
+              if test -f "$qt6_windows_obj"; then
+                QT_LIBS="$qt6_windows_obj $QT_LIBS"
+              fi
+            done
+          fi
+          AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
+        else
+          AC_MSG_RESULT(no)
+          AC_MSG_ERROR([Qt6 static Windows integration plugin not linkable (tried qwindows/qdirect2d variants)])
+        fi
+      else
+        _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindows])
+        AC_DEFINE(QT_QPA_PLATFORM_WINDOWS, 1, [Define this symbol if the qt platform is windows])
+      fi
     elif test "x$TARGET_OS" = xlinux; then
-      _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)],[-lqxcb -lxcb-static])
+      _VERGE_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)],[-lqxcb])
       AC_DEFINE(QT_QPA_PLATFORM_XCB, 1, [Define this symbol if the qt platform is xcb])
     elif test "x$TARGET_OS" = xdarwin; then
       AX_CHECK_LINK_FLAG([[-framework IOKit]],[QT_LIBS="$QT_LIBS -framework IOKit"],[AC_MSG_ERROR(could not iokit framework)])
@@ -153,7 +209,7 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
   ])
 
   if test "x$use_pkgconfig$qt_bin_path" = xyes; then
-    qt_bin_path="`$PKG_CONFIG --variable=host_bins Qt5Core 2>/dev/null`"
+    qt_bin_path="`$PKG_CONFIG --variable=host_bins ${QT_LIB_PREFIX}Core 2>/dev/null`"
   fi
 
   if test "x$use_hardening" != xno; then
@@ -162,7 +218,7 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
     TEMP_CPPFLAGS=$CPPFLAGS
     TEMP_CXXFLAGS=$CXXFLAGS
     CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
-    CXXFLAGS="$PIE_FLAGS $CXXFLAGS"
+    CXXFLAGS="$PIE_FLAGS $QT_CXXFLAGS $CXXFLAGS"
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
         #include <QtCore/qconfig.h>
         #ifndef QT_VERSION
@@ -203,11 +259,11 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
     ])
   fi
 
-  VERGE_QT_PATH_PROGS([MOC], [moc-qt5 moc5 moc], $qt_bin_path)
-  VERGE_QT_PATH_PROGS([UIC], [uic-qt5 uic5 uic], $qt_bin_path)
-  VERGE_QT_PATH_PROGS([RCC], [rcc-qt5 rcc5 rcc], $qt_bin_path)
-  VERGE_QT_PATH_PROGS([LRELEASE], [lrelease-qt5 lrelease5 lrelease], $qt_bin_path)
-  VERGE_QT_PATH_PROGS([LUPDATE], [lupdate-qt5 lupdate5 lupdate],$qt_bin_path, yes)
+  VERGE_QT_PATH_PROGS([MOC], [moc-qt6 moc6 moc-qt5 moc5 moc], $qt_bin_path)
+  VERGE_QT_PATH_PROGS([UIC], [uic-qt6 uic6 uic-qt5 uic5 uic], $qt_bin_path)
+  VERGE_QT_PATH_PROGS([RCC], [rcc-qt6 rcc6 rcc-qt5 rcc5 rcc], $qt_bin_path)
+  VERGE_QT_PATH_PROGS([LRELEASE], [lrelease-qt6 lrelease6 lrelease-qt5 lrelease5 lrelease], $qt_bin_path, yes)
+  VERGE_QT_PATH_PROGS([LUPDATE], [lupdate-qt6 lupdate6 lupdate-qt5 lupdate5 lupdate],$qt_bin_path, yes)
 
   MOC_DEFS='-DHAVE_CONFIG_H -I$(srcdir)'
   case $host in
@@ -240,13 +296,17 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
     if test "x$use_dbus" = xyes && test "x$have_qt_dbus" = xno; then
       AC_MSG_ERROR([libQtDBus not found. Install libQtDBus or remove --with-qtdbus.])
     fi
+    if test "x$LRELEASE" = x; then
+      LRELEASE="${TRUE}"
+    fi
     if test "x$LUPDATE" = x; then
       AC_MSG_WARN([lupdate is required to update qt translations])
+      LUPDATE="${TRUE}"
     fi
   ],[
     verge_enable_qt=no
   ])
-  AC_MSG_RESULT([$verge_enable_qt (Qt5)])
+  AC_MSG_RESULT([$verge_enable_qt ($QT_LIB_PREFIX)])
 
   AC_SUBST(QT_PIE_FLAGS)
   AC_SUBST(QT_INCLUDES)
@@ -256,7 +316,8 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
   AC_SUBST(QT_DBUS_LIBS)
   AC_SUBST(QT_TEST_INCLUDES)
   AC_SUBST(QT_TEST_LIBS)
-  AC_SUBST(QT_SELECT, qt5)
+  AC_SUBST(QT_CXXFLAGS)
+  AC_SUBST(QT_SELECT, qt6)
   AC_SUBST(MOC_DEFS)
 ])
 
@@ -302,6 +363,26 @@ AC_DEFUN([_VERGE_QT_CHECK_QT58],[
     ]])],
     [verge_cv_qt58=yes],
     [verge_cv_qt58=no])
+])])
+
+dnl Internal. Check if the included version of Qt is Qt6+.
+dnl Requires: INCLUDES must be populated as necessary.
+dnl Output: verge_cv_qt6=yes|no
+AC_DEFUN([_VERGE_QT_CHECK_QT6],[
+  AC_CACHE_CHECK(for Qt 6, verge_cv_qt6,[
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+      #include <QtCore/qconfig.h>
+      #ifndef QT_VERSION
+      #  include <QtCore/qglobal.h>
+      #endif
+    ]],
+    [[
+      #if QT_VERSION < 0x060000 || QT_VERSION_MAJOR < 6
+      choke
+      #endif
+    ]])],
+    [verge_cv_qt6=yes],
+    [verge_cv_qt6=no])
 ])])
 
 
@@ -354,6 +435,13 @@ dnl Internal. Find paths necessary for linking qt static plugins
 dnl Inputs: qt_plugin_path. optional.
 dnl Outputs: QT_LIBS is appended
 AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
+    if test "x$qt_plugin_path" = x && test "x$use_pkgconfig" = xyes; then
+      qt_pkg_prefix=`$PKG_CONFIG --variable=prefix ${QT_LIB_PREFIX}Core 2>/dev/null`
+      if test "x$qt_pkg_prefix" != x; then
+        qt_plugin_path="$qt_pkg_prefix/plugins"
+      fi
+    fi
+
     if test "x$qt_plugin_path" != x; then
       QT_LIBS="$QT_LIBS -L$qt_plugin_path/platforms"
       if test -d "$qt_plugin_path/accessible"; then
@@ -365,11 +453,15 @@ AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
        if test x$verge_cv_qt58 = xno; then
          PKG_CHECK_MODULES([QTPLATFORM], [Qt5PlatformSupport], [QT_LIBS="$QTPLATFORM_LIBS $QT_LIBS"])
        else
+         QT_LIBS="$QT_LIBS -lqtlibpng"
          PKG_CHECK_MODULES([QTFONTDATABASE], [Qt5FontDatabaseSupport], [QT_LIBS="-lQt5FontDatabaseSupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTEVENTDISPATCHER], [Qt5EventDispatcherSupport], [QT_LIBS="-lQt5EventDispatcherSupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTTHEME], [Qt5ThemeSupport], [QT_LIBS="-lQt5ThemeSupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTDEVICEDISCOVERY], [Qt5DeviceDiscoverySupport], [QT_LIBS="-lQt5DeviceDiscoverySupport $QT_LIBS"])
          PKG_CHECK_MODULES([QTACCESSIBILITY], [Qt5AccessibilitySupport], [QT_LIBS="-lQt5AccessibilitySupport $QT_LIBS"])
+         if test "x$TARGET_OS" = xwindows; then
+           PKG_CHECK_MODULES([QTWINDOWSUIA], [Qt5WindowsUIAutomationSupport], [QT_LIBS="-lQt5WindowsUIAutomationSupport $QT_LIBS"])
+         fi
          PKG_CHECK_MODULES([QTFB], [Qt5FbSupport], [QT_LIBS="-lQt5FbSupport $QT_LIBS"])
                 fi
        if test "x$TARGET_OS" = xlinux; then
@@ -384,36 +476,43 @@ AC_DEFUN([_VERGE_QT_FIND_STATIC_PLUGINS],[
        fi
      ])
      else
-       if test "x$TARGET_OS" = xwindows; then
-         AC_CACHE_CHECK(for Qt >= 5.6, verge_cv_need_platformsupport,[
-           AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-               #include <QtCore/qconfig.h>
-               #ifndef QT_VERSION
-               #  include <QtCore/qglobal.h>
-               #endif
-             ]],
-             [[
-               #if QT_VERSION < 0x050600 || QT_VERSION_MINOR < 6
-               choke
-               #endif
-             ]])],
-           [verge_cv_need_platformsupport=yes],
-           [verge_cv_need_platformsupport=no])
-         ])
-         if test "x$verge_cv_need_platformsupport" = xyes; then
-           if test x$verge_cv_qt58 = xno; then
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}PlatformSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXPlatformSupport not found)))
-           else
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FontDatabaseSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXFontDatabaseSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}EventDispatcherSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXEventDispatcherSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}ThemeSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXThemeSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FbSupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXFbSupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}DeviceDiscoverySupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXDeviceDiscoverySupport not found)))
-             VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}AccessibilitySupport],[main],,VERGE_QT_FAIL(lib$QT_LIB_PREFIXAccessibilitySupport not found)))
-             QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme"
-           fi
-         fi
-       fi
+      if test "x$TARGET_OS" = xwindows; then
+        if test "x$QT_LIB_PREFIX" = xQt6; then
+          dnl Qt6 static plugin/runtime deps are handled by Qt6-specific logic elsewhere.
+          true
+        else
+          AC_CACHE_CHECK(for Qt >= 5.6, verge_cv_need_platformsupport,[
+            AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+                #include <QtCore/qconfig.h>
+                #ifndef QT_VERSION
+                #  include <QtCore/qglobal.h>
+                #endif
+              ]],
+              [[
+                #if QT_VERSION < 0x050600 || QT_VERSION_MINOR < 6
+                choke
+                #endif
+              ]])],
+            [verge_cv_need_platformsupport=yes],
+            [verge_cv_need_platformsupport=no])
+          ])
+          if test "x$verge_cv_need_platformsupport" = xyes; then
+            if test x$verge_cv_qt58 = xno; then
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}PlatformSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}PlatformSupport not found])))
+            else
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FontDatabaseSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}FontDatabaseSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}EventDispatcherSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}EventDispatcherSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}ThemeSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}ThemeSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}FbSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}FbSupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}DeviceDiscoverySupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}DeviceDiscoverySupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}AccessibilitySupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}AccessibilitySupport not found])))
+              VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}WindowsUIAutomationSupport],[main],,VERGE_QT_FAIL([lib${QT_LIB_PREFIX}WindowsUIAutomationSupport not found])))
+              QT_LIBS="$QT_LIBS -lqtlibpng"
+              QT_LIBS="$QT_LIBS -lversion -ldwmapi -luxtheme -lwtsapi32 -lnetapi32 -luserenv"
+            fi
+          fi
+        fi
+      fi
      fi
    fi
 ])
@@ -427,20 +526,30 @@ dnl Outputs: All necessary QT_* variables are set.
 dnl Outputs: have_qt_test and have_qt_dbus are set (if applicable) to yes|no.
 AC_DEFUN([_VERGE_QT_FIND_LIBS_WITH_PKGCONFIG],[
   m4_ifdef([PKG_CHECK_MODULES],[
-    QT_LIB_PREFIX=Qt5
-    qt5_modules="Qt5Core Qt5Gui Qt5Network Qt5Widgets"
+    QT_LIB_PREFIX=Qt6
+    qt_modules="Qt6Core Qt6Gui Qt6Network Qt6Widgets"
     VERGE_QT_CHECK([
-      PKG_CHECK_MODULES([QT5], [$qt5_modules], [QT_INCLUDES="$QT5_CFLAGS"; QT_LIBS="$QT5_LIBS" have_qt=yes],[have_qt=no])
-
-      if test "x$have_qt" != xyes; then
-        have_qt=no
-        VERGE_QT_FAIL([Qt dependencies not found])
-      fi
+      PKG_CHECK_MODULES([QT5], [$qt_modules], [QT_INCLUDES="$QT5_CFLAGS"; QT_LIBS="$QT5_LIBS" have_qt=yes],[have_qt=no])
     ])
     VERGE_QT_CHECK([
       PKG_CHECK_MODULES([QT_TEST], [${QT_LIB_PREFIX}Test], [QT_TEST_INCLUDES="$QT_TEST_CFLAGS"; have_qt_test=yes], [have_qt_test=no])
       if test "x$use_dbus" != xno; then
         PKG_CHECK_MODULES([QT_DBUS], [${QT_LIB_PREFIX}DBus], [QT_DBUS_INCLUDES="$QT_DBUS_CFLAGS"; have_qt_dbus=yes], [have_qt_dbus=no])
+      fi
+    ])
+    VERGE_QT_CHECK([
+      if test "x$QT_LIB_PREFIX" = xQt6 && test "x$TARGET_OS" = xlinux; then
+        AC_DEFINE(QT_STATICPLUGIN, 1, [Define this symbol for static Qt plugins])
+        qt6_xcb_tail_deps="-lxkbcommon-x11 -lxkbcommon -lfontconfig -lfreetype -lxcb-cursor -lxcb-icccm -lxcb-util -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render-util -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-render -lxcb-shape -lxcb-xkb -lxcb -lX11-xcb -lX11 -ldl -lm -lrt"
+        if test "x$qt_plugin_path" != x; then
+          QT_LIBS="-L$qt_plugin_path/platforms -lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+        else
+          QT_LIBS="-lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+        fi
+      elif test "x$QT_LIB_PREFIX" = xQt6 && test "x$TARGET_OS" = xwindows; then
+        dnl Qt6 static MinGW requires additional Windows system import libs.
+        qt6_windows_tail_deps="-ld2d1 -ld3d11 -ldxguid -ld3d12 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp -lmpr -lsetupapi -lshcore -ld3d9 -lruntimeobject"
+        QT_LIBS="$QT_LIBS $qt6_windows_tail_deps"
       fi
     ])
   ])
@@ -456,7 +565,7 @@ dnl Outputs: have_qt_test and have_qt_dbus are set (if applicable) to yes|no.
 AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
   TEMP_CPPFLAGS="$CPPFLAGS"
   TEMP_CXXFLAGS="$CXXFLAGS"
-  CXXFLAGS="$PIC_FLAGS $CXXFLAGS"
+  CXXFLAGS="$PIC_FLAGS -std=c++17 $CXXFLAGS"
   TEMP_LIBS="$LIBS"
   VERGE_QT_CHECK([
     if test "x$qt_include_path" != x; then
@@ -472,9 +581,30 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
   VERGE_QT_CHECK([
     if test "x$verge_qt_want_version" = xauto; then
       _VERGE_QT_CHECK_QT5
+      _VERGE_QT_CHECK_QT6
       _VERGE_QT_CHECK_QT58
+    elif test "x$verge_qt_want_version" = xqt6; then
+      _VERGE_QT_CHECK_QT6
+      _VERGE_QT_CHECK_QT58
+      if test "x$verge_cv_qt6" != xyes; then
+        VERGE_QT_FAIL([Qt6 requested but not found])
+      fi
+    elif test "x$verge_qt_want_version" = xqt5; then
+      _VERGE_QT_CHECK_QT5
+      _VERGE_QT_CHECK_QT58
+      if test "x$verge_cv_qt5" != xyes; then
+        VERGE_QT_FAIL([Qt5 requested but not found])
+      fi
     fi
-    QT_LIB_PREFIX=Qt5
+    if test "x$verge_qt_want_version" = xqt5; then
+      QT_LIB_PREFIX=Qt5
+    elif test "x$verge_qt_want_version" = xqt6; then
+      QT_LIB_PREFIX=Qt6
+    elif test "x$verge_cv_qt6" = xyes; then
+      QT_LIB_PREFIX=Qt6
+    else
+      QT_LIB_PREFIX=Qt5
+    fi
   ])
 
   VERGE_QT_CHECK([
@@ -502,7 +632,35 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
   VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}Gui]    ,[main],,VERGE_QT_FAIL(lib${QT_LIB_PREFIX}Gui not found)))
   VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}Network],[main],,VERGE_QT_FAIL(lib${QT_LIB_PREFIX}Network not found)))
   VERGE_QT_CHECK(AC_CHECK_LIB([${QT_LIB_PREFIX}Widgets],[main],,VERGE_QT_FAIL(lib${QT_LIB_PREFIX}Widgets not found)))
+  VERGE_QT_CHECK([
+    if test "x$QT_LIB_PREFIX" = xQt6; then
+      dnl Qt6 static builds in depends expose bundled third-party libs with Qt6Bundled* names.
+      AC_SEARCH_LIBS([z_inflateInit2_], [Qt6BundledZLIB],, AC_MSG_WARN([Qt6BundledZLIB not found]))
+      AC_SEARCH_LIBS([png_create_read_struct], [Qt6BundledLibpng],, AC_MSG_WARN([Qt6BundledLibpng not found]))
+      AC_SEARCH_LIBS([pcre2_match_16], [Qt6BundledPcre2],, AC_MSG_WARN([Qt6BundledPcre2 not found]))
+      AC_SEARCH_LIBS([hb_ot_tags_from_script], [Qt6BundledHarfbuzz],, AC_MSG_WARN([Qt6BundledHarfbuzz not found]))
+    fi
+  ])
   QT_LIBS="$LIBS"
+  VERGE_QT_CHECK([
+      if test "x$QT_LIB_PREFIX" = xQt6; then
+        dnl Static link order matters: bundled libs must come after Qt6 modules.
+        QT_LIBS="$QT_LIBS -lQt6BundledZLIB -lQt6BundledLibpng -lQt6BundledPcre2 -lQt6BundledHarfbuzz"
+        if test "x$TARGET_OS" = xlinux; then
+          AC_DEFINE(QT_STATICPLUGIN, 1, [Define this symbol for static Qt plugins])
+          qt6_xcb_tail_deps="-lxkbcommon-x11 -lxkbcommon -lfontconfig -lfreetype -lxcb-cursor -lxcb-icccm -lxcb-util -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render-util -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-render -lxcb-shape -lxcb-xkb -lxcb -lX11-xcb -lX11 -ldl -lm -lrt"
+          if test "x$qt_plugin_path" != x; then
+            QT_LIBS="-L$qt_plugin_path/platforms -lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+          else
+            QT_LIBS="-lqxcb -lQt6XcbQpa $QT_LIBS $qt6_xcb_tail_deps"
+          fi
+        elif test "x$TARGET_OS" = xwindows; then
+          dnl Qt6 static MinGW requires additional Windows system import libs.
+          qt6_windows_tail_deps="-ld2d1 -ld3d11 -ldxguid -ld3d12 -ldwrite -ldxgi -ldwmapi -luxtheme -lwtsapi32 -lversion -lauthz -lnetapi32 -luserenv -lntdll -lsynchronization -lsecur32 -lwinhttp -lmpr -lsetupapi -lshcore -ld3d9 -lruntimeobject"
+          QT_LIBS="$QT_LIBS $qt6_windows_tail_deps"
+        fi
+      fi
+  ])
   LIBS="$TEMP_LIBS"
 
   VERGE_QT_CHECK([

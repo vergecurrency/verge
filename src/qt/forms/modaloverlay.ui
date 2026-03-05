@@ -32,7 +32,9 @@
    <item>
     <widget class="QWidget" name="bgWidget" native="true">
      <property name="styleSheet">
-      <string notr="true">#bgWidget { background: rgba(0,0,0,220); }</string>
+      <string notr="true">#bgWidget {
+    background: rgba(7, 10, 16, 220);
+}</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayoutMain" stretch="1">
       <property name="leftMargin">
@@ -50,9 +52,44 @@
       <item>
        <widget class="QWidget" name="contentWidget" native="true">
         <property name="styleSheet">
-         <string notr="true">#contentWidget { background: rgba(255,255,255,240); border-radius: 6px; }
+         <string notr="true">#contentWidget {
+    background: rgba(24, 31, 45, 245);
+    border: 1px solid #36445e;
+    border-radius: 12px;
+}
 
-QLabel { color: rgb(40,40,40);  }</string>
+#contentWidget QLabel {
+    color: #d7dbe5;
+}
+
+#contentWidget QProgressBar {
+    background: #151d2a;
+    border: 1px solid #374763;
+    border-radius: 8px;
+    text-align: center;
+    color: #d7dbe5;
+}
+
+#contentWidget QProgressBar::chunk {
+    background: #4d79c6;
+    border-radius: 8px;
+}
+
+#contentWidget QPushButton {
+    background: #2a3955;
+    border: 1px solid #3f567b;
+    border-radius: 8px;
+    color: #e5eaf5;
+    padding: 6px 12px;
+}
+
+#contentWidget QPushButton:hover {
+    background: #334768;
+}
+
+#contentWidget QPushButton:pressed {
+    background: #24334b;
+}</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayoutSub" stretch="1,0,0,0">
          <property name="spacing">

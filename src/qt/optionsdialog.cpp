@@ -33,6 +33,7 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     mapper(0)
 {
     ui->setupUi(this);
+    GUIUtil::EnableThemedDialogChrome(this);
 
     /* Main elements init */
     ui->databaseCache->setMinimum(nMinDbCache);

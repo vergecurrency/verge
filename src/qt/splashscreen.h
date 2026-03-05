@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <QSplashScreen>
+#include <QTimer>
 
 #include <memory>
 
@@ -59,6 +60,8 @@ private:
     QString curMessage;
     QColor curColor;
     int curAlignment;
+    QTimer m_textGradientTimer;
+    int m_textGradientOffset;
 
     interfaces::Node& m_node;
     std::unique_ptr<interfaces::Handler> m_handler_init_message;

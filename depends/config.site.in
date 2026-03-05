@@ -16,6 +16,12 @@ fi
 if test -z $with_qt_bindir && test -z "@no_qt@"; then
   with_qt_bindir=$depends_prefix/native/bin
 fi
+if test -z $with_qt_incdir && test -z "@no_qt@"; then
+  with_qt_incdir=$depends_prefix/include
+fi
+if test -z $with_qt_libdir && test -z "@no_qt@"; then
+  with_qt_libdir=$depends_prefix/lib
+fi
 if test -z $with_protoc_bindir && test -z "@no_qt@"; then
   with_protoc_bindir=$depends_prefix/native/bin
 fi
@@ -39,12 +45,12 @@ if test x@host_os@ = xdarwin; then
 fi
 
 if test x@host_os@ = xmingw32; then
-  if test -z $with_qt_incdir; then
-    with_qt_incdir=$depends_prefix/include
-  fi
-  if test -z $with_qt_libdir; then
-    with_qt_libdir=$depends_prefix/lib
-  fi
+  # Tor's AC_CHECK_FUNCS can mis-detect these in MinGW cross builds.
+  # Force known OpenSSL >=1.1 APIs from depends to avoid fallback shims.
+  ac_cv_func_SSL_get_client_random=yes
+  ac_cv_func_SSL_get_server_random=yes
+  ac_cv_func_SSL_SESSION_get_master_key=yes
+  ac_cv_func_SSL_get_client_ciphers=yes
 fi
 
 PATH=$depends_prefix/native/bin:$PATH
@@ -59,4 +65,8 @@ if test -z "@allow_host_packages@"; then
 fi
 
 CPPFLAGS="-I$depends_prefix/include/ $CPPFLAGS"
-LDFLAGS="-L$depends_prefix/lib $LDFLAGS"
+if test x@host_os@ = xlinux; then
+  LDFLAGS="-L$depends_prefix/lib -Wl,-rpath,$depends_prefix/lib $LDFLAGS"
+else
+  LDFLAGS="-L$depends_prefix/lib $LDFLAGS"
+fi

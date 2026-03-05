@@ -22,13 +22,20 @@
 
 #include <QApplication>
 #include <QCloseEvent>
-#include <QDesktopWidget>
+#include <QGuiApplication>
+#include <QLinearGradient>
+#include <QScreen>
 #include <QPainter>
 #include <QRadialGradient>
 
 SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const NetworkStyle *networkStyle) :
-    QWidget(0, f), curAlignment(0), m_node(node)
+    QWidget(0, f), curAlignment(0), m_node(node), m_textGradientOffset(0)
 {
+    setObjectName("SplashScreen");
+#ifndef Q_OS_MAC
+    setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+#endif
+
     // set reference point, paddings
     int paddingRight            = 15;
     int paddingTop              = 100;
@@ -48,7 +55,8 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     QString copyrightText   = QString::fromUtf8(CopyrightHolders(strprintf("\xc2\xA9 %u-%u ", 2009, COPYRIGHT_YEAR)).c_str());
     QString titleAddText    = networkStyle->getTitleAddText();
 
-    QString font            = QApplication::font().toString();
+    const QString titleFontFamily = QStringLiteral("Space Grotesk");
+    const QString bodyFontFamily = QStringLiteral("Inter");
 
     // create a bitmap according to device pixelratio
     QSize splashSize(500*devicePixelRatio,500*devicePixelRatio);
@@ -78,32 +86,32 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
     pixPaint.drawPixmap(rectIcon, icon);
     // check font size and drawing with
-    pixPaint.setFont(QFont(font, 33*fontFactor));
+    pixPaint.setFont(QFont(titleFontFamily, 33*fontFactor));
     QFontMetrics fm = pixPaint.fontMetrics();
-    int titleTextWidth = fm.width(titleText);
+    int titleTextWidth = fm.horizontalAdvance(titleText);
     if (titleTextWidth > 176) {
         fontFactor = fontFactor * 176 / titleTextWidth;
     }
 
-    pixPaint.setFont(QFont(font, 33*fontFactor));
+    pixPaint.setFont(QFont(titleFontFamily, 33*fontFactor));
     fm = pixPaint.fontMetrics();
-    titleTextWidth  = fm.width(titleText);
+    titleTextWidth  = fm.horizontalAdvance(titleText);
     pixPaint.drawText(paddingRight,paddingTop,titleText);
 
-    pixPaint.setFont(QFont(font, 13*fontFactor));
+    pixPaint.setFont(QFont(bodyFontFamily, 15*fontFactor));
 
     // if the version string is too long, reduce size
     fm = pixPaint.fontMetrics();
-    int versionTextWidth  = fm.width(versionText);
+    int versionTextWidth  = fm.horizontalAdvance(versionText);
     if (versionTextWidth > titleTextWidth + paddingRight - 10) {
-        pixPaint.setFont(QFont(font, 8*fontFactor));
+        pixPaint.setFont(QFont(bodyFontFamily, 10*fontFactor));
         titleVersionVSpace -= 5;
     }
     pixPaint.drawText(500 - versionTextWidth - paddingRight, 500 - paddingBottom - 10, versionText);
 
     // draw copyright stuff
     {
-        pixPaint.setFont(QFont(font, 10*fontFactor));
+        pixPaint.setFont(QFont(bodyFontFamily, 10*fontFactor));
         const int x = pixmap.width() - paddingRight;
         const int y = paddingTop;
         QRect copyrightRect(x, y, pixmap.width() - x - paddingRight, pixmap.height() - y);
@@ -112,11 +120,11 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
     // draw additional text if special network
     if(!titleAddText.isEmpty()) {
-        QFont boldFont = QFont(font, 10*fontFactor);
+        QFont boldFont = QFont(titleFontFamily, 10*fontFactor);
         boldFont.setWeight(QFont::Bold);
         pixPaint.setFont(boldFont);
         fm = pixPaint.fontMetrics();
-        int titleAddTextWidth  = fm.width(titleAddText);
+        int titleAddTextWidth  = fm.horizontalAdvance(titleAddText);
         pixPaint.drawText(pixmap.width()/devicePixelRatio-titleAddTextWidth-10,15,titleAddText);
     }
 
@@ -125,14 +133,42 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     // Set window title
     setWindowTitle(titleText + " " + titleAddText);
 
+    // Draw custom dark window chrome so splash matches themed app windows.
+    {
+        pixPaint.begin(&pixmap);
+        const QRect chromeRect(0, 0, 500, 30);
+        pixPaint.fillRect(chromeRect, QColor(15, 21, 33, 235));
+        pixPaint.setPen(QColor(236, 241, 255));
+        QFont chromeFont(titleFontFamily);
+        chromeFont.setPointSize(10);
+        chromeFont.setBold(true);
+        pixPaint.setFont(chromeFont);
+        const QString chromeTitleBase = tr("Verge Core") + " " + versionText;
+        const QString chromeTitle = titleAddText.isEmpty()
+            ? chromeTitleBase
+            : chromeTitleBase + " " + titleAddText;
+        pixPaint.drawText(chromeRect.adjusted(10, 0, -10, 0), Qt::AlignVCenter | Qt::AlignLeft, chromeTitle);
+        pixPaint.end();
+    }
+
     // Resize window and move to center of desktop, disallow resizing
     QRect r(QPoint(), QSize(pixmap.size().width()/devicePixelRatio,pixmap.size().height()/devicePixelRatio));
     resize(r.size());
     setFixedSize(r.size());
-    move(QApplication::desktop()->screenGeometry().center() - r.center());
+    QScreen* const screen = QGuiApplication::primaryScreen();
+    if (screen) {
+        move(screen->geometry().center() - r.center());
+    }
 
     subscribeToCoreSignals();
     installEventFilter(this);
+
+    m_textGradientTimer.setInterval(50);
+    connect(&m_textGradientTimer, &QTimer::timeout, this, [this]() {
+        m_textGradientOffset = (m_textGradientOffset + 4) % 800;
+        update();
+    });
+    m_textGradientTimer.start();
 }
 
 SplashScreen::~SplashScreen()
@@ -220,11 +256,22 @@ void SplashScreen::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.drawPixmap(0, 0, pixmap);
-    // QRect r = rect().adjusted(5, 5, -5, -5);
-    painter.setFont(QFont(QApplication::font().toString(), 13));
-    painter.setPen(curColor);
-    //void QPainter::drawText(int x, int y, int width, int height, int flags, const QString & text, QRect * boundingRect = 0)
-    painter.drawText(100, 325, 300, 150, Qt::AlignCenter|Qt::AlignHCenter, curMessage);
+    Q_UNUSED(event);
+
+    const QRect textRect(100, 360, 300, 150);
+    painter.setFont(QFont(QStringLiteral("Inter"), 15));
+
+    QLinearGradient gradient(textRect.left() - textRect.width() + m_textGradientOffset, textRect.center().y(),
+                             textRect.left() + m_textGradientOffset, textRect.center().y());
+    gradient.setSpread(QGradient::RepeatSpread);
+    gradient.setColorAt(0.00, QColor(255, 255, 255, curColor.alpha()));
+    gradient.setColorAt(0.35, QColor(220, 255, 255, curColor.alpha()));
+    gradient.setColorAt(0.50, QColor(0, 92, 92, curColor.alpha()));
+    gradient.setColorAt(0.65, QColor(220, 255, 255, curColor.alpha()));
+    gradient.setColorAt(1.00, QColor(255, 255, 255, curColor.alpha()));
+
+    painter.setPen(QPen(QBrush(gradient), 0));
+    painter.drawText(textRect, curAlignment, curMessage);
 }
 
 void SplashScreen::closeEvent(QCloseEvent *event)

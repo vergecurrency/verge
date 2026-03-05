@@ -66,7 +66,9 @@ Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 #if QT_VERSION < 0x050400
 Q_IMPORT_PLUGIN(AccessibleFactory)
 #endif
-#if defined(QT_QPA_PLATFORM_XCB)
+#if defined(Q_OS_LINUX)
+Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
+#elif defined(QT_QPA_PLATFORM_XCB)
 Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
 #elif defined(QT_QPA_PLATFORM_WINDOWS)
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
@@ -111,6 +113,301 @@ static QString GetLangTerritory()
     // 3) -lang command line argument
     lang_territory = QString::fromStdString(gArgs.GetArg("-lang", lang_territory.toStdString()));
     return lang_territory;
+}
+
+static QString BuildAppStyleSheet()
+{
+    return QStringLiteral(R"(
+QMainWindow, QDialog {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QWidget#VERGEGUI, QWidget#RPCConsole {
+    border: 1px solid #2a3347;
+}
+
+QWidget {
+    color: #d7dbe5;
+    font-family: "Inter", "Noto Sans", "DejaVu Sans", sans-serif;
+    font-size: 14px;
+}
+
+QWidget#CustomTitleBar {
+    background-color: #0f1521;
+    border-bottom: 1px solid #2a3347;
+}
+
+QLabel#CustomTitleLabel {
+    color: #f2f5ff;
+    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-weight: 600;
+}
+
+QMenuBar, QToolBar, QGroupBox::title, QTabBar::tab {
+    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-size: 14px;
+}
+
+QToolButton#CustomTitleButton, QToolButton#CustomTitleCloseButton {
+    color: #ecf1ff;
+    background: #1a2231;
+    border: 1px solid #2e394f;
+    border-radius: 6px;
+    min-width: 28px;
+    min-height: 22px;
+    padding: 1px 6px;
+}
+
+QToolButton#CustomTitleButton:hover {
+    background: #26324a;
+    border-color: #3a4f79;
+}
+
+QToolButton#CustomTitleCloseButton:hover {
+    background: #8f2f3a;
+    border-color: #b44956;
+}
+
+QFrame, QGroupBox {
+    border-radius: 8px;
+}
+
+QMenuBar {
+    background-color: #171d2a;
+    border-bottom: 1px solid #2a3347;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+QMenuBar::item:selected {
+    background: #24304a;
+}
+
+QMenu {
+    background-color: #171d2a;
+    border: 1px solid #2a3347;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 6px 14px;
+    border-radius: 6px;
+}
+
+QMenu::item:selected {
+    background: #2d3d60;
+}
+
+QToolBar {
+    background-color: #171d2a;
+    border: 0;
+    border-bottom: 1px solid #2a3347;
+    spacing: 6px;
+    padding: 4px 8px;
+}
+
+QToolBar::separator {
+    background: #2a3347;
+    width: 1px;
+    margin: 4px 6px;
+}
+
+QToolButton {
+    color: #d7dbe5;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+QToolButton:hover {
+    background: #24304a;
+    border-color: #2e3f5f;
+}
+
+QToolButton:pressed, QToolButton:checked {
+    background: #2d3d60;
+    border-color: #3a4f79;
+    color: #ecf1ff;
+}
+
+QPushButton {
+    background-color: #25324b;
+    border: 1px solid #3a4c6e;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+QPushButton:hover {
+    background-color: #2d3d60;
+}
+
+QPushButton:pressed {
+    background-color: #1f2a3f;
+}
+
+QLineEdit, QPlainTextEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+    background-color: #171d2a;
+    border: 1px solid #313c52;
+    border-radius: 8px;
+    padding: 4px 8px;
+    selection-background-color: #3e5f9c;
+}
+
+QPlainTextEdit, QTextEdit {
+    font-family: "JetBrains Mono", "Fira Code", "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+}
+
+QAbstractItemView, QTableView, QListView, QTreeView {
+    background-color: #151b27;
+    alternate-background-color: #1b2231;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    gridline-color: #2a3347;
+    selection-background-color: #3e5f9c;
+    selection-color: #ecf1ff;
+}
+
+QHeaderView::section {
+    background-color: #1b2231;
+    border: 0;
+    border-bottom: 1px solid #2a3347;
+    padding: 6px;
+}
+
+QTabWidget::pane {
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    top: -1px;
+}
+
+QTabBar::tab {
+    background-color: #1a2231;
+    border: 1px solid #2e394f;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 7px 12px;
+    margin-right: 4px;
+}
+
+QTabBar::tab:selected {
+    background-color: #26324a;
+}
+
+QStatusBar {
+    background-color: #121722;
+    border-top: 1px solid #2a3347;
+}
+
+QToolTip {
+    background-color: #20283a;
+    color: #d7dbe5;
+    border: 1px solid #3a4b69;
+    border-radius: 6px;
+    padding: 4px 6px;
+}
+
+QWidget#RPCConsole {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QDialog#HelpMessageDialog {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QDialog[customChrome="true"] {
+    background-color: #121722;
+    color: #d7dbe5;
+    border: 1px solid #2a3347;
+}
+
+QDialog[customChrome="true"] QWidget#CustomDialogContent {
+    background-color: #121722;
+}
+
+QDialog#HelpMessageDialog QTextEdit,
+QDialog#HelpMessageDialog QScrollArea,
+QDialog#HelpMessageDialog QWidget#scrollAreaWidgetContents {
+    background-color: #171d2a;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+}
+
+QDialog#HelpMessageDialog QLabel#HelpAboutMessage {
+    color: #d7dbe5;
+}
+
+QDialog#HelpMessageDialog QLabel#HelpAboutMessage a {
+    color: #9bc2ff;
+}
+
+QWidget#ShutdownWindow {
+    background-color: #121722;
+    color: #d7dbe5;
+    border: 1px solid #2a3347;
+    border-radius: 8px;
+}
+
+QWidget#ShutdownWindow QLabel#ShutdownMessage {
+    color: #d7dbe5;
+}
+
+QWidget#SplashScreen {
+    background-color: #121722;
+    border: 1px solid #2a3347;
+}
+
+QDialog#SendCoinsDialog {
+    background-color: #121722;
+    color: #d7dbe5;
+}
+
+QDialog#SendCoinsDialog QScrollArea,
+QDialog#SendCoinsDialog QWidget#scrollAreaWidgetContents,
+QDialog#SendCoinsDialog QFrame#frameCoinControl,
+QDialog#SendCoinsDialog QWidget#widgetCoinControl {
+    background-color: #151b27;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+}
+
+QStackedWidget#SendCoinsEntry,
+QFrame#SendCoins {
+    background-color: #151b27;
+    color: #d7dbe5;
+}
+
+QWidget#RPCConsole QTabWidget::pane {
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    background-color: #151b27;
+}
+
+QWidget#RPCConsole QGroupBox {
+    background-color: #171d2a;
+    border: 1px solid #2e394f;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+QWidget#RPCConsole QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+    color: #dfe6f7;
+}
+)");
 }
 
 /** Set up translations */
@@ -344,7 +641,11 @@ VERGEApplication::~VERGEApplication()
     {
         qDebug() << __func__ << ": Stopping thread";
         Q_EMIT stopThread();
-        coreThread->wait();
+        if (!coreThread->wait(15000)) {
+            qWarning() << __func__ << ": Core thread did not stop in time, terminating thread";
+            coreThread->terminate();
+            coreThread->wait(3000);
+        }
         qDebug() << __func__ << ": Stopped thread";
     }
 
@@ -382,7 +683,7 @@ void VERGEApplication::createWindow(const NetworkStyle *networkStyle)
 
 void VERGEApplication::createSplashScreen(const NetworkStyle *networkStyle)
 {
-    SplashScreen *splash = new SplashScreen(m_node, 0, networkStyle);
+    SplashScreen *splash = new SplashScreen(m_node, Qt::WindowFlags(), networkStyle);
     // We don't hold a direct pointer to the splash screen after creation, but the splash
     // screen will take care of deleting itself when slotFinish happens.
     splash->show();
@@ -455,6 +756,14 @@ void VERGEApplication::requestShutdown()
 
     // Request shutdown from core thread
     Q_EMIT requestedShutdown();
+
+    // Avoid a permanent hung shutdown window if backend shutdown stalls unexpectedly.
+    QTimer::singleShot(45000, this, [this]() {
+        if (shutdownWindow) {
+            qWarning() << __func__ << ": Shutdown timed out; forcing UI exit";
+            quit();
+        }
+    });
 }
 
 void VERGEApplication::addWallet(WalletModel* walletModel)
@@ -532,6 +841,7 @@ void VERGEApplication::initializeResult(bool success)
 
 void VERGEApplication::shutdownResult()
 {
+    shutdownWindow.reset();
     quit(); // Exit second main loop invocation after shutdown finished
 }
 
@@ -577,7 +887,6 @@ int main(int argc, char *argv[])
 #if QT_VERSION < 0x050000
     // Internal string conversion is all UTF-8
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForTr());
 #endif
 
     Q_INIT_RESOURCE(verge);
@@ -626,6 +935,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QAPP_ORG_NAME);
     QApplication::setOrganizationDomain(QAPP_ORG_DOMAIN);
     QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
+    app.setStyleSheet(BuildAppStyleSheet());
     GUIUtil::SubstituteFonts(GetLangTerritory());
 
     /// 4. Initialization of translations, so that intro dialog is in user's language

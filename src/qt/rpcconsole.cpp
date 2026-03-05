@@ -25,22 +25,31 @@
 
 #include <univalue.h>
 
+extern "C" const char* get_short_version(void);
+
 #ifdef ENABLE_WALLET
 #include <db_cxx.h>
 #include <wallet/wallet.h>
 #endif
 
 #include <QDateTime>
-#include <QDesktopWidget>
+#include <QGuiApplication>
+#include <QHBoxLayout>
+#include <QScreen>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QScrollBar>
 #include <QSettings>
 #include <QSignalMapper>
+#include <QStyle>
 #include <QTime>
 #include <QTimer>
+#include <QToolButton>
 #include <QStringList>
+#include <QVBoxLayout>
 
 #if QT_VERSION < 0x050000
 #include <QUrl>
@@ -461,10 +470,57 @@ RPCConsole::RPCConsole(interfaces::Node& node, const PlatformStyle *_platformSty
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
+    setObjectName("RPCConsole");
+#ifndef Q_OS_MAC
+    setWindowFlag(Qt::FramelessWindowHint, true);
+    if (auto* rootLayout = qobject_cast<QVBoxLayout*>(layout())) {
+        m_titleBar = new QWidget(this);
+        m_titleBar->setObjectName("CustomTitleBar");
+        auto* titleLayout = new QHBoxLayout(m_titleBar);
+        titleLayout->setContentsMargins(10, 4, 6, 4);
+        titleLayout->setSpacing(6);
+
+        m_titleLabel = new QLabel(windowTitle(), m_titleBar);
+        m_titleLabel->setObjectName("CustomTitleLabel");
+        titleLayout->addWidget(m_titleLabel);
+        titleLayout->addStretch();
+
+        m_minimizeButton = new QToolButton(m_titleBar);
+        m_minimizeButton->setObjectName("CustomTitleButton");
+        m_minimizeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarMinButton));
+        m_minimizeButton->setToolTip(tr("Minimize"));
+        connect(m_minimizeButton, &QToolButton::clicked, this, &QWidget::showMinimized);
+        titleLayout->addWidget(m_minimizeButton);
+
+        m_maximizeButton = new QToolButton(m_titleBar);
+        m_maximizeButton->setObjectName("CustomTitleButton");
+        connect(m_maximizeButton, &QToolButton::clicked, this, [this]() {
+            isMaximized() ? showNormal() : showMaximized();
+            updateMaximizeRestoreButton();
+        });
+        titleLayout->addWidget(m_maximizeButton);
+
+        m_closeButton = new QToolButton(m_titleBar);
+        m_closeButton->setObjectName("CustomTitleCloseButton");
+        m_closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+        m_closeButton->setToolTip(tr("Close"));
+        connect(m_closeButton, &QToolButton::clicked, this, &QWidget::close);
+        titleLayout->addWidget(m_closeButton);
+
+        m_titleBar->installEventFilter(this);
+        m_titleLabel->installEventFilter(this);
+        rootLayout->insertWidget(0, m_titleBar);
+        updateMaximizeRestoreButton();
+    }
+#endif
+
     QSettings settings;
     if (!restoreGeometry(settings.value("RPCConsoleWindowGeometry").toByteArray())) {
         // Restore failed (perhaps missing setting), center the window
-        move(QApplication::desktop()->availableGeometry().center() - frameGeometry().center());
+        QScreen* const screen = QGuiApplication::primaryScreen();
+        if (screen) {
+            move(screen->availableGeometry().center() - frameGeometry().center());
+        }
     }
 
     ui->openDebugLogfileButton->setToolTip(ui->openDebugLogfileButton->toolTip().arg(tr(PACKAGE_NAME)));
@@ -522,6 +578,58 @@ RPCConsole::~RPCConsole()
 
 bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
 {
+#ifndef Q_OS_MAC
+    if ((obj == m_titleBar || obj == m_titleLabel) && event) {
+        switch (event->type()) {
+        case QEvent::MouseButtonPress: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (me->button() == Qt::LeftButton && !isMaximized()) {
+                m_titleBarDragging = true;
+                m_dragOffset = me->globalPos() - frameGeometry().topLeft();
+                return true;
+            } else if (me->button() == Qt::RightButton) {
+                QMenu menu(this);
+                QAction* restoreAction = menu.addAction(tr("Restore"));
+                QAction* minimizeAction = menu.addAction(tr("Minimize"));
+                QAction* maximizeAction = menu.addAction(tr("Maximize"));
+                menu.addSeparator();
+                QAction* closeAction = menu.addAction(tr("Close"));
+                restoreAction->setEnabled(isMaximized() || isMinimized());
+                maximizeAction->setEnabled(!isMaximized());
+                QAction* chosen = menu.exec(me->globalPos());
+                if (chosen == restoreAction) showNormal();
+                else if (chosen == minimizeAction) showMinimized();
+                else if (chosen == maximizeAction) showMaximized();
+                else if (chosen == closeAction) close();
+                updateMaximizeRestoreButton();
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseMove: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (m_titleBarDragging && (me->buttons() & Qt::LeftButton)) {
+                move(me->globalPos() - m_dragOffset);
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseButtonRelease:
+            m_titleBarDragging = false;
+            break;
+        case QEvent::MouseButtonDblClick:
+            if (static_cast<QMouseEvent*>(event)->button() == Qt::LeftButton) {
+                isMaximized() ? showNormal() : showMaximized();
+                updateMaximizeRestoreButton();
+                return true;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+#endif
+
     if(event->type() == QEvent::KeyPress) // Special key handling
     {
         QKeyEvent *keyevt = static_cast<QKeyEvent*>(event);
@@ -535,7 +643,8 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
         case Qt::Key_PageDown:
             if(obj == ui->lineEdit)
             {
-                QApplication::postEvent(ui->messagesWidget, new QKeyEvent(*keyevt));
+                QApplication::postEvent(ui->messagesWidget,
+                    new QKeyEvent(keyevt->type(), keyevt->key(), keyevt->modifiers(), keyevt->text(), keyevt->isAutoRepeat(), keyevt->count()));
                 return true;
             }
             break;
@@ -543,7 +652,8 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
         case Qt::Key_Enter:
             // forward these events to lineEdit
             if(obj == autoCompleter->popup()) {
-                QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
+                QApplication::postEvent(ui->lineEdit,
+                    new QKeyEvent(keyevt->type(), keyevt->key(), keyevt->modifiers(), keyevt->text(), keyevt->isAutoRepeat(), keyevt->count()));
                 return true;
             }
             break;
@@ -556,12 +666,22 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
                   ((mod & Qt::ShiftModifier) && key == Qt::Key_Insert)))
             {
                 ui->lineEdit->setFocus();
-                QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
+                QApplication::postEvent(ui->lineEdit,
+                    new QKeyEvent(keyevt->type(), keyevt->key(), keyevt->modifiers(), keyevt->text(), keyevt->isAutoRepeat(), keyevt->count()));
                 return true;
             }
         }
     }
     return QWidget::eventFilter(obj, event);
+}
+
+void RPCConsole::updateMaximizeRestoreButton()
+{
+#ifndef Q_OS_MAC
+    if (!m_maximizeButton) return;
+    m_maximizeButton->setIcon(style()->standardIcon(isMaximized() ? QStyle::SP_TitleBarNormalButton : QStyle::SP_TitleBarMaxButton));
+    m_maximizeButton->setToolTip(isMaximized() ? tr("Restore") : tr("Maximize"));
+#endif
 }
 
 void RPCConsole::setClientModel(ClientModel *model)
@@ -574,7 +694,7 @@ void RPCConsole::setClientModel(ClientModel *model)
         connect(model, SIGNAL(numConnectionsChanged(int)), this, SLOT(setNumConnections(int)));
 
         interfaces::Node& node = clientModel->node();
-        setNumBlocks(node.getNumBlocks(), QDateTime::fromTime_t(node.getLastBlockTime()), node.getVerificationProgress(), false);
+        setNumBlocks(node.getNumBlocks(), QDateTime::fromSecsSinceEpoch(node.getLastBlockTime()), node.getVerificationProgress(), false);
         connect(model, SIGNAL(numBlocksChanged(int,QDateTime,double,bool)), this, SLOT(setNumBlocks(int,QDateTime,double,bool)));
 
         updateNetworkState();
@@ -672,6 +792,12 @@ void RPCConsole::setClientModel(ClientModel *model)
         ui->dataDir->setText(model->dataDir());
         ui->startupTime->setText(model->formatClientStartupTime());
         ui->networkName->setText(QString::fromStdString(Params().NetworkIDString()));
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        ui->opensslVersion->setText(QString::fromUtf8(OpenSSL_version(OPENSSL_VERSION)));
+#else
+        ui->opensslVersion->setText(QString::fromUtf8(SSLeay_version(SSLEAY_VERSION)));
+#endif
+        ui->torVersion->setText(QString::fromUtf8(get_short_version()));
 
         //Setup autocomplete and attach it
         QStringList wordList;
@@ -790,11 +916,12 @@ void RPCConsole::clear(bool clearHistory)
         QString(
                 "table { }"
                 "td.time { color: #808080; font-size: %2; padding-top: 3px; } "
-                "td.message { font-family: %1; font-size: %2; white-space:pre-wrap; } "
-                "td.cmd-request { color: #006060; } "
-                "td.cmd-error { color: red; } "
-                ".secwarning { color: red; }"
-                "b { color: #006060; } "
+                "td.message { color: #d7dbe5; font-family: %1; font-size: %2; white-space:pre-wrap; } "
+                "td.cmd-request { color: #7bd6e6; } "
+                "td.cmd-reply { color: #d7dbe5; } "
+                "td.cmd-error { color: #ff8e9a; } "
+                ".secwarning { color: #ff8e9a; }"
+                "b { color: #9bc2ff; } "
             ).arg(fixedFontInfo.family(), QString("%1pt").arg(consoleFontSize))
         );
 
@@ -1155,6 +1282,7 @@ void RPCConsole::resizeEvent(QResizeEvent *event)
 void RPCConsole::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
+    updateMaximizeRestoreButton();
 
     if (!clientModel || !clientModel->getPeerTableModel())
         return;

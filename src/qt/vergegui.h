@@ -43,8 +43,14 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QComboBox;
 class QDateTime;
+class QMenuBar;
+class QMouseEvent;
 class QProgressBar;
 class QProgressDialog;
+class QTimer;
+class QToolButton;
+class QToolBar;
+class QWidget;
 QT_END_NAMESPACE
 
 /**
@@ -83,6 +89,10 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
     bool eventFilter(QObject *object, QEvent *event);
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
 private:
     interfaces::Node& m_node;
@@ -100,6 +110,8 @@ private:
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
     QProgressDialog *progressDialog;
+    QTimer* m_syncProgressBarTimer;
+    int m_syncProgressBarOffset;
 
     QMenuBar *appMenuBar;
     QToolBar *appToolBar;
@@ -140,6 +152,20 @@ private:
     int spinnerFrame;
 
     const PlatformStyle *platformStyle;
+    QWidget* m_titleBar;
+    QLabel* m_titleLabel;
+    QToolButton* m_minimizeButton;
+    QToolButton* m_maximizeButton;
+    QToolButton* m_closeButton;
+    bool m_titleBarDragging;
+    QPoint m_dragOffset;
+#ifndef Q_OS_MAC
+    bool m_resizeActive;
+    Qt::Edges m_activeResizeEdges;
+    QRect m_resizeStartGeometry;
+    QPoint m_resizeStartGlobalPos;
+    int m_resizeMargin;
+#endif
 
     /** Create the main UI actions. */
     void createActions();
@@ -164,6 +190,15 @@ private:
     void updateNetworkState();
 
     void updateHeadersSyncProgressLabel();
+    void updateSyncProgressBarStyle();
+    void setupCustomTitleBar();
+    void updateMaximizeRestoreButton();
+    void showWindowSystemMenu(const QPoint& globalPos);
+#ifndef Q_OS_MAC
+    Qt::Edges hitTestResizeEdges(const QPoint& localPos) const;
+    void updateResizeCursor(const QPoint& localPos);
+    QRect calculateResizedGeometry(const QPoint& globalPos) const;
+#endif
 
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */
@@ -226,12 +261,15 @@ private Q_SLOTS:
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
-    void gotoSendCoinsPage(QString addr = "");
+    void gotoSendCoinsPage();
+    void gotoSendCoinsPage(QString addr);
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
-    void gotoSignMessageTab(QString addr = "");
+    void gotoSignMessageTab();
+    void gotoSignMessageTab(QString addr);
     /** Show Sign/Verify Message dialog and switch to verify message tab */
-    void gotoVerifyMessageTab(QString addr = "");
+    void gotoVerifyMessageTab();
+    void gotoVerifyMessageTab(QString addr);
 
     /** Show open dialog */
     void openClicked();
@@ -240,6 +278,8 @@ private Q_SLOTS:
     void optionsClicked();
     /** Show about dialog */
     void aboutClicked();
+    /** Show themed About Qt dialog */
+    void aboutQtClicked();
     /** Show debug window */
     void showDebugWindow();
     /** Show debug window and set focus to the console */

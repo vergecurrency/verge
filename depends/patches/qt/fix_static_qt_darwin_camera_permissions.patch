@@ -1,0 +1,27 @@
+diff --git a/src/corelib/platform/darwin/qdarwinpermissionplugin_camera.mm b/src/corelib/platform/darwin/qdarwinpermissionplugin_camera.mm
+index 51c517d6f3..ed3135fba3 100644
+--- a/src/corelib/platform/darwin/qdarwinpermissionplugin_camera.mm
++++ b/src/corelib/platform/darwin/qdarwinpermissionplugin_camera.mm
+@@ -7,8 +7,6 @@
+ 
+ QT_DEFINE_PERMISSION_STATUS_CONVERTER(AVAuthorizationStatus);
+ 
+-#ifndef BUILDING_PERMISSION_REQUEST
+-
+ @implementation QDarwinCameraPermissionHandler
+ - (Qt::PermissionStatus)checkPermission:(QPermission)permission
+ {
+@@ -25,8 +23,6 @@ QT_DEFINE_PERMISSION_STATUS_CONVERTER(AVAuthorizationStatus);
+ 
+ #include "moc_qdarwinpermissionplugin_p_p.cpp"
+ 
+-#else // Building request
+-
+ @implementation QDarwinCameraPermissionHandler (Request)
+ - (void)requestPermission:(QPermission)permission withCallback:(PermissionCallback)callback
+ {
+@@ -39,4 +35,3 @@ QT_DEFINE_PERMISSION_STATUS_CONVERTER(AVAuthorizationStatus);
+ }
+ @end
+ 
+-#endif // BUILDING_PERMISSION_REQUEST

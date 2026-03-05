@@ -27,7 +27,7 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
-        unsigned int nDate = date.toTime_t();
+        quint32 nDate = static_cast<quint32>(date.toSecsSinceEpoch());
 
         READWRITE(this->nVersion);
         READWRITE(id);
@@ -35,7 +35,7 @@ public:
         READWRITE(recipient);
 
         if (ser_action.ForRead())
-            date = QDateTime::fromTime_t(nDate);
+            date = QDateTime::fromSecsSinceEpoch(nDate);
     }
 };
 

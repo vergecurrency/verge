@@ -21,6 +21,7 @@ EditAddressDialog::EditAddressDialog(Mode _mode, QWidget *parent) :
     model(0)
 {
     ui->setupUi(this);
+    GUIUtil::EnableThemedDialogChrome(this);
 
     GUIUtil::setupAddressWidget(ui->addressEdit, this);
 

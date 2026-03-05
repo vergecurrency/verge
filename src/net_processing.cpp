@@ -32,6 +32,7 @@
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 
+#include <array>
 #include <memory>
 
 #if defined(NDEBUG)

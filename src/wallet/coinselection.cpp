@@ -6,6 +6,7 @@
 #include <wallet/coinselection.h>
 #include <util/system.h>
 #include <util/moneystr.h>
+#include <algorithm>
 
 // Descending order comparator
 struct {
@@ -221,7 +222,7 @@ bool KnapsackSolver(const CAmount& nTargetValue, std::vector<CInputCoin>& vCoins
     std::vector<CInputCoin> vValue;
     CAmount nTotalLower = 0;
 
-    random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+    std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
 
     for (const CInputCoin &coin : vCoins)
     {
