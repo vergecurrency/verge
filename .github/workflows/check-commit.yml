@@ -334,8 +334,15 @@ jobs:
           pkill -f '/verge-qt' || true
           wait "$APP_PID" || true
 
-      - name: Gatekeeper check
-        run: spctl --assess --type open --verbose Verge-Qt.dmg || true
+      - name: Gatekeeper check (informational)
+        run: |
+          set +e
+          spctl --assess --type open --verbose Verge-Qt.dmg
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::Gatekeeper rejected Verge-Qt.dmg (expected in CI for ad-hoc/non-notarized artifacts)."
+          fi
+          exit 0
 
       - uses: actions/upload-artifact@v4
         with:
@@ -671,8 +678,15 @@ jobs:
           pkill -f '/verge-qt' || true
           wait "$APP_PID" || true
 
-      - name: Gatekeeper check
-        run: spctl --assess --type open --verbose Verge-Qt.dmg || true
+      - name: Gatekeeper check (informational)
+        run: |
+          set +e
+          spctl --assess --type open --verbose Verge-Qt.dmg
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::Gatekeeper rejected Verge-Qt.dmg (expected in CI for ad-hoc/non-notarized artifacts)."
+          fi
+          exit 0
 
       - uses: actions/upload-artifact@v4
         with:
