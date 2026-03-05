@@ -39,29 +39,63 @@ jobs:
           ALIAS_DIR="$PWD/.qt-tool-aliases"
           mkdir -p "$ALIAS_DIR"
 
+          declare -a QT_TOOL_DIRS=(
+            "$QTBASE_PREFIX/libexec"
+            "$QTBASE_PREFIX/bin"
+            "$QT_PREFIX/libexec"
+            "$QT_PREFIX/bin"
+          )
+
+          QMAKE_BIN="$(command -v qmake6 || command -v qmake || true)"
+          if [ -n "$QMAKE_BIN" ]; then
+            for qdir in \
+              "$("$QMAKE_BIN" -query QT_HOST_BINS 2>/dev/null || true)" \
+              "$("$QMAKE_BIN" -query QT_INSTALL_BINS 2>/dev/null || true)" \
+              "$("$QMAKE_BIN" -query QT_HOST_LIBEXECS 2>/dev/null || true)" \
+              "$("$QMAKE_BIN" -query QT_INSTALL_LIBEXECS 2>/dev/null || true)"
+            do
+              if [ -n "$qdir" ]; then
+                QT_TOOL_DIRS+=("$qdir")
+              fi
+            done
+          fi
+
           find_qt_tool() {
             local base="$1"
-            for cand in \
-              "$QTBASE_PREFIX/libexec/$base" \
-              "$QTBASE_PREFIX/bin/$base" \
-              "$QT_PREFIX/libexec/$base" \
-              "$QT_PREFIX/bin/$base" \
-              "$QTBASE_PREFIX/libexec/${base}6" \
-              "$QTBASE_PREFIX/bin/${base}6" \
-              "$QT_PREFIX/libexec/${base}6" \
-              "$QT_PREFIX/bin/${base}6"
-            do
-              if [ -x "$cand" ]; then
-                echo "$cand"
-                return 0
-              fi
+            shift || true
+            local names=("$base" "${base}6" "${base}-qt6")
+            local d n cand
+            for d in "${QT_TOOL_DIRS[@]}"; do
+              [ -d "$d" ] || continue
+              for n in "${names[@]}"; do
+                cand="$d/$n"
+                if [ -x "$cand" ]; then
+                  echo "$cand"
+                  return 0
+                fi
+              done
             done
             return 1
           }
 
-          MOC_REAL="$(find_qt_tool moc)"
-          UIC_REAL="$(find_qt_tool uic)"
-          RCC_REAL="$(find_qt_tool rcc)"
+          MOC_REAL="$(find_qt_tool moc || true)"
+          UIC_REAL="$(find_qt_tool uic || true)"
+          RCC_REAL="$(find_qt_tool rcc || true)"
+
+          if [ -z "$MOC_REAL" ] || [ -z "$UIC_REAL" ] || [ -z "$RCC_REAL" ]; then
+            echo "ERROR: Could not resolve Qt host tools."
+            echo "QMAKE_BIN=${QMAKE_BIN:-<none>}"
+            echo "QT tool dirs searched:"
+            printf '  - %s\n' "${QT_TOOL_DIRS[@]}"
+            echo "Listing candidate dirs:"
+            for d in "${QT_TOOL_DIRS[@]}"; do
+              if [ -d "$d" ]; then
+                echo "-- $d"
+                ls -la "$d" | egrep 'moc|uic|rcc|qmake' || true
+              fi
+            done
+            exit 1
+          fi
 
           ln -sf "$MOC_REAL" "$ALIAS_DIR/moc"
           ln -sf "$MOC_REAL" "$ALIAS_DIR/moc-qt6"
