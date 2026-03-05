@@ -14,15 +14,23 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_26.0.1.app
 
+      - name: Install boost176 via temporary tap
+        run: |
+          brew tap-new verge/local || true
+          mkdir -p "$(brew --repo verge/local)/Formula"
+          curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb \
+            -o "$(brew --repo verge/local)/Formula/boost176.rb"
+          brew install verge/local/boost176
+
       - name: Install dependencies
         run: |
           brew install automake autoconf pkg-config libtool \
             berkeley-db@4 zeromq miniupnpc \
-            qt gperf qrencode librsvg boost \
+            qt gperf qrencode librsvg \
             openssl@3 libevent
 
       - name: Link brew deps
-        run: brew link qt berkeley-db@4 boost
+        run: brew link qt berkeley-db@4 boost176
 
       - name: Add Qt tools to PATH
         run: |
@@ -129,7 +137,7 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
-          BOOST_PREFIX="$(brew --prefix boost)"
+          BOOST_PREFIX="$(brew --prefix boost176)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
