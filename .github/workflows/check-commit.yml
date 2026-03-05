@@ -18,7 +18,8 @@ jobs:
         run: |
           brew install automake autoconf pkg-config libtool \
             berkeley-db@4 zeromq miniupnpc \
-            qt gperf qrencode librsvg boost
+            qt gperf qrencode librsvg boost \
+            openssl@3 libevent
 
       - name: Link brew deps
         run: brew link qt berkeley-db@4 boost
@@ -126,6 +127,16 @@ jobs:
 
       - name: Configure
         run: |
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+          BOOST_PREFIX="$(brew --prefix boost)"
+          BDB_PREFIX="$(brew --prefix berkeley-db@4)"
+          OPENSSL_PREFIX="$(brew --prefix openssl@3)"
+          LIBEVENT_PREFIX="$(brew --prefix libevent)"
+
+          export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+          export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+          export PKG_CONFIG_PATH="$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           ./configure \
@@ -134,10 +145,11 @@ jobs:
             --disable-werror \
             --with-gui=qt6 \
             --with-qt-bindir="$PWD/.qt-tool-aliases" \
+            --with-boost="$BOOST_PREFIX" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
-            --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.6.1 \
-            --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1
+            --with-openssl-dir="$OPENSSL_PREFIX" \
+            --with-libevent-dir="$LIBEVENT_PREFIX"
 
       - name: Build
         run: make -j4
