@@ -272,16 +272,42 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Ensure previous UI tests don't leave verge-qt running.
+          pkill -f '/verge-qt' || true
+
           MOUNT_OUTPUT="$(hdiutil attach "Verge-Qt.dmg" -nobrowse -readonly)"
+          MOUNT_DEVICE="$(echo "$MOUNT_OUTPUT" | awk '/^\/dev\// {print $1; exit}')"
           MOUNT_POINT="$(echo "$MOUNT_OUTPUT" | awk '/\/Volumes\// {print substr($0, index($0, "/Volumes/")); exit}')"
-          if [ -z "${MOUNT_POINT:-}" ]; then
+          if [ -z "${MOUNT_POINT:-}" ] || [ -z "${MOUNT_DEVICE:-}" ]; then
             echo "::error::Failed to detect DMG mount point"
             echo "$MOUNT_OUTPUT"
             exit 1
           fi
 
+          detach_with_timeout() {
+            local target="$1"
+            hdiutil detach "$target" -force >/dev/null 2>&1 &
+            local detach_pid=$!
+            local waited=0
+            while kill -0 "$detach_pid" 2>/dev/null; do
+              if [ "$waited" -ge 20 ]; then
+                echo "::warning::Timed out detaching $target; continuing"
+                kill -9 "$detach_pid" 2>/dev/null || true
+                return 0
+              fi
+              sleep 1
+              waited=$((waited + 1))
+            done
+            wait "$detach_pid" || true
+          }
+
           cleanup() {
-            hdiutil detach "$MOUNT_POINT" || true
+            # Stop any app instance launched from the mounted DMG.
+            pkill -f "$MOUNT_POINT/Verge-Qt.app/Contents/MacOS/verge-qt" || true
+            pkill -f '/verge-qt' || true
+            pkill -9 -f '/verge-qt' || true
+            sleep 1
+            detach_with_timeout "$MOUNT_DEVICE"
           }
           trap cleanup EXIT
 
@@ -303,6 +329,9 @@ jobs:
           fi
 
           kill "$APP_PID" || true
+          sleep 2
+          kill -9 "$APP_PID" 2>/dev/null || true
+          pkill -f '/verge-qt' || true
           wait "$APP_PID" || true
 
       - name: Gatekeeper check
