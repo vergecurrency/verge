@@ -352,14 +352,22 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
 
+      - name: Install boost176 via temporary tap
+        run: |
+          brew tap-new verge/local || true
+          mkdir -p "$(brew --repo verge/local)/Formula"
+          curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb \
+            -o "$(brew --repo verge/local)/Formula/boost176.rb"
+          brew install verge/local/boost176
+
       - name: Brew install base dependencies
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt gperf qrencode librsvg openssl@3 libevent boost
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt gperf qrencode librsvg openssl@3 libevent
         
       - name: Brew link dependencies
-        run: brew link qt berkeley-db@4
+        run: brew link qt berkeley-db@4 boost176
 
       - name: check cellar for openssl 
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
@@ -472,7 +480,7 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
-          BOOST_PREFIX="$(brew --prefix boost)"
+          BOOST_PREFIX="$(brew --prefix boost176)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
