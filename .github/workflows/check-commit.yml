@@ -912,6 +912,7 @@ jobs:
       - name: configure
         run: |
           CONFIG_SITE=$PWD/depends/aarch64-linux-gnu/share/config.site \
+          LIBCAP_LIBS="-lcap" \
           ./configure \
           --host=aarch64-linux-gnu \
           --build=aarch64-linux-gnu \
