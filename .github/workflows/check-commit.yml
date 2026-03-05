@@ -367,6 +367,104 @@ jobs:
       - name: which clang/xcode
         run: clang --version
 
+      - name: Add Qt tools to PATH
+        run: |
+          echo "$(brew --prefix qtbase)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix qtbase)/libexec" >> "$GITHUB_PATH"
+          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
+
+      - name: Resolve Qt host tools
+        run: |
+          set -euo pipefail
+
+          QT_PREFIX="$(brew --prefix qt)"
+          QTBASE_PREFIX="$(brew --prefix qtbase)"
+          ALIAS_DIR="$PWD/.qt-tool-aliases"
+          mkdir -p "$ALIAS_DIR"
+
+          declare -a QT_TOOL_DIRS=(
+            "$QTBASE_PREFIX/libexec"
+            "$QTBASE_PREFIX/bin"
+            "$QT_PREFIX/libexec"
+            "$QT_PREFIX/bin"
+          )
+
+          QMAKE_BIN="$(command -v qmake6 || command -v qmake || true)"
+          if [ -n "$QMAKE_BIN" ]; then
+            for qdir in \
+              "$("$QMAKE_BIN" -query QT_HOST_BINS 2>/dev/null || true)" \
+              "$("$QMAKE_BIN" -query QT_INSTALL_BINS 2>/dev/null || true)" \
+              "$("$QMAKE_BIN" -query QT_HOST_LIBEXECS 2>/dev/null || true)" \
+              "$("$QMAKE_BIN" -query QT_INSTALL_LIBEXECS 2>/dev/null || true)"
+            do
+              if [ -n "$qdir" ]; then
+                QT_TOOL_DIRS+=("$qdir")
+              fi
+            done
+          fi
+
+          find_qt_tool() {
+            local base="$1"
+            shift || true
+            local names=("$base" "${base}6" "${base}-qt6")
+            local d n cand
+            for d in "${QT_TOOL_DIRS[@]}"; do
+              [ -d "$d" ] || continue
+              for n in "${names[@]}"; do
+                cand="$d/$n"
+                if [ -x "$cand" ]; then
+                  echo "$cand"
+                  return 0
+                fi
+              done
+            done
+            return 1
+          }
+
+          MOC_REAL="$(find_qt_tool moc || true)"
+          UIC_REAL="$(find_qt_tool uic || true)"
+          RCC_REAL="$(find_qt_tool rcc || true)"
+
+          if [ -z "$MOC_REAL" ] || [ -z "$UIC_REAL" ] || [ -z "$RCC_REAL" ]; then
+            echo "ERROR: Could not resolve Qt host tools."
+            echo "QMAKE_BIN=${QMAKE_BIN:-<none>}"
+            echo "QT tool dirs searched:"
+            printf '  - %s\n' "${QT_TOOL_DIRS[@]}"
+            echo "Listing candidate dirs:"
+            for d in "${QT_TOOL_DIRS[@]}"; do
+              if [ -d "$d" ]; then
+                echo "-- $d"
+                ls -la "$d" | egrep 'moc|uic|rcc|qmake' || true
+              fi
+            done
+            exit 1
+          fi
+
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc"
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc-qt6"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic-qt6"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc-qt6"
+
+          echo "$ALIAS_DIR" >> "$GITHUB_PATH"
+          echo "MOC=$ALIAS_DIR/moc" >> "$GITHUB_ENV"
+          echo "UIC=$ALIAS_DIR/uic" >> "$GITHUB_ENV"
+          echo "RCC=$ALIAS_DIR/rcc" >> "$GITHUB_ENV"
+
+      - name: Verify Qt tools
+        run: |
+          set -euo pipefail
+          which moc || true
+          which moc6 || true
+          ls -l "$PWD/.qt-tool-aliases" || true
+          ls -l "$(brew --prefix qtbase)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$(brew --prefix qtbase)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$(brew --prefix qt)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$(brew --prefix qt)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          moc -v
+
       - name: Auto generate
         run: ./autogen.sh
 
@@ -390,6 +488,7 @@ jobs:
             --disable-dependency-tracking \
             --disable-werror \
             --with-gui=qt6 \
+            --with-qt-bindir="$PWD/.qt-tool-aliases" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
             --with-openssl-dir="$OPENSSL_PREFIX" \
@@ -398,20 +497,179 @@ jobs:
 
       - name: make
         run: make -j4
-        
-      - name: make .dmg
-        run: make deploy
-        
-      - name: Sign app bundle
+
+      - name: Test verged daemon
         run: |
-          APP=$(find . -name "*.app" -type d | head -n 1)
-          codesign --force --deep --sign - "$APP"
+          VERGED_BIN="./src/verged"
+          CLI_BIN="./src/verge-cli"
+          if [ ! -f "$VERGED_BIN" ]; then
+            echo "::error::verged not found at $VERGED_BIN"
+            exit 1
+          fi
+
+          "$VERGED_BIN" -daemon
+          sleep 5
+
+          if ! pgrep -f verged >/dev/null; then
+            echo "::error::verged failed to start"
+            exit 1
+          fi
+
+          "$CLI_BIN" getinfo || true
+          "$CLI_BIN" stop
+
+      - name: Test verge-qt directly
+        run: |
+          QT_BIN="./src/qt/verge-qt"
+
+          if [ ! -f "$QT_BIN" ]; then
+            echo "::error::verge-qt not found at $QT_BIN"
+            exit 1
+          fi
+
+          chmod +x "$QT_BIN"
+          pkill -f '/verge-qt' || true
+          "$QT_BIN" &
+          QT_PID=$!
+          sleep 5
+
+          if ! kill -0 "$QT_PID" 2>/dev/null; then
+            echo "::error::verge-qt failed to start"
+            wait "$QT_PID" || true
+            exit 1
+          fi
+
+          echo "verge-qt started successfully"
+          kill "$QT_PID" || true
+          sleep 2
+          kill -9 "$QT_PID" 2>/dev/null || true
+          pkill -f '/verge-qt' || true
+          wait "$QT_PID" || true
+
+      - name: Upload verge-qt raw binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-qt-raw-macos14
+          path: src/qt/verge-qt
+          if-no-files-found: error
+
+      - name: Wrap binary into .app bundle
+        run: |
+          BINARY=$(find . -name "verge-qt" -type f | head -n1)
+          if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
+            echo "::error::verge-qt binary not found after make"
+            exit 1
+          fi
+          echo "Found verge-qt at $BINARY"
+
+          APP_NAME="Verge-Qt.app"
+          mkdir -p "$APP_NAME/Contents/MacOS"
+          cp "$BINARY" "$APP_NAME/Contents/MacOS/"
+
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > "$APP_NAME/Contents/Info.plist"
+          echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> "$APP_NAME/Contents/Info.plist"
+          echo '<plist version="1.0">' >> "$APP_NAME/Contents/Info.plist"
+          echo '<dict>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <key>CFBundleName</key>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <string>Verge</string>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <key>CFBundleIdentifier</key>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <string>org.vergefoundation.verge-qt</string>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <key>CFBundleVersion</key>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <string>1.0</string>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <key>CFBundleExecutable</key>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <string>verge-qt</string>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <key>CFBundlePackageType</key>' >> "$APP_NAME/Contents/Info.plist"
+          echo '  <string>APPL</string>' >> "$APP_NAME/Contents/Info.plist"
+          echo '</dict>' >> "$APP_NAME/Contents/Info.plist"
+          echo '</plist>' >> "$APP_NAME/Contents/Info.plist"
+
+      - name: Bundle with macdeployqt
+        run: |
+          APP_NAME="Verge-Qt.app"
+          macdeployqt "$APP_NAME" -verbose=2
+
+      - name: Remove quarantine
+        run: find . -name "*.app" -type d -exec xattr -cr {} +
+
+      - name: Codesign app
+        run: codesign --force --deep --sign - "Verge-Qt.app"
+
+      - name: Create DMG
+        run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
+
+      - name: Test app launch from DMG
+        run: |
+          set -euo pipefail
+
+          # Ensure previous UI tests don't leave verge-qt running.
+          pkill -f '/verge-qt' || true
+
+          MOUNT_OUTPUT="$(hdiutil attach "Verge-Qt.dmg" -nobrowse -readonly)"
+          MOUNT_DEVICE="$(echo "$MOUNT_OUTPUT" | awk '/^\/dev\// {print $1; exit}')"
+          MOUNT_POINT="$(echo "$MOUNT_OUTPUT" | awk '/\/Volumes\// {print substr($0, index($0, "/Volumes/")); exit}')"
+          if [ -z "${MOUNT_POINT:-}" ] || [ -z "${MOUNT_DEVICE:-}" ]; then
+            echo "::error::Failed to detect DMG mount point"
+            echo "$MOUNT_OUTPUT"
+            exit 1
+          fi
+
+          detach_with_timeout() {
+            local target="$1"
+            hdiutil detach "$target" -force >/dev/null 2>&1 &
+            local detach_pid=$!
+            local waited=0
+            while kill -0 "$detach_pid" 2>/dev/null; do
+              if [ "$waited" -ge 20 ]; then
+                echo "::warning::Timed out detaching $target; continuing"
+                kill -9 "$detach_pid" 2>/dev/null || true
+                return 0
+              fi
+              sleep 1
+              waited=$((waited + 1))
+            done
+            wait "$detach_pid" || true
+          }
+
+          cleanup() {
+            # Stop any app instance launched from the mounted DMG.
+            pkill -f "$MOUNT_POINT/Verge-Qt.app/Contents/MacOS/verge-qt" || true
+            pkill -f '/verge-qt' || true
+            pkill -9 -f '/verge-qt' || true
+            sleep 1
+            detach_with_timeout "$MOUNT_DEVICE"
+          }
+          trap cleanup EXIT
+
+          APP_BIN="$MOUNT_POINT/Verge-Qt.app/Contents/MacOS/verge-qt"
+          if [ ! -x "$APP_BIN" ]; then
+            echo "::error::App binary not found in DMG at $APP_BIN"
+            ls -la "$MOUNT_POINT"
+            exit 1
+          fi
+
+          "$APP_BIN" &
+          APP_PID=$!
+          sleep 8
+
+          if ! kill -0 "$APP_PID" 2>/dev/null; then
+            echo "::error::verge-qt failed to stay running from mounted DMG"
+            wait "$APP_PID" || true
+            exit 1
+          fi
+
+          kill "$APP_PID" || true
+          sleep 2
+          kill -9 "$APP_PID" 2>/dev/null || true
+          pkill -f '/verge-qt' || true
+          wait "$APP_PID" || true
+
+      - name: Gatekeeper check
+        run: spctl --assess --type open --verbose Verge-Qt.dmg || true
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos14
-          path: |
-            *.dmg
+          path: Verge-Qt.dmg
 
   ubuntu24:
     runs-on: ubuntu-24.04
