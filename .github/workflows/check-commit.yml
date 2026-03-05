@@ -259,28 +259,17 @@ jobs:
           APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
 
-      - name: Fix dylib install names
-        run: |
-          APP="Verge-Qt.app"
-          find "$APP" -type f -perm +111 | while read f; do
-            otool -L "$f" | grep /opt/homebrew | awk '{print $1}' | while read dep; do
-              base=$(basename "$dep")
-              new="@executable_path/../Frameworks/$base"
-              install_name_tool -change "$dep" "$new" "$f" || true
-            done
-          done
-
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
       - name: Codesign app
-        run: codesign --force --deep --options runtime --sign - "Verge-Qt.app"
+        run: codesign --force --deep --sign - "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
 
       - name: Gatekeeper check
-        run: spctl --assess --type execute --verbose Verge-Qt.dmg || true
+        run: spctl --assess --type open --verbose Verge-Qt.dmg || true
 
       - uses: actions/upload-artifact@v4
         with:
