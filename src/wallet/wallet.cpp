@@ -3459,7 +3459,7 @@ bool CWallet::CreateStealthTransaction(CScript scriptPubKey, CAmount nAmount, st
     vecSend.push_back(second);
 
     // -- shuffle inputs, change output won't mix enough as it must be not fully random for plantext narrations
-    std::random_shuffle(vecSend.begin(), vecSend.end());
+    std::shuffle(vecSend.begin(), vecSend.end(), FastRandomContext());
     
     // bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CReserveKey& reservekey, CAmount& nFeeRet,
     //                            int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
