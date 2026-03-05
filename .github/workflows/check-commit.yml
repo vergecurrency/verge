@@ -351,32 +351,16 @@ jobs:
 
       - name: git config credential.helper
         run: git config credential.helper
-        
-      - name: Create local tap for protobuf
-        run: |
-          brew tap-new verge/local
-          mkdir -p $(brew --repo verge/local)/Formula
-          curl -L https://raw.githubusercontent.com/vergecurrency/protobuf261/master/protobuf261.rb \
-          -o $(brew --repo verge/local)/Formula/protobuf261.rb
-          brew install verge/local/protobuf261
-          
-      - name: Install boost176 via temporary tap
-        run: |
-          brew tap-new verge/local || true
-          mkdir -p $(brew --repo verge/local)/Formula
-          curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb \
-          -o $(brew --repo verge/local)/Formula/boost176.rb
-          brew install verge/local/boost176
 
       - name: Brew install base dependencies
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt@5 gperf qrencode librsvg
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt gperf qrencode librsvg openssl@3 libevent boost
         
       - name: Brew link dependencies
-        run: brew link boost176 qt@5 berkeley-db@4
-        
+        run: brew link qt berkeley-db@4
+
       - name: check cellar for openssl 
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
         
@@ -387,7 +371,30 @@ jobs:
         run: ./autogen.sh
 
       - name: configure
-        run: export LDFLAGS="-L/opt/homebrew/opt/boost176/lib" && export CPPFLAGS="-I/opt/homebrew/opt/boost176/include" && ./configure --disable-bench --disable-tests --disable-dependency-tracking --disable-werror --with-gui --bindir=`pwd`/release/bin --libdir=`pwd`/release/lib --with-openssl-dir=/opt/homebrew/Cellar/openssl@3/3.6.1 --with-libevent-dir=/opt/homebrew/Cellar/libevent/2.1.12_1 --with-boost=/opt/homebrew/Cellar/boost176/1.76.0_6
+        run: |
+          set -euo pipefail
+          BREW_PREFIX="$(brew --prefix)"
+          BOOST_PREFIX="$(brew --prefix boost)"
+          BDB_PREFIX="$(brew --prefix berkeley-db@4)"
+          OPENSSL_PREFIX="$(brew --prefix openssl@3)"
+          LIBEVENT_PREFIX="$(brew --prefix libevent)"
+          export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+          export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+          export PKG_CONFIG_PATH="$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
+          export OBJCXXFLAGS="$CXXFLAGS"
+          export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
+          ./configure \
+            --disable-bench \
+            --disable-tests \
+            --disable-dependency-tracking \
+            --disable-werror \
+            --with-gui=qt6 \
+            --bindir="$(pwd)/release/bin" \
+            --libdir="$(pwd)/release/lib" \
+            --with-openssl-dir="$OPENSSL_PREFIX" \
+            --with-libevent-dir="$LIBEVENT_PREFIX" \
+            --with-boost="$BOOST_PREFIX"
 
       - name: make
         run: make -j4
