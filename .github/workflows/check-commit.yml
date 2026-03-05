@@ -772,16 +772,26 @@ jobs:
           sudo apt-get install -y \
           build-essential libtool gperf autotools-dev automake pkg-config \
           bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-x86-64
+          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev
 
       - name: Force Posix
         run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
       - name: Build depends for MingW64 Cross Compile
+        env:
+          STRIP: "strip"
+          V: "1"
         run: |
-          unset STRIP || true
+          set -euo pipefail
           cd depends/
-          timeout 45m make HOST=x86_64-w64-mingw32 -j2 STRIP=strip V=1 --output-sync=recurse
+          ( while true; do
+              echo "---- depends heartbeat $(date -u +'%Y-%m-%dT%H:%M:%SZ') ----"
+              ps -ef | egrep 'cmake|ninja|mingw|windres|ar|ranlib|ld|gcc|g\+\+|make|libtool' | grep -v egrep || true
+              sleep 60
+            done ) &
+          HB=$!
+          trap 'kill "$HB" || true' EXIT
+          timeout 120m make HOST=x86_64-w64-mingw32 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
 
       - name: Auto generate
         run: ./autogen.sh
@@ -807,23 +817,78 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-      - name: configure
+      - name: configure (Qt6 GUI required)
         run: |
-          CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
-          ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests
+          set -euo pipefail
+
+          QT_HOST_PREFIX="$PWD/depends/x86_64-w64-mingw32/native/qt-host"
+          QT_HOST_BIN="$QT_HOST_PREFIX/bin"
+          QT_TARGET_PREFIX="$PWD/depends/x86_64-w64-mingw32"
+
+          test -x "$QT_HOST_BIN/moc"
+          test -x "$QT_HOST_BIN/uic"
+          test -x "$QT_HOST_BIN/rcc"
+
+          mkdir -p "$PWD/.qt-tool-aliases"
+          ln -sf "$QT_HOST_BIN/moc" "$PWD/.qt-tool-aliases/moc-qt6"
+          ln -sf "$QT_HOST_BIN/uic" "$PWD/.qt-tool-aliases/uic-qt6"
+          ln -sf "$QT_HOST_BIN/rcc" "$PWD/.qt-tool-aliases/rcc-qt6"
+
+          export PATH="$PWD/.qt-tool-aliases:$QT_HOST_BIN:$QT_HOST_PREFIX/libexec:$PWD/depends/x86_64-w64-mingw32/native/bin:$PATH"
+          export MOC="$QT_HOST_BIN/moc"
+          export UIC="$QT_HOST_BIN/uic"
+          export RCC="$QT_HOST_BIN/rcc"
+
+          echo "Qt target plugin dir snapshot:"
+          find "$QT_TARGET_PREFIX/plugins/platforms" -maxdepth 1 -type f 2>/dev/null | sort || true
+          echo "Qt target static resource object snapshot:"
+          find "$QT_TARGET_PREFIX/lib/objects-Release" -type f \( \
+            -name 'qrc_openglblacklists_init.cpp.obj' -o \
+            -name 'qrc_cursors_init.cpp.obj' -o \
+            -name 'qrc_gui_shaders_init.cpp.obj' \
+          \) 2>/dev/null | sort || true
+          if [ -f "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl" ]; then
+            echo "qwindows.prl:"
+            sed -n '1,80p' "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl"
+          fi
+
+          if ! CONFIG_SITE="$PWD/depends/x86_64-w64-mingw32/share/config.site" \
+            ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests \
+              --with-gui=qt6 \
+              --with-qt-bindir="$QT_HOST_BIN"; then
+            echo "configure failed; dumping Qt static plugin diagnostics from config.log"
+            grep -nE "qwindows|QWindowsIntegrationPlugin|qdirect2d|Could not resolve|Qt6 static Windows integration plugin" config.log || true
+            tail -n 240 config.log || true
+            exit 1
+          fi
+
+          # Hard requirement: automake conditional ENABLE_QT must be enabled
+          grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
+
+          # Hard requirement: verge-qt target exists in generated makefiles
+          grep -Fq 'qt/verge-qt$(EXEEXT)' src/Makefile
+
+          # Hard requirement: Qt6 windows static resource objects are present in link flags.
+          if ! grep -nE 'qrc_(openglblacklists|cursors|gui_shaders)_init[.]cpp[.]obj' src/Makefile; then
+            echo "ERROR: Missing Qt6 static resource object files in src/Makefile link flags"
+            exit 1
+          fi
 
       - name: make (serialized, verbose, heartbeat)
         env:
           STRIP: ""
           V: "1"
         run: |
-          set -e
+          set -euo pipefail
+          mkdir -p "$PWD/.ccache-tmp"
+          export CCACHE_TEMPDIR="$PWD/.ccache-tmp"
           ( while true; do
               echo "---- heartbeat $(date) ----"
               ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
               sleep 60
             done ) &
           HB=$!
+          trap 'kill "$HB" || true' EXIT
           timeout 60m make -j1 --output-sync=recurse
           kill "$HB" || true
 
@@ -831,6 +896,25 @@ jobs:
         run: |
           cd ./src && x86_64-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
           cd ./qt && x86_64-w64-mingw32-strip verge-qt.exe
+
+      - name: Verify windows64 binary shape and static Qt linkage
+        run: |
+          set -euo pipefail
+          for exe in "$PWD/src/verged.exe" "$PWD/src/verge-cli.exe" "$PWD/src/verge-tx.exe" "$PWD/src/qt/verge-qt.exe"; do
+            test -f "$exe"
+            file "$exe"
+            x86_64-w64-mingw32-objdump -p "$exe" | awk '/DLL Name:/{print}'
+          done
+
+          if x86_64-w64-mingw32-objdump -p "$PWD/src/qt/verge-qt.exe" | grep -qi 'DLL Name:.*Qt6'; then
+            echo "ERROR: dynamic Qt DLL dependency detected in verge-qt.exe"
+            exit 1
+          fi
+
+          if ! strings "$PWD/src/qt/verge-qt.exe" | grep -qi 'QWindowsIntegrationPlugin'; then
+            echo "ERROR: QWindowsIntegrationPlugin string not found in verge-qt.exe"
+            exit 1
+          fi
 
       - name: ccache stats
         env:
