@@ -6,9 +6,9 @@ $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=aeb78d29291a2b5fd53cb55950f8f5065b4978c25fb1d77f627d695ab9adf21e
 
 # Keep dependencies compatible with packages currently present in this repo.
-$(package)_darwin_dependencies=openssl native_qt
-$(package)_mingw32_dependencies=openssl native_qt
-$(package)_linux_dependencies=openssl freetype fontconfig libX11 libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm libxcb_util_cursor
+$(package)_darwin_dependencies=openssl native_qt native_flex native_html5lib
+$(package)_mingw32_dependencies=openssl native_qt native_flex native_html5lib
+$(package)_linux_dependencies=openssl native_flex native_html5lib dbus nspr nss mesa_headers libglvnd freetype fontconfig libX11 libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm libxcb_util_cursor
 
 $(package)_patches += rcc_hardcode_timestamp.patch
 $(package)_patches += root_CMakeLists.txt
@@ -39,6 +39,9 @@ $(package)_qtshadertools_sha256_hash=18d9dbbc4f7e6e96e6ed89a9965dc032e2b58158b65
 $(package)_qtwayland_file_name=qtwayland-$($(package)_suffix)
 $(package)_qtwayland_sha256_hash=391998eb432719df26a6a67d8efdc67f8bf2afdd76c1ee3381ebff4fe7527ee2
 
+$(package)_qtdeclarative_file_name=qtdeclarative-$($(package)_suffix)
+$(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc17d43c6cc56fdc1d0f4b0f
+
 $(package)_qtwebengine_file_name=qtwebengine-$($(package)_suffix)
 $(package)_qtwebengine_sha256_hash=856eddf292a69a88618567deea67711b4ec720e69bcb575ed7bb539c9023961e
 
@@ -48,6 +51,7 @@ $(package)_extra_sources += $($(package)_qtwebsockets_file_name)
 $(package)_extra_sources += $($(package)_qtmultimedia_file_name)
 $(package)_extra_sources += $($(package)_qtshadertools_file_name)
 $(package)_extra_sources += $($(package)_qtwayland_file_name)
+$(package)_extra_sources += $($(package)_qtdeclarative_file_name)
 $(package)_extra_sources += $($(package)_qtwebengine_file_name)
 
 define $(package)_set_vars
@@ -55,7 +59,7 @@ $(package)_cmake_system_linux=Linux
 $(package)_cmake_system_mingw32=Windows
 $(package)_cmake_system_darwin=Darwin
 
-$(package)_config_opts += -DBUILD_SHARED_LIBS=OFF
+$(package)_config_opts += -DBUILD_SHARED_LIBS=ON
 $(package)_config_opts += -DCMAKE_INSTALL_PREFIX=$(host_prefix)
 $(package)_config_opts += -DINSTALL_LIBEXECDIR=$(build_prefix)/bin
 $(package)_config_opts += -DQT_BUILD_EXAMPLES=FALSE
@@ -129,17 +133,17 @@ $(package)_config_opts_linux += -DQT_FEATURE_xkbcommon_x11=ON
 $(package)_config_opts_linux += -DQT_FEATURE_freetype=ON
 $(package)_config_opts_linux += -DQT_FEATURE_system_freetype=ON
 $(package)_config_opts_linux += -DQT_FEATURE_fontconfig=ON
-$(package)_config_opts_linux += -DINPUT_opengl=no
-$(package)_config_opts_linux += -DQT_FEATURE_opengl=OFF
+$(package)_config_opts_linux += -DINPUT_opengl=desktop
+$(package)_config_opts_linux += -DQT_FEATURE_opengl=ON
 $(package)_config_opts_linux += -DQT_FEATURE_opengles2=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_opengles3=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_opengles31=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_opengles32=OFF
-$(package)_config_opts_linux += -DQT_FEATURE_opengl_desktop=OFF
+$(package)_config_opts_linux += -DQT_FEATURE_opengl_desktop=ON
 $(package)_config_opts_linux += -DQT_FEATURE_vulkan=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_backtrace=OFF
-$(package)_config_opts_linux += -DQT_FEATURE_dbus=OFF
-$(package)_config_opts_linux += -DQT_FEATURE_dbus_linked=OFF
+$(package)_config_opts_linux += -DQT_FEATURE_dbus=ON
+$(package)_config_opts_linux += -DQT_FEATURE_dbus_linked=ON
 $(package)_config_opts_linux += -DQT_FEATURE_wayland_client=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_wayland_server=OFF
 $(package)_config_opts_linux += -DBUILD_WITH_PCH=OFF
@@ -184,6 +188,7 @@ $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebsocke
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtmultimedia_file_name),$($(package)_qtmultimedia_file_name),$($(package)_qtmultimedia_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwayland_file_name),$($(package)_qtwayland_file_name),$($(package)_qtwayland_sha256_hash)) && \
+$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_sha256_hash))
 endef
 
@@ -196,6 +201,7 @@ define $(package)_extract_cmds
   echo "$($(package)_qtmultimedia_sha256_hash)  $($(package)_source_dir)/$($(package)_qtmultimedia_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtwayland_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwayland_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtwebengine_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebengine_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
@@ -212,6 +218,8 @@ define $(package)_extract_cmds
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools && \
   mkdir qtwayland && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwayland_file_name) -C qtwayland && \
+  mkdir qtdeclarative && \
+  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative && \
   mkdir qtwebengine && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebengine_file_name) -C qtwebengine
 endef
@@ -243,8 +251,17 @@ endef
 define $(package)_config_cmds
   mkdir -p $(build_prefix)/qt-host $(build_prefix)/qt-host/lib/cmake && \
   export OPENSSL_LIBS=${$(package)_openssl_flags_$(host_os)} && \
+  export PATH="$(host_prefix)/native/bin:$(host_prefix)/bin:$${PATH}" && \
+  export PYTHONPATH="$(host_prefix)/native/local/lib/python3.12/dist-packages:$(host_prefix)/native/lib/python3.12/site-packages:$${PYTHONPATH}" && \
+  export CPATH="$(host_prefix)/include:$${CPATH}" && \
+  export CFLAGS="-I$(host_prefix)/include $${CFLAGS}" && \
+  export CXXFLAGS="-I$(host_prefix)/include $${CXXFLAGS}" && \
+  export LDFLAGS="-L$(host_prefix)/lib $${LDFLAGS}" && \
+  export CMAKE_PREFIX_PATH="$(host_prefix)" && \
+  export CMAKE_INCLUDE_PATH="$(host_prefix)/include" && \
+  export CMAKE_LIBRARY_PATH="$(host_prefix)/lib" && \
   export PKG_CONFIG_SYSROOT_DIR=/ && \
-  export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig && \
+  export PKG_CONFIG_LIBDIR="$(host_prefix)/lib/pkgconfig" && \
   export QT_MAC_SDK_NO_VERSION_CHECK=1 && \
   cmake -S . -B . $($(package)_config_opts)
 endef

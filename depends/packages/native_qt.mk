@@ -42,7 +42,7 @@ endef
 
 define $(package)_config_cmds
   cp $(PATCHES_PATH)/qt/root_CMakeLists.txt CMakeLists.txt && \
-  sed -i 's|qtbase;qtsvg;qtwebsockets;qtshadertools;qtmultimedia;qtwayland|qtbase;qtshadertools|' CMakeLists.txt && \
+  sed -i 's|qtbase;qtsvg;qtwebsockets;qtshadertools;qtmultimedia;qtwayland;qtdeclarative;qtwebengine|qtbase;qtshadertools|' CMakeLists.txt && \
   cmake -S . -B . $($(package)_config_opts)
 endef
 
