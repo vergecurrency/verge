@@ -119,6 +119,7 @@ private:
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
+    QAction *tradeAction;
     QAction *sendCoinsMenuAction;
     QAction *usedSendingAddressesAction;
     QAction *usedReceivingAddressesAction;
@@ -263,6 +264,8 @@ private Q_SLOTS:
     /** Switch to send coins page */
     void gotoSendCoinsPage();
     void gotoSendCoinsPage(QString addr);
+    /** Switch to trade page */
+    void gotoTradePage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab();

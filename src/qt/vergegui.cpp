@@ -107,6 +107,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     historyAction(0),
     quitAction(0),
     sendCoinsAction(0),
+    tradeAction(0),
     sendCoinsMenuAction(0),
     usedSendingAddressesAction(0),
     usedReceivingAddressesAction(0),
@@ -509,6 +510,13 @@ void VERGEGUI::createActions()
     historyAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_4));
     tabGroup->addAction(historyAction);
 
+    tradeAction = new QAction(platformStyle->SingleColorIcon(":/icons/receive"), tr("&Trade"), this);
+    tradeAction->setStatusTip(tr("Trade using the integrated StealthEX widget"));
+    tradeAction->setToolTip(tradeAction->statusTip());
+    tradeAction->setCheckable(true);
+    tradeAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_5));
+    tabGroup->addAction(tradeAction);
+
 #ifdef ENABLE_WALLET
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
@@ -524,6 +532,8 @@ void VERGEGUI::createActions()
     connect(receiveCoinsMenuAction, SIGNAL(triggered(bool)), this, SLOT(gotoReceiveCoinsPage()));
     connect(historyAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
     connect(historyAction, SIGNAL(triggered(bool)), this, SLOT(gotoHistoryPage()));
+    connect(tradeAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
+    connect(tradeAction, SIGNAL(triggered(bool)), this, SLOT(gotoTradePage()));
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(platformStyle->TextColorIcon(":/icons/quit"), tr("E&xit"), this);
@@ -661,6 +671,7 @@ void VERGEGUI::createToolBars()
         toolbar->addAction(sendCoinsAction);
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
+        toolbar->addAction(tradeAction);
         overviewAction->setChecked(true);
 
 #ifdef ENABLE_WALLET
@@ -789,6 +800,7 @@ void VERGEGUI::setWalletActionsEnabled(bool enabled)
     receiveCoinsAction->setEnabled(enabled);
     receiveCoinsMenuAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
+    tradeAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -959,6 +971,12 @@ void VERGEGUI::gotoSendCoinsPage(QString addr)
 void VERGEGUI::gotoSendCoinsPage()
 {
     gotoSendCoinsPage(QString());
+}
+
+void VERGEGUI::gotoTradePage()
+{
+    tradeAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoTradePage();
 }
 
 void VERGEGUI::gotoSignMessageTab(QString addr)
