@@ -26,7 +26,7 @@ jobs:
         run: |
           brew install automake autoconf pkg-config libtool \
             berkeley-db@4 zeromq miniupnpc \
-            qt gperf qrencode librsvg \
+            qt qt-webengine gperf qrencode librsvg \
             openssl@3 libevent
 
       - name: Link brew deps
@@ -371,7 +371,7 @@ jobs:
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt gperf qrencode librsvg openssl@3 libevent
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt qt-webengine gperf qrencode librsvg openssl@3 libevent
         
       - name: Brew link dependencies
         run: brew link qt berkeley-db@4 boost176
@@ -726,7 +726,7 @@ jobs:
           sudo apt-get install -y \
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
-          g++-multilib binutils-gold python3 ccache
+          g++-multilib binutils-gold python3 ccache ninja-build flex nodejs
 
       - name: Enable ccache wrappers
         run: |
@@ -823,7 +823,7 @@ jobs:
           sudo apt-get install -y \
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
-          g++-multilib binutils-gold python3 ccache
+          g++-multilib binutils-gold python3 ccache ninja-build flex nodejs
 
       - name: Enable ccache wrappers
         run: |
@@ -891,7 +891,8 @@ jobs:
           sudo apt-get install -y \
           libseccomp-dev git build-essential xutils-dev libtool gperf autotools-dev \
           automake pkg-config bsdmainutils libattr1-dev make automake bison byacc \
-          cmake curl bison byacc python3 libcap-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          cmake curl bison byacc python3 libcap-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+          ninja-build flex nodejs
 
       - name: Export toolchain env
         run: |
@@ -974,7 +975,7 @@ jobs:
           sudo apt-get install -y \
           build-essential libtool gperf autotools-dev automake pkg-config \
           bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-i686 mingw-w64-i686-dev
+          g++-mingw-w64-i686 mingw-w64-i686-dev ninja-build flex nodejs
 
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
@@ -1227,7 +1228,7 @@ jobs:
           sudo apt-get install -y \
           build-essential libtool gperf autotools-dev automake pkg-config \
           bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev
+          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev ninja-build flex nodejs
 
       - name: Force Posix
         run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
