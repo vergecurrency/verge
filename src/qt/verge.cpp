@@ -928,8 +928,13 @@ static void ConfigureQtWebEngineRuntime()
     qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
 
     const QByteArray dbus_system = qgetenv("DBUS_SYSTEM_BUS_ADDRESS");
-    if (dbus_system.contains("/depends/") && dbus_system.contains("system_bus_socket")) {
-        qunsetenv("DBUS_SYSTEM_BUS_ADDRESS");
+    if (dbus_system.isEmpty() || dbus_system.contains("/depends/")) {
+        qputenv("DBUS_SYSTEM_BUS_ADDRESS", QByteArray("unix:path=/run/dbus/system_bus_socket"));
+    }
+
+    const QByteArray dbus_session = qgetenv("DBUS_SESSION_BUS_ADDRESS");
+    if (dbus_session.contains("/depends/")) {
+        qunsetenv("DBUS_SESSION_BUS_ADDRESS");
     }
 #endif
 }
