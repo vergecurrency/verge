@@ -46,6 +46,7 @@
 #include <QApplication>
 #include <QByteArray>
 #include <QDebug>
+#include <QDir>
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QMessageBox>
@@ -869,6 +870,12 @@ static void SetupUIArgs()
 static void ConfigureQtWebEngineRuntime()
 {
 #if defined(Q_OS_LINUX)
+    if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR")) {
+        const QString runtime_dir = QStringLiteral("/tmp/runtime-%1").arg(QString::number(getuid()));
+        QDir().mkpath(runtime_dir);
+        qputenv("XDG_RUNTIME_DIR", runtime_dir.toUtf8());
+    }
+
     const QString plugins_path = QLibraryInfo::path(QLibraryInfo::PluginsPath);
     if (!plugins_path.isEmpty()) {
         const QByteArray plugins_path_utf8 = plugins_path.toUtf8();
@@ -905,7 +912,10 @@ static void ConfigureQtWebEngineRuntime()
     append_flag("--disable-gpu-compositing");
     append_flag("--use-gl=swiftshader");
     append_flag("--ozone-platform=x11");
+    append_flag("--no-sandbox");
+    append_flag("--disable-setuid-sandbox");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+    qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
 
     if (qEnvironmentVariableIsEmpty("QT_XCB_GL_INTEGRATION")) {
         qputenv("QT_XCB_GL_INTEGRATION", QByteArray("none"));
