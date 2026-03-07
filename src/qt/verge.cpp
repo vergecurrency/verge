@@ -869,6 +869,26 @@ static void SetupUIArgs()
 static void ConfigureQtWebEngineRuntime()
 {
 #if defined(Q_OS_LINUX)
+    const QString plugins_path = QLibraryInfo::path(QLibraryInfo::PluginsPath);
+    if (!plugins_path.isEmpty()) {
+        const QByteArray plugins_path_utf8 = plugins_path.toUtf8();
+        if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM_PLUGIN_PATH")) {
+            qputenv("QT_QPA_PLATFORM_PLUGIN_PATH", plugins_path_utf8);
+        }
+        if (qEnvironmentVariableIsEmpty("QT_PLUGIN_PATH")) {
+            qputenv("QT_PLUGIN_PATH", plugins_path_utf8);
+        }
+    }
+
+    const QByteArray qpa_platform = qgetenv("QT_QPA_PLATFORM");
+    if (qpa_platform.isEmpty() || qpa_platform == "wayland" || qpa_platform == "wayland-egl") {
+        qputenv("QT_QPA_PLATFORM", QByteArray("xcb"));
+    }
+
+    if (qEnvironmentVariableIsSet("WAYLAND_DISPLAY")) {
+        qunsetenv("WAYLAND_DISPLAY");
+    }
+
     QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
     const auto append_flag = [&flags](const char* flag) {
         const QByteArray needle(flag);
