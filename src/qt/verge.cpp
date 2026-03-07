@@ -960,7 +960,7 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
     append_flag("--disable-setuid-sandbox");
 
     if (use_tor_proxy) {
-        append_flag("--proxy-server=socks5://127.0.0.1:9051");
+        append_flag("--proxy-server=socks5://127.0.0.1:9090");
     }
 
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
