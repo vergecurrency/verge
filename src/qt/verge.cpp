@@ -961,7 +961,6 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
 
     if (use_tor_proxy) {
         append_flag("--proxy-server=socks5://127.0.0.1:9051");
-        append_flag("--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost");
     }
 
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
