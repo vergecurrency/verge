@@ -902,7 +902,9 @@ static void ConfigureQtWebEngineRuntime()
     for (const QString& flag : flag_list) {
         if (flag.startsWith("--ozone-platform=") ||
             flag.startsWith("--use-gl=") ||
-            flag == "--single-process") {
+            flag == "--single-process" ||
+            flag.startsWith("--proxy-server=") ||
+            flag.startsWith("--host-resolver-rules=")) {
             continue;
         }
         sanitized_flags.push_back(flag);
@@ -924,6 +926,8 @@ static void ConfigureQtWebEngineRuntime()
     append_flag("--disable-gpu-compositing");
     append_flag("--no-sandbox");
     append_flag("--disable-setuid-sandbox");
+    append_flag("--proxy-server=socks5://127.0.0.1:9051");
+    append_flag("--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
 
