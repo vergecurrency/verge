@@ -868,7 +868,26 @@ static void SetupUIArgs()
     gArgs.AddArg("-with-unstoppable", "Enable Unstoppable Domain in VERGE to send using Web3 Domain", false, OptionsCategory::OPTIONS);
 }
 
-static void ConfigureQtWebEngineRuntime()
+static QByteArray BuildSanitizedWebEngineFlags()
+{
+    QStringList flag_list = QString::fromLocal8Bit(qgetenv("QTWEBENGINE_CHROMIUM_FLAGS"))
+                                .split(' ', Qt::SkipEmptyParts);
+    QStringList sanitized_flags;
+    sanitized_flags.reserve(flag_list.size());
+    for (const QString& flag : flag_list) {
+        if (flag.startsWith("--ozone-platform=") ||
+            flag.startsWith("--use-gl=") ||
+            flag == "--single-process" ||
+            flag.startsWith("--proxy-server=") ||
+            flag.startsWith("--host-resolver-rules=")) {
+            continue;
+        }
+        sanitized_flags.push_back(flag);
+    }
+    return sanitized_flags.join(' ').toLocal8Bit();
+}
+
+static void ConfigureQtWebEngineRuntimeBase()
 {
 #if defined(Q_OS_LINUX)
     if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR")) {
@@ -895,22 +914,7 @@ static void ConfigureQtWebEngineRuntime()
         qputenv("LIBGL_ALWAYS_SOFTWARE", QByteArray("1"));
     }
 
-    QStringList flag_list = QString::fromLocal8Bit(qgetenv("QTWEBENGINE_CHROMIUM_FLAGS"))
-                                .split(' ', Qt::SkipEmptyParts);
-    QStringList sanitized_flags;
-    sanitized_flags.reserve(flag_list.size());
-    for (const QString& flag : flag_list) {
-        if (flag.startsWith("--ozone-platform=") ||
-            flag.startsWith("--use-gl=") ||
-            flag == "--single-process" ||
-            flag.startsWith("--proxy-server=") ||
-            flag.startsWith("--host-resolver-rules=")) {
-            continue;
-        }
-        sanitized_flags.push_back(flag);
-    }
-
-    QByteArray flags = sanitized_flags.join(' ').toLocal8Bit();
+    QByteArray flags = BuildSanitizedWebEngineFlags();
     const auto append_flag = [&flags](const char* flag) {
         const QByteArray needle(flag);
         if (!flags.contains(needle)) {
@@ -926,8 +930,6 @@ static void ConfigureQtWebEngineRuntime()
     append_flag("--disable-gpu-compositing");
     append_flag("--no-sandbox");
     append_flag("--disable-setuid-sandbox");
-    append_flag("--proxy-server=socks5://127.0.0.1:9051");
-    append_flag("--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
 
@@ -938,11 +940,41 @@ static void ConfigureQtWebEngineRuntime()
 #endif
 }
 
+static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
+{
+#if defined(Q_OS_LINUX)
+    QByteArray flags = BuildSanitizedWebEngineFlags();
+    const auto append_flag = [&flags](const char* flag) {
+        const QByteArray needle(flag);
+        if (!flags.contains(needle)) {
+            if (!flags.isEmpty() && !flags.endsWith(' ')) {
+                flags.append(' ');
+            }
+            flags.append(needle);
+        }
+    };
+
+    append_flag("--disable-gpu");
+    append_flag("--disable-gpu-compositing");
+    append_flag("--no-sandbox");
+    append_flag("--disable-setuid-sandbox");
+
+    if (use_tor_proxy) {
+        append_flag("--proxy-server=socks5://127.0.0.1:9051");
+        append_flag("--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost");
+    }
+
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+#else
+    Q_UNUSED(use_tor_proxy);
+#endif
+}
+
 #ifndef VERGE_QT_TEST
 int main(int argc, char *argv[])
 {
     SetupEnvironment();
-    ConfigureQtWebEngineRuntime();
+    ConfigureQtWebEngineRuntimeBase();
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 
@@ -993,6 +1025,11 @@ int main(int argc, char *argv[])
             QObject::tr("Error parsing command line arguments: %1.").arg(QString::fromStdString(error)));
         return EXIT_FAILURE;
     }
+
+    // Trade WebEngine proxy behavior:
+    // default Tor SOCKS5 proxy, and explicit clearnet if --without-tor is set.
+    const bool without_tor = gArgs.GetBoolArg("-without-tor", false);
+    ConfigureQtWebEngineProxy(!without_tor);
 
     // Now that the QApplication is setup and we have parsed our parameters, we can set the platform style
     app.setupPlatformStyle();
