@@ -11,13 +11,13 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-#ifdef HAVE_QTWEBENGINEWIDGETS
+#if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
 #include <QWebEnginePage>
 #include <QWebEngineView>
 #endif
 
 namespace {
-#ifdef HAVE_QTWEBENGINEWIDGETS
+#if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
 static const char* STEALTHEX_WIDGET_URL = "https://stealthex.io/widget/1c5c64de-0ac0-4b79-a393-e447de460c42";
 class TradeWebEnginePage : public QWebEnginePage
 {
@@ -48,7 +48,7 @@ TradePage::TradePage(QWidget* parent) : QWidget(parent)
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
 
-#ifdef HAVE_QTWEBENGINEWIDGETS
+#if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
     view->setPage(new TradeWebEnginePage(view));
     view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
