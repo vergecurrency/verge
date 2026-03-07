@@ -9,6 +9,7 @@
 #endif
 
 #include <QLabel>
+#include <QShowEvent>
 #include <QVBoxLayout>
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
@@ -45,19 +46,40 @@ protected:
 
 TradePage::TradePage(QWidget* parent) : QWidget(parent)
 {
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
+    m_layout = new QVBoxLayout(this);
+    m_layout->setContentsMargins(0, 0, 0, 0);
+
+    m_statusLabel = new QLabel(tr("Loading Trade widget..."), this);
+    m_statusLabel->setWordWrap(true);
+    m_statusLabel->setMargin(16);
+    m_layout->addWidget(m_statusLabel);
+}
+
+void TradePage::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    ensureInitialized();
+}
+
+void TradePage::ensureInitialized()
+{
+    if (m_initialized) {
+        return;
+    }
+    m_initialized = true;
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
     view->setPage(new TradeWebEnginePage(view));
     view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
-    layout->addWidget(view);
+    m_layout->addWidget(view);
+    if (m_statusLabel) {
+        m_statusLabel->hide();
+    }
 #else
-    QLabel* message = new QLabel(
-        tr("Trade widget is unavailable in this build because Qt WebEngine support is not enabled."), this);
-    message->setWordWrap(true);
-    message->setMargin(16);
-    layout->addWidget(message);
+    if (m_statusLabel) {
+        m_statusLabel->setText(
+            tr("Trade widget is unavailable in this build because Qt WebEngine support is not enabled."));
+    }
 #endif
 }

@@ -895,6 +895,15 @@ static void ConfigureQtWebEngineRuntime()
     if (qEnvironmentVariableIsSet("WAYLAND_DISPLAY")) {
         qunsetenv("WAYLAND_DISPLAY");
     }
+    if (qEnvironmentVariableIsEmpty("QT_OPENGL")) {
+        qputenv("QT_OPENGL", QByteArray("software"));
+    }
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_BACKEND")) {
+        qputenv("QT_QUICK_BACKEND", QByteArray("software"));
+    }
+    if (qEnvironmentVariableIsEmpty("LIBGL_ALWAYS_SOFTWARE")) {
+        qputenv("LIBGL_ALWAYS_SOFTWARE", QByteArray("1"));
+    }
 
     QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
     const auto append_flag = [&flags](const char* flag) {
