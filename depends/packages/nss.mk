@@ -25,6 +25,6 @@ define $(package)_stage_cmds
   cp -a dist/Release/lib/libfreebl3.so* $($(package)_staging_dir)$(host_prefix)/lib/ && \
   cp -a dist/Release/lib/libsoftokn3.so* $($(package)_staging_dir)$(host_prefix)/lib/ && \
   cp -a dist/Release/lib/libnssckbi.so* $($(package)_staging_dir)$(host_prefix)/lib/ && \
-  printf 'prefix=%s\nexec_prefix=$${prefix}\nlibdir=$${exec_prefix}/lib\nincludedir=$${prefix}/include\n\nName: NSS\nDescription: Network Security Services\nVersion: %s\nRequires: nspr\nLibs: -L$${libdir} -lnss3 -lnssutil3 -lsmime3 -lssl3\nCflags: -I$${includedir}/nss\n' \
-    '$(host_prefix)' '$($(package)_version)' > $($(package)_staging_dir)$(host_prefix)/lib/pkgconfig/nss.pc
+  printf 'prefix=%s\nexec_prefix=%s\nlibdir=%s/lib\nincludedir=%s/include\n\nName: NSS\nDescription: Network Security Services\nVersion: %s\nRequires: nspr\nLibs: -L%s/lib -lnss3 -lnssutil3 -lsmime3 -lssl3\nCflags: -I%s/include/nss\n' \
+    '$(host_prefix)' '$(host_prefix)' '$(host_prefix)' '$(host_prefix)' '$($(package)_version)' '$(host_prefix)' '$(host_prefix)' > $($(package)_staging_dir)$(host_prefix)/lib/pkgconfig/nss.pc
 endef

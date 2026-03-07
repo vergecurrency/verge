@@ -6,9 +6,9 @@ $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=aeb78d29291a2b5fd53cb55950f8f5065b4978c25fb1d77f627d695ab9adf21e
 
 # Keep dependencies compatible with packages currently present in this repo.
-$(package)_darwin_dependencies=openssl native_qt native_flex native_html5lib
-$(package)_mingw32_dependencies=openssl native_qt native_flex native_html5lib
-$(package)_linux_dependencies=openssl native_flex native_html5lib dbus nspr nss mesa_headers libglvnd freetype fontconfig libX11 libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm libxcb_util_cursor
+$(package)_darwin_dependencies=openssl zlib native_qt native_flex native_html5lib
+$(package)_mingw32_dependencies=openssl zlib native_qt native_flex native_html5lib
+$(package)_linux_dependencies=openssl zlib native_flex native_html5lib dbus nspr nss mesa_headers glproto libglvnd freetype fontconfig libX11 libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm libxcb_util_cursor
 
 $(package)_patches += rcc_hardcode_timestamp.patch
 $(package)_patches += root_CMakeLists.txt
@@ -93,6 +93,7 @@ $(package)_config_opts += -DQT_FEATURE_system_proxies=OFF
 $(package)_config_opts += -DQT_FEATURE_use_gold_linker_alias=OFF
 $(package)_config_opts += -DQT_FEATURE_zstd=OFF
 $(package)_config_opts += -DQT_FEATURE_pkg_config=ON
+$(package)_config_opts += -DPython3_EXECUTABLE=$(host_prefix)/native/bin/python3
 $(package)_config_opts += -DQT_FEATURE_system_png=OFF
 $(package)_config_opts += -DQT_FEATURE_system_pcre2=OFF
 $(package)_config_opts += -DQT_FEATURE_system_harfbuzz=OFF
@@ -250,6 +251,21 @@ endef
 
 define $(package)_config_cmds
   mkdir -p $(build_prefix)/qt-host $(build_prefix)/qt-host/lib/cmake && \
+  mkdir -p $(host_prefix)/native/bin && \
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -e' \
+    'PYTHONPATH_NATIVE=""' \
+    'for d in "$(host_prefix)"/native/local/lib/python*/dist-packages "$(host_prefix)"/native/lib/python*/site-packages "$(host_prefix)"/native/lib/python*/dist-packages; do' \
+    '  if [ -d "$$$$d" ]; then' \
+    '    PYTHONPATH_NATIVE="$$$${PYTHONPATH_NATIVE}:$$$$d"' \
+    '  fi' \
+    'done' \
+    'PYTHONPATH_NATIVE="$$$${PYTHONPATH_NATIVE#:}"' \
+    'export PYTHONPATH="$$$${PYTHONPATH_NATIVE}:$$$${PYTHONPATH}"' \
+    'exec /usr/bin/python3 "$$$$@"' \
+    > $(host_prefix)/native/bin/python3 && \
+  chmod +x $(host_prefix)/native/bin/python3 && \
   export OPENSSL_LIBS=${$(package)_openssl_flags_$(host_os)} && \
   export PATH="$(host_prefix)/native/bin:$(host_prefix)/bin:$${PATH}" && \
   export PYTHONPATH="$(host_prefix)/native/local/lib/python3.12/dist-packages:$(host_prefix)/native/lib/python3.12/site-packages:$${PYTHONPATH}" && \
@@ -267,7 +283,19 @@ define $(package)_config_cmds
 endef
 
 define $(package)_build_cmds
+  PYTHONPATH_NATIVE=""; \
+  for d in "$(host_prefix)"/native/local/lib/python*/dist-packages "$(host_prefix)"/native/lib/python*/site-packages "$(host_prefix)"/native/lib/python*/dist-packages; do \
+    if test -d "$$d"; then \
+      PYTHONPATH_NATIVE="$${PYTHONPATH_NATIVE}:$$d"; \
+    fi; \
+  done && \
+  PYTHONPATH_NATIVE="$${PYTHONPATH_NATIVE#:}" && \
   export LD_LIBRARY_PATH="$(build_prefix)/lib/:$(QT_LIBS_LIBS)" && \
+  export PATH="$(host_prefix)/native/bin:$(host_prefix)/bin:$${PATH}" && \
+  export PYTHONPATH="$${PYTHONPATH_NATIVE}:$${PYTHONPATH}" && \
+  export PKG_CONFIG_SYSROOT_DIR=/ && \
+  export PKG_CONFIG_LIBDIR="$(host_prefix)/lib/pkgconfig" && \
+  export PKG_CONFIG_PATH="$(host_prefix)/lib/pkgconfig" && \
   env -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH -u OBJC_INCLUDE_PATH -u OBJCPLUS_INCLUDE_PATH -u CPATH -u LIBRARY_PATH cmake --build . --parallel
 endef
 
