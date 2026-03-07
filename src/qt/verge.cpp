@@ -47,6 +47,7 @@
 #include <QByteArray>
 #include <QDebug>
 #include <QDir>
+#include <QStringList>
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QMessageBox>
@@ -894,7 +895,20 @@ static void ConfigureQtWebEngineRuntime()
         qputenv("LIBGL_ALWAYS_SOFTWARE", QByteArray("1"));
     }
 
-    QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
+    QStringList flag_list = QString::fromLocal8Bit(qgetenv("QTWEBENGINE_CHROMIUM_FLAGS"))
+                                .split(' ', Qt::SkipEmptyParts);
+    QStringList sanitized_flags;
+    sanitized_flags.reserve(flag_list.size());
+    for (const QString& flag : flag_list) {
+        if (flag.startsWith("--ozone-platform=") ||
+            flag.startsWith("--use-gl=") ||
+            flag == "--single-process") {
+            continue;
+        }
+        sanitized_flags.push_back(flag);
+    }
+
+    QByteArray flags = sanitized_flags.join(' ').toLocal8Bit();
     const auto append_flag = [&flags](const char* flag) {
         const QByteArray needle(flag);
         if (!flags.contains(needle)) {
@@ -905,19 +919,13 @@ static void ConfigureQtWebEngineRuntime()
         }
     };
 
-    // Keep WebEngine stable in depends-built environments that don't provide usable EGL at runtime.
+    // Keep WebEngine stable in depends-built Linux environments.
     append_flag("--disable-gpu");
     append_flag("--disable-gpu-compositing");
-    append_flag("--use-gl=swiftshader");
-    append_flag("--single-process");
     append_flag("--no-sandbox");
     append_flag("--disable-setuid-sandbox");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
-
-    if (qEnvironmentVariableIsEmpty("QT_XCB_GL_INTEGRATION")) {
-        qputenv("QT_XCB_GL_INTEGRATION", QByteArray("none"));
-    }
 
     const QByteArray dbus_system = qgetenv("DBUS_SYSTEM_BUS_ADDRESS");
     if (dbus_system.contains("/depends/") && dbus_system.contains("system_bus_socket")) {
