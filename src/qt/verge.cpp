@@ -44,6 +44,7 @@
 #include <boost/thread.hpp>
 
 #include <QApplication>
+#include <QByteArray>
 #include <QDebug>
 #include <QLibraryInfo>
 #include <QLocale>
@@ -865,10 +866,43 @@ static void SetupUIArgs()
     gArgs.AddArg("-with-unstoppable", "Enable Unstoppable Domain in VERGE to send using Web3 Domain", false, OptionsCategory::OPTIONS);
 }
 
+static void ConfigureQtWebEngineRuntime()
+{
+#if defined(Q_OS_LINUX)
+    QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
+    const auto append_flag = [&flags](const char* flag) {
+        const QByteArray needle(flag);
+        if (!flags.contains(needle)) {
+            if (!flags.isEmpty() && !flags.endsWith(' ')) {
+                flags.append(' ');
+            }
+            flags.append(needle);
+        }
+    };
+
+    // Keep WebEngine stable in depends-built environments that don't provide usable EGL at runtime.
+    append_flag("--disable-gpu");
+    append_flag("--disable-gpu-compositing");
+    append_flag("--use-gl=swiftshader");
+    append_flag("--ozone-platform=x11");
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+
+    if (qEnvironmentVariableIsEmpty("QT_XCB_GL_INTEGRATION")) {
+        qputenv("QT_XCB_GL_INTEGRATION", QByteArray("none"));
+    }
+
+    const QByteArray dbus_system = qgetenv("DBUS_SYSTEM_BUS_ADDRESS");
+    if (dbus_system.contains("/depends/") && dbus_system.contains("system_bus_socket")) {
+        qunsetenv("DBUS_SYSTEM_BUS_ADDRESS");
+    }
+#endif
+}
+
 #ifndef VERGE_QT_TEST
 int main(int argc, char *argv[])
 {
     SetupEnvironment();
+    ConfigureQtWebEngineRuntime();
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 
