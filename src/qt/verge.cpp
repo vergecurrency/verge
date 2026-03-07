@@ -876,17 +876,6 @@ static void ConfigureQtWebEngineRuntime()
         qputenv("XDG_RUNTIME_DIR", runtime_dir.toUtf8());
     }
 
-    const QString plugins_path = QLibraryInfo::path(QLibraryInfo::PluginsPath);
-    if (!plugins_path.isEmpty()) {
-        const QByteArray plugins_path_utf8 = plugins_path.toUtf8();
-        if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM_PLUGIN_PATH")) {
-            qputenv("QT_QPA_PLATFORM_PLUGIN_PATH", plugins_path_utf8);
-        }
-        if (qEnvironmentVariableIsEmpty("QT_PLUGIN_PATH")) {
-            qputenv("QT_PLUGIN_PATH", plugins_path_utf8);
-        }
-    }
-
     const QByteArray qpa_platform = qgetenv("QT_QPA_PLATFORM");
     if (qpa_platform.isEmpty() || qpa_platform == "wayland" || qpa_platform == "wayland-egl") {
         qputenv("QT_QPA_PLATFORM", QByteArray("xcb"));
@@ -920,7 +909,7 @@ static void ConfigureQtWebEngineRuntime()
     append_flag("--disable-gpu");
     append_flag("--disable-gpu-compositing");
     append_flag("--use-gl=swiftshader");
-    append_flag("--ozone-platform=x11");
+    append_flag("--single-process");
     append_flag("--no-sandbox");
     append_flag("--disable-setuid-sandbox");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
@@ -962,6 +951,9 @@ int main(int argc, char *argv[])
 #endif
 #if QT_VERSION >= 0x050600
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+#if QT_VERSION >= 0x050400
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 #endif
 #ifdef Q_OS_MAC
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
