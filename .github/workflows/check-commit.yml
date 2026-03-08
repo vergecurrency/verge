@@ -693,22 +693,94 @@ jobs:
           name: verge-macos14
           path: Verge-Qt.dmg
 
-  ubuntu24:
+  ubuntu24-depends-base:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache depends artifacts
+      - name: Cache depends base artifacts
         uses: actions/cache@v4
         with:
           path: |
             depends/built
             depends/x86_64-linux-gnu
-            depends/work
             depends/sources
-          key: depends-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-base-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-linux64-
+            depends-base-${{ runner.os }}-linux64-
+            depends-qt-${{ runner.os }}-linux64-
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: |
+          sudo apt-get install -y \
+          build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
+          bsdmainutils libattr1-dev make automake bison byacc cmake curl \
+          g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs
+
+      - name: Build non-Qt depends
+        run: |
+          cd depends/
+          make -j4 HOST=x86_64-linux-gnu \
+            openssl libevent libcap libseccomp zeromq boost qrencode protobuf zlib \
+            expat dbus nspr nss mesa_headers glproto libglvnd \
+            libX11 libXext libxcb libxkbcommon libxcb_util xcb_proto libXau \
+            freetype fontconfig xextproto xtrans libxcb_util_render libxcb_util_keysyms \
+            xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros \
+            bdb miniupnpc
+
+  ubuntu24-depends-qt:
+    runs-on: ubuntu-24.04
+    needs: ubuntu24-depends-base
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache depends Qt artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            depends/built
+            depends/x86_64-linux-gnu
+            depends/sources
+          key: depends-qt-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-qt-${{ runner.os }}-linux64-
+            depends-base-${{ runner.os }}-linux64-
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: |
+          sudo apt-get install -y \
+          build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
+          bsdmainutils libattr1-dev make automake bison byacc cmake curl \
+          g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs
+
+      - name: Build Qt depends
+        run: |
+          cd depends/
+          make -j4 HOST=x86_64-linux-gnu qt
+
+  ubuntu24:
+    runs-on: ubuntu-24.04
+    needs: ubuntu24-depends-qt
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache depends build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            depends/built
+            depends/x86_64-linux-gnu
+            depends/sources
+          key: depends-qt-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-qt-${{ runner.os }}-linux64-
+            depends-base-${{ runner.os }}-linux64-
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -742,16 +814,7 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-      - name: Export toolchain env
-        run: |
-          echo "CC=gcc"        >> "$GITHUB_ENV"
-          echo "CXX=g++"       >> "$GITHUB_ENV"
-          echo "AR=ar"         >> "$GITHUB_ENV"
-          echo "RANLIB=ranlib" >> "$GITHUB_ENV"
-          echo "STRIP=strip"   >> "$GITHUB_ENV"
-          echo "CCACHE_DIR=$HOME/.ccache" >> "$GITHUB_ENV"
-
-      - name: Build depends
+      - name: Build depends package index
         run: |
           cd depends/
           make -j4 HOST=x86_64-linux-gnu
