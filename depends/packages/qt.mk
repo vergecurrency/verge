@@ -12,7 +12,6 @@ $(package)_linux_dependencies=openssl zlib native_flex native_html5lib dbus nspr
 
 $(package)_patches += rcc_hardcode_timestamp.patch
 $(package)_patches += root_CMakeLists.txt
-$(package)_patches += v4l2.patch
 $(package)_patches += windows_func_fix.patch
 $(package)_patches += mingw_thread_power_throttling.patch
 $(package)_patches += mingw_network_compat.patch
@@ -21,23 +20,14 @@ $(package)_patches += toolchain.cmake
 $(package)_patches += fix_static_qt_darwin_camera_permissions.patch
 #$(package)_patches += fix-static-fontconfig-static-linking.patch
 
-$(package)_qttools_file_name=qttools-$($(package)_suffix)
-$(package)_qttools_sha256_hash=1e3d2c07c1fd76d2425c6eaeeaa62ffaff5f79210c4e1a5bc2a6a9db668d5b24
-
 $(package)_qtsvg_file_name=qtsvg-$($(package)_suffix)
 $(package)_qtsvg_sha256_hash=f07ff80f38caf235187200345392ca7479445ddf49a36c3694cd52a735dad6e1
 
 $(package)_qtwebsockets_file_name=qtwebsockets-$($(package)_suffix)
 $(package)_qtwebsockets_sha256_hash=eccc751bea509ef656d20029693987a0fc03c58e21c38f1351480f3c8eb42ebd
 
-$(package)_qtmultimedia_file_name=qtmultimedia-$($(package)_suffix)
-$(package)_qtmultimedia_sha256_hash=93f7ef0106fbd731165a2723f3e436c911fc5e6880f5bc987b55516c20833e2b
-
 $(package)_qtshadertools_file_name=qtshadertools-$($(package)_suffix)
 $(package)_qtshadertools_sha256_hash=18d9dbbc4f7e6e96e6ed89a9965dc032e2b58158b65156c035537826216716c9
-
-$(package)_qtwayland_file_name=qtwayland-$($(package)_suffix)
-$(package)_qtwayland_sha256_hash=391998eb432719df26a6a67d8efdc67f8bf2afdd76c1ee3381ebff4fe7527ee2
 
 $(package)_qtdeclarative_file_name=qtdeclarative-$($(package)_suffix)
 $(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc17d43c6cc56fdc1d0f4b0f
@@ -45,12 +35,9 @@ $(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc1
 $(package)_qtwebengine_file_name=qtwebengine-$($(package)_suffix)
 $(package)_qtwebengine_sha256_hash=856eddf292a69a88618567deea67711b4ec720e69bcb575ed7bb539c9023961e
 
-$(package)_extra_sources += $($(package)_qttools_file_name)
 $(package)_extra_sources += $($(package)_qtsvg_file_name)
 $(package)_extra_sources += $($(package)_qtwebsockets_file_name)
-$(package)_extra_sources += $($(package)_qtmultimedia_file_name)
 $(package)_extra_sources += $($(package)_qtshadertools_file_name)
-$(package)_extra_sources += $($(package)_qtwayland_file_name)
 $(package)_extra_sources += $($(package)_qtdeclarative_file_name)
 $(package)_extra_sources += $($(package)_qtwebengine_file_name)
 
@@ -183,12 +170,9 @@ endef
 
 define $(package)_fetch_cmds
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_download_file),$($(package)_file_name),$($(package)_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qttools_file_name),$($(package)_qttools_file_name),$($(package)_qttools_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtsvg_file_name),$($(package)_qtsvg_file_name),$($(package)_qtsvg_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtmultimedia_file_name),$($(package)_qtmultimedia_file_name),$($(package)_qtmultimedia_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwayland_file_name),$($(package)_qtwayland_file_name),$($(package)_qtwayland_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_sha256_hash))
 endef
@@ -196,29 +180,20 @@ endef
 define $(package)_extract_cmds
   mkdir -p $($(package)_extract_dir) && \
   echo "$($(package)_sha256_hash)  $($(package)_source)" > $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qttools_sha256_hash)  $($(package)_source_dir)/$($(package)_qttools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtsvg_sha256_hash)  $($(package)_source_dir)/$($(package)_qtsvg_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtwebsockets_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebsockets_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtmultimedia_sha256_hash)  $($(package)_source_dir)/$($(package)_qtmultimedia_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtwayland_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwayland_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtwebengine_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebengine_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source) -C qtbase && \
-  mkdir qttools && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttools_file_name) -C qttools && \
   mkdir qtsvg && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtsvg_file_name) -C qtsvg && \
   mkdir qtwebsockets && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebsockets_file_name) -C qtwebsockets && \
-  mkdir qtmultimedia && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtmultimedia_file_name) -C qtmultimedia && \
   mkdir qtshadertools && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools && \
-  mkdir qtwayland && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwayland_file_name) -C qtwayland && \
   mkdir qtdeclarative && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative && \
   mkdir qtwebengine && \
@@ -244,9 +219,7 @@ define $(package)_preprocess_cmds
   sed -i -e 's/qt_find_package(XKB 0.9.0 /qt_find_package(XKB 0.8.4 /' \
          -e 's/qt_find_package(XKB_COMMON_X11 0.9.0 /qt_find_package(XKB_COMMON_X11 0.8.4 /' src/gui/configure.cmake && \
   patch -p1 -i $($(package)_patch_dir)/libxau-fix.patch && \
-  patch -p1 -i $($(package)_patch_dir)/fix_static_qt_darwin_camera_permissions.patch && \
-  cd ../qtmultimedia && \
-  patch -p1 -i $($(package)_patch_dir)/v4l2.patch
+  patch -p1 -i $($(package)_patch_dir)/fix_static_qt_darwin_camera_permissions.patch
 endef
 
 define $(package)_config_cmds

@@ -11,6 +11,14 @@ endef
 
 define $(package)_build_cmds
   cd nss && \
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'exec /usr/bin/gyp --no-parallel "$$$$@"' \
+    > ./gyp-no-parallel.sh && \
+  chmod +x ./gyp-no-parallel.sh && \
+  export GYP="$$$$PWD/gyp-no-parallel.sh" && \
+  cd .. && \
+  cd nss && \
   ./build.sh -o --disable-tests --python=python3 --with-nspr=$(host_prefix)/include/nspr:$(host_prefix)/lib -Ddisable_werror=1 -Dmozilla_client=1
 endef
 
