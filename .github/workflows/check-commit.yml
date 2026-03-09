@@ -265,10 +265,31 @@ jobs:
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
       - name: Codesign app
-        run: codesign --force --deep --sign - "Verge-Qt.app"
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if [ -n "${MACOS_SIGNING_IDENTITY:-}" ]; then
+            echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
+            codesign --force --deep --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
+          else
+            echo "::warning::MACOS_SIGNING_IDENTITY not set; using ad-hoc signature."
+            codesign --force --deep --sign - "Verge-Qt.app"
+          fi
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
+
+      - name: Sign DMG
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if [ -n "${MACOS_SIGNING_IDENTITY:-}" ]; then
+            codesign --force --timestamp --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.dmg"
+          else
+            codesign --force --sign - "Verge-Qt.dmg"
+          fi
 
       - name: Test app launch from DMG
         run: |
@@ -345,6 +366,29 @@ jobs:
             echo "::warning::Gatekeeper rejected Verge-Qt.dmg (expected in CI for ad-hoc/non-notarized artifacts)."
           fi
           exit 0
+
+      - name: Notarize and staple DMG (if signing + credentials available)
+        if: ${{ secrets.APPLE_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_APP_SPECIFIC_PASSWORD != '' }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then
+            echo "::warning::Skipping notarization: MACOS_SIGNING_IDENTITY not set."
+            exit 0
+          fi
+
+          xcrun notarytool submit "Verge-Qt.dmg" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --wait
+
+          xcrun stapler staple "Verge-Qt.dmg"
+          xcrun stapler validate "Verge-Qt.dmg"
 
       - uses: actions/upload-artifact@v4
         with:
