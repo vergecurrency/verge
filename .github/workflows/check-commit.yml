@@ -1007,7 +1007,7 @@ jobs:
           libseccomp-dev git build-essential xutils-dev libtool gperf autotools-dev \
           automake pkg-config bsdmainutils libattr1-dev make automake bison byacc \
           cmake curl bison byacc python3 libcap-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
-          ninja-build flex nodejs
+          ninja-build flex nodejs gyp
 
       - name: Export toolchain env
         run: |
