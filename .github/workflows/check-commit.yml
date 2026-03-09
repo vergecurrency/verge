@@ -1069,17 +1069,17 @@ jobs:
             depends/i686-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-va-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-vb-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-va-
+            depends-${{ runner.os }}-mingw32-32-vb-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-va-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-vb-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-va-
+            ccache-${{ runner.os }}-mingw32-32-vb-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1093,6 +1093,25 @@ jobs:
 
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+
+      - name: Sanity-check cached Qt sources (mingw32)
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in \
+            qtdeclarative-everywhere-src-6.10.2.tar.xz \
+            qtwebengine-everywhere-src-6.10.2.tar.xz
+          do
+            if [ ! -f "depends/sources/$f" ]; then
+              echo "::warning::Missing depends/sources/$f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "::warning::Clearing stale cached Qt state so depends can re-fetch."
+            find depends/built -path "*/qt/*" -type f -delete || true
+            rm -rf depends/work/build/*/qt* || true
+          fi
 
       - name: Build depends for MingW32 Cross Compile
         env:
@@ -1290,17 +1309,17 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v8-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-v9-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v8-
+            depends-${{ runner.os }}-mingw64-64-v9-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v8-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v9-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v8-
+            ccache-${{ runner.os }}-mingw64-64-v9-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1314,6 +1333,25 @@ jobs:
 
       - name: Force Posix
         run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+      - name: Sanity-check cached Qt sources (mingw64)
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in \
+            qtdeclarative-everywhere-src-6.10.2.tar.xz \
+            qtwebengine-everywhere-src-6.10.2.tar.xz
+          do
+            if [ ! -f "depends/sources/$f" ]; then
+              echo "::warning::Missing depends/sources/$f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "::warning::Clearing stale cached Qt state so depends can re-fetch."
+            find depends/built -path "*/qt/*" -type f -delete || true
+            rm -rf depends/work/build/*/qt* || true
+          fi
 
       - name: Build depends for MingW64 Cross Compile
         env:
