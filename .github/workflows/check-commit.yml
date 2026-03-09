@@ -1089,7 +1089,9 @@ jobs:
           sudo apt-get install -y \
           build-essential libtool gperf autotools-dev automake pkg-config \
           bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-i686 mingw-w64-i686-dev ninja-build flex nodejs
+          g++-mingw-w64-i686 mingw-w64-i686-dev ninja-build flex nodejs \
+          libgl1-mesa-dev libegl1-mesa-dev libx11-dev libx11-xcb-dev \
+          libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev
 
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
@@ -1329,7 +1331,9 @@ jobs:
           sudo apt-get install -y \
           build-essential libtool gperf autotools-dev automake pkg-config \
           bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev ninja-build flex nodejs
+          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev ninja-build flex nodejs \
+          libgl1-mesa-dev libegl1-mesa-dev libx11-dev libx11-xcb-dev \
+          libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev
 
       - name: Force Posix
         run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
