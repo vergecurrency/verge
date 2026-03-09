@@ -193,6 +193,8 @@ jobs:
       - name: Test verge-qt directly
         run: |
             QT_BIN="./src/qt/verge-qt"
+            export QTWEBENGINE_DISABLE_SANDBOX=1
+            export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
             
             if [ ! -f "$QT_BIN" ]; then
             echo "::error::verge-qt not found at $QT_BIN"
@@ -318,7 +320,7 @@ jobs:
             exit 1
           fi
 
-          "$APP_BIN" &
+          QTWEBENGINE_DISABLE_SANDBOX=1 QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" "$APP_BIN" &
           APP_PID=$!
           sleep 8
 
@@ -536,6 +538,8 @@ jobs:
       - name: Test verge-qt directly
         run: |
           QT_BIN="./src/qt/verge-qt"
+          export QTWEBENGINE_DISABLE_SANDBOX=1
+          export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
 
           if [ ! -f "$QT_BIN" ]; then
             echo "::error::verge-qt not found at $QT_BIN"
@@ -662,7 +666,7 @@ jobs:
             exit 1
           fi
 
-          "$APP_BIN" &
+          QTWEBENGINE_DISABLE_SANDBOX=1 QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" "$APP_BIN" &
           APP_PID=$!
           sleep 8
 
