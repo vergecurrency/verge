@@ -368,7 +368,6 @@ jobs:
           exit 0
 
       - name: Notarize and staple DMG (if signing + credentials available)
-        if: ${{ secrets.APPLE_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_APP_SPECIFIC_PASSWORD != '' }}
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -376,6 +375,10 @@ jobs:
           MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
         run: |
           set -euo pipefail
+          if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
+            echo "::warning::Skipping notarization: APPLE_ID / APPLE_TEAM_ID / APPLE_APP_SPECIFIC_PASSWORD not fully set."
+            exit 0
+          fi
           if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then
             echo "::warning::Skipping notarization: MACOS_SIGNING_IDENTITY not set."
             exit 0
