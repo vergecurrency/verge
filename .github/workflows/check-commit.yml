@@ -1069,17 +1069,17 @@ jobs:
             depends/i686-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-vb-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-vc-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-vb-
+            depends-${{ runner.os }}-mingw32-32-vc-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-vb-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-vc-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-vb-
+            ccache-${{ runner.os }}-mingw32-32-vc-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1309,17 +1309,17 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v9-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-v10-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v9-
+            depends-${{ runner.os }}-mingw64-64-v10-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v9-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v10-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v9-
+            ccache-${{ runner.os }}-mingw64-64-v10-
 
       - name: Update apt repos
         run: sudo apt-get update

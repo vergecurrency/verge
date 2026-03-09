@@ -140,7 +140,13 @@ $(package)_config_opts_mingw32 += -DQT_QMAKE_TARGET_MKSPEC=win32-g++
 $(package)_config_opts_mingw32 += -DQT_HOST_PATH=$(build_prefix)/qt-host
 $(package)_config_opts_mingw32 += -DQT_HOST_PATH_CMAKE_DIR=$(build_prefix)/qt-host/lib/cmake
 $(package)_config_opts_mingw32 += -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake
-$(package)_config_opts_mingw32 += -DINPUT_opengl=no
+$(package)_config_opts_mingw32 += -DINPUT_opengl=desktop
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl=ON
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles2=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles3=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles31=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles32=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl_desktop=ON
 $(package)_config_opts_mingw32 += -DQT_FEATURE_dbus=OFF
 $(package)_config_opts_mingw32 += -DQT_FEATURE_freetype=OFF
 $(package)_config_opts_mingw32 += -DQT_FEATURE_ffmpeg=OFF
