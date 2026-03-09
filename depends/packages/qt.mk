@@ -33,9 +33,9 @@ $(package)_qtdeclarative_file_name=qtdeclarative-$($(package)_suffix)
 $(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc17d43c6cc56fdc1d0f4b0f
 
 ifeq ($(QT_SKIP_WEBENGINE),1)
-$(package)_qt_submodules=qtbase;qtsvg;qtwebsockets;qtshadertools;qtdeclarative
+$(package)_qt_submodules=qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets
 else
-$(package)_qt_submodules=qtbase;qtsvg;qtwebsockets;qtshadertools;qtdeclarative;qtwebengine
+$(package)_qt_submodules=qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine
 $(package)_qtwebengine_file_name=qtwebengine-$($(package)_suffix)
 $(package)_qtwebengine_sha256_hash=856eddf292a69a88618567deea67711b4ec720e69bcb575ed7bb539c9023961e
 endif
@@ -214,7 +214,7 @@ endef
 
 define $(package)_preprocess_cmds
   cp $($(package)_patch_dir)/root_CMakeLists.txt CMakeLists.txt && \
-  sed -i 's|qtbase;qtsvg;qtwebsockets;qtshadertools;qtdeclarative;qtwebengine|$($(package)_qt_submodules)|' CMakeLists.txt && \
+  sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|$($(package)_qt_submodules)|' CMakeLists.txt && \
   patch -p1 -i $($(package)_patch_dir)/rcc_hardcode_timestamp.patch && \
   patch -p1 -i $($(package)_patch_dir)/windows_func_fix.patch && \
   cp $($(package)_patch_dir)/toolchain.cmake . && \
