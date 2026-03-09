@@ -16,6 +16,8 @@ $(package)_config_opts += -DCMAKE_INSTALL_PREFIX=$(build_prefix)/qt-host
 $(package)_config_opts += -DINSTALL_LIBEXECDIR=$(build_prefix)/qt-host/bin
 $(package)_config_opts += -DQT_BUILD_EXAMPLES=FALSE
 $(package)_config_opts += -DQT_BUILD_TESTS=FALSE
+$(package)_config_opts += -DQT_BUILD_TOOLS_BY_DEFAULT=ON
+$(package)_config_opts += -DQT_BUILD_TOOLS_WHEN_CROSSCOMPILING=ON
 $(package)_config_opts += -DQT_GENERATE_SBOM=OFF
 $(package)_config_opts += -DQT_FEATURE_dbus=OFF
 $(package)_config_opts += -DQT_FEATURE_openssl=OFF
