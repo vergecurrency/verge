@@ -32,14 +32,21 @@ $(package)_qtshadertools_sha256_hash=18d9dbbc4f7e6e96e6ed89a9965dc032e2b58158b65
 $(package)_qtdeclarative_file_name=qtdeclarative-$($(package)_suffix)
 $(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc17d43c6cc56fdc1d0f4b0f
 
+ifeq ($(QT_SKIP_WEBENGINE),1)
+$(package)_qt_submodules=qtbase;qtsvg;qtwebsockets;qtshadertools;qtdeclarative
+else
+$(package)_qt_submodules=qtbase;qtsvg;qtwebsockets;qtshadertools;qtdeclarative;qtwebengine
 $(package)_qtwebengine_file_name=qtwebengine-$($(package)_suffix)
 $(package)_qtwebengine_sha256_hash=856eddf292a69a88618567deea67711b4ec720e69bcb575ed7bb539c9023961e
+endif
 
 $(package)_extra_sources += $($(package)_qtsvg_file_name)
 $(package)_extra_sources += $($(package)_qtwebsockets_file_name)
 $(package)_extra_sources += $($(package)_qtshadertools_file_name)
 $(package)_extra_sources += $($(package)_qtdeclarative_file_name)
+ifneq ($(QT_SKIP_WEBENGINE),1)
 $(package)_extra_sources += $($(package)_qtwebengine_file_name)
+endif
 
 define $(package)_set_vars
 $(package)_cmake_system_linux=Linux
@@ -180,7 +187,7 @@ $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtsvg_file
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_sha256_hash))
+$(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_sha256_hash)))
 endef
 
 define $(package)_extract_cmds
@@ -190,7 +197,7 @@ define $(package)_extract_cmds
   echo "$($(package)_qtwebsockets_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebsockets_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtwebengine_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebengine_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,echo "$($(package)_qtwebengine_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebengine_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source) -C qtbase && \
@@ -202,12 +209,12 @@ define $(package)_extract_cmds
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools && \
   mkdir qtdeclarative && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative && \
-  mkdir qtwebengine && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebengine_file_name) -C qtwebengine
+  $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,mkdir qtwebengine && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebengine_file_name) -C qtwebengine)
 endef
 
 define $(package)_preprocess_cmds
   cp $($(package)_patch_dir)/root_CMakeLists.txt CMakeLists.txt && \
+  sed -i 's|qtbase;qtsvg;qtwebsockets;qtshadertools;qtdeclarative;qtwebengine|$($(package)_qt_submodules)|' CMakeLists.txt && \
   patch -p1 -i $($(package)_patch_dir)/rcc_hardcode_timestamp.patch && \
   patch -p1 -i $($(package)_patch_dir)/windows_func_fix.patch && \
   cp $($(package)_patch_dir)/toolchain.cmake . && \

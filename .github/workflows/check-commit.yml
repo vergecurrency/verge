@@ -931,7 +931,7 @@ jobs:
       - name: Build depends
         run: |
           cd depends/
-          make -j4 HOST=aarch64-linux-gnu
+          make -j4 HOST=aarch64-linux-gnu QT_SKIP_WEBENGINE=1
 
       - name: Auto generate
         run: ./autogen.sh
