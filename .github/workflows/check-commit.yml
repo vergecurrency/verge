@@ -1122,6 +1122,14 @@ jobs:
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
+      - name: Ensure host gn is available
+        run: |
+          set -euo pipefail
+          if ! command -v gn >/dev/null 2>&1 && command -v generate-ninja >/dev/null 2>&1; then
+            sudo ln -sf "$(command -v generate-ninja)" /usr/local/bin/gn
+          fi
+          command -v gn
+
       - name: Sanity-check cached Qt sources and host tools (mingw32)
         run: |
           set -euo pipefail
@@ -1374,6 +1382,14 @@ jobs:
 
       - name: Force Posix
         run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+      - name: Ensure host gn is available
+        run: |
+          set -euo pipefail
+          if ! command -v gn >/dev/null 2>&1 && command -v generate-ninja >/dev/null 2>&1; then
+            sudo ln -sf "$(command -v generate-ninja)" /usr/local/bin/gn
+          fi
+          command -v gn
 
       - name: Sanity-check cached Qt sources and host tools (mingw64)
         run: |
