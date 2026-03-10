@@ -13,7 +13,7 @@ $(package)_extra_sources += $($(package)_qtdeclarative_file_name)
 endif
 
 define $(package)_set_vars
-$(package)_config_opts += -DBUILD_SHARED_LIBS=OFF
+$(package)_config_opts += -DBUILD_SHARED_LIBS=ON
 $(package)_config_opts += -DCMAKE_INSTALL_PREFIX=$(build_prefix)/qt-host
 $(package)_config_opts += -DINSTALL_LIBEXECDIR=$(build_prefix)/qt-host/bin
 $(package)_config_opts += -DQT_BUILD_EXAMPLES=FALSE
