@@ -653,7 +653,18 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
   VERGE_QT_CHECK([
       if test "x$QT_LIB_PREFIX" = xQt6; then
         dnl Static link order matters: bundled libs must come after Qt6 modules.
-        QT_LIBS="$QT_LIBS -lQt6BundledZLIB -lQt6BundledLibpng -lQt6BundledPcre2 -lQt6BundledHarfbuzz"
+        if test "x$ac_cv_search_z_inflateInit2_" != xno; then
+          QT_LIBS="$QT_LIBS -lQt6BundledZLIB"
+        fi
+        if test "x$ac_cv_search_png_create_read_struct" != xno; then
+          QT_LIBS="$QT_LIBS -lQt6BundledLibpng"
+        fi
+        if test "x$ac_cv_search_pcre2_match_16" != xno; then
+          QT_LIBS="$QT_LIBS -lQt6BundledPcre2"
+        fi
+        if test "x$ac_cv_search_hb_ot_tags_from_script" != xno; then
+          QT_LIBS="$QT_LIBS -lQt6BundledHarfbuzz"
+        fi
         if test "x$TARGET_OS" = xlinux; then
           AC_DEFINE(QT_STATICPLUGIN, 1, [Define this symbol for static Qt plugins])
           qt6_xcb_tail_deps="-lxkbcommon-x11 -lxkbcommon -lfontconfig -lfreetype -lxcb-cursor -lxcb-icccm -lxcb-util -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render-util -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-render -lxcb-shape -lxcb-xkb -lxcb -lX11-xcb -lX11 -ldl -lm -lrt"
