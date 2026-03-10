@@ -7,8 +7,10 @@ $(package)_qtshadertools_file_name=qtshadertools-everywhere-src-$($(package)_ver
 $(package)_qtshadertools_sha256_hash=18d9dbbc4f7e6e96e6ed89a9965dc032e2b58158b65156c035537826216716c9
 $(package)_qtdeclarative_file_name=qtdeclarative-everywhere-src-$($(package)_version).tar.xz
 $(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc17d43c6cc56fdc1d0f4b0f
+ifneq ($(QT_SKIP_QTDECLARATIVE),1)
 $(package)_extra_sources += $($(package)_qtshadertools_file_name)
 $(package)_extra_sources += $($(package)_qtdeclarative_file_name)
+endif
 
 define $(package)_set_vars
 $(package)_config_opts += -DBUILD_SHARED_LIBS=OFF
@@ -22,36 +24,38 @@ $(package)_config_opts += -DQT_GENERATE_SBOM=OFF
 $(package)_config_opts += -DQT_FEATURE_dbus=OFF
 $(package)_config_opts += -DQT_FEATURE_openssl=OFF
 $(package)_config_opts += -DQT_FEATURE_printsupport=OFF
-$(package)_config_opts += -DINPUT_opengl=desktop
-$(package)_config_opts += -DQT_FEATURE_opengl=ON
+$(package)_config_opts += -DINPUT_opengl=no
+$(package)_config_opts += -DQT_FEATURE_opengl=OFF
 $(package)_config_opts += -DQT_FEATURE_opengles2=OFF
-$(package)_config_opts += -DQT_FEATURE_opengl_desktop=ON
+$(package)_config_opts += -DQT_FEATURE_opengl_desktop=OFF
+$(package)_config_opts_mingw32 += -DINPUT_opengl=desktop
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl=ON
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles2=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl_desktop=ON
 $(package)_config_opts += -G Ninja
 endef
 
 define $(package)_extract_cmds
   mkdir -p $($(package)_extract_dir) && \
   echo "$($(package)_sha256_hash)  $($(package)_source)" > $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source) -C qtbase && \
-  mkdir qtshadertools && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools && \
-  mkdir qtdeclarative && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,mkdir qtshadertools && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools) && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,mkdir qtdeclarative && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative)
 endef
 
 define $(package)_fetch_cmds
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_download_file),$($(package)_file_name),$($(package)_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash))
+$(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash))) && \
+$(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash)))
 endef
 
 define $(package)_config_cmds
   cp $(PATCHES_PATH)/qt/root_CMakeLists.txt CMakeLists.txt && \
-  sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|qtbase;qtshadertools;qtdeclarative|' CMakeLists.txt && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|qtbase|' CMakeLists.txt,sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|qtbase;qtshadertools;qtdeclarative|' CMakeLists.txt) && \
   cmake -S . -B . $($(package)_config_opts)
 endef
 
