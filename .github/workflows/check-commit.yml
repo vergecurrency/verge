@@ -756,10 +756,10 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-base-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-base-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-base-${{ runner.os }}-linux64-
-            depends-qt-${{ runner.os }}-linux64-
+            depends-base-${{ runner.os }}-linux64-v2-
+            depends-qt-${{ runner.os }}-linux64-v2-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -796,10 +796,10 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-qt-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-qt-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-qt-${{ runner.os }}-linux64-
-            depends-base-${{ runner.os }}-linux64-
+            depends-qt-${{ runner.os }}-linux64-v2-
+            depends-base-${{ runner.os }}-linux64-v2-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -811,6 +811,27 @@ jobs:
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
           g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
           libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
+
+      - name: Sanity-check cached Qt sources (linux64)
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in \
+            qtshadertools-everywhere-src-6.10.2.tar.xz \
+            qtdeclarative-everywhere-src-6.10.2.tar.xz
+          do
+            if [ ! -f "depends/sources/$f" ]; then
+              echo "::warning::Missing depends/sources/$f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "::warning::Clearing stale cached Qt state so depends can re-fetch."
+            find depends/built -path "*/native_qt/*" -type f -delete || true
+            find depends/built -path "*/qt/*" -type f -delete || true
+            rm -rf depends/work/build/*/native_qt* || true
+            rm -rf depends/work/build/*/qt* || true
+          fi
 
       - name: Build Qt depends
         run: |
@@ -830,10 +851,10 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-qt-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-qt-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-qt-${{ runner.os }}-linux64-
-            depends-base-${{ runner.os }}-linux64-
+            depends-qt-${{ runner.os }}-linux64-v2-
+            depends-base-${{ runner.os }}-linux64-v2-
 
       - name: Cache ccache
         uses: actions/cache@v4
