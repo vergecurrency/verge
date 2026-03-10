@@ -3,11 +3,14 @@ $(package)_version=6.10.2
 $(package)_download_path=https://download.qt.io/official_releases/qt/6.10/$($(package)_version)/submodules
 $(package)_file_name=qtbase-everywhere-src-$($(package)_version).tar.xz
 $(package)_sha256_hash=aeb78d29291a2b5fd53cb55950f8f5065b4978c25fb1d77f627d695ab9adf21e
+$(package)_qtsvg_file_name=qtsvg-everywhere-src-$($(package)_version).tar.xz
+$(package)_qtsvg_sha256_hash=f07ff80f38caf235187200345392ca7479445ddf49a36c3694cd52a735dad6e1
 $(package)_qtshadertools_file_name=qtshadertools-everywhere-src-$($(package)_version).tar.xz
 $(package)_qtshadertools_sha256_hash=18d9dbbc4f7e6e96e6ed89a9965dc032e2b58158b65156c035537826216716c9
 $(package)_qtdeclarative_file_name=qtdeclarative-everywhere-src-$($(package)_version).tar.xz
 $(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc17d43c6cc56fdc1d0f4b0f
 ifneq ($(QT_SKIP_QTDECLARATIVE),1)
+$(package)_extra_sources += $($(package)_qtsvg_file_name)
 $(package)_extra_sources += $($(package)_qtshadertools_file_name)
 $(package)_extra_sources += $($(package)_qtdeclarative_file_name)
 endif
@@ -35,24 +38,27 @@ endef
 define $(package)_extract_cmds
   mkdir -p $($(package)_extract_dir) && \
   echo "$($(package)_sha256_hash)  $($(package)_source)" > $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,echo "$($(package)_qtsvg_sha256_hash)  $($(package)_source_dir)/$($(package)_qtsvg_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
   $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
   $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source) -C qtbase && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,mkdir qtsvg && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtsvg_file_name) -C qtsvg) && \
   $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,mkdir qtshadertools && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools) && \
   $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,mkdir qtdeclarative && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative)
 endef
 
 define $(package)_fetch_cmds
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_download_file),$($(package)_file_name),$($(package)_sha256_hash)) && \
+$(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtsvg_file_name),$($(package)_qtsvg_file_name),$($(package)_qtsvg_sha256_hash))) && \
 $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash))) && \
 $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash)))
 endef
 
 define $(package)_config_cmds
   cp $(PATCHES_PATH)/qt/root_CMakeLists.txt CMakeLists.txt && \
-  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|qtbase|' CMakeLists.txt,sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|qtbase;qtshadertools;qtdeclarative|' CMakeLists.txt) && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|qtbase|' CMakeLists.txt,sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|qtbase;qtsvg;qtshadertools;qtdeclarative|' CMakeLists.txt) && \
   cmake -S . -B . $($(package)_config_opts)
 endef
 
