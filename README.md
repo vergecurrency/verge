@@ -14,7 +14,7 @@
 
 # VERGE Source Code [XVG]
 
-Latest commit is stable, building on all platforms?:
+Latest commit build status:
 <p align="left">
   <a href="https://github.com/vergecurrency/verge/actions/workflows/check-commit.yml">
   <img src="https://github.com/vergecurrency/verge/actions/workflows/check-commit.yml/badge.svg">
@@ -42,7 +42,7 @@ Verge Core requires a modern C++ toolchain and has migrated to reduce external d
 | **Debian** | 11+ | x64, ARM64 |
 | **CentOS/RHEL** | 8+ | x64 |
 | **macOS** | 13.0+ (Ventura), 14.0 (Sonoma) |x64, ARM64 (Apple Silicon) |
-| **Windows** | 10 32bit/64bit, 11 32bit/64bit | x64
+| **Windows** | 10 32bit/64bit, 11 32bit/64bit | x86, x64 |
 
 ## Modern C++ Migration Benefits
 
@@ -120,6 +120,28 @@ Block Number Range | Reward
 * [Windows Instructions](doc/build-windows.md)
 * [Raspberry Pi/aarch64 Instructions](doc/build-pi-aarch64.md)
 
+### Build Verge-Qt Without Qt WebEngine
+
+If you only need the Qt wallet without WebEngine, you can build with:
+
+```shell
+./autogen.sh
+cd depends
+make -j"$(nproc)" HOST=x86_64-linux-gnu QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1
+cd ..
+
+CONFIG_SITE="$PWD/depends/x86_64-linux-gnu/share/config.site" \
+./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
+  --disable-dependency-tracking --disable-werror \
+  --prefix="$PWD/depends/x86_64-linux-gnu"
+
+make -j"$(nproc)"
+```
+
+Notes:
+- This produces a Qt wallet build without Qt WebEngine.
+- WebEngine-backed UI features (including the Trade tab web widget) are unavailable in this build type.
+
 ### Community
 
 * [Telegram](https://t.me/officialxvg)
@@ -179,18 +201,18 @@ Binary (pre-compiled) wallets are available on all platforms here in [Releases](
 3. **Optional** - the binaries to your favorite location. for use by all users, run the following commands:
 
     ```shell
-    sudo cp src/VERGEd /usr/bin/
-    sudo cp src/qt/VERGE-qt /usr/bin/
+    sudo cp src/verged /usr/bin/
+    sudo cp src/qt/verge-qt /usr/bin/
     ```
 
-4. Run `./VERGEd` from wherever you put it. The output from this command will tell you that you need to make a `VERGE.conf` file and will suggest some good starting values.
+4. Run `./verged` from wherever you put it. The output from this command will tell you that you need to make a `verge.conf` file and will suggest some good starting values.
 5.  Open up your new config file that was created in your home directory in your favorite text editor
 
     ```shell
-    nano ~/.VERGE/VERGE.conf
+    nano ~/.VERGE/verge.conf
     ```
 
-6. Paste the output from the `VERGEd` command into the VERGE.conf like this: (It is recommended to change the password to something unique.)
+6. Paste the output from the `verged` command into `verge.conf` like this: (It is recommended to change the password to something unique.)
 
     ```
     rpcuser=vergerpcusername
@@ -201,15 +223,15 @@ Binary (pre-compiled) wallets are available on all platforms here in [Releases](
     algo=groestl
     ```
 
-7. Save the file and exit your editor. If using `nano` type `ctrl + x` on your keyboard and the `y` and hitting enter. This should have created a `VERGE.conf` file with what you just added.
+7. Save the file and exit your editor. If using `nano` type `ctrl + x` on your keyboard and the `y` and hitting enter. This should have created a `verge.conf` file with what you just added.
 
 8. Start the Verge daemon again
 
     ```shell
-    ./path/to/VERGEd
+    ./path/to/verged
     ```
 
-> **Note:** To check the status of how much of the blockchain has been downloaded (aka synced) type `./path/to/VERGEd getinfo`.
+> **Note:** To check the status of how much of the blockchain has been downloaded (aka synced) type `./path/to/verged getinfo`.
 
 > **Note**: If you see something like 'Killed (program cc1plus)' run ```dmesg``` to see the error(s)/problems(s). This is most likely caused by running out of resources. You may need to add some RAM or add some swap space.
 
@@ -378,4 +400,3 @@ Alternatively, if you would like to make a suggestion regarding a potential fix 
 ### Security-related issues
 
 Contact the developers privately by sending an e-mail to contact@vergecurrency.com with the details of the issue. Do not post the issue on github or anywhere else until the issue has been resolved.
-
