@@ -960,7 +960,7 @@ jobs:
       - name: Build depends package index (no webengine)
         run: |
           cd depends/
-          make -j4 HOST=x86_64-linux-gnu QT_SKIP_WEBENGINE=1
+          make -j4 HOST=x86_64-linux-gnu QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1
 
       - name: Auto generate
         run: ./autogen.sh
@@ -1536,9 +1536,7 @@ jobs:
         run: |
           set -euo pipefail
           missing=0
-          for f in \
-            qtdeclarative-everywhere-src-6.10.2.tar.xz
-          do
+          for f in qtbase-everywhere-src-6.10.2.tar.xz qtsvg-everywhere-src-6.10.2.tar.xz qtwebsockets-everywhere-src-6.10.2.tar.xz; do
             if [ ! -f "depends/sources/$f" ]; then
               echo "::warning::Missing depends/sources/$f"
               missing=1
@@ -1564,7 +1562,7 @@ jobs:
             done ) &
           HB=$!
           trap 'kill "$HB" || true' EXIT
-          timeout 120m make HOST=x86_64-w64-mingw32 QT_SKIP_WEBENGINE=1 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
+          timeout 120m make HOST=x86_64-w64-mingw32 QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
 
       - name: Auto generate
         run: ./autogen.sh
