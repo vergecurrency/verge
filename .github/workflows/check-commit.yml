@@ -1095,17 +1095,17 @@ jobs:
             depends/i686-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-ve-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-vf-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-ve-
+            depends-${{ runner.os }}-mingw32-32-vf-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-ve-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-vf-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-ve-
+            ccache-${{ runner.os }}-mingw32-32-vf-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1122,7 +1122,7 @@ jobs:
       - name: Force Posix
         run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
-      - name: Sanity-check cached Qt sources (mingw32)
+      - name: Sanity-check cached Qt sources and host tools (mingw32)
         run: |
           set -euo pipefail
           missing=0
@@ -1135,10 +1135,17 @@ jobs:
               missing=1
             fi
           done
+          if [ ! -x "depends/i686-w64-mingw32/native/qt-host/bin/qmltime" ]; then
+            echo "::warning::Missing native Qt host tool qmltime"
+            missing=1
+          fi
           if [ "$missing" -eq 1 ]; then
-            echo "::warning::Clearing stale cached Qt state so depends can re-fetch."
+            echo "::warning::Clearing stale cached native_qt/qt state so depends can re-fetch and rebuild."
+            find depends/built -path "*/native_qt/*" -type f -delete || true
             find depends/built -path "*/qt/*" -type f -delete || true
+            rm -rf depends/work/build/*/native_qt* || true
             rm -rf depends/work/build/*/qt* || true
+            rm -rf depends/i686-w64-mingw32/native/qt-host || true
           fi
 
       - name: Build depends for MingW32 Cross Compile
@@ -1337,17 +1344,17 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v12-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-v13-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v12-
+            depends-${{ runner.os }}-mingw64-64-v13-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v12-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v13-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v12-
+            ccache-${{ runner.os }}-mingw64-64-v13-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1364,7 +1371,7 @@ jobs:
       - name: Force Posix
         run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
-      - name: Sanity-check cached Qt sources (mingw64)
+      - name: Sanity-check cached Qt sources and host tools (mingw64)
         run: |
           set -euo pipefail
           missing=0
@@ -1377,10 +1384,17 @@ jobs:
               missing=1
             fi
           done
+          if [ ! -x "depends/x86_64-w64-mingw32/native/qt-host/bin/qmltime" ]; then
+            echo "::warning::Missing native Qt host tool qmltime"
+            missing=1
+          fi
           if [ "$missing" -eq 1 ]; then
-            echo "::warning::Clearing stale cached Qt state so depends can re-fetch."
+            echo "::warning::Clearing stale cached native_qt/qt state so depends can re-fetch and rebuild."
+            find depends/built -path "*/native_qt/*" -type f -delete || true
             find depends/built -path "*/qt/*" -type f -delete || true
+            rm -rf depends/work/build/*/native_qt* || true
             rm -rf depends/work/build/*/qt* || true
+            rm -rf depends/x86_64-w64-mingw32/native/qt-host || true
           fi
 
       - name: Build depends for MingW64 Cross Compile
