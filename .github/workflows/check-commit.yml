@@ -1095,17 +1095,17 @@ jobs:
             depends/i686-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-vi-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-vj-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-vi-
+            depends-${{ runner.os }}-mingw32-32-vj-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-vi-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-vj-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-vi-
+            ccache-${{ runner.os }}-mingw32-32-vj-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1115,7 +1115,7 @@ jobs:
           sudo apt-get install -y \
           build-essential libtool gperf autotools-dev automake pkg-config \
           bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-i686 mingw-w64-i686-dev ninja-build flex nodejs \
+          g++-mingw-w64-i686 mingw-w64-i686-dev ninja-build generate-ninja flex nodejs \
           libgl1-mesa-dev libegl1-mesa-dev libx11-dev libx11-xcb-dev \
           libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev libopengl-dev
 
@@ -1137,6 +1137,10 @@ jobs:
           done
           if [ ! -x "depends/i686-w64-mingw32/native/qt-host/bin/moc" ]; then
             echo "::warning::Missing native Qt host tool moc"
+            missing=1
+          fi
+          if ! command -v gn >/dev/null 2>&1; then
+            echo "::warning::Missing host gn binary"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then
@@ -1344,17 +1348,17 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v16-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-v17-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v16-
+            depends-${{ runner.os }}-mingw64-64-v17-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v16-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v17-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v16-
+            ccache-${{ runner.os }}-mingw64-64-v17-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1364,7 +1368,7 @@ jobs:
           sudo apt-get install -y \
           build-essential libtool gperf autotools-dev automake pkg-config \
           bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev ninja-build flex nodejs \
+          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev ninja-build generate-ninja flex nodejs \
           libgl1-mesa-dev libegl1-mesa-dev libx11-dev libx11-xcb-dev \
           libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev libopengl-dev
 
@@ -1386,6 +1390,10 @@ jobs:
           done
           if [ ! -x "depends/x86_64-w64-mingw32/native/qt-host/bin/moc" ]; then
             echo "::warning::Missing native Qt host tool moc"
+            missing=1
+          fi
+          if ! command -v gn >/dev/null 2>&1; then
+            echo "::warning::Missing host gn binary"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then
