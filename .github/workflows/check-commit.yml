@@ -1095,17 +1095,17 @@ jobs:
             depends/i686-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-vg-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw32-32-vh-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-vg-
+            depends-${{ runner.os }}-mingw32-32-vh-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-vg-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw32-32-vh-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-vg-
+            ccache-${{ runner.os }}-mingw32-32-vh-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1135,8 +1135,8 @@ jobs:
               missing=1
             fi
           done
-          if [ ! -x "depends/i686-w64-mingw32/native/qt-host/bin/qmltime" ]; then
-            echo "::warning::Missing native Qt host tool qmltime"
+          if [ ! -x "depends/i686-w64-mingw32/native/qt-host/bin/moc" ]; then
+            echo "::warning::Missing native Qt host tool moc"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then
@@ -1344,17 +1344,17 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v14-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-v15-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v14-
+            depends-${{ runner.os }}-mingw64-64-v15-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v14-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v15-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v14-
+            ccache-${{ runner.os }}-mingw64-64-v15-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1384,8 +1384,8 @@ jobs:
               missing=1
             fi
           done
-          if [ ! -x "depends/x86_64-w64-mingw32/native/qt-host/bin/qmltime" ]; then
-            echo "::warning::Missing native Qt host tool qmltime"
+          if [ ! -x "depends/x86_64-w64-mingw32/native/qt-host/bin/moc" ]; then
+            echo "::warning::Missing native Qt host tool moc"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then

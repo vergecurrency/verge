@@ -62,6 +62,7 @@ $(package)_config_opts += -DCMAKE_INSTALL_PREFIX=$(host_prefix)
 $(package)_config_opts += -DINSTALL_LIBEXECDIR=$(build_prefix)/bin
 $(package)_config_opts += -DQT_BUILD_EXAMPLES=FALSE
 $(package)_config_opts += -DQT_BUILD_TESTS=FALSE
+$(package)_config_opts += -DQT_BUILD_QMLDEVTOOLS=OFF
 $(package)_config_opts += -DQT_GENERATE_SBOM=OFF
 $(package)_config_opts += -DQT_FEATURE_cups=OFF
 $(package)_config_opts += -DQT_FEATURE_qmake=OFF
