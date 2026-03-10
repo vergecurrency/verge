@@ -653,16 +653,16 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
   VERGE_QT_CHECK([
       if test "x$QT_LIB_PREFIX" = xQt6; then
         dnl Static link order matters: bundled libs must come after Qt6 modules.
-        if test "x$ac_cv_search_z_inflateInit2_" != xno; then
+        if test "x$ac_cv_search_z_inflateInit2_" = "x-lQt6BundledZLIB"; then
           QT_LIBS="$QT_LIBS -lQt6BundledZLIB"
         fi
-        if test "x$ac_cv_search_png_create_read_struct" != xno; then
+        if test "x$ac_cv_search_png_create_read_struct" = "x-lQt6BundledLibpng"; then
           QT_LIBS="$QT_LIBS -lQt6BundledLibpng"
         fi
-        if test "x$ac_cv_search_pcre2_match_16" != xno; then
+        if test "x$ac_cv_search_pcre2_match_16" = "x-lQt6BundledPcre2"; then
           QT_LIBS="$QT_LIBS -lQt6BundledPcre2"
         fi
-        if test "x$ac_cv_search_hb_ot_tags_from_script" != xno; then
+        if test "x$ac_cv_search_hb_ot_tags_from_script" = "x-lQt6BundledHarfbuzz"; then
           QT_LIBS="$QT_LIBS -lQt6BundledHarfbuzz"
         fi
         if test "x$TARGET_OS" = xlinux; then
