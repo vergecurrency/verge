@@ -1541,17 +1541,17 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-noswap-v4-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-noswap-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-noswap-v4-
+            depends-${{ runner.os }}-mingw64-64-noswap-v5-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-noswap-v4-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-noswap-v5-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-noswap-v4-
+            ccache-${{ runner.os }}-mingw64-64-noswap-v5-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1578,10 +1578,24 @@ jobs:
               missing=1
             fi
           done
+          for f in \
+            depends/x86_64-w64-mingw32/lib/libQt6BundledZLIB.a \
+            depends/x86_64-w64-mingw32/lib/libQt6BundledPcre2.a \
+            depends/x86_64-w64-mingw32/lib/libQt6BundledHarfbuzz.a
+          do
+            if [ ! -f "$f" ]; then
+              echo "::warning::Missing cached target Qt archive $f"
+              missing=1
+            fi
+          done
           if [ "$missing" -eq 1 ]; then
-            echo "::warning::Clearing stale cached Qt state so depends can re-fetch."
+            echo "::warning::Clearing stale cached Qt/native_qt state so depends can re-fetch and rebuild."
+            find depends/built -path "*/native_qt/*" -type f -delete || true
             find depends/built -path "*/qt/*" -type f -delete || true
+            rm -rf depends/work/build/*/native_qt* || true
             rm -rf depends/work/build/*/qt* || true
+            rm -rf depends/x86_64-w64-mingw32/native/qt-host || true
+            rm -rf depends/x86_64-w64-mingw32 || true
           fi
 
       - name: Build depends for MingW64 Cross Compile (no webengine)
