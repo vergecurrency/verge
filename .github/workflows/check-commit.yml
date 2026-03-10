@@ -941,7 +941,8 @@ jobs:
           sudo apt-get install -y \
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
-          g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs
+          g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
+          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
 
       - name: Enable ccache wrappers
         run: |
@@ -1010,7 +1011,7 @@ jobs:
           libseccomp-dev git build-essential xutils-dev libtool gperf autotools-dev \
           automake pkg-config bsdmainutils libattr1-dev make automake bison byacc \
           cmake curl bison byacc python3 libcap-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
-          ninja-build flex nodejs gyp
+          ninja-build flex nodejs gyp libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
 
       - name: Export toolchain env
         run: |
@@ -1023,7 +1024,7 @@ jobs:
       - name: Build depends
         run: |
           cd depends/
-          make -j1 HOST=aarch64-linux-gnu QT_SKIP_WEBENGINE=1
+          make -j1 HOST=aarch64-linux-gnu QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1
 
       - name: Auto generate
         run: ./autogen.sh

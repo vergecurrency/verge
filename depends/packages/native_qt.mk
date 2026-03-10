@@ -24,14 +24,10 @@ $(package)_config_opts += -DQT_GENERATE_SBOM=OFF
 $(package)_config_opts += -DQT_FEATURE_dbus=OFF
 $(package)_config_opts += -DQT_FEATURE_openssl=OFF
 $(package)_config_opts += -DQT_FEATURE_printsupport=OFF
-$(package)_config_opts += -DINPUT_opengl=no
-$(package)_config_opts += -DQT_FEATURE_opengl=OFF
+$(package)_config_opts += -DINPUT_opengl=desktop
+$(package)_config_opts += -DQT_FEATURE_opengl=ON
 $(package)_config_opts += -DQT_FEATURE_opengles2=OFF
-$(package)_config_opts += -DQT_FEATURE_opengl_desktop=OFF
-$(package)_config_opts_mingw32 += -DINPUT_opengl=desktop
-$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl=ON
-$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles2=OFF
-$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl_desktop=ON
+$(package)_config_opts += -DQT_FEATURE_opengl_desktop=ON
 $(package)_config_opts += -G Ninja
 endef
 
