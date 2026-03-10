@@ -770,7 +770,7 @@ jobs:
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
           g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
-          libgl1-mesa-dev libegl1-mesa-dev
+          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
 
       - name: Build non-Qt depends
         run: |
@@ -810,7 +810,7 @@ jobs:
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
           g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
-          libgl1-mesa-dev libegl1-mesa-dev
+          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
 
       - name: Build Qt depends
         run: |
@@ -852,7 +852,7 @@ jobs:
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
           g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
-          libgl1-mesa-dev libegl1-mesa-dev
+          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
 
       - name: Enable ccache wrappers
         run: |
