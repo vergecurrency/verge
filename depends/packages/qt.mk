@@ -15,6 +15,7 @@ $(package)_patches += root_CMakeLists.txt
 $(package)_patches += windows_func_fix.patch
 $(package)_patches += mingw_thread_power_throttling.patch
 $(package)_patches += mingw_network_compat.patch
+$(package)_patches += mingw_qtwebengine_default_crt.patch
 $(package)_patches += libxau-fix.patch
 $(package)_patches += toolchain.cmake
 $(package)_patches += fix_static_qt_darwin_camera_permissions.patch
@@ -241,7 +242,7 @@ define $(package)_preprocess_cmds
   if [ "$(QT_SKIP_WEBENGINE)" != "1" ]; then \
     sed -i '/VERSION_VAR/,+1d' qtwebengine/cmake/FindGn.cmake; \
   fi && \
-  if [ "$(host_os)" = "mingw32" ]; then \
+  if [ "$(host_os)" = "mingw32" ] && [ "$(QT_SKIP_WEBENGINE)" != "1" ]; then \
     patch -p1 -i $($(package)_patch_dir)/mingw_qtwebengine_default_crt.patch; \
   fi
 endef
