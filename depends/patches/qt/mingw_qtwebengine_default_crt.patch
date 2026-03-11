@@ -7,7 +7,6 @@
 -    default_compiler_configs -= [
 -      "//build/config/win:default_crt",
 -    ]
-+    
    }
  
    # Turn on linker CFI for executables, and static libraries, by default. Each
