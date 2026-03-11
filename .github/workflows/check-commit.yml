@@ -837,7 +837,7 @@ jobs:
         run: |
           cd depends/
           rc=0
-          timeout 5h50m make -j4 HOST=x86_64-linux-gnu qt || rc=$?
+          timeout 350m make -j4 HOST=x86_64-linux-gnu qt || rc=$?
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then
             exit "$rc"
           fi
@@ -911,7 +911,7 @@ jobs:
       - name: Build Qt depends phase 2
         run: |
           cd depends/
-          timeout 5h55m make -j4 HOST=x86_64-linux-gnu qt
+          timeout 355m make -j4 HOST=x86_64-linux-gnu qt
 
   ubuntu24:
     runs-on: ubuntu-24.04
