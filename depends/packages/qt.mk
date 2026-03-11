@@ -152,7 +152,7 @@ $(package)_config_opts_mingw32 += -DQT_QMAKE_TARGET_MKSPEC=win32-g++
 $(package)_config_opts_mingw32 += -DQT_HOST_PATH=$(build_prefix)/qt-host
 $(package)_config_opts_mingw32 += -DQT_HOST_PATH_CMAKE_DIR=$(build_prefix)/qt-host/lib/cmake
 $(package)_config_opts_mingw32 += -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake
-$(package)_config_opts_mingw32 += -DGN_EXECUTABLE=$(host_prefix)/native/bin/gn
+$(package)_config_opts_mingw32 += -DGn_EXECUTABLE=$(build_prefix)/qt-host/bin/gn
 $(package)_config_opts_mingw32 += -DINPUT_opengl=desktop
 $(package)_config_opts_mingw32 += -DQT_FEATURE_opengl=ON
 $(package)_config_opts_mingw32 += -DQT_FEATURE_opengles2=OFF
