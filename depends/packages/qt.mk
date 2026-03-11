@@ -240,7 +240,7 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_config_cmds
-  mkdir -p $(build_prefix)/qt-host $(build_prefix)/qt-host/lib/cmake && \
+  mkdir -p $(build_prefix)/qt-host $(build_prefix)/qt-host/bin $(build_prefix)/qt-host/lib/cmake && \
   mkdir -p $(host_prefix)/native/bin && \
   printf '%s\n' \
     '#!/usr/bin/env bash' \
@@ -255,6 +255,15 @@ define $(package)_config_cmds
     'export PYTHONPATH="$$$${PYTHONPATH_NATIVE}:$$$${PYTHONPATH}"' \
     'exec /usr/bin/python3 "$$$$@"' \
     > $(host_prefix)/native/bin/python3 && \
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -euo pipefail' \
+    'if [ -x "$(host_prefix)/native/bin/gn" ]; then' \
+    '  exec "$(host_prefix)/native/bin/gn" "$$$$@"' \
+    'fi' \
+    'exec "$$$$(command -v gn)" "$$$$@"' \
+    > $(build_prefix)/qt-host/bin/gn && \
+  chmod +x $(build_prefix)/qt-host/bin/gn && \
   chmod +x $(host_prefix)/native/bin/python3 && \
   export OPENSSL_LIBS=${$(package)_openssl_flags_$(host_os)} && \
   export PATH="$(host_prefix)/native/bin:$(host_prefix)/bin:$${PATH}" && \
