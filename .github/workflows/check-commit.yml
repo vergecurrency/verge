@@ -783,7 +783,7 @@ jobs:
             xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros \
             bdb miniupnpc
 
-  ubuntu24-depends-qt:
+  ubuntu24-depends-qt-phase1:
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-base
     steps:
@@ -833,14 +833,89 @@ jobs:
             rm -rf depends/work/build/*/qt* || true
           fi
 
-      - name: Build Qt depends
+      - name: Build Qt depends phase 1
         run: |
           cd depends/
-          make -j4 HOST=x86_64-linux-gnu qt
+          rc=0
+          timeout 5h50m make -j4 HOST=x86_64-linux-gnu qt || rc=$?
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then
+            exit "$rc"
+          fi
+
+      - name: Upload Qt work state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu24-linux64-qt-work-phase1
+          path: |
+            depends/work/build/x86_64-linux-gnu/qt
+            depends/work/staging/x86_64-linux-gnu/qt
+          if-no-files-found: ignore
+
+  ubuntu24-depends-qt-phase2:
+    runs-on: ubuntu-24.04
+    needs: ubuntu24-depends-qt-phase1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache depends Qt artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            depends/built
+            depends/x86_64-linux-gnu
+            depends/sources
+          key: depends-qt-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-qt-${{ runner.os }}-linux64-v2-
+            depends-base-${{ runner.os }}-linux64-v2-
+
+      - name: Download Qt work state
+        uses: actions/download-artifact@v4
+        with:
+          name: ubuntu24-linux64-qt-work-phase1
+          path: .
+
+      - name: Update apt repos
+        run: sudo apt-get update
+
+      - name: Install base dependencies
+        run: |
+          sudo apt-get install -y \
+          build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
+          bsdmainutils libattr1-dev make automake bison byacc cmake curl \
+          g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
+          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
+
+      - name: Sanity-check cached Qt sources (linux64)
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in \
+            qtshadertools-everywhere-src-6.10.2.tar.xz \
+            qtdeclarative-everywhere-src-6.10.2.tar.xz
+          do
+            if [ ! -f "depends/sources/$f" ]; then
+              echo "::warning::Missing depends/sources/$f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "::warning::Clearing stale cached Qt state so depends can re-fetch."
+            find depends/built -path "*/native_qt/*" -type f -delete || true
+            find depends/built -path "*/qt/*" -type f -delete || true
+            rm -rf depends/work/build/*/native_qt* || true
+            rm -rf depends/work/build/*/qt* || true
+          fi
+
+      - name: Build Qt depends phase 2
+        run: |
+          cd depends/
+          timeout 5h55m make -j4 HOST=x86_64-linux-gnu qt
 
   ubuntu24:
     runs-on: ubuntu-24.04
-    needs: ubuntu24-depends-qt
+    needs: ubuntu24-depends-qt-phase2
     steps:
       - uses: actions/checkout@v4
 
