@@ -1,6 +1,6 @@
 package=libcap
 $(package)_version=2.77
-$(package)_download_path=https://mirrors.edge.kernel.org/pub/linux/libs/security/linux-privs/libcap2/
+$(package)_download_path=https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=F07FCEC6F01EDC4BB18373067494FDCB718186AED720B97EC6C7A5D67B218F69
 

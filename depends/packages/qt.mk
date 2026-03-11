@@ -261,7 +261,10 @@ define $(package)_config_cmds
     'if [ -x "$(host_prefix)/native/bin/gn" ]; then' \
     '  exec "$(host_prefix)/native/bin/gn" "$$$$@"' \
     'fi' \
-    'exec "$$$$(command -v gn)" "$$$$@"' \
+    'if [ -x /usr/local/bin/gn ]; then' \
+    '  exec /usr/local/bin/gn "$$$$@"' \
+    'fi' \
+    'exec /usr/bin/gn "$$$$@"' \
     > $(build_prefix)/qt-host/bin/gn && \
   chmod +x $(build_prefix)/qt-host/bin/gn && \
   chmod +x $(host_prefix)/native/bin/python3 && \

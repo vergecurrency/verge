@@ -1137,7 +1137,10 @@ jobs:
           cat > "$PWD/depends/i686-w64-mingw32/native/bin/gn" <<'EOF'
           #!/usr/bin/env bash
           set -euo pipefail
-          exec "$(command -v gn)" "$@"
+          if [ -x /usr/local/bin/gn ]; then
+            exec /usr/local/bin/gn "$@"
+          fi
+          exec /usr/bin/gn "$@"
           EOF
           chmod +x "$PWD/depends/i686-w64-mingw32/native/bin/gn"
           "$PWD/depends/i686-w64-mingw32/native/bin/gn" --version >/dev/null 2>&1 || \
@@ -1432,7 +1435,10 @@ jobs:
           cat > "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" <<'EOF'
           #!/usr/bin/env bash
           set -euo pipefail
-          exec "$(command -v gn)" "$@"
+          if [ -x /usr/local/bin/gn ]; then
+            exec /usr/local/bin/gn "$@"
+          fi
+          exec /usr/bin/gn "$@"
           EOF
           chmod +x "$PWD/depends/x86_64-w64-mingw32/native/bin/gn"
           "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" --version >/dev/null 2>&1 || \
