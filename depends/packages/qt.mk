@@ -236,7 +236,9 @@ define $(package)_preprocess_cmds
   sed -i -e 's/qt_find_package(XKB 0.9.0 /qt_find_package(XKB 0.8.4 /' \
          -e 's/qt_find_package(XKB_COMMON_X11 0.9.0 /qt_find_package(XKB_COMMON_X11 0.8.4 /' src/gui/configure.cmake && \
   patch -p1 -i $($(package)_patch_dir)/libxau-fix.patch && \
-  patch -p1 -i $($(package)_patch_dir)/fix_static_qt_darwin_camera_permissions.patch
+  patch -p1 -i $($(package)_patch_dir)/fix_static_qt_darwin_camera_permissions.patch && \
+  cd .. && \
+  $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,sed -i '/VERSION_VAR/,+1d' qtwebengine/cmake/FindGn.cmake)
 endef
 
 define $(package)_config_cmds
