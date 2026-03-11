@@ -238,7 +238,8 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/libxau-fix.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_static_qt_darwin_camera_permissions.patch && \
   cd .. && \
-  $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,sed -i '/VERSION_VAR/,+1d' qtwebengine/cmake/FindGn.cmake)
+  $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,sed -i '/VERSION_VAR/,+1d' qtwebengine/cmake/FindGn.cmake && \
+    sed -i '/if (is_mingw) {/,/}/c\\if (is_mingw) {\\n}' qtwebengine/src/3rdparty/chromium/build/config/BUILDCONFIG.gn)
 endef
 
 define $(package)_config_cmds
