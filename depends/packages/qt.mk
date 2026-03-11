@@ -239,10 +239,7 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/fix_static_qt_darwin_camera_permissions.patch && \
   cd .. && \
   $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,sed -i '/VERSION_VAR/,+1d' qtwebengine/cmake/FindGn.cmake) && \
-  $(if $(filter mingw32,$(host_os)),sed -i '/if (is_mingw) {/,/}/c\
-if (is_mingw) {\
-}\
-' qtwebengine/src/3rdparty/chromium/build/config/BUILDCONFIG.gn,true)
+  $(if $(filter mingw32,$(host_os)),perl -0pi -e 's@if \\(is_mingw\\) \\{\\n  default_compiler_configs -= \\[\\n    "//build/config/win:default_crt",\\n  \\]\\n\\}@if (is_mingw) {\\n}@' qtwebengine/src/3rdparty/chromium/build/config/BUILDCONFIG.gn,true)
 endef
 
 define $(package)_config_cmds
