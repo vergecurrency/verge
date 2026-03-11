@@ -1130,6 +1130,19 @@ jobs:
           fi
           command -v gn
 
+      - name: Install gn shim into depends native bin
+        run: |
+          set -euo pipefail
+          mkdir -p "$PWD/depends/i686-w64-mingw32/native/bin"
+          cat > "$PWD/depends/i686-w64-mingw32/native/bin/gn" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          exec "$(command -v gn)" "$@"
+          EOF
+          chmod +x "$PWD/depends/i686-w64-mingw32/native/bin/gn"
+          "$PWD/depends/i686-w64-mingw32/native/bin/gn" --version >/dev/null 2>&1 || \
+            "$PWD/depends/i686-w64-mingw32/native/bin/gn" help >/dev/null 2>&1
+
       - name: Sanity-check cached Qt sources and host tools (mingw32)
         run: |
           set -euo pipefail
@@ -1147,8 +1160,8 @@ jobs:
             echo "::warning::Missing native Qt host tool moc"
             missing=1
           fi
-          if ! command -v gn >/dev/null 2>&1; then
-            echo "::warning::Missing host gn binary"
+          if [ ! -x "depends/i686-w64-mingw32/native/bin/gn" ]; then
+            echo "::warning::Missing host gn shim in depends native bin"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then
@@ -1391,6 +1404,19 @@ jobs:
           fi
           command -v gn
 
+      - name: Install gn shim into depends native bin
+        run: |
+          set -euo pipefail
+          mkdir -p "$PWD/depends/x86_64-w64-mingw32/native/bin"
+          cat > "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          exec "$(command -v gn)" "$@"
+          EOF
+          chmod +x "$PWD/depends/x86_64-w64-mingw32/native/bin/gn"
+          "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" --version >/dev/null 2>&1 || \
+            "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" help >/dev/null 2>&1
+
       - name: Sanity-check cached Qt sources and host tools (mingw64)
         run: |
           set -euo pipefail
@@ -1408,8 +1434,8 @@ jobs:
             echo "::warning::Missing native Qt host tool moc"
             missing=1
           fi
-          if ! command -v gn >/dev/null 2>&1; then
-            echo "::warning::Missing host gn binary"
+          if [ ! -x "depends/x86_64-w64-mingw32/native/bin/gn" ]; then
+            echo "::warning::Missing host gn shim in depends native bin"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then
