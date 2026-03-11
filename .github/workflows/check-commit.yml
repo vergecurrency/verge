@@ -1280,6 +1280,8 @@ jobs:
 
           PREFIX="$PWD/depends/i686-w64-mingw32"
           BUNDLE="$PWD/release/windows32"
+          MINGW_TRIPLET="i686-w64-mingw32"
+          MINGW_CXX="${MINGW_TRIPLET}-g++-posix"
 
           mkdir -p "$BUNDLE/platforms" "$BUNDLE/plugins/platforms"
 
@@ -1287,6 +1289,25 @@ jobs:
           cp "$PWD/src/verge-cli.exe" "$BUNDLE/"
           cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
           cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
+
+          find_local_dll() {
+            local dll="$1"
+            local found=""
+            found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
+            if [ -n "$found" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+              return 0
+            fi
+            found="$("$MINGW_CXX" -print-file-name="$dll" 2>/dev/null || true)"
+            if [ -n "$found" ] && [ "$found" != "$dll" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+              return 0
+            fi
+            found="$(find "/usr/$MINGW_TRIPLET" "/usr/lib/gcc/$MINGW_TRIPLET" -type f -iname "$dll" 2>/dev/null | head -n1 || true)"
+            if [ -n "$found" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+            fi
+          }
 
           copy_local_dll_deps() {
             local target="$1"
@@ -1298,7 +1319,7 @@ jobs:
                     continue
                   fi
                   local found=""
-                  found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
+                  found="$(find_local_dll "$dll")"
                   if [ -n "$found" ] && [ -f "$found" ]; then
                     cp "$found" "$BUNDLE/"
                   fi
@@ -1557,6 +1578,8 @@ jobs:
 
           PREFIX="$PWD/depends/x86_64-w64-mingw32"
           BUNDLE="$PWD/release/windows64"
+          MINGW_TRIPLET="x86_64-w64-mingw32"
+          MINGW_CXX="${MINGW_TRIPLET}-g++-posix"
 
           mkdir -p "$BUNDLE/platforms" "$BUNDLE/plugins/platforms"
 
@@ -1564,6 +1587,25 @@ jobs:
           cp "$PWD/src/verge-cli.exe" "$BUNDLE/"
           cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
           cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
+
+          find_local_dll() {
+            local dll="$1"
+            local found=""
+            found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
+            if [ -n "$found" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+              return 0
+            fi
+            found="$("$MINGW_CXX" -print-file-name="$dll" 2>/dev/null || true)"
+            if [ -n "$found" ] && [ "$found" != "$dll" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+              return 0
+            fi
+            found="$(find "/usr/$MINGW_TRIPLET" "/usr/lib/gcc/$MINGW_TRIPLET" -type f -iname "$dll" 2>/dev/null | head -n1 || true)"
+            if [ -n "$found" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+            fi
+          }
 
           copy_local_dll_deps() {
             local target="$1"
@@ -1575,7 +1617,7 @@ jobs:
                     continue
                   fi
                   local found=""
-                  found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
+                  found="$(find_local_dll "$dll")"
                   if [ -n "$found" ] && [ -f "$found" ]; then
                     cp "$found" "$BUNDLE/"
                   fi
@@ -1814,6 +1856,8 @@ jobs:
 
           PREFIX="$PWD/depends/x86_64-w64-mingw32"
           BUNDLE="$PWD/release/windows64-noswap"
+          MINGW_TRIPLET="x86_64-w64-mingw32"
+          MINGW_CXX="${MINGW_TRIPLET}-g++-posix"
 
           mkdir -p "$BUNDLE/platforms" "$BUNDLE/plugins/platforms"
 
@@ -1821,6 +1865,25 @@ jobs:
           cp "$PWD/src/verge-cli.exe" "$BUNDLE/"
           cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
           cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
+
+          find_local_dll() {
+            local dll="$1"
+            local found=""
+            found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
+            if [ -n "$found" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+              return 0
+            fi
+            found="$("$MINGW_CXX" -print-file-name="$dll" 2>/dev/null || true)"
+            if [ -n "$found" ] && [ "$found" != "$dll" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+              return 0
+            fi
+            found="$(find "/usr/$MINGW_TRIPLET" "/usr/lib/gcc/$MINGW_TRIPLET" -type f -iname "$dll" 2>/dev/null | head -n1 || true)"
+            if [ -n "$found" ] && [ -f "$found" ]; then
+              printf '%s\n' "$found"
+            fi
+          }
 
           copy_local_dll_deps() {
             local target="$1"
@@ -1832,7 +1895,7 @@ jobs:
                     continue
                   fi
                   local found=""
-                  found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
+                  found="$(find_local_dll "$dll")"
                   if [ -n "$found" ] && [ -f "$found" ]; then
                     cp "$found" "$BUNDLE/"
                   fi
