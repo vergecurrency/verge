@@ -1,0 +1,13 @@
+--- a/qtwebengine/src/3rdparty/chromium/build/config/BUILDCONFIG.gn
++++ b/qtwebengine/src/3rdparty/chromium/build/config/BUILDCONFIG.gn
+@@ -397,11 +397,7 @@ if (is_win) {
+     ]
+   }
+   if (is_mingw) {
+-    default_compiler_configs -= [
+-      "//build/config/win:default_crt",
+-    ]
++    
+   }
+ 
+   # Turn on linker CFI for executables, and static libraries, by default. Each
