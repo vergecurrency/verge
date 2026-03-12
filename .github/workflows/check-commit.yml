@@ -1186,17 +1186,17 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v17-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-64-v18-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v17-
+            depends-${{ runner.os }}-mingw64-64-v18-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v17-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-64-v18-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v17-
+            ccache-${{ runner.os }}-mingw64-64-v18-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -1242,8 +1242,9 @@ jobs:
           set -euo pipefail
           missing=0
           for f in \
-            qtdeclarative-everywhere-src-6.10.2.tar.xz \
-            qtwebengine-everywhere-src-6.10.2.tar.xz
+            qtbase-everywhere-src-6.10.2.tar.xz \
+            qtsvg-everywhere-src-6.10.2.tar.xz \
+            qtwebsockets-everywhere-src-6.10.2.tar.xz
           do
             if [ ! -f "depends/sources/$f" ]; then
               echo "::warning::Missing depends/sources/$f"
@@ -1281,7 +1282,7 @@ jobs:
             done ) &
           HB=$!
           trap 'kill "$HB" || true' EXIT
-          timeout 120m make HOST=x86_64-w64-mingw32 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
+          timeout 120m make HOST=x86_64-w64-mingw32 QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
 
       - name: Auto generate
         run: ./autogen.sh
