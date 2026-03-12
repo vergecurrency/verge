@@ -226,6 +226,25 @@ function Install-Bdb {
         Set-Content -Path $dbCxxHeader -Value $patched -Encoding ASCII
     }
 
+    $cxxWorkaround = @'
+#ifdef atomic_init
+#undef atomic_init
+#endif
+'@
+    foreach ($cxxSource in Get-ChildItem -Path (Join-Path $sourceRoot "cxx") -Filter "*.cpp" -File) {
+        $cxxSourceText = Get-Content $cxxSource.FullName -Raw
+        if ($cxxSourceText -notmatch 'Codex MSVC atomic_init source workaround') {
+            $patchedSource = $cxxSourceText -replace '#include "db_int.h"\r?\n', @'
+#include "db_int.h"
+/* Codex MSVC atomic_init source workaround */
+'@ + $cxxWorkaround
+            if ($patchedSource -eq $cxxSourceText) {
+                throw "Could not apply Berkeley DB source workaround to $($cxxSource.FullName)"
+            }
+            Set-Content -Path $cxxSource.FullName -Value $patchedSource -Encoding ASCII
+        }
+    }
+
     $dbProject = Get-ChildItem -Path $buildWindows -Recurse -Filter "db.vcxproj" -File |
         Select-Object -First 1 |
         ForEach-Object { $_.FullName }
