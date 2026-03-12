@@ -110,10 +110,19 @@ function Install-Qt {
     )
     Write-Section "Installing Qt $Version ($Arch)"
     python -m pip install --upgrade pip
+    if ($LASTEXITCODE -ne 0) {
+        throw "pip upgrade failed"
+    }
     python -m pip install --upgrade aqtinstall
+    if ($LASTEXITCODE -ne 0) {
+        throw "aqtinstall install failed"
+    }
     python -m aqt install-qt windows desktop $Version $Arch `
         -O $InstallRoot `
-        -m qtwebengine qt5compat qtsvg qttools qttranslations
+        -m qtwebengine qt5compat
+    if ($LASTEXITCODE -ne 0) {
+        throw "Qt installation failed"
+    }
 }
 
 function Install-Boost {
@@ -179,7 +188,7 @@ function Install-Bdb {
         [Parameter(Mandatory = $true)][string]$Version
     )
     Write-Section "Building Berkeley DB $Version"
-    Ensure-Command devenv.com "Visual Studio with devenv.com is required to build Berkeley DB on Windows."
+    Ensure-Command msbuild "Visual Studio with MSBuild is required to build Berkeley DB on Windows."
 
     $archive = Join-Path $downloads "db-$Version.tar.gz"
     $extractRoot = Join-Path $buildRoot "db-$Version-src"
@@ -194,20 +203,34 @@ function Install-Bdb {
         throw "Berkeley DB build_windows directory not found under $sourceRoot"
     }
 
-    Push-Location $buildWindows
-    $solution = @(
-        (Join-Path $buildWindows "Berkeley_DB.sln"),
-        (Join-Path $buildWindows "db.sln")
-    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-    if (-not $solution) {
-        throw "Could not find a Berkeley DB Windows solution file under $buildWindows"
+    $dbCxxHeader = Join-Path $buildWindows "db_cxx.h"
+    if (-not (Test-Path $dbCxxHeader)) {
+        throw "Could not find Berkeley DB C++ header at $dbCxxHeader"
+    }
+    $dbCxxText = Get-Content $dbCxxHeader -Raw
+    if ($dbCxxText -notmatch 'Codex MSVC atomic_init workaround') {
+        $patched = $dbCxxText -replace '#include "db.h"', @'
+#include "db.h"
+/* Codex MSVC atomic_init workaround */
+#ifdef atomic_init
+#undef atomic_init
+#endif
+'@
+        if ($patched -eq $dbCxxText) {
+            throw "Could not apply Berkeley DB atomic_init workaround to $dbCxxHeader"
+        }
+        Set-Content -Path $dbCxxHeader -Value $patched -Encoding ASCII
     }
 
-    & devenv.com $solution /Upgrade | Out-Null
-    & devenv.com $solution /Build "Release|x64"
+    $dbProject = Join-Path $buildWindows "db.vcxproj"
+    if (-not (Test-Path $dbProject)) {
+        throw "Could not find Berkeley DB project file under $buildWindows"
+    }
+
+    Push-Location $buildWindows
+    & msbuild $dbProject /m /t:Build /p:Configuration=Release /p:Platform=x64
     if ($LASTEXITCODE -ne 0) {
-        throw "Berkeley DB build failed"
+        throw "Berkeley DB library build failed"
     }
     Pop-Location
 
@@ -215,25 +238,26 @@ function Install-Bdb {
     Copy-Item (Join-Path $sourceRoot "build_windows\db.h") (Join-Path $InstallRoot "include\db.h") -Force
     Copy-Item (Join-Path $sourceRoot "build_windows\db_cxx.h") (Join-Path $InstallRoot "include\db_cxx.h") -Force
 
+    $cLib = Get-ChildItem -Path $buildWindows -Recurse -File |
+        Where-Object { $_.Name -match '^libdb48\.lib$|^db48\.lib$|^libdb.*48.*\.lib$|^db.*48.*\.lib$' -and $_.Name -notmatch 'cxx|stl' } |
+        Select-Object -First 1
     $cxxLib = Get-ChildItem -Path $buildWindows -Recurse -File |
         Where-Object { $_.Name -match '^libdb_cxx.*48.*\.lib$|^db_cxx.*48.*\.lib$' } |
         Select-Object -First 1
-    $cLib = Get-ChildItem -Path $buildWindows -Recurse -File |
-        Where-Object { $_.Name -match '^libdb.*48.*\.lib$|^db.*48.*\.lib$' -and $_.Name -notmatch 'cxx' } |
-        Select-Object -First 1
 
+    if (-not $cLib) {
+        throw "Could not locate Berkeley DB library output under $buildWindows"
+    }
     if (-not $cxxLib) {
-        throw "Could not locate Berkeley DB C++ library output under $buildWindows"
+        $cxxLib = $cLib
     }
 
     Copy-Item $cxxLib.FullName (Join-Path $InstallRoot "lib\db_cxx-4.8.lib") -Force
     Copy-Item $cxxLib.FullName (Join-Path $InstallRoot "lib\db_cxx.lib") -Force
     Copy-Item $cxxLib.FullName (Join-Path $InstallRoot "lib\db4_cxx.lib") -Force
-    if ($cLib) {
-        Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db-4.8.lib") -Force
-        Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db.lib") -Force
-        Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db4.lib") -Force
-    }
+    Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db-4.8.lib") -Force
+    Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db.lib") -Force
+    Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db4.lib") -Force
 }
 
 function Install-VcpkgDeps {
