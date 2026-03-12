@@ -226,7 +226,9 @@ function Install-Bdb {
         Set-Content -Path $dbCxxHeader -Value $patched -Encoding ASCII
     }
 
-    $dbProject = Join-Path $buildWindows "db.vcxproj"
+    $dbProject = Get-ChildItem -Path $buildWindows -Recurse -Filter "db.vcxproj" -File |
+        Select-Object -First 1 |
+        ForEach-Object { $_.FullName }
     if (-not (Test-Path $dbProject)) {
         throw "Could not find Berkeley DB project file under $buildWindows"
     }
