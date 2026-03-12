@@ -229,7 +229,22 @@ function Install-Bdb {
     $dbProject = Get-ChildItem -Path $buildWindows -Recurse -Filter "db.vcxproj" -File |
         Select-Object -First 1 |
         ForEach-Object { $_.FullName }
-    if (-not (Test-Path $dbProject)) {
+    if (-not $dbProject) {
+        Ensure-Command devenv.com "Visual Studio with devenv.com is required to upgrade Berkeley DB projects."
+        $solution = Get-ChildItem -Path $buildWindows -Recurse -Include "Berkeley_DB.sln", "db.sln" -File |
+            Select-Object -First 1 |
+            ForEach-Object { $_.FullName }
+        if ($solution) {
+            & devenv.com $solution /Upgrade | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw "Berkeley DB solution upgrade failed"
+            }
+            $dbProject = Get-ChildItem -Path $buildWindows -Recurse -Filter "db.vcxproj" -File |
+                Select-Object -First 1 |
+                ForEach-Object { $_.FullName }
+        }
+    }
+    if (-not $dbProject) {
         throw "Could not find Berkeley DB project file under $buildWindows"
     }
 
