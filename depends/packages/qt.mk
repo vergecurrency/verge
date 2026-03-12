@@ -243,7 +243,9 @@ define $(package)_preprocess_cmds
     sed -i '/VERSION_VAR/,+1d' qtwebengine/cmake/FindGn.cmake; \
   fi && \
   if [ "$(host_os)" = "mingw32" ] && [ "$(QT_SKIP_WEBENGINE)" != "1" ]; then \
-    patch -N -p1 -i $($(package)_patch_dir)/mingw_qtwebengine_default_crt.patch; \
+    if grep -q '"//build/config/win:default_crt"' qtwebengine/src/3rdparty/chromium/build/config/BUILDCONFIG.gn; then \
+      patch -p1 -i $($(package)_patch_dir)/mingw_qtwebengine_default_crt.patch; \
+    fi; \
   fi
 endef
 
