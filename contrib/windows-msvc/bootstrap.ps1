@@ -207,6 +207,10 @@ function Install-Bdb {
     if (-not (Test-Path $dbCxxHeader)) {
         throw "Could not find Berkeley DB C++ header at $dbCxxHeader"
     }
+    $dbCxxHeaderItem = Get-Item $dbCxxHeader
+    if ($dbCxxHeaderItem.IsReadOnly) {
+        $dbCxxHeaderItem.IsReadOnly = $false
+    }
     $dbCxxText = Get-Content $dbCxxHeader -Raw
     if ($dbCxxText -notmatch 'Codex MSVC atomic_init workaround') {
         $patched = $dbCxxText -replace '#include "db.h"', @'
