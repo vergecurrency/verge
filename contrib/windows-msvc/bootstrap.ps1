@@ -234,10 +234,11 @@ function Install-Bdb {
     foreach ($cxxSource in Get-ChildItem -Path (Join-Path $sourceRoot "cxx") -Filter "*.cpp" -File) {
         $cxxSourceText = Get-Content $cxxSource.FullName -Raw
         if ($cxxSourceText -notmatch 'Codex MSVC atomic_init source workaround') {
-            $patchedSource = $cxxSourceText -replace '#include "db_int.h"\r?\n', @'
+            $replacement = @'
 #include "db_int.h"
 /* Codex MSVC atomic_init source workaround */
 '@ + $cxxWorkaround
+            $patchedSource = $cxxSourceText -replace '#include "db_int.h"\r?\n', $replacement
             if ($patchedSource -eq $cxxSourceText) {
                 throw "Could not apply Berkeley DB source workaround to $($cxxSource.FullName)"
             }
