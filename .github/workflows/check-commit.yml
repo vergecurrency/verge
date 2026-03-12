@@ -842,14 +842,22 @@ jobs:
             exit "$rc"
           fi
 
+      - name: Pack Qt work state
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p depends/work/artifacts
+          tar -C depends/work -I 'zstd -T0 -19' -cf \
+            depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst \
+            build/x86_64-linux-gnu/qt \
+            staging/x86_64-linux-gnu/qt
+
       - name: Upload Qt work state
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ubuntu24-linux64-qt-work-phase1
-          path: |
-            depends/work/build/x86_64-linux-gnu/qt
-            depends/work/staging/x86_64-linux-gnu/qt
+          path: depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst
           if-no-files-found: ignore
 
   ubuntu24-depends-qt-phase2:
@@ -874,7 +882,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ubuntu24-linux64-qt-work-phase1
-          path: .
+          path: depends/work/artifacts
+
+      - name: Restore Qt work state
+        run: |
+          set -euo pipefail
+          if [ -f depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst ]; then
+            mkdir -p depends/work
+            tar -C depends/work -I zstd -xf depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst
+          fi
 
       - name: Update apt repos
         run: sudo apt-get update
