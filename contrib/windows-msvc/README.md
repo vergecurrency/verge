@@ -24,14 +24,15 @@ What the bootstrap script does
 2. install Qt `6.10.2` with MSVC 2022 binaries and Qt WebEngine via `aqtinstall`
 3. build Boost `1.86.0` from source with MSVC
 4. build OpenSSL `3.6.1` from source with MSVC
-5. bootstrap `vcpkg` and install Windows-native support libraries currently
+5. build Berkeley DB `4.8.30.NC` from source with MSVC
+6. bootstrap `vcpkg` and install Windows-native support libraries currently
    used by the project:
    - `libevent`
    - `protobuf`
    - `qrencode`
    - `miniupnpc`
    - `zeromq`
-6. write `env-msvc.ps1` with the resulting paths
+7. write `env-msvc.ps1` with the resulting paths and pkg-config hints
 
 Usage
 -----
@@ -55,9 +56,6 @@ Current limitations
 - This is a bootstrap path, not a completed MSVC build pipeline.
 - The current repo still does not have a first-class MSVC replacement for the
   existing MinGW-based `depends` host.
-- Berkeley DB 4.8 is still a gap for wallet-enabled MSVC builds. The top-level
-  autotools logic currently expects native `db_cxx` headers and libraries, and
-  this bootstrap path does not yet automate that on Windows.
 - If you want a full Windows WebEngine CI job, the next step is to wire a new
   workflow job to this bootstrap path and then solve the remaining MSVC-only
   project configuration issues in isolation.

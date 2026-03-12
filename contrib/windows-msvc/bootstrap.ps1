@@ -4,10 +4,12 @@ param(
     [string]$QtArch = "win64_msvc2022_64",
     [string]$BoostVersion = "1.86.0",
     [string]$OpenSSLVersion = "3.6.1",
+    [string]$BdbVersion = "4.8.30.NC",
     [string]$VcpkgRoot = "",
     [switch]$SkipQt,
     [switch]$SkipBoost,
     [switch]$SkipOpenSSL,
+    [switch]$SkipBdb,
     [switch]$SkipVcpkg
 )
 
@@ -30,6 +32,11 @@ function Invoke-Download {
     }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $OutFile) | Out-Null
     Invoke-WebRequest -Uri $Url -OutFile $OutFile
+}
+
+function Convert-ToForwardPath {
+    param([Parameter(Mandatory = $true)][string]$PathValue)
+    return ($PathValue -replace "\\", "/")
 }
 
 function Expand-ArchiveAny {
@@ -166,9 +173,73 @@ function Install-OpenSSL {
     Pop-Location
 }
 
+function Install-Bdb {
+    param(
+        [Parameter(Mandatory = $true)][string]$InstallRoot,
+        [Parameter(Mandatory = $true)][string]$Version
+    )
+    Write-Section "Building Berkeley DB $Version"
+    Ensure-Command devenv.com "Visual Studio with devenv.com is required to build Berkeley DB on Windows."
+
+    $archive = Join-Path $downloads "db-$Version.tar.gz"
+    $extractRoot = Join-Path $buildRoot "db-$Version-src"
+    $sourceRoot = Join-Path $extractRoot "db-$Version"
+    Invoke-Download "https://download.oracle.com/berkeley-db/db-$Version.tar.gz" $archive
+    if (-not (Test-Path $sourceRoot)) {
+        Expand-ArchiveAny $archive $extractRoot
+    }
+
+    $buildWindows = Join-Path $sourceRoot "build_windows"
+    if (-not (Test-Path $buildWindows)) {
+        throw "Berkeley DB build_windows directory not found under $sourceRoot"
+    }
+
+    Push-Location $buildWindows
+    $solution = @(
+        (Join-Path $buildWindows "Berkeley_DB.sln"),
+        (Join-Path $buildWindows "db.sln")
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+    if (-not $solution) {
+        throw "Could not find a Berkeley DB Windows solution file under $buildWindows"
+    }
+
+    & devenv.com $solution /Upgrade | Out-Null
+    & devenv.com $solution /Build "Release|x64"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Berkeley DB build failed"
+    }
+    Pop-Location
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $InstallRoot "include"), (Join-Path $InstallRoot "lib") | Out-Null
+    Copy-Item (Join-Path $sourceRoot "build_windows\db.h") (Join-Path $InstallRoot "include\db.h") -Force
+    Copy-Item (Join-Path $sourceRoot "build_windows\db_cxx.h") (Join-Path $InstallRoot "include\db_cxx.h") -Force
+
+    $cxxLib = Get-ChildItem -Path $buildWindows -Recurse -File |
+        Where-Object { $_.Name -match '^libdb_cxx.*48.*\.lib$|^db_cxx.*48.*\.lib$' } |
+        Select-Object -First 1
+    $cLib = Get-ChildItem -Path $buildWindows -Recurse -File |
+        Where-Object { $_.Name -match '^libdb.*48.*\.lib$|^db.*48.*\.lib$' -and $_.Name -notmatch 'cxx' } |
+        Select-Object -First 1
+
+    if (-not $cxxLib) {
+        throw "Could not locate Berkeley DB C++ library output under $buildWindows"
+    }
+
+    Copy-Item $cxxLib.FullName (Join-Path $InstallRoot "lib\db_cxx-4.8.lib") -Force
+    Copy-Item $cxxLib.FullName (Join-Path $InstallRoot "lib\db_cxx.lib") -Force
+    Copy-Item $cxxLib.FullName (Join-Path $InstallRoot "lib\db4_cxx.lib") -Force
+    if ($cLib) {
+        Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db-4.8.lib") -Force
+        Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db.lib") -Force
+        Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db4.lib") -Force
+    }
+}
+
 function Install-VcpkgDeps {
     param(
-        [Parameter(Mandatory = $true)][string]$Root
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string]$Triplet
     )
     Write-Section "Bootstrapping vcpkg"
     if (-not (Test-Path $Root)) {
@@ -180,15 +251,41 @@ function Install-VcpkgDeps {
         throw "vcpkg bootstrap failed"
     }
     .\vcpkg.exe install `
-        libevent:x64-windows `
-        protobuf:x64-windows `
-        qrencode:x64-windows `
-        miniupnpc:x64-windows `
-        zeromq:x64-windows
+        "libevent:$Triplet" `
+        "protobuf:$Triplet" `
+        "qrencode:$Triplet" `
+        "miniupnpc:$Triplet" `
+        "zeromq:$Triplet"
     if ($LASTEXITCODE -ne 0) {
         throw "vcpkg dependency install failed"
     }
     Pop-Location
+}
+
+function Write-PkgConfigFile {
+    param(
+        [Parameter(Mandatory = $true)][string]$Directory,
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string]$Prefix,
+        [Parameter(Mandatory = $true)][string]$Description,
+        [Parameter(Mandatory = $true)][string]$Version,
+        [Parameter(Mandatory = $true)][string]$Libs,
+        [string]$Cflags = ""
+    )
+    $content = @(
+        "prefix=$Prefix"
+        'exec_prefix=${prefix}'
+        'libdir=${prefix}/lib'
+        'includedir=${prefix}/include'
+        ''
+        "Name: $Name"
+        "Description: $Description"
+        "Version: $Version"
+        "Libs: $Libs"
+        "Cflags: $Cflags"
+        ''
+    ) -join "`n"
+    Set-Content -Path (Join-Path $Directory "$Name.pc") -Value $content -Encoding ASCII
 }
 
 if (-not $Prefix) {
@@ -204,10 +301,13 @@ $depsRoot = Join-Path $Prefix "deps"
 $qtRoot = Join-Path $depsRoot "qt"
 $boostRoot = Join-Path $depsRoot "boost"
 $opensslRoot = Join-Path $depsRoot "openssl"
+$bdbRoot = Join-Path $depsRoot "bdb"
 $buildRoot = Join-Path $Prefix "build"
+$pkgConfigRoot = Join-Path $Prefix "pkgconfig"
 $envFile = Join-Path $Prefix "env-msvc.ps1"
+$vcpkgTriplet = "x64-windows-static-md"
 
-New-Item -ItemType Directory -Force -Path $downloads, $depsRoot, $buildRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $downloads, $depsRoot, $buildRoot, $pkgConfigRoot | Out-Null
 
 Ensure-Command git
 Ensure-Command python "Install Python 3 before running this script."
@@ -222,27 +322,53 @@ if (-not $SkipBoost) {
 if (-not $SkipOpenSSL) {
     Install-OpenSSL -InstallRoot $opensslRoot -Version $OpenSSLVersion
 }
+if (-not $SkipBdb) {
+    Install-Bdb -InstallRoot $bdbRoot -Version $BdbVersion
+}
 if (-not $SkipVcpkg) {
-    Install-VcpkgDeps -Root $VcpkgRoot
+    Install-VcpkgDeps -Root $VcpkgRoot -Triplet $vcpkgTriplet
 }
 
 $qtVersionDir = Join-Path $qtRoot $QtVersion
 $qtBin = Join-Path $qtVersionDir $QtArch
-$vcpkgTripletRoot = Join-Path $VcpkgRoot "installed\x64-windows"
+$vcpkgTripletRoot = Join-Path $VcpkgRoot "installed\$vcpkgTriplet"
+$pcPrefixQt = Convert-ToForwardPath $qtBin
+$pcPrefixBoost = Convert-ToForwardPath $boostRoot
+$pcPrefixOpenSSL = Convert-ToForwardPath $opensslRoot
+$pcPrefixBdb = Convert-ToForwardPath $bdbRoot
+$pcPrefixVcpkg = Convert-ToForwardPath $vcpkgTripletRoot
+$pcDir = Convert-ToForwardPath $pkgConfigRoot
+
+Write-Section "Writing pkg-config metadata"
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libssl" -Prefix $pcPrefixOpenSSL -Description "OpenSSL SSL" -Version $OpenSSLVersion -Libs '-L${libdir} -llibssl -lcrypt32 -lws2_32' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libcrypto" -Prefix $pcPrefixOpenSSL -Description "OpenSSL Crypto" -Version $OpenSSLVersion -Libs '-L${libdir} -llibcrypto -ladvapi32 -lcrypt32 -lws2_32 -luser32' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent" -Prefix $pcPrefixVcpkg -Description "libevent" -Version "2" -Libs '-L${libdir} -levent' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent_pthreads" -Prefix $pcPrefixVcpkg -Description "libevent pthreads" -Version "2" -Libs '-L${libdir} -levent_pthreads' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libqrencode" -Prefix $pcPrefixVcpkg -Description "QRencode" -Version "4" -Libs '-L${libdir} -lqrencode' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "protobuf" -Prefix $pcPrefixVcpkg -Description "Protocol Buffers" -Version "5" -Libs '-L${libdir} -llibprotobuf' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libzmq" -Prefix $pcPrefixVcpkg -Description "ZeroMQ" -Version "4" -Libs '-L${libdir} -llibzmq' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "miniupnpc" -Prefix $pcPrefixVcpkg -Description "MiniUPnPc" -Version "2" -Libs '-L${libdir} -lminiupnpc -liphlpapi -lws2_32' -Cflags '-I${includedir}'
 
 Write-Section "Writing environment helper"
 @"
-`$env:QTDIR = "$qtBin"
-`$env:Qt6_DIR = "$qtBin\lib\cmake\Qt6"
-`$env:BOOST_ROOT = "$boostRoot"
-`$env:OPENSSL_ROOT_DIR = "$opensslRoot"
-`$env:OPENSSL_INCLUDE_DIR = "$opensslRoot\include"
-`$env:OPENSSL_LIB_DIR = "$opensslRoot\lib"
-`$env:VCPKG_ROOT = "$VcpkgRoot"
-`$env:VCPKG_INSTALLED_DIR = "$VcpkgRoot\installed"
-`$env:CMAKE_PREFIX_PATH = "$qtBin;$vcpkgTripletRoot;$env:CMAKE_PREFIX_PATH"
-`$env:PATH = "$qtBin\bin;$opensslRoot\bin;$vcpkgTripletRoot\bin;$env:PATH"
-`$env:PKG_CONFIG_PATH = "$vcpkgTripletRoot\lib\pkgconfig;$env:PKG_CONFIG_PATH"
+`$env:QTDIR = "$(Convert-ToForwardPath $qtBin)"
+`$env:Qt6_DIR = "$(Convert-ToForwardPath (Join-Path $qtBin 'lib\cmake\Qt6'))"
+`$env:BOOST_ROOT = "$pcPrefixBoost"
+`$env:BOOST_INCLUDEDIR = "$(Convert-ToForwardPath (Join-Path $boostRoot 'include'))"
+`$env:BOOST_LIBRARYDIR = "$(Convert-ToForwardPath (Join-Path $boostRoot 'lib'))"
+`$env:OPENSSL_ROOT_DIR = "$pcPrefixOpenSSL"
+`$env:OPENSSL_INCLUDE_DIR = "$(Convert-ToForwardPath (Join-Path $opensslRoot 'include'))"
+`$env:OPENSSL_LIB_DIR = "$(Convert-ToForwardPath (Join-Path $opensslRoot 'lib'))"
+`$env:BDB_PREFIX = "$pcPrefixBdb"
+`$env:BDB_CFLAGS = "-I$(Convert-ToForwardPath (Join-Path $bdbRoot 'include'))"
+`$env:BDB_LIBS = "-L$(Convert-ToForwardPath (Join-Path $bdbRoot 'lib')) -ldb_cxx-4.8"
+`$env:VCPKG_ROOT = "$(Convert-ToForwardPath $VcpkgRoot)"
+`$env:VCPKG_INSTALLED_DIR = "$(Convert-ToForwardPath (Join-Path $VcpkgRoot 'installed'))"
+`$env:VCPKG_DEFAULT_TRIPLET = "$vcpkgTriplet"
+`$env:VERGE_MSVC_PKGCONFIG = "$pcDir"
+`$env:CMAKE_PREFIX_PATH = "$(Convert-ToForwardPath $qtBin);$pcPrefixVcpkg;`$env:CMAKE_PREFIX_PATH"
+`$env:PATH = "$(Convert-ToForwardPath (Join-Path $qtBin 'bin'));$(Convert-ToForwardPath (Join-Path $opensslRoot 'bin'));$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'bin'));`$env:PATH"
+`$env:PKG_CONFIG_PATH = "$pcDir;$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'lib\\pkgconfig'));`$env:PKG_CONFIG_PATH"
 Write-Host "Loaded Verge Windows MSVC dependency environment from $envFile"
 "@ | Set-Content -NoNewline -Encoding ASCII $envFile
 
@@ -251,4 +377,3 @@ Write-Host "Dependency prefix: $depsRoot"
 Write-Host "Environment helper: $envFile"
 Write-Host ""
 Write-Host "This bootstrap path intentionally does not modify the existing depends-based MinGW flow."
-Write-Host "Berkeley DB 4.8 is not yet automated here; wallet-enabled MSVC builds still need a Windows-native BDB provisioning step."

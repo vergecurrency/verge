@@ -1197,239 +1197,85 @@ jobs:
             gperf
             flex
             bison
+            diffutils
+            patch
             curl
-            ccache
             file
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-python
-            mingw-w64-x86_64-nodejs
+            unzip
+            zip
+            tar
+            perl
+            python
 
-      - name: Cache depends artifacts
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up MSVC x64 environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Cache MSVC bootstrap artifacts
         uses: actions/cache@v4
         with:
           path: |
-            depends/built
-            depends/x86_64-w64-mingw32
-            depends/work
-            depends/sources
-          key: depends-${{ runner.os }}-mingw64-native-v1-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+            build-msvc
+          key: windows64-msvc-bootstrap-v1-${{ hashFiles('contrib/windows-msvc/**') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-native-v1-
+            windows64-msvc-bootstrap-v1-
 
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-native-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-mingw64-native-v1-
+      - name: Bootstrap native Windows MSVC dependencies
+        shell: pwsh
+        run: |
+          ./contrib/windows-msvc/bootstrap.ps1
+          . ./build-msvc/env-msvc.ps1
+          @(
+            "QTDIR=$env:QTDIR"
+            "Qt6_DIR=$env:Qt6_DIR"
+            "BOOST_ROOT=$env:BOOST_ROOT"
+            "BOOST_INCLUDEDIR=$env:BOOST_INCLUDEDIR"
+            "BOOST_LIBRARYDIR=$env:BOOST_LIBRARYDIR"
+            "OPENSSL_ROOT_DIR=$env:OPENSSL_ROOT_DIR"
+            "OPENSSL_INCLUDE_DIR=$env:OPENSSL_INCLUDE_DIR"
+            "OPENSSL_LIB_DIR=$env:OPENSSL_LIB_DIR"
+            "BDB_PREFIX=$env:BDB_PREFIX"
+            "BDB_CFLAGS=$env:BDB_CFLAGS"
+            "BDB_LIBS=$env:BDB_LIBS"
+            "VCPKG_ROOT=$env:VCPKG_ROOT"
+            "VCPKG_INSTALLED_DIR=$env:VCPKG_INSTALLED_DIR"
+            "VCPKG_DEFAULT_TRIPLET=$env:VCPKG_DEFAULT_TRIPLET"
+            "VERGE_MSVC_PKGCONFIG=$env:VERGE_MSVC_PKGCONFIG"
+            "PKG_CONFIG_PATH=$env:PKG_CONFIG_PATH"
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Sanity-check cached Qt sources and host tools (mingw64 native)
+      - name: Build native Windows64 with MSVC dependencies
         run: |
           set -euo pipefail
-          missing=0
-          for f in \
-            qtbase-everywhere-src-6.10.2.tar.xz \
-            qtsvg-everywhere-src-6.10.2.tar.xz \
-            qtwebsockets-everywhere-src-6.10.2.tar.xz
-          do
-            if [ ! -f "depends/sources/$f" ]; then
-              echo "::warning::Missing depends/sources/$f"
-              missing=1
-            fi
-          done
-          if [ ! -x "depends/x86_64-w64-mingw32/native/qt-host/bin/moc" ]; then
-            echo "::warning::Missing native Qt host tool moc"
-            missing=1
-          fi
-          if [ "$missing" -eq 1 ]; then
-            echo "::warning::Clearing stale cached native_qt/qt state so depends can re-fetch and rebuild."
-            find depends/built -path "*/native_qt/*" -type f -delete || true
-            find depends/built -path "*/qt/*" -type f -delete || true
-            rm -rf depends/work/build/*/native_qt* || true
-            rm -rf depends/work/build/*/qt* || true
-            rm -rf depends/x86_64-w64-mingw32/native/qt-host || true
-            rm -rf depends/x86_64-w64-mingw32 || true
-          fi
-
-      - name: Build depends for native Windows64
-        env:
-          STRIP: "strip"
-          V: "1"
-        run: |
-          set -euo pipefail
-          cd depends/
-          timeout 120m make HOST=x86_64-w64-mingw32 QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
-
-      - name: Auto generate
-        run: ./autogen.sh
-
-      - name: Export toolchain env
-        run: |
-          echo "CC=x86_64-w64-mingw32-gcc"                >> "$GITHUB_ENV"
-          echo "CXX=x86_64-w64-mingw32-g++"               >> "$GITHUB_ENV"
-          echo "AR=x86_64-w64-mingw32-ar"                 >> "$GITHUB_ENV"
-          echo "RANLIB=x86_64-w64-mingw32-ranlib"         >> "$GITHUB_ENV"
-          echo "WINDRES=x86_64-w64-mingw32-windres"       >> "$GITHUB_ENV"
-          echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> "$GITHUB_ENV"
-          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"         >> "$GITHUB_ENV"
-          echo "CCACHE_DIR=$HOME/.ccache"                 >> "$GITHUB_ENV"
-          echo "ARFLAGS=rcs"                              >> "$GITHUB_ENV"
-
-      - name: Configure ccache
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: |
-          mkdir -p ~/.ccache
-          echo 'max_size = 2G' > ~/.ccache/ccache.conf
-          echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true
-
-      - name: configure (Qt6 GUI required)
-        run: |
-          set -euo pipefail
-
-          QT_HOST_PREFIX="$PWD/depends/x86_64-w64-mingw32/native/qt-host"
-          QT_HOST_BIN="$QT_HOST_PREFIX/bin"
-          QT_TARGET_PREFIX="$PWD/depends/x86_64-w64-mingw32"
-
-          test -x "$QT_HOST_BIN/moc"
-          test -x "$QT_HOST_BIN/uic"
-          test -x "$QT_HOST_BIN/rcc"
-
-          mkdir -p "$PWD/.qt-tool-aliases"
-          ln -sf "$QT_HOST_BIN/moc" "$PWD/.qt-tool-aliases/moc-qt6"
-          ln -sf "$QT_HOST_BIN/uic" "$PWD/.qt-tool-aliases/uic-qt6"
-          ln -sf "$QT_HOST_BIN/rcc" "$PWD/.qt-tool-aliases/rcc-qt6"
-
-          export PATH="$PWD/.qt-tool-aliases:$QT_HOST_BIN:$QT_HOST_PREFIX/libexec:$PWD/depends/x86_64-w64-mingw32/native/bin:$PATH"
-          export MOC="$QT_HOST_BIN/moc"
-          export UIC="$QT_HOST_BIN/uic"
-          export RCC="$QT_HOST_BIN/rcc"
-
-          echo "Qt target plugin dir snapshot:"
-          find "$QT_TARGET_PREFIX/plugins/platforms" -maxdepth 1 -type f 2>/dev/null | sort || true
-
-          CONFIG_SITE="$PWD/depends/x86_64-w64-mingw32/share/config.site" \
-            ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests \
-              --with-gui=qt6 \
-              --with-qt-bindir="$QT_HOST_BIN"
-
-          grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
-          grep -Fq 'qt/verge-qt$(EXEEXT)' src/Makefile
-
-      - name: make (serialized, verbose)
-        env:
-          STRIP: ""
-          V: "1"
-        run: |
-          set -euo pipefail
-          mkdir -p "$PWD/.ccache-tmp"
-          export CCACHE_TEMPDIR="$PWD/.ccache-tmp"
-          timeout 60m make -j1 --output-sync=recurse
-
-      - name: strip
-        run: |
-          cd ./src && x86_64-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
-          cd ./qt && x86_64-w64-mingw32-strip verge-qt.exe
-
-      - name: Bundle win64 runtime for verge-qt
-        run: |
-          set -euo pipefail
-
-          PREFIX="$PWD/depends/x86_64-w64-mingw32"
           BUNDLE="$PWD/release/windows64"
-          MINGW_CXX="x86_64-w64-mingw32-g++"
+          bash ./contrib/windows-msvc/build-msys.sh
+          mkdir -p "$BUNDLE"
+          cp "$PWD/src/verged.exe" "$BUNDLE/" || true
+          cp "$PWD/src/verge-cli.exe" "$BUNDLE/" || true
+          cp "$PWD/src/verge-tx.exe" "$BUNDLE/" || true
+          cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/" || true
 
-          mkdir -p "$BUNDLE/platforms" "$BUNDLE/plugins/platforms"
-
-          cp "$PWD/src/verged.exe" "$BUNDLE/"
-          cp "$PWD/src/verge-cli.exe" "$BUNDLE/"
-          cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
-          cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
-
-          find_local_dll() {
-            local dll="$1"
-            local found=""
-            found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
-            if [ -n "$found" ] && [ -f "$found" ]; then
-              printf '%s\n' "$found"
-              return 0
-            fi
-            found="$("$MINGW_CXX" -print-file-name="$dll" 2>/dev/null || true)"
-            if [ -n "$found" ] && [ "$found" != "$dll" ] && [ -f "$found" ]; then
-              printf '%s\n' "$found"
-              return 0
-            fi
-            found="$(find "/mingw64/bin" "/clang64/bin" "/ucrt64/bin" -type f -iname "$dll" 2>/dev/null | head -n1 || true)"
-            if [ -n "$found" ] && [ -f "$found" ]; then
-              printf '%s\n' "$found"
-            fi
-          }
-
-          copy_local_dll_deps() {
-            local target="$1"
-            x86_64-w64-mingw32-objdump -p "$target" \
-              | awk '/DLL Name:/{print $3}' \
-              | while read -r dll; do
-                  [ -n "$dll" ] || continue
-                  if [ -f "$BUNDLE/$dll" ] || [ -f "$BUNDLE/platforms/$dll" ]; then
-                    continue
-                  fi
-                  local found=""
-                  found="$(find_local_dll "$dll")"
-                  if [ -n "$found" ] && [ -f "$found" ]; then
-                    cp "$found" "$BUNDLE/"
-                  fi
-                done
-          }
-
-          copy_local_dll_deps_recursive() {
-            local seed="$1"
-            local prev_count=-1
-            while true; do
-              local cur_count
-              cur_count="$(find "$BUNDLE" -maxdepth 1 -type f -iname '*.dll' | wc -l)"
-              if [ "$cur_count" -eq "$prev_count" ]; then
-                break
-              fi
-              prev_count="$cur_count"
-              copy_local_dll_deps "$seed"
-              find "$BUNDLE" -maxdepth 1 -type f -iname '*.dll' -print0 \
-                | while IFS= read -r -d '' dllfile; do
-                    copy_local_dll_deps "$dllfile"
-                  done
-            done
-          }
-
-          QWINDOWS_DLL="$(find "$PREFIX" -type f -path '*/platforms/qwindows.dll' | head -n1 || true)"
-          if [ -n "$QWINDOWS_DLL" ] && [ -f "$QWINDOWS_DLL" ]; then
-            cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
-            cp "$QWINDOWS_DLL" "$BUNDLE/plugins/platforms/"
-            copy_local_dll_deps_recursive "$BUNDLE/platforms/qwindows.dll"
-          fi
-
-          copy_local_dll_deps_recursive "$BUNDLE/verge-qt.exe"
-          test -f "$BUNDLE/verge-qt.exe"
-
-      - name: Verify windows64 binary shape and runtime linkage
+      - name: Bundle Qt runtime
+        shell: pwsh
         run: |
-          set -euo pipefail
-          for exe in "$PWD/release/windows64/verged.exe" "$PWD/release/windows64/verge-cli.exe" "$PWD/release/windows64/verge-tx.exe" "$PWD/release/windows64/verge-qt.exe"; do
-            test -f "$exe"
-            file "$exe"
-            x86_64-w64-mingw32-objdump -p "$exe" | awk '/DLL Name:/{print}'
-          done
-
-      - name: ccache stats
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: ccache -s || true
+          . ./build-msvc/env-msvc.ps1
+          $bundle = Join-Path $PWD "release/windows64"
+          $qtExe = Join-Path $bundle "verge-qt.exe"
+          if (Test-Path $qtExe) {
+            & (Join-Path $env:QTDIR "bin/windeployqt.exe") --release --compiler-runtime --dir $bundle $qtExe
+          }
 
       - name: Dump config.log on failure
         if: failure()
-        run: test -f config.log && sed -n '1,200p' config.log || true
+        run: |
+          test -f config.log && sed -n '1,200p' config.log || true
+          test -f config.status && sed -n '1,200p' config.status || true
 
       - uses: actions/upload-artifact@v4
         with:
