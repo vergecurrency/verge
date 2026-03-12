@@ -1173,10 +1173,38 @@ jobs:
             ./src/verge-tx
             ./src/qt/verge-qt
 
-  windows64-ubuntu24:
-    runs-on: ubuntu-24.04
+  windows64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            git
+            make
+            autoconf
+            automake
+            libtool
+            pkgconf
+            gperf
+            flex
+            bison
+            byacc
+            curl
+            ccache
+            file
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-nodejs
 
       - name: Cache depends artifacts
         uses: actions/cache@v4
@@ -1186,58 +1214,19 @@ jobs:
             depends/x86_64-w64-mingw32
             depends/work
             depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v18-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-${{ runner.os }}-mingw64-native-v1-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v18-
+            depends-${{ runner.os }}-mingw64-native-v1-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v18-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-mingw64-native-v1-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v18-
+            ccache-${{ runner.os }}-mingw64-native-v1-
 
-      - name: Update apt repos
-        run: sudo apt-get update
-
-      - name: Install base dependencies
-        run: |
-          sudo apt-get install -y \
-          build-essential libtool gperf autotools-dev automake pkg-config \
-          bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev ninja-build generate-ninja flex nodejs \
-          libgl1-mesa-dev libegl1-mesa-dev libx11-dev libx11-xcb-dev \
-          libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev libopengl-dev
-
-      - name: Force Posix
-        run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
-
-      - name: Ensure host gn is available
-        run: |
-          set -euo pipefail
-          if ! command -v gn >/dev/null 2>&1 && command -v generate-ninja >/dev/null 2>&1; then
-            sudo ln -sf "$(command -v generate-ninja)" /usr/local/bin/gn
-          fi
-          command -v gn
-
-      - name: Install gn shim into depends native bin
-        run: |
-          set -euo pipefail
-          mkdir -p "$PWD/depends/x86_64-w64-mingw32/native/bin"
-          cat > "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" <<'EOF'
-          #!/usr/bin/env bash
-          set -euo pipefail
-          if [ -x /usr/local/bin/gn ]; then
-            exec /usr/local/bin/gn "$@"
-          fi
-          exec /usr/bin/gn "$@"
-          EOF
-          chmod +x "$PWD/depends/x86_64-w64-mingw32/native/bin/gn"
-          "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" --version >/dev/null 2>&1 || \
-            "$PWD/depends/x86_64-w64-mingw32/native/bin/gn" help >/dev/null 2>&1
-
-      - name: Sanity-check cached Qt sources and host tools (mingw64)
+      - name: Sanity-check cached Qt sources and host tools (mingw64 native)
         run: |
           set -euo pipefail
           missing=0
@@ -1255,10 +1244,6 @@ jobs:
             echo "::warning::Missing native Qt host tool moc"
             missing=1
           fi
-          if [ ! -x "depends/x86_64-w64-mingw32/native/bin/gn" ]; then
-            echo "::warning::Missing host gn shim in depends native bin"
-            missing=1
-          fi
           if [ "$missing" -eq 1 ]; then
             echo "::warning::Clearing stale cached native_qt/qt state so depends can re-fetch and rebuild."
             find depends/built -path "*/native_qt/*" -type f -delete || true
@@ -1266,22 +1251,16 @@ jobs:
             rm -rf depends/work/build/*/native_qt* || true
             rm -rf depends/work/build/*/qt* || true
             rm -rf depends/x86_64-w64-mingw32/native/qt-host || true
+            rm -rf depends/x86_64-w64-mingw32 || true
           fi
 
-      - name: Build depends for MingW64 Cross Compile
+      - name: Build depends for native Windows64
         env:
           STRIP: "strip"
           V: "1"
         run: |
           set -euo pipefail
           cd depends/
-          ( while true; do
-              echo "---- depends heartbeat $(date -u +'%Y-%m-%dT%H:%M:%SZ') ----"
-              ps -ef | egrep 'cmake|ninja|mingw|windres|ar|ranlib|ld|gcc|g\+\+|make|libtool' | grep -v egrep || true
-              sleep 60
-            done ) &
-          HB=$!
-          trap 'kill "$HB" || true' EXIT
           timeout 120m make HOST=x86_64-w64-mingw32 QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
 
       - name: Auto generate
@@ -1289,15 +1268,15 @@ jobs:
 
       - name: Export toolchain env
         run: |
-          echo "CC=x86_64-w64-mingw32-gcc-posix"          >> "$GITHUB_ENV"
-          echo "CXX=x86_64-w64-mingw32-g++-posix"         >> "$GITHUB_ENV"
+          echo "CC=x86_64-w64-mingw32-gcc"                >> "$GITHUB_ENV"
+          echo "CXX=x86_64-w64-mingw32-g++"               >> "$GITHUB_ENV"
           echo "AR=x86_64-w64-mingw32-ar"                 >> "$GITHUB_ENV"
           echo "RANLIB=x86_64-w64-mingw32-ranlib"         >> "$GITHUB_ENV"
           echo "WINDRES=x86_64-w64-mingw32-windres"       >> "$GITHUB_ENV"
           echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> "$GITHUB_ENV"
           echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"         >> "$GITHUB_ENV"
           echo "CCACHE_DIR=$HOME/.ccache"                 >> "$GITHUB_ENV"
-          echo "ARFLAGS=rcs"                               >> "$GITHUB_ENV"
+          echo "ARFLAGS=rcs"                              >> "$GITHUB_ENV"
 
       - name: Configure ccache
         env:
@@ -1333,23 +1312,15 @@ jobs:
           echo "Qt target plugin dir snapshot:"
           find "$QT_TARGET_PREFIX/plugins/platforms" -maxdepth 1 -type f 2>/dev/null | sort || true
 
-          if ! CONFIG_SITE="$PWD/depends/x86_64-w64-mingw32/share/config.site" \
+          CONFIG_SITE="$PWD/depends/x86_64-w64-mingw32/share/config.site" \
             ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests \
               --with-gui=qt6 \
-              --with-qt-bindir="$QT_HOST_BIN"; then
-            echo "configure failed; dumping Qt diagnostics from config.log"
-            grep -nE "qwindows|QWindowsIntegrationPlugin|Could not resolve|WebEngine" config.log || true
-            tail -n 240 config.log || true
-            exit 1
-          fi
+              --with-qt-bindir="$QT_HOST_BIN"
 
-          # Hard requirement: automake conditional ENABLE_QT must be enabled
           grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
-
-          # Hard requirement: verge-qt target exists in generated makefiles
           grep -Fq 'qt/verge-qt$(EXEEXT)' src/Makefile
 
-      - name: make (serialized, verbose, heartbeat)
+      - name: make (serialized, verbose)
         env:
           STRIP: ""
           V: "1"
@@ -1357,17 +1328,9 @@ jobs:
           set -euo pipefail
           mkdir -p "$PWD/.ccache-tmp"
           export CCACHE_TEMPDIR="$PWD/.ccache-tmp"
-          ( while true; do
-              echo "---- heartbeat $(date) ----"
-              ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
-              sleep 60
-            done ) &
-          HB=$!
-          trap 'kill "$HB" || true' EXIT
           timeout 60m make -j1 --output-sync=recurse
-          kill "$HB" || true
 
-      - name: strip (cross)
+      - name: strip
         run: |
           cd ./src && x86_64-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
           cd ./qt && x86_64-w64-mingw32-strip verge-qt.exe
@@ -1378,8 +1341,7 @@ jobs:
 
           PREFIX="$PWD/depends/x86_64-w64-mingw32"
           BUNDLE="$PWD/release/windows64"
-          MINGW_TRIPLET="x86_64-w64-mingw32"
-          MINGW_CXX="${MINGW_TRIPLET}-g++-posix"
+          MINGW_CXX="x86_64-w64-mingw32-g++"
 
           mkdir -p "$BUNDLE/platforms" "$BUNDLE/plugins/platforms"
 
@@ -1401,7 +1363,7 @@ jobs:
               printf '%s\n' "$found"
               return 0
             fi
-            found="$(find "/usr/$MINGW_TRIPLET" "/usr/lib/gcc/$MINGW_TRIPLET" -type f -iname "$dll" 2>/dev/null | head -n1 || true)"
+            found="$(find "/mingw64/bin" "/clang64/bin" "/ucrt64/bin" -type f -iname "$dll" 2>/dev/null | head -n1 || true)"
             if [ -n "$found" ] && [ -f "$found" ]; then
               printf '%s\n' "$found"
             fi
@@ -1442,9 +1404,6 @@ jobs:
             done
           }
 
-          echo "verge-qt.exe runtime DLL dependencies:"
-          x86_64-w64-mingw32-objdump -p "$BUNDLE/verge-qt.exe" | awk '/DLL Name:/{print}'
-
           QWINDOWS_DLL="$(find "$PREFIX" -type f -path '*/platforms/qwindows.dll' | head -n1 || true)"
           if [ -n "$QWINDOWS_DLL" ] && [ -f "$QWINDOWS_DLL" ]; then
             cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
@@ -1453,7 +1412,6 @@ jobs:
           fi
 
           copy_local_dll_deps_recursive "$BUNDLE/verge-qt.exe"
-
           test -f "$BUNDLE/verge-qt.exe"
 
       - name: Verify windows64 binary shape and runtime linkage
@@ -1476,8 +1434,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows64bit-ubuntu24
-          path: /home/runner/work/verge/verge/release/windows64
+          name: verge-windows64bit
+          path: release/windows64
 
   windows64-ubuntu24-noswap:
     runs-on: ubuntu-24.04
