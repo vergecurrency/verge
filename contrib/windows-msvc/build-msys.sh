@@ -86,10 +86,13 @@ export AR="${AR:-$toolshim_root/ar-msvc}"
 export NM="${NM:-$toolshim_root/nm-msvc}"
 export RANLIB="${RANLIB:-:}"
 export STRIP="${STRIP:-$toolshim_root/strip-msvc}"
+export CONFIG_SITE=/dev/null
 
 ./autogen.sh
 
 ./configure \
+  --build=x86_64-pc-windows \
+  --host=x86_64-pc-windows \
   --enable-windows \
   --disable-bench \
   --disable-tests \
