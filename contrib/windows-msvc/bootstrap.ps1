@@ -143,7 +143,7 @@ function Resolve-QtInstallDir {
         throw "Could not determine installed Qt directory under $VersionRoot"
     }
     if ($candidates.Count -gt 1) {
-        throw "Multiple Qt install directories found under $VersionRoot: $($candidates.Name -join ', ')"
+        throw "Multiple Qt install directories found under ${VersionRoot}: $($candidates.Name -join ', ')"
     }
     return $candidates[0].FullName
 }
