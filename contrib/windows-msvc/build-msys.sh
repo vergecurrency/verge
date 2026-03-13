@@ -26,15 +26,28 @@ fi
 export CPPFLAGS="${CPPFLAGS:-} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_ROOT}/include"
 export LDFLAGS="${LDFLAGS:-} -L${OPENSSL_ROOT_DIR}/lib -L${BOOST_ROOT}/lib"
 
-# Use the Visual Studio LLVM driver with the MSVC ABI so the existing
-# autotools flow can keep its Unix-like command line semantics.
-export CC="${CC:-clang --target=x86_64-pc-windows-msvc}"
-export CXX="${CXX:-clang++ --target=x86_64-pc-windows-msvc}"
-export LD="${LD:-lld-link}"
-export AR="${AR:-llvm-lib}"
-export NM="${NM:-llvm-nm}"
+# Use the Visual Studio LLVM tools explicitly so autotools doesn't fall back to
+# an MSYS/MinGW compiler or linker from PATH.
+vs_llvm_root="${VCINSTALLDIR//\\//}/Tools/Llvm/x64/bin"
+clang_bin="${vs_llvm_root}/clang.exe"
+clangxx_bin="${vs_llvm_root}/clang++.exe"
+llvm_ar_bin="${vs_llvm_root}/llvm-lib.exe"
+llvm_nm_bin="${vs_llvm_root}/llvm-nm.exe"
+llvm_strip_bin="${vs_llvm_root}/llvm-strip.exe"
+
+if [ ! -x "$clang_bin" ] || [ ! -x "$clangxx_bin" ]; then
+  echo "Visual Studio LLVM tools were not found under VCINSTALLDIR=$VCINSTALLDIR" >&2
+  exit 1
+fi
+
+common_target_flags='--target=x86_64-pc-windows-msvc -fuse-ld=lld-link'
+export CC="${CC:-${clang_bin} ${common_target_flags}}"
+export CXX="${CXX:-${clangxx_bin} ${common_target_flags}}"
+export LD="${LD:-lld-link.exe}"
+export AR="${AR:-${llvm_ar_bin}}"
+export NM="${NM:-${llvm_nm_bin}}"
 export RANLIB="${RANLIB:-:}"
-export STRIP="${STRIP:-llvm-strip}"
+export STRIP="${STRIP:-${llvm_strip_bin}}"
 
 ./autogen.sh
 
