@@ -125,6 +125,29 @@ function Install-Qt {
     }
 }
 
+function Resolve-QtInstallDir {
+    param(
+        [Parameter(Mandatory = $true)][string]$VersionRoot,
+        [Parameter(Mandatory = $true)][string]$RequestedArch
+    )
+    $requestedPath = Join-Path $VersionRoot $RequestedArch
+    if (Test-Path (Join-Path $requestedPath "bin\qmake.exe") -or Test-Path (Join-Path $requestedPath "bin\windeployqt.exe")) {
+        return $requestedPath
+    }
+
+    $candidates = Get-ChildItem -Path $VersionRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object {
+            Test-Path (Join-Path $_.FullName "bin\qmake.exe") -or Test-Path (Join-Path $_.FullName "bin\windeployqt.exe")
+        }
+    if ($candidates.Count -eq 0) {
+        throw "Could not determine installed Qt directory under $VersionRoot"
+    }
+    if ($candidates.Count -gt 1) {
+        throw "Multiple Qt install directories found under $VersionRoot: $($candidates.Name -join ', ')"
+    }
+    return $candidates[0].FullName
+}
+
 function Install-Boost {
     param(
         [Parameter(Mandatory = $true)][string]$InstallRoot,
@@ -398,7 +421,7 @@ if (-not $SkipVcpkg) {
 }
 
 $qtVersionDir = Join-Path $qtRoot $QtVersion
-$qtBin = Join-Path $qtVersionDir $QtArch
+$qtBin = Resolve-QtInstallDir -VersionRoot $qtVersionDir -RequestedArch $QtArch
 $vcpkgTripletRoot = Join-Path $VcpkgRoot "installed\$vcpkgTriplet"
 $pcPrefixQt = Convert-ToForwardPath $qtBin
 $pcPrefixBoost = Convert-ToForwardPath $boostRoot
@@ -436,7 +459,7 @@ Write-Section "Writing environment helper"
 `$env:VERGE_MSVC_PKGCONFIG = "$pcDir"
 `$env:CMAKE_PREFIX_PATH = "$(Convert-ToForwardPath $qtBin);$pcPrefixVcpkg;`$env:CMAKE_PREFIX_PATH"
 `$env:PATH = "$(Convert-ToForwardPath (Join-Path $qtBin 'bin'));$(Convert-ToForwardPath (Join-Path $opensslRoot 'bin'));$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'bin'));`$env:PATH"
-`$env:PKG_CONFIG_PATH = "$pcDir;$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'lib\\pkgconfig'));`$env:PKG_CONFIG_PATH"
+`$env:PKG_CONFIG_PATH = "$pcDir:$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'lib\\pkgconfig')):`$env:PKG_CONFIG_PATH"
 Write-Host "Loaded Verge Windows MSVC dependency environment from $envFile"
 "@ | Set-Content -NoNewline -Encoding ASCII $envFile
 

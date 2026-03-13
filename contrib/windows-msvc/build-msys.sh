@@ -18,7 +18,7 @@ qt_translationdir="$QTDIR/translations"
 
 if [ -n "${VERGE_MSVC_PKGCONFIG:-}" ]; then
   if [ -n "${PKG_CONFIG_PATH:-}" ]; then
-    export PKG_CONFIG_PATH="${VERGE_MSVC_PKGCONFIG};${PKG_CONFIG_PATH}"
+    export PKG_CONFIG_PATH="${VERGE_MSVC_PKGCONFIG}:${PKG_CONFIG_PATH}"
   else
     export PKG_CONFIG_PATH="${VERGE_MSVC_PKGCONFIG}"
   fi
