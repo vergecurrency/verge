@@ -321,7 +321,7 @@ function Install-VcpkgDeps {
     .\vcpkg.exe install `
         "libevent:$Triplet" `
         "protobuf:$Triplet" `
-        "qrencode:$Triplet" `
+        "libqrencode:$Triplet" `
         "miniupnpc:$Triplet" `
         "zeromq:$Triplet"
     if ($LASTEXITCODE -ne 0) {
