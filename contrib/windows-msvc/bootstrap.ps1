@@ -459,7 +459,7 @@ Write-Section "Writing environment helper"
 `$env:VERGE_MSVC_PKGCONFIG = "$pcDir"
 `$env:CMAKE_PREFIX_PATH = "$(Convert-ToForwardPath $qtBin);$pcPrefixVcpkg;`$env:CMAKE_PREFIX_PATH"
 `$env:PATH = "$(Convert-ToForwardPath (Join-Path $qtBin 'bin'));$(Convert-ToForwardPath (Join-Path $opensslRoot 'bin'));$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'bin'));`$env:PATH"
-`$env:PKG_CONFIG_PATH = "$pcDir:$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'lib\\pkgconfig')):`$env:PKG_CONFIG_PATH"
+`$env:PKG_CONFIG_PATH = "${pcDir}:$(Convert-ToForwardPath (Join-Path $vcpkgTripletRoot 'lib\\pkgconfig')):`$env:PKG_CONFIG_PATH"
 Write-Host "Loaded Verge Windows MSVC dependency environment from $envFile"
 "@ | Set-Content -NoNewline -Encoding ASCII $envFile
 
