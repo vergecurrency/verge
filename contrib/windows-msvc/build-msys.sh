@@ -29,11 +29,17 @@ export LDFLAGS="${LDFLAGS:-} -L${OPENSSL_ROOT_DIR}/lib -L${BOOST_ROOT}/lib"
 # Use the Visual Studio LLVM tools explicitly so autotools doesn't fall back to
 # an MSYS/MinGW compiler or linker from PATH.
 vs_llvm_root="${VCINSTALLDIR//\\//}/Tools/Llvm/x64/bin"
-clang_bin="${vs_llvm_root}/clang.exe"
-clangxx_bin="${vs_llvm_root}/clang++.exe"
-llvm_ar_bin="${vs_llvm_root}/llvm-lib.exe"
-llvm_nm_bin="${vs_llvm_root}/llvm-nm.exe"
-llvm_strip_bin="${vs_llvm_root}/llvm-strip.exe"
+clang_bin_win="${vs_llvm_root}/clang.exe"
+clangxx_bin_win="${vs_llvm_root}/clang++.exe"
+llvm_ar_bin_win="${vs_llvm_root}/llvm-lib.exe"
+llvm_nm_bin_win="${vs_llvm_root}/llvm-nm.exe"
+llvm_strip_bin_win="${vs_llvm_root}/llvm-strip.exe"
+
+clang_bin="$(cygpath -u "$clang_bin_win")"
+clangxx_bin="$(cygpath -u "$clangxx_bin_win")"
+llvm_ar_bin="$(cygpath -u "$llvm_ar_bin_win")"
+llvm_nm_bin="$(cygpath -u "$llvm_nm_bin_win")"
+llvm_strip_bin="$(cygpath -u "$llvm_strip_bin_win")"
 
 if [ ! -x "$clang_bin" ] || [ ! -x "$clangxx_bin" ]; then
   echo "Visual Studio LLVM tools were not found under VCINSTALLDIR=$VCINSTALLDIR" >&2
