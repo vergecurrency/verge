@@ -13,6 +13,7 @@ cd "$repo_root"
 qt_incdir="$QTDIR/include"
 qt_libdir="$QTDIR/lib"
 qt_bindir="$QTDIR/bin"
+qt_libexecdir="$QTDIR/libexec"
 qt_plugindir="$QTDIR/plugins"
 qt_translationdir="$QTDIR/translations"
 
@@ -51,6 +52,37 @@ fi
 toolshim_root="$repo_root/build-msvc/toolchain/bin"
 mkdir -p "$toolshim_root"
 
+make_qt_tool_shim() {
+  local shim_name="$1"
+  local tool_name="$2"
+  local tool_path_win=""
+  local candidate
+
+  for candidate in \
+    "$qt_libexecdir/${tool_name}.exe" \
+    "$qt_libexecdir/$tool_name" \
+    "$qt_bindir/${tool_name}.exe" \
+    "$qt_bindir/$tool_name"
+  do
+    if [ -f "$candidate" ]; then
+      tool_path_win="$candidate"
+      break
+    fi
+  done
+
+  if [ -z "$tool_path_win" ]; then
+    return
+  fi
+
+  local tool_path_unix
+  tool_path_unix="$(cygpath -u "$tool_path_win")"
+  cat > "$toolshim_root/$shim_name" <<EOF
+#!/usr/bin/env bash
+exec "$tool_path_unix" "\$@"
+EOF
+  chmod +x "$toolshim_root/$shim_name"
+}
+
 cat > "$toolshim_root/cc-msvc" <<EOF
 #!/usr/bin/env bash
 exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link "\$@"
@@ -75,6 +107,22 @@ cat > "$toolshim_root/strip-msvc" <<EOF
 #!/usr/bin/env bash
 exec "$llvm_strip_bin" "\$@"
 EOF
+
+make_qt_tool_shim moc moc
+make_qt_tool_shim moc6 moc
+make_qt_tool_shim moc-qt6 moc
+make_qt_tool_shim uic uic
+make_qt_tool_shim uic6 uic
+make_qt_tool_shim uic-qt6 uic
+make_qt_tool_shim rcc rcc
+make_qt_tool_shim rcc6 rcc
+make_qt_tool_shim rcc-qt6 rcc
+make_qt_tool_shim lrelease lrelease
+make_qt_tool_shim lrelease6 lrelease
+make_qt_tool_shim lrelease-qt6 lrelease
+make_qt_tool_shim lupdate lupdate
+make_qt_tool_shim lupdate6 lupdate
+make_qt_tool_shim lupdate-qt6 lupdate
 
 chmod +x "$toolshim_root"/*
 
