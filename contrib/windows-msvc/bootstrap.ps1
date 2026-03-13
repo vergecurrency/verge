@@ -135,10 +135,12 @@ function Resolve-QtInstallDir {
         return $requestedPath
     }
 
-    $candidates = Get-ChildItem -Path $VersionRoot -Directory -ErrorAction SilentlyContinue |
-        Where-Object {
-            (Test-Path (Join-Path $_.FullName "bin\qmake.exe")) -or (Test-Path (Join-Path $_.FullName "bin\windeployqt.exe"))
-        }
+    $candidates = @(
+        Get-ChildItem -Path $VersionRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object {
+                (Test-Path (Join-Path $_.FullName "bin\qmake.exe")) -or (Test-Path (Join-Path $_.FullName "bin\windeployqt.exe"))
+            }
+    )
     if ($candidates.Count -eq 0) {
         throw "Could not determine installed Qt directory under $VersionRoot"
     }
