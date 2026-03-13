@@ -232,6 +232,9 @@ function Install-Bdb {
 #endif
 '@
     foreach ($cxxSource in Get-ChildItem -Path (Join-Path $sourceRoot "cxx") -Filter "*.cpp" -File) {
+        if ($cxxSource.IsReadOnly) {
+            $cxxSource.IsReadOnly = $false
+        }
         $cxxSourceText = Get-Content $cxxSource.FullName -Raw
         if ($cxxSourceText -notmatch 'Codex MSVC atomic_init source workaround') {
             $replacement = @'
