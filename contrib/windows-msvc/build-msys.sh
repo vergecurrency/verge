@@ -46,14 +46,46 @@ if [ ! -x "$clang_bin" ] || [ ! -x "$clangxx_bin" ]; then
   exit 1
 fi
 
-common_target_flags='--target=x86_64-pc-windows-msvc -fuse-ld=lld-link'
-export CC="${CC:-${clang_bin} ${common_target_flags}}"
-export CXX="${CXX:-${clangxx_bin} ${common_target_flags}}"
+# Autotools stores CC/CXX as shell words, so a compiler path under
+# /c/Program Files/... must be wrapped in a no-space shim.
+toolshim_root="$repo_root/build-msvc/toolchain/bin"
+mkdir -p "$toolshim_root"
+
+cat > "$toolshim_root/cc-msvc" <<EOF
+#!/usr/bin/env bash
+exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link "\$@"
+EOF
+
+cat > "$toolshim_root/cxx-msvc" <<EOF
+#!/usr/bin/env bash
+exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link "\$@"
+EOF
+
+cat > "$toolshim_root/ar-msvc" <<EOF
+#!/usr/bin/env bash
+exec "$llvm_ar_bin" "\$@"
+EOF
+
+cat > "$toolshim_root/nm-msvc" <<EOF
+#!/usr/bin/env bash
+exec "$llvm_nm_bin" "\$@"
+EOF
+
+cat > "$toolshim_root/strip-msvc" <<EOF
+#!/usr/bin/env bash
+exec "$llvm_strip_bin" "\$@"
+EOF
+
+chmod +x "$toolshim_root"/*
+
+export PATH="$toolshim_root:$PATH"
+export CC="${CC:-$toolshim_root/cc-msvc}"
+export CXX="${CXX:-$toolshim_root/cxx-msvc}"
 export LD="${LD:-lld-link.exe}"
-export AR="${AR:-${llvm_ar_bin}}"
-export NM="${NM:-${llvm_nm_bin}}"
+export AR="${AR:-$toolshim_root/ar-msvc}"
+export NM="${NM:-$toolshim_root/nm-msvc}"
 export RANLIB="${RANLIB:-:}"
-export STRIP="${STRIP:-${llvm_strip_bin}}"
+export STRIP="${STRIP:-$toolshim_root/strip-msvc}"
 
 ./autogen.sh
 
