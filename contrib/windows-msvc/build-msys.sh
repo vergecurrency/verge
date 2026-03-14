@@ -17,6 +17,34 @@ qt_libexecdir="$QTDIR/libexec"
 qt_plugindir="$QTDIR/plugins"
 qt_translationdir="$QTDIR/translations"
 
+boost_incdir="$BOOST_ROOT/include"
+if [ ! -d "$boost_incdir/boost" ]; then
+  versioned_boost_include="$(find "$boost_incdir" -mindepth 1 -maxdepth 1 -type d -name 'boost-*' | head -n1 || true)"
+  if [ -n "$versioned_boost_include" ]; then
+    boost_incdir="$versioned_boost_include"
+  fi
+fi
+boost_libdir="${BOOST_LIBRARYDIR:-$BOOST_ROOT/lib}"
+
+boost_lib_stem() {
+  local component="$1"
+  local libdir="$2"
+  local match=""
+
+  match="$(find "$libdir" -maxdepth 1 -type f \( -name "boost_${component}*.lib" -o -name "libboost_${component}*.lib" \) | sort | head -n1 || true)"
+  if [ -z "$match" ]; then
+    return 1
+  fi
+
+  local stem
+  stem="$(basename "$match")"
+  stem="${stem%.lib}"
+  if [[ "$stem" == libboost_* ]]; then
+    stem="${stem#lib}"
+  fi
+  printf '%s\n' "$stem"
+}
+
 if [ -n "${VERGE_MSVC_PKGCONFIG:-}" ]; then
   if [ -n "${PKG_CONFIG_PATH:-}" ]; then
     export PKG_CONFIG_PATH="${VERGE_MSVC_PKGCONFIG}:${PKG_CONFIG_PATH}"
@@ -24,8 +52,11 @@ if [ -n "${VERGE_MSVC_PKGCONFIG:-}" ]; then
     export PKG_CONFIG_PATH="${VERGE_MSVC_PKGCONFIG}"
   fi
 fi
-export CPPFLAGS="${CPPFLAGS:-} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_ROOT}/include"
-export LDFLAGS="${LDFLAGS:-} -L${OPENSSL_ROOT_DIR}/lib -L${BOOST_ROOT}/lib"
+export BOOST_ROOT
+export BOOST_INCLUDEDIR="${BOOST_INCLUDEDIR:-$boost_incdir}"
+export BOOST_LIBRARYDIR="$boost_libdir"
+export CPPFLAGS="${CPPFLAGS:-} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_INCLUDEDIR}"
+export LDFLAGS="${LDFLAGS:-} -L${OPENSSL_ROOT_DIR}/lib -L${BOOST_LIBRARYDIR}"
 
 # Use the Visual Studio LLVM tools explicitly so autotools doesn't fall back to
 # an MSYS/MinGW compiler or linker from PATH.
@@ -136,6 +167,12 @@ export RANLIB="${RANLIB:-:}"
 export STRIP="${STRIP:-$toolshim_root/strip-msvc}"
 export CONFIG_SITE=/dev/null
 
+boost_filesystem_lib="$(boost_lib_stem filesystem "$BOOST_LIBRARYDIR")"
+boost_program_options_lib="$(boost_lib_stem program_options "$BOOST_LIBRARYDIR")"
+boost_thread_lib="$(boost_lib_stem thread "$BOOST_LIBRARYDIR")"
+boost_chrono_lib="$(boost_lib_stem chrono "$BOOST_LIBRARYDIR")"
+boost_system_lib="$(boost_lib_stem system "$BOOST_LIBRARYDIR")"
+
 ./autogen.sh
 
 ./configure \
@@ -147,6 +184,13 @@ export CONFIG_SITE=/dev/null
   --disable-dependency-tracking \
   --disable-hardening \
   --disable-asm \
+  --with-boost="$BOOST_ROOT" \
+  --with-boost-libdir="$BOOST_LIBRARYDIR" \
+  --with-boost-filesystem="$boost_filesystem_lib" \
+  --with-boost-program-options="$boost_program_options_lib" \
+  --with-boost-thread="$boost_thread_lib" \
+  --with-boost-chrono="$boost_chrono_lib" \
+  --with-boost-system="$boost_system_lib" \
   --with-gui=qt6 \
   --with-qt-incdir="$qt_incdir" \
   --with-qt-libdir="$qt_libdir" \

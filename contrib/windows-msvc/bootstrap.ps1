@@ -172,6 +172,23 @@ function Install-Boost {
     if ($LASTEXITCODE -ne 0) {
         throw "Boost build failed"
     }
+
+    $boostIncludeRoot = Join-Path $InstallRoot "include"
+    $versionedInclude = Get-ChildItem -Path $boostIncludeRoot -Directory -Filter "boost-*" -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($versionedInclude -and -not (Test-Path (Join-Path $boostIncludeRoot "boost"))) {
+        Copy-Item (Join-Path $versionedInclude.FullName "boost") (Join-Path $boostIncludeRoot "boost") -Recurse -Force
+    }
+
+    $boostLibRoot = Join-Path $InstallRoot "lib"
+    $boostStageLibRoot = Join-Path $InstallRoot "stage\lib"
+    New-Item -ItemType Directory -Force -Path $boostStageLibRoot | Out-Null
+    foreach ($lib in Get-ChildItem -Path $boostLibRoot -Filter "libboost_*.lib" -File -ErrorAction SilentlyContinue) {
+        $aliasName = $lib.Name.Substring(3)
+        Copy-Item $lib.FullName (Join-Path $boostLibRoot $aliasName) -Force
+        Copy-Item $lib.FullName (Join-Path $boostStageLibRoot $lib.Name) -Force
+        Copy-Item $lib.FullName (Join-Path $boostStageLibRoot $aliasName) -Force
+    }
     Pop-Location
 }
 
@@ -203,6 +220,13 @@ function Install-OpenSSL {
     nmake install_sw
     if ($LASTEXITCODE -ne 0) {
         throw "OpenSSL install failed"
+    }
+    $opensslLibDir = Join-Path $InstallRoot "lib"
+    if (Test-Path (Join-Path $opensslLibDir "libcrypto.lib")) {
+        Copy-Item (Join-Path $opensslLibDir "libcrypto.lib") (Join-Path $opensslLibDir "crypto.lib") -Force
+    }
+    if (Test-Path (Join-Path $opensslLibDir "libssl.lib")) {
+        Copy-Item (Join-Path $opensslLibDir "libssl.lib") (Join-Path $opensslLibDir "ssl.lib") -Force
     }
     Pop-Location
 }
