@@ -376,6 +376,14 @@ function Install-VcpkgDeps {
     if ($LASTEXITCODE -ne 0) {
         throw "vcpkg dependency install failed"
     }
+
+    $tripletLibDir = Join-Path $Root "installed\$Triplet\lib"
+    if (Test-Path $tripletLibDir) {
+        foreach ($lib in Get-ChildItem -Path $tripletLibDir -Filter "lib*.lib" -File -ErrorAction SilentlyContinue) {
+            $aliasName = $lib.Name.Substring(3)
+            Copy-Item $lib.FullName (Join-Path $tripletLibDir $aliasName) -Force
+        }
+    }
     Pop-Location
 }
 
