@@ -372,7 +372,8 @@ function Install-VcpkgDeps {
         "protobuf:$Triplet" `
         "libqrencode:$Triplet" `
         "miniupnpc:$Triplet" `
-        "zeromq:$Triplet"
+        "zeromq:$Triplet" `
+        "zlib:$Triplet"
     if ($LASTEXITCODE -ne 0) {
         throw "vcpkg dependency install failed"
     }
