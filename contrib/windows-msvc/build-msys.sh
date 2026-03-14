@@ -28,8 +28,10 @@ boost_libdir="${BOOST_LIBRARYDIR:-$BOOST_ROOT/lib}"
 vcpkg_triplet="${VCPKG_DEFAULT_TRIPLET:-x64-windows-static-md}"
 vcpkg_installed_dir="${VCPKG_INSTALLED_DIR:-${VCPKG_ROOT:-}/installed}"
 vcpkg_triplet_dir=""
+vcpkg_tools_dir=""
 if [ -n "$vcpkg_installed_dir" ]; then
   vcpkg_triplet_dir="${vcpkg_installed_dir}/${vcpkg_triplet}"
+  vcpkg_tools_dir="${vcpkg_installed_dir}/../tools"
 fi
 
 boost_lib_stem() {
@@ -168,6 +170,18 @@ make_qt_tool_shim lupdate6 lupdate
 make_qt_tool_shim lupdate-qt6 lupdate
 
 chmod +x "$toolshim_root"/*
+
+if [ -n "$vcpkg_tools_dir" ] && [ -d "$vcpkg_tools_dir/protobuf" ]; then
+  protoc_candidate="$(find "$vcpkg_tools_dir/protobuf" -maxdepth 1 -type f \( -name 'protoc.exe' -o -name 'protoc' \) | head -n1 || true)"
+  if [ -n "$protoc_candidate" ]; then
+    protoc_candidate_unix="$(cygpath -u "$protoc_candidate")"
+    cat > "$toolshim_root/protoc" <<EOF
+#!/usr/bin/env bash
+exec "$protoc_candidate_unix" "\$@"
+EOF
+    chmod +x "$toolshim_root/protoc"
+  fi
+fi
 
 export PATH="$toolshim_root:$PATH"
 export CC="${CC:-$toolshim_root/cc-msvc}"
