@@ -25,6 +25,12 @@ if [ ! -d "$boost_incdir/boost" ]; then
   fi
 fi
 boost_libdir="${BOOST_LIBRARYDIR:-$BOOST_ROOT/lib}"
+vcpkg_triplet="${VCPKG_DEFAULT_TRIPLET:-x64-windows-static-md}"
+vcpkg_installed_dir="${VCPKG_INSTALLED_DIR:-${VCPKG_ROOT:-}/installed}"
+vcpkg_triplet_dir=""
+if [ -n "$vcpkg_installed_dir" ]; then
+  vcpkg_triplet_dir="${vcpkg_installed_dir}/${vcpkg_triplet}"
+fi
 
 boost_lib_stem() {
   local component="$1"
@@ -57,6 +63,12 @@ export BOOST_INCLUDEDIR="${BOOST_INCLUDEDIR:-$boost_incdir}"
 export BOOST_LIBRARYDIR="$boost_libdir"
 export CPPFLAGS="${CPPFLAGS:-} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_INCLUDEDIR}"
 export LDFLAGS="${LDFLAGS:-} -L${OPENSSL_ROOT_DIR}/lib -L${BOOST_LIBRARYDIR}"
+if [ -n "$vcpkg_triplet_dir" ] && [ -d "$vcpkg_triplet_dir/include" ]; then
+  export CPPFLAGS="${CPPFLAGS} -I${vcpkg_triplet_dir}/include"
+fi
+if [ -n "$vcpkg_triplet_dir" ] && [ -d "$vcpkg_triplet_dir/lib" ]; then
+  export LDFLAGS="${LDFLAGS} -L${vcpkg_triplet_dir}/lib"
+fi
 
 # Use the Visual Studio LLVM tools explicitly so autotools doesn't fall back to
 # an MSYS/MinGW compiler or linker from PATH.
