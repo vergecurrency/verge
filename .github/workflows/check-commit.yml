@@ -1276,6 +1276,9 @@ jobs:
         run: |
           test -f config.log && sed -n '1,200p' config.log || true
           test -f config.status && sed -n '1,200p' config.status || true
+          test -f src/tor/config.log && sed -n '1,260p' src/tor/config.log || true
+          test -f src/tor/config.status && sed -n '1,200p' src/tor/config.status || true
+          find build-msvc/vcpkg/installed -maxdepth 4 -type f \( -iname 'event*.lib' -o -iname 'libevent*.lib' -o -iname 'libevent*.pc' \) -print || true
 
       - uses: actions/upload-artifact@v4
         with:
