@@ -217,6 +217,14 @@ configure_protoc_args=()
 if [ -n "$protoc_bindir" ]; then
   configure_protoc_args+=(--with-protoc-bindir="$protoc_bindir")
 fi
+configure_tor_dep_args=()
+if [ -n "$vcpkg_triplet_dir" ] && [ -d "$vcpkg_triplet_dir" ]; then
+  configure_tor_dep_args+=(--with-libevent-dir="$vcpkg_triplet_dir")
+  configure_tor_dep_args+=(--with-zlib-dir="$vcpkg_triplet_dir")
+fi
+if [ -n "$OPENSSL_ROOT_DIR" ] && [ -d "$OPENSSL_ROOT_DIR" ]; then
+  configure_tor_dep_args+=(--with-openssl-dir="$OPENSSL_ROOT_DIR")
+fi
 
 ./autogen.sh
 
@@ -237,6 +245,7 @@ fi
   --with-boost-chrono="$boost_chrono_lib" \
   --with-boost-system="$boost_system_lib" \
   "${configure_protoc_args[@]}" \
+  "${configure_tor_dep_args[@]}" \
   --with-gui=qt6 \
   --with-qt-incdir="$qt_incdir" \
   --with-qt-libdir="$qt_libdir" \
