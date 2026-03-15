@@ -29,6 +29,8 @@ vcpkg_triplet="${VCPKG_DEFAULT_TRIPLET:-x64-windows-static-md}"
 vcpkg_installed_dir="${VCPKG_INSTALLED_DIR:-${VCPKG_ROOT:-}/installed}"
 vcpkg_triplet_dir=""
 protoc_bindir=""
+toolshim_root="$repo_root/build-msvc/toolchain/bin"
+toolinclude_root="$repo_root/build-msvc/toolchain/include"
 if [ -n "$vcpkg_installed_dir" ]; then
   vcpkg_triplet_dir="${vcpkg_installed_dir}/${vcpkg_triplet}"
 fi
@@ -62,8 +64,10 @@ fi
 export BOOST_ROOT
 export BOOST_INCLUDEDIR="${BOOST_INCLUDEDIR:-$boost_incdir}"
 export BOOST_LIBRARYDIR="$boost_libdir"
-export CPPFLAGS="${CPPFLAGS:-} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_INCLUDEDIR}"
+export CPPFLAGS="${CPPFLAGS:-} -I${toolinclude_root} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_INCLUDEDIR}"
 export LDFLAGS="${LDFLAGS:-} -L${OPENSSL_ROOT_DIR}/lib -L${BOOST_LIBRARYDIR}"
+export CFLAGS="${CFLAGS:-} -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0601 -D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS"
+export CXXFLAGS="${CXXFLAGS:-} -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0601 -D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS"
 if [ -n "$vcpkg_triplet_dir" ] && [ -d "$vcpkg_triplet_dir/include" ]; then
   export CPPFLAGS="${CPPFLAGS} -I${vcpkg_triplet_dir}/include"
 fi
@@ -93,8 +97,8 @@ fi
 
 # Autotools stores CC/CXX as shell words, so a compiler path under
 # /c/Program Files/... must be wrapped in a no-space shim.
-toolshim_root="$repo_root/build-msvc/toolchain/bin"
 mkdir -p "$toolshim_root"
+mkdir -p "$toolinclude_root/sys"
 
 make_qt_tool_shim() {
   local shim_name="$1"
@@ -169,6 +173,96 @@ make_qt_tool_shim lupdate6 lupdate
 make_qt_tool_shim lupdate-qt6 lupdate
 
 chmod +x "$toolshim_root"/*
+
+# Tor's configure probes include <sys/time.h> before <event2/event.h>, but the
+# MSVC target does not provide that header. Supply a Windows-only shim for the
+# probe and for Tor sources that expect timeval helpers on Windows.
+cat > "$toolinclude_root/sys/time.h" <<'EOF'
+#ifndef VERGE_WINDOWS_SYS_TIME_H
+#define VERGE_WINDOWS_SYS_TIME_H
+
+#include <winsock2.h>
+#include <windows.h>
+#include <time.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct timezone {
+  int tz_minuteswest;
+  int tz_dsttime;
+};
+
+static __inline int gettimeofday(struct timeval *tv, void *tz)
+{
+  FILETIME ft;
+  ULARGE_INTEGER uli;
+  unsigned long long usec;
+
+  (void)tz;
+  if (!tv) {
+    return -1;
+  }
+
+  GetSystemTimeAsFileTime(&ft);
+  uli.LowPart = ft.dwLowDateTime;
+  uli.HighPart = ft.dwHighDateTime;
+  usec = (uli.QuadPart - 116444736000000000ULL) / 10ULL;
+  tv->tv_sec = (long)(usec / 1000000ULL);
+  tv->tv_usec = (long)(usec % 1000000ULL);
+  return 0;
+}
+
+#ifndef timerisset
+#define timerisset(tvp) ((tvp)->tv_sec || (tvp)->tv_usec)
+#endif
+
+#ifndef timerclear
+#define timerclear(tvp)       \
+  do {                        \
+    (tvp)->tv_sec = 0;        \
+    (tvp)->tv_usec = 0;       \
+  } while (0)
+#endif
+
+#ifndef timercmp
+#define timercmp(a, b, CMP)                                            \
+  (((a)->tv_sec == (b)->tv_sec) ?                                      \
+   ((a)->tv_usec CMP (b)->tv_usec) :                                   \
+   ((a)->tv_sec CMP (b)->tv_sec))
+#endif
+
+#ifndef timeradd
+#define timeradd(a, b, result)                                         \
+  do {                                                                 \
+    (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;                      \
+    (result)->tv_usec = (a)->tv_usec + (b)->tv_usec;                   \
+    if ((result)->tv_usec >= 1000000) {                                \
+      ++(result)->tv_sec;                                              \
+      (result)->tv_usec -= 1000000;                                    \
+    }                                                                  \
+  } while (0)
+#endif
+
+#ifndef timersub
+#define timersub(a, b, result)                                         \
+  do {                                                                 \
+    (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;                      \
+    (result)->tv_usec = (a)->tv_usec - (b)->tv_usec;                   \
+    if ((result)->tv_usec < 0) {                                       \
+      --(result)->tv_sec;                                              \
+      (result)->tv_usec += 1000000;                                    \
+    }                                                                  \
+  } while (0)
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+EOF
 
 for search_root in \
   "${PROTOC_BINDIR:-}" \
