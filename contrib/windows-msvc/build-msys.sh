@@ -29,6 +29,7 @@ vcpkg_triplet="${VCPKG_DEFAULT_TRIPLET:-x64-windows-static-md}"
 vcpkg_installed_dir="${VCPKG_INSTALLED_DIR:-${VCPKG_ROOT:-}/installed}"
 vcpkg_triplet_dir=""
 vcpkg_tools_dir=""
+protoc_bindir=""
 if [ -n "$vcpkg_installed_dir" ]; then
   vcpkg_triplet_dir="${vcpkg_installed_dir}/${vcpkg_triplet}"
   vcpkg_tools_dir="${vcpkg_installed_dir}/../tools"
@@ -171,8 +172,19 @@ make_qt_tool_shim lupdate-qt6 lupdate
 
 chmod +x "$toolshim_root"/*
 
-if [ -n "$vcpkg_tools_dir" ] && [ -d "$vcpkg_tools_dir/protobuf" ]; then
-  protoc_candidate="$(find "$vcpkg_tools_dir/protobuf" -maxdepth 1 -type f \( -name 'protoc.exe' -o -name 'protoc' \) | head -n1 || true)"
+for candidate_dir in \
+  "$vcpkg_tools_dir/protobuf" \
+  "${VCPKG_ROOT:-}/tools/protobuf" \
+  "${vcpkg_installed_dir}/tools/protobuf"
+do
+  if [ -d "$candidate_dir" ]; then
+    protoc_bindir="$candidate_dir"
+    break
+  fi
+done
+
+if [ -n "$protoc_bindir" ]; then
+  protoc_candidate="$(find "$protoc_bindir" -maxdepth 1 -type f \( -name 'protoc.exe' -o -name 'protoc' \) | head -n1 || true)"
   if [ -n "$protoc_candidate" ]; then
     protoc_candidate_unix="$(cygpath -u "$protoc_candidate")"
     cat > "$toolshim_root/protoc" <<EOF
@@ -199,6 +211,10 @@ boost_program_options_lib="$(boost_lib_stem program_options "$BOOST_LIBRARYDIR")
 boost_thread_lib="$(boost_lib_stem thread "$BOOST_LIBRARYDIR")"
 boost_chrono_lib="$(boost_lib_stem chrono "$BOOST_LIBRARYDIR")"
 boost_system_lib="$(boost_lib_stem system "$BOOST_LIBRARYDIR")"
+configure_protoc_args=()
+if [ -n "$protoc_bindir" ]; then
+  configure_protoc_args+=(--with-protoc-bindir="$protoc_bindir")
+fi
 
 ./autogen.sh
 
@@ -218,6 +234,7 @@ boost_system_lib="$(boost_lib_stem system "$BOOST_LIBRARYDIR")"
   --with-boost-thread="$boost_thread_lib" \
   --with-boost-chrono="$boost_chrono_lib" \
   --with-boost-system="$boost_system_lib" \
+  "${configure_protoc_args[@]}" \
   --with-gui=qt6 \
   --with-qt-incdir="$qt_incdir" \
   --with-qt-libdir="$qt_libdir" \
