@@ -301,6 +301,7 @@ export RANLIB="${RANLIB:-:}"
 export STRIP="${STRIP:-$toolshim_root/strip-msvc}"
 export CONFIG_SITE=/dev/null
 export TARGET_OS=windows
+export LIBS="${LIBS:-} -liphlpapi -lbcrypt -lws2_32"
 
 boost_filesystem_lib="$(boost_lib_stem filesystem "$BOOST_LIBRARYDIR")"
 boost_program_options_lib="$(boost_lib_stem program_options "$BOOST_LIBRARYDIR")"
