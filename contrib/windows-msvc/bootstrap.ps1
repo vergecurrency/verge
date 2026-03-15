@@ -368,7 +368,7 @@ function Install-VcpkgDeps {
         throw "vcpkg bootstrap failed"
     }
     .\vcpkg.exe install `
-        "libevent[core,extra,openssl,thread]:$Triplet" `
+        "libevent[openssl]:$Triplet" `
         "protobuf:$Triplet" `
         "libqrencode:$Triplet" `
         "miniupnpc:$Triplet" `
