@@ -28,11 +28,9 @@ boost_libdir="${BOOST_LIBRARYDIR:-$BOOST_ROOT/lib}"
 vcpkg_triplet="${VCPKG_DEFAULT_TRIPLET:-x64-windows-static-md}"
 vcpkg_installed_dir="${VCPKG_INSTALLED_DIR:-${VCPKG_ROOT:-}/installed}"
 vcpkg_triplet_dir=""
-vcpkg_tools_dir=""
 protoc_bindir=""
 if [ -n "$vcpkg_installed_dir" ]; then
   vcpkg_triplet_dir="${vcpkg_installed_dir}/${vcpkg_triplet}"
-  vcpkg_tools_dir="${vcpkg_installed_dir}/../tools"
 fi
 
 boost_lib_stem() {
@@ -172,13 +170,17 @@ make_qt_tool_shim lupdate-qt6 lupdate
 
 chmod +x "$toolshim_root"/*
 
-for candidate_dir in \
-  "$vcpkg_tools_dir/protobuf" \
-  "${VCPKG_ROOT:-}/tools/protobuf" \
-  "${vcpkg_installed_dir}/tools/protobuf"
+for search_root in \
+  "${PROTOC_BINDIR:-}" \
+  "${VCPKG_ROOT:-}" \
+  "${vcpkg_installed_dir:-}"
 do
-  if [ -d "$candidate_dir" ]; then
-    protoc_bindir="$candidate_dir"
+  if [ -z "$search_root" ] || [ ! -d "$search_root" ]; then
+    continue
+  fi
+  protoc_candidate="$(find "$search_root" -type f \( -name 'protoc.exe' -o -name 'protoc' \) | head -n1 || true)"
+  if [ -n "$protoc_candidate" ]; then
+    protoc_bindir="$(dirname "$protoc_candidate")"
     break
   fi
 done
