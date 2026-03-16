@@ -31,6 +31,7 @@ vcpkg_triplet_dir=""
 protoc_bindir=""
 toolshim_root="$repo_root/build-msvc/toolchain/bin"
 toolinclude_root="$repo_root/build-msvc/toolchain/include"
+tor_patch="$repo_root/contrib/windows-msvc/tor-libevent-windows.patch"
 if [ -n "$vcpkg_installed_dir" ]; then
   vcpkg_triplet_dir="${vcpkg_installed_dir}/${vcpkg_triplet}"
 fi
@@ -301,7 +302,6 @@ export RANLIB="${RANLIB:-:}"
 export STRIP="${STRIP:-$toolshim_root/strip-msvc}"
 export CONFIG_SITE=/dev/null
 export TARGET_OS=windows
-export LIBS="${LIBS:-} -levent_extra -levent_core -levent -liphlpapi -lbcrypt -ladvapi32 -lshell32 -luser32 -lws2_32"
 
 boost_filesystem_lib="$(boost_lib_stem filesystem "$BOOST_LIBRARYDIR")"
 boost_program_options_lib="$(boost_lib_stem program_options "$BOOST_LIBRARYDIR")"
@@ -319,6 +319,12 @@ if [ -n "$vcpkg_triplet_dir" ] && [ -d "$vcpkg_triplet_dir" ]; then
 fi
 if [ -n "$OPENSSL_ROOT_DIR" ] && [ -d "$OPENSSL_ROOT_DIR" ]; then
   configure_tor_dep_args+=(--with-openssl-dir="$OPENSSL_ROOT_DIR")
+fi
+
+if [ -f "$tor_patch" ]; then
+  if git -C "$repo_root/src/tor" apply --check "$tor_patch" >/dev/null 2>&1; then
+    git -C "$repo_root/src/tor" apply "$tor_patch"
+  fi
 fi
 
 ./autogen.sh
