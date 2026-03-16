@@ -323,13 +323,18 @@ fi
 patch_tor_configure_for_windows() {
   local tor_config="$repo_root/src/tor/configure.ac"
 
-  if grep -q 'TOR_LIBEVENT_LIBS="$TOR_LIBEVENT_LIBS $TOR_LIB_IPHLPAPI $TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 $TOR_LIB_WS32"' "$tor_config"; then
+  if grep -q 'TOR_OPENSSL_LIBS="-lssl -lcrypto $TOR_LIB_CRYPT32 $TOR_LIB_BCRYPT -ladvapi32"' "$tor_config" && \
+     grep -q 'TOR_LIBEVENT_LIBS="$TOR_LIBEVENT_LIBS $TOR_LIB_IPHLPAPI $TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 $TOR_LIB_WS32"' "$tor_config"; then
     return
   fi
 
   perl -0pi -e 's#LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"#case "\$host" in\n  *mingw*|*windows*)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$save_LIBS"\n    ;;\n  *)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"\n    ;;\nesac#' "$tor_config"
 
   perl -0pi -e 's#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi\n       case "\$host" in\n         *mingw*|*windows*)\n           TOR_LIBEVENT_LIBS="\$TOR_LIBEVENT_LIBS \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$TOR_LIB_WS32"\n           ;;\n       esac#' "$tor_config"
+
+  perl -0pi -e 's#TOR_SEARCH_LIBRARY\(openssl, \$tryssldir, \[-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32\],#TOR_SEARCH_LIBRARY(openssl, \$tryssldir, [-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32],#' "$tor_config"
+
+  perl -0pi -e 's#TOR_OPENSSL_LIBS="-lssl -lcrypto"#case "\$host" in\n  *mingw*|*windows*)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32"\n     ;;\n  *)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto"\n     ;;\nesac#' "$tor_config"
 
   grep -n 'TOR_LIBEVENT_LIBS=' "$tor_config" >/dev/null
 }
