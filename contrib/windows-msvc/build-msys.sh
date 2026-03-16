@@ -31,7 +31,6 @@ vcpkg_triplet_dir=""
 protoc_bindir=""
 toolshim_root="$repo_root/build-msvc/toolchain/bin"
 toolinclude_root="$repo_root/build-msvc/toolchain/include"
-tor_patch="$repo_root/contrib/windows-msvc/tor-libevent-windows.patch"
 if [ -n "$vcpkg_installed_dir" ]; then
   vcpkg_triplet_dir="${vcpkg_installed_dir}/${vcpkg_triplet}"
 fi
@@ -321,11 +320,21 @@ if [ -n "$OPENSSL_ROOT_DIR" ] && [ -d "$OPENSSL_ROOT_DIR" ]; then
   configure_tor_dep_args+=(--with-openssl-dir="$OPENSSL_ROOT_DIR")
 fi
 
-if [ -f "$tor_patch" ]; then
-  if git -C "$repo_root/src/tor" apply --check "$tor_patch" >/dev/null 2>&1; then
-    git -C "$repo_root/src/tor" apply "$tor_patch"
+patch_tor_configure_for_windows() {
+  local tor_config="$repo_root/src/tor/configure.ac"
+
+  if grep -q 'TOR_LIBEVENT_LIBS="$TOR_LIBEVENT_LIBS $TOR_LIB_IPHLPAPI $TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 $TOR_LIB_WS32"' "$tor_config"; then
+    return
   fi
-fi
+
+  perl -0pi -e 's#LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"#case "\$host" in\n  *mingw*|*windows*)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$save_LIBS"\n    ;;\n  *)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"\n    ;;\nesac#' "$tor_config"
+
+  perl -0pi -e 's#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi\n       case "\$host" in\n         *mingw*|*windows*)\n           TOR_LIBEVENT_LIBS="\$TOR_LIBEVENT_LIBS \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$TOR_LIB_WS32"\n           ;;\n       esac#' "$tor_config"
+
+  grep -n 'TOR_LIBEVENT_LIBS=' "$tor_config" >/dev/null
+}
+
+patch_tor_configure_for_windows
 
 ./autogen.sh
 
