@@ -1277,6 +1277,7 @@ jobs:
           test -f config.log && sed -n '1,200p' config.log || true
           test -f config.status && sed -n '1,200p' config.status || true
           test -f src/tor/config.log && sed -n '1,260p' src/tor/config.log || true
+          test -f src/tor/config.log && rg -n -C 20 'evdns_base_new|event_new|libevent2 is installed but linking it failed|undefined reference|undefined symbol|lld-link|linker command failed' src/tor/config.log || true
           test -f src/tor/config.status && sed -n '1,200p' src/tor/config.status || true
           find build-msvc/vcpkg/installed -maxdepth 4 -type f \( -iname 'event*.lib' -o -iname 'libevent*.lib' -o -iname 'libevent*.pc' \) -print || true
 
