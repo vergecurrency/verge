@@ -334,6 +334,7 @@ patch_tor_configure_for_windows() {
   grep -n 'TOR_LIBEVENT_LIBS=' "$tor_config" >/dev/null
 }
 
+git submodule update --init --recursive src/tor
 patch_tor_configure_for_windows
 
 ./autogen.sh
