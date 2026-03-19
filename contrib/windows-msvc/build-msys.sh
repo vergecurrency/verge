@@ -196,8 +196,11 @@ EOF
   chmod +x "$toolshim_root/$shim_name"
 }
 
-msvc_runtime_flags=(
+msvc_compile_flags=(
   -fms-runtime-lib=dll
+)
+
+msvc_link_runtime_flags=(
   -Xlinker -nodefaultlib:libcmt
   -Xlinker -nodefaultlib:libucrt
   -Xlinker -defaultlib:msvcrt
@@ -227,9 +230,9 @@ for arg in "\$@"; do
   esac
 done
 if [ "\$linking" -eq 1 ]; then
-  exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_runtime_flags[*]} "\${args[@]}"
+  exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_compile_flags[*]} ${msvc_link_runtime_flags[*]} "\${args[@]}"
 else
-  exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link "\${args[@]}"
+  exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_compile_flags[*]} "\${args[@]}"
 fi
 EOF
 
@@ -255,9 +258,9 @@ for arg in "\$@"; do
   esac
 done
 if [ "\$linking" -eq 1 ]; then
-  exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_runtime_flags[*]} "\${args[@]}"
+  exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_compile_flags[*]} ${msvc_link_runtime_flags[*]} "\${args[@]}"
 else
-  exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link "\${args[@]}"
+  exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_compile_flags[*]} "\${args[@]}"
 fi
 EOF
 
