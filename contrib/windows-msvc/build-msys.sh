@@ -669,26 +669,12 @@ patch_verge_sources_for_windows() {
   local httpserver_cpp="$repo_root/src/httpserver.cpp"
   local tradepage_cpp="$repo_root/src/qt/tradepage.cpp"
   local paymentrequestplus_h="$repo_root/src/qt/paymentrequestplus.h"
-  local tmp_paymentrequestplus
 
   perl -0pi -e 's/evhttp_connection_get_peer\(con, \(char\*\*\)&address, &port\);/evhttp_connection_get_peer(con, \&address, \&port);/' "$httpserver_cpp"
   perl -0pi -e 's/#include <QWebEnginePage>/#include <QtWebEngineCore\/QWebEnginePage>/' "$tradepage_cpp"
   perl -0pi -e 's/#include <QWebEngineView>/#include <QtWebEngineWidgets\/QWebEngineView>/' "$tradepage_cpp"
   if ! grep -q 'VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS' "$paymentrequestplus_h"; then
-    tmp_paymentrequestplus="$(mktemp)"
-    awk '
-      {
-        print
-        if ($0 == "#pragma GCC diagnostic pop") {
-          print ""
-          print "#if defined(_WIN32) && defined(__clang__)"
-          print "#pragma comment(linker, \"/alternatename:??$memswap@$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??$memswap@$0BA@@internal@protobuf@google@@YAXPEAD0@Z\")"
-          print "#endif"
-          print "/* VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS */"
-        }
-      }
-    ' "$paymentrequestplus_h" > "$tmp_paymentrequestplus"
-    mv "$tmp_paymentrequestplus" "$paymentrequestplus_h"
+    perl -0pi -e 's/#pragma GCC diagnostic pop\r?\n/#pragma GCC diagnostic pop\n\n#if defined(_WIN32) && defined(__clang__)\n#pragma comment(linker, "\/alternatename:??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEAD0@Z")\n#endif\n\/\* VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS \*\/\n/' "$paymentrequestplus_h"
   fi
 
   grep -n 'evhttp_connection_get_peer(con, &address, &port);' "$httpserver_cpp" >/dev/null
@@ -708,11 +694,17 @@ patch_pow_sources_for_windows() {
   grep -n '^void reducedSqueezeRow0' "$sponge_c" >/dev/null
 }
 
+echo "==> Initializing tor submodule"
 git submodule update --init --recursive src/tor
+echo "==> Patching tor configure for Windows MSVC"
 patch_tor_configure_for_windows
+echo "==> Patching tor sources for Windows MSVC"
 patch_tor_sources_for_windows
+echo "==> Patching tor build helpers for Windows MSVC"
 patch_tor_build_helpers_for_windows
+echo "==> Patching Verge sources for Windows MSVC"
 patch_verge_sources_for_windows
+echo "==> Patching PoW sources for Windows MSVC"
 patch_pow_sources_for_windows
 
 ./autogen.sh
