@@ -129,7 +129,7 @@ function Install-Qt {
     }
     python -m aqt install-qt windows desktop $Version $Arch `
         -O $InstallRoot `
-        -m qtwebengine qt5compat
+        -m qtwebengine qtwebchannel qtpositioning qt5compat
     if ($LASTEXITCODE -ne 0) {
         throw "Qt installation failed"
     }
