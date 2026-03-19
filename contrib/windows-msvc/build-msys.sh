@@ -208,8 +208,13 @@ msvc_runtime_flags=(
 cat > "$toolshim_root/cc-msvc" <<EOF
 #!/usr/bin/env bash
 args=()
+linking=1
 for arg in "\$@"; do
   case "\$arg" in
+    -c|-E|-S)
+      linking=0
+      args+=("\$arg")
+      ;;
     -Wl,--large-address-aware|--large-address-aware)
       args+=(-Xlinker /LARGEADDRESSAWARE)
       ;;
@@ -221,14 +226,23 @@ for arg in "\$@"; do
       ;;
   esac
 done
-exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_runtime_flags[*]} "\${args[@]}"
+if [ "\$linking" -eq 1 ]; then
+  exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_runtime_flags[*]} "\${args[@]}"
+else
+  exec "$clang_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link "\${args[@]}"
+fi
 EOF
 
 cat > "$toolshim_root/cxx-msvc" <<EOF
 #!/usr/bin/env bash
 args=()
+linking=1
 for arg in "\$@"; do
   case "\$arg" in
+    -c|-E|-S)
+      linking=0
+      args+=("\$arg")
+      ;;
     -Wl,--large-address-aware|--large-address-aware)
       args+=(-Xlinker /LARGEADDRESSAWARE)
       ;;
@@ -240,7 +254,11 @@ for arg in "\$@"; do
       ;;
   esac
 done
-exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_runtime_flags[*]} "\${args[@]}"
+if [ "\$linking" -eq 1 ]; then
+  exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link ${msvc_runtime_flags[*]} "\${args[@]}"
+else
+  exec "$clangxx_bin" --target=x86_64-pc-windows-msvc -fuse-ld=lld-link "\${args[@]}"
+fi
 EOF
 
 cat > "$toolshim_root/ar-msvc" <<EOF
