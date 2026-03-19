@@ -621,8 +621,10 @@ patch_tor_sources_for_windows() {
     perl -0pi -e 's/#include <sys\/types\.h>/#include <sys\/types.h>\n#include "lib\/cc\/torint.h"/' "$trunnel_header"
   fi
 
+  perl -0pi -e 's/#if EVAL_DEFINE\(__MACHINEARM64_X64\(1\)\)/#if defined(_M_ARM64EC)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if EVAL_DEFINE\(__MACHINEARM64_X64\(1\)\)\s*\|\|\s*defined\(_M_ARM64EC\)/#if defined(_M_ARM64EC)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if defined\(_M_ARM64EC\)\s*\|\|\s*\(defined\(__MACHINEARM64_X64\)\s*&&\s*EVAL_DEFINE\(__MACHINEARM64_X64\(1\)\)\)/#if defined(_M_ARM64EC)/g' "$hashx_program_exec"
+  perl -0pi -e 's/#if EVAL_DEFINE\(__MACHINEX64\(1\)\)/#if defined(_M_X64)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if EVAL_DEFINE\(__MACHINEX64\(1\)\)\s*\|\|\s*defined\(_M_X64\)/#if defined(_M_X64)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if defined\(_M_X64\)\s*\|\|\s*\(defined\(__MACHINEX64\)\s*&&\s*EVAL_DEFINE\(__MACHINEX64\(1\)\)\)/#if defined(_M_X64)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if defined\(_M_X64\)\r?\nstatic FORCE_INLINE int64_t smulh\(int64_t a, int64_t b\) \{/#if defined(_M_X64) \&\& !defined(HAVE_SMULH)\nstatic FORCE_INLINE int64_t smulh(int64_t a, int64_t b) {/g' "$hashx_program_exec"
