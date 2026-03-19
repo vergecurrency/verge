@@ -586,9 +586,12 @@ patch_tor_sources_for_windows() {
   if grep -q '#include <process.h>' "$control_getinfo"; then
     :
   else
-    perl -0pi -e 's/#ifdef HAVE_UNISTD_H\r?\n#include <unistd.h>\r?\n#endif/#ifdef _WIN32\n#include <process.h>\n#endif\n\n#ifdef HAVE_UNISTD_H\n#include <unistd.h>\n#endif/' "$control_getinfo"
-
-    grep -n '#include <process.h>' "$control_getinfo" >/dev/null
+    perl -0pi -e 's/#ifdef HAVE_UNISTD_H/#ifdef _WIN32\n#include <process.h>\n#endif\n\n#ifdef HAVE_UNISTD_H/' "$control_getinfo"
+    grep -n '#include <process.h>' "$control_getinfo" >/dev/null || {
+      echo "failed to patch $control_getinfo with process.h" >&2
+      sed -n '60,90p' "$control_getinfo" >&2
+      exit 1
+    }
   fi
 
   if ! grep -q 'VERGE_MSVC_WINDOWS_CRT_COMPAT' "$compat_compiler"; then
@@ -624,10 +627,21 @@ patch_tor_sources_for_windows() {
   perl -0pi -e 's/#if defined\(_M_X64\)\s*\|\|\s*\(defined\(__MACHINEX64\)\s*&&\s*EVAL_DEFINE\(__MACHINEX64\(1\)\)\)/#if defined(_M_X64)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if defined\(_M_X64\)\r?\nstatic FORCE_INLINE int64_t smulh\(int64_t a, int64_t b\) \{/#if defined(_M_X64) \&\& !defined(HAVE_SMULH)\nstatic FORCE_INLINE int64_t smulh(int64_t a, int64_t b) {/g' "$hashx_program_exec"
 
-  grep -n 'lib/cc/torint.h' "$trunnel_header" >/dev/null
-  grep -n '#if defined(_M_X64)' "$hashx_program_exec" >/dev/null
-
-  grep -n 'VERGE_MSVC_WINDOWS_CRT_COMPAT' "$compat_compiler" >/dev/null
+  grep -n 'lib/cc/torint.h' "$trunnel_header" >/dev/null || {
+    echo "failed to patch $trunnel_header for torint.h" >&2
+    sed -n '1,25p' "$trunnel_header" >&2
+    exit 1
+  }
+  grep -n '#if defined(_M_X64)' "$hashx_program_exec" >/dev/null || {
+    echo "failed to patch $hashx_program_exec for _M_X64 guards" >&2
+    sed -n '20,70p' "$hashx_program_exec" >&2
+    exit 1
+  }
+  grep -n 'VERGE_MSVC_WINDOWS_CRT_COMPAT' "$compat_compiler" >/dev/null || {
+    echo "failed to patch $compat_compiler for MSVC CRT compatibility" >&2
+    sed -n '1,80p' "$compat_compiler" >&2
+    exit 1
+  }
 }
 
 patch_tor_build_helpers_for_windows() {
