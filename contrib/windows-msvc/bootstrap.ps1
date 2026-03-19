@@ -62,6 +62,16 @@ function Expand-ArchiveAny {
     }
 }
 
+function Expand-ZipArchive {
+    param(
+        [Parameter(Mandatory = $true)][string]$Archive,
+        [Parameter(Mandatory = $true)][string]$Destination
+    )
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($Archive, $Destination)
+}
+
 function Import-VsDevShell {
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     if (-not (Test-Path $vswhere)) {
@@ -161,14 +171,14 @@ function Install-Boost {
     $sourceRoot = Join-Path $buildRoot "boost_$versionUnderscore"
     Invoke-Download "https://archives.boost.io/release/$Version/source/boost_$versionUnderscore.zip" $archive
     if (-not (Test-Path $sourceRoot)) {
-        Expand-Archive $archive -DestinationPath $buildRoot
+        Expand-ZipArchive -Archive $archive -Destination $buildRoot
     }
     Push-Location $sourceRoot
     cmd.exe /c "bootstrap.bat"
     if ($LASTEXITCODE -ne 0) {
         throw "Boost bootstrap failed"
     }
-    cmd.exe /c "b2.exe --prefix=`"$InstallRoot`" toolset=msvc address-model=64 variant=release link=static runtime-link=static threading=multi --with-chrono --with-filesystem --with-program_options --with-system --with-thread install"
+    cmd.exe /c "b2.exe --prefix=`"$InstallRoot`" toolset=msvc address-model=64 variant=release link=static runtime-link=shared threading=multi --with-chrono --with-filesystem --with-program_options --with-system --with-thread install"
     if ($LASTEXITCODE -ne 0) {
         throw "Boost build failed"
     }
