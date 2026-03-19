@@ -827,4 +827,4 @@ patch_generated_makefiles_for_windows() {
 
 patch_generated_makefiles_for_windows
 
-make -j2 V=1
+make -j1 V=1
