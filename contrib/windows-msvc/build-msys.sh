@@ -779,6 +779,7 @@ patch_generated_makefiles_for_windows() {
   local protobuf_static_libs=""
   local protobuf_link_libs=""
   local protobuf_makefile_libs=""
+  local protobuf_memswap_alias_flags=""
   local protobuf_member_obj=""
   local protobuf_extract_dir=""
   local protobuf_extract_tmp=""
@@ -818,13 +819,16 @@ patch_generated_makefiles_for_windows() {
 
   perl -0pi -e 's/^LIBSECP256K1 = secp256k1\/libsecp256k1\.la$/LIBSECP256K1 = secp256k1\/libsecp256k1.la secp256k1\/libsecp256k1_precomputed.la/m' "$top_makefile"
   protobuf_makefile_libs="${protobuf_link_libs}${protobuf_static_libs}"
+  protobuf_memswap_alias_flags=' -Xlinker /alternatename:??$memswap@$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??$memswap@$0BA@@internal@protobuf@google@@YAXPEAD0@Z'
   if [ -n "$protobuf_link_libs" ] || [ -n "$protobuf_static_libs" ]; then
     perl -0pi -e 's#^PROTOBUF_LIBS = -lprotobuf$#PROTOBUF_LIBS ='"$protobuf_makefile_libs"'#m' "$top_makefile"
   fi
+  perl -0pi -e 's#^qt_verge_qt_LDFLAGS = (.*)$#qt_verge_qt_LDFLAGS = \1'"$protobuf_memswap_alias_flags"'#m unless /^qt_verge_qt_LDFLAGS = .*\Q'"$protobuf_memswap_alias_flags"'\E/m' "$top_makefile"
   perl -0pi -e 's/-lQt6WebEngineWidgets/-lQt6WebEngineWidgets -lQt6WebEngineCore/' "$top_makefile"
 
   grep -n '^LIBSECP256K1 = secp256k1/libsecp256k1.la secp256k1/libsecp256k1_precomputed.la$' "$top_makefile" >/dev/null
   grep -n '^PROTOBUF_LIBS = .*protobuf' "$top_makefile" >/dev/null
+  grep -n 'qt_verge_qt_LDFLAGS = .*alternatename:??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEAD0@Z' "$top_makefile" >/dev/null
   grep -n 'Qt6WebEngineWidgets -lQt6WebEngineCore' "$top_makefile" >/dev/null
 }
 
