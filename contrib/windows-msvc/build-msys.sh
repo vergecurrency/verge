@@ -821,7 +821,7 @@ patch_generated_makefiles_for_windows() {
   protobuf_memswap_alias_flags=' -Xlinker /alternatename:??$memswap@$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??$memswap@$0BA@@internal@protobuf@google@@YAXPEAD0@Z'
   protobuf_makefile_libs="${protobuf_link_libs}${protobuf_static_libs}${protobuf_memswap_alias_flags}"
   if [ -n "$protobuf_link_libs" ] || [ -n "$protobuf_static_libs" ]; then
-    perl -0pi -e 's#^PROTOBUF_LIBS = -lprotobuf$#PROTOBUF_LIBS ='"$protobuf_makefile_libs"'#m' "$top_makefile"
+    perl -0pi -e 's#^PROTOBUF_LIBS = .*$#PROTOBUF_LIBS ='"$protobuf_makefile_libs"'#m' "$top_makefile"
   fi
   perl -0pi -e 's/-lQt6WebEngineWidgets/-lQt6WebEngineWidgets -lQt6WebEngineCore/' "$top_makefile"
 
