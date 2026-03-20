@@ -222,7 +222,7 @@ for arg in "\$@"; do
       args+=(-Xlinker /LARGEADDRESSAWARE)
       ;;
     -Wl,--verge-protobuf-memswap16-alias|--verge-protobuf-memswap16-alias)
-      args+=(-Xlinker '/alternatename:??$memswap@$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??$memswap@$0BA@@internal@protobuf@google@@YAXPEAD0@Z')
+      args+=(-Xlinker '/alternatename:??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEAD0@Z')
       ;;
     /WHOLEARCHIVE:*|/DEFAULTLIB:*|/NODEFAULTLIB:*|/ALTERNATENAME:*|/alternatename:*)
       args+=(-Xlinker "\$arg")
@@ -253,7 +253,7 @@ for arg in "\$@"; do
       args+=(-Xlinker /LARGEADDRESSAWARE)
       ;;
     -Wl,--verge-protobuf-memswap16-alias|--verge-protobuf-memswap16-alias)
-      args+=(-Xlinker '/alternatename:??$memswap@$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??$memswap@$0BA@@internal@protobuf@google@@YAXPEAD0@Z')
+      args+=(-Xlinker '/alternatename:??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEAD0@Z')
       ;;
     /WHOLEARCHIVE:*|/DEFAULTLIB:*|/NODEFAULTLIB:*|/ALTERNATENAME:*|/alternatename:*)
       args+=(-Xlinker "\$arg")
