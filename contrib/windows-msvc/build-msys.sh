@@ -818,7 +818,7 @@ patch_generated_makefiles_for_windows() {
   fi
 
   perl -0pi -e 's/^LIBSECP256K1 = secp256k1\/libsecp256k1\.la$/LIBSECP256K1 = secp256k1\/libsecp256k1.la secp256k1\/libsecp256k1_precomputed.la/m' "$top_makefile"
-  protobuf_memswap_alias_flags=' -Xlinker /alternatename:??$$memswap@$$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??$$memswap@$$0BA@@internal@protobuf@google@@YAXPEAD0@Z'
+  protobuf_memswap_alias_flags=' -Xlinker /alternatename:??\$\$memswap@\$\$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??\$\$memswap@\$\$0BA@@internal@protobuf@google@@YAXPEAD0@Z'
   protobuf_makefile_libs="${protobuf_link_libs}${protobuf_static_libs}${protobuf_memswap_alias_flags}"
   if [ -n "$protobuf_link_libs" ] || [ -n "$protobuf_static_libs" ]; then
     PROTOBUF_MAKEFILE_LIBS="$protobuf_makefile_libs" \
