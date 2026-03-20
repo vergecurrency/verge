@@ -705,19 +705,19 @@ EOF
 patch_verge_sources_for_windows() {
   local httpserver_cpp="$repo_root/src/httpserver.cpp"
   local tradepage_cpp="$repo_root/src/qt/tradepage.cpp"
-  local paymentrequestplus_h="$repo_root/src/qt/paymentrequestplus.h"
+  local verge_qt_cpp="$repo_root/src/qt/verge.cpp"
 
   perl -0pi -e 's/evhttp_connection_get_peer\(con, \(char\*\*\)&address, &port\);/evhttp_connection_get_peer(con, \&address, \&port);/' "$httpserver_cpp"
   perl -0pi -e 's/#include <QWebEnginePage>/#include <QtWebEngineCore\/QWebEnginePage>/' "$tradepage_cpp"
   perl -0pi -e 's/#include <QWebEngineView>/#include <QtWebEngineWidgets\/QWebEngineView>/' "$tradepage_cpp"
-  if ! grep -q 'VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS' "$paymentrequestplus_h"; then
-    perl -0pi -e 's/#pragma GCC diagnostic pop\r?\n/#pragma GCC diagnostic pop\n\n#if defined(_WIN32) && defined(__clang__)\n#pragma comment(linker, "\/alternatename:??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEAD0@Z")\n#endif\n\/\* VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS \*\/\n/' "$paymentrequestplus_h"
+  if ! grep -q 'VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS' "$verge_qt_cpp"; then
+    perl -0pi -e 's/#include <qt\/vergegui\.h>\r?\n/#include <qt\/vergegui.h>\n\n#if defined(_WIN32) \&\& defined(__clang__)\n#pragma comment(linker, "\/alternatename:??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEIAD0@Z=??\$memswap@\$0BA@@internal@protobuf@google@@YAXPEAD0@Z")\n#endif\n\/\* VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS \*\/\n/' "$verge_qt_cpp"
   fi
 
   grep -n 'evhttp_connection_get_peer(con, &address, &port);' "$httpserver_cpp" >/dev/null
   grep -n '#include <QtWebEngineCore/QWebEnginePage>' "$tradepage_cpp" >/dev/null
   grep -n '#include <QtWebEngineWidgets/QWebEngineView>' "$tradepage_cpp" >/dev/null
-  grep -n 'VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS' "$paymentrequestplus_h" >/dev/null
+  grep -n 'VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS' "$verge_qt_cpp" >/dev/null
 }
 
 patch_pow_sources_for_windows() {
