@@ -510,7 +510,7 @@ void VERGEGUI::createActions()
     historyAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_4));
     tabGroup->addAction(historyAction);
 
-    tradeAction = new QAction(platformStyle->SingleColorIcon(":/icons/receive"), tr("&Trade"), this);
+    tradeAction = new QAction(platformStyle->SingleColorIcon(":/icons/trade"), tr("&Trade"), this);
     tradeAction->setStatusTip(tr("Trade using the integrated StealthEX widget"));
     tradeAction->setToolTip(tradeAction->statusTip());
     tradeAction->setCheckable(true);
