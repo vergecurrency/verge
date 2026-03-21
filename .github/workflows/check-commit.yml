@@ -1307,7 +1307,16 @@ jobs:
 
           Set-Content -Path $script -Value $scriptBody -Encoding ASCII -NoNewline
 
-          & makensis -V2 $script
+          $makensisCandidates = @(
+            (Join-Path $env:RUNNER_TEMP "msys64/mingw64/bin/makensis.exe"),
+            (Join-Path $env:RUNNER_TEMP "msys64/usr/bin/makensis.exe")
+          )
+          $makensis = $makensisCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $makensis) {
+            throw "makensis.exe not found under $env:RUNNER_TEMP\\msys64"
+          }
+
+          & $makensis -V2 $script
 
       - name: Dump config.log on failure
         if: failure()
