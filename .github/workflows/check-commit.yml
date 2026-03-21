@@ -1286,9 +1286,20 @@ jobs:
           $bundle = (Resolve-Path (Join-Path $PWD "release/windows64")).Path
           $output = Join-Path $PWD "release/verge-windows64-setup.exe"
           $icon = (Resolve-Path (Join-Path $PWD "share/pixmaps/verge.ico")).Path
-          $wizard = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-wizard.bmp")).Path
+          $wizardSource = (Resolve-Path (Join-Path $PWD "share/pixmaps/octo.png")).Path
+          $wizard = Join-Path $PWD "build-msvc/octo-installer.bmp"
           $header = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-header.bmp")).Path
           $license = (Resolve-Path (Join-Path $PWD "COPYING")).Path
+
+          Add-Type -AssemblyName System.Drawing
+          $wizardImage = [System.Drawing.Image]::FromFile($wizardSource)
+          $wizardBitmap = New-Object System.Drawing.Bitmap $wizardImage
+          try {
+            $wizardBitmap.Save($wizard, [System.Drawing.Imaging.ImageFormat]::Bmp)
+          } finally {
+            $wizardBitmap.Dispose()
+            $wizardImage.Dispose()
+          }
 
           $scriptBody = Get-Content $template -Raw
           $replacements = @{
