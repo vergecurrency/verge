@@ -13,7 +13,17 @@ static const int MODEL_UPDATE_DELAY = 250;
 static const int MAX_PASSPHRASE_SIZE = 1024;
 
 /* VERGEGUI -- Size of icons in status bar */
-static const int STATUSBAR_ICONSIZE = 32;
+static const int STATUSBAR_ICONSIZE = 64;
+
+/* Main navigation toolbar icon size */
+static const int TOOLBAR_ICONSIZE = 64;
+
+/* General dialog and form button icon size */
+static const int FORM_BUTTON_ICONSIZE = 48;
+
+/* Transaction/message list decoration sizes */
+static const int OVERVIEW_DECORATION_SIZE = 108;
+static const int MESSAGE_DECORATION_SIZE = 128;
 
 static const bool DEFAULT_SPLASHSCREEN = true;
 

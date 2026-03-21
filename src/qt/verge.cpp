@@ -148,6 +148,7 @@ QToolButton#CustomTitleButton, QToolButton#CustomTitleCloseButton {
     background: #1a2231;
     border: 1px solid #2e394f;
     border-radius: 6px;
+    icon-size: 18px;
     min-width: 28px;
     min-height: 22px;
     padding: 1px 6px;
@@ -217,6 +218,7 @@ QToolButton {
     background: transparent;
     border: 1px solid transparent;
     border-radius: 8px;
+    icon-size: 48px;
     padding: 6px 10px;
 }
 
@@ -235,6 +237,7 @@ QPushButton {
     background-color: #25324b;
     border: 1px solid #3a4c6e;
     border-radius: 8px;
+    icon-size: 48px;
     padding: 6px 12px;
 }
 

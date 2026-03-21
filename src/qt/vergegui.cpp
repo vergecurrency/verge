@@ -667,6 +667,7 @@ void VERGEGUI::createToolBars()
         toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
         toolbar->setMovable(false);
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        toolbar->setIconSize(QSize(TOOLBAR_ICONSIZE, TOOLBAR_ICONSIZE));
         toolbar->addAction(overviewAction);
         toolbar->addAction(sendCoinsAction);
         toolbar->addAction(receiveCoinsAction);

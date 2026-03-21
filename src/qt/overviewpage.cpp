@@ -20,7 +20,6 @@
 #include <QDateTime>
 #include <QPainter>
 
-#define DECORATION_SIZE 54
 #define NUM_ITEMS 5
 
 Q_DECLARE_METATYPE(interfaces::WalletBalances)
@@ -43,8 +42,8 @@ public:
 
         QIcon icon = qvariant_cast<QIcon>(index.data(TransactionTableModel::RawDecorationRole));
         QRect mainRect = option.rect;
-        QRect decorationRect(mainRect.topLeft(), QSize(DECORATION_SIZE, DECORATION_SIZE));
-        int xspace = DECORATION_SIZE + 8;
+        QRect decorationRect(mainRect.topLeft(), QSize(OVERVIEW_DECORATION_SIZE, OVERVIEW_DECORATION_SIZE));
+        int xspace = OVERVIEW_DECORATION_SIZE + 8;
         int ypad = 6;
         int halfheight = (mainRect.height() - 2*ypad)/2;
         QRect amountRect(mainRect.left() + xspace, mainRect.top()+ypad, mainRect.width() - xspace, halfheight);
@@ -103,7 +102,7 @@ public:
 
     inline QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
-        return QSize(DECORATION_SIZE, DECORATION_SIZE);
+        return QSize(OVERVIEW_DECORATION_SIZE, OVERVIEW_DECORATION_SIZE);
     }
 
     int unit;
@@ -131,8 +130,8 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
-    ui->listTransactions->setIconSize(QSize(DECORATION_SIZE, DECORATION_SIZE));
-    ui->listTransactions->setMinimumHeight(NUM_ITEMS * (DECORATION_SIZE + 2));
+    ui->listTransactions->setIconSize(QSize(OVERVIEW_DECORATION_SIZE, OVERVIEW_DECORATION_SIZE));
+    ui->listTransactions->setMinimumHeight(NUM_ITEMS * (OVERVIEW_DECORATION_SIZE + 2));
     ui->listTransactions->setAttribute(Qt::WA_MacShowFocusRect, false);
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));

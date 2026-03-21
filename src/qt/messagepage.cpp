@@ -14,7 +14,6 @@
 #include <QPainter>
 #include <QToolBar>
 #include <QMenu>
-#define DECORATION_SIZE 64
 #define NUM_ITEMS 3
  class MessageViewDelegate : public QStyledItemDelegate
 {
@@ -86,8 +85,8 @@ protected:
      connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
      // Show Messages
     ui->listConversation->setItemDelegate(msgdelegate);
-    ui->listConversation->setIconSize(QSize(DECORATION_SIZE, DECORATION_SIZE));
-    ui->listConversation->setMinimumHeight(NUM_ITEMS * (DECORATION_SIZE + 2));
+    ui->listConversation->setIconSize(QSize(MESSAGE_DECORATION_SIZE, MESSAGE_DECORATION_SIZE));
+    ui->listConversation->setMinimumHeight(NUM_ITEMS * (MESSAGE_DECORATION_SIZE + 2));
     ui->listConversation->setAttribute(Qt::WA_MacShowFocusRect, false);
 }
  MessagePage::~MessagePage()
