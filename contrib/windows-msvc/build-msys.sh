@@ -831,11 +831,13 @@ patch_generated_makefiles_for_windows() {
       perl -0pi -e 's#^PROTOBUF_LIBS = .*$#"PROTOBUF_LIBS = $ENV{PROTOBUF_MAKEFILE_LIBS}"#me' "$top_makefile"
   fi
   perl -0pi -e 's#^qt_verge_qt_LDFLAGS = (.*)$#qt_verge_qt_LDFLAGS = $1 -Wl,/subsystem:windows#m' "$top_makefile"
+  perl -0pi -e 's/-lQt6Widgets/-lQt6EntryPoint -lQt6Widgets/' "$top_makefile"
   perl -0pi -e 's/-lQt6WebEngineWidgets/-lQt6WebEngineWidgets -lQt6WebEngineCore/' "$top_makefile"
 
   grep -n '^LIBSECP256K1 = secp256k1/libsecp256k1.la secp256k1/libsecp256k1_precomputed.la$' "$top_makefile" >/dev/null
   grep -n '^PROTOBUF_LIBS = .*repeated_ptr_field\.cc\.obj .*--verge-protobuf-memswap16-alias' "$top_makefile" >/dev/null
   grep -n '^qt_verge_qt_LDFLAGS = .* -Wl,/subsystem:windows$' "$top_makefile" >/dev/null
+  grep -n 'Qt6EntryPoint -lQt6Widgets' "$top_makefile" >/dev/null
   grep -n 'Qt6WebEngineWidgets -lQt6WebEngineCore' "$top_makefile" >/dev/null
 }
 
