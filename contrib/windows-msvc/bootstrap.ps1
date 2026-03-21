@@ -337,7 +337,7 @@ function Install-Bdb {
     }
     Pop-Location
 
-    New-Item -ItemType Directory -Force -Path (Join-Path $InstallRoot "include"), (Join-Path $InstallRoot "lib") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $InstallRoot "include"), (Join-Path $InstallRoot "lib"), (Join-Path $InstallRoot "bin") | Out-Null
     Copy-Item (Join-Path $sourceRoot "build_windows\db.h") (Join-Path $InstallRoot "include\db.h") -Force
     Copy-Item (Join-Path $sourceRoot "build_windows\db_cxx.h") (Join-Path $InstallRoot "include\db_cxx.h") -Force
 
@@ -346,6 +346,9 @@ function Install-Bdb {
         Select-Object -First 1
     $cxxLib = Get-ChildItem -Path $buildWindows -Recurse -File |
         Where-Object { $_.Name -match '^libdb_cxx.*48.*\.lib$|^db_cxx.*48.*\.lib$' } |
+        Select-Object -First 1
+    $cDll = Get-ChildItem -Path $buildWindows -Recurse -File |
+        Where-Object { $_.Name -match '^libdb48\.dll$|^db48\.dll$|^libdb.*48.*\.dll$|^db.*48.*\.dll$' -and $_.Name -notmatch 'cxx|stl' } |
         Select-Object -First 1
 
     if (-not $cLib) {
@@ -361,6 +364,9 @@ function Install-Bdb {
     Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db-4.8.lib") -Force
     Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db.lib") -Force
     Copy-Item $cLib.FullName (Join-Path $InstallRoot "lib\db4.lib") -Force
+    if ($cDll) {
+        Copy-Item $cDll.FullName (Join-Path $InstallRoot "bin\$($cDll.Name)") -Force
+    }
 }
 
 function Install-VcpkgDeps {
