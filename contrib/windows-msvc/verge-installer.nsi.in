@@ -1,0 +1,69 @@
+Unicode true
+ManifestDPIAware true
+
+Name "@APP_NAME@"
+OutFile "@OUTPUT_EXE@"
+InstallDir "$PROGRAMFILES64\Verge"
+InstallDirRegKey HKLM "Software\Verge" "Install_Dir"
+RequestExecutionLevel admin
+SetCompressor /SOLID lzma
+
+!define MUI_ICON "@ICON_FILE@"
+!define MUI_UNICON "@ICON_FILE@"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "@WIZARD_BITMAP@"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "@WIZARD_BITMAP@"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_RIGHT
+!define MUI_HEADERIMAGE_BITMAP "@HEADER_BITMAP@"
+!define MUI_ABORTWARNING
+!define MUI_FINISHPAGE_RUN "$INSTDIR\verge-qt.exe"
+!define MUI_FINISHPAGE_RUN_TEXT "Launch Verge"
+
+!include "MUI2.nsh"
+
+Var StartMenuFolder
+
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "@LICENSE_FILE@"
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+
+!insertmacro MUI_LANGUAGE "English"
+
+Section "Install"
+  SetOutPath "$INSTDIR"
+  File /r "@BUNDLE_DIR@\*.*"
+
+  WriteRegStr HKLM "Software\Verge" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Verge" "DisplayName" "@APP_NAME@"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Verge" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Verge" "DisplayIcon" "$INSTDIR\verge-qt.exe"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Verge" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Verge" "NoRepair" 1
+
+  WriteUninstaller "$INSTDIR\uninstall.exe"
+
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+    CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Verge.lnk" "$INSTDIR\verge-qt.exe"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall Verge.lnk" "$INSTDIR\uninstall.exe"
+  !insertmacro MUI_STARTMENU_WRITE_END
+SectionEnd
+
+Section "Uninstall"
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+  Delete "$SMPROGRAMS\$StartMenuFolder\Verge.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall Verge.lnk"
+  RMDir "$SMPROGRAMS\$StartMenuFolder"
+
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Verge"
+  DeleteRegKey HKLM "Software\Verge"
+
+  RMDir /r "$INSTDIR"
+SectionEnd

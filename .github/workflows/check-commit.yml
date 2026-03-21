@@ -1206,6 +1206,7 @@ jobs:
             tar
             perl
             python
+            mingw-w64-x86_64-nsis
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -1277,6 +1278,30 @@ jobs:
             Copy-Item $bdbDll.FullName (Join-Path $bundle $bdbDll.Name) -Force
           }
 
+      - name: Build Windows installer
+        run: |
+          set -euo pipefail
+          BUNDLE_WIN="$(cygpath -m "$PWD/release/windows64")"
+          OUTPUT_WIN="$(cygpath -m "$PWD/release/verge-windows64-setup.exe")"
+          ICON_WIN="$(cygpath -m "$PWD/share/pixmaps/verge.ico")"
+          WIZARD_WIN="$(cygpath -m "$PWD/share/pixmaps/nsis-wizard.bmp")"
+          HEADER_WIN="$(cygpath -m "$PWD/share/pixmaps/nsis-header.bmp")"
+          LICENSE_WIN="$(cygpath -m "$PWD/COPYING")"
+          TEMPLATE="$PWD/contrib/windows-msvc/verge-installer.nsi.in"
+          SCRIPT="$PWD/build-msvc/verge-installer.nsi"
+
+          sed \
+            -e "s|@APP_NAME@|Verge (64-bit)|g" \
+            -e "s|@OUTPUT_EXE@|$OUTPUT_WIN|g" \
+            -e "s|@BUNDLE_DIR@|$BUNDLE_WIN|g" \
+            -e "s|@ICON_FILE@|$ICON_WIN|g" \
+            -e "s|@WIZARD_BITMAP@|$WIZARD_WIN|g" \
+            -e "s|@HEADER_BITMAP@|$HEADER_WIN|g" \
+            -e "s|@LICENSE_FILE@|$LICENSE_WIN|g" \
+            "$TEMPLATE" > "$SCRIPT"
+
+          makensis -V2 "$SCRIPT"
+
       - name: Dump config.log on failure
         if: failure()
         run: |
@@ -1290,7 +1315,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-windows64bit
-          path: release/windows64
+          path: |
+            release/windows64
+            release/verge-windows64-setup.exe
 
   windows64-ubuntu24-noswap:
     runs-on: ubuntu-24.04
