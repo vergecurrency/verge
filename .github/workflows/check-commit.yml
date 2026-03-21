@@ -1270,6 +1270,12 @@ jobs:
           if (Test-Path $qtExe) {
             & (Join-Path $env:QTDIR "bin/windeployqt.exe") --release --compiler-runtime --dir $bundle $qtExe
           }
+          $bdbDll = Get-ChildItem (Join-Path $PWD "build-msvc/deps/bdb") -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^libdb48\.dll$|^db48\.dll$|^libdb.*48.*\.dll$|^db.*48.*\.dll$' } |
+            Select-Object -First 1
+          if ($bdbDll) {
+            Copy-Item $bdbDll.FullName (Join-Path $bundle $bdbDll.Name) -Force
+          }
 
       - name: Dump config.log on failure
         if: failure()
