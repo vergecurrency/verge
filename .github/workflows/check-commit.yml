@@ -1279,28 +1279,35 @@ jobs:
           }
 
       - name: Build Windows installer
+        shell: pwsh
         run: |
-          set -euo pipefail
-          BUNDLE_WIN="$(cygpath -m "$PWD/release/windows64")"
-          OUTPUT_WIN="$(cygpath -m "$PWD/release/verge-windows64-setup.exe")"
-          ICON_WIN="$(cygpath -m "$PWD/share/pixmaps/verge.ico")"
-          WIZARD_WIN="$(cygpath -m "$PWD/share/pixmaps/nsis-wizard.bmp")"
-          HEADER_WIN="$(cygpath -m "$PWD/share/pixmaps/nsis-header.bmp")"
-          LICENSE_WIN="$(cygpath -m "$PWD/COPYING")"
-          TEMPLATE="$PWD/contrib/windows-msvc/verge-installer.nsi.in"
-          SCRIPT="$PWD/build-msvc/verge-installer.nsi"
+          $template = Join-Path $PWD "contrib/windows-msvc/verge-installer.nsi.in"
+          $script = Join-Path $PWD "build-msvc/verge-installer.nsi"
+          $bundle = (Resolve-Path (Join-Path $PWD "release/windows64")).Path
+          $output = Join-Path $PWD "release/verge-windows64-setup.exe"
+          $icon = (Resolve-Path (Join-Path $PWD "share/pixmaps/verge.ico")).Path
+          $wizard = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-wizard.bmp")).Path
+          $header = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-header.bmp")).Path
+          $license = (Resolve-Path (Join-Path $PWD "COPYING")).Path
 
-          sed \
-            -e "s|@APP_NAME@|Verge (64-bit)|g" \
-            -e "s|@OUTPUT_EXE@|$OUTPUT_WIN|g" \
-            -e "s|@BUNDLE_DIR@|$BUNDLE_WIN|g" \
-            -e "s|@ICON_FILE@|$ICON_WIN|g" \
-            -e "s|@WIZARD_BITMAP@|$WIZARD_WIN|g" \
-            -e "s|@HEADER_BITMAP@|$HEADER_WIN|g" \
-            -e "s|@LICENSE_FILE@|$LICENSE_WIN|g" \
-            "$TEMPLATE" > "$SCRIPT"
+          $scriptBody = Get-Content $template -Raw
+          $replacements = @{
+            '@APP_NAME@' = 'Verge (64-bit)'
+            '@OUTPUT_EXE@' = $output
+            '@BUNDLE_DIR@' = $bundle
+            '@ICON_FILE@' = $icon
+            '@WIZARD_BITMAP@' = $wizard
+            '@HEADER_BITMAP@' = $header
+            '@LICENSE_FILE@' = $license
+          }
 
-          makensis -V2 "$SCRIPT"
+          foreach ($entry in $replacements.GetEnumerator()) {
+            $scriptBody = $scriptBody.Replace($entry.Key, $entry.Value)
+          }
+
+          Set-Content -Path $script -Value $scriptBody -Encoding ASCII -NoNewline
+
+          & makensis -V2 $script
 
       - name: Dump config.log on failure
         if: failure()
