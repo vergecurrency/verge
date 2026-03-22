@@ -837,7 +837,7 @@ jobs:
         run: |
           cd depends/
           rc=0
-          timeout 350m make -j4 HOST=x86_64-linux-gnu qt || rc=$?
+          timeout 350m make -j4 HOST=x86_64-linux-gnu QT_SKIP_WEBENGINE=1 qt || rc=$?
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then
             exit "$rc"
           fi
