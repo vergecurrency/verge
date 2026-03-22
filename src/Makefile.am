@@ -62,6 +62,7 @@ TOR_UTIL_LIBS = \
 LIBED25519_REF10 = tor/src/ext/ed25519/ref10/libed25519_ref10.a
 LIBED25519_DONNA = tor/src/ext/ed25519/donna/libed25519_donna.a
 LIBKECCAK_TINY = tor/src/ext/keccak-tiny/libkeccak-tiny.a
+LIBPOLYVAL = tor/src/ext/polyval/libpolyval.a
 
 LIBDONNA = tor/src/lib/libcurve25519_donna.a \
   $(LIBED25519_REF10) \
@@ -69,6 +70,7 @@ LIBDONNA = tor/src/lib/libcurve25519_donna.a \
 TOR_CRYPTO_LIBS = \
 	tor/src/lib/libtor-tls.a \
 	tor/src/lib/libtor-crypt-ops.a \
+	$(LIBPOLYVAL) \
 	$(LIBKECCAK_TINY) \
 	$(LIBDONNA)
 
