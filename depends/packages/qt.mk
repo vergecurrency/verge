@@ -314,7 +314,7 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  DESTDIR=$($(package)_staging_dir) cmake --install . && \
+  DESTDIR=$($(package)_staging_dir) cmake --install . --strip && \
   mkdir -p $($(package)_staging_dir)$(host_prefix)/plugins/platforms && \
   if test -f qtbase/plugins/platforms/libqwindows.a; then \
     cp qtbase/plugins/platforms/libqwindows.a $($(package)_staging_dir)$(host_prefix)/plugins/platforms/; \

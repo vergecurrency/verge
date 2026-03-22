@@ -67,5 +67,5 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  DESTDIR=$($(package)_staging_dir) cmake --install .
+  DESTDIR=$($(package)_staging_dir) cmake --install . --strip
 endef
