@@ -198,6 +198,7 @@ EOF
 
 msvc_compile_flags=(
   -fms-runtime-lib=dll
+  -mpclmul
 )
 
 msvc_link_runtime_flags=(
