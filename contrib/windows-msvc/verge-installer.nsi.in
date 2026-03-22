@@ -7,6 +7,15 @@ InstallDir "$PROGRAMFILES64\Verge"
 InstallDirRegKey HKLM "Software\Verge" "Install_Dir"
 RequestExecutionLevel admin
 SetCompressor /SOLID lzma
+BrandingText "Verge"
+
+VIProductVersion 2026.0.0.0
+VIAddVersionKey ProductName "Verge"
+VIAddVersionKey ProductVersion "2026"
+VIAddVersionKey CompanyName "Verge"
+VIAddVersionKey FileVersion "2026"
+VIAddVersionKey FileDescription "Verge Installer"
+VIAddVersionKey LegalCopyright "Copyright (C) 2026 Verge"
 
 !define MUI_ICON "@ICON_FILE@"
 !define MUI_UNICON "@ICON_FILE@"
