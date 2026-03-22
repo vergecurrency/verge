@@ -18,6 +18,7 @@ class ReceiveCoinsDialog;
 class SendCoinsDialog;
 class SendCoinsRecipient;
 class TradePage;
+class GamesPage;
 class TransactionView;
 class WalletModel;
 class AddressBookPage;
@@ -66,6 +67,7 @@ private:
     ReceiveCoinsDialog *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
     TradePage *tradePage;
+    GamesPage *gamesPage;
     AddressBookPage *usedSendingAddressesPage;
     AddressBookPage *usedReceivingAddressesPage;
 
@@ -85,6 +87,8 @@ public Q_SLOTS:
     void gotoSendCoinsPage(QString addr = "");
     /** Switch to trade page */
     void gotoTradePage();
+    /** Switch to games page */
+    void gotoGamesPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

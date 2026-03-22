@@ -10,6 +10,7 @@
 #include <qt/vergegui.h>
 #include <qt/clientmodel.h>
 #include <qt/guiutil.h>
+#include <qt/gamespage.h>
 #include <qt/optionsmodel.h>
 #include <qt/overviewpage.h>
 #include <qt/platformstyle.h>
@@ -59,6 +60,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
     tradePage = new TradePage(this);
+    gamesPage = new GamesPage(this);
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
     usedReceivingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ReceivingTab, this);
@@ -68,6 +70,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(tradePage);
+    addWidget(gamesPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -206,6 +209,11 @@ void WalletView::gotoSendCoinsPage(QString addr)
 void WalletView::gotoTradePage()
 {
     setCurrentWidget(tradePage);
+}
+
+void WalletView::gotoGamesPage()
+{
+    setCurrentWidget(gamesPage);
 }
 
 void WalletView::gotoSignMessageTab(QString addr)

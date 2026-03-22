@@ -199,6 +199,8 @@ VERGE_QT_H = \
   qt/editaddressdialog.h \
   qt/guiconstants.h \
   qt/guiutil.h \
+  qt/games/tetriswidget.h \
+  qt/gamespage.h \
   qt/intro.h \
   qt/macdockiconhandler.h \
   qt/macnotificationhandler.h \
@@ -270,6 +272,7 @@ RES_ICONS = \
   qt/res/icons/filesave.png \
   qt/res/icons/fontbigger.png \
   qt/res/icons/fontsmaller.png \
+  qt/res/icons/games.png \
   qt/res/icons/hd_disabled.png \
   qt/res/icons/hd_enabled.png \
   qt/res/icons/history.png \
@@ -326,6 +329,8 @@ VERGE_QT_BASE_CPP = \
   qt/vergeunits.cpp \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
+  qt/games/tetriswidget.cpp \
+  qt/gamespage.cpp \
   qt/guiutil.cpp \
   qt/intro.cpp \
   qt/modaloverlay.cpp \
@@ -381,7 +386,10 @@ if ENABLE_WALLET
 VERGE_QT_CPP += $(VERGE_QT_WALLET_CPP)
 endif
 
-RES_IMAGES = 
+RES_IMAGES = \
+  qt/games/Tetris/images/background.png \
+  qt/games/Tetris/images/frame.png \
+  qt/games/Tetris/images/tiles.png
 
 RES_MOVIES = $(wildcard $(srcdir)/qt/res/movies/spinner-*.png)
 

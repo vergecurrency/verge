@@ -108,6 +108,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     quitAction(0),
     sendCoinsAction(0),
     tradeAction(0),
+    gamesAction(0),
     sendCoinsMenuAction(0),
     usedSendingAddressesAction(0),
     usedReceivingAddressesAction(0),
@@ -517,6 +518,13 @@ void VERGEGUI::createActions()
     tradeAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_5));
     tabGroup->addAction(tradeAction);
 
+    gamesAction = new QAction(platformStyle->SingleColorIcon(":/icons/games"), tr("&Games"), this);
+    gamesAction->setStatusTip(tr("Play built-in games"));
+    gamesAction->setToolTip(gamesAction->statusTip());
+    gamesAction->setCheckable(true);
+    gamesAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_6));
+    tabGroup->addAction(gamesAction);
+
 #ifdef ENABLE_WALLET
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
@@ -534,6 +542,8 @@ void VERGEGUI::createActions()
     connect(historyAction, SIGNAL(triggered(bool)), this, SLOT(gotoHistoryPage()));
     connect(tradeAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
     connect(tradeAction, SIGNAL(triggered(bool)), this, SLOT(gotoTradePage()));
+    connect(gamesAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
+    connect(gamesAction, SIGNAL(triggered(bool)), this, SLOT(gotoGamesPage()));
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(platformStyle->TextColorIcon(":/icons/quit"), tr("E&xit"), this);
@@ -673,6 +683,7 @@ void VERGEGUI::createToolBars()
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
         toolbar->addAction(tradeAction);
+        toolbar->addAction(gamesAction);
         overviewAction->setChecked(true);
 
 #ifdef ENABLE_WALLET
@@ -802,6 +813,7 @@ void VERGEGUI::setWalletActionsEnabled(bool enabled)
     receiveCoinsMenuAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
     tradeAction->setEnabled(enabled);
+    gamesAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -978,6 +990,12 @@ void VERGEGUI::gotoTradePage()
 {
     tradeAction->setChecked(true);
     if (walletFrame) walletFrame->gotoTradePage();
+}
+
+void VERGEGUI::gotoGamesPage()
+{
+    gamesAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoGamesPage();
 }
 
 void VERGEGUI::gotoSignMessageTab(QString addr)
