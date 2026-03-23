@@ -62,16 +62,6 @@ void TetrisWidget::paintEvent(QPaintEvent* event)
         painter.drawPixmap(board, background.scaled(board.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     }
 
-    painter.setPen(QColor(54, 65, 95));
-    for (int y = 0; y <= kRows; ++y) {
-        const int py = board.top() + y * board.height() / kRows;
-        painter.drawLine(board.left(), py, board.right(), py);
-    }
-    for (int x = 0; x <= kCols; ++x) {
-        const int px = board.left() + x * board.width() / kCols;
-        painter.drawLine(px, board.top(), px, board.bottom());
-    }
-
     QPixmap tiles(QStringLiteral(":/games/tetris/tiles"));
     const bool hasTiles = !tiles.isNull();
 
