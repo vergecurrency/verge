@@ -847,10 +847,24 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p depends/work/artifacts
-          tar -C depends/work -I 'zstd -T0 -19' -cf \
-            depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst \
+          paths=()
+          for path in \
+            build/x86_64-linux-gnu/native_qt \
             build/x86_64-linux-gnu/qt \
+            staging/x86_64-linux-gnu/native_qt \
             staging/x86_64-linux-gnu/qt
+          do
+            if [ -e "depends/work/$path" ]; then
+              paths+=("$path")
+            fi
+          done
+          if [ "${#paths[@]}" -gt 0 ]; then
+            tar -C depends/work -I 'zstd -T0 -19' -cf \
+              depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst \
+              "${paths[@]}"
+          else
+            echo "No Qt work state directories to archive."
+          fi
 
       - name: Upload Qt work state
         if: always()
