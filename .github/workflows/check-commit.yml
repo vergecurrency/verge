@@ -896,6 +896,7 @@ jobs:
 
       - name: Download Qt work state
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: ubuntu24-linux64-qt-work-phase1
           path: depends/work/artifacts
