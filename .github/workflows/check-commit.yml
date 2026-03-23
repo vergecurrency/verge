@@ -1092,14 +1092,17 @@ jobs:
                 --executable "$binary_path" \
                 --desktop-file "$appdir/usr/share/applications/$desktop_name.desktop" \
                 --icon-file "$PWD/share/pixmaps/verge256.png" \
-                --plugin qt \
-                --output appimage
+                --plugin qt
 
               mkdir -p "$appdir/usr/bin" "$appdir/usr/plugins/platforms" "$appdir/usr/resources" "$appdir/usr/translations"
               cp "$PWD/depends/x86_64-linux-gnu/plugins/platforms/libqxcb.so" \
                 "$appdir/usr/plugins/platforms/libqxcb.so"
-              cp "$PWD/depends/x86_64-linux-gnu/native/bin/QtWebEngineProcess" \
-                "$appdir/usr/bin/QtWebEngineProcess"
+              WEBENGINE_PROCESS="$(find "$PWD/depends/x86_64-linux-gnu" -type f -name QtWebEngineProcess | head -n1 || true)"
+              if [ -z "$WEBENGINE_PROCESS" ]; then
+                echo "::error::QtWebEngineProcess not found in depends tree"
+                exit 1
+              fi
+              cp "$WEBENGINE_PROCESS" "$appdir/usr/bin/QtWebEngineProcess"
               chmod +x "$appdir/usr/bin/QtWebEngineProcess"
               cp "$PWD/depends/x86_64-linux-gnu/resources"/qtwebengine*_resources*.pak \
                 "$appdir/usr/resources/" 2>/dev/null || true
@@ -1116,6 +1119,7 @@ jobs:
           LibraryExecutables=bin
           Translations=translations
           EOF
+              "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
             else
               "$LINUXDEPLOY" \
                 --appdir "$appdir" \
