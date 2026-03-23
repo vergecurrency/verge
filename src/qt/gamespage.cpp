@@ -65,7 +65,7 @@ GamesPage::GamesPage(QWidget* parent) : QWidget(parent)
     tetrisLayout->setSpacing(12);
 
     auto* helpLabel = new QLabel(
-        tr("Controls: Left/Right to move, Up to rotate, Down to drop faster, Space to restart."),
+        tr("Controls: Left/Right to move, Up to rotate, Down to drop faster, P to pause, Space to restart."),
         m_tetrisPage);
     helpLabel->setWordWrap(true);
     tetrisLayout->addWidget(helpLabel);

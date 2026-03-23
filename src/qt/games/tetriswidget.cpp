@@ -43,7 +43,16 @@ QSize TetrisWidget::sizeHint() const
 void TetrisWidget::showEvent(QShowEvent* event)
 {
     QWidget::showEvent(event);
+    m_hiddenPause = false;
     setFocus();
+    update();
+}
+
+void TetrisWidget::hideEvent(QHideEvent* event)
+{
+    QWidget::hideEvent(event);
+    m_hiddenPause = true;
+    update();
 }
 
 void TetrisWidget::paintEvent(QPaintEvent* event)
@@ -95,16 +104,23 @@ void TetrisWidget::paintEvent(QPaintEvent* event)
         const QRect frameSourceRect(12, 18, 213, 388);
         painter.drawPixmap(frameRect, frame, frameSourceRect);
     }
-
-    painter.setPen(Qt::white);
-    painter.drawText(rect().adjusted(0, 10, 0, -10), Qt::AlignTop | Qt::AlignHCenter, tr("Tetris"));
 }
 
 void TetrisWidget::keyPressEvent(QKeyEvent* event)
 {
+    if (event->key() == Qt::Key_P) {
+        m_manualPause = !m_manualPause;
+        update();
+        return;
+    }
+
     if (event->key() == Qt::Key_Space) {
         resetGame();
         update();
+        return;
+    }
+
+    if (isPaused()) {
         return;
     }
 
@@ -152,6 +168,9 @@ void TetrisWidget::timerEvent(QTimerEvent* event)
 {
     if (event->timerId() != m_timerId) {
         QWidget::timerEvent(event);
+        return;
+    }
+    if (isPaused()) {
         return;
     }
     applyGravityTick();
@@ -293,4 +312,9 @@ QColor TetrisWidget::colorForIndex(int index) const
         return QColor(255, 255, 255);
     }
     return colors[index];
+}
+
+bool TetrisWidget::isPaused() const
+{
+    return m_manualPause || m_hiddenPause;
 }

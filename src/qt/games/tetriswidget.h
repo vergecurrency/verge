@@ -6,6 +6,7 @@
 #define VERGE_QT_GAMES_TETRISWIDGET_H
 
 #include <QColor>
+#include <QHideEvent>
 #include <QKeyEvent>
 #include <QPaintEvent>
 #include <QPoint>
@@ -26,6 +27,7 @@ public:
     QSize sizeHint() const override;
 
 protected:
+    void hideEvent(QHideEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
     void showEvent(QShowEvent* event) override;
@@ -45,6 +47,7 @@ private:
     QRect gameRect() const;
     QRect cellRect(int x, int y) const;
     QColor colorForIndex(int index) const;
+    bool isPaused() const;
 
     std::array<std::array<int, kCols>, kRows> m_field{};
     std::array<QPoint, 4> m_currentCells{};
@@ -52,6 +55,8 @@ private:
     int m_currentColor{1};
     int m_timerId{0};
     int m_tickIntervalMs{300};
+    bool m_manualPause{false};
+    bool m_hiddenPause{false};
 };
 
 #endif // VERGE_QT_GAMES_TETRISWIDGET_H
