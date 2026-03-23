@@ -101,7 +101,9 @@ void TetrisWidget::paintEvent(QPaintEvent* event)
 
     QPixmap frame(QStringLiteral(":/games/tetris/frame"));
     if (!frame.isNull()) {
-        painter.drawPixmap(board.adjusted(-28, -31, 28, 31), frame);
+        const QRect frameRect = board.adjusted(-28, -31, 28, 31);
+        const QRect frameSourceRect(12, 18, 213, 388);
+        painter.drawPixmap(frameRect, frame, frameSourceRect);
     }
 
     painter.setPen(Qt::white);

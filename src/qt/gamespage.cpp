@@ -45,7 +45,7 @@ GamesPage::GamesPage(QWidget* parent) : QWidget(parent)
     libraryLayout->setSpacing(18);
 
     auto* introLabel = new QLabel(
-        tr("Pick a game to play inside Verge Core. More titles can be added to this page later."),
+        tr("Pick a game to play inside Verge Core."),
         m_libraryPage);
     introLabel->setWordWrap(true);
     introLabel->setStyleSheet(QStringLiteral("font-size: 14px;"));
