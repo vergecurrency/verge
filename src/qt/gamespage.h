@@ -10,6 +10,7 @@
 
 class QLabel;
 class QPushButton;
+class SpaceInvadersWidget;
 class TetrisWidget;
 class QVBoxLayout;
 
@@ -19,14 +20,21 @@ public:
     explicit GamesPage(QWidget* parent = nullptr);
 
 private:
+    void ensureSpaceInvadersPage();
+    void ensureTetrisPage();
     void showLibrary();
+    void showSpaceInvaders();
     void showTetris();
 
     QStackedWidget* m_stack{nullptr};
     QWidget* m_libraryPage{nullptr};
+    QWidget* m_spaceInvadersPage{nullptr};
     QWidget* m_tetrisPage{nullptr};
+    QVBoxLayout* m_spaceInvadersLayout{nullptr};
+    QVBoxLayout* m_tetrisLayout{nullptr};
     QLabel* m_titleLabel{nullptr};
     QPushButton* m_backButton{nullptr};
+    SpaceInvadersWidget* m_spaceInvadersWidget{nullptr};
     TetrisWidget* m_tetrisWidget{nullptr};
 };
 

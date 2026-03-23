@@ -63,6 +63,19 @@
         <file alias="frame">games/Tetris/images/frame.png</file>
         <file alias="tiles">games/Tetris/images/tiles.png</file>
     </qresource>
+    <qresource prefix="/games/icons">
+        <file alias="spaceinvaders">games/icons/spaceinvaders.png</file>
+        <file alias="tetris">games/icons/tetris.png</file>
+    </qresource>
+    <qresource prefix="/games/spaceinvaders">
+        <file alias="alien100">games/spaceinvaders/res/alien_100.png</file>
+        <file alias="alien50">games/spaceinvaders/res/alien_50.png</file>
+        <file alias="bullet">games/spaceinvaders/res/bullet.png</file>
+        <file alias="ship">games/spaceinvaders/res/space.png</file>
+        <file alias="stars">games/spaceinvaders/res/stars.png</file>
+        <file alias="youlose">games/spaceinvaders/res/you_lose.png</file>
+        <file alias="youwin">games/spaceinvaders/res/you_win.png</file>
+    </qresource>
     <qresource prefix="/movies">
         <file alias="spinner-000">res/movies/spinner-000.png</file>
         <file alias="spinner-001">res/movies/spinner-001.png</file>

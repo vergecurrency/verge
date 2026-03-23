@@ -13,7 +13,7 @@
 #include <QRect>
 #include <QShowEvent>
 #include <QSize>
-#include <QTimerEvent>
+#include <QTimer>
 #include <QWidget>
 
 #include <array>
@@ -31,7 +31,6 @@ protected:
     void paintEvent(QPaintEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
     void showEvent(QShowEvent* event) override;
-    void timerEvent(QTimerEvent* event) override;
 
 private:
     static constexpr int kRows = 20;
@@ -48,13 +47,15 @@ private:
     QRect cellRect(int x, int y) const;
     QColor colorForIndex(int index) const;
     bool isPaused() const;
+    void ensureTimerRunning();
+    void stopTimer();
 
     std::array<std::array<int, kCols>, kRows> m_field{};
     std::array<QPoint, 4> m_currentCells{};
     std::array<QPoint, 4> m_previousCells{};
     int m_currentColor{1};
-    int m_timerId{0};
     int m_tickIntervalMs{300};
+    QTimer m_timer;
     bool m_manualPause{false};
     bool m_hiddenPause{false};
 };

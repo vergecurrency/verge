@@ -26,7 +26,11 @@ TetrisWidget::TetrisWidget(QWidget* parent) : QWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
     setAttribute(Qt::WA_OpaquePaintEvent);
-    m_timerId = startTimer(m_tickIntervalMs);
+    QObject::connect(&m_timer, &QTimer::timeout, this, [this]() {
+        if (!isPaused()) {
+            applyGravityTick();
+        }
+    });
     resetGame();
 }
 
@@ -44,6 +48,7 @@ void TetrisWidget::showEvent(QShowEvent* event)
 {
     QWidget::showEvent(event);
     m_hiddenPause = false;
+    ensureTimerRunning();
     setFocus();
     update();
 }
@@ -52,6 +57,7 @@ void TetrisWidget::hideEvent(QHideEvent* event)
 {
     QWidget::hideEvent(event);
     m_hiddenPause = true;
+    stopTimer();
     update();
 }
 
@@ -126,8 +132,7 @@ void TetrisWidget::keyPressEvent(QKeyEvent* event)
 
     if (event->key() == Qt::Key_Down) {
         m_tickIntervalMs = 50;
-        killTimer(m_timerId);
-        m_timerId = startTimer(m_tickIntervalMs);
+        ensureTimerRunning();
         applyGravityTick();
         return;
     }
@@ -164,28 +169,16 @@ void TetrisWidget::keyPressEvent(QKeyEvent* event)
     QWidget::keyPressEvent(event);
 }
 
-void TetrisWidget::timerEvent(QTimerEvent* event)
-{
-    if (event->timerId() != m_timerId) {
-        QWidget::timerEvent(event);
-        return;
-    }
-    if (isPaused()) {
-        return;
-    }
-    applyGravityTick();
-}
-
 void TetrisWidget::resetGame()
 {
     for (auto& row : m_field) {
         row.fill(0);
     }
     m_tickIntervalMs = 300;
-    if (m_timerId != 0) {
-        killTimer(m_timerId);
+    stopTimer();
+    if (isVisible()) {
+        ensureTimerRunning();
     }
-    m_timerId = startTimer(m_tickIntervalMs);
     spawnPiece();
 }
 
@@ -220,8 +213,9 @@ void TetrisWidget::applyGravityTick()
 
     if (m_tickIntervalMs != 300) {
         m_tickIntervalMs = 300;
-        killTimer(m_timerId);
-        m_timerId = startTimer(m_tickIntervalMs);
+        if (m_timer.isActive()) {
+            m_timer.start(m_tickIntervalMs);
+        }
     }
 
     update();
@@ -317,4 +311,14 @@ QColor TetrisWidget::colorForIndex(int index) const
 bool TetrisWidget::isPaused() const
 {
     return m_manualPause || m_hiddenPause;
+}
+
+void TetrisWidget::ensureTimerRunning()
+{
+    m_timer.start(m_tickIntervalMs);
+}
+
+void TetrisWidget::stopTimer()
+{
+    m_timer.stop();
 }
