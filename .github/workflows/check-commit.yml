@@ -1035,6 +1035,19 @@ jobs:
 
           chmod +x "$PWD/linuxdeploy-x86_64.AppImage" "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage"
 
+          rm -rf "$PWD/linuxdeploy-root" "$PWD/linuxdeploy-plugin-qt-root" "$PWD/linuxdeploy-tools"
+          mkdir -p "$PWD/linuxdeploy-tools"
+
+          "$PWD/linuxdeploy-x86_64.AppImage" --appimage-extract >/dev/null
+          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-root"
+
+          "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage" --appimage-extract >/dev/null
+          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-plugin-qt-root"
+
+          ln -sf "$PWD/linuxdeploy-plugin-qt-root/AppRun" "$PWD/linuxdeploy-tools/linuxdeploy-plugin-qt"
+          export PATH="$PWD/linuxdeploy-tools:$PATH"
+          export LINUXDEPLOY="$PWD/linuxdeploy-root/AppRun"
+
           export QMAKE="$PWD/depends/x86_64-linux-gnu/native/qt-host/bin/qmake"
           export VERSION="${GITHUB_SHA::7}"
           export EXTRA_QT_PLUGINS="platforms/libqxcb.so"
@@ -1071,7 +1084,7 @@ jobs:
 
             rm -f "$PWD"/*.AppImage
             if [ "$use_qt_plugin" = "1" ]; then
-              "$PWD/linuxdeploy-x86_64.AppImage" \
+              "$LINUXDEPLOY" \
                 --appdir "$appdir" \
                 --executable "$binary_path" \
                 --desktop-file "$appdir/usr/share/applications/$desktop_name.desktop" \
@@ -1079,7 +1092,7 @@ jobs:
                 --plugin qt \
                 --output appimage
             else
-              "$PWD/linuxdeploy-x86_64.AppImage" \
+              "$LINUXDEPLOY" \
                 --appdir "$appdir" \
                 --executable "$binary_path" \
                 --desktop-file "$appdir/usr/share/applications/$desktop_name.desktop" \
@@ -1093,6 +1106,35 @@ jobs:
           build_appimage "$PWD/src/verge-cli" "verge-cli" "Verge CLI" "verge-cli" "true" "0" "Verge-CLI-x86_64.AppImage"
           build_appimage "$PWD/src/verged" "verged" "Verge Daemon" "verged" "true" "0" "Verged-x86_64.AppImage"
           build_appimage "$PWD/src/verge-tx" "verge-tx" "Verge TX" "verge-tx" "true" "0" "Verge-TX-x86_64.AppImage"
+
+      - name: Test Verge-Qt AppImage launch
+        run: |
+          set -euo pipefail
+
+          APPIMAGE="$PWD/release/Verge-Qt-x86_64.AppImage"
+          export QTWEBENGINE_DISABLE_SANDBOX=1
+          export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
+
+          if [ ! -f "$APPIMAGE" ]; then
+            echo "::error::Verge-Qt AppImage not found at $APPIMAGE"
+            exit 1
+          fi
+
+          chmod +x "$APPIMAGE"
+          "$APPIMAGE" &
+          APP_PID=$!
+
+          sleep 10
+
+          if ! kill -0 "$APP_PID" 2>/dev/null; then
+            echo "::error::Verge-Qt AppImage exited early"
+            wait "$APP_PID"
+            exit 1
+          fi
+
+          pkill -9 -f 'Verge-Qt-x86_64.AppImage' || true
+          pkill -9 -f '/tmp/.mount_Verge-' || true
+          wait "$APP_PID" || true
 
       - name: ccache stats
         env:
