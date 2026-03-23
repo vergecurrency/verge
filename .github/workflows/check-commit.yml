@@ -811,6 +811,7 @@ jobs:
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
           g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
+          desktop-file-utils \
           libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
 
       - name: Sanity-check cached Qt sources (linux64)
@@ -1020,50 +1021,77 @@ jobs:
           cd ./src && strip verged verge-cli verge-tx
           cd ./qt && strip verge-qt
 
-      - name: Build AppImage
+      - name: Build AppImages
         run: |
           set -euo pipefail
 
-          APPDIR="$PWD/AppDir"
-          mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+          mkdir -p "$PWD/release"
 
-          cp "$PWD/src/qt/verge-qt" "$APPDIR/usr/bin/"
-          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/verge.png"
-          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/verge.png"
-
-          cat > "$APPDIR/usr/share/applications/verge.desktop" <<'EOF'
-          [Desktop Entry]
-          Type=Application
-          Name=Verge
-          Exec=verge-qt
-          Icon=verge
-          Categories=Network;Finance;
-          Terminal=false
-          StartupWMClass=verge-qt
-          EOF
-
-          cp "$APPDIR/usr/share/applications/verge.desktop" "$APPDIR/verge.desktop"
-
-          curl -L -o linuxdeploy-x86_64.AppImage \
+          curl -L -o "$PWD/linuxdeploy-x86_64.AppImage" \
             https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          curl -L -o linuxdeploy-plugin-qt-x86_64.AppImage \
+          curl -L -o "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage" \
             https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
 
-          chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x "$PWD/linuxdeploy-x86_64.AppImage" "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage"
 
           export QMAKE="$PWD/depends/x86_64-linux-gnu/native/qt-host/bin/qmake"
-          export EXTRA_QT_PLUGINS="platforms/libqxcb.so"
           export VERSION="${GITHUB_SHA::7}"
+          export EXTRA_QT_PLUGINS="platforms/libqxcb.so"
 
-          ./linuxdeploy-x86_64.AppImage \
-            --appdir "$APPDIR" \
-            --executable "$PWD/src/qt/verge-qt" \
-            --desktop-file "$APPDIR/usr/share/applications/verge.desktop" \
-            --icon-file "$PWD/share/pixmaps/verge256.png" \
-            --plugin qt \
-            --output appimage
+          build_appimage() {
+            local binary_path="$1"
+            local exec_name="$2"
+            local app_name="$3"
+            local desktop_name="$4"
+            local terminal="$5"
+            local use_qt_plugin="$6"
+            local output_name="$7"
+            local appdir="$PWD/AppDir-$exec_name"
 
-          mv ./*.AppImage "$PWD/release/Verge-Qt-x86_64.AppImage"
+            rm -rf "$appdir"
+            mkdir -p "$appdir/usr/bin" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/256x256/apps"
+
+            cp "$binary_path" "$appdir/usr/bin/$exec_name"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
+
+            cat > "$appdir/usr/share/applications/$desktop_name.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=$app_name
+          Exec=$exec_name
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=$terminal
+          StartupWMClass=$exec_name
+          EOF
+
+            cp "$appdir/usr/share/applications/$desktop_name.desktop" "$appdir/$desktop_name.desktop"
+
+            rm -f "$PWD"/*.AppImage
+            if [ "$use_qt_plugin" = "1" ]; then
+              "$PWD/linuxdeploy-x86_64.AppImage" \
+                --appdir "$appdir" \
+                --executable "$binary_path" \
+                --desktop-file "$appdir/usr/share/applications/$desktop_name.desktop" \
+                --icon-file "$PWD/share/pixmaps/verge256.png" \
+                --plugin qt \
+                --output appimage
+            else
+              "$PWD/linuxdeploy-x86_64.AppImage" \
+                --appdir "$appdir" \
+                --executable "$binary_path" \
+                --desktop-file "$appdir/usr/share/applications/$desktop_name.desktop" \
+                --icon-file "$PWD/share/pixmaps/verge256.png" \
+                --output appimage
+            fi
+            mv "$PWD"/*.AppImage "$PWD/release/$output_name"
+          }
+
+          build_appimage "$PWD/src/qt/verge-qt" "verge-qt" "Verge Qt" "verge-qt" "false" "1" "Verge-Qt-x86_64.AppImage"
+          build_appimage "$PWD/src/verge-cli" "verge-cli" "Verge CLI" "verge-cli" "true" "0" "Verge-CLI-x86_64.AppImage"
+          build_appimage "$PWD/src/verged" "verged" "Verge Daemon" "verged" "true" "0" "Verged-x86_64.AppImage"
+          build_appimage "$PWD/src/verge-tx" "verge-tx" "Verge TX" "verge-tx" "true" "0" "Verge-TX-x86_64.AppImage"
 
       - name: ccache stats
         env:
@@ -1074,11 +1102,10 @@ jobs:
         with:
           name: verge-ubuntu24
           path: |
-            ./src/verged
-            ./src/verge-cli
-            ./src/verge-tx
-            ./src/qt/verge-qt
             ./release/Verge-Qt-x86_64.AppImage
+            ./release/Verge-CLI-x86_64.AppImage
+            ./release/Verged-x86_64.AppImage
+            ./release/Verge-TX-x86_64.AppImage
 
   ubuntu24-noswap:
     runs-on: ubuntu-24.04
