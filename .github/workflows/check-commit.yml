@@ -1106,11 +1106,11 @@ jobs:
               cp "$appdir/usr/share/applications/$desktop_name.desktop" "$appdir/$desktop_name.desktop"
 
               cp -a "$PWD/depends/x86_64-linux-gnu/lib/"*.so* "$appdir/usr/lib/"
-              cp -a /usr/lib/x86_64-linux-gnu/libsqlite3.so.0* "$appdir/usr/lib/"
-              if [ -e "$appdir/usr/lib/libsoftokn3.so" ]; then
-                "$PATCH_ELF" --replace-needed libsqlite3.so libsqlite3.so.0 \
-                  "$appdir/usr/lib/libsoftokn3.so" 2>/dev/null || true
-              fi
+              find "$appdir/usr/lib" -maxdepth 1 \
+                \( -name 'libnss*.so*' -o -name 'libnspr*.so*' -o -name 'libsmime*.so*' \
+                -o -name 'libssl3*.so*' -o -name 'libsoftokn*.so*' -o -name 'libfreebl*' \
+                -o -name 'libnssdbm*' -o -name 'libplc4.so*' -o -name 'libplds4.so*' \
+                -o -name 'libsqlite3.so*' \) -delete
               for plugin_dir in \
                 platforms \
                 imageformats \
