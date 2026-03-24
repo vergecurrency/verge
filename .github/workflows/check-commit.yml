@@ -1106,6 +1106,10 @@ jobs:
               cp "$appdir/usr/share/applications/$desktop_name.desktop" "$appdir/$desktop_name.desktop"
 
               cp -a "$PWD/depends/x86_64-linux-gnu/lib/"*.so* "$appdir/usr/lib/"
+              cp -a /usr/lib/x86_64-linux-gnu/libsqlite3.so.0* "$appdir/usr/lib/"
+              if [ -e "$appdir/usr/lib/libsqlite3.so.0" ] && [ ! -e "$appdir/usr/lib/libsqlite3.so" ]; then
+                ln -sf libsqlite3.so.0 "$appdir/usr/lib/libsqlite3.so"
+              fi
               for plugin_dir in \
                 platforms \
                 imageformats \
