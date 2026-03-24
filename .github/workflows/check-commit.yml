@@ -759,7 +759,6 @@ jobs:
           key: depends-base-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
             depends-base-${{ runner.os }}-linux64-v2-
-            depends-qt-${{ runner.os }}-linux64-v2-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -790,16 +789,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache depends Qt artifacts
+      - name: Cache depends Qt phase1 restore state
         uses: actions/cache@v4
         with:
           path: |
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-qt-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-qt-phase1-${{ runner.os }}-linux64-v1-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-qt-${{ runner.os }}-linux64-v2-
             depends-base-${{ runner.os }}-linux64-v2-
 
       - name: Update apt repos
@@ -889,9 +887,9 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-qt-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-qt-${{ runner.os }}-linux64-v3-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-qt-${{ runner.os }}-linux64-v2-
+            depends-qt-${{ runner.os }}-linux64-v3-
             depends-base-${{ runner.os }}-linux64-v2-
 
       - name: Download Qt work state
@@ -959,9 +957,9 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-qt-${{ runner.os }}-linux64-v2-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-qt-${{ runner.os }}-linux64-v3-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-qt-${{ runner.os }}-linux64-v2-
+            depends-qt-${{ runner.os }}-linux64-v3-
             depends-base-${{ runner.os }}-linux64-v2-
 
       - name: Cache ccache
