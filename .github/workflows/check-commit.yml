@@ -837,7 +837,7 @@ jobs:
         run: |
           cd depends/
           rc=0
-          timeout 330m make -j4 HOST=x86_64-linux-gnu QT_SKIP_WEBENGINE=1 qt || rc=$?
+          timeout 325m make -j4 HOST=x86_64-linux-gnu QT_SKIP_WEBENGINE=1 qt || rc=$?
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then
             exit "$rc"
           fi
@@ -859,7 +859,7 @@ jobs:
             fi
           done
           if [ "${#paths[@]}" -gt 0 ]; then
-            tar -C depends/work -I 'zstd -T0 -19' -cf \
+            tar -C depends/work -I 'zstd -T0 -3' -cf \
               depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst \
               "${paths[@]}"
           else
@@ -873,6 +873,7 @@ jobs:
           name: ubuntu24-linux64-qt-work-phase1
           path: depends/work/artifacts/ubuntu24-linux64-qt-work-phase1.tar.zst
           if-no-files-found: ignore
+          compression-level: 0
 
   ubuntu24-depends-qt-phase2:
     runs-on: ubuntu-24.04
@@ -943,7 +944,7 @@ jobs:
         run: |
           cd depends/
           rc=0
-          timeout 335m make -j4 HOST=x86_64-linux-gnu qt || rc=$?
+          timeout 320m make -j4 HOST=x86_64-linux-gnu qt || rc=$?
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then
             exit "$rc"
           fi
@@ -965,7 +966,7 @@ jobs:
             fi
           done
           if [ "${#paths[@]}" -gt 0 ]; then
-            tar -C depends/work -I 'zstd -T0 -19' -cf \
+            tar -C depends/work -I 'zstd -T0 -3' -cf \
               depends/work/artifacts/ubuntu24-linux64-qt-work-phase2.tar.zst \
               "${paths[@]}"
           else
@@ -979,6 +980,7 @@ jobs:
           name: ubuntu24-linux64-qt-work-phase2
           path: depends/work/artifacts/ubuntu24-linux64-qt-work-phase2.tar.zst
           if-no-files-found: ignore
+          compression-level: 0
 
   ubuntu24-depends-qt-phase3:
     runs-on: ubuntu-24.04
