@@ -1,8 +1,8 @@
 package=boost
-$(package)_version=1.85.0
+$(package)_version=1.90.0
 $(package)_download_path=https://archives.boost.io/release/$($(package)_version)/source/
 $(package)_file_name=$(package)_$(subst .,_,$($(package)_version)).tar.gz
-$(package)_sha256_hash=be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b
+$(package)_sha256_hash=5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9
 
 $(package)_compiler=
 ifeq ($(CLANG_ARG),true)
