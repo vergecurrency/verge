@@ -746,6 +746,8 @@ jobs:
 
   ubuntu24-depends-base:
     runs-on: ubuntu-24.04
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -786,6 +788,8 @@ jobs:
   ubuntu24-depends-qt-phase1:
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-base
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -878,6 +882,8 @@ jobs:
   ubuntu24-depends-qt-phase2:
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-qt-phase1
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -985,6 +991,8 @@ jobs:
   ubuntu24-depends-qt-phase3:
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-qt-phase2
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -1055,6 +1063,8 @@ jobs:
   ubuntu24:
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-qt-phase3
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -1362,6 +1372,8 @@ jobs:
   ubuntu24-noswap:
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-base
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -1451,6 +1463,8 @@ jobs:
 
   raspberrypi:
     runs-on: ubuntu-24.04-arm
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
