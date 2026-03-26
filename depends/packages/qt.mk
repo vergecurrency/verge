@@ -94,6 +94,7 @@ $(package)_config_opts += -DQT_FEATURE_use_gold_linker_alias=OFF
 $(package)_config_opts += -DQT_FEATURE_zstd=OFF
 $(package)_config_opts += -DQT_FEATURE_pkg_config=ON
 $(package)_config_opts += -DPython3_EXECUTABLE=$(host_prefix)/native/bin/python3
+$(package)_config_opts += -DFEATURE_webengine_jumbo_build=8
 $(package)_config_opts += -DQT_FEATURE_system_png=OFF
 $(package)_config_opts += -DQT_FEATURE_system_pcre2=OFF
 $(package)_config_opts += -DQT_FEATURE_system_harfbuzz=OFF
