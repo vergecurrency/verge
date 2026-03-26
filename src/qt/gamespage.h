@@ -9,6 +9,7 @@
 #include <QWidget>
 
 class QLabel;
+class PongWidget;
 class QPushButton;
 class SpaceInvadersWidget;
 class TetrisWidget;
@@ -21,20 +22,25 @@ public:
 
 private:
     void ensureSpaceInvadersPage();
+    void ensurePongPage();
     void ensureTetrisPage();
     void showLibrary();
+    void showPong();
     void showSpaceInvaders();
     void showTetris();
 
     QStackedWidget* m_stack{nullptr};
     QWidget* m_libraryPage{nullptr};
     QWidget* m_spaceInvadersPage{nullptr};
+    QWidget* m_pongPage{nullptr};
     QWidget* m_tetrisPage{nullptr};
     QVBoxLayout* m_spaceInvadersLayout{nullptr};
+    QVBoxLayout* m_pongLayout{nullptr};
     QVBoxLayout* m_tetrisLayout{nullptr};
     QLabel* m_titleLabel{nullptr};
     QPushButton* m_backButton{nullptr};
     SpaceInvadersWidget* m_spaceInvadersWidget{nullptr};
+    PongWidget* m_pongWidget{nullptr};
     TetrisWidget* m_tetrisWidget{nullptr};
 };
 

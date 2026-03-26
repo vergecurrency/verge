@@ -199,6 +199,7 @@ VERGE_QT_H = \
   qt/editaddressdialog.h \
   qt/guiconstants.h \
   qt/guiutil.h \
+  qt/games/pongwidget.h \
   qt/games/spaceinvaderswidget.h \
   qt/games/tetriswidget.h \
   qt/gamespage.h \
@@ -303,8 +304,17 @@ RES_ICONS = \
   qt/res/icons/verify.png
 
 RES_GAMES = \
+  qt/games/icons/pong.jpg \
   qt/games/icons/spaceinvaders.png \
   qt/games/icons/tetris.png \
+  qt/games/pong/images/background.jpg \
+  qt/games/pong/images/ball.png \
+  qt/games/pong/images/block01.png \
+  qt/games/pong/images/block02.png \
+  qt/games/pong/images/block03.png \
+  qt/games/pong/images/block04.png \
+  qt/games/pong/images/block05.png \
+  qt/games/pong/images/paddle.png \
   qt/games/Tetris/images/background.png \
   qt/games/Tetris/images/frame.png \
   qt/games/Tetris/images/tiles.png \
@@ -344,6 +354,7 @@ VERGE_QT_BASE_CPP = \
   qt/vergeunits.cpp \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
+  qt/games/pongwidget.cpp \
   qt/games/spaceinvaderswidget.cpp \
   qt/games/tetriswidget.cpp \
   qt/gamespage.cpp \

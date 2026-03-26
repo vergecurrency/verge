@@ -64,8 +64,19 @@
         <file alias="tiles">games/Tetris/images/tiles.png</file>
     </qresource>
     <qresource prefix="/games/icons">
+        <file alias="pong">games/icons/pong.jpg</file>
         <file alias="spaceinvaders">games/icons/spaceinvaders.png</file>
         <file alias="tetris">games/icons/tetris.png</file>
+    </qresource>
+    <qresource prefix="/games/pong">
+        <file alias="background">games/pong/images/background.jpg</file>
+        <file alias="ball">games/pong/images/ball.png</file>
+        <file alias="block01">games/pong/images/block01.png</file>
+        <file alias="block02">games/pong/images/block02.png</file>
+        <file alias="block03">games/pong/images/block03.png</file>
+        <file alias="block04">games/pong/images/block04.png</file>
+        <file alias="block05">games/pong/images/block05.png</file>
+        <file alias="paddle">games/pong/images/paddle.png</file>
     </qresource>
     <qresource prefix="/games/spaceinvaders">
         <file alias="alien100">games/spaceinvaders/res/alien_100.png</file>
