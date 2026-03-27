@@ -294,16 +294,16 @@ jobs:
             local dep_name source target
             dep_name="$(basename "$dep_path")"
             target="$FRAMEWORKS_DIR/$dep_name"
-            if [ ! -f "$target" ] || [ -L "$target" ]; then
-              source="$BOOST_LIB_DIR/$dep_name"
-              if [ ! -f "$source" ]; then
-                source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
-              fi
-              if [ -z "$source" ] || [ ! -f "$source" ]; then
-                echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
-                ls -la "$BOOST_LIB_DIR" | grep libboost || true
-                exit 1
-              fi
+            source="$BOOST_LIB_DIR/$dep_name"
+            if [ ! -f "$source" ]; then
+              source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
+            fi
+            if [ -z "$source" ] || [ ! -f "$source" ]; then
+              echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
+              ls -la "$BOOST_LIB_DIR" | grep libboost || true
+              exit 1
+            fi
+            if [ ! -f "$target" ] || [ -L "$target" ] || ! file "$target" | grep -q 'Mach-O'; then
               materialize_macho "$source" "$target"
             fi
             ensure_real_file "$target"
@@ -325,6 +325,10 @@ jobs:
               install_name_tool -change "$dep" "$replacement" "$file" || true
             done < <(otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ {print $1}')
           }
+
+          for lib in "${boost_libs[@]}"; do
+            copy_boost_dep "$lib"
+          done
 
           rewrite_boost_refs "$APP_BIN"
           changed=1
@@ -771,16 +775,16 @@ jobs:
             local dep_name source target
             dep_name="$(basename "$dep_path")"
             target="$FRAMEWORKS_DIR/$dep_name"
-            if [ ! -f "$target" ] || [ -L "$target" ]; then
-              source="$BOOST_LIB_DIR/$dep_name"
-              if [ ! -f "$source" ]; then
-                source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
-              fi
-              if [ -z "$source" ] || [ ! -f "$source" ]; then
-                echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
-                ls -la "$BOOST_LIB_DIR" | grep libboost || true
-                exit 1
-              fi
+            source="$BOOST_LIB_DIR/$dep_name"
+            if [ ! -f "$source" ]; then
+              source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
+            fi
+            if [ -z "$source" ] || [ ! -f "$source" ]; then
+              echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
+              ls -la "$BOOST_LIB_DIR" | grep libboost || true
+              exit 1
+            fi
+            if [ ! -f "$target" ] || [ -L "$target" ] || ! file "$target" | grep -q 'Mach-O'; then
               materialize_macho "$source" "$target"
             fi
             ensure_real_file "$target"
@@ -802,6 +806,10 @@ jobs:
               install_name_tool -change "$dep" "$replacement" "$file" || true
             done < <(otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ {print $1}')
           }
+
+          for lib in "${boost_libs[@]}"; do
+            copy_boost_dep "$lib"
+          done
 
           rewrite_boost_refs "$APP_BIN"
           changed=1
