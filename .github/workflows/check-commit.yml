@@ -129,7 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
-          BOOST_PREFIX="$(brew --prefix boost176)"
+          BOOST_PREFIX="$(brew --prefix boost)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
@@ -520,7 +520,7 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
-          BOOST_PREFIX="$(brew --prefix boost176)"
+          BOOST_PREFIX="$(brew --prefix boost)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
