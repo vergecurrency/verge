@@ -267,16 +267,29 @@ jobs:
 
           resolve_boost_source() {
             local dep_name="$1"
-            local source="$BOOST_LIB_DIR/$dep_name"
-            if [ ! -f "$source" ]; then
-              source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
-            fi
-            if [ -z "$source" ] || [ ! -f "$source" ]; then
+            local candidate
+            for candidate in \
+              "$BOOST_LIB_DIR/$dep_name" \
+              "$BOOST_LIB_DIR/$dep_name".*.dylib \
+              "$BOOST_LIB_DIR/$dep_name"-*.dylib
+            do
+              [ -e "$candidate" ] || continue
+              candidate="$(python3 - <<'PY' "$candidate"
+import os, sys
+print(os.path.realpath(sys.argv[1]))
+PY
+)"
+              [ -f "$candidate" ] || continue
+              if file "$candidate" | grep -q 'Mach-O'; then
+                printf '%s\n' "$candidate"
+                return 0
+              fi
+            done
+            {
               echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
               ls -la "$BOOST_LIB_DIR" | grep libboost || true
-              exit 1
-            fi
-            printf '%s\n' "$source"
+            } >&2
+            exit 1
           }
 
           copy_boost_dep() {
@@ -286,6 +299,12 @@ jobs:
             target="$FRAMEWORKS_DIR/$dep_name"
             cp -fL "$source" "$target"
             chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied Boost library is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
             install_name_tool -id "@loader_path/$dep_name" "$target"
           }
 
@@ -744,16 +763,29 @@ jobs:
 
           resolve_boost_source() {
             local dep_name="$1"
-            local source="$BOOST_LIB_DIR/$dep_name"
-            if [ ! -f "$source" ]; then
-              source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
-            fi
-            if [ -z "$source" ] || [ ! -f "$source" ]; then
+            local candidate
+            for candidate in \
+              "$BOOST_LIB_DIR/$dep_name" \
+              "$BOOST_LIB_DIR/$dep_name".*.dylib \
+              "$BOOST_LIB_DIR/$dep_name"-*.dylib
+            do
+              [ -e "$candidate" ] || continue
+              candidate="$(python3 - <<'PY' "$candidate"
+import os, sys
+print(os.path.realpath(sys.argv[1]))
+PY
+)"
+              [ -f "$candidate" ] || continue
+              if file "$candidate" | grep -q 'Mach-O'; then
+                printf '%s\n' "$candidate"
+                return 0
+              fi
+            done
+            {
               echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
               ls -la "$BOOST_LIB_DIR" | grep libboost || true
-              exit 1
-            fi
-            printf '%s\n' "$source"
+            } >&2
+            exit 1
           }
 
           copy_boost_dep() {
@@ -763,6 +795,12 @@ jobs:
             target="$FRAMEWORKS_DIR/$dep_name"
             cp -fL "$source" "$target"
             chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied Boost library is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
             install_name_tool -id "@loader_path/$dep_name" "$target"
           }
 
