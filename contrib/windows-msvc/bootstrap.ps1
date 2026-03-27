@@ -2,7 +2,7 @@ param(
     [string]$Prefix = "",
     [string]$QtVersion = "6.10.2",
     [string]$QtArch = "win64_msvc2022_64",
-    [string]$BoostVersion = "1.86.0",
+    [string]$BoostVersion = "1.90.0",
     [string]$OpenSSLVersion = "3.6.1",
     [string]$BdbVersion = "4.8.30.NC",
     [string]$VcpkgRoot = "",
@@ -173,6 +173,24 @@ function Install-Boost {
     if (-not (Test-Path $sourceRoot)) {
         Expand-ZipArchive -Archive $archive -Destination $buildRoot
     }
+
+    if (Test-Path $InstallRoot) {
+        $boostLibRoot = Join-Path $InstallRoot "lib"
+        $boostIncludeRoot = Join-Path $InstallRoot "include"
+        if (Test-Path $boostLibRoot) {
+            Get-ChildItem -Path $boostLibRoot -Filter "*boost*" -File -ErrorAction SilentlyContinue | Remove-Item -Force
+            Get-ChildItem -Path $boostLibRoot -Filter "Boost*" -Directory -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+            Get-ChildItem -Path $boostLibRoot -Filter "boost_*" -Directory -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+        }
+        if (Test-Path $boostIncludeRoot) {
+            Get-ChildItem -Path $boostIncludeRoot -Filter "boost-*" -Directory -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+            $flatBoostInclude = Join-Path $boostIncludeRoot "boost"
+            if (Test-Path $flatBoostInclude) {
+                Remove-Item $flatBoostInclude -Recurse -Force
+            }
+        }
+    }
+
     Push-Location $sourceRoot
     cmd.exe /c "bootstrap.bat"
     if ($LASTEXITCODE -ne 0) {

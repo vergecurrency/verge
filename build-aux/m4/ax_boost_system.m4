@@ -114,6 +114,9 @@ AC_DEFUN([AX_BOOST_SYSTEM],
                 AC_SUBST(BOOST_SYSTEM_LIB)
                 link_system="yes"
             fi
+            if test "x$link_system" != "xyes" -a "x$BOOST_SYSTEM_LIB" = "x"; then
+                link_system="yes"
+            fi
 			if test "x$link_system" = "xno"; then
 				AC_MSG_ERROR(Could not link against $ax_lib !)
 			fi

@@ -40,9 +40,9 @@ boost_lib_stem() {
   local libdir="$2"
   local match=""
 
-  match="$(find "$libdir" -maxdepth 1 -type f \( -name "boost_${component}*.lib" -o -name "libboost_${component}*.lib" \) ! -name "*-s-*" | sort | head -n1 || true)"
+  match="$(find "$libdir" -maxdepth 1 -type f \( -name "boost_${component}*.lib" -o -name "libboost_${component}*.lib" \) ! -name "*-s-*" | sort | tail -n1 || true)"
   if [ -z "$match" ]; then
-    match="$(find "$libdir" -maxdepth 1 -type f \( -name "boost_${component}*.lib" -o -name "libboost_${component}*.lib" \) | sort | head -n1 || true)"
+    match="$(find "$libdir" -maxdepth 1 -type f \( -name "boost_${component}*.lib" -o -name "libboost_${component}*.lib" \) | sort | tail -n1 || true)"
   fi
   if [ -z "$match" ]; then
     return 1
@@ -572,7 +572,10 @@ boost_filesystem_lib="$(boost_lib_stem filesystem "$BOOST_LIBRARYDIR")"
 boost_program_options_lib="$(boost_lib_stem program_options "$BOOST_LIBRARYDIR")"
 boost_thread_lib="$(boost_lib_stem thread "$BOOST_LIBRARYDIR")"
 boost_chrono_lib="$(boost_lib_stem chrono "$BOOST_LIBRARYDIR")"
-boost_system_lib="$(boost_lib_stem system "$BOOST_LIBRARYDIR")"
+boost_system_lib=""
+if ! boost_system_lib="$(boost_lib_stem system "$BOOST_LIBRARYDIR")"; then
+  boost_system_lib=""
+fi
 configure_protoc_args=()
 if [ -n "$protoc_bindir" ]; then
   configure_protoc_args+=(--with-protoc-bindir="$protoc_bindir")
@@ -581,6 +584,10 @@ configure_tor_dep_args=()
 if [ -n "$vcpkg_triplet_dir" ] && [ -d "$vcpkg_triplet_dir" ]; then
   configure_tor_dep_args+=(--with-libevent-dir="$vcpkg_triplet_dir")
   configure_tor_dep_args+=(--with-zlib-dir="$vcpkg_triplet_dir")
+fi
+configure_boost_system_args=()
+if [ -n "$boost_system_lib" ]; then
+  configure_boost_system_args+=(--with-boost-system="$boost_system_lib")
 fi
 if [ -n "$OPENSSL_ROOT_DIR" ] && [ -d "$OPENSSL_ROOT_DIR" ]; then
   configure_tor_dep_args+=(--with-openssl-dir="$OPENSSL_ROOT_DIR")
@@ -769,7 +776,7 @@ patch_pow_sources_for_windows
   --with-boost-program-options="$boost_program_options_lib" \
   --with-boost-thread="$boost_thread_lib" \
   --with-boost-chrono="$boost_chrono_lib" \
-  --with-boost-system="$boost_system_lib" \
+  "${configure_boost_system_args[@]}" \
   "${configure_protoc_args[@]}" \
   "${configure_tor_dep_args[@]}" \
   --with-gui=qt6 \
