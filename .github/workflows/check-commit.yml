@@ -253,6 +253,78 @@ jobs:
           APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
 
+      - name: Bundle transitive Boost dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          BOOST_LIB_DIR="$(brew --prefix boost)/lib"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          shopt -s nullglob
+          boost_libs=("$FRAMEWORKS_DIR"/libboost_*.dylib)
+          if [ "${#boost_libs[@]}" -eq 0 ]; then
+            echo "::error::No Boost dylibs were bundled into $FRAMEWORKS_DIR"
+            ls -la "$FRAMEWORKS_DIR" || true
+            exit 1
+          fi
+
+          copy_boost_dep() {
+            local dep_path="$1"
+            local dep_name source target
+            dep_name="$(basename "$dep_path")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            if [ ! -f "$target" ]; then
+              source="$BOOST_LIB_DIR/$dep_name"
+              if [ ! -f "$source" ]; then
+                source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
+              fi
+              if [ -z "$source" ] || [ ! -f "$source" ]; then
+                echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
+                ls -la "$BOOST_LIB_DIR" | grep libboost || true
+                exit 1
+              fi
+              cp -f "$source" "$target"
+              chmod u+w "$target"
+              install_name_tool -id "@loader_path/$dep_name" "$target"
+            fi
+          }
+
+          rewrite_boost_refs() {
+            local file="$1"
+            while read -r dep; do
+              local dep_name replacement
+              dep_name="$(basename "$dep")"
+              copy_boost_dep "$dep"
+              if [ "$file" = "$APP_BIN" ]; then
+                replacement="@executable_path/../Frameworks/$dep_name"
+              else
+                replacement="@loader_path/$dep_name"
+              fi
+              install_name_tool -change "$dep" "$replacement" "$file" || true
+            done < <(otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ {print $1}')
+          }
+
+          rewrite_boost_refs "$APP_BIN"
+          changed=1
+          while [ "$changed" -eq 1 ]; do
+            changed=0
+            for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+              before_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
+              rewrite_boost_refs "$lib"
+              after_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
+              if [ "$after_count" != "$before_count" ]; then
+                changed=1
+              fi
+            done
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            echo "Boost linkage for $file"
+            otool -L "$file" | grep -E 'libboost_|verge-qt' || true
+          done
+
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
@@ -637,6 +709,78 @@ jobs:
         run: |
           APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
+
+      - name: Bundle transitive Boost dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          BOOST_LIB_DIR="$(brew --prefix boost)/lib"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          shopt -s nullglob
+          boost_libs=("$FRAMEWORKS_DIR"/libboost_*.dylib)
+          if [ "${#boost_libs[@]}" -eq 0 ]; then
+            echo "::error::No Boost dylibs were bundled into $FRAMEWORKS_DIR"
+            ls -la "$FRAMEWORKS_DIR" || true
+            exit 1
+          fi
+
+          copy_boost_dep() {
+            local dep_path="$1"
+            local dep_name source target
+            dep_name="$(basename "$dep_path")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            if [ ! -f "$target" ]; then
+              source="$BOOST_LIB_DIR/$dep_name"
+              if [ ! -f "$source" ]; then
+                source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
+              fi
+              if [ -z "$source" ] || [ ! -f "$source" ]; then
+                echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
+                ls -la "$BOOST_LIB_DIR" | grep libboost || true
+                exit 1
+              fi
+              cp -f "$source" "$target"
+              chmod u+w "$target"
+              install_name_tool -id "@loader_path/$dep_name" "$target"
+            fi
+          }
+
+          rewrite_boost_refs() {
+            local file="$1"
+            while read -r dep; do
+              local dep_name replacement
+              dep_name="$(basename "$dep")"
+              copy_boost_dep "$dep"
+              if [ "$file" = "$APP_BIN" ]; then
+                replacement="@executable_path/../Frameworks/$dep_name"
+              else
+                replacement="@loader_path/$dep_name"
+              fi
+              install_name_tool -change "$dep" "$replacement" "$file" || true
+            done < <(otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ {print $1}')
+          }
+
+          rewrite_boost_refs "$APP_BIN"
+          changed=1
+          while [ "$changed" -eq 1 ]; do
+            changed=0
+            for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+              before_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
+              rewrite_boost_refs "$lib"
+              after_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
+              if [ "$after_count" != "$before_count" ]; then
+                changed=1
+              fi
+            done
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            echo "Boost linkage for $file"
+            otool -L "$file" | grep -E 'libboost_|verge-qt' || true
+          done
 
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
