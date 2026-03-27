@@ -263,38 +263,11 @@ jobs:
           mkdir -p "$FRAMEWORKS_DIR"
 
           shopt -s nullglob
-          boost_libs=("$FRAMEWORKS_DIR"/libboost_*.dylib)
-          if [ "${#boost_libs[@]}" -eq 0 ]; then
-            echo "::error::No Boost dylibs were bundled into $FRAMEWORKS_DIR"
-            ls -la "$FRAMEWORKS_DIR" || true
-            exit 1
-          fi
+          rm -f "$FRAMEWORKS_DIR"/libboost_*.dylib
 
-          materialize_macho() {
-            local source="$1"
-            local target="$2"
-            local tmp="${target}.tmp"
-            rm -f "$tmp"
-            cp -fL "$source" "$tmp"
-            chmod u+w "$tmp"
-            mv -f "$tmp" "$target"
-          }
-
-          ensure_real_file() {
-            local path="$1"
-            if [ -L "$path" ]; then
-              local resolved
-              resolved="$(realpath "$path")"
-              materialize_macho "$resolved" "$path"
-            fi
-          }
-
-          copy_boost_dep() {
-            local dep_path="$1"
-            local dep_name source target
-            dep_name="$(basename "$dep_path")"
-            target="$FRAMEWORKS_DIR/$dep_name"
-            source="$BOOST_LIB_DIR/$dep_name"
+          resolve_boost_source() {
+            local dep_name="$1"
+            local source="$BOOST_LIB_DIR/$dep_name"
             if [ ! -f "$source" ]; then
               source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
             fi
@@ -303,45 +276,66 @@ jobs:
               ls -la "$BOOST_LIB_DIR" | grep libboost || true
               exit 1
             fi
-            if [ ! -f "$target" ] || [ -L "$target" ] || ! file "$target" | grep -q 'Mach-O'; then
-              materialize_macho "$source" "$target"
-            fi
-            ensure_real_file "$target"
+            printf '%s\n' "$source"
+          }
+
+          copy_boost_dep() {
+            local dep_name="$1"
+            local source target
+            source="$(resolve_boost_source "$dep_name")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
             install_name_tool -id "@loader_path/$dep_name" "$target"
           }
 
-          rewrite_boost_refs() {
+          collect_boost_names() {
             local file="$1"
-            ensure_real_file "$file"
-            while read -r dep; do
-              local dep_name replacement
-              dep_name="$(basename "$dep")"
-              copy_boost_dep "$dep"
-              if [ "$file" = "$APP_BIN" ]; then
-                replacement="@executable_path/../Frameworks/$dep_name"
-              else
-                replacement="@loader_path/$dep_name"
-              fi
-              install_name_tool -change "$dep" "$replacement" "$file" || true
-            done < <(otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ {print $1}')
+            otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); print n }'
           }
 
-          for lib in "${boost_libs[@]}"; do
-            copy_boost_dep "$lib"
+          declare -A seen=()
+          declare -a queue=()
+          while read -r dep_name; do
+            [ -n "$dep_name" ] || continue
+            if [ -z "${seen[$dep_name]+x}" ]; then
+              seen["$dep_name"]=1
+              queue+=("$dep_name")
+            fi
+          done < <(collect_boost_names "$APP_BIN")
+
+          if [ "${#queue[@]}" -eq 0 ]; then
+            echo "::error::No Boost dylibs referenced by $APP_BIN"
+            otool -L "$APP_BIN" || true
+            exit 1
+          fi
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_name="${queue[$index]}"
+            copy_boost_dep "$dep_name"
+            while read -r child_name; do
+              [ -n "$child_name" ] || continue
+              if [ -z "${seen[$child_name]+x}" ]; then
+                seen["$child_name"]=1
+                queue+=("$child_name")
+              fi
+            done < <(collect_boost_names "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
           done
 
-          rewrite_boost_refs "$APP_BIN"
-          changed=1
-          while [ "$changed" -eq 1 ]; do
-            changed=0
-            for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
-              before_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
-              rewrite_boost_refs "$lib"
-              after_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
-              if [ "$after_count" != "$before_count" ]; then
-                changed=1
-              fi
-            done
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(otool -L "$APP_BIN" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
+
+          for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(otool -L "$lib" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
           done
 
           for file in "$APP_BIN" "$FRAMEWORKS_DIR"/libboost_*.dylib; do
@@ -744,38 +738,11 @@ jobs:
           mkdir -p "$FRAMEWORKS_DIR"
 
           shopt -s nullglob
-          boost_libs=("$FRAMEWORKS_DIR"/libboost_*.dylib)
-          if [ "${#boost_libs[@]}" -eq 0 ]; then
-            echo "::error::No Boost dylibs were bundled into $FRAMEWORKS_DIR"
-            ls -la "$FRAMEWORKS_DIR" || true
-            exit 1
-          fi
+          rm -f "$FRAMEWORKS_DIR"/libboost_*.dylib
 
-          materialize_macho() {
-            local source="$1"
-            local target="$2"
-            local tmp="${target}.tmp"
-            rm -f "$tmp"
-            cp -fL "$source" "$tmp"
-            chmod u+w "$tmp"
-            mv -f "$tmp" "$target"
-          }
-
-          ensure_real_file() {
-            local path="$1"
-            if [ -L "$path" ]; then
-              local resolved
-              resolved="$(realpath "$path")"
-              materialize_macho "$resolved" "$path"
-            fi
-          }
-
-          copy_boost_dep() {
-            local dep_path="$1"
-            local dep_name source target
-            dep_name="$(basename "$dep_path")"
-            target="$FRAMEWORKS_DIR/$dep_name"
-            source="$BOOST_LIB_DIR/$dep_name"
+          resolve_boost_source() {
+            local dep_name="$1"
+            local source="$BOOST_LIB_DIR/$dep_name"
             if [ ! -f "$source" ]; then
               source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
             fi
@@ -784,45 +751,66 @@ jobs:
               ls -la "$BOOST_LIB_DIR" | grep libboost || true
               exit 1
             fi
-            if [ ! -f "$target" ] || [ -L "$target" ] || ! file "$target" | grep -q 'Mach-O'; then
-              materialize_macho "$source" "$target"
-            fi
-            ensure_real_file "$target"
+            printf '%s\n' "$source"
+          }
+
+          copy_boost_dep() {
+            local dep_name="$1"
+            local source target
+            source="$(resolve_boost_source "$dep_name")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
             install_name_tool -id "@loader_path/$dep_name" "$target"
           }
 
-          rewrite_boost_refs() {
+          collect_boost_names() {
             local file="$1"
-            ensure_real_file "$file"
-            while read -r dep; do
-              local dep_name replacement
-              dep_name="$(basename "$dep")"
-              copy_boost_dep "$dep"
-              if [ "$file" = "$APP_BIN" ]; then
-                replacement="@executable_path/../Frameworks/$dep_name"
-              else
-                replacement="@loader_path/$dep_name"
-              fi
-              install_name_tool -change "$dep" "$replacement" "$file" || true
-            done < <(otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ {print $1}')
+            otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); print n }'
           }
 
-          for lib in "${boost_libs[@]}"; do
-            copy_boost_dep "$lib"
+          declare -A seen=()
+          declare -a queue=()
+          while read -r dep_name; do
+            [ -n "$dep_name" ] || continue
+            if [ -z "${seen[$dep_name]+x}" ]; then
+              seen["$dep_name"]=1
+              queue+=("$dep_name")
+            fi
+          done < <(collect_boost_names "$APP_BIN")
+
+          if [ "${#queue[@]}" -eq 0 ]; then
+            echo "::error::No Boost dylibs referenced by $APP_BIN"
+            otool -L "$APP_BIN" || true
+            exit 1
+          fi
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_name="${queue[$index]}"
+            copy_boost_dep "$dep_name"
+            while read -r child_name; do
+              [ -n "$child_name" ] || continue
+              if [ -z "${seen[$child_name]+x}" ]; then
+                seen["$child_name"]=1
+                queue+=("$child_name")
+              fi
+            done < <(collect_boost_names "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
           done
 
-          rewrite_boost_refs "$APP_BIN"
-          changed=1
-          while [ "$changed" -eq 1 ]; do
-            changed=0
-            for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
-              before_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
-              rewrite_boost_refs "$lib"
-              after_count="$(find "$FRAMEWORKS_DIR" -maxdepth 1 -name 'libboost_*.dylib' | wc -l | tr -d ' ')"
-              if [ "$after_count" != "$before_count" ]; then
-                changed=1
-              fi
-            done
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(otool -L "$APP_BIN" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
+
+          for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(otool -L "$lib" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
           done
 
           for file in "$APP_BIN" "$FRAMEWORKS_DIR"/libboost_*.dylib; do
