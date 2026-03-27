@@ -294,12 +294,13 @@ jobs:
             otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); print n }'
           }
 
-          declare -A seen=()
           declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/boost-seen-$$.txt"
+          : > "$SEEN_FILE"
           while read -r dep_name; do
             [ -n "$dep_name" ] || continue
-            if [ -z "${seen[$dep_name]+x}" ]; then
-              seen["$dep_name"]=1
+            if ! grep -Fxq "$dep_name" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_name" >> "$SEEN_FILE"
               queue+=("$dep_name")
             fi
           done < <(collect_boost_names "$APP_BIN")
@@ -316,13 +317,14 @@ jobs:
             copy_boost_dep "$dep_name"
             while read -r child_name; do
               [ -n "$child_name" ] || continue
-              if [ -z "${seen[$child_name]+x}" ]; then
-                seen["$child_name"]=1
+              if ! grep -Fxq "$child_name" "$SEEN_FILE"; then
+                printf '%s\n' "$child_name" >> "$SEEN_FILE"
                 queue+=("$child_name")
               fi
             done < <(collect_boost_names "$FRAMEWORKS_DIR/$dep_name")
             index=$((index + 1))
           done
+          rm -f "$SEEN_FILE"
 
           while read -r dep_path; do
             [ -n "$dep_path" ] || continue
@@ -769,12 +771,13 @@ jobs:
             otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); print n }'
           }
 
-          declare -A seen=()
           declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/boost-seen-$$.txt"
+          : > "$SEEN_FILE"
           while read -r dep_name; do
             [ -n "$dep_name" ] || continue
-            if [ -z "${seen[$dep_name]+x}" ]; then
-              seen["$dep_name"]=1
+            if ! grep -Fxq "$dep_name" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_name" >> "$SEEN_FILE"
               queue+=("$dep_name")
             fi
           done < <(collect_boost_names "$APP_BIN")
@@ -791,13 +794,14 @@ jobs:
             copy_boost_dep "$dep_name"
             while read -r child_name; do
               [ -n "$child_name" ] || continue
-              if [ -z "${seen[$child_name]+x}" ]; then
-                seen["$child_name"]=1
+              if ! grep -Fxq "$child_name" "$SEEN_FILE"; then
+                printf '%s\n' "$child_name" >> "$SEEN_FILE"
                 queue+=("$child_name")
               fi
             done < <(collect_boost_names "$FRAMEWORKS_DIR/$dep_name")
             index=$((index + 1))
           done
+          rm -f "$SEEN_FILE"
 
           while read -r dep_path; do
             [ -n "$dep_path" ] || continue
