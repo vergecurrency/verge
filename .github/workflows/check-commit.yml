@@ -306,7 +306,7 @@ jobs:
 
           collect_boost_names() {
             local file="$1"
-            otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); print n }'
+            otool -L "$file" | awk 'NR > 1 && /libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); sub(/:$/, "", n); print n }'
           }
 
           declare -a queue=()
@@ -798,7 +798,7 @@ jobs:
 
           collect_boost_names() {
             local file="$1"
-            otool -L "$file" | awk '/libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); print n }'
+            otool -L "$file" | awk 'NR > 1 && /libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); sub(/:$/, "", n); print n }'
           }
 
           declare -a queue=()
