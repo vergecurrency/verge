@@ -274,11 +274,7 @@ jobs:
               "$BOOST_LIB_DIR/$dep_name"-*.dylib
             do
               [ -e "$candidate" ] || continue
-              candidate="$(python3 - <<'PY' "$candidate"
-import os, sys
-print(os.path.realpath(sys.argv[1]))
-PY
-)"
+              candidate="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
               [ -f "$candidate" ] || continue
               if file "$candidate" | grep -q 'Mach-O'; then
                 printf '%s\n' "$candidate"
@@ -770,11 +766,7 @@ PY
               "$BOOST_LIB_DIR/$dep_name"-*.dylib
             do
               [ -e "$candidate" ] || continue
-              candidate="$(python3 - <<'PY' "$candidate"
-import os, sys
-print(os.path.realpath(sys.argv[1]))
-PY
-)"
+              candidate="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
               [ -f "$candidate" ] || continue
               if file "$candidate" | grep -q 'Mach-O'; then
                 printf '%s\n' "$candidate"
