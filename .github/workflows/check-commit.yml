@@ -270,12 +270,31 @@ jobs:
             exit 1
           fi
 
+          materialize_macho() {
+            local source="$1"
+            local target="$2"
+            local tmp="${target}.tmp"
+            rm -f "$tmp"
+            cp -fL "$source" "$tmp"
+            chmod u+w "$tmp"
+            mv -f "$tmp" "$target"
+          }
+
+          ensure_real_file() {
+            local path="$1"
+            if [ -L "$path" ]; then
+              local resolved
+              resolved="$(realpath "$path")"
+              materialize_macho "$resolved" "$path"
+            fi
+          }
+
           copy_boost_dep() {
             local dep_path="$1"
             local dep_name source target
             dep_name="$(basename "$dep_path")"
             target="$FRAMEWORKS_DIR/$dep_name"
-            if [ ! -f "$target" ]; then
+            if [ ! -f "$target" ] || [ -L "$target" ]; then
               source="$BOOST_LIB_DIR/$dep_name"
               if [ ! -f "$source" ]; then
                 source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
@@ -285,14 +304,15 @@ jobs:
                 ls -la "$BOOST_LIB_DIR" | grep libboost || true
                 exit 1
               fi
-              cp -f "$source" "$target"
-              chmod u+w "$target"
-              install_name_tool -id "@loader_path/$dep_name" "$target"
+              materialize_macho "$source" "$target"
             fi
+            ensure_real_file "$target"
+            install_name_tool -id "@loader_path/$dep_name" "$target"
           }
 
           rewrite_boost_refs() {
             local file="$1"
+            ensure_real_file "$file"
             while read -r dep; do
               local dep_name replacement
               dep_name="$(basename "$dep")"
@@ -727,12 +747,31 @@ jobs:
             exit 1
           fi
 
+          materialize_macho() {
+            local source="$1"
+            local target="$2"
+            local tmp="${target}.tmp"
+            rm -f "$tmp"
+            cp -fL "$source" "$tmp"
+            chmod u+w "$tmp"
+            mv -f "$tmp" "$target"
+          }
+
+          ensure_real_file() {
+            local path="$1"
+            if [ -L "$path" ]; then
+              local resolved
+              resolved="$(realpath "$path")"
+              materialize_macho "$resolved" "$path"
+            fi
+          }
+
           copy_boost_dep() {
             local dep_path="$1"
             local dep_name source target
             dep_name="$(basename "$dep_path")"
             target="$FRAMEWORKS_DIR/$dep_name"
-            if [ ! -f "$target" ]; then
+            if [ ! -f "$target" ] || [ -L "$target" ]; then
               source="$BOOST_LIB_DIR/$dep_name"
               if [ ! -f "$source" ]; then
                 source="$(ls -1 "$BOOST_LIB_DIR"/"$dep_name"* 2>/dev/null | sort -V | head -n1 || true)"
@@ -742,14 +781,15 @@ jobs:
                 ls -la "$BOOST_LIB_DIR" | grep libboost || true
                 exit 1
               fi
-              cp -f "$source" "$target"
-              chmod u+w "$target"
-              install_name_tool -id "@loader_path/$dep_name" "$target"
+              materialize_macho "$source" "$target"
             fi
+            ensure_real_file "$target"
+            install_name_tool -id "@loader_path/$dep_name" "$target"
           }
 
           rewrite_boost_refs() {
             local file="$1"
+            ensure_real_file "$file"
             while read -r dep; do
               local dep_name replacement
               dep_name="$(basename "$dep")"
