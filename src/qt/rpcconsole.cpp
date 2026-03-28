@@ -21,6 +21,8 @@
 #include <rpc/client.h>
 #include <util/system.h>
 
+#include <boost/version.hpp>
+
 #include <openssl/crypto.h>
 
 #include <univalue.h>
@@ -28,7 +30,6 @@
 extern "C" const char* get_short_version(void);
 
 #ifdef ENABLE_WALLET
-#include <db_cxx.h>
 #include <wallet/wallet.h>
 #endif
 
@@ -76,6 +77,14 @@ const struct {
 };
 
 namespace {
+
+QString FormatBoostVersion()
+{
+    return QString("%1.%2.%3")
+        .arg(BOOST_VERSION / 100000)
+        .arg((BOOST_VERSION / 100) % 1000)
+        .arg(BOOST_VERSION % 100);
+}
 
 // don't add private key handling cmd's to the history
 const QStringList historyFilter = QStringList()
@@ -546,12 +555,7 @@ RPCConsole::RPCConsole(interfaces::Node& node, const PlatformStyle *_platformSty
     ui->WalletSelectorLabel->setVisible(false);
 
     // set library version labels
-#ifdef ENABLE_WALLET
-    ui->berkeleyDBVersion->setText(DbEnv::version(0, 0, 0));
-#else
-    ui->label_berkeleyDBVersion->hide();
-    ui->berkeleyDBVersion->hide();
-#endif
+    ui->boostVersion->setText(FormatBoostVersion());
     // Register RPC timer interface
     rpcTimerInterface = new QtRPCTimerInterface();
     // avoid accidentally overwriting an existing, non QTThread

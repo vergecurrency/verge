@@ -93,14 +93,14 @@
         </widget>
        </item>
        <item row="16" column="0">
-       <widget class="QLabel" name="label_berkeleyDBVersion">
+       <widget class="QLabel" name="label_boostVersion">
          <property name="text">
-          <string>Using BerkeleyDB version</string>
+          <string>Boost version</string>
          </property>
         </widget>
        </item>
        <item row="16" column="1" colspan="2">
-        <widget class="QLabel" name="berkeleyDBVersion">
+        <widget class="QLabel" name="boostVersion">
          <property name="cursor">
           <cursorShape>IBeamCursor</cursorShape>
          </property>
