@@ -956,10 +956,9 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-base-${{ runner.os }}-linux64-v3-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-base-${{ runner.os }}-linux64-v4-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-base-${{ runner.os }}-linux64-v3-
-            depends-base-${{ runner.os }}-linux64-v2-
+            depends-base-${{ runner.os }}-linux64-v4-
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -993,6 +992,25 @@ jobs:
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
+
+      - name: Sanity-check cached non-Qt depends
+        run: |
+          set -euo pipefail
+          missing=0
+          for path in \
+            depends/x86_64-linux-gnu/include/db4/db_cxx.h \
+            depends/x86_64-linux-gnu/lib/libdb_cxx-4.8.a \
+            depends/x86_64-linux-gnu/share/config.site
+          do
+            if [ ! -e "$path" ]; then
+              echo "::warning::Missing cached depends artifact $path"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "::warning::Clearing stale non-Qt depends cache state so required packages rebuild."
+            rm -rf depends/built depends/x86_64-linux-gnu
+          fi
 
       - name: Build non-Qt depends package index
         run: |
