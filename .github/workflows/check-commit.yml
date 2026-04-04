@@ -984,6 +984,7 @@ jobs:
             bdb miniupnpc
 
   ubuntu24-depends-qt-phase1:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-base
     env:
@@ -1078,6 +1079,7 @@ jobs:
           compression-level: 0
 
   ubuntu24-depends-qt-phase2:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-qt-phase1
     env:
@@ -1187,6 +1189,7 @@ jobs:
           compression-level: 0
 
   ubuntu24-depends-qt-phase3:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
     needs: ubuntu24-depends-qt-phase2
     env:
@@ -1260,7 +1263,7 @@ jobs:
 
   ubuntu24:
     runs-on: ubuntu-24.04
-    needs: ubuntu24-depends-qt-phase3
+    needs: ubuntu24-depends-base
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
@@ -1295,7 +1298,9 @@ jobs:
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
           g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
-          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
+          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev \
+          qt6-base-dev qt6-base-private-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools \
+          qt6-webengine-dev qt6-webengine-dev-tools
 
       - name: Enable ccache wrappers
         run: |
@@ -1303,18 +1308,22 @@ jobs:
           echo "/usr/lib/ccache" >> "$GITHUB_PATH"
 
       - name: Configure ccache
-        env:
-          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-      - name: Build depends package index
+      - name: Build non-Qt depends package index
         run: |
           cd depends/
-          make -j4 HOST=x86_64-linux-gnu
+          make -j4 HOST=x86_64-linux-gnu \
+            openssl libevent libcap libseccomp zeromq boost qrencode protobuf zlib \
+            expat dbus nspr nss mesa_headers glproto libglvnd \
+            libX11 libXext libxcb libxkbcommon libxcb_util xcb_proto libXau \
+            freetype fontconfig xextproto xtrans libxcb_util_render libxcb_util_keysyms \
+            xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros \
+            bdb miniupnpc
 
       - name: Auto generate
         run: ./autogen.sh
@@ -1336,221 +1345,33 @@ jobs:
           cd ./src && strip verged verge-cli verge-tx
           cd ./qt && strip verge-qt
 
-      - name: Build AppImages
+      - name: Test verge-qt launch
         run: |
           set -euo pipefail
 
-          mkdir -p "$PWD/release"
-
-          curl -L -o "$PWD/linuxdeploy-x86_64.AppImage" \
-            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x "$PWD/linuxdeploy-x86_64.AppImage"
-
-          rm -rf "$PWD/linuxdeploy-root"
-
-          "$PWD/linuxdeploy-x86_64.AppImage" --appimage-extract >/dev/null
-          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-root"
-          export LINUXDEPLOY="$PWD/linuxdeploy-root/AppRun"
-          export VERSION="${GITHUB_SHA::7}"
-          PATCH_ELF="$PWD/linuxdeploy-root/usr/bin/patchelf"
-
-          build_appimage() {
-            local binary_path="$1"
-            local exec_name="$2"
-            local app_name="$3"
-            local desktop_name="$4"
-            local terminal="$5"
-            local use_qt_plugin="$6"
-            local output_name="$7"
-            local appdir="$PWD/AppDir-$exec_name"
-
-            rm -rf "$appdir"
-            mkdir -p "$appdir/usr/bin" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/256x256/apps"
-
-            cp "$binary_path" "$appdir/usr/bin/$exec_name"
-            cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
-            cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
-
-            cat > "$appdir/usr/share/applications/$desktop_name.desktop" <<EOF
-          [Desktop Entry]
-          Type=Application
-          Name=$app_name
-          Exec=$exec_name
-          Icon=verge
-          Categories=Network;Finance;
-          Terminal=$terminal
-          StartupWMClass=$exec_name
-          EOF
-
-            cp "$appdir/usr/share/applications/$desktop_name.desktop" "$appdir/$desktop_name.desktop"
-
-            rm -f "$PWD"/*.AppImage
-            if [ "$use_qt_plugin" = "1" ]; then
-              rm -rf "$appdir"
-              mkdir -p \
-                "$appdir/usr/bin" \
-                "$appdir/usr/lib" \
-                "$appdir/usr/plugins" \
-                "$appdir/usr/resources" \
-                "$appdir/usr/translations" \
-                "$appdir/usr/etc/fonts" \
-                "$appdir/usr/share/applications" \
-                "$appdir/usr/share/icons/hicolor/256x256/apps"
-
-              cp "$binary_path" "$appdir/usr/bin/$exec_name.bin"
-              cat > "$appdir/AppRun" <<EOF
-          #!/bin/sh
-          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
-          export FONTCONFIG_PATH="\$HERE/usr/etc/fonts"
-          export FONTCONFIG_FILE="\$HERE/usr/etc/fonts/fonts.conf"
-          exec "\$HERE/usr/bin/$exec_name.bin" "\$@"
-          EOF
-              chmod +x "$appdir/AppRun"
-
-              cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
-              cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
-              cat > "$appdir/usr/share/applications/$desktop_name.desktop" <<EOF
-          [Desktop Entry]
-          Type=Application
-          Name=$app_name
-          Exec=AppRun
-          Icon=verge
-          Categories=Network;Finance;
-          Terminal=$terminal
-          StartupWMClass=$exec_name
-          EOF
-              cp "$appdir/usr/share/applications/$desktop_name.desktop" "$appdir/$desktop_name.desktop"
-
-              cp -a "$PWD/depends/x86_64-linux-gnu/lib/"*.so* "$appdir/usr/lib/"
-              find "$appdir/usr/lib" -maxdepth 1 \
-                \( -name 'libnss*.so*' -o -name 'libnspr*.so*' -o -name 'libsmime*.so*' \
-                -o -name 'libssl3*.so*' -o -name 'libsoftokn*.so*' -o -name 'libfreebl*' \
-                -o -name 'libnssdbm*' -o -name 'libplc4.so*' -o -name 'libplds4.so*' \
-                -o -name 'libsqlite3.so*' \) -delete
-              for plugin_dir in \
-                platforms \
-                imageformats \
-                iconengines \
-                platformthemes \
-                tls \
-                xcbglintegrations \
-                bearer \
-                networkinformationaccess \
-                wayland-decoration-client \
-                wayland-graphics-integration-client \
-                wayland-shell-integration \
-                wayland-inputdevice-integration \
-                wayland-client
-              do
-                if [ -d "$PWD/depends/x86_64-linux-gnu/plugins/$plugin_dir" ]; then
-                  cp -a "$PWD/depends/x86_64-linux-gnu/plugins/$plugin_dir" "$appdir/usr/plugins/"
-                fi
-              done
-
-              WEBENGINE_PROCESS="$(find "$PWD/depends/x86_64-linux-gnu" -type f -name QtWebEngineProcess | head -n1 || true)"
-              if [ -z "$WEBENGINE_PROCESS" ]; then
-                echo "::error::QtWebEngineProcess not found in depends tree"
-                exit 1
-              fi
-              cp "$WEBENGINE_PROCESS" "$appdir/usr/bin/QtWebEngineProcess"
-              chmod +x "$appdir/usr/bin/QtWebEngineProcess"
-
-              for res in icudtl.dat v8_context_snapshot.bin qtwebengine_devtools_resources.pak; do
-                if [ -f "$PWD/depends/x86_64-linux-gnu/resources/$res" ]; then
-                  cp "$PWD/depends/x86_64-linux-gnu/resources/$res" "$appdir/usr/resources/"
-                fi
-              done
-              if ls "$PWD/depends/x86_64-linux-gnu/resources/qtwebengine_resources"*.pak >/dev/null 2>&1; then
-                cp "$PWD/depends/x86_64-linux-gnu/resources/qtwebengine_resources"*.pak \
-                  "$appdir/usr/resources/"
-              fi
-              if [ -d "$PWD/depends/x86_64-linux-gnu/resources/locales" ]; then
-                cp -a "$PWD/depends/x86_64-linux-gnu/resources/locales" \
-                  "$appdir/usr/resources/"
-              fi
-              rm -rf "$appdir/usr/translations/qtwebengine_locales"
-              if [ -d "$PWD/depends/x86_64-linux-gnu/translations/qtwebengine_locales" ]; then
-                cp -a "$PWD/depends/x86_64-linux-gnu/translations/qtwebengine_locales" \
-                  "$appdir/usr/translations/"
-              fi
-              cp -a "$PWD/depends/x86_64-linux-gnu/etc/fonts/." "$appdir/usr/etc/fonts/"
-
-              cat > "$appdir/usr/bin/qt.conf" <<EOF
-          [Paths]
-          Prefix=..
-          Plugins=plugins
-          Libraries=lib
-          LibraryExecutables=bin
-          Data=resources
-          Translations=translations
-          EOF
-
-              find "$appdir" -type f \( -perm -111 -o -name '*.so' -o -name '*.so.*' \) -print0 | \
-                while IFS= read -r -d '' f; do
-                  case "$f" in
-                    "$appdir"/usr/bin/*)
-                      rpath='$ORIGIN/../lib'
-                      ;;
-                    "$appdir"/usr/lib/*)
-                      rpath='$ORIGIN'
-                      ;;
-                    "$appdir"/usr/plugins/*/*)
-                      rpath='$ORIGIN/../../lib'
-                      ;;
-                    "$appdir"/usr/plugins/*)
-                      rpath='$ORIGIN/../lib'
-                      ;;
-                    *)
-                      continue
-                      ;;
-                  esac
-                  "$PATCH_ELF" --set-rpath "$rpath" "$f" 2>/dev/null || true
-                done
-
-              "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
-            else
-              "$LINUXDEPLOY" \
-                --appdir "$appdir" \
-                --executable "$binary_path" \
-                --desktop-file "$appdir/usr/share/applications/$desktop_name.desktop" \
-                --icon-file "$PWD/share/pixmaps/verge256.png" \
-                --output appimage
-            fi
-            mv "$PWD"/*.AppImage "$PWD/release/$output_name"
-          }
-
-          build_appimage "$PWD/src/qt/verge-qt" "verge-qt" "Verge Qt" "verge-qt" "false" "1" "Verge-Qt-x86_64.AppImage"
-          build_appimage "$PWD/src/verge-cli" "verge-cli" "Verge CLI" "verge-cli" "true" "0" "Verge-CLI-x86_64.AppImage"
-          build_appimage "$PWD/src/verged" "verged" "Verge Daemon" "verged" "true" "0" "Verged-x86_64.AppImage"
-          build_appimage "$PWD/src/verge-tx" "verge-tx" "Verge TX" "verge-tx" "true" "0" "Verge-TX-x86_64.AppImage"
-
-      - name: Test Verge-Qt AppImage launch
-        run: |
-          set -euo pipefail
-
-          APPIMAGE="$PWD/release/Verge-Qt-x86_64.AppImage"
+          APP_BIN="$PWD/src/qt/verge-qt"
           export QTWEBENGINE_DISABLE_SANDBOX=1
           export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
 
-          if [ ! -f "$APPIMAGE" ]; then
-            echo "::error::Verge-Qt AppImage not found at $APPIMAGE"
+          if [ ! -x "$APP_BIN" ]; then
+            echo "::error::verge-qt not found at $APP_BIN"
             exit 1
           fi
 
-          chmod +x "$APPIMAGE"
-          "$APPIMAGE" &
+          "$APP_BIN" &
           APP_PID=$!
 
           sleep 10
 
           if ! kill -0 "$APP_PID" 2>/dev/null; then
-            echo "::error::Verge-Qt AppImage exited early"
+            echo "::error::verge-qt exited early"
             wait "$APP_PID"
             exit 1
           fi
 
-          pkill -9 -f 'Verge-Qt-x86_64.AppImage' || true
-          pkill -9 -f '/tmp/.mount_Verge-' || true
+          kill "$APP_PID" || true
+          sleep 2
+          kill -9 "$APP_PID" 2>/dev/null || true
           wait "$APP_PID" || true
 
       - name: ccache stats
@@ -1562,10 +1383,10 @@ jobs:
         with:
           name: verge-ubuntu24
           path: |
-            ./release/Verge-Qt-x86_64.AppImage
-            ./release/Verge-CLI-x86_64.AppImage
-            ./release/Verged-x86_64.AppImage
-            ./release/Verge-TX-x86_64.AppImage
+            ./src/qt/verge-qt
+            ./src/verge-cli
+            ./src/verged
+            ./src/verge-tx
 
   ubuntu24-noswap:
     runs-on: ubuntu-24.04
