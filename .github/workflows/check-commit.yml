@@ -1028,6 +1028,11 @@ jobs:
 
       - name: configure
         run: |
+          export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
+          export CPPFLAGS="-I$DEPENDS_PREFIX/include"
+          export LDFLAGS="-L$DEPENDS_PREFIX/lib"
+          export PKG_CONFIG_PATH="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          export PKG_CONFIG_LIBDIR="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
