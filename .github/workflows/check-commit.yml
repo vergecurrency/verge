@@ -1053,6 +1053,8 @@ jobs:
           export BDB_LIBS="-L$DEPENDS_PREFIX/lib -ldb_cxx-4.8"
           export LIBEVENT_CFLAGS="-I$DEPENDS_PREFIX/include"
           export LIBEVENT_LIBS="-L$DEPENDS_PREFIX/lib -levent"
+          export LIBSECCOMP_CFLAGS="-I$DEPENDS_PREFIX/include"
+          export LIBSECCOMP_LIBS="-L$DEPENDS_PREFIX/lib -lseccomp"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
