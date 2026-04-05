@@ -1055,6 +1055,8 @@ jobs:
           export LIBEVENT_LIBS="-L$DEPENDS_PREFIX/lib -levent"
           export LIBSECCOMP_CFLAGS="-I$DEPENDS_PREFIX/include"
           export LIBSECCOMP_LIBS="-L$DEPENDS_PREFIX/lib -lseccomp"
+          export LIBCAP_CFLAGS="-I$DEPENDS_PREFIX/include"
+          export LIBCAP_LIBS="-L$DEPENDS_PREFIX/lib -lcap"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
