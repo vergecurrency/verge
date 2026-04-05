@@ -978,6 +978,7 @@ jobs:
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
           g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
           libgl1-mesa-dev libegl1-mesa-dev libopengl-dev \
+          libboost-all-dev \
           libevent-dev libssl-dev zlib1g-dev libseccomp-dev libcap-dev libprotobuf-dev protobuf-compiler \
           qt6-base-dev qt6-base-private-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools \
           qt6-webengine-dev qt6-webengine-dev-tools
@@ -1031,7 +1032,7 @@ jobs:
         run: |
           cd depends/
           make -j4 HOST=x86_64-linux-gnu \
-            openssl libevent libcap libseccomp zeromq boost qrencode protobuf zlib \
+            openssl libevent libcap libseccomp zeromq qrencode protobuf zlib \
             expat dbus nspr nss mesa_headers glproto libglvnd \
             libX11 libXext libxcb libxkbcommon libxcb_util xcb_proto libXau \
             freetype fontconfig xextproto xtrans libxcb_util_render libxcb_util_keysyms \
@@ -1047,17 +1048,12 @@ jobs:
           export CPPFLAGS="-I$DEPENDS_PREFIX/include"
           export LDFLAGS="-L$DEPENDS_PREFIX/lib"
           export PKG_CONFIG_PATH="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-          export BOOST_ROOT="$DEPENDS_PREFIX"
-          export BOOST_CPPFLAGS="-I$DEPENDS_PREFIX/include"
-          export BOOST_LDFLAGS="-L$DEPENDS_PREFIX/lib"
           export BDB_CFLAGS="-I$DEPENDS_PREFIX/include/db4"
           export BDB_LIBS="-L$DEPENDS_PREFIX/lib -ldb_cxx-4.8"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
           --with-qt-bindir="$PWD/.qt-tool-aliases" \
-          --with-boost="$DEPENDS_PREFIX" \
-          --with-boost-libdir="$DEPENDS_PREFIX/lib" \
           --prefix="$(pwd)/depends/x86_64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
           --libdir="$(pwd)/release/lib"
