@@ -1051,11 +1051,14 @@ jobs:
           export BOOST_LDFLAGS="-L$DEPENDS_PREFIX/lib"
           export BDB_CFLAGS="-I$DEPENDS_PREFIX/include/db4"
           export BDB_LIBS="-L$DEPENDS_PREFIX/lib -ldb_cxx-4.8"
+          export LIBEVENT_CFLAGS="-I$DEPENDS_PREFIX/include"
+          export LIBEVENT_LIBS="-L$DEPENDS_PREFIX/lib -levent"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
           --with-qt-bindir="$PWD/.qt-tool-aliases" \
           --with-boost="$DEPENDS_PREFIX" \
+          --with-boost-libdir="$DEPENDS_PREFIX/lib" \
           --with-libevent-dir="$DEPENDS_PREFIX" \
           --prefix="$(pwd)/depends/x86_64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
