@@ -1046,13 +1046,12 @@ jobs:
       - name: Resolve Berkeley DB 4.8 generated headers
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          BDB_HEADERS=( "$PWD"/depends/work/staging/x86_64-linux-gnu/bdb/*/"$PWD"/depends/x86_64-linux-gnu/include/db_cxx.h )
-          if [ "${#BDB_HEADERS[@]}" -eq 0 ]; then
-            echo "::error::Could not locate staged Berkeley DB 4.8 header under depends/work/staging/x86_64-linux-gnu/bdb/*/$PWD/depends/x86_64-linux-gnu/include/db_cxx.h"
+          BDB_DB_CXX_H="$(find "$PWD/depends/work/staging/x86_64-linux-gnu/bdb" -type f -name db_cxx.h -path '*/depends/x86_64-linux-gnu/include/db_cxx.h' -print -quit)"
+          if [ -z "$BDB_DB_CXX_H" ]; then
+            echo "::error::Could not locate staged Berkeley DB 4.8 header under depends/work/staging/x86_64-linux-gnu/bdb"
             exit 1
           fi
-          BDB_HEADER_DIR="$(dirname "${BDB_HEADERS[0]}")"
+          BDB_HEADER_DIR="$(dirname "$BDB_DB_CXX_H")"
           echo "Using Berkeley DB headers from $BDB_HEADER_DIR"
           echo "BDB_HEADER_DIR=$BDB_HEADER_DIR" >> "$GITHUB_ENV"
 
