@@ -1047,9 +1047,9 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          BDB_HEADERS=( "$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix/db_cxx.h )
+          BDB_HEADERS=( "$PWD"/depends/work/staging/x86_64-linux-gnu/bdb/*/"$PWD"/depends/x86_64-linux-gnu/include/db_cxx.h )
           if [ "${#BDB_HEADERS[@]}" -eq 0 ]; then
-            echo "::error::Could not locate Berkeley DB 4.8 generated header under depends/work/build/x86_64-linux-gnu/bdb/*/build_unix/db_cxx.h"
+            echo "::error::Could not locate staged Berkeley DB 4.8 header under depends/work/staging/x86_64-linux-gnu/bdb/*/$PWD/depends/x86_64-linux-gnu/include/db_cxx.h"
             exit 1
           fi
           BDB_HEADER_DIR="$(dirname "${BDB_HEADERS[0]}")"
