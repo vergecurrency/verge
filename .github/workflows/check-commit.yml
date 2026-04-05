@@ -1043,6 +1043,18 @@ jobs:
             xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros \
             bdb miniupnpc
 
+      - name: Repair staged Berkeley DB headers
+        run: |
+          set -euo pipefail
+          DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
+          if [ ! -f "$DEPENDS_PREFIX/include/db4/db_cxx.h" ]; then
+            BDB_BUILD_DIR="$(find "$PWD/depends/work/build" -path '*/bdb/*/build_unix' -type d | head -n1)"
+            test -n "$BDB_BUILD_DIR"
+            mkdir -p "$DEPENDS_PREFIX/include/db4"
+            cp "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db4/db.h"
+            cp "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db4/db_cxx.h"
+          fi
+
       - name: Auto generate
         run: ./autogen.sh
 
