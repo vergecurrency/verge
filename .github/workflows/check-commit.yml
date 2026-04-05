@@ -1043,21 +1043,12 @@ jobs:
             xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros \
             bdb miniupnpc
 
-      - name: Repair staged Berkeley DB headers
+      - name: Resolve Berkeley DB 4.8 generated headers
         run: |
           set -euo pipefail
-          DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          if [ ! -f "$DEPENDS_PREFIX/include/db_cxx.h" ] || [ ! -f "$DEPENDS_PREFIX/include/db4/db_cxx.h" ]; then
-            BDB_DB_H="$(find "$PWD/depends/work/staging/x86_64-linux-gnu/bdb" -type f -path '*/include/db.h' -print -quit)"
-            BDB_DB_CXX_H="$(find "$PWD/depends/work/staging/x86_64-linux-gnu/bdb" -type f -path '*/include/db_cxx.h' -print -quit)"
-            test -n "$BDB_DB_H"
-            test -n "$BDB_DB_CXX_H"
-            mkdir -p "$DEPENDS_PREFIX/include" "$DEPENDS_PREFIX/include/db4"
-            cp "$BDB_DB_H" "$DEPENDS_PREFIX/include/db.h"
-            cp "$BDB_DB_CXX_H" "$DEPENDS_PREFIX/include/db_cxx.h"
-            cp "$BDB_DB_H" "$DEPENDS_PREFIX/include/db4/db.h"
-            cp "$BDB_DB_CXX_H" "$DEPENDS_PREFIX/include/db4/db_cxx.h"
-          fi
+          BDB_DB_CXX_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db_cxx.h' -print -quit)"
+          test -n "$BDB_DB_CXX_H"
+          echo "BDB_HEADER_DIR=$(dirname "$BDB_DB_CXX_H")" >> "$GITHUB_ENV"
 
       - name: Auto generate
         run: ./autogen.sh
@@ -1065,10 +1056,10 @@ jobs:
       - name: configure
         run: |
           export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
+          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$BDB_HEADER_DIR"
           export LDFLAGS="-L$DEPENDS_PREFIX/lib"
           export PKG_CONFIG_PATH="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-          export BDB_CFLAGS="-I$DEPENDS_PREFIX/include/db4"
+          export BDB_CFLAGS="-I$BDB_HEADER_DIR"
           export BDB_LIBS="-L$DEPENDS_PREFIX/lib -ldb_cxx-4.8"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
@@ -1079,7 +1070,11 @@ jobs:
           --libdir="$(pwd)/release/lib"
 
       - name: make
-        run: make -j4
+        run: |
+          export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
+          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$BDB_HEADER_DIR"
+          export LDFLAGS="-L$DEPENDS_PREFIX/lib"
+          make -j4
 
       - name: strip
         run: |
