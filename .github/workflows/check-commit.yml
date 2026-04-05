@@ -1048,7 +1048,7 @@ jobs:
           set -euo pipefail
           DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
           if [ ! -f "$DEPENDS_PREFIX/include/db4/db_cxx.h" ]; then
-            BDB_CXX_HEADER="$(find "$PWD/depends/work" -type f -name db_cxx.h ! -path "$DEPENDS_PREFIX/*" | head -n1)"
+            BDB_CXX_HEADER="$(find "$PWD/depends/work" -type f -name db_cxx.h ! -path "$DEPENDS_PREFIX/*" -print -quit)"
             test -n "$BDB_CXX_HEADER"
             BDB_BUILD_DIR="$(dirname "$BDB_CXX_HEADER")"
             mkdir -p "$DEPENDS_PREFIX/include/db4"
