@@ -1046,9 +1046,9 @@ jobs:
       - name: Resolve Berkeley DB 4.8 generated headers
         run: |
           set -euo pipefail
-          BDB_DB_CXX_H="$(find "$PWD/depends/work/staging/x86_64-linux-gnu/bdb" -type f -name db_cxx.h -path '*/depends/x86_64-linux-gnu/include/db_cxx.h' -print -quit)"
+          BDB_DB_CXX_H="$(find "$PWD/depends/work" -path '*/bdb/*' -type f -name db_cxx.h -print -quit)"
           if [ -z "$BDB_DB_CXX_H" ]; then
-            echo "::error::Could not locate staged Berkeley DB 4.8 header under depends/work/staging/x86_64-linux-gnu/bdb"
+            echo "::error::Could not locate Berkeley DB 4.8 db_cxx.h under depends/work"
             exit 1
           fi
           BDB_HEADER_DIR="$(dirname "$BDB_DB_CXX_H")"
