@@ -1046,9 +1046,15 @@ jobs:
       - name: Resolve Berkeley DB 4.8 generated headers
         run: |
           set -euo pipefail
-          BDB_DB_CXX_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db_cxx.h' -print -quit)"
-          test -n "$BDB_DB_CXX_H"
-          echo "BDB_HEADER_DIR=$(dirname "$BDB_DB_CXX_H")" >> "$GITHUB_ENV"
+          shopt -s nullglob
+          BDB_HEADERS=( "$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix/db_cxx.h )
+          if [ "${#BDB_HEADERS[@]}" -eq 0 ]; then
+            echo "::error::Could not locate Berkeley DB 4.8 generated header under depends/work/build/x86_64-linux-gnu/bdb/*/build_unix/db_cxx.h"
+            exit 1
+          fi
+          BDB_HEADER_DIR="$(dirname "${BDB_HEADERS[0]}")"
+          echo "Using Berkeley DB headers from $BDB_HEADER_DIR"
+          echo "BDB_HEADER_DIR=$BDB_HEADER_DIR" >> "$GITHUB_ENV"
 
       - name: Auto generate
         run: ./autogen.sh
