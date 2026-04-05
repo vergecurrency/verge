@@ -993,6 +993,20 @@ jobs:
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
+      - name: Prepare Qt6 host tool aliases
+        run: |
+          set -euo pipefail
+          QT_HOST_BINS="$(qtpaths6 --query QT_HOST_BINS)"
+          ALIAS_DIR="$PWD/.qt-tool-aliases"
+          mkdir -p "$ALIAS_DIR"
+          ln -sf "$QT_HOST_BINS/moc" "$ALIAS_DIR/moc"
+          ln -sf "$QT_HOST_BINS/uic" "$ALIAS_DIR/uic"
+          ln -sf "$QT_HOST_BINS/rcc" "$ALIAS_DIR/rcc"
+          echo "$ALIAS_DIR" >> "$GITHUB_PATH"
+          echo "MOC=$ALIAS_DIR/moc" >> "$GITHUB_ENV"
+          echo "UIC=$ALIAS_DIR/uic" >> "$GITHUB_ENV"
+          echo "RCC=$ALIAS_DIR/rcc" >> "$GITHUB_ENV"
+
       - name: Sanity-check cached non-Qt depends
         run: |
           set -euo pipefail
@@ -1040,6 +1054,9 @@ jobs:
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
+          --with-qt-bindir="$PWD/.qt-tool-aliases" \
+          --with-boost="$DEPENDS_PREFIX" \
+          --with-libevent-dir="$DEPENDS_PREFIX" \
           --prefix="$(pwd)/depends/x86_64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
           --libdir="$(pwd)/release/lib"
