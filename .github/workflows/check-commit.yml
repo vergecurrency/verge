@@ -1052,6 +1052,7 @@ jobs:
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
+          --with-gui=qt6 \
           --with-qt-bindir="$PWD/.qt-tool-aliases" \
           --prefix="$(pwd)/depends/x86_64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
