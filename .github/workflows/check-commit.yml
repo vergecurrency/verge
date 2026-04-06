@@ -1233,7 +1233,12 @@ jobs:
           chmod +x "$APPDIR/AppRun"
 
           "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$APPDIR"
-          mv "$PWD"/*.AppImage "$PWD/release/Verge-Qt-x86_64.AppImage"
+          GENERATED_APPIMAGE="$(find "$PWD" -maxdepth 1 -type f -name 'Verge_Qt-*-x86_64.AppImage' -print -quit)"
+          if [ -z "$GENERATED_APPIMAGE" ]; then
+            echo "::error::Generated Verge Qt AppImage not found"
+            exit 1
+          fi
+          mv "$GENERATED_APPIMAGE" "$PWD/release/Verge-Qt-x86_64.AppImage"
 
       - name: Test verge-qt AppImage launch
         run: |
