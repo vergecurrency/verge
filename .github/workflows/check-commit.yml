@@ -1221,6 +1221,20 @@ jobs:
             cp -a /etc/fonts/. "$APPDIR/usr/etc/fonts/"
           fi
 
+          cp "$PWD/src/qt/verge-qt" "$APPDIR/usr/bin/verge-qt.bin"
+          chmod +x "$APPDIR/usr/bin/verge-qt.bin"
+
+          cat > "$APPDIR/usr/bin/verge-qt" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          export FONTCONFIG_PATH="\$HERE/../etc/fonts"
+          export FONTCONFIG_FILE="\$HERE/../etc/fonts/fonts.conf"
+          export QTWEBENGINE_DISABLE_SANDBOX=1
+          export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
+          exec "\$HERE/verge-qt.bin" "\$@"
+          EOF
+          chmod +x "$APPDIR/usr/bin/verge-qt"
+
           cat > "$APPDIR/AppRun" <<EOF
           #!/bin/sh
           HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
