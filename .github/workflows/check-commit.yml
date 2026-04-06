@@ -1049,10 +1049,12 @@ jobs:
       - name: configure
         run: |
           export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          shopt -s nullglob
-          bdb_build_dirs=("$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix)
-          test "${#bdb_build_dirs[@]}" -gt 0
-          export BDB_HEADER_DIR="${bdb_build_dirs[0]}"
+          BDB_DB_CXX_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db_cxx.h' -print -quit || true)"
+          if [ -n "$BDB_DB_CXX_H" ]; then
+            export BDB_HEADER_DIR="$(dirname "$BDB_DB_CXX_H")"
+          else
+            export BDB_HEADER_DIR="$DEPENDS_PREFIX/include/db4"
+          fi
           export CPPFLAGS="-I$BDB_HEADER_DIR -I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
           export LDFLAGS="-L$DEPENDS_PREFIX/lib"
           export PKG_CONFIG_PATH="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
@@ -1069,10 +1071,12 @@ jobs:
       - name: make
         run: |
           export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          shopt -s nullglob
-          bdb_build_dirs=("$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix)
-          test "${#bdb_build_dirs[@]}" -gt 0
-          export BDB_HEADER_DIR="${bdb_build_dirs[0]}"
+          BDB_DB_CXX_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db_cxx.h' -print -quit || true)"
+          if [ -n "$BDB_DB_CXX_H" ]; then
+            export BDB_HEADER_DIR="$(dirname "$BDB_DB_CXX_H")"
+          else
+            export BDB_HEADER_DIR="$DEPENDS_PREFIX/include/db4"
+          fi
           export CPPFLAGS="-I$BDB_HEADER_DIR -I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
           export LDFLAGS="-L$DEPENDS_PREFIX/lib"
           make -j4
