@@ -1047,9 +1047,8 @@ jobs:
         run: |
           set -euo pipefail
           DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          STAGED_PREFIX_SUFFIX="${PWD#/}/depends/x86_64-linux-gnu/include"
-          BDB_DB_H="$(find "$PWD/depends/work/staging/x86_64-linux-gnu/bdb" -type f -path "*/$STAGED_PREFIX_SUFFIX/db.h" -print -quit)"
-          BDB_DB_CXX_H="$(find "$PWD/depends/work/staging/x86_64-linux-gnu/bdb" -type f -path "*/$STAGED_PREFIX_SUFFIX/db_cxx.h" -print -quit)"
+          BDB_DB_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db.h' -print -quit)"
+          BDB_DB_CXX_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db_cxx.h' -print -quit)"
           test -n "$BDB_DB_H"
           test -n "$BDB_DB_CXX_H"
           mkdir -p "$DEPENDS_PREFIX/include" "$DEPENDS_PREFIX/include/db4"
