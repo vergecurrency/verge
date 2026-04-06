@@ -21,7 +21,17 @@
 #include <string>
 #include <vector>
 
+#if defined(__has_include)
+#if __has_include(<db_cxx.h>)
 #include <db_cxx.h>
+#elif __has_include(<db4/db_cxx.h>)
+#include <db4/db_cxx.h>
+#else
+#include <db_cxx.h>
+#endif
+#else
+#include <db_cxx.h>
+#endif
 
 static const unsigned int DEFAULT_WALLET_DBLOGSIZE = 100;
 static const bool DEFAULT_WALLET_PRIVDB = true;
