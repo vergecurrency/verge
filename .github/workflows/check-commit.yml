@@ -960,9 +960,9 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-base-${{ runner.os }}-linux64-v4-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-base-${{ runner.os }}-linux64-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-base-${{ runner.os }}-linux64-v4-
+            depends-base-${{ runner.os }}-linux64-v5-
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -1045,20 +1045,6 @@ jobs:
 
       - name: Auto generate
         run: ./autogen.sh
-
-      - name: Stage Berkeley DB 4.8 headers into depends prefix
-        run: |
-          set -euo pipefail
-          DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          BDB_BUILD_DIR="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type d -path '*/build_unix' -print -quit || true)"
-          test -n "$BDB_BUILD_DIR"
-          test -f "$BDB_BUILD_DIR/db.h"
-          test -f "$BDB_BUILD_DIR/db_cxx.h"
-          install -d "$DEPENDS_PREFIX/include" "$DEPENDS_PREFIX/include/db4"
-          install -m 0644 "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db.h"
-          install -m 0644 "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db_cxx.h"
-          install -m 0644 "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db4/db.h"
-          install -m 0644 "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db4/db_cxx.h"
 
       - name: configure
         run: |
