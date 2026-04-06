@@ -1050,8 +1050,10 @@ jobs:
         run: |
           set -euo pipefail
           DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          BDB_BUILD_DIR="$(echo "$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix)"
-          test -d "$BDB_BUILD_DIR"
+          BDB_BUILD_DIR="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type d -path '*/build_unix' -print -quit || true)"
+          test -n "$BDB_BUILD_DIR"
+          test -f "$BDB_BUILD_DIR/db.h"
+          test -f "$BDB_BUILD_DIR/db_cxx.h"
           install -d "$DEPENDS_PREFIX/include" "$DEPENDS_PREFIX/include/db4"
           install -m 0644 "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db.h"
           install -m 0644 "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db_cxx.h"
