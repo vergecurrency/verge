@@ -1064,7 +1064,11 @@ jobs:
           export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
           export LDFLAGS="-L$DEPENDS_PREFIX/lib"
           export LIBCAP_LIBS="-lcap"
-          make -j4 CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
+          echo "UIC=$UIC"
+          "$UIC" --version
+          "$UIC" -o /tmp/ui_addressbookpage.h src/qt/forms/addressbookpage.ui
+          "$UIC" -o /tmp/ui_messagepage.h src/qt/forms/messagepage.ui
+          make -j4 V=1 CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
 
       - name: strip
         run: |
