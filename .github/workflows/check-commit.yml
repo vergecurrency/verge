@@ -1003,6 +1003,8 @@ jobs:
         run: |
           set -euo pipefail
           QT_HOST_BINS="$(qtpaths6 --query QT_HOST_BINS)"
+          QT_HOST_LIBEXECS="$(qtpaths6 --query QT_HOST_LIBEXECS || true)"
+          QT_INSTALL_LIBEXECS="$(qtpaths6 --query QT_INSTALL_LIBEXECS || true)"
           ALIAS_DIR="$PWD/.qt-tool-aliases"
           mkdir -p "$ALIAS_DIR"
 
@@ -1025,21 +1027,42 @@ jobs:
             "$(command -v moc || true)" \
             "$QT_HOST_BINS/moc-qt6" \
             "$QT_HOST_BINS/moc6" \
-            "$QT_HOST_BINS/moc")"
+            "$QT_HOST_BINS/moc" \
+            "$QT_HOST_LIBEXECS/moc-qt6" \
+            "$QT_HOST_LIBEXECS/moc6" \
+            "$QT_HOST_LIBEXECS/moc" \
+            "$QT_INSTALL_LIBEXECS/moc-qt6" \
+            "$QT_INSTALL_LIBEXECS/moc6" \
+            "$QT_INSTALL_LIBEXECS/moc" \
+            "/usr/lib/qt6/libexec/moc")"
           UIC_REAL="$(resolve_qt_tool uic \
             "$(command -v uic-qt6 || true)" \
             "$(command -v uic6 || true)" \
             "$(command -v uic || true)" \
             "$QT_HOST_BINS/uic-qt6" \
             "$QT_HOST_BINS/uic6" \
-            "$QT_HOST_BINS/uic")"
+            "$QT_HOST_BINS/uic" \
+            "$QT_HOST_LIBEXECS/uic-qt6" \
+            "$QT_HOST_LIBEXECS/uic6" \
+            "$QT_HOST_LIBEXECS/uic" \
+            "$QT_INSTALL_LIBEXECS/uic-qt6" \
+            "$QT_INSTALL_LIBEXECS/uic6" \
+            "$QT_INSTALL_LIBEXECS/uic" \
+            "/usr/lib/qt6/libexec/uic")"
           RCC_REAL="$(resolve_qt_tool rcc \
             "$(command -v rcc-qt6 || true)" \
             "$(command -v rcc6 || true)" \
             "$(command -v rcc || true)" \
             "$QT_HOST_BINS/rcc-qt6" \
             "$QT_HOST_BINS/rcc6" \
-            "$QT_HOST_BINS/rcc")"
+            "$QT_HOST_BINS/rcc" \
+            "$QT_HOST_LIBEXECS/rcc-qt6" \
+            "$QT_HOST_LIBEXECS/rcc6" \
+            "$QT_HOST_LIBEXECS/rcc" \
+            "$QT_INSTALL_LIBEXECS/rcc-qt6" \
+            "$QT_INSTALL_LIBEXECS/rcc6" \
+            "$QT_INSTALL_LIBEXECS/rcc" \
+            "/usr/lib/qt6/libexec/rcc")"
 
           ln -sf "$MOC_REAL" "$ALIAS_DIR/moc"
           ln -sf "$MOC_REAL" "$ALIAS_DIR/moc-qt6"
