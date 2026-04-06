@@ -1032,16 +1032,10 @@ jobs:
             rm -rf depends/built depends/x86_64-linux-gnu
           fi
 
-      - name: Build non-Qt depends package index
+      - name: Build non-Qt depends
         run: |
           cd depends/
-          make -j4 HOST=x86_64-linux-gnu \
-            openssl libevent libcap libseccomp zeromq qrencode protobuf zlib \
-            expat dbus nspr nss mesa_headers glproto libglvnd \
-            libX11 libXext libxcb libxkbcommon libxcb_util xcb_proto libXau \
-            freetype fontconfig xextproto xtrans libxcb_util_render libxcb_util_keysyms \
-            xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros \
-            bdb miniupnpc
+          make -j4 HOST=x86_64-linux-gnu NO_QT=1 install
 
       - name: Auto generate
         run: ./autogen.sh
