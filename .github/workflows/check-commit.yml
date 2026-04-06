@@ -1047,15 +1047,17 @@ jobs:
         run: |
           set -euo pipefail
           DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          BDB_DB_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db.h' -print -quit)"
-          BDB_DB_CXX_H="$(find "$PWD/depends/work/build/x86_64-linux-gnu/bdb" -type f -path '*/build_unix/db_cxx.h' -print -quit)"
-          test -n "$BDB_DB_H"
-          test -n "$BDB_DB_CXX_H"
+          shopt -s nullglob
+          bdb_build_dirs=("$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix)
+          test "${#bdb_build_dirs[@]}" -gt 0
+          BDB_BUILD_DIR="${bdb_build_dirs[0]}"
+          test -f "$BDB_BUILD_DIR/db.h"
+          test -f "$BDB_BUILD_DIR/db_cxx.h"
           mkdir -p "$DEPENDS_PREFIX/include" "$DEPENDS_PREFIX/include/db4"
-          cp "$BDB_DB_H" "$DEPENDS_PREFIX/include/db.h"
-          cp "$BDB_DB_CXX_H" "$DEPENDS_PREFIX/include/db_cxx.h"
-          cp "$BDB_DB_H" "$DEPENDS_PREFIX/include/db4/db.h"
-          cp "$BDB_DB_CXX_H" "$DEPENDS_PREFIX/include/db4/db_cxx.h"
+          cp "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db.h"
+          cp "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db_cxx.h"
+          cp "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db4/db.h"
+          cp "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db4/db_cxx.h"
 
       - name: Auto generate
         run: ./autogen.sh
