@@ -1043,32 +1043,20 @@ jobs:
             xproto libxcb_util_image libxcb_util_wm libxcb_util_cursor util-macros \
             bdb miniupnpc
 
-      - name: Stage Berkeley DB 4.8 headers into depends prefix
-        run: |
-          set -euo pipefail
-          DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          shopt -s nullglob
-          bdb_build_dirs=("$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix)
-          test "${#bdb_build_dirs[@]}" -gt 0
-          BDB_BUILD_DIR="${bdb_build_dirs[0]}"
-          test -f "$BDB_BUILD_DIR/db.h"
-          test -f "$BDB_BUILD_DIR/db_cxx.h"
-          mkdir -p "$DEPENDS_PREFIX/include" "$DEPENDS_PREFIX/include/db4"
-          cp "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db.h"
-          cp "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db_cxx.h"
-          cp "$BDB_BUILD_DIR/db.h" "$DEPENDS_PREFIX/include/db4/db.h"
-          cp "$BDB_BUILD_DIR/db_cxx.h" "$DEPENDS_PREFIX/include/db4/db_cxx.h"
-
       - name: Auto generate
         run: ./autogen.sh
 
       - name: configure
         run: |
           export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
+          shopt -s nullglob
+          bdb_build_dirs=("$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix)
+          test "${#bdb_build_dirs[@]}" -gt 0
+          export BDB_HEADER_DIR="${bdb_build_dirs[0]}"
+          export CPPFLAGS="-I$BDB_HEADER_DIR -I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
           export LDFLAGS="-L$DEPENDS_PREFIX/lib"
           export PKG_CONFIG_PATH="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-          export BDB_CFLAGS="-I$DEPENDS_PREFIX/include/db4"
+          export BDB_CFLAGS="-I$BDB_HEADER_DIR"
           export BDB_LIBS="-L$DEPENDS_PREFIX/lib -ldb_cxx-4.8"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
@@ -1081,7 +1069,11 @@ jobs:
       - name: make
         run: |
           export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
-          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
+          shopt -s nullglob
+          bdb_build_dirs=("$PWD"/depends/work/build/x86_64-linux-gnu/bdb/*/build_unix)
+          test "${#bdb_build_dirs[@]}" -gt 0
+          export BDB_HEADER_DIR="${bdb_build_dirs[0]}"
+          export CPPFLAGS="-I$BDB_HEADER_DIR -I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
           export LDFLAGS="-L$DEPENDS_PREFIX/lib"
           make -j4
 
