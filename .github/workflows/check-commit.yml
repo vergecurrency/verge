@@ -1005,9 +1005,49 @@ jobs:
           QT_HOST_BINS="$(qtpaths6 --query QT_HOST_BINS)"
           ALIAS_DIR="$PWD/.qt-tool-aliases"
           mkdir -p "$ALIAS_DIR"
-          ln -sf "$QT_HOST_BINS/moc" "$ALIAS_DIR/moc"
-          ln -sf "$QT_HOST_BINS/uic" "$ALIAS_DIR/uic"
-          ln -sf "$QT_HOST_BINS/rcc" "$ALIAS_DIR/rcc"
+
+          resolve_qt_tool() {
+            local tool="$1"
+            shift
+            local candidate=""
+            for candidate in "$@"; do
+              if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+                printf '%s\n' "$candidate"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          MOC_REAL="$(resolve_qt_tool moc \
+            "$(command -v moc-qt6 || true)" \
+            "$(command -v moc6 || true)" \
+            "$(command -v moc || true)" \
+            "$QT_HOST_BINS/moc-qt6" \
+            "$QT_HOST_BINS/moc6" \
+            "$QT_HOST_BINS/moc")"
+          UIC_REAL="$(resolve_qt_tool uic \
+            "$(command -v uic-qt6 || true)" \
+            "$(command -v uic6 || true)" \
+            "$(command -v uic || true)" \
+            "$QT_HOST_BINS/uic-qt6" \
+            "$QT_HOST_BINS/uic6" \
+            "$QT_HOST_BINS/uic")"
+          RCC_REAL="$(resolve_qt_tool rcc \
+            "$(command -v rcc-qt6 || true)" \
+            "$(command -v rcc6 || true)" \
+            "$(command -v rcc || true)" \
+            "$QT_HOST_BINS/rcc-qt6" \
+            "$QT_HOST_BINS/rcc6" \
+            "$QT_HOST_BINS/rcc")"
+
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc"
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc-qt6"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic-qt6"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc-qt6"
+
           echo "$ALIAS_DIR" >> "$GITHUB_PATH"
           echo "MOC=$ALIAS_DIR/moc" >> "$GITHUB_ENV"
           echo "UIC=$ALIAS_DIR/uic" >> "$GITHUB_ENV"
