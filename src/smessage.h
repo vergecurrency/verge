@@ -9,17 +9,7 @@
 #include <leveldb/write_batch.h>
 
 #include <net.h>
-#if defined(__has_include)
-#if __has_include(<db4/db.h>)
-#include <db4/db.h>
-#elif __has_include(<db.h>)
 #include <db.h>
-#else
-#include <db.h>
-#endif
-#else
-#include <db.h>
-#endif
 #include <wallet.h>
 #include <lz4/lz4.h>
 
