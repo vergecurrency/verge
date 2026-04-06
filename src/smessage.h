@@ -10,10 +10,10 @@
 
 #include <net.h>
 #if defined(__has_include)
-#if __has_include(<db.h>)
-#include <db.h>
-#elif __has_include(<db4/db.h>)
+#if __has_include(<db4/db.h>)
 #include <db4/db.h>
+#elif __has_include(<db.h>)
+#include <db.h>
 #else
 #include <db.h>
 #endif
