@@ -170,6 +170,10 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
         int targetWidth = static_cast<int>(std::sqrt(targetArea * aspectRatio));
         int targetHeight = static_cast<int>(std::sqrt(targetArea / aspectRatio));
 
+#if defined(Q_OS_LINUX)
+        targetWidth = static_cast<int>(targetWidth * 1.25);
+#endif
+
         targetWidth = qMin(targetWidth, static_cast<int>(available.width() * 0.95));
         targetHeight = qMin(targetHeight, static_cast<int>(available.height() * 0.95));
 
