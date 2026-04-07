@@ -363,32 +363,60 @@ jobs:
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
-      - name: Codesign app
+      - name: Import Apple signing certificate
         env:
-          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_P12_PASSWORD: ${{ secrets.MACOS_CERT_P12_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -n "${MACOS_SIGNING_IDENTITY:-}" ]; then
-            echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
-            codesign --force --deep --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
-          else
-            echo "::warning::MACOS_SIGNING_IDENTITY not set; using ad-hoc signature."
-            codesign --force --deep --sign - "Verge-Qt.app"
+
+          CERT_PATH="$RUNNER_TEMP/macos-cert.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 24)"
+
+          echo -n "$MACOS_CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$MACOS_CERT_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | sed -n 's/.*\"\\(Developer ID Application:.*\\)\"/\\1/p' | head -n1)"
+          if [ -z "$SIGNING_IDENTITY" ]; then
+            echo "::error::No Developer ID Application identity found in imported certificate."
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+            exit 1
           fi
+
+          echo "MACOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "MACOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Codesign app
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
+        run: |
+          set -euo pipefail
+          echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
+          codesign --force --deep --options runtime --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
 
       - name: Sign DMG
         env:
-          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
         run: |
           set -euo pipefail
-          if [ -n "${MACOS_SIGNING_IDENTITY:-}" ]; then
-            codesign --force --timestamp --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.dmg"
-          else
-            codesign --force --sign - "Verge-Qt.dmg"
-          fi
+          codesign --force --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.dmg"
 
       - name: Test app launch from DMG
         run: |
@@ -471,7 +499,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
         run: |
           set -euo pipefail
           if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
@@ -859,11 +887,60 @@ jobs:
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
+      - name: Import Apple signing certificate
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_P12_PASSWORD: ${{ secrets.MACOS_CERT_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          CERT_PATH="$RUNNER_TEMP/macos-cert.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 24)"
+
+          echo -n "$MACOS_CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$MACOS_CERT_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | sed -n 's/.*\"\\(Developer ID Application:.*\\)\"/\\1/p' | head -n1)"
+          if [ -z "$SIGNING_IDENTITY" ]; then
+            echo "::error::No Developer ID Application identity found in imported certificate."
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+            exit 1
+          fi
+
+          echo "MACOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "MACOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
+
       - name: Codesign app
-        run: codesign --force --deep --sign - "Verge-Qt.app"
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
+        run: |
+          set -euo pipefail
+          echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
+          codesign --force --deep --options runtime --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
+
+      - name: Sign DMG
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
+        run: |
+          set -euo pipefail
+          codesign --force --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.dmg"
 
       - name: Test app launch from DMG
         run: |
@@ -940,6 +1017,32 @@ jobs:
             echo "::warning::Gatekeeper rejected Verge-Qt.dmg (expected in CI for ad-hoc/non-notarized artifacts)."
           fi
           exit 0
+
+      - name: Notarize and staple DMG (if signing + credentials available)
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
+            echo "::warning::Skipping notarization: APPLE_ID / APPLE_TEAM_ID / APPLE_APP_SPECIFIC_PASSWORD not fully set."
+            exit 0
+          fi
+          if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then
+            echo "::warning::Skipping notarization: MACOS_SIGNING_IDENTITY not set."
+            exit 0
+          fi
+
+          xcrun notarytool submit "Verge-Qt.dmg" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --wait
+
+          xcrun stapler staple "Verge-Qt.dmg"
+          xcrun stapler validate "Verge-Qt.dmg"
 
       - uses: actions/upload-artifact@v4
         with:
