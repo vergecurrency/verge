@@ -384,7 +384,7 @@ jobs:
           security default-keychain -d user -s "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | sed -n 's/.*\"\\(Developer ID Application:.*\\)\"/\\1/p' | head -n1)"
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F '\"' '/Developer ID Application:/ { print $2; exit }')"
           if [ -z "$SIGNING_IDENTITY" ]; then
             echo "::error::No Developer ID Application identity found in imported certificate."
             security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
@@ -908,7 +908,7 @@ jobs:
           security default-keychain -d user -s "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | sed -n 's/.*\"\\(Developer ID Application:.*\\)\"/\\1/p' | head -n1)"
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F '\"' '/Developer ID Application:/ { print $2; exit }')"
           if [ -z "$SIGNING_IDENTITY" ]; then
             echo "::error::No Developer ID Application identity found in imported certificate."
             security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
