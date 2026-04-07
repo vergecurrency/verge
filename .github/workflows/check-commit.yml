@@ -515,15 +515,30 @@ jobs:
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD" \
-            --wait
+            --output-format json > notarytool-macos26-submit.json
 
-          xcrun stapler staple "Verge-Qt.dmg"
-          xcrun stapler validate "Verge-Qt.dmg"
+          SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notarytool-macos26-submit.json)"
+          if [ -z "$SUBMISSION_ID" ]; then
+            echo "::error::Failed to parse notarization submission ID."
+            cat notarytool-macos26-submit.json
+            exit 1
+          fi
+
+          echo "Notarization submission ID: $SUBMISSION_ID"
+          echo "submission_id=$SUBMISSION_ID" > notarytool-macos26-submit.txt
+          {
+            echo "Apple notarization submitted for macos-26."
+            echo "Submission ID: $SUBMISSION_ID"
+            echo "This workflow does not wait for Apple processing and does not staple in the same run."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos26
-          path: Verge-Qt.dmg
+          path: |
+            Verge-Qt.dmg
+            notarytool-macos26-submit.json
+            notarytool-macos26-submit.txt
 
 
   macos14:
@@ -1039,15 +1054,30 @@ jobs:
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD" \
-            --wait
+            --output-format json > notarytool-macos14-submit.json
 
-          xcrun stapler staple "Verge-Qt.dmg"
-          xcrun stapler validate "Verge-Qt.dmg"
+          SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notarytool-macos14-submit.json)"
+          if [ -z "$SUBMISSION_ID" ]; then
+            echo "::error::Failed to parse notarization submission ID."
+            cat notarytool-macos14-submit.json
+            exit 1
+          fi
+
+          echo "Notarization submission ID: $SUBMISSION_ID"
+          echo "submission_id=$SUBMISSION_ID" > notarytool-macos14-submit.txt
+          {
+            echo "Apple notarization submitted for macos14."
+            echo "Submission ID: $SUBMISSION_ID"
+            echo "This workflow does not wait for Apple processing and does not staple in the same run."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-macos14
-          path: Verge-Qt.dmg
+          path: |
+            Verge-Qt.dmg
+            notarytool-macos14-submit.json
+            notarytool-macos14-submit.txt
 
   ubuntu24:
     runs-on: ubuntu-24.04
