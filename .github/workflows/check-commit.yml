@@ -1225,6 +1225,14 @@ jobs:
           rm -f "$APPDIR/usr/bin/verge-qt"
           rm -f "$APPDIR/usr/bin/usr/bin/verge-qt" || true
           install -m755 "$PWD/src/qt/verge-qt" "$APPDIR/usr/bin/verge-qt"
+          patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/verge-qt"
+
+          for required in             "$APPDIR/usr/lib/libQt6Core.so.6"             "$APPDIR/usr/lib/libQt6Gui.so.6"             "$APPDIR/usr/lib/libQt6Network.so.6"             "$APPDIR/usr/lib/libQt6Widgets.so.6"             "$APPDIR/usr/lib/libQt6WebEngineCore.so.6"             "$APPDIR/usr/lib/libQt6WebEngineWidgets.so.6"             "$APPDIR/usr/plugins/platforms/libqxcb.so"             "$APPDIR/usr/bin/QtWebEngineProcess"; do
+            if [ ! -e "$required" ]; then
+              echo "::error::Missing required AppImage runtime file: $required"
+              exit 1
+            fi
+          done
 
           cat > "$APPDIR/AppRun" <<EOF
           #!/bin/sh
