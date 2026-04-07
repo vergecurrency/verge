@@ -1258,7 +1258,7 @@ jobs:
             exit 1
           fi
 
-          "$APP_BIN" &
+          xvfb-run -a "$APP_BIN" &
           APP_PID=$!
 
           sleep 10
@@ -1271,6 +1271,7 @@ jobs:
 
           pkill -9 -f 'Verge-Qt-x86_64.AppImage' || true
           pkill -9 -f '/tmp/.mount_Verge-' || true
+          pkill -9 Xvfb || true
           sleep 2
           kill -9 "$APP_PID" 2>/dev/null || true
           wait "$APP_PID" || true
