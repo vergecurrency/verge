@@ -1221,8 +1221,9 @@ jobs:
             cp -a /etc/fonts/. "$APPDIR/usr/etc/fonts/"
           fi
 
-          cp "$PWD/src/qt/verge-qt" "$APPDIR/usr/bin/verge-qt"
-          chmod +x "$APPDIR/usr/bin/verge-qt"
+          rm -f "$APPDIR/usr/bin/verge-qt"
+          rm -f "$APPDIR/usr/bin/usr/bin/verge-qt" || true
+          install -m755 "$PWD/src/qt/verge-qt" "$APPDIR/usr/bin/verge-qt"
 
           cat > "$APPDIR/AppRun" <<EOF
           #!/bin/sh
