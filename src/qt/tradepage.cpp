@@ -38,11 +38,21 @@ protected:
         if (!isMainFrame) {
             return true;
         }
-        if (url.isEmpty() || url.scheme() == "about" || url.scheme() == "data") {
+        if (url.isEmpty()) {
+            qWarning() << "TradePage: allowing empty main-frame navigation request";
+            return true;
+        }
+        const QString scheme = url.scheme().toLower();
+        if (scheme != "http" && scheme != "https") {
+            qWarning() << "TradePage: allowing non-http(s) main-frame navigation"
+                       << "scheme=" << scheme << "url=" << url;
             return true;
         }
         const QString host = url.host().toLower();
-        return host == "stealthex.io" || host.endsWith(".stealthex.io");
+        const bool allowed = host == "stealthex.io" || host.endsWith(".stealthex.io");
+        qWarning() << "TradePage:" << (allowed ? "allowing" : "blocking")
+                   << "main-frame navigation host=" << host << "url=" << url;
+        return allowed;
     }
 };
 
