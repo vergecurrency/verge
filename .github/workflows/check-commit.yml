@@ -330,12 +330,25 @@ jobs:
               [ -n "$dep_path" ] || continue
               case "$dep_path" in
                 @executable_path/../Frameworks/*)
-                  local dep_name
-                  dep_name="$(basename "$dep_path")"
-                  local target_path="$FRAMEWORKS_DIR/$dep_name"
-                  if [ ! -e "$target_path" ]; then
-                    continue
-                  fi
+                  local target_path=""
+                  case "$dep_path" in
+                    *@executable_path/../Frameworks/*.framework/*|@executable_path/../Frameworks/*.framework/*)
+                      local framework_root
+                      framework_root="$(extract_framework_root "$dep_path")"
+                      [ -n "$framework_root" ] || continue
+                      local framework_name
+                      framework_name="$(basename "$framework_root")"
+                      local framework_binary
+                      framework_binary="$(framework_binary_name "$framework_name")"
+                      target_path="$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary"
+                      ;;
+                    *)
+                      local dep_name
+                      dep_name="$(basename "$dep_path")"
+                      target_path="$FRAMEWORKS_DIR/$dep_name"
+                      ;;
+                  esac
+                  [ -e "$target_path" ] || continue
                   local new_ref
                   new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$target_path")"
                   install_name_tool -change "$dep_path" "$new_ref" "$binary"
@@ -360,10 +373,10 @@ jobs:
 
           if find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
                otool -L "$framework_bin" | awk 'NR > 1 { print $1 }'
-             done | grep -Eq '^@executable_path/\.\./Frameworks/libicu'; then
-            echo "::error::Bundled Qt frameworks still reference ICU via @executable_path"
+             done | grep -Eq '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)'; then
+            echo "::error::Bundled Qt frameworks still reference bundle libs via @executable_path"
             find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
-              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep '^@executable_path/\.\./Frameworks/libicu' || true)"
+              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep -E '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)' || true)"
               if [ -n "$matches" ]; then
                 echo "-- $framework_bin"
                 echo "$matches"
@@ -951,12 +964,25 @@ jobs:
               [ -n "$dep_path" ] || continue
               case "$dep_path" in
                 @executable_path/../Frameworks/*)
-                  local dep_name
-                  dep_name="$(basename "$dep_path")"
-                  local target_path="$FRAMEWORKS_DIR/$dep_name"
-                  if [ ! -e "$target_path" ]; then
-                    continue
-                  fi
+                  local target_path=""
+                  case "$dep_path" in
+                    *@executable_path/../Frameworks/*.framework/*|@executable_path/../Frameworks/*.framework/*)
+                      local framework_root
+                      framework_root="$(extract_framework_root "$dep_path")"
+                      [ -n "$framework_root" ] || continue
+                      local framework_name
+                      framework_name="$(basename "$framework_root")"
+                      local framework_binary
+                      framework_binary="$(framework_binary_name "$framework_name")"
+                      target_path="$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary"
+                      ;;
+                    *)
+                      local dep_name
+                      dep_name="$(basename "$dep_path")"
+                      target_path="$FRAMEWORKS_DIR/$dep_name"
+                      ;;
+                  esac
+                  [ -e "$target_path" ] || continue
                   local new_ref
                   new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$target_path")"
                   install_name_tool -change "$dep_path" "$new_ref" "$binary"
@@ -981,10 +1007,10 @@ jobs:
 
           if find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
                otool -L "$framework_bin" | awk 'NR > 1 { print $1 }'
-             done | grep -Eq '^@executable_path/\.\./Frameworks/libicu'; then
-            echo "::error::Bundled Qt frameworks still reference ICU via @executable_path"
+             done | grep -Eq '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)'; then
+            echo "::error::Bundled Qt frameworks still reference bundle libs via @executable_path"
             find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
-              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep '^@executable_path/\.\./Frameworks/libicu' || true)"
+              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep -E '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)' || true)"
               if [ -n "$matches" ]; then
                 echo "-- $framework_bin"
                 echo "$matches"
