@@ -253,6 +253,67 @@ jobs:
           APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
 
+      - name: Bundle QtWebEngine helper frameworks
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
+          HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
+          QT_PREFIX="$(brew --prefix qt)"
+
+          if [ ! -x "$HELPER_BIN" ]; then
+            echo "::error::QtWebEngineProcess helper missing at $HELPER_BIN"
+            exit 1
+          fi
+
+          copy_qt_framework() {
+            local framework_path="$1"
+            local framework_name
+            framework_name="$(basename "$framework_path")"
+            local source_framework="$framework_path"
+            local dest_framework="$FRAMEWORKS_DIR/$framework_name"
+
+            if [ -e "$dest_framework" ]; then
+              return 0
+            fi
+
+            if [ ! -d "$source_framework" ]; then
+              echo "::error::Missing Qt framework source: $source_framework"
+              exit 1
+            fi
+
+            cp -R "$source_framework" "$dest_framework"
+            chmod -R u+w "$dest_framework"
+          }
+
+          map_qt_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                "$QT_PREFIX"/lib/*.framework/*)
+                  local framework_name
+                  framework_name="$(echo "$dep_path" | sed -E 's#^.*/([^/]+\.framework)/.*#\1#')"
+                  local framework_base="$QT_PREFIX/lib/$framework_name"
+                  copy_qt_framework "$framework_base"
+                  local new_ref
+                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/${framework_name%.framework}")"
+                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
+                  ;;
+              esac
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
+          map_qt_refs "$HELPER_BIN"
+          while read -r framework_bin; do
+            [ -n "$framework_bin" ] || continue
+            map_qt_refs "$framework_bin"
+          done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
+
+          echo "QtWebEngine helper linkage:"
+          otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
+
       - name: Bundle transitive Boost dylibs
         run: |
           set -euo pipefail
@@ -751,6 +812,67 @@ jobs:
         run: |
           APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
+
+      - name: Bundle QtWebEngine helper frameworks
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
+          HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
+          QT_PREFIX="$(brew --prefix qt)"
+
+          if [ ! -x "$HELPER_BIN" ]; then
+            echo "::error::QtWebEngineProcess helper missing at $HELPER_BIN"
+            exit 1
+          fi
+
+          copy_qt_framework() {
+            local framework_path="$1"
+            local framework_name
+            framework_name="$(basename "$framework_path")"
+            local source_framework="$framework_path"
+            local dest_framework="$FRAMEWORKS_DIR/$framework_name"
+
+            if [ -e "$dest_framework" ]; then
+              return 0
+            fi
+
+            if [ ! -d "$source_framework" ]; then
+              echo "::error::Missing Qt framework source: $source_framework"
+              exit 1
+            fi
+
+            cp -R "$source_framework" "$dest_framework"
+            chmod -R u+w "$dest_framework"
+          }
+
+          map_qt_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                "$QT_PREFIX"/lib/*.framework/*)
+                  local framework_name
+                  framework_name="$(echo "$dep_path" | sed -E 's#^.*/([^/]+\.framework)/.*#\1#')"
+                  local framework_base="$QT_PREFIX/lib/$framework_name"
+                  copy_qt_framework "$framework_base"
+                  local new_ref
+                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/${framework_name%.framework}")"
+                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
+                  ;;
+              esac
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
+          map_qt_refs "$HELPER_BIN"
+          while read -r framework_bin; do
+            [ -n "$framework_bin" ] || continue
+            map_qt_refs "$framework_bin"
+          done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
+
+          echo "QtWebEngine helper linkage:"
+          otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
 
       - name: Bundle transitive Boost dylibs
         run: |
