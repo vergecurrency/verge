@@ -324,15 +324,51 @@ jobs:
             done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
           }
 
+          map_bundle_framework_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                @executable_path/../Frameworks/*)
+                  local dep_name
+                  dep_name="$(basename "$dep_path")"
+                  local target_path="$FRAMEWORKS_DIR/$dep_name"
+                  if [ ! -e "$target_path" ]; then
+                    continue
+                  fi
+                  local new_ref
+                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$target_path")"
+                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
+                  ;;
+              esac
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
           map_qt_refs "$HELPER_BIN"
+          map_bundle_framework_refs "$HELPER_BIN"
           while read -r framework_bin; do
             [ -n "$framework_bin" ] || continue
             map_qt_refs "$framework_bin"
+            map_bundle_framework_refs "$framework_bin"
           done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
             otool -L "$HELPER_BIN"
+            exit 1
+          fi
+
+          if find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
+               otool -L "$framework_bin" | awk 'NR > 1 { print $1 }'
+             done | grep -Eq '^@executable_path/\.\./Frameworks/libicu'; then
+            echo "::error::Bundled Qt frameworks still reference ICU via @executable_path"
+            find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
+              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep '^@executable_path/\.\./Frameworks/libicu' || true)"
+              if [ -n "$matches" ]; then
+                echo "-- $framework_bin"
+                echo "$matches"
+              fi
+            done
             exit 1
           fi
 
@@ -909,15 +945,51 @@ jobs:
             done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
           }
 
+          map_bundle_framework_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                @executable_path/../Frameworks/*)
+                  local dep_name
+                  dep_name="$(basename "$dep_path")"
+                  local target_path="$FRAMEWORKS_DIR/$dep_name"
+                  if [ ! -e "$target_path" ]; then
+                    continue
+                  fi
+                  local new_ref
+                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$target_path")"
+                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
+                  ;;
+              esac
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
           map_qt_refs "$HELPER_BIN"
+          map_bundle_framework_refs "$HELPER_BIN"
           while read -r framework_bin; do
             [ -n "$framework_bin" ] || continue
             map_qt_refs "$framework_bin"
+            map_bundle_framework_refs "$framework_bin"
           done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
             otool -L "$HELPER_BIN"
+            exit 1
+          fi
+
+          if find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
+               otool -L "$framework_bin" | awk 'NR > 1 { print $1 }'
+             done | grep -Eq '^@executable_path/\.\./Frameworks/libicu'; then
+            echo "::error::Bundled Qt frameworks still reference ICU via @executable_path"
+            find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
+              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep '^@executable_path/\.\./Frameworks/libicu' || true)"
+              if [ -n "$matches" ]; then
+                echo "-- $framework_bin"
+                echo "$matches"
+              fi
+            done
             exit 1
           fi
 
