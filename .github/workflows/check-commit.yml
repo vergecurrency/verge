@@ -371,19 +371,44 @@ jobs:
             exit 1
           fi
 
-          if find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
-               otool -L "$framework_bin" | awk 'NR > 1 { print $1 }'
-             done | grep -Eq '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)'; then
-            echo "::error::Bundled Qt frameworks still reference bundle libs via @executable_path"
-            find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
-              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep -E '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)' || true)"
-              if [ -n "$matches" ]; then
-                echo "-- $framework_bin"
-                echo "$matches"
-              fi
-            done
-            exit 1
-          fi
+          python3 - <<'PY'
+import os
+import re
+import subprocess
+import sys
+
+frameworks_dir = os.path.join("Verge-Qt.app", "Contents", "Frameworks")
+bad = []
+pattern = re.compile(r'^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)')
+
+for root, _, files in os.walk(frameworks_dir):
+    for name in files:
+        if "/Versions/A/" not in os.path.join(root, name).replace("\\", "/"):
+            continue
+        binary = os.path.join(root, name)
+        try:
+            output = subprocess.check_output(["otool", "-L", binary], text=True)
+        except subprocess.CalledProcessError:
+            continue
+        lines = [line.strip() for line in output.splitlines()[1:]]
+        framework_name = None
+        if ".framework/Versions/A/" in binary:
+            framework_name = binary.split(".framework/Versions/A/")[0].split("/")[-1] + ".framework"
+        for line in lines:
+            dep = line.split(" ", 1)[0]
+            if not pattern.match(dep):
+                continue
+            if framework_name and dep == f"@executable_path/../Frameworks/{framework_name}/Versions/A/{name}":
+                continue
+            bad.append((binary, dep))
+
+if bad:
+    print("::error::Bundled Qt frameworks still reference bundle deps via @executable_path")
+    for binary, dep in bad:
+        print(f"-- {binary}")
+        print(dep)
+    sys.exit(1)
+PY
 
           echo "QtWebEngine helper linkage:"
           otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
@@ -1005,19 +1030,44 @@ jobs:
             exit 1
           fi
 
-          if find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
-               otool -L "$framework_bin" | awk 'NR > 1 { print $1 }'
-             done | grep -Eq '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)'; then
-            echo "::error::Bundled Qt frameworks still reference bundle libs via @executable_path"
-            find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | while read -r framework_bin; do
-              matches="$(otool -L "$framework_bin" | awk 'NR > 1 { print $1 }' | grep -E '^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)' || true)"
-              if [ -n "$matches" ]; then
-                echo "-- $framework_bin"
-                echo "$matches"
-              fi
-            done
-            exit 1
-          fi
+          python3 - <<'PY'
+import os
+import re
+import subprocess
+import sys
+
+frameworks_dir = os.path.join("Verge-Qt.app", "Contents", "Frameworks")
+bad = []
+pattern = re.compile(r'^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)')
+
+for root, _, files in os.walk(frameworks_dir):
+    for name in files:
+        if "/Versions/A/" not in os.path.join(root, name).replace("\\", "/"):
+            continue
+        binary = os.path.join(root, name)
+        try:
+            output = subprocess.check_output(["otool", "-L", binary], text=True)
+        except subprocess.CalledProcessError:
+            continue
+        lines = [line.strip() for line in output.splitlines()[1:]]
+        framework_name = None
+        if ".framework/Versions/A/" in binary:
+            framework_name = binary.split(".framework/Versions/A/")[0].split("/")[-1] + ".framework"
+        for line in lines:
+            dep = line.split(" ", 1)[0]
+            if not pattern.match(dep):
+                continue
+            if framework_name and dep == f"@executable_path/../Frameworks/{framework_name}/Versions/A/{name}":
+                continue
+            bad.append((binary, dep))
+
+if bad:
+    print("::error::Bundled Qt frameworks still reference bundle deps via @executable_path")
+    for binary, dep in bad:
+        print(f"-- {binary}")
+        print(dep)
+    sys.exit(1)
+PY
 
           echo "QtWebEngine helper linkage:"
           otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
