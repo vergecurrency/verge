@@ -494,51 +494,11 @@ jobs:
           fi
           exit 0
 
-      - name: Notarize and staple DMG (if signing + credentials available)
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
-        run: |
-          set -euo pipefail
-          if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
-            echo "::warning::Skipping notarization: APPLE_ID / APPLE_TEAM_ID / APPLE_APP_SPECIFIC_PASSWORD not fully set."
-            exit 0
-          fi
-          if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then
-            echo "::warning::Skipping notarization: MACOS_SIGNING_IDENTITY not set."
-            exit 0
-          fi
-
-          xcrun notarytool submit "Verge-Qt.dmg" \
-            --apple-id "$APPLE_ID" \
-            --team-id "$APPLE_TEAM_ID" \
-            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
-            --output-format json > notarytool-macos26-submit.json
-
-          SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notarytool-macos26-submit.json)"
-          if [ -z "$SUBMISSION_ID" ]; then
-            echo "::error::Failed to parse notarization submission ID."
-            cat notarytool-macos26-submit.json
-            exit 1
-          fi
-
-          echo "Notarization submission ID: $SUBMISSION_ID"
-          echo "submission_id=$SUBMISSION_ID" > notarytool-macos26-submit.txt
-          {
-            echo "Apple notarization submitted for macos-26."
-            echo "Submission ID: $SUBMISSION_ID"
-            echo "This workflow does not wait for Apple processing and does not staple in the same run."
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos26
-          path: |
-            Verge-Qt.dmg
-            notarytool-macos26-submit.json
-            notarytool-macos26-submit.txt
+          name: verge-macos26-raw
+          path: Verge-Qt.dmg
+          if-no-files-found: error
 
 
   macos14:
@@ -1033,51 +993,265 @@ jobs:
           fi
           exit 0
 
-      - name: Notarize and staple DMG (if signing + credentials available)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos14-raw
+          path: Verge-Qt.dmg
+          if-no-files-found: error
+
+  macos-26-notarize:
+    runs-on: macos-26
+    needs:
+      - macos-26
+    steps:
+      - name: Download previous notary state (if present)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: verge-macos26-notary-state
+          path: notary_state
+
+      - name: Download signed macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: verge-macos26-raw
+          path: notarize_input
+
+      - name: Notarize and staple DMG
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
         run: |
           set -euo pipefail
+
           if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
-            echo "::warning::Skipping notarization: APPLE_ID / APPLE_TEAM_ID / APPLE_APP_SPECIFIC_PASSWORD not fully set."
-            exit 0
-          fi
-          if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then
-            echo "::warning::Skipping notarization: MACOS_SIGNING_IDENTITY not set."
-            exit 0
-          fi
-
-          xcrun notarytool submit "Verge-Qt.dmg" \
-            --apple-id "$APPLE_ID" \
-            --team-id "$APPLE_TEAM_ID" \
-            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
-            --output-format json > notarytool-macos14-submit.json
-
-          SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notarytool-macos14-submit.json)"
-          if [ -z "$SUBMISSION_ID" ]; then
-            echo "::error::Failed to parse notarization submission ID."
-            cat notarytool-macos14-submit.json
+            echo "::error::Missing one or more required Apple notarization secrets: APPLE_ID, APPLE_TEAM_ID, APPLE_APP_SPECIFIC_PASSWORD"
             exit 1
           fi
 
+          DMG_PATH="$(find notarize_input -name 'Verge-Qt.dmg' -type f | head -n1)"
+          if [ -z "${DMG_PATH:-}" ]; then
+            echo "::error::No DMG found to notarize"
+            exit 1
+          fi
+
+          mkdir -p notary_state
+
+          if [ -f "notary_state/notary_submission_id.txt" ]; then
+            SUBMISSION_ID="$(cat notary_state/notary_submission_id.txt)"
+            echo "Reusing prior notary submission id: $SUBMISSION_ID"
+          else
+            xcrun notarytool submit "$DMG_PATH" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --output-format json > notary_state/notarytool-submit.json
+
+            SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notary_state/notarytool-submit.json)"
+            if [ -z "${SUBMISSION_ID:-}" ]; then
+              echo "::error::Failed to parse notarization submission ID."
+              cat notary_state/notarytool-submit.json
+              exit 1
+            fi
+          fi
+
+          echo "$SUBMISSION_ID" > notary_state/notary_submission_id.txt
           echo "Notarization submission ID: $SUBMISSION_ID"
-          echo "submission_id=$SUBMISSION_ID" > notarytool-macos14-submit.txt
+
+          set +e
+          xcrun notarytool wait "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --timeout 90m
+          WAIT_RC=$?
+          set -e
+
+          xcrun notarytool info "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --output-format json > notary_state/notarytool-info.json || true
+
+          STATUS="$(python3 -c 'import json,sys; import pathlib; p=pathlib.Path(sys.argv[1]); print((json.load(open(p)).get("status","") if p.exists() and p.stat().st_size else ""))' notary_state/notarytool-info.json)"
+
+          if [ "$WAIT_RC" -ne 0 ]; then
+            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+            exit "$WAIT_RC"
+          fi
+
+          if [ "${STATUS:-}" != "Accepted" ]; then
+            echo "Notarization did not return Accepted status (status=${STATUS:-unknown})."
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+            exit 1
+          fi
+
+          xcrun stapler staple "$DMG_PATH"
+          xcrun stapler validate "$DMG_PATH"
+
+          set +e
+          spctl --assess --type open --verbose "$DMG_PATH"
+          SPCTL_RC=$?
+          set -e
+          if [ "$SPCTL_RC" -ne 0 ]; then
+            echo "::warning::spctl assessment rejected the DMG in CI despite successful notarization and stapling."
+          fi
+
           {
-            echo "Apple notarization submitted for macos14."
+            echo "Apple notarization accepted for macos-26."
             echo "Submission ID: $SUBMISSION_ID"
-            echo "This workflow does not wait for Apple processing and does not staple in the same run."
+            echo "Stapled artifact uploaded from this job."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload notary state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos26-notary-state
+          path: notary_state/*
+          if-no-files-found: ignore
+
+      - name: Upload notarized macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos26
+          path: notarize_input/Verge-Qt.dmg
+          if-no-files-found: error
+
+  macos14-notarize:
+    runs-on: macos-14
+    needs:
+      - macos14
+    steps:
+      - name: Download previous notary state (if present)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: verge-macos14-notary-state
+          path: notary_state
+
+      - name: Download signed macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: verge-macos14-raw
+          path: notarize_input
+
+      - name: Notarize and staple DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
+            echo "::error::Missing one or more required Apple notarization secrets: APPLE_ID, APPLE_TEAM_ID, APPLE_APP_SPECIFIC_PASSWORD"
+            exit 1
+          fi
+
+          DMG_PATH="$(find notarize_input -name 'Verge-Qt.dmg' -type f | head -n1)"
+          if [ -z "${DMG_PATH:-}" ]; then
+            echo "::error::No DMG found to notarize"
+            exit 1
+          fi
+
+          mkdir -p notary_state
+
+          if [ -f "notary_state/notary_submission_id.txt" ]; then
+            SUBMISSION_ID="$(cat notary_state/notary_submission_id.txt)"
+            echo "Reusing prior notary submission id: $SUBMISSION_ID"
+          else
+            xcrun notarytool submit "$DMG_PATH" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --output-format json > notary_state/notarytool-submit.json
+
+            SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notary_state/notarytool-submit.json)"
+            if [ -z "${SUBMISSION_ID:-}" ]; then
+              echo "::error::Failed to parse notarization submission ID."
+              cat notary_state/notarytool-submit.json
+              exit 1
+            fi
+          fi
+
+          echo "$SUBMISSION_ID" > notary_state/notary_submission_id.txt
+          echo "Notarization submission ID: $SUBMISSION_ID"
+
+          set +e
+          xcrun notarytool wait "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --timeout 90m
+          WAIT_RC=$?
+          set -e
+
+          xcrun notarytool info "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --output-format json > notary_state/notarytool-info.json || true
+
+          STATUS="$(python3 -c 'import json,sys; import pathlib; p=pathlib.Path(sys.argv[1]); print((json.load(open(p)).get("status","") if p.exists() and p.stat().st_size else ""))' notary_state/notarytool-info.json)"
+
+          if [ "$WAIT_RC" -ne 0 ]; then
+            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+            exit "$WAIT_RC"
+          fi
+
+          if [ "${STATUS:-}" != "Accepted" ]; then
+            echo "Notarization did not return Accepted status (status=${STATUS:-unknown})."
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+            exit 1
+          fi
+
+          xcrun stapler staple "$DMG_PATH"
+          xcrun stapler validate "$DMG_PATH"
+
+          set +e
+          spctl --assess --type open --verbose "$DMG_PATH"
+          SPCTL_RC=$?
+          set -e
+          if [ "$SPCTL_RC" -ne 0 ]; then
+            echo "::warning::spctl assessment rejected the DMG in CI despite successful notarization and stapling."
+          fi
+
+          {
+            echo "Apple notarization accepted for macos14."
+            echo "Submission ID: $SUBMISSION_ID"
+            echo "Stapled artifact uploaded from this job."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload notary state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos14-notary-state
+          path: notary_state/*
+          if-no-files-found: ignore
+
+      - name: Upload notarized macOS artifact
+        uses: actions/upload-artifact@v4
         with:
           name: verge-macos14
-          path: |
-            Verge-Qt.dmg
-            notarytool-macos14-submit.json
-            notarytool-macos14-submit.txt
+          path: notarize_input/Verge-Qt.dmg
+          if-no-files-found: error
 
   ubuntu24:
     runs-on: ubuntu-24.04
