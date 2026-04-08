@@ -260,18 +260,31 @@ jobs:
           FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
           HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
           HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
-          QT_PREFIX="$(brew --prefix qt)"
 
           if [ ! -x "$HELPER_BIN" ]; then
             echo "::error::QtWebEngineProcess helper missing at $HELPER_BIN"
             exit 1
           fi
 
+          extract_framework_root() {
+            python3 -c 'import sys; path=sys.argv[1]; marker=".framework/"; idx=path.find(marker); print(path[:idx+len(".framework")] if idx >= 0 else "")' "$1"
+          }
+
+          framework_binary_name() {
+            python3 -c 'import os,sys; name=os.path.basename(sys.argv[1]); print(name[:-10] if name.endswith(".framework") else name)' "$1"
+          }
+
+          is_homebrew_qt_framework_ref() {
+            case "$1" in
+              /opt/homebrew/*/Qt*.framework/*|/usr/local/*/Qt*.framework/*) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
           copy_qt_framework() {
-            local framework_path="$1"
+            local source_framework="$1"
             local framework_name
-            framework_name="$(basename "$framework_path")"
-            local source_framework="$framework_path"
+            framework_name="$(basename "$source_framework")"
             local dest_framework="$FRAMEWORKS_DIR/$framework_name"
 
             if [ -e "$dest_framework" ]; then
@@ -291,17 +304,23 @@ jobs:
             local binary="$1"
             while read -r dep_path; do
               [ -n "$dep_path" ] || continue
-              case "$dep_path" in
-                "$QT_PREFIX"/lib/*.framework/*)
-                  local framework_name
-                  framework_name="$(echo "$dep_path" | sed -E 's#^.*/([^/]+\.framework)/.*#\1#')"
-                  local framework_base="$QT_PREFIX/lib/$framework_name"
-                  copy_qt_framework "$framework_base"
-                  local new_ref
-                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/${framework_name%.framework}")"
-                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
-                  ;;
-              esac
+              if ! is_homebrew_qt_framework_ref "$dep_path"; then
+                continue
+              fi
+              local framework_root
+              framework_root="$(extract_framework_root "$dep_path")"
+              if [ -z "$framework_root" ]; then
+                echo "::error::Could not determine framework root for $dep_path"
+                exit 1
+              fi
+              local framework_name
+              framework_name="$(basename "$framework_root")"
+              copy_qt_framework "$framework_root"
+              local framework_binary
+              framework_binary="$(framework_binary_name "$framework_name")"
+              local new_ref
+              new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary")"
+              install_name_tool -change "$dep_path" "$new_ref" "$binary"
             done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
           }
 
@@ -310,6 +329,12 @@ jobs:
             [ -n "$framework_bin" ] || continue
             map_qt_refs "$framework_bin"
           done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
+
+          if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
+            echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
+            otool -L "$HELPER_BIN"
+            exit 1
+          fi
 
           echo "QtWebEngine helper linkage:"
           otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
@@ -820,18 +845,31 @@ jobs:
           FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
           HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
           HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
-          QT_PREFIX="$(brew --prefix qt)"
 
           if [ ! -x "$HELPER_BIN" ]; then
             echo "::error::QtWebEngineProcess helper missing at $HELPER_BIN"
             exit 1
           fi
 
+          extract_framework_root() {
+            python3 -c 'import sys; path=sys.argv[1]; marker=".framework/"; idx=path.find(marker); print(path[:idx+len(".framework")] if idx >= 0 else "")' "$1"
+          }
+
+          framework_binary_name() {
+            python3 -c 'import os,sys; name=os.path.basename(sys.argv[1]); print(name[:-10] if name.endswith(".framework") else name)' "$1"
+          }
+
+          is_homebrew_qt_framework_ref() {
+            case "$1" in
+              /opt/homebrew/*/Qt*.framework/*|/usr/local/*/Qt*.framework/*) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
           copy_qt_framework() {
-            local framework_path="$1"
+            local source_framework="$1"
             local framework_name
-            framework_name="$(basename "$framework_path")"
-            local source_framework="$framework_path"
+            framework_name="$(basename "$source_framework")"
             local dest_framework="$FRAMEWORKS_DIR/$framework_name"
 
             if [ -e "$dest_framework" ]; then
@@ -851,17 +889,23 @@ jobs:
             local binary="$1"
             while read -r dep_path; do
               [ -n "$dep_path" ] || continue
-              case "$dep_path" in
-                "$QT_PREFIX"/lib/*.framework/*)
-                  local framework_name
-                  framework_name="$(echo "$dep_path" | sed -E 's#^.*/([^/]+\.framework)/.*#\1#')"
-                  local framework_base="$QT_PREFIX/lib/$framework_name"
-                  copy_qt_framework "$framework_base"
-                  local new_ref
-                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/${framework_name%.framework}")"
-                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
-                  ;;
-              esac
+              if ! is_homebrew_qt_framework_ref "$dep_path"; then
+                continue
+              fi
+              local framework_root
+              framework_root="$(extract_framework_root "$dep_path")"
+              if [ -z "$framework_root" ]; then
+                echo "::error::Could not determine framework root for $dep_path"
+                exit 1
+              fi
+              local framework_name
+              framework_name="$(basename "$framework_root")"
+              copy_qt_framework "$framework_root"
+              local framework_binary
+              framework_binary="$(framework_binary_name "$framework_name")"
+              local new_ref
+              new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary")"
+              install_name_tool -change "$dep_path" "$new_ref" "$binary"
             done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
           }
 
@@ -870,6 +914,12 @@ jobs:
             [ -n "$framework_bin" ] || continue
             map_qt_refs "$framework_bin"
           done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
+
+          if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
+            echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
+            otool -L "$HELPER_BIN"
+            exit 1
+          fi
 
           echo "QtWebEngine helper linkage:"
           otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
