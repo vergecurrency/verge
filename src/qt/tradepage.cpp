@@ -9,12 +9,16 @@
 #endif
 
 #include <QLabel>
+#include <QDebug>
 #include <QShowEvent>
 #include <QVBoxLayout>
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
-#include <QWebEnginePage>
-#include <QWebEngineView>
+#include <QtWebEngineCore/QWebEnginePage>
+#include <QtWebEngineWidgets/QWebEngineView>
+#if QT_VERSION >= 0x060200
+#include <QtWebEngineCore/QWebEngineLoadingInfo>
+#endif
 #endif
 
 namespace {
@@ -41,6 +45,11 @@ protected:
         return host == "stealthex.io" || host.endsWith(".stealthex.io");
     }
 };
+
+static QString TradeLoadFailureText()
+{
+    return QObject::tr("Trade widget failed to load. Check debug.log for the Qt WebEngine error details.");
+}
 #endif
 } // namespace
 
@@ -70,12 +79,44 @@ void TradePage::ensureInitialized()
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
-    view->setPage(new TradeWebEnginePage(view));
+    TradeWebEnginePage* page = new TradeWebEnginePage(view);
+    view->setPage(page);
+
+    connect(view, &QWebEngineView::loadStarted, this, [this]() {
+        if (m_statusLabel) {
+            m_statusLabel->setText(tr("Loading Trade widget..."));
+            m_statusLabel->show();
+        }
+        qWarning() << "TradePage: WebEngine load started";
+    });
+    connect(view, &QWebEngineView::loadFinished, this, [this](bool ok) {
+        qWarning() << "TradePage: WebEngine load finished ok=" << ok;
+        if (!m_statusLabel) {
+            return;
+        }
+        if (ok) {
+            m_statusLabel->hide();
+        } else {
+            m_statusLabel->setText(TradeLoadFailureText());
+            m_statusLabel->show();
+        }
+    });
+#if QT_VERSION >= 0x060200
+    connect(page, &QWebEnginePage::loadingChanged, this, [this](const QWebEngineLoadingInfo& info) {
+        if (info.status() == QWebEngineLoadingInfo::LoadFailedStatus) {
+            qWarning() << "TradePage: load failed code=" << info.errorCode()
+                       << "domain=" << info.errorDomain()
+                       << "description=" << info.errorString()
+                       << "url=" << info.url();
+            if (m_statusLabel) {
+                m_statusLabel->setText(TradeLoadFailureText());
+                m_statusLabel->show();
+            }
+        }
+    });
+#endif
     view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
     m_layout->addWidget(view);
-    if (m_statusLabel) {
-        m_statusLabel->hide();
-    }
 #else
     if (m_statusLabel) {
         m_statusLabel->setText(

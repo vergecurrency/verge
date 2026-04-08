@@ -9,6 +9,11 @@
 
 #include <qt/vergegui.h>
 
+#if defined(_WIN32) && defined(__clang__)
+#pragma comment(linker, "/alternatename:??$memswap@$0BA@@=??$memswap@$0BA@@")
+#endif
+/* VERGE_MSVC_PROTOBUF_MEMSWAP_ALIAS */
+
 #include <chainparams.h>
 #include <qt/clientmodel.h>
 #include <fs.h>
@@ -890,6 +895,17 @@ static QByteArray BuildSanitizedWebEngineFlags()
     return sanitized_flags.join(' ').toLocal8Bit();
 }
 
+static void AppendWebEngineFlag(QByteArray& flags, const char* flag)
+{
+    const QByteArray needle(flag);
+    if (!flags.contains(needle)) {
+        if (!flags.isEmpty() && !flags.endsWith(' ')) {
+            flags.append(' ');
+        }
+        flags.append(needle);
+    }
+}
+
 static void ConfigureQtWebEngineRuntimeBase()
 {
 #if defined(Q_OS_LINUX)
@@ -918,21 +934,11 @@ static void ConfigureQtWebEngineRuntimeBase()
     }
 
     QByteArray flags = BuildSanitizedWebEngineFlags();
-    const auto append_flag = [&flags](const char* flag) {
-        const QByteArray needle(flag);
-        if (!flags.contains(needle)) {
-            if (!flags.isEmpty() && !flags.endsWith(' ')) {
-                flags.append(' ');
-            }
-            flags.append(needle);
-        }
-    };
-
     // Keep WebEngine stable in depends-built Linux environments.
-    append_flag("--disable-gpu");
-    append_flag("--disable-gpu-compositing");
-    append_flag("--no-sandbox");
-    append_flag("--disable-setuid-sandbox");
+    AppendWebEngineFlag(flags, "--disable-gpu");
+    AppendWebEngineFlag(flags, "--disable-gpu-compositing");
+    AppendWebEngineFlag(flags, "--no-sandbox");
+    AppendWebEngineFlag(flags, "--disable-setuid-sandbox");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
 
@@ -940,6 +946,15 @@ static void ConfigureQtWebEngineRuntimeBase()
     if (dbus_system.isEmpty() || dbus_system.contains("/depends/")) {
         qputenv("DBUS_SYSTEM_BUS_ADDRESS", QByteArray("unix:path=/run/dbus/system_bus_socket"));
     }
+#elif defined(Q_OS_MAC)
+    QByteArray flags = BuildSanitizedWebEngineFlags();
+
+    // Match the macOS CI launch environment that keeps the bundled WebEngine view usable.
+    AppendWebEngineFlag(flags, "--disable-gpu");
+    AppendWebEngineFlag(flags, "--disable-gpu-compositing");
+    AppendWebEngineFlag(flags, "--no-sandbox");
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+    qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
 #endif
 }
 
@@ -947,25 +962,22 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
 {
 #if defined(Q_OS_LINUX)
     QByteArray flags = BuildSanitizedWebEngineFlags();
-    const auto append_flag = [&flags](const char* flag) {
-        const QByteArray needle(flag);
-        if (!flags.contains(needle)) {
-            if (!flags.isEmpty() && !flags.endsWith(' ')) {
-                flags.append(' ');
-            }
-            flags.append(needle);
-        }
-    };
-
-    append_flag("--disable-gpu");
-    append_flag("--disable-gpu-compositing");
-    append_flag("--no-sandbox");
-    append_flag("--disable-setuid-sandbox");
+    AppendWebEngineFlag(flags, "--disable-gpu");
+    AppendWebEngineFlag(flags, "--disable-gpu-compositing");
+    AppendWebEngineFlag(flags, "--no-sandbox");
+    AppendWebEngineFlag(flags, "--disable-setuid-sandbox");
 
     if (use_tor_proxy) {
-        append_flag("--proxy-server=socks5://127.0.0.1:9090");
+        AppendWebEngineFlag(flags, "--proxy-server=socks5://127.0.0.1:9090");
     }
 
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+#elif defined(Q_OS_MAC)
+    QByteArray flags = BuildSanitizedWebEngineFlags();
+
+    AppendWebEngineFlag(flags, "--disable-gpu");
+    AppendWebEngineFlag(flags, "--disable-gpu-compositing");
+    AppendWebEngineFlag(flags, "--no-sandbox");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
 #else
     Q_UNUSED(use_tor_proxy);
