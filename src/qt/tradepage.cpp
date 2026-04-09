@@ -97,7 +97,15 @@ void TradePage::ensureInitialized()
     }
     m_initialized = true;
 
-#if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
+#if defined(Q_OS_MAC)
+    if (m_statusLabel) {
+        m_statusLabel->setText(
+            tr("Trade widget is temporarily disabled on macOS because the bundled Qt WebEngine renderer "
+               "is crashing in ScreenCaptureKit."));
+        m_statusLabel->show();
+    }
+    return;
+#elif defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
     TradeWebEnginePage* page = new TradeWebEnginePage(view);
     view->setPage(page);
