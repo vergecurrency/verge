@@ -14,7 +14,10 @@
 #include <QVBoxLayout>
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
+#include <QtWebEngineCore/QWebEngineFullScreenRequest>
 #include <QtWebEngineCore/QWebEnginePage>
+#include <QtWebEngineCore/QWebEngineScript>
+#include <QtWebEngineCore/QWebEngineSettings>
 #if QT_VERSION >= 0x060800
 #include <QtWebEngineCore/QWebEngineDesktopMediaRequest>
 #include <QtWebEngineCore/QWebEnginePermission>
@@ -32,6 +35,50 @@ static const char* STEALTHEX_WIDGET_URL = "https://stealthex.io/widget/1c5c64de-
 static QString TradeCaptureBlockedText()
 {
     return QObject::tr("Trade widget requested screen, camera, or microphone access, which is disabled in VERGE.");
+}
+
+static void InstallTradeCaptureGuards(QWebEnginePage* page)
+{
+    QWebEngineScript script;
+    script.setName(QStringLiteral("verge-trade-capture-guard"));
+    script.setInjectionPoint(QWebEngineScript::DocumentCreation);
+    script.setRunsOnSubFrames(true);
+    script.setWorldId(QWebEngineScript::MainWorld);
+    script.setSourceCode(QString::fromLatin1(R"JS(
+(() => {
+  const block = (name) => () => Promise.reject(new DOMException(
+    name + ' is disabled in this application',
+    'NotAllowedError'
+  ));
+  const install = () => {
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices) return;
+    try {
+      Object.defineProperty(mediaDevices, 'getDisplayMedia', {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: block('getDisplayMedia')
+      });
+    } catch (_) {
+      mediaDevices.getDisplayMedia = block('getDisplayMedia');
+    }
+    try {
+      Object.defineProperty(mediaDevices, 'getUserMedia', {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: block('getUserMedia')
+      });
+    } catch (_) {
+      mediaDevices.getUserMedia = block('getUserMedia');
+    }
+  };
+  install();
+  document.addEventListener('readystatechange', install, { once: false });
+})();
+)JS"));
+    page->scripts().insert(script);
 }
 
 class TradeWebEnginePage : public QWebEnginePage
@@ -100,6 +147,9 @@ void TradePage::ensureInitialized()
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
     TradeWebEnginePage* page = new TradeWebEnginePage(view);
+    InstallTradeCaptureGuards(page);
+    page->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, false);
+    page->settings()->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, false);
     view->setPage(page);
 
     connect(view, &QWebEngineView::loadStarted, this, [this]() {
@@ -135,6 +185,14 @@ void TradePage::ensureInitialized()
         }
     });
 #endif
+    connect(page, &QWebEnginePage::fullScreenRequested, this, [this](QWebEngineFullScreenRequest request) {
+        qWarning() << "TradePage: rejecting fullscreen request from embedded trade widget";
+        request.reject();
+        if (m_statusLabel) {
+            m_statusLabel->setText(TradeCaptureBlockedText());
+            m_statusLabel->show();
+        }
+    });
 #if QT_VERSION >= 0x060800
     connect(page, &QWebEnginePage::permissionRequested, this, [this](QWebEnginePermission permission) {
         const auto permissionType = permission.permissionType();
