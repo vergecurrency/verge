@@ -274,6 +274,10 @@ jobs:
             python3 -c 'import os,sys; name=os.path.basename(sys.argv[1]); print(name[:-10] if name.endswith(".framework") else name)' "$1"
           }
 
+          is_macho_binary() {
+            file "$1" 2>/dev/null | grep -Eq 'Mach-O'
+          }
+
           is_homebrew_qt_framework_ref() {
             case "$1" in
               /opt/homebrew/*/Qt*.framework/*|/usr/local/*/Qt*.framework/*) return 0 ;;
@@ -361,9 +365,10 @@ jobs:
           map_bundle_framework_refs "$HELPER_BIN"
           while read -r bundled_bin; do
             [ -n "$bundled_bin" ] || continue
+            is_macho_binary "$bundled_bin" || continue
             map_qt_refs "$bundled_bin"
             map_bundle_framework_refs "$bundled_bin"
-          done < <(find "$FRAMEWORKS_DIR" -type f -perm -111)
+          done < <(find "$FRAMEWORKS_DIR" -type f)
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
@@ -386,6 +391,12 @@ jobs:
                   if "/Versions/A/" not in os.path.join(root, name).replace("\\", "/"):
                       continue
                   binary = os.path.join(root, name)
+                  try:
+                      file_output = subprocess.check_output(["file", binary], text=True)
+                  except subprocess.CalledProcessError:
+                      continue
+                  if "Mach-O" not in file_output:
+                      continue
                   try:
                       output = subprocess.check_output(["otool", "-L", binary], text=True)
                   except subprocess.CalledProcessError:
@@ -933,6 +944,10 @@ jobs:
             python3 -c 'import os,sys; name=os.path.basename(sys.argv[1]); print(name[:-10] if name.endswith(".framework") else name)' "$1"
           }
 
+          is_macho_binary() {
+            file "$1" 2>/dev/null | grep -Eq 'Mach-O'
+          }
+
           is_homebrew_qt_framework_ref() {
             case "$1" in
               /opt/homebrew/*/Qt*.framework/*|/usr/local/*/Qt*.framework/*) return 0 ;;
@@ -1020,9 +1035,10 @@ jobs:
           map_bundle_framework_refs "$HELPER_BIN"
           while read -r bundled_bin; do
             [ -n "$bundled_bin" ] || continue
+            is_macho_binary "$bundled_bin" || continue
             map_qt_refs "$bundled_bin"
             map_bundle_framework_refs "$bundled_bin"
-          done < <(find "$FRAMEWORKS_DIR" -type f -perm -111)
+          done < <(find "$FRAMEWORKS_DIR" -type f)
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
@@ -1045,6 +1061,12 @@ jobs:
                   if "/Versions/A/" not in os.path.join(root, name).replace("\\", "/"):
                       continue
                   binary = os.path.join(root, name)
+                  try:
+                      file_output = subprocess.check_output(["file", binary], text=True)
+                  except subprocess.CalledProcessError:
+                      continue
+                  if "Mach-O" not in file_output:
+                      continue
                   try:
                       output = subprocess.check_output(["otool", "-L", binary], text=True)
                   except subprocess.CalledProcessError:
