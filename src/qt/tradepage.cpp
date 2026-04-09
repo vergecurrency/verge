@@ -38,44 +38,6 @@ static QString TradeCaptureBlockedText()
     return QObject::tr("Trade widget requested screen, camera, or microphone access, which is disabled in VERGE.");
 }
 
-static QString BuildTradeWrapperHtml()
-{
-    return QString::fromLatin1(R"HTML(
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>VERGE Trade</title>
-  <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      background: #0f1521;
-      overflow: hidden;
-    }
-    iframe {
-      border: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: #0f1521;
-    }
-  </style>
-</head>
-<body>
-  <iframe
-    src="%1"
-    referrerpolicy="strict-origin-when-cross-origin"
-    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"
-    allow="clipboard-read; clipboard-write">
-  </iframe>
-</body>
-</html>
-)HTML").arg(QString::fromLatin1(STEALTHEX_WIDGET_URL));
-}
-
 static void InstallTradeCaptureGuards(QWebEnginePage* page)
 {
     QWebEngineScript script;
@@ -295,12 +257,7 @@ void TradePage::ensureInitialized()
             m_statusLabel->show();
         }
     });
-#if defined(Q_OS_MAC)
-    view->setUrl(QUrl(QStringLiteral("about:blank")));
-    page->setHtml(BuildTradeWrapperHtml(), QUrl(QStringLiteral("https://verge.local/")));
-#else
     view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
-#endif
     m_layout->addWidget(view);
 #else
     if (m_statusLabel) {
