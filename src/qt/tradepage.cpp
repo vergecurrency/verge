@@ -17,6 +17,7 @@
 #include <QtWebEngineCore/QWebEngineFullScreenRequest>
 #include <QtWebEngineCore/QWebEnginePage>
 #include <QtWebEngineCore/QWebEngineScript>
+#include <QtWebEngineCore/QWebEngineScriptCollection>
 #include <QtWebEngineCore/QWebEngineSettings>
 #if QT_VERSION >= 0x060800
 #include <QtWebEngineCore/QWebEngineDesktopMediaRequest>
