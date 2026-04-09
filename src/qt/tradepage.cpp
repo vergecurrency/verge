@@ -15,6 +15,10 @@
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
 #include <QtWebEngineCore/QWebEnginePage>
+#if QT_VERSION >= 0x060800
+#include <QtWebEngineCore/QWebEngineDesktopMediaRequest>
+#include <QtWebEngineCore/QWebEnginePermission>
+#endif
 #include <QtWebEngineWidgets/QWebEngineView>
 #if QT_VERSION >= 0x060200
 #include <QtWebEngineCore/QWebEngineLoadingInfo>
@@ -24,6 +28,12 @@
 namespace {
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
 static const char* STEALTHEX_WIDGET_URL = "https://stealthex.io/widget/1c5c64de-0ac0-4b79-a393-e447de460c42";
+
+static QString TradeCaptureBlockedText()
+{
+    return QObject::tr("Trade widget requested screen, camera, or microphone access, which is disabled in VERGE.");
+}
+
 class TradeWebEnginePage : public QWebEnginePage
 {
 public:
@@ -125,6 +135,69 @@ void TradePage::ensureInitialized()
         }
     });
 #endif
+#if QT_VERSION >= 0x060800
+    connect(page, &QWebEnginePage::permissionRequested, this, [this](QWebEnginePermission permission) {
+        const auto permissionType = permission.permissionType();
+        const bool is_capture_permission =
+            permissionType == QWebEnginePermission::PermissionType::MediaAudioCapture ||
+            permissionType == QWebEnginePermission::PermissionType::MediaVideoCapture ||
+            permissionType == QWebEnginePermission::PermissionType::MediaAudioVideoCapture ||
+            permissionType == QWebEnginePermission::PermissionType::DesktopVideoCapture ||
+            permissionType == QWebEnginePermission::PermissionType::DesktopAudioVideoCapture;
+        if (!is_capture_permission) {
+            return;
+        }
+
+        qWarning() << "TradePage: denying WebEngine capture permission type="
+                   << static_cast<int>(permissionType)
+                   << "origin=" << permission.origin();
+        permission.deny();
+        if (m_statusLabel) {
+            m_statusLabel->setText(TradeCaptureBlockedText());
+            m_statusLabel->show();
+        }
+    });
+    connect(page, &QWebEnginePage::desktopMediaRequested, this, [this](const QWebEngineDesktopMediaRequest& request) {
+        qWarning() << "TradePage: canceling desktop media request from embedded trade widget";
+        request.cancel();
+        if (m_statusLabel) {
+            m_statusLabel->setText(TradeCaptureBlockedText());
+            m_statusLabel->show();
+        }
+    });
+#else
+    connect(page, &QWebEnginePage::featurePermissionRequested, this,
+            [this, page](const QUrl& securityOrigin, QWebEnginePage::Feature feature) {
+        const bool is_capture_feature =
+            feature == QWebEnginePage::MediaAudioCapture ||
+            feature == QWebEnginePage::MediaVideoCapture ||
+            feature == QWebEnginePage::MediaAudioVideoCapture ||
+            feature == QWebEnginePage::DesktopVideoCapture ||
+            feature == QWebEnginePage::DesktopAudioVideoCapture;
+        if (!is_capture_feature) {
+            return;
+        }
+
+        qWarning() << "TradePage: denying WebEngine capture feature="
+                   << static_cast<int>(feature)
+                   << "origin=" << securityOrigin;
+        page->setFeaturePermission(
+            securityOrigin, feature, QWebEnginePage::PermissionDeniedByUser);
+        if (m_statusLabel) {
+            m_statusLabel->setText(TradeCaptureBlockedText());
+            m_statusLabel->show();
+        }
+    });
+#endif
+    connect(view, &QWebEngineView::renderProcessTerminated, this,
+            [this](QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode) {
+        qWarning() << "TradePage: renderer terminated status=" << static_cast<int>(terminationStatus)
+                   << "exitCode=" << exitCode;
+        if (m_statusLabel) {
+            m_statusLabel->setText(TradeLoadFailureText());
+            m_statusLabel->show();
+        }
+    });
     view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
     m_layout->addWidget(view);
 #else
