@@ -197,8 +197,7 @@ void TradePage::ensureInitialized()
                    << "code=" << info.errorCode()
                    << "domain=" << info.errorDomain()
                    << "description=" << info.errorString()
-                   << "url=" << info.url()
-                   << "isMainFrame=" << info.isMainFrame();
+                   << "url=" << info.url();
         if (info.status() == QWebEngineLoadingInfo::LoadFailedStatus) {
             if (m_statusLabel) {
                 m_statusLabel->setText(TradeLoadFailureText());
@@ -221,7 +220,6 @@ void TradePage::ensureInitialized()
     connect(page, &QWebEnginePage::newWindowRequested, this, [](QWebEngineNewWindowRequest& request) {
         qWarning() << "TradePage: newWindowRequested url=" << request.requestedUrl()
                    << "destination=" << static_cast<int>(request.destination());
-        request.reject();
     });
     connect(page, &QWebEnginePage::certificateError, this, [](const QWebEngineCertificateError& error) {
         qWarning() << "TradePage: certificateError type=" << static_cast<int>(error.type())
@@ -292,7 +290,7 @@ void TradePage::ensureInitialized()
     });
 #endif
     connect(view, &QWebEngineView::renderProcessTerminated, this,
-            [this](QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode) {
+            [this, view, page](QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode) {
         qWarning() << "TradePage: renderer terminated status=" << static_cast<int>(terminationStatus)
                    << "exitCode=" << exitCode
                    << "currentUrl=" << view->url()
