@@ -14,7 +14,10 @@
 #include <QVBoxLayout>
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
+#include <QtWebEngineCore/QWebEngineCertificateError>
 #include <QtWebEngineCore/QWebEngineFullScreenRequest>
+#include <QtWebEngineCore/QWebEngineNavigationRequest>
+#include <QtWebEngineCore/QWebEngineNewWindowRequest>
 #include <QtWebEngineCore/QWebEnginePage>
 #include <QtWebEngineCore/QWebEngineScript>
 #include <QtWebEngineCore/QWebEngineScriptCollection>
@@ -88,11 +91,24 @@ public:
     explicit TradeWebEnginePage(QObject* parent) : QWebEnginePage(parent) {}
 
 protected:
+    void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level,
+                                  const QString& message,
+                                  int lineNumber,
+                                  const QString& sourceID) override
+    {
+        qWarning() << "TradePage: console level=" << static_cast<int>(level)
+                   << "line=" << lineNumber
+                   << "source=" << sourceID
+                   << "message=" << message;
+        QWebEnginePage::javaScriptConsoleMessage(level, message, lineNumber, sourceID);
+    }
+
     bool acceptNavigationRequest(const QUrl& url, NavigationType type, bool isMainFrame) override
     {
-        Q_UNUSED(type);
+        qWarning() << "TradePage: navigation request type=" << static_cast<int>(type)
+                   << "mainFrame=" << isMainFrame
+                   << "url=" << url;
 
-        // Restrict top-level navigation to StealthEX hostnames.
         if (!isMainFrame) {
             return true;
         }
@@ -160,6 +176,9 @@ void TradePage::ensureInitialized()
         }
         qWarning() << "TradePage: WebEngine load started";
     });
+    connect(view, &QWebEngineView::loadProgress, this, [](int progress) {
+        qWarning() << "TradePage: WebEngine load progress=" << progress;
+    });
     connect(view, &QWebEngineView::loadFinished, this, [this](bool ok) {
         qWarning() << "TradePage: WebEngine load finished ok=" << ok;
         if (!m_statusLabel) {
@@ -174,11 +193,13 @@ void TradePage::ensureInitialized()
     });
 #if QT_VERSION >= 0x060200
     connect(page, &QWebEnginePage::loadingChanged, this, [this](const QWebEngineLoadingInfo& info) {
+        qWarning() << "TradePage: loadingChanged status=" << static_cast<int>(info.status())
+                   << "code=" << info.errorCode()
+                   << "domain=" << info.errorDomain()
+                   << "description=" << info.errorString()
+                   << "url=" << info.url()
+                   << "isMainFrame=" << info.isMainFrame();
         if (info.status() == QWebEngineLoadingInfo::LoadFailedStatus) {
-            qWarning() << "TradePage: load failed code=" << info.errorCode()
-                       << "domain=" << info.errorDomain()
-                       << "description=" << info.errorString()
-                       << "url=" << info.url();
             if (m_statusLabel) {
                 m_statusLabel->setText(TradeLoadFailureText());
                 m_statusLabel->show();
@@ -186,6 +207,28 @@ void TradePage::ensureInitialized()
         }
     });
 #endif
+    connect(page, &QWebEnginePage::urlChanged, this, [](const QUrl& url) {
+        qWarning() << "TradePage: url changed to" << url;
+    });
+    connect(page, &QWebEnginePage::renderProcessPidChanged, this, [page]() {
+        qWarning() << "TradePage: render process pid changed to" << page->renderProcessPid();
+    });
+    connect(page, &QWebEnginePage::navigationRequested, this, [](QWebEngineNavigationRequest& request) {
+        qWarning() << "TradePage: navigationRequested url=" << request.url()
+                   << "mainFrame=" << request.isMainFrame()
+                   << "navigationType=" << static_cast<int>(request.navigationType());
+    });
+    connect(page, &QWebEnginePage::newWindowRequested, this, [](QWebEngineNewWindowRequest& request) {
+        qWarning() << "TradePage: newWindowRequested url=" << request.requestedUrl()
+                   << "destination=" << static_cast<int>(request.destination());
+        request.reject();
+    });
+    connect(page, &QWebEnginePage::certificateError, this, [](const QWebEngineCertificateError& error) {
+        qWarning() << "TradePage: certificateError type=" << static_cast<int>(error.type())
+                   << "url=" << error.url()
+                   << "description=" << error.description()
+                   << "overridable=" << error.isOverridable();
+    });
     connect(page, &QWebEnginePage::fullScreenRequested, this, [this](QWebEngineFullScreenRequest request) {
         qWarning() << "TradePage: rejecting fullscreen request from embedded trade widget";
         request.reject();
@@ -251,7 +294,10 @@ void TradePage::ensureInitialized()
     connect(view, &QWebEngineView::renderProcessTerminated, this,
             [this](QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode) {
         qWarning() << "TradePage: renderer terminated status=" << static_cast<int>(terminationStatus)
-                   << "exitCode=" << exitCode;
+                   << "exitCode=" << exitCode
+                   << "currentUrl=" << view->url()
+                   << "requestedUrl=" << page->requestedUrl()
+                   << "pid=" << page->renderProcessPid();
         if (m_statusLabel) {
             m_statusLabel->setText(TradeLoadFailureText());
             m_statusLabel->show();
