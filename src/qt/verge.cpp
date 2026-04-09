@@ -906,58 +906,6 @@ static void AppendWebEngineFlag(QByteArray& flags, const char* flag)
     }
 }
 
-static void AppendWebEngineDisableFeatures(QByteArray& flags, const char* features)
-{
-    const QByteArray prefix("--disable-features=");
-    const QList<QByteArray> requested = QByteArray(features).split(',');
-    QList<QByteArray> merged;
-
-    for (const QByteArray& token : requested) {
-        const QByteArray trimmed = token.trimmed();
-        if (!trimmed.isEmpty() && !merged.contains(trimmed)) {
-            merged.push_back(trimmed);
-        }
-    }
-
-    const QList<QByteArray> parts = flags.split(' ');
-    QByteArray rebuilt;
-    for (const QByteArray& part : parts) {
-        if (part.startsWith(prefix)) {
-            const QList<QByteArray> existing = part.mid(prefix.size()).split(',');
-            for (const QByteArray& token : existing) {
-                const QByteArray trimmed = token.trimmed();
-                if (!trimmed.isEmpty() && !merged.contains(trimmed)) {
-                    merged.push_back(trimmed);
-                }
-            }
-            continue;
-        }
-
-        if (part.isEmpty()) {
-            continue;
-        }
-        if (!rebuilt.isEmpty()) {
-            rebuilt.append(' ');
-        }
-        rebuilt.append(part);
-    }
-
-    if (!merged.isEmpty()) {
-        if (!rebuilt.isEmpty()) {
-            rebuilt.append(' ');
-        }
-        rebuilt.append(prefix);
-        for (int i = 0; i < merged.size(); ++i) {
-            if (i > 0) {
-                rebuilt.append(',');
-            }
-            rebuilt.append(merged.at(i));
-        }
-    }
-
-    flags = rebuilt;
-}
-
 static void ConfigureQtWebEngineRuntimeBase()
 {
 #if defined(Q_OS_LINUX)
@@ -1005,12 +953,6 @@ static void ConfigureQtWebEngineRuntimeBase()
     AppendWebEngineFlag(flags, "--disable-gpu");
     AppendWebEngineFlag(flags, "--disable-gpu-compositing");
     AppendWebEngineFlag(flags, "--no-sandbox");
-    // Chromium's ScreenCaptureKit path is crashing the QtWebEngine renderer on macOS 26.
-    AppendWebEngineDisableFeatures(
-        flags,
-        "ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,"
-        "UseSCContentSharingPicker,ScreenCaptureKitStreamPickerSonoma,"
-        "ScreenCaptureKitStreamPickerVentura");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
 #endif
@@ -1036,11 +978,6 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
     AppendWebEngineFlag(flags, "--disable-gpu");
     AppendWebEngineFlag(flags, "--disable-gpu-compositing");
     AppendWebEngineFlag(flags, "--no-sandbox");
-    AppendWebEngineDisableFeatures(
-        flags,
-        "ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,"
-        "UseSCContentSharingPicker,ScreenCaptureKitStreamPickerSonoma,"
-        "ScreenCaptureKitStreamPickerVentura");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
 #else
     Q_UNUSED(use_tor_proxy);
