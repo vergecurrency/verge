@@ -38,7 +38,7 @@ static const char* STEALTHEX_WIDGET_URL = "https://stealthex.io/widget/1c5c64de-
 
 static QString TradeCaptureBlockedText()
 {
-    return QObject::tr("Trade widget requested screen, camera, or microphone access, which is disabled in VERGE.");
+    return QObject::tr("Trade widget requested screen sharing, which is disabled in VERGE on this platform.");
 }
 
 static void InstallTradeCaptureGuards(QWebEnginePage* page)
@@ -66,16 +66,6 @@ static void InstallTradeCaptureGuards(QWebEnginePage* page)
       });
     } catch (_) {
       mediaDevices.getDisplayMedia = block('getDisplayMedia');
-    }
-    try {
-      Object.defineProperty(mediaDevices, 'getUserMedia', {
-        configurable: true,
-        enumerable: true,
-        writable: true,
-        value: block('getUserMedia')
-      });
-    } catch (_) {
-      mediaDevices.getUserMedia = block('getUserMedia');
     }
   };
   install();
@@ -164,9 +154,10 @@ void TradePage::ensureInitialized()
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
     TradeWebEnginePage* page = new TradeWebEnginePage(view);
+#if defined(Q_OS_MAC)
     InstallTradeCaptureGuards(page);
-    page->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, false);
     page->settings()->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, false);
+#endif
     view->setPage(page);
 
     connect(view, &QWebEngineView::loadStarted, this, [this]() {
@@ -227,21 +218,14 @@ void TradePage::ensureInitialized()
                    << "description=" << error.description()
                    << "overridable=" << error.isOverridable();
     });
-    connect(page, &QWebEnginePage::fullScreenRequested, this, [this](QWebEngineFullScreenRequest request) {
-        qWarning() << "TradePage: rejecting fullscreen request from embedded trade widget";
-        request.reject();
-        if (m_statusLabel) {
-            m_statusLabel->setText(TradeCaptureBlockedText());
-            m_statusLabel->show();
-        }
+    connect(page, &QWebEnginePage::fullScreenRequested, this, [](QWebEngineFullScreenRequest request) {
+        qWarning() << "TradePage: fullscreen requested toggle=" << request.toggleOn();
+        request.accept();
     });
 #if QT_VERSION >= 0x060800
     connect(page, &QWebEnginePage::permissionRequested, this, [this](QWebEnginePermission permission) {
         const auto permissionType = permission.permissionType();
         const bool is_capture_permission =
-            permissionType == QWebEnginePermission::PermissionType::MediaAudioCapture ||
-            permissionType == QWebEnginePermission::PermissionType::MediaVideoCapture ||
-            permissionType == QWebEnginePermission::PermissionType::MediaAudioVideoCapture ||
             permissionType == QWebEnginePermission::PermissionType::DesktopVideoCapture ||
             permissionType == QWebEnginePermission::PermissionType::DesktopAudioVideoCapture;
         if (!is_capture_permission) {
@@ -269,9 +253,6 @@ void TradePage::ensureInitialized()
     connect(page, &QWebEnginePage::featurePermissionRequested, this,
             [this, page](const QUrl& securityOrigin, QWebEnginePage::Feature feature) {
         const bool is_capture_feature =
-            feature == QWebEnginePage::MediaAudioCapture ||
-            feature == QWebEnginePage::MediaVideoCapture ||
-            feature == QWebEnginePage::MediaAudioVideoCapture ||
             feature == QWebEnginePage::DesktopVideoCapture ||
             feature == QWebEnginePage::DesktopAudioVideoCapture;
         if (!is_capture_feature) {
