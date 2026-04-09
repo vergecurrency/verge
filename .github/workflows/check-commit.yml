@@ -359,11 +359,11 @@ jobs:
 
           map_qt_refs "$HELPER_BIN"
           map_bundle_framework_refs "$HELPER_BIN"
-          while read -r framework_bin; do
-            [ -n "$framework_bin" ] || continue
-            map_qt_refs "$framework_bin"
-            map_bundle_framework_refs "$framework_bin"
-          done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
+          while read -r bundled_bin; do
+            [ -n "$bundled_bin" ] || continue
+            map_qt_refs "$bundled_bin"
+            map_bundle_framework_refs "$bundled_bin"
+          done < <(find "$FRAMEWORKS_DIR" -type f -perm -111)
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
@@ -379,7 +379,7 @@ jobs:
 
           frameworks_dir = os.path.join("Verge-Qt.app", "Contents", "Frameworks")
           bad = []
-          pattern = re.compile(r'^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)')
+          pattern = re.compile(r'^@executable_path/\.\./Frameworks/')
 
           for root, _, files in os.walk(frameworks_dir):
               for name in files:
@@ -403,7 +403,7 @@ jobs:
                       bad.append((binary, dep))
 
           if bad:
-              print("::error::Bundled Qt frameworks still reference bundle deps via @executable_path")
+              print("::error::Bundled binaries still reference bundle deps via @executable_path")
               for binary, dep in bad:
                   print(f"-- {binary}")
                   print(dep)
@@ -1018,11 +1018,11 @@ jobs:
 
           map_qt_refs "$HELPER_BIN"
           map_bundle_framework_refs "$HELPER_BIN"
-          while read -r framework_bin; do
-            [ -n "$framework_bin" ] || continue
-            map_qt_refs "$framework_bin"
-            map_bundle_framework_refs "$framework_bin"
-          done < <(find "$FRAMEWORKS_DIR" -path '*/Versions/A/*' -type f | grep -E '/Qt[^/]+\.framework/Versions/A/[^/]+$' || true)
+          while read -r bundled_bin; do
+            [ -n "$bundled_bin" ] || continue
+            map_qt_refs "$bundled_bin"
+            map_bundle_framework_refs "$bundled_bin"
+          done < <(find "$FRAMEWORKS_DIR" -type f -perm -111)
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
@@ -1038,7 +1038,7 @@ jobs:
 
           frameworks_dir = os.path.join("Verge-Qt.app", "Contents", "Frameworks")
           bad = []
-          pattern = re.compile(r'^@executable_path/\.\./Frameworks/(libicu|Qt[^/]+\.framework/)')
+          pattern = re.compile(r'^@executable_path/\.\./Frameworks/')
 
           for root, _, files in os.walk(frameworks_dir):
               for name in files:
@@ -1062,7 +1062,7 @@ jobs:
                       bad.append((binary, dep))
 
           if bad:
-              print("::error::Bundled Qt frameworks still reference bundle deps via @executable_path")
+              print("::error::Bundled binaries still reference bundle deps via @executable_path")
               for binary, dep in bad:
                   print(f"-- {binary}")
                   print(dep)
