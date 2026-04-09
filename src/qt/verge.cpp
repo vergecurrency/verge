@@ -906,6 +906,21 @@ static void AppendWebEngineFlag(QByteArray& flags, const char* flag)
     }
 }
 
+static void AppendQtLoggingRule(QByteArray& rules, const char* rule)
+{
+    const QByteArray needle(rule);
+    const QList<QByteArray> parts = rules.split(';');
+    for (const QByteArray& part : parts) {
+        if (part.trimmed() == needle) {
+            return;
+        }
+    }
+    if (!rules.isEmpty() && !rules.endsWith(';')) {
+        rules.append(';');
+    }
+    rules.append(needle);
+}
+
 static void ConfigureQtWebEngineRuntimeBase()
 {
 #if defined(Q_OS_LINUX)
@@ -953,8 +968,17 @@ static void ConfigureQtWebEngineRuntimeBase()
     AppendWebEngineFlag(flags, "--disable-gpu");
     AppendWebEngineFlag(flags, "--disable-gpu-compositing");
     AppendWebEngineFlag(flags, "--no-sandbox");
+    AppendWebEngineFlag(flags, "--enable-logging");
+    AppendWebEngineFlag(flags, "--log-level=0");
+    AppendWebEngineFlag(flags, "--v=1");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
+
+    QByteArray qt_logging_rules = qgetenv("QT_LOGGING_RULES");
+    AppendQtLoggingRule(qt_logging_rules, "qt.webenginecontext.debug=true");
+    AppendQtLoggingRule(qt_logging_rules, "qt.webenginecontext=true");
+    AppendQtLoggingRule(qt_logging_rules, "qt.webengine.compositor=true");
+    qputenv("QT_LOGGING_RULES", qt_logging_rules);
 #endif
 }
 
