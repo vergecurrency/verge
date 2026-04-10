@@ -922,10 +922,32 @@ static void AppendQtLoggingRule(QByteArray& rules, const char* rule)
     rules.append(needle);
 }
 
-static void ConfigureQtWebEngineBundlePaths()
+static QString ResolveApplicationDirPath(const char* argv0)
 {
 #if defined(Q_OS_MAC)
-    const QDir app_dir(QCoreApplication::applicationDirPath());
+    if (argv0 && argv0[0] != '\0') {
+        const QFileInfo executable_info(QDir::current(), QString::fromLocal8Bit(argv0));
+        if (executable_info.exists()) {
+            return executable_info.absolutePath();
+        }
+    }
+#endif
+    if (QCoreApplication::instance()) {
+        return QCoreApplication::applicationDirPath();
+    }
+    return QString();
+}
+
+static void ConfigureQtWebEngineBundlePaths(const char* argv0)
+{
+#if defined(Q_OS_MAC)
+    const QString app_dir_path = ResolveApplicationDirPath(argv0);
+    if (app_dir_path.isEmpty()) {
+        qWarning() << "QtWebEngine: unable to resolve application directory for bundle paths";
+        return;
+    }
+
+    const QDir app_dir(app_dir_path);
     const QDir contents_dir(app_dir.absoluteFilePath(QStringLiteral("..")));
     const QString frameworks_dir = contents_dir.absoluteFilePath(QStringLiteral("Frameworks"));
     const QString helper_path = frameworks_dir +
@@ -966,7 +988,7 @@ static void ConfigureQtWebEngineBundlePaths()
 #endif
 }
 
-static void ConfigureQtWebEngineRuntimeBase()
+static void ConfigureQtWebEngineRuntimeBase(const char* argv0)
 {
 #if defined(Q_OS_LINUX)
     if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR")) {
@@ -1007,7 +1029,7 @@ static void ConfigureQtWebEngineRuntimeBase()
         qputenv("DBUS_SYSTEM_BUS_ADDRESS", QByteArray("unix:path=/run/dbus/system_bus_socket"));
     }
 #elif defined(Q_OS_MAC)
-    ConfigureQtWebEngineBundlePaths();
+    ConfigureQtWebEngineBundlePaths(argv0);
 
     QByteArray flags = BuildSanitizedWebEngineFlags();
 
@@ -1080,7 +1102,7 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
 int main(int argc, char *argv[])
 {
     SetupEnvironment();
-    ConfigureQtWebEngineRuntimeBase();
+    ConfigureQtWebEngineRuntimeBase(argc > 0 ? argv[0] : nullptr);
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 
