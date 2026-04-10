@@ -8,9 +8,13 @@
 #include <config/verge-config.h>
 #endif
 
+#include <logging.h>
+
 #include <QLabel>
 #include <QDebug>
+#include <QDir>
 #include <QShowEvent>
+#include <QStandardPaths>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -39,59 +43,73 @@ namespace {
 static const char* STEALTHEX_WIDGET_URL = "https://stealthex.io/widget/1c5c64de-0ac0-4b79-a393-e447de460c42";
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
+static void LogTradeDiagnostic(const QString& message)
+{
+    qWarning().noquote() << message;
+    LogPrintf("GUI: %s\n", message.toStdString());
+}
+
 static QString TradeCaptureBlockedText()
 {
     return QObject::tr("Trade widget requested screen sharing, which is disabled in VERGE on this platform.");
 }
 
+static QUrl TradeWidgetUrl()
+{
+    const QString override_url = qEnvironmentVariable("VERGE_TRADEPAGE_DEBUG_URL");
+    if (!override_url.isEmpty()) {
+        return QUrl::fromUserInput(override_url);
+    }
+    return QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL));
+}
+
+static bool TradeDisableWebGlForDiagnostics()
+{
+    return qEnvironmentVariableIntValue("VERGE_TRADEPAGE_DISABLE_WEBGL") != 0;
+}
+
 static void LogTradeWebEngineState(QWebEngineView* view, QWebEnginePage* page, const char* stage)
 {
     if (!view || !page) {
-        qWarning() << "TradePage:" << stage << "view/page missing";
+        LogTradeDiagnostic(QStringLiteral("TradePage: %1 view/page missing").arg(QString::fromLatin1(stage)));
         return;
     }
 
     QWebEngineProfile* profile = page->profile();
     QWebEngineSettings* settings = page->settings();
-    qWarning() << "TradePage:" << stage
-               << "viewVisible=" << view->isVisible()
-               << "viewSize=" << view->size()
-               << "viewUrl=" << view->url()
-               << "pageUrl=" << page->url()
-               << "requestedUrl=" << page->requestedUrl()
-               << "renderPid=" << page->renderProcessPid()
-               << "canGoBack=" << page->history()->canGoBack()
-               << "canGoForward=" << page->history()->canGoForward();
+    LogTradeDiagnostic(QStringLiteral("TradePage: %1 viewVisible=%2 viewSize=%3x%4 viewUrl=%5 pageUrl=%6 requestedUrl=%7 renderPid=%8 canGoBack=%9 canGoForward=%10")
+                           .arg(QString::fromLatin1(stage))
+                           .arg(view->isVisible())
+                           .arg(view->size().width())
+                           .arg(view->size().height())
+                           .arg(view->url().toString())
+                           .arg(page->url().toString())
+                           .arg(page->requestedUrl().toString())
+                           .arg(page->renderProcessPid())
+                           .arg(page->history()->canGoBack())
+                           .arg(page->history()->canGoForward()));
     if (profile) {
-        qWarning() << "TradePage:" << stage
-                   << "profileStorageName=" << profile->storageName()
-                   << "httpUserAgent=" << profile->httpUserAgent()
-                   << "cachePath=" << profile->cachePath()
-                   << "persistentStoragePath=" << profile->persistentStoragePath()
-                   << "offTheRecord=" << profile->isOffTheRecord();
+        LogTradeDiagnostic(QStringLiteral("TradePage: %1 profileStorageName=%2 httpUserAgent=%3 cachePath=%4 persistentStoragePath=%5 offTheRecord=%6")
+                               .arg(QString::fromLatin1(stage))
+                               .arg(profile->storageName())
+                               .arg(profile->httpUserAgent())
+                               .arg(profile->cachePath())
+                               .arg(profile->persistentStoragePath())
+                               .arg(profile->isOffTheRecord()));
     }
     if (settings) {
-        qWarning() << "TradePage:" << stage
-                   << "setting JavascriptEnabled="
-                   << settings->testAttribute(QWebEngineSettings::JavascriptEnabled)
-                   << "LocalContentCanAccessRemoteUrls="
-                   << settings->testAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls)
-                   << "LocalContentCanAccessFileUrls="
-                   << settings->testAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls)
-                   << "JavascriptCanOpenWindows="
-                   << settings->testAttribute(QWebEngineSettings::JavascriptCanOpenWindows)
-                   << "PluginsEnabled="
-                   << settings->testAttribute(QWebEngineSettings::PluginsEnabled)
-                   << "FullScreenSupportEnabled="
-                   << settings->testAttribute(QWebEngineSettings::FullScreenSupportEnabled)
-                   << "ScreenCaptureEnabled="
-                   << settings->testAttribute(QWebEngineSettings::ScreenCaptureEnabled)
-                   << "WebGLEnabled="
-                   << settings->testAttribute(QWebEngineSettings::WebGLEnabled)
-                   << "Accelerated2dCanvasEnabled="
-                   << settings->testAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled)
-                   << "PlaybackRequiresUserGesture="
-                   << settings->testAttribute(QWebEngineSettings::PlaybackRequiresUserGesture);
+        LogTradeDiagnostic(QStringLiteral("TradePage: %1 setting JavascriptEnabled=%2 LocalContentCanAccessRemoteUrls=%3 LocalContentCanAccessFileUrls=%4 JavascriptCanOpenWindows=%5 PluginsEnabled=%6 FullScreenSupportEnabled=%7 ScreenCaptureEnabled=%8 WebGLEnabled=%9 Accelerated2dCanvasEnabled=%10 PlaybackRequiresUserGesture=%11")
+                               .arg(QString::fromLatin1(stage))
+                               .arg(settings->testAttribute(QWebEngineSettings::JavascriptEnabled))
+                               .arg(settings->testAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls))
+                               .arg(settings->testAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls))
+                               .arg(settings->testAttribute(QWebEngineSettings::JavascriptCanOpenWindows))
+                               .arg(settings->testAttribute(QWebEngineSettings::PluginsEnabled))
+                               .arg(settings->testAttribute(QWebEngineSettings::FullScreenSupportEnabled))
+                               .arg(settings->testAttribute(QWebEngineSettings::ScreenCaptureEnabled))
+                               .arg(settings->testAttribute(QWebEngineSettings::WebGLEnabled))
+                               .arg(settings->testAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled))
+                               .arg(settings->testAttribute(QWebEngineSettings::PlaybackRequiresUserGesture)));
     }
 }
 
@@ -133,6 +151,7 @@ class TradeWebEnginePage : public QWebEnginePage
 {
 public:
     explicit TradeWebEnginePage(QObject* parent) : QWebEnginePage(parent) {}
+    TradeWebEnginePage(QWebEngineProfile* profile, QObject* parent) : QWebEnginePage(profile, parent) {}
 
 protected:
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level,
@@ -207,10 +226,30 @@ void TradePage::ensureInitialized()
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
-    TradeWebEnginePage* page = new TradeWebEnginePage(view);
+    QWebEngineProfile* profile = QWebEngineProfile::defaultProfile();
+#if defined(Q_OS_MAC)
+    const QString app_data_dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    const QString trade_profile_dir = QDir(app_data_dir).filePath(QStringLiteral("trade-webengine"));
+    const QString cache_dir = QDir(trade_profile_dir).filePath(QStringLiteral("cache"));
+    QDir().mkpath(cache_dir);
+    profile = new QWebEngineProfile(QStringLiteral("TradePageProfile"), view);
+    profile->setPersistentStoragePath(trade_profile_dir);
+    profile->setCachePath(cache_dir);
+    profile->setPersistentCookiesPolicy(QWebEngineProfile::AllowPersistentCookies);
+    LogTradeDiagnostic(QStringLiteral("TradePage: created dedicated macOS profile storage=%1 cache=%2 offTheRecord=%3")
+                           .arg(profile->persistentStoragePath())
+                           .arg(profile->cachePath())
+                           .arg(profile->isOffTheRecord()));
+#endif
+    TradeWebEnginePage* page = new TradeWebEnginePage(profile, view);
 #if defined(Q_OS_MAC)
     InstallTradeCaptureGuards(page);
     page->settings()->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, false);
+    if (TradeDisableWebGlForDiagnostics()) {
+        page->settings()->setAttribute(QWebEngineSettings::WebGLEnabled, false);
+        page->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, false);
+        LogTradeDiagnostic(QStringLiteral("TradePage: macOS diagnostics disabled WebGL and accelerated 2D canvas via VERGE_TRADEPAGE_DISABLE_WEBGL=1"));
+    }
 #endif
     view->setPage(page);
     LogTradeWebEngineState(view, page, "after-page-created");
@@ -220,25 +259,27 @@ void TradePage::ensureInitialized()
             m_statusLabel->setText(tr("Loading Trade widget..."));
             m_statusLabel->show();
         }
-        qWarning() << "TradePage: WebEngine load started"
-                   << "viewUrl=" << view->url()
-                   << "pageUrl=" << page->url()
-                   << "requestedUrl=" << page->requestedUrl();
+        LogTradeDiagnostic(QStringLiteral("TradePage: WebEngine load started viewUrl=%1 pageUrl=%2 requestedUrl=%3")
+                               .arg(view->url().toString())
+                               .arg(page->url().toString())
+                               .arg(page->requestedUrl().toString()));
         LogTradeWebEngineState(view, page, "loadStarted");
     });
     connect(view, &QWebEngineView::loadProgress, this, [view, page](int progress) {
-        qWarning() << "TradePage: WebEngine load progress=" << progress
-                   << "viewUrl=" << view->url()
-                   << "pageUrl=" << page->url()
-                   << "requestedUrl=" << page->requestedUrl()
-                   << "renderPid=" << page->renderProcessPid();
+        LogTradeDiagnostic(QStringLiteral("TradePage: WebEngine load progress=%1 viewUrl=%2 pageUrl=%3 requestedUrl=%4 renderPid=%5")
+                               .arg(progress)
+                               .arg(view->url().toString())
+                               .arg(page->url().toString())
+                               .arg(page->requestedUrl().toString())
+                               .arg(page->renderProcessPid()));
     });
     connect(view, &QWebEngineView::loadFinished, this, [this, view, page](bool ok) {
-        qWarning() << "TradePage: WebEngine load finished ok=" << ok
-                   << "viewUrl=" << view->url()
-                   << "pageUrl=" << page->url()
-                   << "requestedUrl=" << page->requestedUrl()
-                   << "renderPid=" << page->renderProcessPid();
+        LogTradeDiagnostic(QStringLiteral("TradePage: WebEngine load finished ok=%1 viewUrl=%2 pageUrl=%3 requestedUrl=%4 renderPid=%5")
+                               .arg(ok)
+                               .arg(view->url().toString())
+                               .arg(page->url().toString())
+                               .arg(page->requestedUrl().toString())
+                               .arg(page->renderProcessPid()));
         LogTradeWebEngineState(view, page, "loadFinished");
         if (!m_statusLabel) {
             return;
@@ -252,15 +293,16 @@ void TradePage::ensureInitialized()
     });
 #if QT_VERSION >= 0x060200
     connect(page, &QWebEnginePage::loadingChanged, this, [this, view, page](const QWebEngineLoadingInfo& info) {
-        qWarning() << "TradePage: loadingChanged status=" << static_cast<int>(info.status())
-                   << "code=" << info.errorCode()
-                   << "domain=" << info.errorDomain()
-                   << "description=" << info.errorString()
-                   << "url=" << info.url()
-                   << "currentViewUrl=" << view->url()
-                   << "currentPageUrl=" << page->url()
-                   << "requestedUrl=" << page->requestedUrl()
-                   << "renderPid=" << page->renderProcessPid();
+        LogTradeDiagnostic(QStringLiteral("TradePage: loadingChanged status=%1 code=%2 domain=%3 description=%4 url=%5 currentViewUrl=%6 currentPageUrl=%7 requestedUrl=%8 renderPid=%9")
+                               .arg(static_cast<int>(info.status()))
+                               .arg(info.errorCode())
+                               .arg(static_cast<int>(info.errorDomain()))
+                               .arg(info.errorString())
+                               .arg(info.url().toString())
+                               .arg(view->url().toString())
+                               .arg(page->url().toString())
+                               .arg(page->requestedUrl().toString())
+                               .arg(page->renderProcessPid()));
         if (info.status() == QWebEngineLoadingInfo::LoadFailedStatus) {
             if (m_statusLabel) {
                 m_statusLabel->setText(TradeLoadFailureText());
@@ -270,41 +312,45 @@ void TradePage::ensureInitialized()
     });
 #endif
     connect(page, &QWebEnginePage::urlChanged, this, [](const QUrl& url) {
-        qWarning() << "TradePage: url changed to" << url;
+        LogTradeDiagnostic(QStringLiteral("TradePage: url changed to %1").arg(url.toString()));
     });
     connect(page, &QWebEnginePage::renderProcessPidChanged, this, [view, page]() {
-        qWarning() << "TradePage: render process pid changed to" << page->renderProcessPid()
-                   << "viewUrl=" << view->url()
-                   << "pageUrl=" << page->url()
-                   << "requestedUrl=" << page->requestedUrl();
+        LogTradeDiagnostic(QStringLiteral("TradePage: render process pid changed to %1 viewUrl=%2 pageUrl=%3 requestedUrl=%4")
+                               .arg(page->renderProcessPid())
+                               .arg(view->url().toString())
+                               .arg(page->url().toString())
+                               .arg(page->requestedUrl().toString()));
         LogTradeWebEngineState(view, page, "renderProcessPidChanged");
     });
     connect(page, &QWebEnginePage::navigationRequested, this, [](QWebEngineNavigationRequest& request) {
-        qWarning() << "TradePage: navigationRequested url=" << request.url()
-                   << "mainFrame=" << request.isMainFrame()
-                   << "navigationType=" << static_cast<int>(request.navigationType());
+        LogTradeDiagnostic(QStringLiteral("TradePage: navigationRequested url=%1 mainFrame=%2 navigationType=%3")
+                               .arg(request.url().toString())
+                               .arg(request.isMainFrame())
+                               .arg(static_cast<int>(request.navigationType())));
     });
     connect(page, &QWebEnginePage::titleChanged, this, [](const QString& title) {
-        qWarning() << "TradePage: title changed to" << title;
+        LogTradeDiagnostic(QStringLiteral("TradePage: title changed to %1").arg(title));
     });
     connect(page, &QWebEnginePage::iconUrlChanged, this, [](const QUrl& url) {
-        qWarning() << "TradePage: iconUrl changed to" << url;
+        LogTradeDiagnostic(QStringLiteral("TradePage: iconUrl changed to %1").arg(url.toString()));
     });
     connect(page, &QWebEnginePage::windowCloseRequested, this, []() {
-        qWarning() << "TradePage: windowCloseRequested";
+        LogTradeDiagnostic(QStringLiteral("TradePage: windowCloseRequested"));
     });
     connect(page, &QWebEnginePage::newWindowRequested, this, [](QWebEngineNewWindowRequest& request) {
-        qWarning() << "TradePage: newWindowRequested url=" << request.requestedUrl()
-                   << "destination=" << static_cast<int>(request.destination());
+        LogTradeDiagnostic(QStringLiteral("TradePage: newWindowRequested url=%1 destination=%2")
+                               .arg(request.requestedUrl().toString())
+                               .arg(static_cast<int>(request.destination())));
     });
     connect(page, &QWebEnginePage::certificateError, this, [](const QWebEngineCertificateError& error) {
-        qWarning() << "TradePage: certificateError type=" << static_cast<int>(error.type())
-                   << "url=" << error.url()
-                   << "description=" << error.description()
-                   << "overridable=" << error.isOverridable();
+        LogTradeDiagnostic(QStringLiteral("TradePage: certificateError type=%1 url=%2 description=%3 overridable=%4")
+                               .arg(static_cast<int>(error.type()))
+                               .arg(error.url().toString())
+                               .arg(error.description())
+                               .arg(error.isOverridable()));
     });
     connect(page, &QWebEnginePage::fullScreenRequested, this, [](QWebEngineFullScreenRequest request) {
-        qWarning() << "TradePage: fullscreen requested toggle=" << request.toggleOn();
+        LogTradeDiagnostic(QStringLiteral("TradePage: fullscreen requested toggle=%1").arg(request.toggleOn()));
         request.reject();
     });
 #if QT_VERSION >= 0x060800
@@ -319,9 +365,9 @@ void TradePage::ensureInitialized()
             return;
         }
 
-        qWarning() << "TradePage: denying WebEngine capture permission type="
-                   << static_cast<int>(permissionType)
-                   << "origin=" << permission.origin();
+        LogTradeDiagnostic(QStringLiteral("TradePage: denying WebEngine capture permission type=%1 origin=%2")
+                               .arg(static_cast<int>(permissionType))
+                               .arg(permission.origin().toString()));
         permission.deny();
         if (m_statusLabel) {
             m_statusLabel->setText(TradeCaptureBlockedText());
@@ -329,7 +375,7 @@ void TradePage::ensureInitialized()
         }
     });
     connect(page, &QWebEnginePage::desktopMediaRequested, this, [this](const QWebEngineDesktopMediaRequest& request) {
-        qWarning() << "TradePage: canceling desktop media request from embedded trade widget";
+        LogTradeDiagnostic(QStringLiteral("TradePage: canceling desktop media request from embedded trade widget"));
         request.cancel();
         if (m_statusLabel) {
             m_statusLabel->setText(TradeCaptureBlockedText());
@@ -348,9 +394,9 @@ void TradePage::ensureInitialized()
             return;
         }
 
-        qWarning() << "TradePage: denying WebEngine capture feature="
-                   << static_cast<int>(feature)
-                   << "origin=" << securityOrigin;
+        LogTradeDiagnostic(QStringLiteral("TradePage: denying WebEngine capture feature=%1 origin=%2")
+                               .arg(static_cast<int>(feature))
+                               .arg(securityOrigin.toString()));
         page->setFeaturePermission(
             securityOrigin, feature, QWebEnginePage::PermissionDeniedByUser);
         if (m_statusLabel) {
@@ -361,20 +407,24 @@ void TradePage::ensureInitialized()
 #endif
     connect(view, &QWebEngineView::renderProcessTerminated, this,
             [this, view, page](QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode) {
-        qWarning() << "TradePage: renderer terminated status=" << static_cast<int>(terminationStatus)
-                   << "exitCode=" << exitCode
-                   << "currentUrl=" << view->url()
-                   << "requestedUrl=" << page->requestedUrl()
-                   << "pid=" << page->renderProcessPid();
+        LogTradeDiagnostic(QStringLiteral("TradePage: renderer terminated status=%1 exitCode=%2 currentUrl=%3 requestedUrl=%4 pid=%5")
+                               .arg(static_cast<int>(terminationStatus))
+                               .arg(exitCode)
+                               .arg(view->url().toString())
+                               .arg(page->requestedUrl().toString())
+                               .arg(page->renderProcessPid()));
         LogTradeWebEngineState(view, page, "renderProcessTerminated");
         if (m_statusLabel) {
             m_statusLabel->setText(TradeLoadFailureText());
             m_statusLabel->show();
         }
     });
-    qWarning() << "TradePage: initiating view->load with url="
-               << QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL));
-    view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
+    const QUrl load_url = TradeWidgetUrl();
+    LogTradeDiagnostic(QStringLiteral("TradePage: initiating view->load with url=%1 debugOverride=%2 disableWebGl=%3")
+                           .arg(load_url.toString())
+                           .arg(qEnvironmentVariable("VERGE_TRADEPAGE_DEBUG_URL"))
+                           .arg(TradeDisableWebGlForDiagnostics()));
+    view->load(load_url);
     m_layout->addWidget(view);
 #else
     if (m_statusLabel) {

@@ -1028,13 +1028,16 @@ static void ConfigureQtWebEngineRuntimeBase()
     AppendQtLoggingRule(qt_logging_rules, "qt.webengine.compositor=true");
     qputenv("QT_LOGGING_RULES", qt_logging_rules);
 
-    qWarning() << "QtWebEngine: runtime base configured"
-               << "QTWEBENGINE_CHROMIUM_FLAGS=" << qEnvironmentVariable("QTWEBENGINE_CHROMIUM_FLAGS")
-               << "QTWEBENGINE_DISABLE_SANDBOX=" << qEnvironmentVariable("QTWEBENGINE_DISABLE_SANDBOX")
-               << "QTWEBENGINEPROCESS_PATH=" << qEnvironmentVariable("QTWEBENGINEPROCESS_PATH")
-               << "QTWEBENGINE_RESOURCES_PATH=" << qEnvironmentVariable("QTWEBENGINE_RESOURCES_PATH")
-               << "QTWEBENGINE_LOCALES_PATH=" << qEnvironmentVariable("QTWEBENGINE_LOCALES_PATH")
-               << "QT_LOGGING_RULES=" << qEnvironmentVariable("QT_LOGGING_RULES");
+    const QString webengine_runtime_msg =
+        QStringLiteral("QtWebEngine: runtime base configured QTWEBENGINE_CHROMIUM_FLAGS=%1 QTWEBENGINE_DISABLE_SANDBOX=%2 QTWEBENGINEPROCESS_PATH=%3 QTWEBENGINE_RESOURCES_PATH=%4 QTWEBENGINE_LOCALES_PATH=%5 QT_LOGGING_RULES=%6")
+            .arg(qEnvironmentVariable("QTWEBENGINE_CHROMIUM_FLAGS"))
+            .arg(qEnvironmentVariable("QTWEBENGINE_DISABLE_SANDBOX"))
+            .arg(qEnvironmentVariable("QTWEBENGINEPROCESS_PATH"))
+            .arg(qEnvironmentVariable("QTWEBENGINE_RESOURCES_PATH"))
+            .arg(qEnvironmentVariable("QTWEBENGINE_LOCALES_PATH"))
+            .arg(qEnvironmentVariable("QT_LOGGING_RULES"));
+    qWarning().noquote() << webengine_runtime_msg;
+    LogPrintf("GUI: %s\n", webengine_runtime_msg.toStdString());
 #endif
 }
 
@@ -1060,9 +1063,12 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
     AppendWebEngineFlag(flags, "--no-sandbox");
     AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
-    qWarning() << "QtWebEngine: proxy configuration updated"
-               << "use_tor_proxy=" << use_tor_proxy
-               << "QTWEBENGINE_CHROMIUM_FLAGS=" << qEnvironmentVariable("QTWEBENGINE_CHROMIUM_FLAGS");
+    const QString webengine_proxy_msg =
+        QStringLiteral("QtWebEngine: proxy configuration updated use_tor_proxy=%1 QTWEBENGINE_CHROMIUM_FLAGS=%2")
+            .arg(use_tor_proxy)
+            .arg(qEnvironmentVariable("QTWEBENGINE_CHROMIUM_FLAGS"));
+    qWarning().noquote() << webengine_proxy_msg;
+    LogPrintf("GUI: %s\n", webengine_proxy_msg.toStdString());
 #else
     Q_UNUSED(use_tor_proxy);
 #endif
