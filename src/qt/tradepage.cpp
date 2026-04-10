@@ -10,6 +10,8 @@
 
 #include <QLabel>
 #include <QDebug>
+#include <QDesktopServices>
+#include <QPushButton>
 #include <QShowEvent>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -34,9 +36,9 @@
 #endif
 
 namespace {
-#if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
 static const char* STEALTHEX_WIDGET_URL = "https://stealthex.io/widget/1c5c64de-0ac0-4b79-a393-e447de460c42";
 
+#if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
 static QString TradeCaptureBlockedText()
 {
     return QObject::tr("Trade widget requested screen sharing, which is disabled in VERGE on this platform.");
@@ -190,13 +192,37 @@ void TradePage::ensureInitialized()
     }
     m_initialized = true;
 
+#if defined(Q_OS_MAC)
+    if (m_statusLabel) {
+        m_statusLabel->setText(tr("Trade is opened in your default browser on macOS because the bundled Qt WebEngine renderer crashes in Apple's ScreenCaptureKit path."));
+        m_statusLabel->show();
+    }
+
+    QPushButton* open_button = new QPushButton(tr("Open Trade Widget"), this);
+    connect(open_button, &QPushButton::clicked, this, [this]() {
+        const bool opened = QDesktopServices::openUrl(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
+        qWarning() << "TradePage: macOS external trade widget open result=" << opened
+                   << "url=" << QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL));
+        if (opened) {
+            m_openedExternally = true;
+        }
+    });
+    m_layout->addWidget(open_button);
+
+    if (!m_openedExternally) {
+        const bool opened = QDesktopServices::openUrl(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
+        qWarning() << "TradePage: macOS initial external trade widget open result=" << opened
+                   << "url=" << QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL));
+        if (opened) {
+            m_openedExternally = true;
+        }
+    }
+    return;
+#endif
+
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
     TradeWebEnginePage* page = new TradeWebEnginePage(view);
-#if defined(Q_OS_MAC)
-    InstallTradeCaptureGuards(page);
-    page->settings()->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, false);
-#endif
     view->setPage(page);
 
     connect(view, &QWebEngineView::loadStarted, this, [this]() {
@@ -325,11 +351,7 @@ void TradePage::ensureInitialized()
             m_statusLabel->show();
         }
     });
-#if defined(Q_OS_MAC)
-    view->setHtml(BuildTradeWidgetWrapperHtml(), QUrl(QStringLiteral("https://stealthex.io/")));
-#else
     view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
-#endif
     m_layout->addWidget(view);
 #else
     if (m_statusLabel) {

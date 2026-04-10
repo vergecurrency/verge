@@ -23,6 +23,7 @@ private:
     QVBoxLayout* m_layout{nullptr};
     QLabel* m_statusLabel{nullptr};
     bool m_initialized{false};
+    bool m_openedExternally{false};
 };
 
 #endif // VERGE_QT_TRADEPAGE_H
