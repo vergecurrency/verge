@@ -573,16 +573,46 @@ jobs:
           set -euo pipefail
           ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
           echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
-          find "Verge-Qt.app" -type f \( \
-            -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
-            -path "*/Contents/MacOS/verge-qt" \
-          \) -print | while read -r TARGET; do
-            echo "Signing with WebEngine entitlements: $TARGET"
+
+          sign_file() {
+            local target="$1"
+            shift
+            echo "Signing file: $target"
             codesign --force --options runtime --timestamp \
-              --entitlements "$ENTITLEMENTS" \
               --keychain "$MACOS_KEYCHAIN_PATH" \
-              --sign "$MACOS_SIGNING_IDENTITY" "$TARGET"
+              --sign "$MACOS_SIGNING_IDENTITY" "$@" "$target"
+          }
+
+          find "Verge-Qt.app" -type f \( \
+            -name "*.dylib" -o \
+            -path "*/Contents/MacOS/*" \
+          \) ! -path "*/_CodeSignature/*" | sort | while read -r TARGET; do
+            case "$TARGET" in
+              */QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess|*/Contents/MacOS/verge-qt)
+                sign_file "$TARGET" --entitlements "$ENTITLEMENTS"
+                ;;
+              *)
+                sign_file "$TARGET"
+                ;;
+            esac
           done
+
+          find "Verge-Qt.app" -depth \( \
+            -type d -name "*.framework" -o \
+            -type d -name "*.app" \
+          \) | while read -r BUNDLE; do
+            case "$BUNDLE" in
+              "Verge-Qt.app")
+                ;;
+              *)
+                echo "Signing bundle: $BUNDLE"
+                codesign --force --options runtime --timestamp \
+                  --keychain "$MACOS_KEYCHAIN_PATH" \
+                  --sign "$MACOS_SIGNING_IDENTITY" "$BUNDLE"
+                ;;
+            esac
+          done
+
           codesign --force --options runtime --timestamp \
             --keychain "$MACOS_KEYCHAIN_PATH" \
             --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
@@ -1254,16 +1284,46 @@ jobs:
           set -euo pipefail
           ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
           echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
-          find "Verge-Qt.app" -type f \( \
-            -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
-            -path "*/Contents/MacOS/verge-qt" \
-          \) -print | while read -r TARGET; do
-            echo "Signing with WebEngine entitlements: $TARGET"
+
+          sign_file() {
+            local target="$1"
+            shift
+            echo "Signing file: $target"
             codesign --force --options runtime --timestamp \
-              --entitlements "$ENTITLEMENTS" \
               --keychain "$MACOS_KEYCHAIN_PATH" \
-              --sign "$MACOS_SIGNING_IDENTITY" "$TARGET"
+              --sign "$MACOS_SIGNING_IDENTITY" "$@" "$target"
+          }
+
+          find "Verge-Qt.app" -type f \( \
+            -name "*.dylib" -o \
+            -path "*/Contents/MacOS/*" \
+          \) ! -path "*/_CodeSignature/*" | sort | while read -r TARGET; do
+            case "$TARGET" in
+              */QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess|*/Contents/MacOS/verge-qt)
+                sign_file "$TARGET" --entitlements "$ENTITLEMENTS"
+                ;;
+              *)
+                sign_file "$TARGET"
+                ;;
+            esac
           done
+
+          find "Verge-Qt.app" -depth \( \
+            -type d -name "*.framework" -o \
+            -type d -name "*.app" \
+          \) | while read -r BUNDLE; do
+            case "$BUNDLE" in
+              "Verge-Qt.app")
+                ;;
+              *)
+                echo "Signing bundle: $BUNDLE"
+                codesign --force --options runtime --timestamp \
+                  --keychain "$MACOS_KEYCHAIN_PATH" \
+                  --sign "$MACOS_SIGNING_IDENTITY" "$BUNDLE"
+                ;;
+            esac
+          done
+
           codesign --force --options runtime --timestamp \
             --keychain "$MACOS_KEYCHAIN_PATH" \
             --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"

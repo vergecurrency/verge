@@ -357,11 +357,32 @@ jobs:
           if ls *.app >/dev/null 2>&1; then
             for APP in *.app; do
               find "$APP" -type f \( \
-                -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
-                -path "*/Contents/MacOS/verge-qt" \
-              \) -print | while read -r TARGET; do
-                echo "Ad-hoc signing with WebEngine entitlements: $TARGET"
-                codesign --force --sign - --entitlements "$ENTITLEMENTS" "$TARGET"
+                -name "*.dylib" -o \
+                -path "*/Contents/MacOS/*" \
+              \) ! -path "*/_CodeSignature/*" | sort | while read -r TARGET; do
+                case "$TARGET" in
+                  */QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess|*/Contents/MacOS/verge-qt)
+                    echo "Ad-hoc signing with WebEngine entitlements: $TARGET"
+                    codesign --force --sign - --entitlements "$ENTITLEMENTS" "$TARGET"
+                    ;;
+                  *)
+                    echo "Ad-hoc signing file: $TARGET"
+                    codesign --force --sign - "$TARGET"
+                    ;;
+                esac
+              done
+              find "$APP" -depth \( \
+                -type d -name "*.framework" -o \
+                -type d -name "*.app" \
+              \) | while read -r BUNDLE; do
+                case "$BUNDLE" in
+                  "$APP")
+                    ;;
+                  *)
+                    echo "Ad-hoc signing bundle: $BUNDLE"
+                    codesign --force --sign - "$BUNDLE"
+                    ;;
+                esac
               done
               echo "Ad-hoc signing app bundle: $APP"
               codesign --force --sign - "$APP"
@@ -729,11 +750,32 @@ jobs:
           if ls *.app >/dev/null 2>&1; then
             for APP in *.app; do
               find "$APP" -type f \( \
-                -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
-                -path "*/Contents/MacOS/verge-qt" \
-              \) -print | while read -r TARGET; do
-                echo "Ad-hoc signing with WebEngine entitlements: $TARGET"
-                codesign --force --sign - --entitlements "$ENTITLEMENTS" "$TARGET"
+                -name "*.dylib" -o \
+                -path "*/Contents/MacOS/*" \
+              \) ! -path "*/_CodeSignature/*" | sort | while read -r TARGET; do
+                case "$TARGET" in
+                  */QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess|*/Contents/MacOS/verge-qt)
+                    echo "Ad-hoc signing with WebEngine entitlements: $TARGET"
+                    codesign --force --sign - --entitlements "$ENTITLEMENTS" "$TARGET"
+                    ;;
+                  *)
+                    echo "Ad-hoc signing file: $TARGET"
+                    codesign --force --sign - "$TARGET"
+                    ;;
+                esac
+              done
+              find "$APP" -depth \( \
+                -type d -name "*.framework" -o \
+                -type d -name "*.app" \
+              \) | while read -r BUNDLE; do
+                case "$BUNDLE" in
+                  "$APP")
+                    ;;
+                  *)
+                    echo "Ad-hoc signing bundle: $BUNDLE"
+                    codesign --force --sign - "$BUNDLE"
+                    ;;
+                esac
               done
               echo "Ad-hoc signing app bundle: $APP"
               codesign --force --sign - "$APP"
