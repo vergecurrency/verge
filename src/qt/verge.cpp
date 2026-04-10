@@ -1027,6 +1027,14 @@ static void ConfigureQtWebEngineRuntimeBase()
     AppendQtLoggingRule(qt_logging_rules, "qt.webenginecontext=true");
     AppendQtLoggingRule(qt_logging_rules, "qt.webengine.compositor=true");
     qputenv("QT_LOGGING_RULES", qt_logging_rules);
+
+    qWarning() << "QtWebEngine: runtime base configured"
+               << "QTWEBENGINE_CHROMIUM_FLAGS=" << qEnvironmentVariable("QTWEBENGINE_CHROMIUM_FLAGS")
+               << "QTWEBENGINE_DISABLE_SANDBOX=" << qEnvironmentVariable("QTWEBENGINE_DISABLE_SANDBOX")
+               << "QTWEBENGINEPROCESS_PATH=" << qEnvironmentVariable("QTWEBENGINEPROCESS_PATH")
+               << "QTWEBENGINE_RESOURCES_PATH=" << qEnvironmentVariable("QTWEBENGINE_RESOURCES_PATH")
+               << "QTWEBENGINE_LOCALES_PATH=" << qEnvironmentVariable("QTWEBENGINE_LOCALES_PATH")
+               << "QT_LOGGING_RULES=" << qEnvironmentVariable("QT_LOGGING_RULES");
 #endif
 }
 
@@ -1052,6 +1060,9 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
     AppendWebEngineFlag(flags, "--no-sandbox");
     AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+    qWarning() << "QtWebEngine: proxy configuration updated"
+               << "use_tor_proxy=" << use_tor_proxy
+               << "QTWEBENGINE_CHROMIUM_FLAGS=" << qEnvironmentVariable("QTWEBENGINE_CHROMIUM_FLAGS");
 #else
     Q_UNUSED(use_tor_proxy);
 #endif
