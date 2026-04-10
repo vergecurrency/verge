@@ -1448,21 +1448,52 @@ jobs:
 
           STATUS="$(python3 -c 'import json,sys; import pathlib; p=pathlib.Path(sys.argv[1]); print((json.load(open(p)).get("status","") if p.exists() and p.stat().st_size else ""))' notary_state/notarytool-info.json)"
 
-          if [ "$WAIT_RC" -ne 0 ]; then
-            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+          dump_notary_diagnostics() {
             xcrun notarytool log "$SUBMISSION_ID" \
               --apple-id "$APPLE_ID" \
               --team-id "$APPLE_TEAM_ID" \
               --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+
+            echo "===== notarytool info ====="
+            cat notary_state/notarytool-info.json 2>/dev/null || true
+            echo "===== notarytool log ====="
+            cat notary_state/notarytool-log.json 2>/dev/null || true
+
+            MOUNT_DIR="$(mktemp -d /tmp/verge-notary-XXXXXX)"
+            MOUNT_OUTPUT="$(hdiutil attach "$DMG_PATH" -nobrowse -readonly -mountpoint "$MOUNT_DIR" 2>/dev/null)" || true
+            APP_BUNDLE="$MOUNT_DIR/Verge-Qt.app"
+            APP_BIN="$APP_BUNDLE/Contents/MacOS/verge-qt"
+            HELPER_BIN="$APP_BUNDLE/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+
+            if [ -e "$APP_BIN" ]; then
+              echo "===== codesign verify app ====="
+              codesign --verify --verbose=4 "$APP_BIN" || true
+              echo "===== entitlements app ====="
+              codesign -d --entitlements :- "$APP_BIN" || true
+            fi
+
+            if [ -e "$HELPER_BIN" ]; then
+              echo "===== codesign verify helper ====="
+              codesign --verify --verbose=4 "$HELPER_BIN" || true
+              echo "===== entitlements helper ====="
+              codesign -d --entitlements :- "$HELPER_BIN" || true
+            fi
+
+            if [ -n "${MOUNT_OUTPUT:-}" ]; then
+              hdiutil detach "$MOUNT_DIR" -force >/dev/null 2>&1 || true
+            fi
+            rm -rf "$MOUNT_DIR"
+          }
+
+          if [ "$WAIT_RC" -ne 0 ]; then
+            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+            dump_notary_diagnostics
             exit "$WAIT_RC"
           fi
 
           if [ "${STATUS:-}" != "Accepted" ]; then
             echo "Notarization did not return Accepted status (status=${STATUS:-unknown})."
-            xcrun notarytool log "$SUBMISSION_ID" \
-              --apple-id "$APPLE_ID" \
-              --team-id "$APPLE_TEAM_ID" \
-              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+            dump_notary_diagnostics
             exit 1
           fi
 
@@ -1583,21 +1614,52 @@ jobs:
 
           STATUS="$(python3 -c 'import json,sys; import pathlib; p=pathlib.Path(sys.argv[1]); print((json.load(open(p)).get("status","") if p.exists() and p.stat().st_size else ""))' notary_state/notarytool-info.json)"
 
-          if [ "$WAIT_RC" -ne 0 ]; then
-            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+          dump_notary_diagnostics() {
             xcrun notarytool log "$SUBMISSION_ID" \
               --apple-id "$APPLE_ID" \
               --team-id "$APPLE_TEAM_ID" \
               --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+
+            echo "===== notarytool info ====="
+            cat notary_state/notarytool-info.json 2>/dev/null || true
+            echo "===== notarytool log ====="
+            cat notary_state/notarytool-log.json 2>/dev/null || true
+
+            MOUNT_DIR="$(mktemp -d /tmp/verge-notary-XXXXXX)"
+            MOUNT_OUTPUT="$(hdiutil attach "$DMG_PATH" -nobrowse -readonly -mountpoint "$MOUNT_DIR" 2>/dev/null)" || true
+            APP_BUNDLE="$MOUNT_DIR/Verge-Qt.app"
+            APP_BIN="$APP_BUNDLE/Contents/MacOS/verge-qt"
+            HELPER_BIN="$APP_BUNDLE/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+
+            if [ -e "$APP_BIN" ]; then
+              echo "===== codesign verify app ====="
+              codesign --verify --verbose=4 "$APP_BIN" || true
+              echo "===== entitlements app ====="
+              codesign -d --entitlements :- "$APP_BIN" || true
+            fi
+
+            if [ -e "$HELPER_BIN" ]; then
+              echo "===== codesign verify helper ====="
+              codesign --verify --verbose=4 "$HELPER_BIN" || true
+              echo "===== entitlements helper ====="
+              codesign -d --entitlements :- "$HELPER_BIN" || true
+            fi
+
+            if [ -n "${MOUNT_OUTPUT:-}" ]; then
+              hdiutil detach "$MOUNT_DIR" -force >/dev/null 2>&1 || true
+            fi
+            rm -rf "$MOUNT_DIR"
+          }
+
+          if [ "$WAIT_RC" -ne 0 ]; then
+            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+            dump_notary_diagnostics
             exit "$WAIT_RC"
           fi
 
           if [ "${STATUS:-}" != "Accepted" ]; then
             echo "Notarization did not return Accepted status (status=${STATUS:-unknown})."
-            xcrun notarytool log "$SUBMISSION_ID" \
-              --apple-id "$APPLE_ID" \
-              --team-id "$APPLE_TEAM_ID" \
-              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+            dump_notary_diagnostics
             exit 1
           fi
 
