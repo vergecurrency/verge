@@ -1400,12 +1400,19 @@ jobs:
             exit 1
           fi
 
+          DMG_SHA256="$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')"
+          echo "DMG SHA256: $DMG_SHA256"
+
           mkdir -p notary_state
 
-          if [ -f "notary_state/notary_submission_id.txt" ]; then
+          if [ -f "notary_state/dmg_sha256.txt" ] && [ "$(cat notary_state/dmg_sha256.txt)" = "$DMG_SHA256" ] && [ -f "notary_state/notary_submission_id.txt" ]; then
             SUBMISSION_ID="$(cat notary_state/notary_submission_id.txt)"
-            echo "Reusing prior notary submission id: $SUBMISSION_ID"
+            echo "Reusing prior notary submission id for same DMG: $SUBMISSION_ID"
           else
+            rm -f notary_state/notary_submission_id.txt \
+                  notary_state/notarytool-submit.json \
+                  notary_state/notarytool-info.json \
+                  notary_state/notarytool-log.json
             xcrun notarytool submit "$DMG_PATH" \
               --apple-id "$APPLE_ID" \
               --team-id "$APPLE_TEAM_ID" \
@@ -1421,6 +1428,7 @@ jobs:
           fi
 
           echo "$SUBMISSION_ID" > notary_state/notary_submission_id.txt
+          echo "$DMG_SHA256" > notary_state/dmg_sha256.txt
           echo "Notarization submission ID: $SUBMISSION_ID"
 
           set +e
@@ -1527,12 +1535,19 @@ jobs:
             exit 1
           fi
 
+          DMG_SHA256="$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')"
+          echo "DMG SHA256: $DMG_SHA256"
+
           mkdir -p notary_state
 
-          if [ -f "notary_state/notary_submission_id.txt" ]; then
+          if [ -f "notary_state/dmg_sha256.txt" ] && [ "$(cat notary_state/dmg_sha256.txt)" = "$DMG_SHA256" ] && [ -f "notary_state/notary_submission_id.txt" ]; then
             SUBMISSION_ID="$(cat notary_state/notary_submission_id.txt)"
-            echo "Reusing prior notary submission id: $SUBMISSION_ID"
+            echo "Reusing prior notary submission id for same DMG: $SUBMISSION_ID"
           else
+            rm -f notary_state/notary_submission_id.txt \
+                  notary_state/notarytool-submit.json \
+                  notary_state/notarytool-info.json \
+                  notary_state/notarytool-log.json
             xcrun notarytool submit "$DMG_PATH" \
               --apple-id "$APPLE_ID" \
               --team-id "$APPLE_TEAM_ID" \
@@ -1548,6 +1563,7 @@ jobs:
           fi
 
           echo "$SUBMISSION_ID" > notary_state/notary_submission_id.txt
+          echo "$DMG_SHA256" > notary_state/dmg_sha256.txt
           echo "Notarization submission ID: $SUBMISSION_ID"
 
           set +e
