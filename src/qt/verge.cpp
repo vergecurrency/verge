@@ -52,6 +52,7 @@
 #include <QByteArray>
 #include <QDebug>
 #include <QDir>
+#include <QFileInfo>
 #include <QStringList>
 #include <QLibraryInfo>
 #include <QLocale>
@@ -921,6 +922,50 @@ static void AppendQtLoggingRule(QByteArray& rules, const char* rule)
     rules.append(needle);
 }
 
+static void ConfigureQtWebEngineBundlePaths()
+{
+#if defined(Q_OS_MAC)
+    const QDir app_dir(QCoreApplication::applicationDirPath());
+    const QDir contents_dir(app_dir.absoluteFilePath(QStringLiteral("..")));
+    const QString frameworks_dir = contents_dir.absoluteFilePath(QStringLiteral("Frameworks"));
+    const QString helper_path = frameworks_dir +
+        QStringLiteral("/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess");
+    const QString framework_resources_path =
+        frameworks_dir + QStringLiteral("/QtWebEngineCore.framework/Versions/A/Resources");
+    const QString app_resources_path = contents_dir.absoluteFilePath(QStringLiteral("Resources"));
+
+    if (QFileInfo::exists(helper_path)) {
+        qputenv("QTWEBENGINEPROCESS_PATH", helper_path.toUtf8());
+        qWarning() << "QtWebEngine: using helper process at" << helper_path;
+    } else {
+        qWarning() << "QtWebEngine: helper process not found at" << helper_path;
+    }
+
+    const QString resources_path =
+        QFileInfo::exists(framework_resources_path + QStringLiteral("/qtwebengine_resources.pak"))
+            ? framework_resources_path
+            : app_resources_path;
+    if (QFileInfo::exists(resources_path + QStringLiteral("/qtwebengine_resources.pak"))) {
+        qputenv("QTWEBENGINE_RESOURCES_PATH", resources_path.toUtf8());
+        qWarning() << "QtWebEngine: using resources at" << resources_path;
+    } else {
+        qWarning() << "QtWebEngine: qtwebengine_resources.pak not found in"
+                   << framework_resources_path << "or" << app_resources_path;
+    }
+
+    const QString framework_locales_path = framework_resources_path + QStringLiteral("/qtwebengine_locales");
+    const QString app_locales_path = app_resources_path + QStringLiteral("/qtwebengine_locales");
+    const QString locales_path = QDir(framework_locales_path).exists() ? framework_locales_path : app_locales_path;
+    if (QDir(locales_path).exists()) {
+        qputenv("QTWEBENGINE_LOCALES_PATH", locales_path.toUtf8());
+        qWarning() << "QtWebEngine: using locales at" << locales_path;
+    } else {
+        qWarning() << "QtWebEngine: qtwebengine_locales directory not found in"
+                   << framework_locales_path << "or" << app_locales_path;
+    }
+#endif
+}
+
 static void ConfigureQtWebEngineRuntimeBase()
 {
 #if defined(Q_OS_LINUX)
@@ -962,6 +1007,8 @@ static void ConfigureQtWebEngineRuntimeBase()
         qputenv("DBUS_SYSTEM_BUS_ADDRESS", QByteArray("unix:path=/run/dbus/system_bus_socket"));
     }
 #elif defined(Q_OS_MAC)
+    ConfigureQtWebEngineBundlePaths();
+
     QByteArray flags = BuildSanitizedWebEngineFlags();
 
     // Match the macOS CI launch environment that keeps the bundled WebEngine view usable.
