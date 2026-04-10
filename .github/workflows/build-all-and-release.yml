@@ -343,6 +343,7 @@ jobs:
       - name: Ad-hoc sign Verge binaries (macOS 15)
         run: |
           set -euo pipefail
+          ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
           
           echo "Searching for Verge binaries to sign…"
           find . -type f \( \
@@ -355,8 +356,15 @@ jobs:
           # If Qt app exists, sign the whole bundle (important)
           if ls *.app >/dev/null 2>&1; then
             for APP in *.app; do
+              find "$APP" -type f \( \
+                -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
+                -path "*/Contents/MacOS/verge-qt" \
+              \) -print | while read -r TARGET; do
+                echo "Ad-hoc signing with WebEngine entitlements: $TARGET"
+                codesign --force --sign - --entitlements "$ENTITLEMENTS" "$TARGET"
+              done
               echo "Ad-hoc signing app bundle: $APP"
-              codesign --force --deep --sign - "$APP"
+              codesign --force --sign - "$APP"
             done
           fi
           
@@ -708,6 +716,7 @@ jobs:
       - name: Ad-hoc sign Verge binaries (macOS 14)
         run: |
           set -euo pipefail
+          ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
           
           echo "Searching for Verge binaries to sign…"
           find . -type f \( \
@@ -719,8 +728,15 @@ jobs:
           
           if ls *.app >/dev/null 2>&1; then
             for APP in *.app; do
+              find "$APP" -type f \( \
+                -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
+                -path "*/Contents/MacOS/verge-qt" \
+              \) -print | while read -r TARGET; do
+                echo "Ad-hoc signing with WebEngine entitlements: $TARGET"
+                codesign --force --sign - --entitlements "$ENTITLEMENTS" "$TARGET"
+              done
               echo "Ad-hoc signing app bundle: $APP"
-              codesign --force --deep --sign - "$APP"
+              codesign --force --sign - "$APP"
             done
           fi
           

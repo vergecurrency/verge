@@ -571,8 +571,19 @@ jobs:
           MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
         run: |
           set -euo pipefail
+          ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
           echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
-          codesign --force --deep --options runtime --timestamp \
+          find "Verge-Qt.app" -type f \( \
+            -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
+            -path "*/Contents/MacOS/verge-qt" \
+          \) -print | while read -r TARGET; do
+            echo "Signing with WebEngine entitlements: $TARGET"
+            codesign --force --options runtime --timestamp \
+              --entitlements "$ENTITLEMENTS" \
+              --keychain "$MACOS_KEYCHAIN_PATH" \
+              --sign "$MACOS_SIGNING_IDENTITY" "$TARGET"
+          done
+          codesign --force --options runtime --timestamp \
             --keychain "$MACOS_KEYCHAIN_PATH" \
             --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
 
@@ -1241,8 +1252,19 @@ jobs:
           MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
         run: |
           set -euo pipefail
+          ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
           echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
-          codesign --force --deep --options runtime --timestamp \
+          find "Verge-Qt.app" -type f \( \
+            -path "*/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" -o \
+            -path "*/Contents/MacOS/verge-qt" \
+          \) -print | while read -r TARGET; do
+            echo "Signing with WebEngine entitlements: $TARGET"
+            codesign --force --options runtime --timestamp \
+              --entitlements "$ENTITLEMENTS" \
+              --keychain "$MACOS_KEYCHAIN_PATH" \
+              --sign "$MACOS_SIGNING_IDENTITY" "$TARGET"
+          done
+          codesign --force --options runtime --timestamp \
             --keychain "$MACOS_KEYCHAIN_PATH" \
             --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
 
