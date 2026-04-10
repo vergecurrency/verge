@@ -1015,7 +1015,8 @@ static void ConfigureQtWebEngineRuntimeBase()
     AppendWebEngineFlag(flags, "--disable-gpu");
     AppendWebEngineFlag(flags, "--disable-gpu-compositing");
     AppendWebEngineFlag(flags, "--no-sandbox");
-    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker");
+    AppendWebEngineFlag(flags, "--auto-reject-capture");
+    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker,UseScreenCaptureKitForSnapshots");
     AppendWebEngineFlag(flags, "--enable-logging");
     AppendWebEngineFlag(flags, "--log-level=0");
     AppendWebEngineFlag(flags, "--v=1");
@@ -1061,7 +1062,8 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
     AppendWebEngineFlag(flags, "--disable-gpu");
     AppendWebEngineFlag(flags, "--disable-gpu-compositing");
     AppendWebEngineFlag(flags, "--no-sandbox");
-    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker");
+    AppendWebEngineFlag(flags, "--auto-reject-capture");
+    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker,UseScreenCaptureKitForSnapshots");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     const QString webengine_proxy_msg =
         QStringLiteral("QtWebEngine: proxy configuration updated use_tor_proxy=%1 QTWEBENGINE_CHROMIUM_FLAGS=%2")

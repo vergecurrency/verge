@@ -65,7 +65,9 @@ static QUrl TradeWidgetUrl()
 
 static bool TradeDisableWebGlForDiagnostics()
 {
-    return qEnvironmentVariableIntValue("VERGE_TRADEPAGE_DISABLE_WEBGL") != 0;
+    return qEnvironmentVariableIsEmpty("VERGE_TRADEPAGE_DISABLE_WEBGL")
+        ? true
+        : qEnvironmentVariableIntValue("VERGE_TRADEPAGE_DISABLE_WEBGL") != 0;
 }
 
 static void LogTradeWebEngineState(QWebEngineView* view, QWebEnginePage* page, const char* stage)
@@ -248,7 +250,7 @@ void TradePage::ensureInitialized()
     if (TradeDisableWebGlForDiagnostics()) {
         page->settings()->setAttribute(QWebEngineSettings::WebGLEnabled, false);
         page->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, false);
-        LogTradeDiagnostic(QStringLiteral("TradePage: macOS diagnostics disabled WebGL and accelerated 2D canvas via VERGE_TRADEPAGE_DISABLE_WEBGL=1"));
+        LogTradeDiagnostic(QStringLiteral("TradePage: macOS disabled WebGL and accelerated 2D canvas"));
     }
 #endif
     view->setPage(page);
