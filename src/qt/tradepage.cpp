@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QDebug>
 #include <QShowEvent>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
@@ -39,6 +40,44 @@ static const char* STEALTHEX_WIDGET_URL = "https://stealthex.io/widget/1c5c64de-
 static QString TradeCaptureBlockedText()
 {
     return QObject::tr("Trade widget requested screen sharing, which is disabled in VERGE on this platform.");
+}
+
+static QString BuildTradeWidgetWrapperHtml()
+{
+    const QString widget_url = QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)).toString(QUrl::FullyEncoded);
+    return QString::fromLatin1(R"HTML(
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #ffffff;
+    }
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <iframe
+    src="%1"
+    referrerpolicy="strict-origin-when-cross-origin"
+    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads">
+  </iframe>
+</body>
+</html>
+)HTML").arg(widget_url);
 }
 
 static void InstallTradeCaptureGuards(QWebEnginePage* page)
@@ -220,12 +259,14 @@ void TradePage::ensureInitialized()
     });
     connect(page, &QWebEnginePage::fullScreenRequested, this, [](QWebEngineFullScreenRequest request) {
         qWarning() << "TradePage: fullscreen requested toggle=" << request.toggleOn();
-        request.accept();
+        request.reject();
     });
 #if QT_VERSION >= 0x060800
     connect(page, &QWebEnginePage::permissionRequested, this, [this](QWebEnginePermission permission) {
         const auto permissionType = permission.permissionType();
         const bool is_capture_permission =
+            permissionType == QWebEnginePermission::PermissionType::MediaAudioCapture ||
+            permissionType == QWebEnginePermission::PermissionType::MediaVideoCapture ||
             permissionType == QWebEnginePermission::PermissionType::DesktopVideoCapture ||
             permissionType == QWebEnginePermission::PermissionType::DesktopAudioVideoCapture;
         if (!is_capture_permission) {
@@ -253,6 +294,8 @@ void TradePage::ensureInitialized()
     connect(page, &QWebEnginePage::featurePermissionRequested, this,
             [this, page](const QUrl& securityOrigin, QWebEnginePage::Feature feature) {
         const bool is_capture_feature =
+            feature == QWebEnginePage::MediaAudioCapture ||
+            feature == QWebEnginePage::MediaVideoCapture ||
             feature == QWebEnginePage::DesktopVideoCapture ||
             feature == QWebEnginePage::DesktopAudioVideoCapture;
         if (!is_capture_feature) {
@@ -282,7 +325,11 @@ void TradePage::ensureInitialized()
             m_statusLabel->show();
         }
     });
+#if defined(Q_OS_MAC)
+    view->setHtml(BuildTradeWidgetWrapperHtml(), QUrl(QStringLiteral("https://stealthex.io/")));
+#else
     view->load(QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL)));
+#endif
     m_layout->addWidget(view);
 #else
     if (m_statusLabel) {

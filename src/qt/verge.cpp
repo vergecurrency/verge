@@ -1015,6 +1015,7 @@ static void ConfigureQtWebEngineRuntimeBase()
     AppendWebEngineFlag(flags, "--disable-gpu");
     AppendWebEngineFlag(flags, "--disable-gpu-compositing");
     AppendWebEngineFlag(flags, "--no-sandbox");
+    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker");
     AppendWebEngineFlag(flags, "--enable-logging");
     AppendWebEngineFlag(flags, "--log-level=0");
     AppendWebEngineFlag(flags, "--v=1");
@@ -1049,6 +1050,7 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
     AppendWebEngineFlag(flags, "--disable-gpu");
     AppendWebEngineFlag(flags, "--disable-gpu-compositing");
     AppendWebEngineFlag(flags, "--no-sandbox");
+    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
 #else
     Q_UNUSED(use_tor_proxy);
