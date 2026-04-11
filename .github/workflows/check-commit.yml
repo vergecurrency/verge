@@ -722,12 +722,15 @@ jobs:
           trap cleanup EXIT
 
           APP_BIN="$MOUNT_POINT/Verge-Qt.app/Contents/MacOS/verge-qt"
+          APP_FRAMEWORKS="$MOUNT_POINT/Verge-Qt.app/Contents/Frameworks"
           if [ ! -x "$APP_BIN" ]; then
             echo "::error::App binary not found in DMG at $APP_BIN"
             ls -la "$MOUNT_POINT"
             exit 1
           fi
-
+          
+          DYLD_FRAMEWORK_PATH="$APP_FRAMEWORKS:${DYLD_FRAMEWORK_PATH:-}" \
+          DYLD_LIBRARY_PATH="$APP_FRAMEWORKS:${DYLD_LIBRARY_PATH:-}" \
           QTWEBENGINE_DISABLE_SANDBOX=1 QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" "$APP_BIN" &
           APP_PID=$!
           sleep 8
@@ -1481,12 +1484,15 @@ jobs:
           trap cleanup EXIT
 
           APP_BIN="$MOUNT_POINT/Verge-Qt.app/Contents/MacOS/verge-qt"
+          APP_FRAMEWORKS="$MOUNT_POINT/Verge-Qt.app/Contents/Frameworks"
           if [ ! -x "$APP_BIN" ]; then
             echo "::error::App binary not found in DMG at $APP_BIN"
             ls -la "$MOUNT_POINT"
             exit 1
           fi
 
+          DYLD_FRAMEWORK_PATH="$APP_FRAMEWORKS:${DYLD_FRAMEWORK_PATH:-}" \
+          DYLD_LIBRARY_PATH="$APP_FRAMEWORKS:${DYLD_LIBRARY_PATH:-}" \
           QTWEBENGINE_DISABLE_SANDBOX=1 QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" "$APP_BIN" &
           APP_PID=$!
           sleep 8
