@@ -24,6 +24,25 @@ jobs:
       - name: Link brew deps
         run: brew link berkeley-db@4 boost
 
+      - name: Create local tap & stage protobuf261.rb
+        run: |
+          set -euo pipefail
+          if ! brew tap | grep -q '^vergecurrency/local$'; then
+            brew tap-new vergecurrency/local
+          fi
+          TAP_DIR="$(brew --repo vergecurrency/local)"
+          mkdir -p "$TAP_DIR/Formula"
+          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
+          if [ -f "$FORMULA_LOCAL" ]; then
+            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+          else
+            REF="${GITHUB_REF_NAME:-master}"
+            curl -fL "https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb" -o "$TAP_DIR/Formula/protobuf261.rb"
+          fi
+
+      - name: Install protobuf261 via tap
+        run: brew install vergecurrency/local/protobuf261
+
       - name: Install Qt 6.10.2 for macOS
         run: |
           set -euo pipefail
@@ -141,6 +160,7 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
           BOOST_PREFIX="$(brew --prefix boost)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
@@ -149,10 +169,17 @@ jobs:
           QT_INCLUDE_DIR="$("$QMAKE_BIN" -query QT_INSTALL_HEADERS)"
           QT_LIB_DIR="$("$QMAKE_BIN" -query QT_INSTALL_LIBS)"
           QT_PLUGIN_DIR="$("$QMAKE_BIN" -query QT_INSTALL_PLUGINS)"
+          if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTOBUF_PREFIX="$BREW_PREFIX/opt/protobuf261"
+          else
+            PROTOBUF_CELLAR="$BREW_CELLAR/protobuf261"
+            PROTOBUF_VER="$(ls -1 "$PROTOBUF_CELLAR" | sort -V | tail -n1 || true)"
+            PROTOBUF_PREFIX="$PROTOBUF_CELLAR/$PROTOBUF_VER"
+          fi
 
-          export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
-          export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
-          export PKG_CONFIG_PATH="$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export CPPFLAGS="-I$PROTOBUF_PREFIX/include -I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+          export LDFLAGS="-L$PROTOBUF_PREFIX/lib -L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+          export PKG_CONFIG_PATH="$PROTOBUF_PREFIX/lib/pkgconfig:$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
@@ -750,6 +777,25 @@ jobs:
       - name: Brew link dependencies
         run: brew link berkeley-db@4 boost
 
+      - name: Create local tap & stage protobuf261.rb
+        run: |
+          set -euo pipefail
+          if ! brew tap | grep -q '^vergecurrency/local$'; then
+            brew tap-new vergecurrency/local
+          fi
+          TAP_DIR="$(brew --repo vergecurrency/local)"
+          mkdir -p "$TAP_DIR/Formula"
+          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
+          if [ -f "$FORMULA_LOCAL" ]; then
+            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+          else
+            REF="${GITHUB_REF_NAME:-master}"
+            curl -fL "https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb" -o "$TAP_DIR/Formula/protobuf261.rb"
+          fi
+
+      - name: Install protobuf261 via tap
+        run: brew install vergecurrency/local/protobuf261
+
       - name: Install Qt 6.10.2 for macOS
         run: |
           set -euo pipefail
@@ -873,6 +919,7 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
+          BREW_CELLAR="$(brew --cellar)"
           BOOST_PREFIX="$(brew --prefix boost)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
@@ -881,9 +928,16 @@ jobs:
           QT_INCLUDE_DIR="$("$QMAKE_BIN" -query QT_INSTALL_HEADERS)"
           QT_LIB_DIR="$("$QMAKE_BIN" -query QT_INSTALL_LIBS)"
           QT_PLUGIN_DIR="$("$QMAKE_BIN" -query QT_INSTALL_PLUGINS)"
-          export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
-          export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
-          export PKG_CONFIG_PATH="$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTOBUF_PREFIX="$BREW_PREFIX/opt/protobuf261"
+          else
+            PROTOBUF_CELLAR="$BREW_CELLAR/protobuf261"
+            PROTOBUF_VER="$(ls -1 "$PROTOBUF_CELLAR" | sort -V | tail -n1 || true)"
+            PROTOBUF_PREFIX="$PROTOBUF_CELLAR/$PROTOBUF_VER"
+          fi
+          export CPPFLAGS="-I$PROTOBUF_PREFIX/include -I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+          export LDFLAGS="-L$PROTOBUF_PREFIX/lib -L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+          export PKG_CONFIG_PATH="$PROTOBUF_PREFIX/lib/pkgconfig:$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
