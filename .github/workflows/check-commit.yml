@@ -305,6 +305,7 @@ jobs:
         run: |
           set -euo pipefail
           APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
           FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
           HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
           HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
@@ -417,6 +418,20 @@ jobs:
             map_qt_refs "$bundled_bin"
             map_bundle_framework_refs "$bundled_bin"
           done < <(find "$FRAMEWORKS_DIR" -type f)
+
+          add_rpath_if_missing() {
+            local binary="$1"
+            local rpath="$2"
+            if ! otool -l "$binary" | awk '
+              $1 == "cmd" && $2 == "LC_RPATH" { in_rpath=1; next }
+              in_rpath && $1 == "path" { print $2; in_rpath=0 }
+            ' | grep -Fxq "$rpath"; then
+              install_name_tool -add_rpath "$rpath" "$binary"
+            fi
+          }
+
+          add_rpath_if_missing "$APP_BIN" "@executable_path/../Frameworks"
+          add_rpath_if_missing "$HELPER_BIN" "@executable_path/../../../../.."
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
@@ -1067,6 +1082,7 @@ jobs:
         run: |
           set -euo pipefail
           APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
           FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
           HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
           HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
@@ -1179,6 +1195,20 @@ jobs:
             map_qt_refs "$bundled_bin"
             map_bundle_framework_refs "$bundled_bin"
           done < <(find "$FRAMEWORKS_DIR" -type f)
+
+          add_rpath_if_missing() {
+            local binary="$1"
+            local rpath="$2"
+            if ! otool -l "$binary" | awk '
+              $1 == "cmd" && $2 == "LC_RPATH" { in_rpath=1; next }
+              in_rpath && $1 == "path" { print $2; in_rpath=0 }
+            ' | grep -Fxq "$rpath"; then
+              install_name_tool -add_rpath "$rpath" "$binary"
+            fi
+          }
+
+          add_rpath_if_missing "$APP_BIN" "@executable_path/../Frameworks"
+          add_rpath_if_missing "$HELPER_BIN" "@executable_path/../../../../.."
 
           if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
             echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
