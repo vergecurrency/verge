@@ -18,31 +18,43 @@ jobs:
         run: |
           brew install automake autoconf pkg-config libtool \
             berkeley-db@4 zeromq miniupnpc boost \
-            qt qtwebengine gperf qrencode librsvg \
+            gperf qrencode librsvg \
             openssl@3 libevent
 
       - name: Link brew deps
-        run: brew link qt berkeley-db@4 boost
+        run: brew link berkeley-db@4 boost
+
+      - name: Install Qt 6.10.2 for macOS
+        run: |
+          set -euo pipefail
+          python3 -m pip install --upgrade pip aqtinstall
+          QT_ROOT="$RUNNER_TEMP/qt"
+          python3 -m aqt install-qt mac desktop 6.10.2 clang_64 \
+            --outputdir "$QT_ROOT" \
+            -m qtwebengine qtwebchannel qtpositioning qt5compat
+          QMAKE_PATH="$(find "$QT_ROOT" -type f \( -name qmake6 -o -name qmake \) -path "*/bin/*" | head -n1 || true)"
+          if [ -z "${QMAKE_PATH:-}" ]; then
+            echo "ERROR: Failed to resolve qmake under $QT_ROOT"
+            find "$QT_ROOT" -maxdepth 5 -type d | sed -n '1,200p'
+            exit 1
+          fi
+          QT_PREFIX="$(dirname "$(dirname "$QMAKE_PATH")")"
+          echo "QT_PREFIX=$QT_PREFIX" >> "$GITHUB_ENV"
+          echo "Installed Qt prefix: $QT_PREFIX"
 
       - name: Add Qt tools to PATH
         run: |
-          echo "$(brew --prefix qtbase)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qtbase)/libexec" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/bin" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/libexec" >> "$GITHUB_PATH"
 
       - name: Resolve Qt host tools
         run: |
           set -euo pipefail
 
-          QT_PREFIX="$(brew --prefix qt)"
-          QTBASE_PREFIX="$(brew --prefix qtbase)"
           ALIAS_DIR="$PWD/.qt-tool-aliases"
           mkdir -p "$ALIAS_DIR"
 
           declare -a QT_TOOL_DIRS=(
-            "$QTBASE_PREFIX/libexec"
-            "$QTBASE_PREFIX/bin"
             "$QT_PREFIX/libexec"
             "$QT_PREFIX/bin"
           )
@@ -116,10 +128,8 @@ jobs:
           which moc || true
           which moc6 || true
           ls -l "$PWD/.qt-tool-aliases" || true
-          ls -l "$(brew --prefix qtbase)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qtbase)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
           moc -v
 
       - name: Autogen
@@ -726,10 +736,28 @@ jobs:
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool boost qt qtwebengine gperf qrencode librsvg openssl@3 libevent
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool boost gperf qrencode librsvg openssl@3 libevent
         
       - name: Brew link dependencies
-        run: brew link qt berkeley-db@4 boost
+        run: brew link berkeley-db@4 boost
+
+      - name: Install Qt 6.10.2 for macOS
+        run: |
+          set -euo pipefail
+          python3 -m pip install --upgrade pip aqtinstall
+          QT_ROOT="$RUNNER_TEMP/qt"
+          python3 -m aqt install-qt mac desktop 6.10.2 clang_64 \
+            --outputdir "$QT_ROOT" \
+            -m qtwebengine qtwebchannel qtpositioning qt5compat
+          QMAKE_PATH="$(find "$QT_ROOT" -type f \( -name qmake6 -o -name qmake \) -path "*/bin/*" | head -n1 || true)"
+          if [ -z "${QMAKE_PATH:-}" ]; then
+            echo "ERROR: Failed to resolve qmake under $QT_ROOT"
+            find "$QT_ROOT" -maxdepth 5 -type d | sed -n '1,200p'
+            exit 1
+          fi
+          QT_PREFIX="$(dirname "$(dirname "$QMAKE_PATH")")"
+          echo "QT_PREFIX=$QT_PREFIX" >> "$GITHUB_ENV"
+          echo "Installed Qt prefix: $QT_PREFIX"
 
       - name: check cellar for openssl 
         run: cd /opt/homebrew/Cellar/openssl@3/ && ls
@@ -739,23 +767,17 @@ jobs:
 
       - name: Add Qt tools to PATH
         run: |
-          echo "$(brew --prefix qtbase)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qtbase)/libexec" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/bin" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/libexec" >> "$GITHUB_PATH"
 
       - name: Resolve Qt host tools
         run: |
           set -euo pipefail
 
-          QT_PREFIX="$(brew --prefix qt)"
-          QTBASE_PREFIX="$(brew --prefix qtbase)"
           ALIAS_DIR="$PWD/.qt-tool-aliases"
           mkdir -p "$ALIAS_DIR"
 
           declare -a QT_TOOL_DIRS=(
-            "$QTBASE_PREFIX/libexec"
-            "$QTBASE_PREFIX/bin"
             "$QT_PREFIX/libexec"
             "$QT_PREFIX/bin"
           )
@@ -829,10 +851,8 @@ jobs:
           which moc || true
           which moc6 || true
           ls -l "$PWD/.qt-tool-aliases" || true
-          ls -l "$(brew --prefix qtbase)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qtbase)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
           moc -v
 
       - name: Auto generate
