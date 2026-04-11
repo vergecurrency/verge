@@ -233,6 +233,8 @@ jobs:
             QT_BIN="./src/qt/verge-qt"
             export QTWEBENGINE_DISABLE_SANDBOX=1
             export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
+            export DYLD_FRAMEWORK_PATH="$QT_PREFIX/lib:${DYLD_FRAMEWORK_PATH:-}"
+            export DYLD_LIBRARY_PATH="$QT_PREFIX/lib:${DYLD_LIBRARY_PATH:-}"
             
             if [ ! -f "$QT_BIN" ]; then
             echo "::error::verge-qt not found at $QT_BIN"
@@ -989,6 +991,8 @@ jobs:
           QT_BIN="./src/qt/verge-qt"
           export QTWEBENGINE_DISABLE_SANDBOX=1
           export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
+          export DYLD_FRAMEWORK_PATH="$QT_PREFIX/lib:${DYLD_FRAMEWORK_PATH:-}"
+          export DYLD_LIBRARY_PATH="$QT_PREFIX/lib:${DYLD_LIBRARY_PATH:-}"
 
           if [ ! -f "$QT_BIN" ]; then
             echo "::error::verge-qt not found at $QT_BIN"
