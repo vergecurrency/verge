@@ -231,8 +231,6 @@ jobs:
       - name: Test verge-qt directly
         run: |
             QT_BIN="./src/qt/verge-qt"
-            export QTWEBENGINE_DISABLE_SANDBOX=1
-            export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
             export DYLD_FRAMEWORK_PATH="$QT_PREFIX/lib:${DYLD_FRAMEWORK_PATH:-}"
             export DYLD_LIBRARY_PATH="$QT_PREFIX/lib:${DYLD_LIBRARY_PATH:-}"
             
@@ -746,7 +744,7 @@ jobs:
           
           DYLD_FRAMEWORK_PATH="$APP_FRAMEWORKS:${DYLD_FRAMEWORK_PATH:-}" \
           DYLD_LIBRARY_PATH="$APP_FRAMEWORKS:${DYLD_LIBRARY_PATH:-}" \
-          QTWEBENGINE_DISABLE_SANDBOX=1 QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" "$APP_BIN" &
+          "$APP_BIN" &
           APP_PID=$!
           sleep 8
 
@@ -1007,8 +1005,6 @@ jobs:
       - name: Test verge-qt directly
         run: |
           QT_BIN="./src/qt/verge-qt"
-          export QTWEBENGINE_DISABLE_SANDBOX=1
-          export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
           export DYLD_FRAMEWORK_PATH="$QT_PREFIX/lib:${DYLD_FRAMEWORK_PATH:-}"
           export DYLD_LIBRARY_PATH="$QT_PREFIX/lib:${DYLD_LIBRARY_PATH:-}"
 
@@ -1523,7 +1519,7 @@ jobs:
 
           DYLD_FRAMEWORK_PATH="$APP_FRAMEWORKS:${DYLD_FRAMEWORK_PATH:-}" \
           DYLD_LIBRARY_PATH="$APP_FRAMEWORKS:${DYLD_LIBRARY_PATH:-}" \
-          QTWEBENGINE_DISABLE_SANDBOX=1 QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" "$APP_BIN" &
+          "$APP_BIN" &
           APP_PID=$!
           sleep 8
 

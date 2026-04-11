@@ -907,6 +907,14 @@ static void AppendWebEngineFlag(QByteArray& flags, const char* flag)
     }
 }
 
+static void RemoveWebEngineFlag(QByteArray& flags, const char* flag)
+{
+    const QString needle = QString::fromLatin1(flag);
+    QStringList flag_list = QString::fromLocal8Bit(flags).split(' ', Qt::SkipEmptyParts);
+    flag_list.removeAll(needle);
+    flags = flag_list.join(' ').toLocal8Bit();
+}
+
 static void AppendQtLoggingRule(QByteArray& rules, const char* rule)
 {
     const QByteArray needle(rule);
@@ -1033,17 +1041,17 @@ static void ConfigureQtWebEngineRuntimeBase(const char* argv0)
 
     QByteArray flags = BuildSanitizedWebEngineFlags();
 
-    // Match the macOS CI launch environment that keeps the bundled WebEngine view usable.
-    AppendWebEngineFlag(flags, "--disable-gpu");
-    AppendWebEngineFlag(flags, "--disable-gpu-compositing");
-    AppendWebEngineFlag(flags, "--no-sandbox");
-    AppendWebEngineFlag(flags, "--auto-reject-capture");
-    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker,UseScreenCaptureKitForSnapshots");
+    // Do not force Chromium sandbox or macOS capture feature overrides.
+    // The embedded trade widget is stable on other platforms without these
+    // process-wide switches, and on macOS they have been linked to renderer crashes.
+    RemoveWebEngineFlag(flags, "--no-sandbox");
+    RemoveWebEngineFlag(flags, "--auto-reject-capture");
+    RemoveWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker,UseScreenCaptureKitForSnapshots");
     AppendWebEngineFlag(flags, "--enable-logging");
     AppendWebEngineFlag(flags, "--log-level=0");
     AppendWebEngineFlag(flags, "--v=1");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
-    qputenv("QTWEBENGINE_DISABLE_SANDBOX", QByteArray("1"));
+    qunsetenv("QTWEBENGINE_DISABLE_SANDBOX");
 
     QByteArray qt_logging_rules = qgetenv("QT_LOGGING_RULES");
     AppendQtLoggingRule(qt_logging_rules, "qt.webenginecontext.debug=true");
@@ -1081,11 +1089,9 @@ static void ConfigureQtWebEngineProxy(bool use_tor_proxy)
 #elif defined(Q_OS_MAC)
     QByteArray flags = BuildSanitizedWebEngineFlags();
 
-    AppendWebEngineFlag(flags, "--disable-gpu");
-    AppendWebEngineFlag(flags, "--disable-gpu-compositing");
-    AppendWebEngineFlag(flags, "--no-sandbox");
-    AppendWebEngineFlag(flags, "--auto-reject-capture");
-    AppendWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker,UseScreenCaptureKitForSnapshots");
+    RemoveWebEngineFlag(flags, "--no-sandbox");
+    RemoveWebEngineFlag(flags, "--auto-reject-capture");
+    RemoveWebEngineFlag(flags, "--disable-features=ScreenCaptureKitMac,ScreenCaptureKitMacWindow,ScreenCaptureKitMacScreen,UseSCContentSharingPicker,UseScreenCaptureKitForSnapshots");
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     const QString webengine_proxy_msg =
         QStringLiteral("QtWebEngine: proxy configuration updated use_tor_proxy=%1 QTWEBENGINE_CHROMIUM_FLAGS=%2")
