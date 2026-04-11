@@ -145,10 +145,14 @@ jobs:
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
+          QMAKE_BIN="$(command -v qmake6 || command -v qmake)"
+          QT_INCLUDE_DIR="$("$QMAKE_BIN" -query QT_INSTALL_HEADERS)"
+          QT_LIB_DIR="$("$QMAKE_BIN" -query QT_INSTALL_LIBS)"
+          QT_PLUGIN_DIR="$("$QMAKE_BIN" -query QT_INSTALL_PLUGINS)"
 
           export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
           export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
-          export PKG_CONFIG_PATH="$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export PKG_CONFIG_PATH="$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
@@ -158,6 +162,9 @@ jobs:
             --disable-werror \
             --with-gui=qt6 \
             --with-qt-bindir="$PWD/.qt-tool-aliases" \
+            --with-qt-incdir="$QT_INCLUDE_DIR" \
+            --with-qt-libdir="$QT_LIB_DIR" \
+            --with-qt-plugindir="$QT_PLUGIN_DIR" \
             --with-boost="$BOOST_PREFIX" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
@@ -870,9 +877,13 @@ jobs:
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@3)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
+          QMAKE_BIN="$(command -v qmake6 || command -v qmake)"
+          QT_INCLUDE_DIR="$("$QMAKE_BIN" -query QT_INSTALL_HEADERS)"
+          QT_LIB_DIR="$("$QMAKE_BIN" -query QT_INSTALL_LIBS)"
+          QT_PLUGIN_DIR="$("$QMAKE_BIN" -query QT_INSTALL_PLUGINS)"
           export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
           export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
-          export PKG_CONFIG_PATH="$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export PKG_CONFIG_PATH="$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
@@ -883,6 +894,9 @@ jobs:
             --disable-werror \
             --with-gui=qt6 \
             --with-qt-bindir="$PWD/.qt-tool-aliases" \
+            --with-qt-incdir="$QT_INCLUDE_DIR" \
+            --with-qt-libdir="$QT_LIB_DIR" \
+            --with-qt-plugindir="$QT_PLUGIN_DIR" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
             --with-openssl-dir="$OPENSSL_PREFIX" \
