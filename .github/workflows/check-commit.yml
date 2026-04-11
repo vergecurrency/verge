@@ -27,9 +27,11 @@ jobs:
       - name: Install Qt 6.10.2 for macOS
         run: |
           set -euo pipefail
-          python3 -m pip install --upgrade pip aqtinstall
+          python3 -m venv "$RUNNER_TEMP/aqt-venv"
+          source "$RUNNER_TEMP/aqt-venv/bin/activate"
+          python -m pip install --upgrade pip aqtinstall
           QT_ROOT="$RUNNER_TEMP/qt"
-          python3 -m aqt install-qt mac desktop 6.10.2 clang_64 \
+          python -m aqt install-qt mac desktop 6.10.2 clang_64 \
             --outputdir "$QT_ROOT" \
             -m qtwebengine qtwebchannel qtpositioning qt5compat
           QMAKE_PATH="$(find "$QT_ROOT" -type f \( -name qmake6 -o -name qmake \) -path "*/bin/*" | head -n1 || true)"
@@ -744,9 +746,11 @@ jobs:
       - name: Install Qt 6.10.2 for macOS
         run: |
           set -euo pipefail
-          python3 -m pip install --upgrade pip aqtinstall
+          python3 -m venv "$RUNNER_TEMP/aqt-venv"
+          source "$RUNNER_TEMP/aqt-venv/bin/activate"
+          python -m pip install --upgrade pip aqtinstall
           QT_ROOT="$RUNNER_TEMP/qt"
-          python3 -m aqt install-qt mac desktop 6.10.2 clang_64 \
+          python -m aqt install-qt mac desktop 6.10.2 clang_64 \
             --outputdir "$QT_ROOT" \
             -m qtwebengine qtwebchannel qtpositioning qt5compat
           QMAKE_PATH="$(find "$QT_ROOT" -type f \( -name qmake6 -o -name qmake \) -path "*/bin/*" | head -n1 || true)"
