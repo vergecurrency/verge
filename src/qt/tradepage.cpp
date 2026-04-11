@@ -12,9 +12,7 @@
 
 #include <QLabel>
 #include <QDebug>
-#include <QDir>
 #include <QShowEvent>
-#include <QStandardPaths>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -26,8 +24,6 @@
 #include <QtWebEngineCore/QWebEngineNewWindowRequest>
 #include <QtWebEngineCore/QWebEnginePage>
 #include <QtWebEngineCore/QWebEngineProfile>
-#include <QtWebEngineCore/QWebEngineScript>
-#include <QtWebEngineCore/QWebEngineScriptCollection>
 #include <QtWebEngineCore/QWebEngineSettings>
 #if QT_VERSION >= 0x060800
 #include <QtWebEngineCore/QWebEngineDesktopMediaRequest>
@@ -61,13 +57,6 @@ static QUrl TradeWidgetUrl()
         return QUrl::fromUserInput(override_url);
     }
     return QUrl(QString::fromLatin1(STEALTHEX_WIDGET_URL));
-}
-
-static bool TradeDisableWebGlForDiagnostics()
-{
-    return qEnvironmentVariableIsEmpty("VERGE_TRADEPAGE_DISABLE_WEBGL")
-        ? true
-        : qEnvironmentVariableIntValue("VERGE_TRADEPAGE_DISABLE_WEBGL") != 0;
 }
 
 static void LogTradeWebEngineState(QWebEngineView* view, QWebEnginePage* page, const char* stage)
@@ -113,40 +102,6 @@ static void LogTradeWebEngineState(QWebEngineView* view, QWebEnginePage* page, c
                                .arg(settings->testAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled))
                                .arg(settings->testAttribute(QWebEngineSettings::PlaybackRequiresUserGesture)));
     }
-}
-
-static void InstallTradeCaptureGuards(QWebEnginePage* page)
-{
-    QWebEngineScript script;
-    script.setName(QStringLiteral("verge-trade-capture-guard"));
-    script.setInjectionPoint(QWebEngineScript::DocumentCreation);
-    script.setRunsOnSubFrames(true);
-    script.setWorldId(QWebEngineScript::MainWorld);
-    script.setSourceCode(QString::fromLatin1(R"JS(
-(() => {
-  const block = (name) => () => Promise.reject(new DOMException(
-    name + ' is disabled in this application',
-    'NotAllowedError'
-  ));
-  const install = () => {
-    const mediaDevices = navigator.mediaDevices;
-    if (!mediaDevices) return;
-    try {
-      Object.defineProperty(mediaDevices, 'getDisplayMedia', {
-        configurable: true,
-        enumerable: true,
-        writable: true,
-        value: block('getDisplayMedia')
-      });
-    } catch (_) {
-      mediaDevices.getDisplayMedia = block('getDisplayMedia');
-    }
-  };
-  install();
-  document.addEventListener('readystatechange', install, { once: false });
-})();
-)JS"));
-    page->scripts().insert(script);
 }
 
 class TradeWebEnginePage : public QWebEnginePage
@@ -229,30 +184,7 @@ void TradePage::ensureInitialized()
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
     QWebEngineView* view = new QWebEngineView(this);
     QWebEngineProfile* profile = QWebEngineProfile::defaultProfile();
-#if defined(Q_OS_MAC)
-    const QString app_data_dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    const QString trade_profile_dir = QDir(app_data_dir).filePath(QStringLiteral("trade-webengine"));
-    const QString cache_dir = QDir(trade_profile_dir).filePath(QStringLiteral("cache"));
-    QDir().mkpath(cache_dir);
-    profile = new QWebEngineProfile(QStringLiteral("TradePageProfile"), view);
-    profile->setPersistentStoragePath(trade_profile_dir);
-    profile->setCachePath(cache_dir);
-    profile->setPersistentCookiesPolicy(QWebEngineProfile::AllowPersistentCookies);
-    LogTradeDiagnostic(QStringLiteral("TradePage: created dedicated macOS profile storage=%1 cache=%2 offTheRecord=%3")
-                           .arg(profile->persistentStoragePath())
-                           .arg(profile->cachePath())
-                           .arg(profile->isOffTheRecord()));
-#endif
     TradeWebEnginePage* page = new TradeWebEnginePage(profile, view);
-#if defined(Q_OS_MAC)
-    InstallTradeCaptureGuards(page);
-    page->settings()->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, false);
-    if (TradeDisableWebGlForDiagnostics()) {
-        page->settings()->setAttribute(QWebEngineSettings::WebGLEnabled, false);
-        page->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, false);
-        LogTradeDiagnostic(QStringLiteral("TradePage: macOS disabled WebGL and accelerated 2D canvas"));
-    }
-#endif
     view->setPage(page);
     LogTradeWebEngineState(view, page, "after-page-created");
 
@@ -422,10 +354,9 @@ void TradePage::ensureInitialized()
         }
     });
     const QUrl load_url = TradeWidgetUrl();
-    LogTradeDiagnostic(QStringLiteral("TradePage: initiating view->load with url=%1 debugOverride=%2 disableWebGl=%3")
+    LogTradeDiagnostic(QStringLiteral("TradePage: initiating view->load with url=%1 debugOverride=%2")
                            .arg(load_url.toString())
-                           .arg(qEnvironmentVariable("VERGE_TRADEPAGE_DEBUG_URL"))
-                           .arg(TradeDisableWebGlForDiagnostics()));
+                           .arg(qEnvironmentVariable("VERGE_TRADEPAGE_DEBUG_URL")));
     view->load(load_url);
     m_layout->addWidget(view);
 #else
