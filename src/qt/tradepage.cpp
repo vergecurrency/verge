@@ -12,7 +12,11 @@
 
 #include <QLabel>
 #include <QDebug>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QShowEvent>
+#include <QTimer>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -154,6 +158,33 @@ static QString TradeLoadFailureText()
 {
     return QObject::tr("Trade widget failed to load. Check debug.log for the Qt WebEngine error details.");
 }
+
+static QString TradeWaitingForNetworkText()
+{
+    return QObject::tr("Waiting for Tor/network connectivity before loading the Trade widget...");
+}
+
+static QString TradeRetryingAfterNetworkErrorText()
+{
+    return QObject::tr("Trade widget is waiting for Tor/network connectivity. Retrying automatically...");
+}
+
+static QString TradeProbeUrlString()
+{
+    const QUrl load_url = TradeWidgetUrl();
+    if (load_url.isValid() && !load_url.scheme().isEmpty() && !load_url.host().isEmpty()) {
+        return load_url.adjusted(QUrl::RemovePath | QUrl::RemoveQuery | QUrl::RemoveFragment).toString();
+    }
+    return load_url.toString();
+}
+
+static int TradeConnectivityRetryDelayMs(int attempt)
+{
+    if (attempt <= 1) return 5000;
+    if (attempt == 2) return 10000;
+    if (attempt == 3) return 15000;
+    return 30000;
+}
 #endif
 } // namespace
 
@@ -174,6 +205,15 @@ void TradePage::showEvent(QShowEvent* event)
     ensureInitialized();
 }
 
+void TradePage::updateStatusLabel(const QString& text)
+{
+    if (!m_statusLabel) {
+        return;
+    }
+    m_statusLabel->setText(text);
+    m_statusLabel->show();
+}
+
 void TradePage::ensureInitialized()
 {
     if (m_initialized) {
@@ -182,17 +222,77 @@ void TradePage::ensureInitialized()
     m_initialized = true;
 
 #if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
+    m_networkAccessManager = new QNetworkAccessManager(this);
+    m_connectivityRetryTimer = new QTimer(this);
+    m_connectivityRetryTimer->setSingleShot(true);
+    connect(m_connectivityRetryTimer, &QTimer::timeout, this, [this]() {
+        startConnectivityProbe();
+    });
+
+    updateStatusLabel(TradeWaitingForNetworkText());
+    startConnectivityProbe();
+#else
+    if (m_statusLabel) {
+        m_statusLabel->setText(
+            tr("Trade widget is unavailable in this build because Qt WebEngine support is not enabled."));
+    }
+#endif
+}
+
+#if defined(HAVE_QTWEBENGINEWIDGETS) || defined(QT_WEBENGINEWIDGETS_LIB)
+void TradePage::startConnectivityProbe()
+{
+    if (m_webViewLoadStarted || !m_networkAccessManager) {
+        return;
+    }
+
+    ++m_connectivityAttemptCount;
+    const QString probe_url = TradeProbeUrlString();
+    LogTradeDiagnostic(QStringLiteral("TradePage: connectivity probe attempt=%1 url=%2")
+                           .arg(m_connectivityAttemptCount)
+                           .arg(probe_url));
+
+    QNetworkRequest request{QUrl(probe_url)};
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("VERGE-TradePage-Probe/1.0"));
+    request.setTransferTimeout(10000);
+
+    QNetworkReply* reply = m_networkAccessManager->head(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        handleConnectivityResult(reply);
+    });
+}
+
+void TradePage::scheduleConnectivityRetry(int delay_ms, const QString& reason)
+{
+    if (m_webViewLoadStarted || !m_connectivityRetryTimer) {
+        return;
+    }
+
+    LogTradeDiagnostic(QStringLiteral("TradePage: scheduling connectivity retry in %1 ms reason=%2")
+                           .arg(delay_ms)
+                           .arg(reason));
+    updateStatusLabel(TradeRetryingAfterNetworkErrorText());
+    m_connectivityRetryTimer->start(delay_ms);
+}
+
+void TradePage::ensureWebViewLoaded()
+{
+    if (m_webViewLoadStarted) {
+        return;
+    }
+    m_webViewLoadStarted = true;
+
     QWebEngineView* view = new QWebEngineView(this);
+    m_view = view;
     QWebEngineProfile* profile = QWebEngineProfile::defaultProfile();
     TradeWebEnginePage* page = new TradeWebEnginePage(profile, view);
     view->setPage(page);
+    m_layout->addWidget(view);
     LogTradeWebEngineState(view, page, "after-page-created");
 
     connect(view, &QWebEngineView::loadStarted, this, [this, view, page]() {
-        if (m_statusLabel) {
-            m_statusLabel->setText(tr("Loading Trade widget..."));
-            m_statusLabel->show();
-        }
+        updateStatusLabel(tr("Loading Trade widget..."));
         LogTradeDiagnostic(QStringLiteral("TradePage: WebEngine load started viewUrl=%1 pageUrl=%2 requestedUrl=%3")
                                .arg(view->url().toString())
                                .arg(page->url().toString())
@@ -221,8 +321,7 @@ void TradePage::ensureInitialized()
         if (ok) {
             m_statusLabel->hide();
         } else {
-            m_statusLabel->setText(TradeLoadFailureText());
-            m_statusLabel->show();
+            updateStatusLabel(TradeLoadFailureText());
         }
     });
 #if QT_VERSION >= 0x060200
@@ -237,12 +336,20 @@ void TradePage::ensureInitialized()
                                .arg(page->url().toString())
                                .arg(page->requestedUrl().toString())
                                .arg(page->renderProcessPid()));
-        if (info.status() == QWebEngineLoadingInfo::LoadFailedStatus) {
-            if (m_statusLabel) {
-                m_statusLabel->setText(TradeLoadFailureText());
-                m_statusLabel->show();
-            }
+        if (info.status() != QWebEngineLoadingInfo::LoadFailedStatus) {
+            return;
         }
+        if (info.errorCode() == -106) {
+            m_webViewLoadStarted = false;
+            if (m_view) {
+                m_layout->removeWidget(m_view);
+                m_view->deleteLater();
+                m_view = nullptr;
+            }
+            scheduleConnectivityRetry(TradeConnectivityRetryDelayMs(m_connectivityAttemptCount), info.errorString());
+            return;
+        }
+        updateStatusLabel(TradeLoadFailureText());
     });
 #endif
     connect(page, &QWebEnginePage::urlChanged, this, [](const QUrl& url) {
@@ -303,18 +410,12 @@ void TradePage::ensureInitialized()
                                .arg(static_cast<int>(permissionType))
                                .arg(permission.origin().toString()));
         permission.deny();
-        if (m_statusLabel) {
-            m_statusLabel->setText(TradeCaptureBlockedText());
-            m_statusLabel->show();
-        }
+        updateStatusLabel(TradeCaptureBlockedText());
     });
     connect(page, &QWebEnginePage::desktopMediaRequested, this, [this](const QWebEngineDesktopMediaRequest& request) {
         LogTradeDiagnostic(QStringLiteral("TradePage: canceling desktop media request from embedded trade widget"));
         request.cancel();
-        if (m_statusLabel) {
-            m_statusLabel->setText(TradeCaptureBlockedText());
-            m_statusLabel->show();
-        }
+        updateStatusLabel(TradeCaptureBlockedText());
     });
 #else
     connect(page, &QWebEnginePage::featurePermissionRequested, this,
@@ -333,10 +434,7 @@ void TradePage::ensureInitialized()
                                .arg(securityOrigin.toString()));
         page->setFeaturePermission(
             securityOrigin, feature, QWebEnginePage::PermissionDeniedByUser);
-        if (m_statusLabel) {
-            m_statusLabel->setText(TradeCaptureBlockedText());
-            m_statusLabel->show();
-        }
+        updateStatusLabel(TradeCaptureBlockedText());
     });
 #endif
     connect(view, &QWebEngineView::renderProcessTerminated, this,
@@ -348,21 +446,58 @@ void TradePage::ensureInitialized()
                                .arg(page->requestedUrl().toString())
                                .arg(page->renderProcessPid()));
         LogTradeWebEngineState(view, page, "renderProcessTerminated");
-        if (m_statusLabel) {
-            m_statusLabel->setText(TradeLoadFailureText());
-            m_statusLabel->show();
+        const bool should_retry = !page->requestedUrl().isEmpty() && page->url().isEmpty();
+        if (should_retry) {
+            m_webViewLoadStarted = false;
+            if (m_view) {
+                m_layout->removeWidget(m_view);
+                m_view->deleteLater();
+                m_view = nullptr;
+            }
+            scheduleConnectivityRetry(TradeConnectivityRetryDelayMs(m_connectivityAttemptCount),
+                                      QStringLiteral("renderer terminated before page load completed"));
+            return;
         }
+        updateStatusLabel(TradeLoadFailureText());
     });
     const QUrl load_url = TradeWidgetUrl();
     LogTradeDiagnostic(QStringLiteral("TradePage: initiating view->load with url=%1 debugOverride=%2")
                            .arg(load_url.toString())
                            .arg(qEnvironmentVariable("VERGE_TRADEPAGE_DEBUG_URL")));
     view->load(load_url);
-    m_layout->addWidget(view);
-#else
-    if (m_statusLabel) {
-        m_statusLabel->setText(
-            tr("Trade widget is unavailable in this build because Qt WebEngine support is not enabled."));
-    }
-#endif
 }
+
+void TradePage::handleConnectivityResult(QNetworkReply* reply)
+{
+    if (!reply) {
+        return;
+    }
+
+    const auto error = reply->error();
+    const int http_status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    const QString reply_error = reply->errorString();
+    const QString final_url = reply->url().toString();
+
+    LogTradeDiagnostic(QStringLiteral("TradePage: connectivity probe finished error=%1 httpStatus=%2 errorString=%3 finalUrl=%4")
+                           .arg(static_cast<int>(error))
+                           .arg(http_status)
+                           .arg(reply_error)
+                           .arg(final_url));
+
+    const bool probe_ok =
+        error == QNetworkReply::NoError ||
+        (http_status >= 200 && http_status < 400) ||
+        error == QNetworkReply::ContentAccessDenied ||
+        error == QNetworkReply::ContentOperationNotPermittedError;
+
+    reply->deleteLater();
+
+    if (probe_ok) {
+        updateStatusLabel(tr("Loading Trade widget..."));
+        ensureWebViewLoaded();
+        return;
+    }
+
+    scheduleConnectivityRetry(TradeConnectivityRetryDelayMs(m_connectivityAttemptCount), reply_error);
+}
+#endif
