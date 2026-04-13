@@ -2,11 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/tradepage.h>
-
 #if defined(HAVE_CONFIG_H)
 #include <config/verge-config.h>
 #endif
+
+#include <qt/tradepage.h>
 
 #include <logging.h>
 
