@@ -3,8 +3,6 @@ $(package)_version=3.6.2
 $(package)_download_path=https://github.com/openssl/openssl/releases/download/openssl-$($(package)_version)
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=aaf51a1fe064384f811daeaeb4ec4dce7340ec8bd893027eee676af31e83a04f
-$(package)_patches=fix-mingw64.patch
-
 define $(package)_set_vars
 $(package)_config_env=AR="$($(package)_ar)" ARFLAGS=$($(package)_arflags) RANLIB="$($(package)_ranlib)" CC="$($(package)_cc)"
 $(package)_config_env_android=ANDROID_NDK_ROOT="$(host_prefix)/native" PATH="$(host_prefix)/native/bin" CC=clang AR=ar RANLIB=ranlib
@@ -52,7 +50,6 @@ endef
 
 define $(package)_preprocess_cmds
   sed -i.old 's|crypto ssl apps util tools fuzz providers doc|crypto ssl util tools providers|' build.info &&\
-  patch -p1 < $($(package)_patch_dir)/fix-mingw64.patch && \
   rm -rf doc demos apps test
 endef
 
