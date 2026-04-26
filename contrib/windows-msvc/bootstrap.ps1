@@ -418,7 +418,8 @@ function Install-VcpkgDeps {
             $aliasName = $lib.Name.Substring(3)
             Copy-Item $lib.FullName (Join-Path $tripletLibDir $aliasName) -Force
         }
-        $zlibCandidate = Get-ChildItem -Path $tripletLibDir -Filter "zlib*.lib" -File -ErrorAction SilentlyContinue |
+        $zlibCandidate = Get-ChildItem -Path $tripletLibDir -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^z(lib|s).+\.lib$|^z(lib|s)\.lib$' } |
             Sort-Object Name |
             Select-Object -First 1
         if ($zlibCandidate) {
