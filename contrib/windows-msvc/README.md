@@ -13,7 +13,7 @@ Goals
 - Pin the major Windows GUI stack to:
   - Qt `6.10.2`
   - Boost `1.90.0`
-  - OpenSSL `3.6.1`
+  - OpenSSL `3.6.2`
 
 What the bootstrap script does
 ------------------------------
@@ -23,7 +23,7 @@ What the bootstrap script does
 1. import a Visual Studio x64 developer environment
 2. install Qt `6.10.2` with MSVC 2022 binaries and Qt WebEngine via `aqtinstall`
 3. build Boost `1.90.0` from source with MSVC
-4. build OpenSSL `3.6.1` from source with MSVC
+4. build OpenSSL `3.6.2` from source with MSVC
 5. build Berkeley DB `4.8.30.NC` from source with MSVC
 6. bootstrap `vcpkg` and install Windows-native support libraries currently
    used by the project:
