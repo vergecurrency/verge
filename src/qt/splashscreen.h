@@ -9,10 +9,12 @@
 #include <functional>
 #include <QSplashScreen>
 #include <QTimer>
+#include <QVector>
 
 #include <memory>
 
 class NetworkStyle;
+class QPainter;
 
 namespace interfaces {
 class Handler;
@@ -49,6 +51,21 @@ protected:
     bool eventFilter(QObject * obj, QEvent * ev);
 
 private:
+    struct Bubble
+    {
+        qreal normalizedX;
+        qreal radius;
+        qreal riseSpeed;
+        qreal driftAmplitude;
+        qreal driftSpeed;
+        qreal offset;
+        qreal opacity;
+        QColor color;
+    };
+
+    void initializeBubbles();
+    void drawAnimatedBackground(QPainter& painter) const;
+
     /** Connect core signals to splash screen */
     void subscribeToCoreSignals();
     /** Disconnect core signals to splash screen */
@@ -60,7 +77,10 @@ private:
     QString curMessage;
     QColor curColor;
     int curAlignment;
+    QTimer m_backgroundAnimationTimer;
     QTimer m_textGradientTimer;
+    QVector<Bubble> m_bubbles;
+    int m_backgroundPhase;
     int m_textGradientOffset;
 
     interfaces::Node& m_node;

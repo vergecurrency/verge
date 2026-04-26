@@ -353,14 +353,13 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
     switch(wtx->type)
     {
     case TransactionRecord::RecvWithAddress:
-        return tr("Received with");
     case TransactionRecord::RecvFromOther:
-        return tr("Received from");
+        return tr("Received");
     case TransactionRecord::SendToAddress:
     case TransactionRecord::SendToOther:
-        return tr("Sent to");
+        return tr("Sent");
     case TransactionRecord::SendToSelf:
-        return tr("Payment to yourself");
+        return tr("Internal");
     case TransactionRecord::Generated:
         return tr("Mined");
     default:
@@ -372,16 +371,16 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
 {
     switch(wtx->type)
     {
-    case TransactionRecord::Generated:
-        return QIcon(":/icons/tx_mined");
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::RecvFromOther:
-        return QIcon(":/icons/tx_input");
     case TransactionRecord::SendToAddress:
     case TransactionRecord::SendToOther:
-        return QIcon(":/icons/tx_output");
+    case TransactionRecord::SendToSelf:
+        return QVariant();
+    case TransactionRecord::Generated:
+        return QIcon(":/icons/tx_mined");
     default:
-        return QIcon(":/icons/tx_inout");
+        return QVariant();
     }
 }
 
@@ -574,6 +573,20 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         if(index.column() == Amount && (rec->credit+rec->debit) < 0)
         {
             return COLOR_NEGATIVE;
+        }
+        if(index.column() == Type)
+        {
+            switch (rec->type)
+            {
+            case TransactionRecord::RecvWithAddress:
+            case TransactionRecord::RecvFromOther:
+                return QColor("#4fd38a");
+            case TransactionRecord::SendToAddress:
+            case TransactionRecord::SendToOther:
+                return QColor("#ff6f7d");
+            default:
+                break;
+            }
         }
         if(index.column() == ToAddress)
         {

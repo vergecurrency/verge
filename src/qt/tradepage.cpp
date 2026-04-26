@@ -190,10 +190,13 @@ static int TradeConnectivityRetryDelayMs(int attempt)
 
 TradePage::TradePage(QWidget* parent) : QWidget(parent)
 {
+    setObjectName("TradePage");
+
     m_layout = new QVBoxLayout(this);
     m_layout->setContentsMargins(0, 0, 0, 0);
 
     m_statusLabel = new QLabel(tr("Loading Trade widget..."), this);
+    m_statusLabel->setObjectName("TradeStatusLabel");
     m_statusLabel->setWordWrap(true);
     m_statusLabel->setMargin(16);
     m_layout->addWidget(m_statusLabel);
@@ -285,6 +288,7 @@ void TradePage::ensureWebViewLoaded()
 
     QWebEngineView* view = new QWebEngineView(this);
     m_view = view;
+    view->setObjectName("TradeWebView");
     QWebEngineProfile* profile = QWebEngineProfile::defaultProfile();
     TradeWebEnginePage* page = new TradeWebEnginePage(profile, view);
     view->setPage(page);

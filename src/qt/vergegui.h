@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QComboBox;
 class QDateTime;
+class QFrame;
 class QMenuBar;
 class QMouseEvent;
 class QProgressBar;
@@ -109,9 +110,17 @@ private:
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
+    QFrame *syncStatusCard;
+    QWidget *proxyStatusChip;
+    QWidget *networkStatusChip;
+    QWidget *chainStatusChip;
+    QLabel *proxyStatusLabel;
+    QLabel *networkStatusLabel;
+    QLabel *chainStatusLabel;
     QProgressDialog *progressDialog;
     QTimer* m_syncProgressBarTimer;
     int m_syncProgressBarOffset;
+    bool m_hasAnimatedShell;
 
     QMenuBar *appMenuBar;
     QToolBar *appToolBar;
@@ -154,20 +163,6 @@ private:
     int spinnerFrame;
 
     const PlatformStyle *platformStyle;
-    QWidget* m_titleBar;
-    QLabel* m_titleLabel;
-    QToolButton* m_minimizeButton;
-    QToolButton* m_maximizeButton;
-    QToolButton* m_closeButton;
-    bool m_titleBarDragging;
-    QPoint m_dragOffset;
-#ifndef Q_OS_MAC
-    bool m_resizeActive;
-    Qt::Edges m_activeResizeEdges;
-    QRect m_resizeStartGeometry;
-    QPoint m_resizeStartGlobalPos;
-    int m_resizeMargin;
-#endif
 
     /** Create the main UI actions. */
     void createActions();
@@ -193,14 +188,7 @@ private:
 
     void updateHeadersSyncProgressLabel();
     void updateSyncProgressBarStyle();
-    void setupCustomTitleBar();
-    void updateMaximizeRestoreButton();
-    void showWindowSystemMenu(const QPoint& globalPos);
-#ifndef Q_OS_MAC
-    Qt::Edges hitTestResizeEdges(const QPoint& localPos) const;
-    void updateResizeCursor(const QPoint& localPos);
-    QRect calculateResizedGeometry(const QPoint& globalPos) const;
-#endif
+    void polishShellWidgets();
 
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */

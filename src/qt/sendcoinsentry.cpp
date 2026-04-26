@@ -14,6 +14,19 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QGraphicsDropShadowEffect>
+
+namespace {
+void ApplyCardShadow(QWidget* widget)
+{
+    if (!widget) return;
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(widget);
+    effect->setBlurRadius(24.0);
+    effect->setOffset(0, 8);
+    effect->setColor(QColor(88, 28, 140, 82));
+    widget->setGraphicsEffect(effect);
+}
+}
 
 SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *parent) :
     QStackedWidget(parent),
@@ -22,6 +35,20 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
+    setObjectName("SendCoinsEntry");
+    ui->SendCoins->setObjectName("SendCoinsEntryCard");
+    ui->payTo->setObjectName("SendEntryField");
+    ui->addAsLabel->setObjectName("SendEntryField");
+    ui->payAmount->setObjectName("SendEntryAmount");
+    ui->checkboxSubtractFeeFromAmount->setObjectName("SendEntryCheckbox");
+    ui->useAvailableBalanceButton->setObjectName("SendEntryUseBalance");
+    ui->addressBookButton->setObjectName("SendEntryToolButton");
+    ui->pasteButton->setObjectName("SendEntryToolButton");
+    ui->deleteButton->setObjectName("SendEntryDeleteButton");
+    ui->deleteButton_is->setObjectName("SendEntryDeleteButton");
+    ui->deleteButton_s->setObjectName("SendEntryDeleteButton");
+    ui->messageTextLabel->setObjectName("SendEntryMessage");
+    ApplyCardShadow(ui->SendCoins);
 
     ui->addressBookButton->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
     ui->pasteButton->setIcon(platformStyle->SingleColorIcon(":/icons/editpaste"));
@@ -33,6 +60,7 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
 
     if (platformStyle->getUseExtraSpacing())
         ui->payToLayout->setSpacing(4);
+    ui->horizontalLayoutAmount->setSpacing(10);
 #if QT_VERSION >= 0x040700
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));
 #endif

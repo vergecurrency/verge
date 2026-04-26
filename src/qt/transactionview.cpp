@@ -24,6 +24,7 @@
 #include <QDateTimeEdit>
 #include <QDesktopServices>
 #include <QDoubleValidator>
+#include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -37,25 +38,38 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
+namespace {
+void ApplyCardShadow(QWidget* widget, qreal blur = 28.0, qreal dy = 10.0, int alpha = 84)
+{
+    if (!widget) return;
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(widget);
+    effect->setBlurRadius(blur);
+    effect->setOffset(0, dy);
+    effect->setColor(QColor(88, 28, 140, alpha));
+    widget->setGraphicsEffect(effect);
+}
+}
+
 TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *parent) :
     QWidget(parent), model(0), transactionProxyModel(0),
     transactionView(0), abandonAction(0), bumpFeeAction(0), columnResizingFixer(0)
 {
     // Build filter row
+    setObjectName("TransactionViewPage");
     setContentsMargins(0,0,0,0);
 
     QHBoxLayout *hlayout = new QHBoxLayout();
-    hlayout->setContentsMargins(0,0,0,0);
+    hlayout->setObjectName("TransactionFilterBarLayout");
+    hlayout->setContentsMargins(18,18,18,14);
 
     if (platformStyle->getUseExtraSpacing()) {
-        hlayout->setSpacing(5);
-        hlayout->addSpacing(26);
+        hlayout->setSpacing(8);
     } else {
-        hlayout->setSpacing(0);
-        hlayout->addSpacing(23);
+        hlayout->setSpacing(8);
     }
 
     watchOnlyWidget = new QComboBox(this);
+    watchOnlyWidget->setObjectName("TransactionFilterCompact");
     watchOnlyWidget->setFixedWidth(24);
     watchOnlyWidget->addItem("", TransactionFilterProxy::WatchOnlyFilter_All);
     watchOnlyWidget->addItem(platformStyle->SingleColorIcon(":/icons/eye_plus"), "", TransactionFilterProxy::WatchOnlyFilter_Yes);
@@ -63,6 +77,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     hlayout->addWidget(watchOnlyWidget);
 
     dateWidget = new QComboBox(this);
+    dateWidget->setObjectName("TransactionFilterSelect");
     if (platformStyle->getUseExtraSpacing()) {
         dateWidget->setFixedWidth(121);
     } else {
@@ -78,6 +93,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     hlayout->addWidget(dateWidget);
 
     typeWidget = new QComboBox(this);
+    typeWidget->setObjectName("TransactionFilterSelect");
     if (platformStyle->getUseExtraSpacing()) {
         typeWidget->setFixedWidth(121);
     } else {
@@ -96,12 +112,14 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     hlayout->addWidget(typeWidget);
 
     search_widget = new QLineEdit(this);
+    search_widget->setObjectName("TransactionFilterSearch");
 #if QT_VERSION >= 0x040700
     search_widget->setPlaceholderText(tr("Enter address, transaction id, or label to search"));
 #endif
     hlayout->addWidget(search_widget);
 
     amountWidget = new QLineEdit(this);
+    amountWidget->setObjectName("TransactionFilterAmount");
 #if QT_VERSION >= 0x040700
     amountWidget->setPlaceholderText(tr("Min amount"));
 #endif
@@ -126,13 +144,12 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
 
     QVBoxLayout *vlayout = new QVBoxLayout(this);
     vlayout->setContentsMargins(0,0,0,0);
-    vlayout->setSpacing(0);
+    vlayout->setSpacing(12);
 
     QTableView *view = new QTableView(this);
     vlayout->addLayout(hlayout);
     vlayout->addWidget(createDateRangeWidget());
     vlayout->addWidget(view);
-    vlayout->setSpacing(0);
     int width = view->verticalScrollBar()->sizeHint().width();
     // Cover scroll bar width with spacing
     if (platformStyle->getUseExtraSpacing()) {
@@ -149,6 +166,20 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
 
     transactionView = view;
     transactionView->setObjectName("transactionView");
+    transactionView->horizontalHeader()->setObjectName("TransactionTableHeader");
+    transactionView->setShowGrid(false);
+    transactionView->setAlternatingRowColors(false);
+    transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    transactionView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    transactionView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    transactionView->setFrameShape(QFrame::NoFrame);
+    transactionView->setWordWrap(false);
+    transactionView->setSortingEnabled(true);
+    transactionView->setCornerButtonEnabled(false);
+    transactionView->verticalHeader()->setDefaultSectionSize(44);
+    transactionView->horizontalHeader()->setStretchLastSection(false);
+    transactionView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    ApplyCardShadow(transactionView);
 
     // Actions
     abandonAction = new QAction(tr("Abandon transaction"), this);
@@ -180,7 +211,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     mapperThirdPartyTxUrls = new QSignalMapper(this);
 
     // Connect actions
-    connect(mapperThirdPartyTxUrls, SIGNAL(mapped(QString)), this, SLOT(openThirdPartyTxUrl(QString)));
+    connect(mapperThirdPartyTxUrls, SIGNAL(mappedString(QString)), this, SLOT(openThirdPartyTxUrl(QString)));
 
     connect(dateWidget, SIGNAL(activated(int)), this, SLOT(chooseDate(int)));
     connect(typeWidget, SIGNAL(activated(int)), this, SLOT(chooseType(int)));
@@ -220,10 +251,6 @@ void TransactionView::setModel(WalletModel *_model)
 
         transactionView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         transactionView->setModel(transactionProxyModel);
-        transactionView->setAlternatingRowColors(true);
-        transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        transactionView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        transactionView->setSortingEnabled(true);
         transactionView->sortByColumn(TransactionTableModel::Date, Qt::DescendingOrder);
         transactionView->verticalHeader()->hide();
 
@@ -540,22 +567,28 @@ void TransactionView::openThirdPartyTxUrl(QString url)
 QWidget *TransactionView::createDateRangeWidget()
 {
     dateRangeWidget = new QFrame();
-    dateRangeWidget->setFrameStyle(QFrame::Panel | QFrame::Raised);
+    dateRangeWidget->setObjectName("TransactionDateRangeCard");
     dateRangeWidget->setContentsMargins(1,1,1,1);
     QHBoxLayout *layout = new QHBoxLayout(dateRangeWidget);
-    layout->setContentsMargins(0,0,0,0);
-    layout->addSpacing(23);
-    layout->addWidget(new QLabel(tr("Range:")));
+    layout->setContentsMargins(18,12,18,12);
+    layout->setSpacing(10);
+    QLabel* rangeLabel = new QLabel(tr("Range:"), dateRangeWidget);
+    rangeLabel->setObjectName("TransactionRangeLabel");
+    layout->addWidget(rangeLabel);
 
     dateFrom = new QDateTimeEdit(this);
+    dateFrom->setObjectName("TransactionRangeDate");
     dateFrom->setDisplayFormat("dd/MM/yy");
     dateFrom->setCalendarPopup(true);
     dateFrom->setMinimumWidth(100);
     dateFrom->setDate(QDate::currentDate().addDays(-7));
     layout->addWidget(dateFrom);
-    layout->addWidget(new QLabel(tr("to")));
+    QLabel* toLabel = new QLabel(tr("to"), dateRangeWidget);
+    toLabel->setObjectName("TransactionRangeLabel");
+    layout->addWidget(toLabel);
 
     dateTo = new QDateTimeEdit(this);
+    dateTo->setObjectName("TransactionRangeDate");
     dateTo->setDisplayFormat("dd/MM/yy");
     dateTo->setCalendarPopup(true);
     dateTo->setMinimumWidth(100);
@@ -565,6 +598,7 @@ QWidget *TransactionView::createDateRangeWidget()
 
     // Hide by default
     dateRangeWidget->setVisible(false);
+    ApplyCardShadow(dateRangeWidget, 24.0, 8.0, 72);
 
     // Notify on change
     connect(dateFrom, SIGNAL(dateChanged(QDate)), this, SLOT(dateRangeChanged()));

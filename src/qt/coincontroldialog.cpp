@@ -28,9 +28,24 @@
 #include <QCursor>
 #include <QDialogButtonBox>
 #include <QFlags>
+#include <QGraphicsDropShadowEffect>
+#include <QHeaderView>
 #include <QIcon>
+#include <QPushButton>
 #include <QSettings>
 #include <QTreeWidget>
+
+namespace {
+void ApplyCardShadow(QWidget* widget)
+{
+    if (!widget) return;
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(widget);
+    effect->setBlurRadius(28.0);
+    effect->setOffset(0, 10);
+    effect->setColor(QColor(88, 28, 140, 92));
+    widget->setGraphicsEffect(effect);
+}
+}
 
 QList<CAmount> CoinControlDialog::payAmounts;
 bool CoinControlDialog::fSubtractFeeFromAmount = false;
@@ -49,6 +64,34 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle, QWidge
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
+    setObjectName("CoinControlDialog");
+    setMinimumSize(1060, 620);
+    ui->frame->setObjectName("CoinControlToolbarCard");
+    ui->treeWidget->setObjectName("CoinControlTree");
+    ui->treeWidget->header()->setObjectName("CoinControlTreeHeader");
+    ui->pushButtonSelectAll->setObjectName("CoinControlPrimaryButton");
+    ui->radioTreeMode->setObjectName("CoinControlModeToggle");
+    ui->radioListMode->setObjectName("CoinControlModeToggle");
+    ui->labelLocked->setObjectName("CoinControlLockedLabel");
+    ui->labelCoinControlQuantityText->setObjectName("CoinControlStatLabel");
+    ui->labelCoinControlBytesText->setObjectName("CoinControlStatLabel");
+    ui->labelCoinControlAmountText->setObjectName("CoinControlStatLabel");
+    ui->labelCoinControlLowOutputText->setObjectName("CoinControlStatLabel");
+    ui->labelCoinControlFeeText->setObjectName("CoinControlStatLabel");
+    ui->labelCoinControlAfterFeeText->setObjectName("CoinControlStatLabel");
+    ui->labelCoinControlChangeText->setObjectName("CoinControlStatLabel");
+    ui->labelCoinControlQuantity->setObjectName("CoinControlStatValue");
+    ui->labelCoinControlBytes->setObjectName("CoinControlStatValue");
+    ui->labelCoinControlAmount->setObjectName("CoinControlStatValue");
+    ui->labelCoinControlLowOutput->setObjectName("CoinControlStatValue");
+    ui->labelCoinControlFee->setObjectName("CoinControlStatValue");
+    ui->labelCoinControlAfterFee->setObjectName("CoinControlStatValue");
+    ui->labelCoinControlChange->setObjectName("CoinControlStatValue");
+    if (QPushButton* ok_button = ui->buttonBox->button(QDialogButtonBox::Ok)) {
+        ok_button->setObjectName("DialogPrimaryButton");
+    }
+    ApplyCardShadow(ui->frame);
+    ApplyCardShadow(ui->treeWidget);
 
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
@@ -135,6 +178,9 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle, QWidge
     ui->treeWidget->setColumnWidth(COLUMN_CONFIRMATIONS, 110);
     ui->treeWidget->setColumnHidden(COLUMN_TXHASH, true);         // store transaction hash in this column, but don't show it
     ui->treeWidget->setColumnHidden(COLUMN_VOUT_INDEX, true);     // store vout index in this column, but don't show it
+    ui->treeWidget->setRootIsDecorated(false);
+    ui->treeWidget->setAlternatingRowColors(false);
+    ui->treeWidget->setUniformRowHeights(true);
 
     // default view is sorted by amount desc
     sortView(COLUMN_AMOUNT, Qt::DescendingOrder);

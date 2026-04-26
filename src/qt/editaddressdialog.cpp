@@ -10,7 +10,9 @@
 #include <qt/guiutil.h>
 
 #include <QDataWidgetMapper>
+#include <QDialogButtonBox>
 #include <QMessageBox>
+#include <QPushButton>
 
 
 EditAddressDialog::EditAddressDialog(Mode _mode, QWidget *parent) :
@@ -22,6 +24,16 @@ EditAddressDialog::EditAddressDialog(Mode _mode, QWidget *parent) :
 {
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
+    setObjectName("EditAddressDialog");
+    setMinimumSize(560, 220);
+    ui->labelEdit->setObjectName("AddressBookFormField");
+    ui->addressEdit->setObjectName("AddressBookFormField");
+    if (QPushButton* ok_button = ui->buttonBox->button(QDialogButtonBox::Ok)) {
+        ok_button->setObjectName("DialogPrimaryButton");
+    }
+    if (QPushButton* cancel_button = ui->buttonBox->button(QDialogButtonBox::Cancel)) {
+        cancel_button->setObjectName("DialogSecondaryButton");
+    }
 
     GUIUtil::setupAddressWidget(ui->addressEdit, this);
 

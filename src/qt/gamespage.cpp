@@ -18,6 +18,8 @@
 
 GamesPage::GamesPage(QWidget* parent) : QWidget(parent)
 {
+    setObjectName("GamesPage");
+
     auto* outerLayout = new QVBoxLayout(this);
     outerLayout->setContentsMargins(24, 24, 24, 24);
     outerLayout->setSpacing(16);
@@ -26,22 +28,25 @@ GamesPage::GamesPage(QWidget* parent) : QWidget(parent)
     headerLayout->setSpacing(12);
 
     m_backButton = new QPushButton(tr("Back"), this);
+    m_backButton->setObjectName("GamesBackButton");
     m_backButton->setVisible(false);
     m_backButton->setFixedHeight(40);
     QObject::connect(m_backButton, &QPushButton::clicked, this, [this]() { showLibrary(); });
     headerLayout->addWidget(m_backButton, 0, Qt::AlignLeft);
 
     m_titleLabel = new QLabel(tr("Games"), this);
-    m_titleLabel->setStyleSheet(QStringLiteral("font-size: 24px; font-weight: 700;"));
+    m_titleLabel->setObjectName("GamesTitle");
     headerLayout->addWidget(m_titleLabel, 1, Qt::AlignLeft);
     headerLayout->addStretch();
 
     outerLayout->addLayout(headerLayout);
 
     m_stack = new QStackedWidget(this);
+    m_stack->setObjectName("GamesStack");
     outerLayout->addWidget(m_stack, 1);
 
     m_libraryPage = new QWidget(this);
+    m_libraryPage->setObjectName("GamesLibraryPage");
     auto* libraryLayout = new QVBoxLayout(m_libraryPage);
     libraryLayout->setContentsMargins(0, 0, 0, 0);
     libraryLayout->setSpacing(18);
@@ -49,43 +54,46 @@ GamesPage::GamesPage(QWidget* parent) : QWidget(parent)
     auto* introLabel = new QLabel(
         tr("Pick a game to play inside Verge Core."),
         m_libraryPage);
+    introLabel->setObjectName("GamesIntroLabel");
     introLabel->setWordWrap(true);
-    introLabel->setStyleSheet(QStringLiteral("font-size: 14px;"));
     libraryLayout->addWidget(introLabel);
 
     auto* tetrisButton = new QPushButton(QIcon(QStringLiteral(":/games/icons/tetris")), tr("Tetris"), m_libraryPage);
+    tetrisButton->setObjectName("GamesLauncherButton");
     tetrisButton->setIconSize(QSize(40, 40));
     tetrisButton->setMinimumHeight(84);
-    tetrisButton->setStyleSheet(QStringLiteral("text-align: left; padding: 14px 18px; font-size: 18px;"));
     QObject::connect(tetrisButton, &QPushButton::clicked, this, [this]() { showTetris(); });
     libraryLayout->addWidget(tetrisButton);
 
     auto* pongButton = new QPushButton(QIcon(QStringLiteral(":/games/icons/pong")), tr("Pong"), m_libraryPage);
+    pongButton->setObjectName("GamesLauncherButton");
     pongButton->setIconSize(QSize(40, 40));
     pongButton->setMinimumHeight(84);
-    pongButton->setStyleSheet(QStringLiteral("text-align: left; padding: 14px 18px; font-size: 18px;"));
     QObject::connect(pongButton, &QPushButton::clicked, this, [this]() { showPong(); });
     libraryLayout->addWidget(pongButton);
 
     auto* spaceInvadersButton = new QPushButton(QIcon(QStringLiteral(":/games/icons/spaceinvaders")), tr("Space Invaders"), m_libraryPage);
+    spaceInvadersButton->setObjectName("GamesLauncherButton");
     spaceInvadersButton->setIconSize(QSize(40, 40));
     spaceInvadersButton->setMinimumHeight(84);
-    spaceInvadersButton->setStyleSheet(QStringLiteral("text-align: left; padding: 14px 18px; font-size: 18px;"));
     QObject::connect(spaceInvadersButton, &QPushButton::clicked, this, [this]() { showSpaceInvaders(); });
     libraryLayout->addWidget(spaceInvadersButton);
     libraryLayout->addStretch();
 
     m_spaceInvadersPage = new QWidget(this);
+    m_spaceInvadersPage->setObjectName("GamesPlayPage");
     m_spaceInvadersLayout = new QVBoxLayout(m_spaceInvadersPage);
     m_spaceInvadersLayout->setContentsMargins(0, 0, 0, 0);
     m_spaceInvadersLayout->setSpacing(12);
 
     m_pongPage = new QWidget(this);
+    m_pongPage->setObjectName("GamesPlayPage");
     m_pongLayout = new QVBoxLayout(m_pongPage);
     m_pongLayout->setContentsMargins(0, 0, 0, 0);
     m_pongLayout->setSpacing(12);
 
     m_tetrisPage = new QWidget(this);
+    m_tetrisPage->setObjectName("GamesPlayPage");
     m_tetrisLayout = new QVBoxLayout(m_tetrisPage);
     m_tetrisLayout->setContentsMargins(0, 0, 0, 0);
     m_tetrisLayout->setSpacing(12);
@@ -106,10 +114,12 @@ void GamesPage::ensureSpaceInvadersPage()
     auto* invadersHelpLabel = new QLabel(
         tr("Controls: Left/Right or A/D to move, Space to shoot, P to pause, R to restart."),
         m_spaceInvadersPage);
+    invadersHelpLabel->setObjectName("GamesHelpLabel");
     invadersHelpLabel->setWordWrap(true);
     m_spaceInvadersLayout->addWidget(invadersHelpLabel);
 
     m_spaceInvadersWidget = new SpaceInvadersWidget(m_spaceInvadersPage);
+    m_spaceInvadersWidget->setObjectName("GamesCanvas");
     m_spaceInvadersLayout->addWidget(m_spaceInvadersWidget, 1, Qt::AlignCenter);
 }
 
@@ -122,10 +132,12 @@ void GamesPage::ensureTetrisPage()
     auto* helpLabel = new QLabel(
         tr("Controls: Left/Right to move, Up to rotate, Down to drop faster, P to pause, Space to restart."),
         m_tetrisPage);
+    helpLabel->setObjectName("GamesHelpLabel");
     helpLabel->setWordWrap(true);
     m_tetrisLayout->addWidget(helpLabel);
 
     m_tetrisWidget = new TetrisWidget(m_tetrisPage);
+    m_tetrisWidget->setObjectName("GamesCanvas");
     m_tetrisLayout->addWidget(m_tetrisWidget, 1, Qt::AlignCenter);
 }
 
@@ -138,10 +150,12 @@ void GamesPage::ensurePongPage()
     auto* helpLabel = new QLabel(
         tr("Controls: Left/Right or A/D to move, P to pause, R to restart."),
         m_pongPage);
+    helpLabel->setObjectName("GamesHelpLabel");
     helpLabel->setWordWrap(true);
     m_pongLayout->addWidget(helpLabel);
 
     m_pongWidget = new PongWidget(m_pongPage);
+    m_pongWidget->setObjectName("GamesCanvas");
     m_pongLayout->addWidget(m_pongWidget, 1, Qt::AlignCenter);
 }
 

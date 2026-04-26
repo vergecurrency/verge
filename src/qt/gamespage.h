@@ -14,6 +14,7 @@ class QPushButton;
 class SpaceInvadersWidget;
 class TetrisWidget;
 class QVBoxLayout;
+class QWidget;
 
 class GamesPage : public QWidget
 {

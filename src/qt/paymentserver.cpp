@@ -384,7 +384,8 @@ void PaymentServer::initNetManager()
 {
     if (!optionsModel)
         return;
-    delete netManager;
+    if (netManager)
+        return;
 
     // netManager is used to fetch paymentrequests given in verge: URIs
     netManager = new QNetworkAccessManager(this);
@@ -414,8 +415,6 @@ void PaymentServer::initNetManager()
 
 void PaymentServer::uiReady()
 {
-    initNetManager();
-
     saveURIs = false;
     for (const QString& s : savedPaymentRequests)
     {
@@ -641,6 +640,10 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus& request, Sen
 
 void PaymentServer::fetchRequest(const QUrl& url)
 {
+    initNetManager();
+    if (!netManager)
+        return;
+
     QNetworkRequest netRequest;
     netRequest.setAttribute(QNetworkRequest::User, BIP70_MESSAGE_PAYMENTREQUEST);
     netRequest.setUrl(url);
@@ -653,6 +656,10 @@ void PaymentServer::fetchPaymentACK(WalletModel* walletModel, const SendCoinsRec
 {
     const payments::PaymentDetails& details = recipient.paymentRequest.getDetails();
     if (!details.has_payment_url())
+        return;
+
+    initNetManager();
+    if (!netManager)
         return;
 
     QNetworkRequest netRequest;

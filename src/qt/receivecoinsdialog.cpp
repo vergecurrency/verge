@@ -19,9 +19,22 @@
 
 #include <QAction>
 #include <QCursor>
+#include <QGraphicsDropShadowEffect>
 #include <QMessageBox>
 #include <QScrollBar>
 #include <QTextDocument>
+
+namespace {
+void ApplyCardShadow(QWidget* widget)
+{
+    if (!widget) return;
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(widget);
+    effect->setBlurRadius(28.0);
+    effect->setOffset(0, 10);
+    effect->setColor(QColor(88, 28, 140, 92));
+    widget->setGraphicsEffect(effect);
+}
+}
 
 ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWidget *parent) :
     QDialog(parent),
@@ -31,6 +44,22 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
+    setObjectName("ReceiveCoinsDialog");
+    ui->frame2->setObjectName("ReceiveRequestCard");
+    ui->frame->setObjectName("ReceiveHistoryCard");
+    ui->label_5->setObjectName("ReceiveIntroText");
+    ui->label_6->setObjectName("ReceiveSectionTitle");
+    ui->reqLabel->setObjectName("ReceiveTextField");
+    ui->reqAmount->setObjectName("ReceiveAmountField");
+    ui->reqMessage->setObjectName("ReceiveTextField");
+    ui->useStealth->setObjectName("ReceiveStealthToggle");
+    ui->receiveButton->setObjectName("ReceivePrimaryButton");
+    ui->clearButton->setObjectName("ReceiveSecondaryButton");
+    ui->showRequestButton->setObjectName("ReceiveSecondaryButton");
+    ui->removeRequestButton->setObjectName("ReceiveSecondaryButton");
+    ui->recentRequestsView->setObjectName("ReceiveHistoryTable");
+    ApplyCardShadow(ui->frame2);
+    ApplyCardShadow(ui->frame);
 
     if (!_platformStyle->getImagesOnButtons()) {
         ui->clearButton->setIcon(QIcon());
@@ -82,9 +111,16 @@ void ReceiveCoinsDialog::setModel(WalletModel *_model)
         tableView->verticalHeader()->hide();
         tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         tableView->setModel(_model->getRecentRequestsTableModel());
-        tableView->setAlternatingRowColors(true);
+        tableView->setAlternatingRowColors(false);
         tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
         tableView->setSelectionMode(QAbstractItemView::ContiguousSelection);
+        tableView->setShowGrid(false);
+        tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        tableView->setFrameShape(QFrame::NoFrame);
+        tableView->setWordWrap(false);
+        tableView->horizontalHeader()->setObjectName("ReceiveHistoryHeader");
+        tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        tableView->verticalHeader()->setDefaultSectionSize(42);
         tableView->setColumnWidth(RecentRequestsTableModel::Date, DATE_COLUMN_WIDTH);
         tableView->setColumnWidth(RecentRequestsTableModel::Label, LABEL_COLUMN_WIDTH);
         tableView->setColumnWidth(RecentRequestsTableModel::Amount, AMOUNT_MINIMUM_COLUMN_WIDTH);
