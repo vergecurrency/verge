@@ -2495,6 +2495,9 @@ void VERGEApplication::createSplashScreen(const NetworkStyle *networkStyle)
     // We don't hold a direct pointer to the splash screen after creation, but the splash
     // screen will take care of deleting itself when slotFinish happens.
     splash->show();
+    splash->raise();
+    splash->activateWindow();
+    QApplication::processEvents();
     connect(this, SIGNAL(splashFinished(QWidget*)), splash, SLOT(slotFinish(QWidget*)));
     connect(this, SIGNAL(requestedShutdown()), splash, SLOT(close()));
 }
@@ -3077,7 +3080,9 @@ int main(int argc, char *argv[])
     // Subscribe to global signals from core
     std::unique_ptr<interfaces::Handler> handler = node->handleInitMessage(InitMessage);
 
-    if (gArgs.GetBoolArg("-splash", DEFAULT_SPLASHSCREEN) && !gArgs.GetBoolArg("-min", false))
+    const bool showSplash = gArgs.GetBoolArg("-splash", DEFAULT_SPLASHSCREEN) && !gArgs.GetBoolArg("-min", false);
+    LogPrintf("GUI splash launch: %s (default=%s)\n", showSplash ? "true" : "false", DEFAULT_SPLASHSCREEN ? "true" : "false");
+    if (showSplash)
         app.createSplashScreen(networkStyle.data());
 
     int rv = EXIT_SUCCESS;

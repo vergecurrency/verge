@@ -158,8 +158,6 @@ private:
     HelpMessageDialog *helpMessageDialog;
     ModalOverlay *modalOverlay;
 
-    /** Keep track of previous number of blocks, to detect progress */
-    int prevBlocks;
     int spinnerFrame;
 
     const PlatformStyle *platformStyle;
@@ -188,6 +186,7 @@ private:
 
     void updateHeadersSyncProgressLabel();
     void updateSyncProgressBarStyle();
+    void updateSyncSpinnerIcon();
     void polishShellWidgets();
 
 Q_SIGNALS:

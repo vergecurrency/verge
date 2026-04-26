@@ -56,7 +56,7 @@ static const int MAX_URI_LENGTH = 255;
 /* QRCodeDialog -- size of exported QR Code image */
 #define QR_IMAGE_SIZE 300
 
-/* Number of frames in spinner animation */
+/* Number of segments in the sync spinner animation */
 #define SPINNER_FRAMES 36
 
 #define QAPP_ORG_NAME "VERGE"

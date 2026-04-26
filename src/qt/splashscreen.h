@@ -6,7 +6,6 @@
 #ifndef VERGE_QT_SPLASHSCREEN_H
 #define VERGE_QT_SPLASHSCREEN_H
 
-#include <functional>
 #include <QSplashScreen>
 #include <QTimer>
 #include <QVector>
@@ -65,6 +64,7 @@ private:
 
     void initializeBubbles();
     void drawAnimatedBackground(QPainter& painter) const;
+    void beginFinish();
 
     /** Connect core signals to splash screen */
     void subscribeToCoreSignals();
@@ -82,6 +82,8 @@ private:
     QVector<Bubble> m_bubbles;
     int m_backgroundPhase;
     int m_textGradientOffset;
+    bool m_isFinishing;
+    bool m_coreSignalsConnected;
 
     interfaces::Node& m_node;
     std::unique_ptr<interfaces::Handler> m_handler_init_message;

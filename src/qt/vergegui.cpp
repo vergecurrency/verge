@@ -273,6 +273,47 @@ static QPixmap CreateSyncedCheckPixmap(const QColor& checkColor)
 
     return pixmap;
 }
+
+static QPixmap CreateSyncSpinnerPixmap(int frame, const QColor& accentColor, const QColor& baseColor)
+{
+    const int size = 18;
+    const qreal segmentWidth = 2.4;
+    const qreal segmentLength = 4.8;
+    const qreal segmentRadius = 5.0;
+
+    QPixmap pixmap(size, size);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.translate(size / 2.0, size / 2.0);
+    painter.setPen(Qt::NoPen);
+
+    auto blendChannel = [](int from, int to, qreal amount) {
+        return static_cast<int>(from + (to - from) * amount);
+    };
+
+    const int normalizedFrame = ((frame % SPINNER_FRAMES) + SPINNER_FRAMES) % SPINNER_FRAMES;
+    for (int i = 0; i < SPINNER_FRAMES; ++i) {
+        const int phase = (i - normalizedFrame + SPINNER_FRAMES) % SPINNER_FRAMES;
+        const qreal blend = std::pow(1.0 - (static_cast<qreal>(phase) / SPINNER_FRAMES), 1.55);
+
+        QColor segmentColor(
+            blendChannel(baseColor.red(), accentColor.red(), blend),
+            blendChannel(baseColor.green(), accentColor.green(), blend),
+            blendChannel(baseColor.blue(), accentColor.blue(), blend),
+            blendChannel(58, 255, blend));
+
+        painter.save();
+        painter.rotate((360.0 / SPINNER_FRAMES) * i);
+        painter.setBrush(segmentColor);
+        painter.drawRoundedRect(QRectF(segmentRadius, -segmentWidth / 2.0, segmentLength, segmentWidth),
+                                segmentWidth / 2.0, segmentWidth / 2.0);
+        painter.restore();
+    }
+
+    return pixmap;
+}
 }
 
 VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, const NetworkStyle *networkStyle, QWidget *parent) :
@@ -333,7 +374,6 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     rpcConsole(0),
     helpMessageDialog(0),
     modalOverlay(0),
-    prevBlocks(0),
     spinnerFrame(0),
     platformStyle(_platformStyle)
 {
@@ -535,9 +575,12 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     m_syncProgressBarTimer->setInterval(50);
     connect(m_syncProgressBarTimer, &QTimer::timeout, this, [this]() {
         m_syncProgressBarOffset = (m_syncProgressBarOffset + 2) % 100;
+        spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES;
         updateSyncProgressBarStyle();
+        if (progressBar && progressBar->isVisible() && isVisible()) {
+            updateSyncSpinnerIcon();
+        }
     });
-    m_syncProgressBarTimer->start();
 
     statusBar()->addWidget(syncStatusCard, 1);
     statusBar()->addPermanentWidget(frameBlocks);
@@ -1144,7 +1187,44 @@ void VERGEGUI::aboutQtClicked()
 
 void VERGEGUI::showDebugWindow()
 {
-    rpcConsole->showNormal();
+    const QRect referenceRect = normalGeometry().isValid() ? normalGeometry() : geometry();
+    QScreen* targetScreen = QGuiApplication::screenAt(referenceRect.center());
+    if (!targetScreen) {
+        targetScreen = QGuiApplication::primaryScreen();
+    }
+
+    QRect available = referenceRect;
+    if (targetScreen) {
+        available = targetScreen->availableGeometry();
+    }
+
+    int targetWidth = qRound(referenceRect.width() * 0.94);
+    int targetHeight = qRound(referenceRect.height() * 0.94);
+
+    targetWidth = qBound(920, targetWidth, qMax(920, available.width() - 40));
+    targetHeight = qBound(620, targetHeight, qMax(620, available.height() - 40));
+
+    QRect targetRect(0, 0, targetWidth, targetHeight);
+    targetRect.moveCenter(referenceRect.center());
+
+    const int horizontalMargin = 20;
+    const int verticalMargin = 20;
+    if (targetRect.left() < available.left() + horizontalMargin) {
+        targetRect.moveLeft(available.left() + horizontalMargin);
+    }
+    if (targetRect.top() < available.top() + verticalMargin) {
+        targetRect.moveTop(available.top() + verticalMargin);
+    }
+    if (targetRect.right() > available.right() - horizontalMargin) {
+        targetRect.moveRight(available.right() - horizontalMargin);
+    }
+    if (targetRect.bottom() > available.bottom() - verticalMargin) {
+        targetRect.moveBottom(available.bottom() - verticalMargin);
+    }
+
+    rpcConsole->setWindowState(rpcConsole->windowState() & ~(Qt::WindowMaximized | Qt::WindowFullScreen));
+    rpcConsole->resize(targetRect.size());
+    rpcConsole->move(targetRect.topLeft());
     rpcConsole->show();
     rpcConsole->raise();
     rpcConsole->activateWindow();
@@ -1327,9 +1407,21 @@ void VERGEGUI::updateSyncProgressBarStyle()
         " stop: %2 #9f54ff,"
         " stop: %3 #79eeff,"
         " stop: 1.00 #ffb6f4);"
-        " border-radius: 8px;"
-        " margin: 0px;"
-        "}").arg(leftFade, 0, 'f', 2).arg(center, 0, 'f', 2).arg(rightFade, 0, 'f', 2));
+          " border-radius: 8px;"
+          " margin: 0px;"
+          "}").arg(leftFade, 0, 'f', 2).arg(center, 0, 'f', 2).arg(rightFade, 0, 'f', 2));
+}
+
+void VERGEGUI::updateSyncSpinnerIcon()
+{
+    if (!labelBlocksIcon) {
+        return;
+    }
+
+    labelBlocksIcon->setPixmap(CreateSyncSpinnerPixmap(
+        spinnerFrame,
+        QColor(122, 238, 255),
+        QColor(116, 52, 168)));
 }
 
 void VERGEGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool header)
@@ -1447,14 +1539,9 @@ void VERGEGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerif
         }
 
         tooltip = tr("Catching up...") + QString("<br>") + tooltip;
-        if(count != prevBlocks)
-        {
-            labelBlocksIcon->setPixmap(platformStyle->SingleColorIcon(QString(
-                ":/movies/spinner-%1").arg(spinnerFrame, 3, 10, QChar('0')))
-                .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
-            spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES;
+        if (isVisible()) {
+            updateSyncSpinnerIcon();
         }
-        prevBlocks = count;
 
 #ifdef ENABLE_WALLET
         if(walletFrame)
@@ -1600,6 +1687,17 @@ void VERGEGUI::closeEvent(QCloseEvent *event)
 void VERGEGUI::showEvent(QShowEvent *event)
 {
     QMainWindow::showEvent(event);
+    if (m_syncProgressBarTimer && !m_syncProgressBarTimer->isActive()) {
+        QTimer::singleShot(1500, this, [this]() {
+            if (!isVisible() || !m_syncProgressBarTimer || m_syncProgressBarTimer->isActive()) {
+                return;
+            }
+            m_syncProgressBarTimer->start();
+            if (progressBar && progressBar->isVisible()) {
+                updateSyncSpinnerIcon();
+            }
+        });
+    }
     // enable the debug window when the main window shows up
     openRPCConsoleAction->setEnabled(true);
     aboutAction->setEnabled(true);

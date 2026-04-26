@@ -44,9 +44,12 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     curAlignment(Qt::AlignCenter | Qt::AlignHCenter),
     m_backgroundPhase(0),
     m_textGradientOffset(0),
+    m_isFinishing(false),
+    m_coreSignalsConnected(false),
     m_node(node)
 {
     setObjectName("SplashScreen");
+    setAttribute(Qt::WA_DeleteOnClose);
 #ifndef Q_OS_MAC
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
 #endif
@@ -122,6 +125,9 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     pixPaint.end();
 
     setWindowTitle(titleAddText.isEmpty() ? tr("Verge Core") : tr("Verge Core") + " " + titleAddText);
+    curMessage = tr("Launching Verge Octo...");
+    curColor = QColor(255, 255, 255);
+    curAlignment = Qt::AlignCenter | Qt::AlignHCenter;
 
     resize(logicalSplashSize);
     setFixedSize(logicalSplashSize);
@@ -137,6 +143,9 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
     m_backgroundAnimationTimer.setInterval(45);
     connect(&m_backgroundAnimationTimer, &QTimer::timeout, this, [this]() {
+        if (m_isFinishing) {
+            return;
+        }
         m_backgroundPhase = (m_backgroundPhase + 1) % 1000000;
         update();
     });
@@ -144,6 +153,9 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
     m_textGradientTimer.setInterval(50);
     connect(&m_textGradientTimer, &QTimer::timeout, this, [this]() {
+        if (m_isFinishing) {
+            return;
+        }
         m_textGradientOffset = (m_textGradientOffset + 5) % TEXT_GRADIENT_PERIOD;
         update();
     });
@@ -152,9 +164,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
 SplashScreen::~SplashScreen()
 {
-    m_backgroundAnimationTimer.stop();
-    m_textGradientTimer.stop();
-    unsubscribeFromCoreSignals();
+    beginFinish();
 }
 
 void SplashScreen::initializeBubbles()
@@ -166,19 +176,28 @@ void SplashScreen::initializeBubbles()
         QColor(255, 170, 94),
         QColor(255, 118, 226)
     };
+    static const qreal bubblePositions[] = {
+        0.08, 0.17, 0.28, 0.40, 0.53, 0.66, 0.79,
+        0.91, 0.14, 0.35, 0.59, 0.73, 0.85
+    };
+    static const qreal bubbleOffsets[] = {
+        18.0, 72.0, 133.0, 205.0, 264.0, 328.0, 391.0,
+        448.0, 516.0, 579.0, 642.0, 708.0, 776.0
+    };
+    static const int bubbleCount = sizeof(bubblePositions) / sizeof(bubblePositions[0]);
 
     m_bubbles.clear();
-    m_bubbles.reserve(12);
+    m_bubbles.reserve(bubbleCount);
 
-    for (int i = 0; i < 12; ++i) {
+    for (int i = 0; i < bubbleCount; ++i) {
         Bubble bubble;
-        bubble.normalizedX = std::fmod(0.11 + (i * 0.078), 1.0);
-        bubble.radius = 18.0 + (i % 5) * 10.0 + (i / 5) * 4.0;
-        bubble.riseSpeed = 0.88 + (i % 4) * 0.15 + (i / 4) * 0.05;
-        bubble.driftAmplitude = 10.0 + (i % 3) * 6.0;
-        bubble.driftSpeed = 0.017 + (i % 5) * 0.0025;
-        bubble.offset = 44.0 * i;
-        bubble.opacity = 0.15 + (i % 4) * 0.035;
+        bubble.normalizedX = bubblePositions[i];
+        bubble.radius = 20.0 + (i % 5) * 8.5 + ((i + 2) % 3) * 3.0;
+        bubble.riseSpeed = 0.92 + (i % 4) * 0.14 + (i / 4) * 0.04;
+        bubble.driftAmplitude = 12.0 + (i % 3) * 7.0 + ((i + 1) % 2) * 2.0;
+        bubble.driftSpeed = 0.015 + (i % 5) * 0.0028;
+        bubble.offset = bubbleOffsets[i];
+        bubble.opacity = (0.15 + (i % 4) * 0.035) * 1.25;
         bubble.color = bubblePalette[i % (sizeof(bubblePalette) / sizeof(bubblePalette[0]))];
         m_bubbles.push_back(bubble);
     }
@@ -258,19 +277,31 @@ bool SplashScreen::eventFilter(QObject * obj, QEvent * ev) {
     return QObject::eventFilter(obj, ev);
 }
 
+void SplashScreen::beginFinish()
+{
+    if (m_isFinishing) {
+        return;
+    }
+
+    m_isFinishing = true;
+    m_backgroundAnimationTimer.stop();
+    m_textGradientTimer.stop();
+    removeEventFilter(this);
+    unsubscribeFromCoreSignals();
+}
+
 void SplashScreen::slotFinish(QWidget *mainWin)
 {
     Q_UNUSED(mainWin);
 
-    m_backgroundAnimationTimer.stop();
-    m_textGradientTimer.stop();
+    beginFinish();
 
     /* If the window is minimized, hide() will be ignored. */
     /* Make sure we de-minimize the splashscreen window before hiding */
     if (isMinimized())
         showNormal();
     hide();
-    deleteLater(); // No more need for this
+    deleteLater();
 }
 
 static void InitMessage(SplashScreen *splash, const std::string &message)
@@ -299,28 +330,59 @@ void SplashScreen::ConnectWallet(std::unique_ptr<interfaces::Wallet> wallet)
 
 void SplashScreen::subscribeToCoreSignals()
 {
+    if (m_coreSignalsConnected) {
+        return;
+    }
+
     // Connect signals to client
     m_handler_init_message = m_node.handleInitMessage(std::bind(InitMessage, this, std::placeholders::_1));
     m_handler_show_progress = m_node.handleShowProgress(std::bind(ShowProgress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 #ifdef ENABLE_WALLET
-    m_handler_load_wallet = m_node.handleLoadWallet([this](std::unique_ptr<interfaces::Wallet> wallet) { ConnectWallet(std::move(wallet)); });
+    m_handler_load_wallet = m_node.handleLoadWallet([this](std::unique_ptr<interfaces::Wallet> wallet) {
+        QTimer::singleShot(0, this, [this, wallet = std::move(wallet)]() mutable {
+            if (m_isFinishing) {
+                return;
+            }
+            ConnectWallet(std::move(wallet));
+        });
+    });
 #endif
+    m_coreSignalsConnected = true;
 }
 
 void SplashScreen::unsubscribeFromCoreSignals()
 {
+    if (!m_coreSignalsConnected) {
+        return;
+    }
+
     // Disconnect signals from client
-    m_handler_init_message->disconnect();
-    m_handler_show_progress->disconnect();
+    if (m_handler_init_message) {
+        m_handler_init_message->disconnect();
+        m_handler_init_message.reset();
+    }
+    if (m_handler_show_progress) {
+        m_handler_show_progress->disconnect();
+        m_handler_show_progress.reset();
+    }
+    if (m_handler_load_wallet) {
+        m_handler_load_wallet->disconnect();
+        m_handler_load_wallet.reset();
+    }
     for (const auto& handler : m_connected_wallet_handlers) {
         handler->disconnect();
     }
     m_connected_wallet_handlers.clear();
     m_connected_wallets.clear();
+    m_coreSignalsConnected = false;
 }
 
 void SplashScreen::showMessage(const QString &message, int alignment, const QColor &color)
 {
+    if (m_isFinishing) {
+        return;
+    }
+
     curMessage = message;
     curAlignment = alignment;
     curColor = color;
