@@ -24,14 +24,67 @@ function Write-Section {
 
 function Invoke-Download {
     param(
-        [Parameter(Mandatory = $true)][string]$Url,
-        [Parameter(Mandatory = $true)][string]$OutFile
+        [Parameter(Mandatory = $true)][string[]]$Url,
+        [Parameter(Mandatory = $true)][string]$OutFile,
+        [int]$RetryCount = 4,
+        [int]$RetryDelaySeconds = 5
     )
     if (Test-Path $OutFile) {
         return
     }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $OutFile) | Out-Null
-    Invoke-WebRequest -Uri $Url -OutFile $OutFile
+    $downloadErrors = New-Object System.Collections.Generic.List[string]
+    $curlCommand = Get-Command curl.exe -ErrorAction SilentlyContinue
+    $curl = $null
+    if ($curlCommand) {
+        $curl = $curlCommand.Source
+    }
+
+    foreach ($candidateUrl in $Url) {
+        for ($attempt = 1; $attempt -le $RetryCount; $attempt++) {
+            try {
+                if (Test-Path $OutFile) {
+                    Remove-Item $OutFile -Force
+                }
+                if ($curl) {
+                    & $curl --fail --location --silent --show-error --retry 3 --retry-delay 5 --retry-all-errors --output $OutFile $candidateUrl
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "curl exited with code $LASTEXITCODE"
+                    }
+                } else {
+                    Invoke-WebRequest -Uri $candidateUrl -OutFile $OutFile -MaximumRedirection 10
+                }
+
+                if (Test-Path $OutFile) {
+                    $stream = [System.IO.File]::OpenRead($OutFile)
+                    try {
+                        $buffer = New-Object byte[] 512
+                        $bytesRead = $stream.Read($buffer, 0, $buffer.Length)
+                    } finally {
+                        $stream.Dispose()
+                    }
+                    $header = [System.Text.Encoding]::ASCII.GetString($buffer, 0, $bytesRead)
+                    if ($header -match '(?i)<html|<!doctype html|Unicorn!\s*&middot;\s*GitHub|This page is taking too long to load') {
+                        throw "downloaded an HTML error page instead of an archive"
+                    }
+                } else {
+                    throw "download did not produce $OutFile"
+                }
+
+                return
+            } catch {
+                $downloadErrors.Add("[$candidateUrl attempt $attempt/$RetryCount] $($_.Exception.Message)")
+                if (Test-Path $OutFile) {
+                    Remove-Item $OutFile -Force -ErrorAction SilentlyContinue
+                }
+                if ($attempt -lt $RetryCount) {
+                    Start-Sleep -Seconds $RetryDelaySeconds
+                }
+            }
+        }
+    }
+
+    throw "Failed to download $OutFile. Attempts: $($downloadErrors -join '; ')"
 }
 
 function Convert-ToForwardPath {
@@ -232,7 +285,12 @@ function Install-OpenSSL {
     $archive = Join-Path $downloads "openssl-$Version.tar.gz"
     $extractRoot = Join-Path $buildRoot "openssl-$Version-src"
     $sourceRoot = Join-Path $extractRoot "openssl-$Version"
-    Invoke-Download "https://github.com/openssl/openssl/releases/download/openssl-$Version/openssl-$Version.tar.gz" $archive
+    $opensslSeries = ($Version -replace '^(\d+\.\d+).*$', '$1')
+    Invoke-Download @(
+        "https://www.openssl.org/source/openssl-$Version.tar.gz",
+        "https://www.openssl.org/source/old/$opensslSeries/openssl-$Version.tar.gz",
+        "https://github.com/openssl/openssl/releases/download/openssl-$Version/openssl-$Version.tar.gz"
+    ) $archive
     if (-not (Test-Path $sourceRoot)) {
         Expand-ArchiveAny $archive $extractRoot
     }
