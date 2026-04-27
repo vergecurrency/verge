@@ -661,6 +661,12 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
     const CChainParams& chainparams = Params();
     RenameThread("verge-loadblk");
     ScheduleBatchPriority();
+    int starting_height = -1;
+
+    {
+        LOCK(cs_main);
+        starting_height = chainActive.Height();
+    }
 
     {
     CImportingNow imp;
@@ -717,6 +723,16 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
         LogPrintf("Failed to connect best block (%s)\n", FormatStateMessage(state));
         StartShutdown();
         return;
+    }
+
+    int ending_height = -1;
+    {
+        LOCK(cs_main);
+        ending_height = chainActive.Height();
+    }
+    if (ending_height > starting_height) {
+        LogPrintf("ThreadImport: chain advanced from height %d to %d; flushing startup chainstate\n", starting_height, ending_height);
+        FlushStateToDisk();
     }
 
     if (gArgs.GetBoolArg("-stopafterblockimport", DEFAULT_STOPAFTERBLOCKIMPORT)) {
