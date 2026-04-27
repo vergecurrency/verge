@@ -3,7 +3,7 @@ param(
     [string]$QtVersion = "6.10.2",
     [string]$QtArch = "win64_msvc2022_64",
     [string]$BoostVersion = "1.90.0",
-    [string]$OpenSSLVersion = "3.6.2",
+    [string]$OpenSSLVersion = "4.0.0",
     [string]$BdbVersion = "4.8.30.NC",
     [string]$VcpkgRoot = "",
     [switch]$SkipQt,
