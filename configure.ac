@@ -1457,31 +1457,42 @@ fi
 
 AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with-bignum=no], [--enable-module-recovery], [--enable-experimental], [--enable-module-ecdh]])
 
-m4_define([VERGE_TOR_SUBDIR_ARGS],
-  [[--disable-shared],
-   [--disable-gcc-hardening],
-   [--with-pic],
-   [--with-bignum=no],
-   [--enable-module-recovery],
-   [--disable-jni],
-   [--disable-system-torrc],
-   [--disable-systemd],
-   [--disable-lzma],
-   [--disable-zstd],
-   [--disable-asciidoc],
-   [--disable-gcc-hardening],
-   [--disable-unittests]])
-
 if test x$TARGET_OS = xdarwin; then
   dnl Homebrew/OpenSSL 4 on macOS still ships engine headers, but the legacy
   dnl ENGINE symbol set is not linkable in the way Tor's engine probe expects.
   dnl Tor already has a clean OPENSSL_NO_ENGINE fallback path; pass that
   dnl define directly into Tor's subconfigure so its generated Makefiles stay
   dnl on the no-engine side as well.
-  AX_SUBDIRS_CONFIGURE([src/tor], VERGE_TOR_SUBDIR_ARGS,
+  AX_SUBDIRS_CONFIGURE([src/tor],
+    [[--disable-shared],
+     [--disable-gcc-hardening],
+     [--with-pic],
+     [--with-bignum=no],
+     [--enable-module-recovery],
+     [--disable-jni],
+     [--disable-system-torrc],
+     [--disable-systemd],
+     [--disable-lzma],
+     [--disable-zstd],
+     [--disable-asciidoc],
+     [--disable-gcc-hardening],
+     [--disable-unittests]],
     [[CPPFLAGS=${CPPFLAGS} -DOPENSSL_NO_ENGINE]])
 else
-  AX_SUBDIRS_CONFIGURE([src/tor], VERGE_TOR_SUBDIR_ARGS)
+  AX_SUBDIRS_CONFIGURE([src/tor],
+    [[--disable-shared],
+     [--disable-gcc-hardening],
+     [--with-pic],
+     [--with-bignum=no],
+     [--enable-module-recovery],
+     [--disable-jni],
+     [--disable-system-torrc],
+     [--disable-systemd],
+     [--disable-lzma],
+     [--disable-zstd],
+     [--disable-asciidoc],
+     [--disable-gcc-hardening],
+     [--disable-unittests]])
 fi
 
 AC_OUTPUT
