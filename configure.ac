@@ -1455,6 +1455,14 @@ if test x$need_bundled_univalue = xyes; then
   AC_CONFIG_SUBDIRS([src/univalue])
 fi
 
+if test x$TARGET_OS = xdarwin; then
+  dnl Homebrew/OpenSSL 4 on macOS still ships engine headers, but the legacy
+  dnl ENGINE symbol set is not linkable in the way Tor's engine probe expects.
+  dnl Tor already has a clean OPENSSL_NO_ENGINE fallback path; force that path
+  dnl for Darwin builds so the subconfigure and final link stay on one side.
+  CPPFLAGS="$CPPFLAGS -DOPENSSL_NO_ENGINE"
+fi
+
 AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with-bignum=no], [--enable-module-recovery], [--enable-experimental], [--enable-module-ecdh]])
 
 ac_configure_args="${ac_configure_args} --disable-shared --disable-gcc-hardening --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc --disable-gcc-hardening --disable-unittests"
