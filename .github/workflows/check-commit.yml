@@ -620,6 +620,98 @@ jobs:
             otool -L "$file" | grep -E 'libboost_|verge-qt' || true
           done
 
+      - name: Bundle locally built dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          WORKSPACE_ROOT="$(pwd)"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          collect_local_dep_paths() {
+            local file="$1"
+            otool -L "$file" | awk 'NR > 1 { print $1 }' | while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                "$WORKSPACE_ROOT"/*.dylib)
+                  printf '%s\n' "$dep_path"
+                  ;;
+              esac
+            done
+          }
+
+          copy_local_dep() {
+            local source="$1"
+            local dep_name target
+            source="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
+            if [ ! -f "$source" ]; then
+              echo "::error::Missing local dylib dependency at $source"
+              exit 1
+            fi
+            dep_name="$(basename "$source")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied local dependency is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
+            install_name_tool -id "@loader_path/$dep_name" "$target"
+          }
+
+          declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/local-dylib-seen-$$.txt"
+          : > "$SEEN_FILE"
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$dep_path")"
+            if ! grep -Fxq "$dep_path" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_path" >> "$SEEN_FILE"
+              queue+=("$dep_path")
+            fi
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_path="${queue[$index]}"
+            dep_name="$(basename "$dep_path")"
+            copy_local_dep "$dep_path"
+            while read -r child_path; do
+              [ -n "$child_path" ] || continue
+              child_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$child_path")"
+              if ! grep -Fxq "$child_path" "$SEEN_FILE"; then
+                printf '%s\n' "$child_path" >> "$SEEN_FILE"
+                queue+=("$child_path")
+              fi
+            done < <(collect_local_dep_paths "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
+          done
+          rm -f "$SEEN_FILE"
+
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          shopt -s nullglob
+          for lib in "$FRAMEWORKS_DIR"/*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(collect_local_dep_paths "$lib")
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/*.dylib; do
+            [ -e "$file" ] || continue
+            echo "Local dylib linkage for $file"
+            otool -L "$file" | grep -E 'libunivalue|verge-qt' || true
+          done
+
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
@@ -1422,6 +1514,98 @@ jobs:
           for file in "$APP_BIN" "$FRAMEWORKS_DIR"/libboost_*.dylib; do
             echo "Boost linkage for $file"
             otool -L "$file" | grep -E 'libboost_|verge-qt' || true
+          done
+
+      - name: Bundle locally built dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          WORKSPACE_ROOT="$(pwd)"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          collect_local_dep_paths() {
+            local file="$1"
+            otool -L "$file" | awk 'NR > 1 { print $1 }' | while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                "$WORKSPACE_ROOT"/*.dylib)
+                  printf '%s\n' "$dep_path"
+                  ;;
+              esac
+            done
+          }
+
+          copy_local_dep() {
+            local source="$1"
+            local dep_name target
+            source="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
+            if [ ! -f "$source" ]; then
+              echo "::error::Missing local dylib dependency at $source"
+              exit 1
+            fi
+            dep_name="$(basename "$source")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied local dependency is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
+            install_name_tool -id "@loader_path/$dep_name" "$target"
+          }
+
+          declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/local-dylib-seen-$$.txt"
+          : > "$SEEN_FILE"
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$dep_path")"
+            if ! grep -Fxq "$dep_path" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_path" >> "$SEEN_FILE"
+              queue+=("$dep_path")
+            fi
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_path="${queue[$index]}"
+            dep_name="$(basename "$dep_path")"
+            copy_local_dep "$dep_path"
+            while read -r child_path; do
+              [ -n "$child_path" ] || continue
+              child_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$child_path")"
+              if ! grep -Fxq "$child_path" "$SEEN_FILE"; then
+                printf '%s\n' "$child_path" >> "$SEEN_FILE"
+                queue+=("$child_path")
+              fi
+            done < <(collect_local_dep_paths "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
+          done
+          rm -f "$SEEN_FILE"
+
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          shopt -s nullglob
+          for lib in "$FRAMEWORKS_DIR"/*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(collect_local_dep_paths "$lib")
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/*.dylib; do
+            [ -e "$file" ] || continue
+            echo "Local dylib linkage for $file"
+            otool -L "$file" | grep -E 'libunivalue|verge-qt' || true
           done
 
       - name: Remove quarantine
