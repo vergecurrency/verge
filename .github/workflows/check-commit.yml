@@ -2367,8 +2367,8 @@ jobs:
 
       - name: strip
         run: |
-          cd ./src && strip verged verge-cli verge-tx
-          cd ./qt && strip verge-qt
+          cd ./src && strip .libs/verged .libs/verge-cli .libs/verge-tx
+          cd ./qt && strip .libs/verge-qt
 
       - name: Build Qt AppImage
         run: |
@@ -2578,8 +2578,8 @@ jobs:
 
       - name: strip
         run: |
-          cd ./src && strip verged verge-cli verge-tx
-          cd ./qt && strip verge-qt
+          cd ./src && strip .libs/verged .libs/verge-cli .libs/verge-tx
+          cd ./qt && strip .libs/verge-qt
 
       - uses: actions/upload-artifact@v4
         with:
