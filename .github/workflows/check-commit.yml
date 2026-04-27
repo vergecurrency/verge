@@ -641,11 +641,35 @@ jobs:
             done
           }
 
+          resolve_local_dep_source() {
+            local source="$1"
+            local resolved dep_name candidate
+            if [ -e "$source" ]; then
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            fi
+
+            dep_name="$(basename "$source")"
+            while read -r candidate; do
+              [ -n "$candidate" ] || continue
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            done < <(find "$WORKSPACE_ROOT" \( -path "*/.libs/$dep_name" -o -path "*/$dep_name" \) \( -type f -o -type l \) 2>/dev/null)
+
+            return 1
+          }
+
           copy_local_dep() {
             local source="$1"
             local dep_name target
-            source="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
-            if [ ! -f "$source" ]; then
+            source="$(resolve_local_dep_source "$source" || true)"
+            if [ -z "$source" ] || [ ! -f "$source" ]; then
               echo "::error::Missing local dylib dependency at $source"
               exit 1
             fi
@@ -1537,11 +1561,35 @@ jobs:
             done
           }
 
+          resolve_local_dep_source() {
+            local source="$1"
+            local resolved dep_name candidate
+            if [ -e "$source" ]; then
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            fi
+
+            dep_name="$(basename "$source")"
+            while read -r candidate; do
+              [ -n "$candidate" ] || continue
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            done < <(find "$WORKSPACE_ROOT" \( -path "*/.libs/$dep_name" -o -path "*/$dep_name" \) \( -type f -o -type l \) 2>/dev/null)
+
+            return 1
+          }
+
           copy_local_dep() {
             local source="$1"
             local dep_name target
-            source="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
-            if [ ! -f "$source" ]; then
+            source="$(resolve_local_dep_source "$source" || true)"
+            if [ -z "$source" ] || [ ! -f "$source" ]; then
               echo "::error::Missing local dylib dependency at $source"
               exit 1
             fi
