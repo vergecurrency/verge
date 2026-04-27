@@ -263,18 +263,46 @@ jobs:
 
       - name: Wrap binary into .app bundle
         run: |
-            # Locate the verge-qt binary
-            BINARY=$(find . -name "verge-qt" -type f | head -n1)
+            resolve_macho_binary() {
+            local candidate="$1"
+            if [ -f "$candidate" ] && file "$candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$candidate"
+              return 0
+            fi
+            local libtool_candidate
+            libtool_candidate="$(find "$(dirname "$candidate")" -path "*/.libs/$(basename "$candidate")" -type f | head -n1)"
+            if [ -n "$libtool_candidate" ] && file "$libtool_candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$libtool_candidate"
+              return 0
+            fi
+            return 1
+            }
+
+            BINARY="./src/qt/verge-qt"
+            if [ ! -f "$BINARY" ]; then
+            BINARY="$(find . -path '*/src/qt/verge-qt' -type f | head -n1)"
+            fi
             if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
             echo "::error::verge-qt binary not found after make"
             exit 1
             fi
-            echo "Found verge-qt at $BINARY"
+
+            MACHO_BINARY="$(resolve_macho_binary "$BINARY" || true)"
+            if [ -z "$MACHO_BINARY" ]; then
+            echo "::error::Unable to resolve a Mach-O verge-qt binary from $BINARY"
+            ls -la "$(dirname "$BINARY")" || true
+            file "$BINARY" || true
+            find "$(dirname "$BINARY")" -path '*/.libs/verge-qt' -type f -exec file {} \; || true
+            exit 1
+            fi
+            echo "Found verge-qt launcher at $BINARY"
+            echo "Using Mach-O binary at $MACHO_BINARY"
             
             # Create .app bundle
             APP_NAME="Verge-Qt.app"
             mkdir -p "$APP_NAME/Contents/MacOS"
-            cp "$BINARY" "$APP_NAME/Contents/MacOS/"
+            cp -fL "$MACHO_BINARY" "$APP_NAME/Contents/MacOS/verge-qt"
+            chmod +x "$APP_NAME/Contents/MacOS/verge-qt"
             
             # Minimal Info.plist
             echo '<?xml version="1.0" encoding="UTF-8"?>' > "$APP_NAME/Contents/Info.plist"
@@ -1041,16 +1069,45 @@ jobs:
 
       - name: Wrap binary into .app bundle
         run: |
-          BINARY=$(find . -name "verge-qt" -type f | head -n1)
+          resolve_macho_binary() {
+            local candidate="$1"
+            if [ -f "$candidate" ] && file "$candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$candidate"
+              return 0
+            fi
+            local libtool_candidate
+            libtool_candidate="$(find "$(dirname "$candidate")" -path "*/.libs/$(basename "$candidate")" -type f | head -n1)"
+            if [ -n "$libtool_candidate" ] && file "$libtool_candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$libtool_candidate"
+              return 0
+            fi
+            return 1
+          }
+
+          BINARY="./src/qt/verge-qt"
+          if [ ! -f "$BINARY" ]; then
+            BINARY="$(find . -path '*/src/qt/verge-qt' -type f | head -n1)"
+          fi
           if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
             echo "::error::verge-qt binary not found after make"
             exit 1
           fi
-          echo "Found verge-qt at $BINARY"
+
+          MACHO_BINARY="$(resolve_macho_binary "$BINARY" || true)"
+          if [ -z "$MACHO_BINARY" ]; then
+            echo "::error::Unable to resolve a Mach-O verge-qt binary from $BINARY"
+            ls -la "$(dirname "$BINARY")" || true
+            file "$BINARY" || true
+            find "$(dirname "$BINARY")" -path '*/.libs/verge-qt' -type f -exec file {} \; || true
+            exit 1
+          fi
+          echo "Found verge-qt launcher at $BINARY"
+          echo "Using Mach-O binary at $MACHO_BINARY"
 
           APP_NAME="Verge-Qt.app"
           mkdir -p "$APP_NAME/Contents/MacOS"
-          cp "$BINARY" "$APP_NAME/Contents/MacOS/"
+          cp -fL "$MACHO_BINARY" "$APP_NAME/Contents/MacOS/verge-qt"
+          chmod +x "$APP_NAME/Contents/MacOS/verge-qt"
 
           echo '<?xml version="1.0" encoding="UTF-8"?>' > "$APP_NAME/Contents/Info.plist"
           echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> "$APP_NAME/Contents/Info.plist"
