@@ -2399,10 +2399,16 @@ jobs:
 
           APPDIR="$PWD/AppDir-verge-qt"
           QT_BIN="$PWD/src/qt/.libs/verge-qt"
+          UNIVALUE_LIBDIR="$PWD/src/univalue/.libs"
           if [ ! -f "$QT_BIN" ]; then
             echo "::error::Expected ELF Qt binary not found at $QT_BIN"
             exit 1
           fi
+          if ! find "$UNIVALUE_LIBDIR" -maxdepth 1 -type f -name 'libunivalue.so*' | grep -q .; then
+            echo "::error::Expected local libunivalue shared library not found under $UNIVALUE_LIBDIR"
+            exit 1
+          fi
+          export LD_LIBRARY_PATH="$UNIVALUE_LIBDIR:${LD_LIBRARY_PATH:-}"
           mkdir -p "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 
           cat > "$APPDIR/usr/share/applications/verge-qt.desktop" <<EOF
@@ -2452,6 +2458,7 @@ jobs:
             cp -a /etc/fonts/. "$APPDIR/usr/etc/fonts/"
           fi
 
+          cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$APPDIR/usr/lib/"
           rm -f "$APPDIR/AppRun"
           rm -f "$APPDIR/usr/bin/verge-qt"
           rm -f "$APPDIR/usr/bin/usr/bin/verge-qt" || true
