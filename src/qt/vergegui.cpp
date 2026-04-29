@@ -1489,7 +1489,7 @@ void VERGEGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerif
             if (header) {
                 return;
             }
-            progressBarLabel->setText(tr("Connecting to peers..."));
+            progressBarLabel->setText(tr("Syncing Blockchain..."));
             syncState = "connecting";
             chainStateText = tr("Connecting");
             break;
