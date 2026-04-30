@@ -770,9 +770,13 @@ void PaymentServer::netRequestFinished(QNetworkReply* reply)
     }
 }
 
-#if !defined(QT_NO_SSL)
 void PaymentServer::reportSslErrors(QNetworkReply* reply, const QList<QSslError> &errs)
 {
+#if defined(QT_NO_SSL)
+    Q_UNUSED(reply);
+    Q_UNUSED(errs);
+    qWarning() << "PaymentServer::reportSslErrors called, but Qt SSL support is disabled.";
+#else
     Q_UNUSED(reply);
 
     QString errString;
@@ -781,8 +785,8 @@ void PaymentServer::reportSslErrors(QNetworkReply* reply, const QList<QSslError>
         errString += err.errorString() + "\n";
     }
     Q_EMIT message(tr("Network request error"), errString, CClientUIInterface::MSG_ERROR);
-}
 #endif
+}
 
 void PaymentServer::setOptionsModel(OptionsModel *_optionsModel)
 {

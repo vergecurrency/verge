@@ -38,11 +38,10 @@
 
 #include <QObject>
 #include <QString>
-#if !defined(QT_NO_SSL)
-#include <QSslError>
-#endif
+#include <QList>
 
 class OptionsModel;
+class QSslError;
 
 QT_BEGIN_NAMESPACE
 class QApplication;
@@ -122,9 +121,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void handleURIConnection();
     void netRequestFinished(QNetworkReply*);
-#if !defined(QT_NO_SSL)
     void reportSslErrors(QNetworkReply*, const QList<QSslError> &);
-#endif
     void handlePaymentACK(const QString& paymentACKMsg);
 
 protected:
