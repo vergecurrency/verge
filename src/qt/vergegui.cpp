@@ -594,7 +594,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     // Subscribe to notifications from core
     subscribeToCoreSignals();
 
-    connect(connectionsControl, SIGNAL(clicked(QPoint)), this, SLOT(toggleNetworkActive()));
+    connect(connectionsControl, SIGNAL(clicked(QPoint)), this, SLOT(showDebugWindowActivatePeers()));
 
     modalOverlay = new ModalOverlay(this->centralWidget());
 #ifdef ENABLE_WALLET
@@ -1233,6 +1233,12 @@ void VERGEGUI::showDebugWindow()
 void VERGEGUI::showDebugWindowActivateConsole()
 {
     rpcConsole->setTabFocus(RPCConsole::TAB_CONSOLE);
+    showDebugWindow();
+}
+
+void VERGEGUI::showDebugWindowActivatePeers()
+{
+    rpcConsole->setTabFocus(RPCConsole::TAB_PEERS);
     showDebugWindow();
 }
 
