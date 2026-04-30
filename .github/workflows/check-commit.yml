@@ -2565,7 +2565,7 @@ jobs:
       - name: Build depends
         run: |
           cd depends/
-          make -j1 HOST=aarch64-linux-gnu QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1
+          make -j1 HOST=aarch64-linux-gnu QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1 QT_DISABLE_OPENSSL=1
 
       - name: Auto generate
         run: ./autogen.sh

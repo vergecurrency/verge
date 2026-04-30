@@ -81,8 +81,8 @@ $(package)_config_opts += -DQT_FEATURE_kms=OFF
 $(package)_config_opts += -DQT_FEATURE_linuxfb=OFF
 $(package)_config_opts += -DQT_FEATURE_libudev=OFF
 $(package)_config_opts += -DQT_FEATURE_mtdev=OFF
-$(package)_config_opts += -DQT_FEATURE_openssl=ON
-$(package)_config_opts += -DQT_FEATURE_openssl_linked=ON
+$(package)_config_opts += $(if $(filter 1,$(QT_DISABLE_OPENSSL)),-DQT_FEATURE_openssl=OFF,-DQT_FEATURE_openssl=ON)
+$(package)_config_opts += $(if $(filter 1,$(QT_DISABLE_OPENSSL)),-DQT_FEATURE_openssl_linked=OFF,-DQT_FEATURE_openssl_linked=ON)
 $(package)_config_opts += -DQT_FEATURE_openvg=OFF
 $(package)_config_opts += -DQT_FEATURE_permissions=ON
 $(package)_config_opts += -DQT_FEATURE_reduce_relocations=OFF
