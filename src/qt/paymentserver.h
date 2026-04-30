@@ -36,12 +36,12 @@
 #include <qt/paymentrequestplus.h>
 #include <qt/walletmodel.h>
 
+#include <QSslError>
 #include <QObject>
 #include <QString>
 #include <QList>
 
 class OptionsModel;
-class QSslError;
 
 QT_BEGIN_NAMESPACE
 class QApplication;
