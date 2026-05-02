@@ -160,7 +160,7 @@ QDialog(parent, f)
     setModal(false);
 
     QLabel* msgLabel = new QLabel(
-        tr("%1 is shutting down...").arg(tr(PACKAGE_NAME)) + "<br /><br />" +
+        tr("%1 is shutting down...").arg(tr("Verge Core")) + "<br /><br />" +
         tr("Do not shut down the computer until this window disappears."));
     msgLabel->setObjectName("ShutdownMessage");
     msgLabel->setWordWrap(true);

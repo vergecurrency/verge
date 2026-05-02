@@ -50,19 +50,6 @@ protected:
     bool eventFilter(QObject * obj, QEvent * ev);
 
 private:
-    struct Bubble
-    {
-        qreal normalizedX;
-        qreal radius;
-        qreal riseSpeed;
-        qreal driftAmplitude;
-        qreal driftSpeed;
-        qreal offset;
-        qreal opacity;
-        QColor color;
-    };
-
-    void initializeBubbles();
     void drawAnimatedBackground(QPainter& painter) const;
     void beginFinish();
 
@@ -79,7 +66,6 @@ private:
     int curAlignment;
     QTimer m_backgroundAnimationTimer;
     QTimer m_textGradientTimer;
-    QVector<Bubble> m_bubbles;
     int m_backgroundPhase;
     int m_textGradientOffset;
     bool m_isFinishing;

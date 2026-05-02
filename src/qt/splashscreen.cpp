@@ -26,7 +26,6 @@
 #include <QKeyEvent>
 #include <QLinearGradient>
 #include <QPainter>
-#include <QRadialGradient>
 #include <QScreen>
 
 #include <cmath>
@@ -137,7 +136,6 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
         move(screen->geometry().center() - splashGeometry.center());
     }
 
-    initializeBubbles();
     subscribeToCoreSignals();
     installEventFilter(this);
 
@@ -167,101 +165,64 @@ SplashScreen::~SplashScreen()
     beginFinish();
 }
 
-void SplashScreen::initializeBubbles()
-{
-    static const QColor bubblePalette[] = {
-        QColor(255, 92, 200),
-        QColor(116, 236, 255),
-        QColor(184, 112, 255),
-        QColor(255, 170, 94),
-        QColor(255, 118, 226)
-    };
-    static const qreal bubblePositions[] = {
-        0.08, 0.17, 0.28, 0.40, 0.53, 0.66, 0.79,
-        0.91, 0.14, 0.35, 0.59, 0.73, 0.85
-    };
-    static const qreal bubbleOffsets[] = {
-        18.0, 72.0, 133.0, 205.0, 264.0, 328.0, 391.0,
-        448.0, 516.0, 579.0, 642.0, 708.0, 776.0
-    };
-    static const int bubbleCount = sizeof(bubblePositions) / sizeof(bubblePositions[0]);
-
-    m_bubbles.clear();
-    m_bubbles.reserve(bubbleCount);
-
-    for (int i = 0; i < bubbleCount; ++i) {
-        Bubble bubble;
-        bubble.normalizedX = bubblePositions[i];
-        bubble.radius = 20.0 + (i % 5) * 8.5 + ((i + 2) % 3) * 3.0;
-        bubble.riseSpeed = 0.92 + (i % 4) * 0.14 + (i / 4) * 0.04;
-        bubble.driftAmplitude = 12.0 + (i % 3) * 7.0 + ((i + 1) % 2) * 2.0;
-        bubble.driftSpeed = 0.015 + (i % 5) * 0.0028;
-        bubble.offset = bubbleOffsets[i];
-        bubble.opacity = (0.15 + (i % 4) * 0.035) * 1.25;
-        bubble.color = bubblePalette[i % (sizeof(bubblePalette) / sizeof(bubblePalette[0]))];
-        m_bubbles.push_back(bubble);
-    }
-}
-
 void SplashScreen::drawAnimatedBackground(QPainter& painter) const
 {
     painter.save();
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    QLinearGradient baseGradient(0, 0, 0, height());
-    baseGradient.setColorAt(0.0, QColor(6, 4, 16));
-    baseGradient.setColorAt(0.42, QColor(25, 9, 48));
-    baseGradient.setColorAt(1.0, QColor(3, 3, 12));
+    const qreal phase = static_cast<qreal>(m_backgroundPhase);
+    const qreal widthF = static_cast<qreal>(width());
+    const qreal heightF = static_cast<qreal>(height());
+    const qreal topSweep = std::fmod(phase * 2.2, widthF * 2.0) - widthF;
+    const qreal midSweep = std::fmod(phase * 1.5, heightF * 2.2) - heightF * 0.6;
+    const qreal diagonalSweep = std::fmod(phase * 1.1, widthF * 2.4) - widthF * 0.9;
+
+    QLinearGradient baseGradient(0, 0, widthF, heightF);
+    baseGradient.setColorAt(0.0, QColor(4, 2, 14));
+    baseGradient.setColorAt(0.34, QColor(12, 4, 32));
+    baseGradient.setColorAt(0.68, QColor(8, 3, 22));
+    baseGradient.setColorAt(1.0, QColor(2, 1, 10));
     painter.fillRect(rect(), baseGradient);
 
-    QRadialGradient upperGlow(QPointF(width() * 0.50, height() * 0.16), width() * 0.70);
-    upperGlow.setColorAt(0.0, QColor(161, 82, 255, 112));
-    upperGlow.setColorAt(0.45, QColor(255, 81, 198, 44));
-    upperGlow.setColorAt(1.0, QColor(0, 0, 0, 0));
-    painter.fillRect(rect(), upperGlow);
+    QLinearGradient magentaBand(topSweep, 0, topSweep + widthF * 1.35, heightF * 0.78);
+    magentaBand.setColorAt(0.0, QColor(0, 0, 0, 0));
+    magentaBand.setColorAt(0.28, QColor(176, 70, 235, 10));
+    magentaBand.setColorAt(0.50, QColor(122, 46, 196, 36));
+    magentaBand.setColorAt(0.72, QColor(188, 96, 232, 14));
+    magentaBand.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), magentaBand);
 
-    QLinearGradient lowerGlow(0, height() * 0.58, 0, height());
-    lowerGlow.setColorAt(0.0, QColor(0, 0, 0, 0));
-    lowerGlow.setColorAt(0.55, QColor(51, 15, 88, 46));
-    lowerGlow.setColorAt(1.0, QColor(76, 231, 255, 80));
+    QLinearGradient cyanBand(widthF, midSweep, 0, midSweep + heightF * 0.95);
+    cyanBand.setColorAt(0.0, QColor(0, 0, 0, 0));
+    cyanBand.setColorAt(0.22, QColor(52, 202, 216, 8));
+    cyanBand.setColorAt(0.52, QColor(64, 214, 226, 34));
+    cyanBand.setColorAt(0.78, QColor(72, 154, 196, 12));
+    cyanBand.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), cyanBand);
+
+    QLinearGradient diagonalBand(diagonalSweep, heightF, diagonalSweep + widthF * 0.95, 0);
+    diagonalBand.setColorAt(0.0, QColor(0, 0, 0, 0));
+    diagonalBand.setColorAt(0.30, QColor(78, 168, 172, 4));
+    diagonalBand.setColorAt(0.52, QColor(86, 196, 202, 16));
+    diagonalBand.setColorAt(0.76, QColor(92, 150, 180, 6));
+    diagonalBand.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), diagonalBand);
+
+    QRadialGradient topGlow(QPointF(widthF * 0.5 + std::sin(phase * 0.010) * widthF * 0.16,
+                                    heightF * 0.18 + std::cos(phase * 0.008) * heightF * 0.05),
+                            widthF * 0.82);
+    topGlow.setColorAt(0.0, QColor(78, 30, 172, 54));
+    topGlow.setColorAt(0.36, QColor(122, 48, 188, 16));
+    topGlow.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), topGlow);
+
+    QRadialGradient lowerGlow(QPointF(widthF * 0.64 + std::cos(phase * 0.007) * widthF * 0.12,
+                                      heightF * 0.90),
+                              widthF * 0.72);
+    lowerGlow.setColorAt(0.0, QColor(58, 190, 202, 28));
+    lowerGlow.setColorAt(0.34, QColor(54, 108, 172, 10));
+    lowerGlow.setColorAt(1.0, QColor(0, 0, 0, 0));
     painter.fillRect(rect(), lowerGlow);
-
-    const qreal travelSpan = height() + 220.0;
-    for (const Bubble& bubble : m_bubbles) {
-        const qreal x = bubble.normalizedX * width() +
-            std::sin((m_backgroundPhase + bubble.offset) * bubble.driftSpeed) * bubble.driftAmplitude;
-        const qreal travel = std::fmod((m_backgroundPhase * bubble.riseSpeed) + bubble.offset,
-            travelSpan + (bubble.radius * 2.0));
-        const qreal y = height() + bubble.radius - travel;
-
-        const QPointF center(x, y);
-        QRadialGradient bubbleGradient(center, bubble.radius);
-        QColor innerColor = bubble.color;
-        const qreal innerOpacity = bubble.opacity * 1.45 > 1.0 ? 1.0 : bubble.opacity * 1.45;
-        innerColor.setAlphaF(innerOpacity);
-        QColor middleColor = bubble.color;
-        middleColor.setAlphaF(bubble.opacity * 0.62);
-        QColor outerColor = bubble.color;
-        outerColor.setAlpha(0);
-        bubbleGradient.setColorAt(0.0, innerColor);
-        bubbleGradient.setColorAt(0.55, middleColor);
-        bubbleGradient.setColorAt(1.0, outerColor);
-
-        QColor outlineColor = bubble.color;
-        const qreal outlineOpacity = bubble.opacity * 1.95 > 1.0 ? 1.0 : bubble.opacity * 1.95;
-        outlineColor.setAlphaF(outlineOpacity);
-
-        painter.setBrush(bubbleGradient);
-        painter.setPen(QPen(outlineColor, 1.2));
-        painter.drawEllipse(center, bubble.radius, bubble.radius);
-
-        QColor highlightColor(255, 255, 255);
-        highlightColor.setAlphaF(bubble.opacity * 0.42);
-        painter.setBrush(highlightColor);
-        painter.setPen(Qt::NoPen);
-        painter.drawEllipse(QPointF(x - bubble.radius * 0.26, y - bubble.radius * 0.34),
-            bubble.radius * 0.18, bubble.radius * 0.18);
-    }
 
     painter.restore();
 }
