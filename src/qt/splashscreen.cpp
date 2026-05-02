@@ -125,7 +125,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     pixPaint.end();
 
     setWindowTitle(titleAddText.isEmpty() ? tr("Verge Core") : tr("Verge Core") + " " + titleAddText);
-    curMessage = tr("Launching Verge Octo...");
+    curMessage = tr("Launching Verge Core...");
     curColor = QColor(255, 255, 255);
     curAlignment = Qt::AlignCenter | Qt::AlignHCenter;
 

@@ -2715,8 +2715,8 @@ jobs:
           $bundle = (Resolve-Path (Join-Path $PWD "release/windows64")).Path
           $output = Join-Path $PWD "release/verge-windows64-setup.exe"
           $icon = (Resolve-Path (Join-Path $PWD "share/pixmaps/verge.ico")).Path
-          $wizardSource = (Resolve-Path (Join-Path $PWD "share/pixmaps/octo.png")).Path
-          $wizard = Join-Path $PWD "build-msvc/octo-installer.bmp"
+          $wizardSource = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-wizard.png")).Path
+          $wizard = Join-Path $PWD "build-msvc/verge-installer.bmp"
           $header = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-header.bmp")).Path
           $license = (Resolve-Path (Join-Path $PWD "COPYING")).Path
 
