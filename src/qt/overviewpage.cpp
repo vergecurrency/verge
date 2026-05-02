@@ -66,12 +66,12 @@ public:
 
         QRect decorationRect(cardRect.left() + 16, cardRect.top() + 14, 18, 18);
         int xspace = decorationRect.right() + 14;
-        const int amountWidth = 130;
-        const int typeWidth = 96;
+        const int amountWidth = qMax(170, cardRect.width() / 3);
+        const int typeWidth = 88;
         QRect amountRect(cardRect.right() - amountWidth - 16, cardRect.top() + 18, amountWidth, 28);
         QRect dateRect(xspace, cardRect.top() + 10, amountRect.left() - xspace - 12, 20);
         QRect typeRect(xspace, cardRect.top() + 32, typeWidth, 22);
-        QRect addressRect(typeRect.right() + 10, cardRect.top() + 30, amountRect.left() - typeRect.right() - 20, 26);
+        QRect addressRect(typeRect.right() + 10, cardRect.top() + 30, amountRect.left() - typeRect.right() - 28, 26);
         icon = platformStyle->SingleColorIcon(icon);
         if (!icon.isNull()) {
             icon.paint(painter, decorationRect);
