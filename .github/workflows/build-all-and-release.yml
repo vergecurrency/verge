@@ -2992,7 +2992,7 @@ jobs:
   publish-release-assets:
     runs-on: ubuntu-latest
     needs:
-      - macos26-notarize
+      - macos-26-notarize
       - macos14-notarize
       - ubuntu24
       - raspberrypi
