@@ -2768,12 +2768,16 @@ jobs:
 
           export ARCH=aarch64
           export LDAI_OUTPUT="$PWD/release/Verge-Qt-aarch64.AppImage"
+          rm -f "$PWD/release/Verge-Qt-aarch64.AppImage"
           "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$APPDIR"
-          if [ ! -f "$PWD/release/Verge-Qt-aarch64.AppImage" ]; then
+          GENERATED_APPIMAGE="$(find "$PWD" -maxdepth 1 -type f -name 'Verge_Qt-*-aarch64.AppImage' -printf '%T@ %p\n' | sort -nr | awk 'NR==1 {print $2}')"
+          if [ -z "$GENERATED_APPIMAGE" ]; then
             echo "::error::Generated Verge Qt ARM64 AppImage not found"
+            ls -lah "$PWD" | grep AppImage || true
             ls -lah "$PWD/release" || true
             exit 1
           fi
+          mv "$GENERATED_APPIMAGE" "$PWD/release/Verge-Qt-aarch64.AppImage"
 
           build_cli_appimage() {
             local binary_path="$1"
