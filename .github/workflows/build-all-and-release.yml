@@ -2723,13 +2723,13 @@ jobs:
           mkdir -p "$APPDIR/usr/plugins/platforms"
           cp "$QT_PLATFORM_PLUGIN" "$APPDIR/usr/plugins/platforms/libqxcb.so"
 
-          QT_XCB_QPA_LIB="$(find "$QT_TARGET_PREFIX" -path '*/libQt6XcbQpa.so.6' -type f | head -n1 || true)"
+          QT_XCB_QPA_LIB="$(find "$QT_TARGET_PREFIX" -path '*/libQt6XcbQpa.so.6' \( -type f -o -type l \) | head -n1 || true)"
           if [ -z "$QT_XCB_QPA_LIB" ]; then
             echo "::error::Target Qt XcbQpa library libQt6XcbQpa.so.6 not found under $QT_TARGET_PREFIX"
             find "$QT_TARGET_PREFIX" -path '*/libQt6XcbQpa.so*' -print
             exit 1
           fi
-          cp "$QT_XCB_QPA_LIB" "$APPDIR/usr/lib/libQt6XcbQpa.so.6"
+          cp "$(readlink -f "$QT_XCB_QPA_LIB")" "$APPDIR/usr/lib/libQt6XcbQpa.so.6"
 
           "$PWD/linuxdeploy-root/AppRun" \
             --appdir "$APPDIR" \
