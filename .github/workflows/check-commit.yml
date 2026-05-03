@@ -2677,6 +2677,7 @@ jobs:
           QT_BIN="$PWD/src/qt/.libs/verge-qt"
           UNIVALUE_LIBDIR="$PWD/src/univalue/.libs"
           QT_TARGET_PREFIX="$PWD/depends/aarch64-linux-gnu"
+          QT_TARGET_LIBDIR="$QT_TARGET_PREFIX/lib"
           if [ ! -f "$QT_BIN" ]; then
             echo "::error::Expected ELF Qt binary not found at $QT_BIN"
             exit 1
@@ -2685,7 +2686,7 @@ jobs:
             echo "::error::Expected local libunivalue shared library not found under $UNIVALUE_LIBDIR"
             exit 1
           fi
-          export LD_LIBRARY_PATH="$UNIVALUE_LIBDIR:${LD_LIBRARY_PATH:-}"
+          export LD_LIBRARY_PATH="$QT_TARGET_LIBDIR:$UNIVALUE_LIBDIR:${LD_LIBRARY_PATH:-}"
           mkdir -p "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 
           cat > "$APPDIR/usr/share/applications/verge-qt.desktop" <<EOF
@@ -2716,6 +2717,18 @@ jobs:
           mkdir -p "$APPDIR/usr/plugins/platforms"
           cp "$QT_PLATFORM_PLUGIN" "$APPDIR/usr/plugins/platforms/libqxcb.so"
 
+          QT_XCB_QPA_LIB="$(find "$QT_TARGET_PREFIX" -path '*/libQt6XcbQpa.so.6' -type f | head -n1 || true)"
+          if [ -z "$QT_XCB_QPA_LIB" ]; then
+            echo "::error::Target Qt XcbQpa library libQt6XcbQpa.so.6 not found under $QT_TARGET_PREFIX"
+            find "$QT_TARGET_PREFIX" -path '*/libQt6XcbQpa.so*' -print
+            exit 1
+          fi
+          cp "$QT_XCB_QPA_LIB" "$APPDIR/usr/lib/libQt6XcbQpa.so.6"
+
+          "$PWD/linuxdeploy-root/AppRun" \
+            --appdir "$APPDIR" \
+            --library "$APPDIR/usr/lib/libQt6XcbQpa.so.6"
+
           "$PWD/linuxdeploy-root/AppRun" \
             --appdir "$APPDIR" \
             --library "$APPDIR/usr/plugins/platforms/libqxcb.so"
@@ -2726,6 +2739,7 @@ jobs:
             "$APPDIR/usr/bin/verge-qt" \
             "$APPDIR/usr/share/applications/verge-qt.desktop" \
             "$APPDIR/verge.png" \
+            "$APPDIR/usr/lib/libQt6XcbQpa.so.6" \
             "$APPDIR/usr/plugins/platforms/libqxcb.so"
           do
             if [ ! -e "$required" ]; then
