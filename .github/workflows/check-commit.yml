@@ -2676,7 +2676,14 @@ jobs:
           mv "$PWD/squashfs-root" "$PWD/linuxdeploy-plugin-qt-root"
 
           export PATH="$PWD/linuxdeploy-plugin-qt-root/usr/bin:$PATH"
-          export QMAKE="$(command -v qmake6 || command -v qmake)"
+          QT_HOST_BIN="$PWD/depends/aarch64-linux-gnu/native/qt-host/bin"
+          export PATH="$QT_HOST_BIN:$PATH"
+          export QMAKE="$(find "$QT_HOST_BIN" -maxdepth 1 -type f \( -name qmake6 -o -name qmake \) | head -n1)"
+          if [ -z "${QMAKE:-}" ] || [ ! -x "$QMAKE" ]; then
+            echo "::error::Qt host qmake not found under $QT_HOST_BIN"
+            ls -la "$QT_HOST_BIN" || true
+            exit 1
+          fi
           export VERSION="${GITHUB_SHA::7}"
 
           APPDIR="$PWD/AppDir-verge-qt"
