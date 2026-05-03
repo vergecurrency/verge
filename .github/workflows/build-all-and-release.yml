@@ -2599,10 +2599,96 @@ jobs:
           cd ./src && strip .libs/verged .libs/verge-cli .libs/verge-tx
           cd ./qt && strip .libs/verge-qt
 
+      - name: Build Qt AppImage (ARM64)
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$PWD/release"
+
+          curl -L -o "$PWD/linuxdeploy-aarch64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
+          curl -L -o "$PWD/linuxdeploy-plugin-qt-aarch64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-aarch64.AppImage
+          chmod +x "$PWD/linuxdeploy-aarch64.AppImage" "$PWD/linuxdeploy-plugin-qt-aarch64.AppImage"
+
+          rm -rf "$PWD/linuxdeploy-root" "$PWD/linuxdeploy-plugin-qt-root" "$PWD/AppDir-verge-qt"
+          "$PWD/linuxdeploy-aarch64.AppImage" --appimage-extract >/dev/null
+          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-root"
+          "$PWD/linuxdeploy-plugin-qt-aarch64.AppImage" --appimage-extract >/dev/null
+          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-plugin-qt-root"
+
+          export PATH="$PWD/linuxdeploy-plugin-qt-root/usr/bin:$PATH"
+          export QMAKE="$(command -v qmake6 || command -v qmake)"
+          export VERSION="${GITHUB_SHA::7}"
+
+          APPDIR="$PWD/AppDir-verge-qt"
+          QT_BIN="$PWD/src/qt/.libs/verge-qt"
+          UNIVALUE_LIBDIR="$PWD/src/univalue/.libs"
+          if [ ! -f "$QT_BIN" ]; then
+            echo "::error::Expected ELF Qt binary not found at $QT_BIN"
+            exit 1
+          fi
+          if ! find "$UNIVALUE_LIBDIR" -maxdepth 1 -type f -name 'libunivalue.so*' | grep -q .; then
+            echo "::error::Expected local libunivalue shared library not found under $UNIVALUE_LIBDIR"
+            exit 1
+          fi
+          export LD_LIBRARY_PATH="$UNIVALUE_LIBDIR:${LD_LIBRARY_PATH:-}"
+          mkdir -p "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+          cat > "$APPDIR/usr/share/applications/verge-qt.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=Verge Qt
+          Exec=verge-qt
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=false
+          StartupWMClass=verge-qt
+          EOF
+          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/verge.png"
+          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/verge.png"
+
+          "$PWD/linuxdeploy-root/AppRun" \
+            --appdir "$APPDIR" \
+            --plugin qt \
+            --executable "$QT_BIN" \
+            --desktop-file "$APPDIR/usr/share/applications/verge-qt.desktop" \
+            --icon-file "$PWD/share/pixmaps/verge256.png"
+
+          cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$APPDIR/usr/lib/"
+
+          for required in \
+            "$APPDIR/usr/bin/verge-qt" \
+            "$APPDIR/usr/share/applications/verge-qt.desktop" \
+            "$APPDIR/verge.png"
+          do
+            if [ ! -e "$required" ]; then
+              echo "::error::Missing required AppImage runtime file: $required"
+              exit 1
+            fi
+          done
+
+          cat > "$APPDIR/AppRun" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          exec "\$HERE/usr/bin/verge-qt" "\$@"
+          EOF
+          chmod +x "$APPDIR/AppRun"
+
+          export ARCH=aarch64
+          export LDAI_OUTPUT="$PWD/release/Verge-Qt-aarch64.AppImage"
+          "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$APPDIR"
+          if [ ! -f "$PWD/release/Verge-Qt-aarch64.AppImage" ]; then
+            echo "::error::Generated Verge Qt ARM64 AppImage not found"
+            ls -lah "$PWD/release" || true
+            exit 1
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: verge-aarch64-pi5
           path: |
+            ./release/Verge-Qt-aarch64.AppImage
             ./src/verged
             ./src/verge-cli
             ./src/verge-tx
@@ -2835,13 +2921,7 @@ jobs:
             (cd release-assets/windows64 && zip -r "$PWD/../../dist/verge-windows64bit.zip" windows64)
           fi
 
-          mkdir -p dist/verge-aarch64-pi5
-          cp release-assets/raspberrypi/src/verged dist/verge-aarch64-pi5/ || true
-          cp release-assets/raspberrypi/src/verge-cli dist/verge-aarch64-pi5/ || true
-          cp release-assets/raspberrypi/src/verge-tx dist/verge-aarch64-pi5/ || true
-          cp release-assets/raspberrypi/src/qt/verge-qt dist/verge-aarch64-pi5/ || true
-          tar -C dist -czf dist/verge-aarch64-pi5.tar.gz verge-aarch64-pi5
-          rm -rf dist/verge-aarch64-pi5
+          cp release-assets/raspberrypi/Verge-Qt-aarch64.AppImage dist/
 
           ls -lah dist
 
@@ -2853,6 +2933,6 @@ jobs:
             dist/Verge-Qt-macos26.dmg
             dist/Verge-Qt-macos14.dmg
             dist/Verge-Qt-x86_64.AppImage
+            dist/Verge-Qt-aarch64.AppImage
             dist/verge-windows64-setup.exe
             dist/verge-windows64bit.zip
-            dist/verge-aarch64-pi5.tar.gz
