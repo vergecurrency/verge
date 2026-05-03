@@ -2528,12 +2528,14 @@ jobs:
 
             export ARCH=x86_64
             export LDAI_OUTPUT="$PWD/release/$output_name"
+            rm -f "$PWD/release/$output_name"
             "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
-
-            if [ ! -f "$PWD/release/$output_name" ]; then
-              echo "::error::Generated AppImage not found: $PWD/release/$output_name"
+            generated_appimage="$(find "$PWD" -maxdepth 1 -type f -name '*.AppImage' ! -name 'linuxdeploy*.AppImage' -printf '%T@ %p\n' | sort -nr | awk 'NR==1 {print $2}')"
+            if [ -z "$generated_appimage" ]; then
+              echo "::error::Generated AppImage not found for $exec_name"
               exit 1
             fi
+            mv "$generated_appimage" "$PWD/release/$output_name"
           }
 
           build_cli_appimage "$PWD/src/.libs/verged" "Verge Daemon" "verged" "verged-x86_64.AppImage" "false"
@@ -2777,12 +2779,14 @@ jobs:
 
             export ARCH=aarch64
             export LDAI_OUTPUT="$PWD/release/$output_name"
+            rm -f "$PWD/release/$output_name"
             "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
-
-            if [ ! -f "$PWD/release/$output_name" ]; then
-              echo "::error::Generated AppImage not found: $PWD/release/$output_name"
+            generated_appimage="$(find "$PWD" -maxdepth 1 -type f -name '*.AppImage' ! -name 'linuxdeploy*.AppImage' -printf '%T@ %p\n' | sort -nr | awk 'NR==1 {print $2}')"
+            if [ -z "$generated_appimage" ]; then
+              echo "::error::Generated AppImage not found for $exec_name"
               exit 1
             fi
+            mv "$generated_appimage" "$PWD/release/$output_name"
           }
 
           build_cli_appimage "$PWD/src/.libs/verged" "Verge Daemon" "verged" "verged-aarch64.AppImage" "false"
