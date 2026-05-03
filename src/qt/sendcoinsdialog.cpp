@@ -26,9 +26,22 @@
 
 #include <array>
 #include <QFontMetrics>
+#include <QGraphicsDropShadowEffect>
 #include <QScrollBar>
 #include <QSettings>
 #include <QTextDocument>
+
+namespace {
+void ApplyCardShadow(QWidget* widget)
+{
+    if (!widget) return;
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(widget);
+    effect->setBlurRadius(28.0);
+    effect->setOffset(0, 10);
+    effect->setColor(QColor(88, 28, 140, 92));
+    widget->setGraphicsEffect(effect);
+}
+}
 
 static const std::array<int, 9> confTargets = { {2, 4, 6, 12, 24, 48, 144, 504, 1008} };
 int getConfTargetForIndex(int index) {
@@ -59,6 +72,33 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
+    setObjectName("SendCoinsDialog");
+    ui->frameCoinControl->setObjectName("SendCoinControlCard");
+    ui->frameFee->setObjectName("SendFeeCard");
+    ui->frameFeeSelection->setObjectName("SendFeeSelectionCard");
+    ui->scrollArea->setObjectName("SendEntriesScrollArea");
+    ui->scrollAreaWidgetContents->setObjectName("SendEntriesContainer");
+    ui->addButton->setObjectName("SendSecondaryButton");
+    ui->clearButton->setObjectName("SendSecondaryButton");
+    ui->sendButton->setObjectName("SendPrimaryButton");
+    ui->pushButtonCoinControl->setObjectName("SendSecondaryButton");
+    ui->buttonChooseFee->setObjectName("SendSecondaryButton");
+    ui->buttonMinimizeFee->setObjectName("SendSecondaryButton");
+    ui->labelBalance->setObjectName("SendBalanceValue");
+    ui->labelCoinControlFeatures->setObjectName("SendSectionTitle");
+    ui->labelCoinControlAutomaticallySelected->setObjectName("SendMutedLabel");
+    ui->labelFeeHeadline->setObjectName("SendSectionTitle");
+    ui->labelFeeEstimation->setObjectName("SendMutedLabel");
+    ui->labelSmartFee2->setObjectName("SendMutedLabel");
+    ui->labelSmartFee3->setObjectName("SendMutedLabel");
+    ui->labelMinFeeWarning->setObjectName("SendMutedLabel");
+    ui->fallbackFeeWarningLabel->setObjectName("SendWarningLabel");
+    ui->lineEditCoinControlChange->setObjectName("SendTextField");
+    ui->customFee->setObjectName("SendAmountField");
+    ui->widgetCoinControl->setObjectName("SendCoinControlStats");
+    ApplyCardShadow(ui->frameCoinControl);
+    ApplyCardShadow(ui->frameFee);
+    ApplyCardShadow(ui->frameFeeSelection);
 
     if (!_platformStyle->getImagesOnButtons()) {
         ui->addButton->setIcon(QIcon());
@@ -71,6 +111,7 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
     }
 
     GUIUtil::setupAddressWidget(ui->lineEditCoinControlChange, this);
+    ui->scrollArea->setFrameShape(QFrame::NoFrame);
 
     addEntry();
 
@@ -163,8 +204,8 @@ void SendCoinsDialog::setModel(WalletModel *_model)
         ui->frameCoinControl->setVisible(_model->getOptionsModel()->getCoinControlFeatures());
         coinControlUpdateLabels();
 
-        connect(ui->groupFee, SIGNAL(buttonClicked(int)), this, SLOT(updateFeeSectionControls()));
-        connect(ui->groupFee, SIGNAL(buttonClicked(int)), this, SLOT(coinControlUpdateLabels()));
+        connect(ui->groupFee, SIGNAL(idClicked(int)), this, SLOT(updateFeeSectionControls()));
+        connect(ui->groupFee, SIGNAL(idClicked(int)), this, SLOT(coinControlUpdateLabels()));
         connect(ui->customFee, SIGNAL(valueChanged()), this, SLOT(coinControlUpdateLabels()));
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this, SLOT(setMinimumFee()));
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this, SLOT(updateFeeSectionControls()));
@@ -867,8 +908,17 @@ SendConfirmationDialog::SendConfirmationDialog(const QString &title, const QStri
     QWidget *parent) :
     QMessageBox(QMessageBox::Question, title, text, QMessageBox::Yes | QMessageBox::Cancel, parent), secDelay(_secDelay)
 {
+    setObjectName("SendConfirmationDialog");
+    setTextFormat(Qt::RichText);
+    setMinimumWidth(620);
     setDefaultButton(QMessageBox::Cancel);
     yesButton = button(QMessageBox::Yes);
+    if (yesButton) {
+        yesButton->setObjectName("DialogPrimaryButton");
+    }
+    if (QAbstractButton* cancel_button = button(QMessageBox::Cancel)) {
+        cancel_button->setObjectName("DialogSecondaryButton");
+    }
     updateYesButton();
     connect(&countDownTimer, SIGNAL(timeout()), this, SLOT(countDown()));
 }

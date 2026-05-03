@@ -92,6 +92,7 @@ dnl Outputs: Sets variables for all qt-related tools.
 dnl Outputs: verge_enable_qt, verge_enable_qt_dbus, verge_enable_qt_test
 AC_DEFUN([VERGE_QT_CONFIGURE],[
   use_pkgconfig=$1
+  have_qt_webenginewidgets=no
 
   if test "x$use_pkgconfig" = x; then
     use_pkgconfig=yes
@@ -307,6 +308,10 @@ AC_DEFUN([VERGE_QT_CONFIGURE],[
     verge_enable_qt=no
   ])
   AC_MSG_RESULT([$verge_enable_qt ($QT_LIB_PREFIX)])
+
+  if test "x$have_qt_webenginewidgets" = xyes; then
+    AC_DEFINE(HAVE_QTWEBENGINEWIDGETS, 1, [Define this symbol if Qt WebEngine Widgets are available])
+  fi
 
   AC_SUBST(QT_PIE_FLAGS)
   AC_SUBST(QT_INCLUDES)
@@ -536,6 +541,9 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITH_PKGCONFIG],[
       if test "x$use_dbus" != xno; then
         PKG_CHECK_MODULES([QT_DBUS], [${QT_LIB_PREFIX}DBus], [QT_DBUS_INCLUDES="$QT_DBUS_CFLAGS"; have_qt_dbus=yes], [have_qt_dbus=no])
       fi
+      PKG_CHECK_MODULES([QT_WEBENGINE], [${QT_LIB_PREFIX}WebEngineWidgets],
+        [QT_INCLUDES="$QT_INCLUDES $QT_WEBENGINE_CFLAGS"; QT_LIBS="$QT_LIBS $QT_WEBENGINE_LIBS"; have_qt_webenginewidgets=yes],
+        [have_qt_webenginewidgets=no])
     ])
     VERGE_QT_CHECK([
       if test "x$QT_LIB_PREFIX" = xQt6 && test "x$TARGET_OS" = xlinux; then
@@ -645,7 +653,18 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
   VERGE_QT_CHECK([
       if test "x$QT_LIB_PREFIX" = xQt6; then
         dnl Static link order matters: bundled libs must come after Qt6 modules.
-        QT_LIBS="$QT_LIBS -lQt6BundledZLIB -lQt6BundledLibpng -lQt6BundledPcre2 -lQt6BundledHarfbuzz"
+        if test "x$ac_cv_search_z_inflateInit2_" = "x-lQt6BundledZLIB"; then
+          QT_LIBS="$QT_LIBS -lQt6BundledZLIB"
+        fi
+        if test "x$ac_cv_search_png_create_read_struct" = "x-lQt6BundledLibpng"; then
+          QT_LIBS="$QT_LIBS -lQt6BundledLibpng"
+        fi
+        if test "x$ac_cv_search_pcre2_match_16" = "x-lQt6BundledPcre2"; then
+          QT_LIBS="$QT_LIBS -lQt6BundledPcre2"
+        fi
+        if test "x$ac_cv_search_hb_ot_tags_from_script" = "x-lQt6BundledHarfbuzz"; then
+          QT_LIBS="$QT_LIBS -lQt6BundledHarfbuzz"
+        fi
         if test "x$TARGET_OS" = xlinux; then
           AC_DEFINE(QT_STATICPLUGIN, 1, [Define this symbol for static Qt plugins])
           qt6_xcb_tail_deps="-lxkbcommon-x11 -lxkbcommon -lfontconfig -lfreetype -lxcb-cursor -lxcb-icccm -lxcb-util -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render-util -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-render -lxcb-shape -lxcb-xkb -lxcb -lX11-xcb -lX11 -ldl -lm -lrt"
@@ -680,6 +699,21 @@ AC_DEFUN([_VERGE_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
       AC_CHECK_HEADER([QtDBus],, have_qt_dbus=no)
       QT_DBUS_LIBS="$LIBS"
     fi
+
+    LIBS=
+    if test "x$qt_lib_path" != x; then
+      LIBS="-L$qt_lib_path"
+    fi
+    AC_CHECK_LIB([${QT_LIB_PREFIX}WebEngineWidgets], [main], [
+      AC_CHECK_HEADER([QtWebEngineWidgets/QWebEngineView], [
+        have_qt_webenginewidgets=yes
+        QT_LIBS="$QT_LIBS $LIBS -l${QT_LIB_PREFIX}WebEngineWidgets"
+      ], [
+        have_qt_webenginewidgets=no
+      ])
+    ], [
+      have_qt_webenginewidgets=no
+    ])
   ])
   CPPFLAGS="$TEMP_CPPFLAGS"
   CXXFLAGS="$TEMP_CXXFLAGS"

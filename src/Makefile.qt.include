@@ -199,6 +199,10 @@ VERGE_QT_H = \
   qt/editaddressdialog.h \
   qt/guiconstants.h \
   qt/guiutil.h \
+  qt/games/pongwidget.h \
+  qt/games/spaceinvaderswidget.h \
+  qt/games/tetriswidget.h \
+  qt/gamespage.h \
   qt/intro.h \
   qt/macdockiconhandler.h \
   qt/macnotificationhandler.h \
@@ -222,6 +226,7 @@ VERGE_QT_H = \
   qt/sendcoinsdialog.h \
   qt/sendcoinsentry.h \
   qt/signverifymessagedialog.h \
+  qt/tradepage.h \
   qt/splashscreen.h \
   qt/trafficgraphwidget.h \
   qt/transactiondesc.h \
@@ -253,11 +258,6 @@ RES_ICONS = \
   qt/res/icons/clock4.png \
   qt/res/icons/clock5.png \
   qt/res/icons/configure.png \
-  qt/res/icons/connect0.png \
-  qt/res/icons/connect1.png \
-  qt/res/icons/connect2.png \
-  qt/res/icons/connect3.png \
-  qt/res/icons/connect4.png \
   qt/res/icons/debugwindow.png \
   qt/res/icons/edit.png \
   qt/res/icons/editcopy.png \
@@ -269,6 +269,7 @@ RES_ICONS = \
   qt/res/icons/filesave.png \
   qt/res/icons/fontbigger.png \
   qt/res/icons/fontsmaller.png \
+  qt/res/icons/games.png \
   qt/res/icons/hd_disabled.png \
   qt/res/icons/hd_enabled.png \
   qt/res/icons/history.png \
@@ -284,7 +285,7 @@ RES_ICONS = \
   qt/res/icons/receive.png \
   qt/res/icons/remove.png \
   qt/res/icons/send.png \
-  qt/res/icons/synced.png \
+  qt/res/icons/trade.png \
   qt/res/icons/transaction0.png \
   qt/res/icons/transaction2.png \
   qt/res/icons/transaction_abandoned.png \
@@ -295,6 +296,29 @@ RES_ICONS = \
   qt/res/icons/tx_mined.png \
   qt/res/icons/warning.png \
   qt/res/icons/verify.png
+
+RES_GAMES = \
+  qt/games/icons/pong.jpg \
+  qt/games/icons/spaceinvaders.png \
+  qt/games/icons/tetris.png \
+  qt/games/pong/images/background.jpg \
+  qt/games/pong/images/ball.png \
+  qt/games/pong/images/block01.png \
+  qt/games/pong/images/block02.png \
+  qt/games/pong/images/block03.png \
+  qt/games/pong/images/block04.png \
+  qt/games/pong/images/block05.png \
+  qt/games/pong/images/paddle.png \
+  qt/games/Tetris/images/background.png \
+  qt/games/Tetris/images/frame.png \
+  qt/games/Tetris/images/tiles.png \
+  qt/games/spaceinvaders/res/alien_100.png \
+  qt/games/spaceinvaders/res/alien_50.png \
+  qt/games/spaceinvaders/res/bullet.png \
+  qt/games/spaceinvaders/res/space.png \
+  qt/games/spaceinvaders/res/stars.png \
+  qt/games/spaceinvaders/res/you_lose.png \
+  qt/games/spaceinvaders/res/you_win.png
 
 RES_FONTS = \
   qt/res/fonts/Montserrat-BlackItalic.ttf \
@@ -324,6 +348,10 @@ VERGE_QT_BASE_CPP = \
   qt/vergeunits.cpp \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
+  qt/games/pongwidget.cpp \
+  qt/games/spaceinvaderswidget.cpp \
+  qt/games/tetriswidget.cpp \
+  qt/gamespage.cpp \
   qt/guiutil.cpp \
   qt/intro.cpp \
   qt/modaloverlay.cpp \
@@ -359,6 +387,7 @@ VERGE_QT_WALLET_CPP = \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
   qt/signverifymessagedialog.cpp \
+  qt/tradepage.cpp \
   qt/transactiondesc.cpp \
   qt/transactiondescdialog.cpp \
   qt/transactionfilterproxy.cpp \
@@ -378,9 +407,10 @@ if ENABLE_WALLET
 VERGE_QT_CPP += $(VERGE_QT_WALLET_CPP)
 endif
 
-RES_IMAGES = 
-
-RES_MOVIES = $(wildcard $(srcdir)/qt/res/movies/spinner-*.png)
+RES_IMAGES = \
+  qt/games/Tetris/images/background.png \
+  qt/games/Tetris/images/frame.png \
+  qt/games/Tetris/images/tiles.png
 
 VERGE_RC = qt/res/verge-qt-res.rc
 
@@ -392,7 +422,7 @@ qt_libvergeqt_a_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS) $(QT_CXXFLAGS)
 qt_libvergeqt_a_OBJCXXFLAGS = $(AM_OBJCXXFLAGS) $(QT_PIE_FLAGS)
 
 qt_libvergeqt_a_SOURCES = $(VERGE_QT_CPP) $(VERGE_QT_H) $(QT_FORMS_UI) \
-  $(QT_QRC) $(QT_QRC_LOCALE) $(QT_TS) $(PROTOBUF_PROTO) $(RES_ICONS) $(RES_IMAGES) $(RES_MOVIES) $(RES_FONTS)
+  $(QT_QRC) $(QT_QRC_LOCALE) $(QT_TS) $(PROTOBUF_PROTO) $(RES_ICONS) $(RES_GAMES) $(RES_IMAGES) $(RES_FONTS)
 
 nodist_qt_libvergeqt_a_SOURCES = $(QT_MOC_CPP) $(QT_MOC) $(PROTOBUF_CC) \
   $(PROTOBUF_H) $(QT_QRC_CPP) $(QT_QRC_LOCALE_CPP)
@@ -462,7 +492,7 @@ $(QT_QRC_LOCALE_CPP): $(QT_QRC_LOCALE) $(QT_QM)
 	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@
 	@rm $(@D)/temp_$(<F)
 
-$(QT_QRC_CPP): $(QT_QRC) $(QT_FORMS_H) $(RES_ICONS) $(RES_IMAGES) $(RES_MOVIES) $(PROTOBUF_H)
+$(QT_QRC_CPP): $(QT_QRC) $(QT_FORMS_H) $(RES_ICONS) $(RES_GAMES) $(RES_IMAGES) $(PROTOBUF_H)
 	@test -f $(RCC)
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -name verge $< | \
 	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@

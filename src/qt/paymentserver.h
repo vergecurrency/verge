@@ -36,11 +36,10 @@
 #include <qt/paymentrequestplus.h>
 #include <qt/walletmodel.h>
 
+#include <QSslError>
 #include <QObject>
 #include <QString>
-#if !defined(QT_NO_SSL)
-#include <QSslError>
-#endif
+#include <QList>
 
 class OptionsModel;
 

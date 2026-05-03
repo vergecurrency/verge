@@ -13,10 +13,13 @@
 
 #include <QClipboard>
 #include <QDrag>
+#include <QDialogButtonBox>
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPixmap>
+#include <QPushButton>
+#include <QTextDocument>
 #if QT_VERSION < 0x050000
 #include <QUrl>
 #endif
@@ -109,6 +112,17 @@ ReceiveRequestDialog::ReceiveRequestDialog(QWidget *parent) :
     model(0)
 {
     ui->setupUi(this);
+    setMinimumSize(560, 660);
+    ui->lblQRCode->setObjectName("ReceiveRequestQRCode");
+    ui->outUri->setObjectName("ReceiveRequestDetails");
+    ui->outUri->setReadOnly(true);
+    ui->outUri->document()->setDocumentMargin(14);
+    ui->btnCopyURI->setObjectName("ReceiveRequestActionButton");
+    ui->btnCopyAddress->setObjectName("ReceiveRequestActionButton");
+    ui->btnSaveAs->setObjectName("ReceiveRequestActionButton");
+    if (QPushButton* close_button = ui->buttonBox->button(QDialogButtonBox::Close)) {
+        close_button->setObjectName("DialogSecondaryButton");
+    }
 
 #ifndef USE_QRCODE
     ui->btnSaveAs->setVisible(false);

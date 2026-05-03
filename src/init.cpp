@@ -661,6 +661,12 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
     const CChainParams& chainparams = Params();
     RenameThread("verge-loadblk");
     ScheduleBatchPriority();
+    int starting_height = -1;
+
+    {
+        LOCK(cs_main);
+        starting_height = chainActive.Height();
+    }
 
     {
     CImportingNow imp;
@@ -717,6 +723,16 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
         LogPrintf("Failed to connect best block (%s)\n", FormatStateMessage(state));
         StartShutdown();
         return;
+    }
+
+    int ending_height = -1;
+    {
+        LOCK(cs_main);
+        ending_height = chainActive.Height();
+    }
+    if (ending_height > starting_height) {
+        LogPrintf("ThreadImport: chain advanced from height %d to %d; flushing startup chainstate\n", starting_height, ending_height);
+        FlushStateToDisk();
     }
 
     if (gArgs.GetBoolArg("-stopafterblockimport", DEFAULT_STOPAFTERBLOCKIMPORT)) {
@@ -1631,7 +1647,7 @@ bool AppInitMain()
                     // It both disconnects blocks based on chainActive, and drops block data in
                     // mapBlockIndex based on lack of available witness data.
                     uiInterface.InitMessage(_("Rewinding blocks..."));
-                    if (!RewindBlockIndex(chainparams)) {
+                    if (!RewindBlockIndex(chainparams, fReindexChainState)) {
                         strLoadError = _("Unable to rewind the database to a pre-fork state. You will need to redownload the blockchain");
                         break;
                     }
@@ -1775,7 +1791,7 @@ bool AppInitMain()
         while (!fHaveGenesis && !ShutdownRequested()) {
             g_genesis_wait_cv.wait_for(lock, std::chrono::milliseconds(500));
         }
-        uiInterface.NotifyBlockTip.disconnect(BlockNotifyGenesisWait);
+        uiInterface.NotifyBlockTip.disconnect(&BlockNotifyGenesisWait);
     }
 
     if (ShutdownRequested()) {

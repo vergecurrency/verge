@@ -34,6 +34,9 @@ PGP keys used for signing VERGE Core [Gitian release](/doc/release-process.md) r
 ### [MacDeploy](/contrib/macdeploy) ###
 Scripts and notes for Mac builds. 
 
+### [Windows MSVC Bootstrap](/contrib/windows-msvc) ###
+Native Windows dependency bootstrap path for an MSVC-based build, intended to stay separate from the existing MinGW `depends` flow.
+
 ### [RPM](/contrib/rpm) ###
 RPM spec file for building verge-core on RPM based distributions.
 

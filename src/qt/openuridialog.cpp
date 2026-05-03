@@ -10,6 +10,8 @@
 #include <qt/walletmodel.h>
 
 #include <QUrl>
+#include <QDialogButtonBox>
+#include <QPushButton>
 
 OpenURIDialog::OpenURIDialog(QWidget *parent) :
     QDialog(parent),
@@ -17,6 +19,15 @@ OpenURIDialog::OpenURIDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
+    setObjectName("OpenURIDialog");
+    setMinimumSize(620, 190);
+    ui->uriEdit->setObjectName("OpenUriField");
+    if (QPushButton* ok_button = ui->buttonBox->button(QDialogButtonBox::Ok)) {
+        ok_button->setObjectName("DialogPrimaryButton");
+    }
+    if (QPushButton* cancel_button = ui->buttonBox->button(QDialogButtonBox::Cancel)) {
+        cancel_button->setObjectName("DialogSecondaryButton");
+    }
 #if QT_VERSION >= 0x040700
     ui->uriEdit->setPlaceholderText("verge:");
 #endif

@@ -6,23 +6,20 @@ $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=aeb78d29291a2b5fd53cb55950f8f5065b4978c25fb1d77f627d695ab9adf21e
 
 # Keep dependencies compatible with packages currently present in this repo.
-$(package)_darwin_dependencies=openssl native_qt
-$(package)_mingw32_dependencies=openssl native_qt
-$(package)_linux_dependencies=openssl freetype fontconfig libX11 libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm libxcb_util_cursor
+$(package)_darwin_dependencies=openssl zlib native_qt native_flex native_html5lib
+$(package)_mingw32_dependencies=openssl zlib native_qt native_flex native_html5lib
+$(package)_linux_dependencies=openssl zlib native_flex native_html5lib dbus nspr nss mesa_headers glproto libglvnd freetype fontconfig libX11 libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm libxcb_util_cursor
 
 $(package)_patches += rcc_hardcode_timestamp.patch
 $(package)_patches += root_CMakeLists.txt
-$(package)_patches += v4l2.patch
 $(package)_patches += windows_func_fix.patch
 $(package)_patches += mingw_thread_power_throttling.patch
 $(package)_patches += mingw_network_compat.patch
+$(package)_patches += mingw_qtwebengine_default_crt.patch
 $(package)_patches += libxau-fix.patch
 $(package)_patches += toolchain.cmake
 $(package)_patches += fix_static_qt_darwin_camera_permissions.patch
 #$(package)_patches += fix-static-fontconfig-static-linking.patch
-
-$(package)_qttools_file_name=qttools-$($(package)_suffix)
-$(package)_qttools_sha256_hash=1e3d2c07c1fd76d2425c6eaeeaa62ffaff5f79210c4e1a5bc2a6a9db668d5b24
 
 $(package)_qtsvg_file_name=qtsvg-$($(package)_suffix)
 $(package)_qtsvg_sha256_hash=f07ff80f38caf235187200345392ca7479445ddf49a36c3694cd52a735dad6e1
@@ -30,32 +27,43 @@ $(package)_qtsvg_sha256_hash=f07ff80f38caf235187200345392ca7479445ddf49a36c3694c
 $(package)_qtwebsockets_file_name=qtwebsockets-$($(package)_suffix)
 $(package)_qtwebsockets_sha256_hash=eccc751bea509ef656d20029693987a0fc03c58e21c38f1351480f3c8eb42ebd
 
-$(package)_qtmultimedia_file_name=qtmultimedia-$($(package)_suffix)
-$(package)_qtmultimedia_sha256_hash=93f7ef0106fbd731165a2723f3e436c911fc5e6880f5bc987b55516c20833e2b
-
 $(package)_qtshadertools_file_name=qtshadertools-$($(package)_suffix)
 $(package)_qtshadertools_sha256_hash=18d9dbbc4f7e6e96e6ed89a9965dc032e2b58158b65156c035537826216716c9
 
-$(package)_qtwayland_file_name=qtwayland-$($(package)_suffix)
-$(package)_qtwayland_sha256_hash=391998eb432719df26a6a67d8efdc67f8bf2afdd76c1ee3381ebff4fe7527ee2
+$(package)_qtdeclarative_file_name=qtdeclarative-$($(package)_suffix)
+$(package)_qtdeclarative_sha256_hash=a249914ff66cdcdbf0df8b5ffad997a2ee6dce01cc17d43c6cc56fdc1d0f4b0f
 
-$(package)_extra_sources += $($(package)_qttools_file_name)
+ifeq ($(QT_SKIP_WEBENGINE)$(QT_SKIP_QTDECLARATIVE),11)
+$(package)_qt_submodules=qtbase;qtsvg;qtwebsockets
+else ifeq ($(QT_SKIP_WEBENGINE),1)
+$(package)_qt_submodules=qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets
+else
+$(package)_qt_submodules=qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine
+$(package)_qtwebengine_file_name=qtwebengine-$($(package)_suffix)
+$(package)_qtwebengine_sha256_hash=856eddf292a69a88618567deea67711b4ec720e69bcb575ed7bb539c9023961e
+endif
+
 $(package)_extra_sources += $($(package)_qtsvg_file_name)
 $(package)_extra_sources += $($(package)_qtwebsockets_file_name)
-$(package)_extra_sources += $($(package)_qtmultimedia_file_name)
+ifneq ($(QT_SKIP_QTDECLARATIVE),1)
 $(package)_extra_sources += $($(package)_qtshadertools_file_name)
-$(package)_extra_sources += $($(package)_qtwayland_file_name)
+$(package)_extra_sources += $($(package)_qtdeclarative_file_name)
+endif
+ifneq ($(QT_SKIP_WEBENGINE),1)
+$(package)_extra_sources += $($(package)_qtwebengine_file_name)
+endif
 
 define $(package)_set_vars
 $(package)_cmake_system_linux=Linux
 $(package)_cmake_system_mingw32=Windows
 $(package)_cmake_system_darwin=Darwin
 
-$(package)_config_opts += -DBUILD_SHARED_LIBS=OFF
+$(package)_config_opts += -DBUILD_SHARED_LIBS=ON
 $(package)_config_opts += -DCMAKE_INSTALL_PREFIX=$(host_prefix)
 $(package)_config_opts += -DINSTALL_LIBEXECDIR=$(build_prefix)/bin
 $(package)_config_opts += -DQT_BUILD_EXAMPLES=FALSE
 $(package)_config_opts += -DQT_BUILD_TESTS=FALSE
+$(package)_config_opts += -DQT_BUILD_QMLDEVTOOLS=OFF
 $(package)_config_opts += -DQT_GENERATE_SBOM=OFF
 $(package)_config_opts += -DQT_FEATURE_cups=OFF
 $(package)_config_opts += -DQT_FEATURE_qmake=OFF
@@ -73,8 +81,8 @@ $(package)_config_opts += -DQT_FEATURE_kms=OFF
 $(package)_config_opts += -DQT_FEATURE_linuxfb=OFF
 $(package)_config_opts += -DQT_FEATURE_libudev=OFF
 $(package)_config_opts += -DQT_FEATURE_mtdev=OFF
-$(package)_config_opts += -DQT_FEATURE_openssl=ON
-$(package)_config_opts += -DQT_FEATURE_openssl_linked=ON
+$(package)_config_opts += $(if $(filter 1,$(QT_DISABLE_OPENSSL)),-DQT_FEATURE_openssl=OFF,-DQT_FEATURE_openssl=ON)
+$(package)_config_opts += $(if $(filter 1,$(QT_DISABLE_OPENSSL)),-DQT_FEATURE_openssl_linked=OFF,-DQT_FEATURE_openssl_linked=ON)
 $(package)_config_opts += -DQT_FEATURE_openvg=OFF
 $(package)_config_opts += -DQT_FEATURE_permissions=ON
 $(package)_config_opts += -DQT_FEATURE_reduce_relocations=OFF
@@ -85,6 +93,8 @@ $(package)_config_opts += -DQT_FEATURE_system_proxies=OFF
 $(package)_config_opts += -DQT_FEATURE_use_gold_linker_alias=OFF
 $(package)_config_opts += -DQT_FEATURE_zstd=OFF
 $(package)_config_opts += -DQT_FEATURE_pkg_config=ON
+$(package)_config_opts += -DPython3_EXECUTABLE=$(host_prefix)/native/bin/python3
+$(package)_config_opts += -DFEATURE_webengine_jumbo_build=8
 $(package)_config_opts += -DQT_FEATURE_system_png=OFF
 $(package)_config_opts += -DQT_FEATURE_system_pcre2=OFF
 $(package)_config_opts += -DQT_FEATURE_system_harfbuzz=OFF
@@ -125,17 +135,17 @@ $(package)_config_opts_linux += -DQT_FEATURE_xkbcommon_x11=ON
 $(package)_config_opts_linux += -DQT_FEATURE_freetype=ON
 $(package)_config_opts_linux += -DQT_FEATURE_system_freetype=ON
 $(package)_config_opts_linux += -DQT_FEATURE_fontconfig=ON
-$(package)_config_opts_linux += -DINPUT_opengl=no
-$(package)_config_opts_linux += -DQT_FEATURE_opengl=OFF
+$(package)_config_opts_linux += -DINPUT_opengl=desktop
+$(package)_config_opts_linux += -DQT_FEATURE_opengl=ON
 $(package)_config_opts_linux += -DQT_FEATURE_opengles2=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_opengles3=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_opengles31=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_opengles32=OFF
-$(package)_config_opts_linux += -DQT_FEATURE_opengl_desktop=OFF
+$(package)_config_opts_linux += -DQT_FEATURE_opengl_desktop=ON
 $(package)_config_opts_linux += -DQT_FEATURE_vulkan=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_backtrace=OFF
-$(package)_config_opts_linux += -DQT_FEATURE_dbus=OFF
-$(package)_config_opts_linux += -DQT_FEATURE_dbus_linked=OFF
+$(package)_config_opts_linux += -DQT_FEATURE_dbus=ON
+$(package)_config_opts_linux += -DQT_FEATURE_dbus_linked=ON
 $(package)_config_opts_linux += -DQT_FEATURE_wayland_client=OFF
 $(package)_config_opts_linux += -DQT_FEATURE_wayland_server=OFF
 $(package)_config_opts_linux += -DBUILD_WITH_PCH=OFF
@@ -144,7 +154,14 @@ $(package)_config_opts_mingw32 += -DQT_QMAKE_TARGET_MKSPEC=win32-g++
 $(package)_config_opts_mingw32 += -DQT_HOST_PATH=$(build_prefix)/qt-host
 $(package)_config_opts_mingw32 += -DQT_HOST_PATH_CMAKE_DIR=$(build_prefix)/qt-host/lib/cmake
 $(package)_config_opts_mingw32 += -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake
-$(package)_config_opts_mingw32 += -DINPUT_opengl=no
+$(package)_config_opts_mingw32 += -DGn_EXECUTABLE=$(build_prefix)/qt-host/bin/gn
+$(package)_config_opts_mingw32 += -DINPUT_opengl=desktop
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl=ON
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles2=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles3=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles31=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengles32=OFF
+$(package)_config_opts_mingw32 += -DQT_FEATURE_opengl_desktop=ON
 $(package)_config_opts_mingw32 += -DQT_FEATURE_dbus=OFF
 $(package)_config_opts_mingw32 += -DQT_FEATURE_freetype=OFF
 $(package)_config_opts_mingw32 += -DQT_FEATURE_ffmpeg=OFF
@@ -174,42 +191,36 @@ endef
 
 define $(package)_fetch_cmds
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_download_file),$($(package)_file_name),$($(package)_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qttools_file_name),$($(package)_qttools_file_name),$($(package)_qttools_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtsvg_file_name),$($(package)_qtsvg_file_name),$($(package)_qtsvg_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtmultimedia_file_name),$($(package)_qtmultimedia_file_name),$($(package)_qtmultimedia_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwayland_file_name),$($(package)_qtwayland_file_name),$($(package)_qtwayland_sha256_hash))
+$(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_file_name),$($(package)_qtshadertools_sha256_hash))) && \
+$(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash))) && \
+$(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_file_name),$($(package)_qtwebengine_sha256_hash)))
 endef
 
 define $(package)_extract_cmds
   mkdir -p $($(package)_extract_dir) && \
   echo "$($(package)_sha256_hash)  $($(package)_source)" > $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qttools_sha256_hash)  $($(package)_source_dir)/$($(package)_qttools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtsvg_sha256_hash)  $($(package)_source_dir)/$($(package)_qtsvg_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtwebsockets_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebsockets_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtmultimedia_sha256_hash)  $($(package)_source_dir)/$($(package)_qtmultimedia_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
-  echo "$($(package)_qtwayland_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwayland_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,echo "$($(package)_qtshadertools_sha256_hash)  $($(package)_source_dir)/$($(package)_qtshadertools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
+  $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,echo "$($(package)_qtwebengine_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebengine_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash) && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source) -C qtbase && \
-  mkdir qttools && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttools_file_name) -C qttools && \
   mkdir qtsvg && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtsvg_file_name) -C qtsvg && \
   mkdir qtwebsockets && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebsockets_file_name) -C qtwebsockets && \
-  mkdir qtmultimedia && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtmultimedia_file_name) -C qtmultimedia && \
-  mkdir qtshadertools && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools && \
-  mkdir qtwayland && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwayland_file_name) -C qtwayland
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,mkdir qtshadertools && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtshadertools_file_name) -C qtshadertools) && \
+  $(if $(filter 1,$(QT_SKIP_QTDECLARATIVE)),true,mkdir qtdeclarative && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative) && \
+  $(if $(filter 1,$(QT_SKIP_WEBENGINE)),true,mkdir qtwebengine && $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebengine_file_name) -C qtwebengine)
 endef
 
 define $(package)_preprocess_cmds
   cp $($(package)_patch_dir)/root_CMakeLists.txt CMakeLists.txt && \
+  sed -i 's|qtbase;qtsvg;qtshadertools;qtdeclarative;qtwebsockets;qtwebengine|$($(package)_qt_submodules)|' CMakeLists.txt && \
   patch -p1 -i $($(package)_patch_dir)/rcc_hardcode_timestamp.patch && \
   patch -p1 -i $($(package)_patch_dir)/windows_func_fix.patch && \
   cp $($(package)_patch_dir)/toolchain.cmake . && \
@@ -228,26 +239,83 @@ define $(package)_preprocess_cmds
          -e 's/qt_find_package(XKB_COMMON_X11 0.9.0 /qt_find_package(XKB_COMMON_X11 0.8.4 /' src/gui/configure.cmake && \
   patch -p1 -i $($(package)_patch_dir)/libxau-fix.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_static_qt_darwin_camera_permissions.patch && \
-  cd ../qtmultimedia && \
-  patch -p1 -i $($(package)_patch_dir)/v4l2.patch
+  cd .. && \
+  if [ "$(QT_SKIP_WEBENGINE)" != "1" ]; then \
+    sed -i '/VERSION_VAR/,+1d' qtwebengine/cmake/FindGn.cmake; \
+  fi && \
+  if [ "$(host_os)" = "mingw32" ] && [ "$(QT_SKIP_WEBENGINE)" != "1" ]; then \
+    patch_rc=0; \
+    patch --batch --forward -p1 -i $($(package)_patch_dir)/mingw_qtwebengine_default_crt.patch || patch_rc=$$?; \
+    if [ "$$patch_rc" -gt 1 ]; then \
+      exit "$$patch_rc"; \
+    fi; \
+  fi
 endef
 
 define $(package)_config_cmds
-  mkdir -p $(build_prefix)/qt-host $(build_prefix)/qt-host/lib/cmake && \
+  mkdir -p $(build_prefix)/qt-host $(build_prefix)/qt-host/bin $(build_prefix)/qt-host/lib/cmake && \
+  mkdir -p $(host_prefix)/native/bin && \
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -e' \
+    'PYTHONPATH_NATIVE=""' \
+    'for d in "$(host_prefix)"/native/local/lib/python*/dist-packages "$(host_prefix)"/native/lib/python*/site-packages "$(host_prefix)"/native/lib/python*/dist-packages; do' \
+    '  if [ -d "$$$$d" ]; then' \
+    '    PYTHONPATH_NATIVE="$$$${PYTHONPATH_NATIVE}:$$$$d"' \
+    '  fi' \
+    'done' \
+    'PYTHONPATH_NATIVE="$$$${PYTHONPATH_NATIVE#:}"' \
+    'export PYTHONPATH="$$$${PYTHONPATH_NATIVE}:$$$${PYTHONPATH}"' \
+    'exec /usr/bin/python3 "$$$$@"' \
+    > $(host_prefix)/native/bin/python3 && \
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -euo pipefail' \
+    'if [ -x "$(host_prefix)/native/bin/gn" ]; then' \
+    '  exec "$(host_prefix)/native/bin/gn" "$$$$@"' \
+    'fi' \
+    'if [ -x /usr/local/bin/gn ]; then' \
+    '  exec /usr/local/bin/gn "$$$$@"' \
+    'fi' \
+    'exec /usr/bin/gn "$$$$@"' \
+    > $(build_prefix)/qt-host/bin/gn && \
+  chmod +x $(build_prefix)/qt-host/bin/gn && \
+  chmod +x $(host_prefix)/native/bin/python3 && \
   export OPENSSL_LIBS=${$(package)_openssl_flags_$(host_os)} && \
+  export PATH="$(host_prefix)/native/bin:$(host_prefix)/bin:$${PATH}" && \
+  export PYTHONPATH="$(host_prefix)/native/local/lib/python3.12/dist-packages:$(host_prefix)/native/lib/python3.12/site-packages:$${PYTHONPATH}" && \
+  export CPATH="$(host_prefix)/include:$${CPATH}" && \
+  export CFLAGS="-I$(host_prefix)/include $${CFLAGS}" && \
+  export CXXFLAGS="-I$(host_prefix)/include $${CXXFLAGS}" && \
+  export LDFLAGS="-L$(host_prefix)/lib $${LDFLAGS}" && \
+  export CMAKE_PREFIX_PATH="$(host_prefix)" && \
+  export CMAKE_INCLUDE_PATH="$(host_prefix)/include" && \
+  export CMAKE_LIBRARY_PATH="$(host_prefix)/lib" && \
   export PKG_CONFIG_SYSROOT_DIR=/ && \
-  export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig && \
+  export PKG_CONFIG_LIBDIR="$(host_prefix)/lib/pkgconfig" && \
   export QT_MAC_SDK_NO_VERSION_CHECK=1 && \
   cmake -S . -B . $($(package)_config_opts)
 endef
 
 define $(package)_build_cmds
+  PYTHONPATH_NATIVE=""; \
+  for d in "$(host_prefix)"/native/local/lib/python*/dist-packages "$(host_prefix)"/native/lib/python*/site-packages "$(host_prefix)"/native/lib/python*/dist-packages; do \
+    if test -d "$$d"; then \
+      PYTHONPATH_NATIVE="$${PYTHONPATH_NATIVE}:$$d"; \
+    fi; \
+  done && \
+  PYTHONPATH_NATIVE="$${PYTHONPATH_NATIVE#:}" && \
   export LD_LIBRARY_PATH="$(build_prefix)/lib/:$(QT_LIBS_LIBS)" && \
+  export PATH="$(host_prefix)/native/bin:$(host_prefix)/bin:$${PATH}" && \
+  export PYTHONPATH="$${PYTHONPATH_NATIVE}:$${PYTHONPATH}" && \
+  export PKG_CONFIG_SYSROOT_DIR=/ && \
+  export PKG_CONFIG_LIBDIR="$(host_prefix)/lib/pkgconfig" && \
+  export PKG_CONFIG_PATH="$(host_prefix)/lib/pkgconfig" && \
   env -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH -u OBJC_INCLUDE_PATH -u OBJCPLUS_INCLUDE_PATH -u CPATH -u LIBRARY_PATH cmake --build . --parallel
 endef
 
 define $(package)_stage_cmds
-  DESTDIR=$($(package)_staging_dir) cmake --install . && \
+  DESTDIR=$($(package)_staging_dir) cmake --install . --strip && \
   mkdir -p $($(package)_staging_dir)$(host_prefix)/plugins/platforms && \
   if test -f qtbase/plugins/platforms/libqwindows.a; then \
     cp qtbase/plugins/platforms/libqwindows.a $($(package)_staging_dir)$(host_prefix)/plugins/platforms/; \

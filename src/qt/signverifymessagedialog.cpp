@@ -20,6 +20,7 @@
 #include <vector>
 
 #include <QClipboard>
+#include <QPlainTextEdit>
 
 SignVerifyMessageDialog::SignVerifyMessageDialog(const PlatformStyle *_platformStyle, QWidget *parent) :
     QDialog(parent),
@@ -29,6 +30,28 @@ SignVerifyMessageDialog::SignVerifyMessageDialog(const PlatformStyle *_platformS
 {
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
+    setObjectName("SignVerifyMessageDialog");
+    setMinimumSize(820, 520);
+    ui->tabWidget->setObjectName("SignVerifyTabs");
+    ui->addressIn_SM->setObjectName("SignVerifyField");
+    ui->addressIn_VM->setObjectName("SignVerifyField");
+    ui->signatureIn_VM->setObjectName("SignVerifyField");
+    ui->signatureOut_SM->setObjectName("SignVerifyField");
+    ui->messageIn_SM->setObjectName("SignVerifyMessageBox");
+    ui->messageIn_VM->setObjectName("SignVerifyMessageBox");
+    ui->infoLabel_SM->setObjectName("SignVerifyIntroText");
+    ui->infoLabel_VM->setObjectName("SignVerifyIntroText");
+    ui->signatureLabel_SM->setObjectName("SignVerifySectionLabel");
+    ui->statusLabel_SM->setObjectName("SignVerifyStatusLabel");
+    ui->statusLabel_VM->setObjectName("SignVerifyStatusLabel");
+    ui->addressBookButton_SM->setObjectName("SignVerifyIconButton");
+    ui->pasteButton_SM->setObjectName("SignVerifyIconButton");
+    ui->copySignatureButton_SM->setObjectName("SignVerifyIconButton");
+    ui->addressBookButton_VM->setObjectName("SignVerifyIconButton");
+    ui->signMessageButton_SM->setObjectName("DialogPrimaryButton");
+    ui->verifyMessageButton_VM->setObjectName("DialogPrimaryButton");
+    ui->clearButton_SM->setObjectName("DialogSecondaryButton");
+    ui->clearButton_VM->setObjectName("DialogSecondaryButton");
 
     ui->addressBookButton_SM->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
     ui->pasteButton_SM->setIcon(platformStyle->SingleColorIcon(":/icons/editpaste"));

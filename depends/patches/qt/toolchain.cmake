@@ -1,5 +1,17 @@
 set(CMAKE_SYSTEM_NAME @cmake_system_name@)
 
+if(NOT DEFINED CMAKE_SYSTEM_PROCESSOR)
+    if("@target@" MATCHES "^i686")
+        set(CMAKE_SYSTEM_PROCESSOR x86)
+    elseif("@target@" MATCHES "^(x86_64|amd64)")
+        set(CMAKE_SYSTEM_PROCESSOR x86_64)
+    elseif("@target@" MATCHES "^(aarch64|arm64)")
+        set(CMAKE_SYSTEM_PROCESSOR arm64)
+    elseif("@target@" MATCHES "^arm")
+        set(CMAKE_SYSTEM_PROCESSOR arm)
+    endif()
+endif()
+
 set(CMAKE_C_COMPILER @target@-gcc)
 set(CMAKE_CXX_COMPILER @target@-g++)
 set(CMAKE_FIND_ROOT_PATH @host_prefix@)

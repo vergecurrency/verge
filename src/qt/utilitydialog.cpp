@@ -154,20 +154,25 @@ void HelpMessageDialog::on_okButton_accepted()
 
 /** "Shutdown" window */
 ShutdownWindow::ShutdownWindow(QWidget *parent, Qt::WindowFlags f):
-    QDialog(parent, f)
+QDialog(parent, f)
 {
     setObjectName("ShutdownWindow");
     setModal(false);
 
     QLabel* msgLabel = new QLabel(
-        tr("%1 is shutting down...").arg(tr(PACKAGE_NAME)) + "<br /><br />" +
+        tr("%1 is shutting down...").arg(tr("Verge Core")) + "<br /><br />" +
         tr("Do not shut down the computer until this window disappears."));
     msgLabel->setObjectName("ShutdownMessage");
     msgLabel->setWordWrap(true);
 
     QVBoxLayout *layout = new QVBoxLayout();
+    layout->setContentsMargins(28, 26, 28, 22);
+    layout->setSpacing(14);
     layout->addWidget(msgLabel);
     setLayout(layout);
+    setMinimumSize(432, 176);
+    adjustSize();
+    resize(sizeHint().expandedTo(QSize(432, 176)));
     GUIUtil::EnableThemedDialogChrome(this);
 }
 

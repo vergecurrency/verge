@@ -1,7 +1,7 @@
 ]\dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
-define(_CLIENT_VERSION_MAJOR, 8)
-define(_CLIENT_VERSION_MINOR, 4)
+define(_CLIENT_VERSION_MAJOR, 26)
+define(_CLIENT_VERSION_MINOR, 5)
 define(_CLIENT_VERSION_REVISION, 0)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_RC, 0)
@@ -9,7 +9,7 @@ define(_CLIENT_VERSION_IS_RELEASE, true)
 define(_COPYRIGHT_YEAR, 2025)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
 define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Verge Core]])
-AC_INIT([Verge Octo],m4_join([.], _CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MINOR, _CLIENT_VERSION_REVISION, m4_if(_CLIENT_VERSION_BUILD, [0], [], _CLIENT_VERSION_BUILD))m4_if(_CLIENT_VERSION_RC, [0], [], [rc]_CLIENT_VERSION_RC),[https://github.com/vergecurrency/verge/issues],[verge],[https://vergecurrency.com/])
+AC_INIT([Verge Core],m4_join([.], _CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MINOR, _CLIENT_VERSION_REVISION, m4_if(_CLIENT_VERSION_BUILD, [0], [], _CLIENT_VERSION_BUILD))m4_if(_CLIENT_VERSION_RC, [0], [], [rc]_CLIENT_VERSION_RC),[https://github.com/vergecurrency/verge/issues],[verge],[https://vergecurrency.com/])
 AC_CONFIG_SRCDIR([src/validation.cpp])
 AC_CONFIG_HEADERS([src/config/verge-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -1457,8 +1457,43 @@ fi
 
 AX_SUBDIRS_CONFIGURE([src/secp256k1], [[--disable-shared], [--with-pic], [--with-bignum=no], [--enable-module-recovery], [--enable-experimental], [--enable-module-ecdh]])
 
-ac_configure_args="${ac_configure_args} --disable-shared --disable-gcc-hardening --with-pic --with-bignum=no --enable-module-recovery --disable-jni --disable-system-torrc --disable-systemd --disable-lzma --disable-zstd --disable-asciidoc --disable-gcc-hardening --disable-unittests"
-AC_CONFIG_SUBDIRS([src/tor])
+if test x$TARGET_OS = xdarwin; then
+  dnl Homebrew/OpenSSL 4 on macOS still ships engine headers, but the legacy
+  dnl ENGINE symbol set is not linkable in the way Tor's engine probe expects.
+  dnl Tor already has a clean OPENSSL_NO_ENGINE fallback path; pass that
+  dnl define directly into Tor's subconfigure so its generated Makefiles stay
+  dnl on the no-engine side as well.
+  AX_SUBDIRS_CONFIGURE([src/tor],
+    [[--disable-shared],
+     [--disable-gcc-hardening],
+     [--with-pic],
+     [--with-bignum=no],
+     [--enable-module-recovery],
+     [--disable-jni],
+     [--disable-system-torrc],
+     [--disable-systemd],
+     [--disable-lzma],
+     [--disable-zstd],
+     [--disable-asciidoc],
+     [--disable-gcc-hardening],
+     [--disable-unittests]],
+    [[CPPFLAGS=${CPPFLAGS} -DOPENSSL_NO_ENGINE]])
+else
+  AX_SUBDIRS_CONFIGURE([src/tor],
+    [[--disable-shared],
+     [--disable-gcc-hardening],
+     [--with-pic],
+     [--with-bignum=no],
+     [--enable-module-recovery],
+     [--disable-jni],
+     [--disable-system-torrc],
+     [--disable-systemd],
+     [--disable-lzma],
+     [--disable-zstd],
+     [--disable-asciidoc],
+     [--disable-gcc-hardening],
+     [--disable-unittests]])
+fi
 
 AC_OUTPUT
 

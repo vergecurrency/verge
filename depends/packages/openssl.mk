@@ -1,17 +1,14 @@
 package=openssl
-$(package)_version=3.6.1
+$(package)_version=4.0.0
 $(package)_download_path=https://github.com/openssl/openssl/releases/download/openssl-$($(package)_version)
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=b1bfedcd5b289ff22aee87c9d600f515767ebf45f77168cb6d64f231f518a82e
-$(package)_patches=fix-mingw64.patch
-
+$(package)_sha256_hash=c32cf49a959c4f345f9606982dd36e7d28f7c58b19c2e25d75624d2b3d2f79ac
 define $(package)_set_vars
 $(package)_config_env=AR="$($(package)_ar)" ARFLAGS=$($(package)_arflags) RANLIB="$($(package)_ranlib)" CC="$($(package)_cc)"
 $(package)_config_env_android=ANDROID_NDK_ROOT="$(host_prefix)/native" PATH="$(host_prefix)/native/bin" CC=clang AR=ar RANLIB=ranlib
 $(package)_build_env_android=ANDROID_NDK_ROOT="$(host_prefix)/native"
 $(package)_config_opts=--prefix=$(host_prefix) --openssldir=$(host_prefix)/etc/openssl --libdir=$(host_prefix)/lib
 $(package)_config_opts+=no-apps
-$(package)_config_opts+=no-capieng
 $(package)_config_opts+=no-dso
 $(package)_config_opts+=no-dtls1
 $(package)_config_opts+=no-ec_nistp_64_gcc_128
@@ -23,7 +20,6 @@ $(package)_config_opts+=no-rfc3779
 $(package)_config_opts+=no-sctp
 $(package)_config_opts+=no-shared
 $(package)_config_opts+=no-ssl-trace
-$(package)_config_opts+=no-ssl3
 $(package)_config_opts+=no-tests
 $(package)_config_opts+=no-unit-test
 $(package)_config_opts+=no-weak-ssl-ciphers
@@ -51,9 +47,7 @@ $(package)_config_opts_x86_64_freebsd=BSD-x86_64
 endef
 
 define $(package)_preprocess_cmds
-  sed -i.old 's|crypto ssl apps util tools fuzz providers doc|crypto ssl util tools providers|' build.info &&\
-  patch -p1 < $($(package)_patch_dir)/fix-mingw64.patch && \
-  rm -rf doc demos apps test
+  sed -i.old 's|crypto ssl apps util tools fuzz providers doc|crypto ssl util tools providers|' build.info
 endef
 
 define $(package)_config_cmds

@@ -23,149 +23,138 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QGuiApplication>
+#include <QKeyEvent>
 #include <QLinearGradient>
-#include <QScreen>
 #include <QPainter>
-#include <QRadialGradient>
+#include <QScreen>
+
+#include <cmath>
+
+namespace {
+constexpr int SPLASH_WIDTH = 500;
+constexpr int SPLASH_HEIGHT = 500;
+constexpr int SPLASH_CHROME_HEIGHT = 36;
+constexpr int TEXT_GRADIENT_PERIOD = 900;
+} // namespace
 
 SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const NetworkStyle *networkStyle) :
-    QWidget(0, f), curAlignment(0), m_node(node), m_textGradientOffset(0)
+    QWidget(0, f),
+    curColor(QColor(255, 255, 255)),
+    curAlignment(Qt::AlignCenter | Qt::AlignHCenter),
+    m_backgroundPhase(0),
+    m_textGradientOffset(0),
+    m_isFinishing(false),
+    m_coreSignalsConnected(false),
+    m_node(node)
 {
     setObjectName("SplashScreen");
+    setAttribute(Qt::WA_DeleteOnClose);
 #ifndef Q_OS_MAC
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
 #endif
 
-    // set reference point, paddings
-    int paddingRight            = 15;
-    int paddingTop              = 100;
-    int paddingBottom           = 10;
-    int titleVersionVSpace      = 17;
-    // int titleCopyrightVSpace    = 20;
-
-    float fontFactor            = 1.0;
-    float devicePixelRatio      = 1.0;
+    const int paddingLeft = 24;
+    const int paddingRight = 20;
+    qreal devicePixelRatio = 1.0;
 #if QT_VERSION > 0x050100
     devicePixelRatio = static_cast<QGuiApplication*>(QCoreApplication::instance())->devicePixelRatio();
 #endif
 
-    // define text to place
-    QString titleText       = tr("                    "); // Title is in the pixmap
-    QString versionText     = QString("%1").arg(QString::fromStdString(FormatFullVersion()));
-    QString copyrightText   = QString::fromUtf8(CopyrightHolders(strprintf("\xc2\xA9 %u-%u ", 2009, COPYRIGHT_YEAR)).c_str());
-    QString titleAddText    = networkStyle->getTitleAddText();
+    const QString versionText = QString::fromStdString(FormatFullVersion());
+    const QString titleAddText = networkStyle->getTitleAddText();
 
     const QString titleFontFamily = QStringLiteral("Space Grotesk");
     const QString bodyFontFamily = QStringLiteral("Inter");
 
-    // create a bitmap according to device pixelratio
-    QSize splashSize(500*devicePixelRatio,500*devicePixelRatio);
+    const QSize logicalSplashSize(SPLASH_WIDTH, SPLASH_HEIGHT);
+    const QSize splashSize(static_cast<int>(logicalSplashSize.width() * devicePixelRatio),
+                           static_cast<int>(logicalSplashSize.height() * devicePixelRatio));
     pixmap = QPixmap(splashSize);
-
 #if QT_VERSION > 0x050100
-    // change to HiDPI if it makes sense
     pixmap.setDevicePixelRatio(devicePixelRatio);
 #endif
+    pixmap.fill(Qt::transparent);
 
     QPainter pixPaint(&pixmap);
-    pixPaint.setPen(QColor(255,255,255));
+    pixPaint.setRenderHint(QPainter::Antialiasing, true);
+    const QRect splashRect(QPoint(0, 0), logicalSplashSize);
+    const QRect chromeRect(0, 0, SPLASH_WIDTH, SPLASH_CHROME_HEIGHT);
 
-    // draw a slightly radial gradient
-    QRadialGradient gradient(QPoint(0,0), splashSize.width()/devicePixelRatio);
-    gradient.setColorAt(0, Qt::white);
-    gradient.setColorAt(1, QColor(247,247,247));
-    QRect rGradient(QPoint(0,0), splashSize);
-    pixPaint.fillRect(rGradient, gradient);
-
-    // draw the verge icon, expected size of PNG: 1024x1024
-    QRect rectIcon(QPoint(0,0), QSize(500,500));
-
-    const QSize requiredSize(1024,1024);
     QPixmap icon(":/icons/splash1");
-    // QPixmap icon(splashmap);
+    pixPaint.drawPixmap(splashRect, icon);
 
-    pixPaint.drawPixmap(rectIcon, icon);
-    // check font size and drawing with
-    pixPaint.setFont(QFont(titleFontFamily, 33*fontFactor));
-    QFontMetrics fm = pixPaint.fontMetrics();
-    int titleTextWidth = fm.horizontalAdvance(titleText);
-    if (titleTextWidth > 176) {
-        fontFactor = fontFactor * 176 / titleTextWidth;
+    QLinearGradient chromeGradient(chromeRect.topLeft(), chromeRect.bottomLeft());
+    chromeGradient.setColorAt(0.0, QColor(18, 10, 38, 245));
+    chromeGradient.setColorAt(1.0, QColor(7, 5, 19, 228));
+    pixPaint.fillRect(chromeRect, chromeGradient);
+    pixPaint.fillRect(QRect(0, chromeRect.bottom(), SPLASH_WIDTH, 1), QColor(255, 80, 205, 110));
+
+    QFont chromeFont(titleFontFamily);
+    chromeFont.setPointSize(10);
+    chromeFont.setBold(true);
+    pixPaint.setFont(chromeFont);
+    pixPaint.setPen(QColor(247, 244, 255));
+    const QString chromeTitleBase = tr("Verge Core") + " " + versionText;
+    const QString chromeTitle = titleAddText.isEmpty() ? chromeTitleBase : chromeTitleBase + " " + titleAddText;
+    pixPaint.drawText(chromeRect.adjusted(14, 0, -14, 0), Qt::AlignVCenter | Qt::AlignLeft, chromeTitle);
+
+    if (!titleAddText.isEmpty()) {
+        QFont badgeFont(bodyFontFamily);
+        badgeFont.setPointSize(9);
+        badgeFont.setBold(true);
+        pixPaint.setFont(badgeFont);
+        QFontMetrics badgeMetrics(badgeFont);
+        const int badgeWidth = badgeMetrics.horizontalAdvance(titleAddText) + 22;
+        const QRect badgeRect(SPLASH_WIDTH - badgeWidth - 16, 8, badgeWidth, 20);
+        pixPaint.setPen(QPen(QColor(118, 236, 255, 180), 1));
+        pixPaint.setBrush(QColor(19, 14, 40, 180));
+        pixPaint.drawRoundedRect(badgeRect, 10, 10);
+        pixPaint.setPen(QColor(244, 249, 255));
+        pixPaint.drawText(badgeRect, Qt::AlignCenter, titleAddText);
     }
 
-    pixPaint.setFont(QFont(titleFontFamily, 33*fontFactor));
-    fm = pixPaint.fontMetrics();
-    titleTextWidth  = fm.horizontalAdvance(titleText);
-    pixPaint.drawText(paddingRight,paddingTop,titleText);
-
-    pixPaint.setFont(QFont(bodyFontFamily, 15*fontFactor));
-
-    // if the version string is too long, reduce size
-    fm = pixPaint.fontMetrics();
-    int versionTextWidth  = fm.horizontalAdvance(versionText);
-    if (versionTextWidth > titleTextWidth + paddingRight - 10) {
-        pixPaint.setFont(QFont(bodyFontFamily, 10*fontFactor));
-        titleVersionVSpace -= 5;
-    }
-    pixPaint.drawText(500 - versionTextWidth - paddingRight, 500 - paddingBottom - 10, versionText);
-
-    // draw copyright stuff
-    {
-        pixPaint.setFont(QFont(bodyFontFamily, 10*fontFactor));
-        const int x = pixmap.width() - paddingRight;
-        const int y = paddingTop;
-        QRect copyrightRect(x, y, pixmap.width() - x - paddingRight, pixmap.height() - y);
-        pixPaint.drawText(copyrightRect, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, copyrightText);
-    }
-
-    // draw additional text if special network
-    if(!titleAddText.isEmpty()) {
-        QFont boldFont = QFont(titleFontFamily, 10*fontFactor);
-        boldFont.setWeight(QFont::Bold);
-        pixPaint.setFont(boldFont);
-        fm = pixPaint.fontMetrics();
-        int titleAddTextWidth  = fm.horizontalAdvance(titleAddText);
-        pixPaint.drawText(pixmap.width()/devicePixelRatio-titleAddTextWidth-10,15,titleAddText);
-    }
+    QFont versionFont(bodyFontFamily);
+    versionFont.setPointSize(12);
+    versionFont.setBold(true);
+    pixPaint.setFont(versionFont);
+    pixPaint.setPen(QColor(249, 246, 255, 232));
+    pixPaint.drawText(QRect(paddingLeft, SPLASH_HEIGHT - 56, SPLASH_WIDTH - paddingLeft - paddingRight, 24),
+        Qt::AlignRight | Qt::AlignVCenter, versionText);
 
     pixPaint.end();
 
-    // Set window title
-    setWindowTitle(titleText + " " + titleAddText);
+    setWindowTitle(titleAddText.isEmpty() ? tr("Verge Core") : tr("Verge Core") + " " + titleAddText);
+    curMessage = tr("Launching Verge Core...");
+    curColor = QColor(255, 255, 255);
+    curAlignment = Qt::AlignCenter | Qt::AlignHCenter;
 
-    // Draw custom dark window chrome so splash matches themed app windows.
-    {
-        pixPaint.begin(&pixmap);
-        const QRect chromeRect(0, 0, 500, 30);
-        pixPaint.fillRect(chromeRect, QColor(15, 21, 33, 235));
-        pixPaint.setPen(QColor(236, 241, 255));
-        QFont chromeFont(titleFontFamily);
-        chromeFont.setPointSize(10);
-        chromeFont.setBold(true);
-        pixPaint.setFont(chromeFont);
-        const QString chromeTitleBase = tr("Verge Core") + " " + versionText;
-        const QString chromeTitle = titleAddText.isEmpty()
-            ? chromeTitleBase
-            : chromeTitleBase + " " + titleAddText;
-        pixPaint.drawText(chromeRect.adjusted(10, 0, -10, 0), Qt::AlignVCenter | Qt::AlignLeft, chromeTitle);
-        pixPaint.end();
-    }
-
-    // Resize window and move to center of desktop, disallow resizing
-    QRect r(QPoint(), QSize(pixmap.size().width()/devicePixelRatio,pixmap.size().height()/devicePixelRatio));
-    resize(r.size());
-    setFixedSize(r.size());
+    resize(logicalSplashSize);
+    setFixedSize(logicalSplashSize);
     QScreen* const screen = QGuiApplication::primaryScreen();
     if (screen) {
-        move(screen->geometry().center() - r.center());
+        QRect splashGeometry(QPoint(), logicalSplashSize);
+        move(screen->geometry().center() - splashGeometry.center());
     }
 
     subscribeToCoreSignals();
     installEventFilter(this);
 
+    m_backgroundAnimationTimer.setInterval(45);
+    connect(&m_backgroundAnimationTimer, &QTimer::timeout, this, [this]() {
+        if (m_isFinishing) {
+            return;
+        }
+        m_backgroundPhase = (m_backgroundPhase + 1) % 1000000;
+        update();
+    });
+    m_backgroundAnimationTimer.start();
+
     m_textGradientTimer.setInterval(50);
     connect(&m_textGradientTimer, &QTimer::timeout, this, [this]() {
-        m_textGradientOffset = (m_textGradientOffset + 4) % 800;
+        if (m_isFinishing) {
+            return;
+        }
+        m_textGradientOffset = (m_textGradientOffset + 5) % TEXT_GRADIENT_PERIOD;
         update();
     });
     m_textGradientTimer.start();
@@ -173,10 +162,73 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
 SplashScreen::~SplashScreen()
 {
-    unsubscribeFromCoreSignals();
+    beginFinish();
+}
+
+void SplashScreen::drawAnimatedBackground(QPainter& painter) const
+{
+    painter.save();
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    const qreal phase = static_cast<qreal>(m_backgroundPhase);
+    const qreal widthF = static_cast<qreal>(width());
+    const qreal heightF = static_cast<qreal>(height());
+    const qreal topSweep = std::fmod(phase * 2.2, widthF * 2.0) - widthF;
+    const qreal midSweep = std::fmod(phase * 1.5, heightF * 2.2) - heightF * 0.6;
+    const qreal diagonalSweep = std::fmod(phase * 1.1, widthF * 2.4) - widthF * 0.9;
+
+    QLinearGradient baseGradient(0, 0, widthF, heightF);
+    baseGradient.setColorAt(0.0, QColor(4, 2, 14));
+    baseGradient.setColorAt(0.34, QColor(12, 4, 32));
+    baseGradient.setColorAt(0.68, QColor(8, 3, 22));
+    baseGradient.setColorAt(1.0, QColor(2, 1, 10));
+    painter.fillRect(rect(), baseGradient);
+
+    QLinearGradient magentaBand(topSweep, 0, topSweep + widthF * 1.35, heightF * 0.78);
+    magentaBand.setColorAt(0.0, QColor(0, 0, 0, 0));
+    magentaBand.setColorAt(0.28, QColor(176, 70, 235, 10));
+    magentaBand.setColorAt(0.50, QColor(122, 46, 196, 36));
+    magentaBand.setColorAt(0.72, QColor(188, 96, 232, 14));
+    magentaBand.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), magentaBand);
+
+    QLinearGradient cyanBand(widthF, midSweep, 0, midSweep + heightF * 0.95);
+    cyanBand.setColorAt(0.0, QColor(0, 0, 0, 0));
+    cyanBand.setColorAt(0.22, QColor(52, 202, 216, 8));
+    cyanBand.setColorAt(0.52, QColor(64, 214, 226, 34));
+    cyanBand.setColorAt(0.78, QColor(72, 154, 196, 12));
+    cyanBand.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), cyanBand);
+
+    QLinearGradient diagonalBand(diagonalSweep, heightF, diagonalSweep + widthF * 0.95, 0);
+    diagonalBand.setColorAt(0.0, QColor(0, 0, 0, 0));
+    diagonalBand.setColorAt(0.30, QColor(78, 168, 172, 4));
+    diagonalBand.setColorAt(0.52, QColor(86, 196, 202, 16));
+    diagonalBand.setColorAt(0.76, QColor(92, 150, 180, 6));
+    diagonalBand.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), diagonalBand);
+
+    QRadialGradient topGlow(QPointF(widthF * 0.5 + std::sin(phase * 0.010) * widthF * 0.16,
+                                    heightF * 0.18 + std::cos(phase * 0.008) * heightF * 0.05),
+                            widthF * 0.82);
+    topGlow.setColorAt(0.0, QColor(78, 30, 172, 54));
+    topGlow.setColorAt(0.36, QColor(122, 48, 188, 16));
+    topGlow.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), topGlow);
+
+    QRadialGradient lowerGlow(QPointF(widthF * 0.64 + std::cos(phase * 0.007) * widthF * 0.12,
+                                      heightF * 0.90),
+                              widthF * 0.72);
+    lowerGlow.setColorAt(0.0, QColor(58, 190, 202, 28));
+    lowerGlow.setColorAt(0.34, QColor(54, 108, 172, 10));
+    lowerGlow.setColorAt(1.0, QColor(0, 0, 0, 0));
+    painter.fillRect(rect(), lowerGlow);
+
+    painter.restore();
 }
 
 bool SplashScreen::eventFilter(QObject * obj, QEvent * ev) {
+    Q_UNUSED(obj);
     if (ev->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
         if (keyEvent->key() == Qt::Key_Q) {
@@ -186,16 +238,31 @@ bool SplashScreen::eventFilter(QObject * obj, QEvent * ev) {
     return QObject::eventFilter(obj, ev);
 }
 
+void SplashScreen::beginFinish()
+{
+    if (m_isFinishing) {
+        return;
+    }
+
+    m_isFinishing = true;
+    m_backgroundAnimationTimer.stop();
+    m_textGradientTimer.stop();
+    removeEventFilter(this);
+    unsubscribeFromCoreSignals();
+}
+
 void SplashScreen::slotFinish(QWidget *mainWin)
 {
     Q_UNUSED(mainWin);
+
+    beginFinish();
 
     /* If the window is minimized, hide() will be ignored. */
     /* Make sure we de-minimize the splashscreen window before hiding */
     if (isMinimized())
         showNormal();
     hide();
-    deleteLater(); // No more need for this
+    deleteLater();
 }
 
 static void InitMessage(SplashScreen *splash, const std::string &message)
@@ -224,28 +291,59 @@ void SplashScreen::ConnectWallet(std::unique_ptr<interfaces::Wallet> wallet)
 
 void SplashScreen::subscribeToCoreSignals()
 {
+    if (m_coreSignalsConnected) {
+        return;
+    }
+
     // Connect signals to client
     m_handler_init_message = m_node.handleInitMessage(std::bind(InitMessage, this, std::placeholders::_1));
     m_handler_show_progress = m_node.handleShowProgress(std::bind(ShowProgress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 #ifdef ENABLE_WALLET
-    m_handler_load_wallet = m_node.handleLoadWallet([this](std::unique_ptr<interfaces::Wallet> wallet) { ConnectWallet(std::move(wallet)); });
+    m_handler_load_wallet = m_node.handleLoadWallet([this](std::unique_ptr<interfaces::Wallet> wallet) {
+        QTimer::singleShot(0, this, [this, wallet = std::move(wallet)]() mutable {
+            if (m_isFinishing) {
+                return;
+            }
+            ConnectWallet(std::move(wallet));
+        });
+    });
 #endif
+    m_coreSignalsConnected = true;
 }
 
 void SplashScreen::unsubscribeFromCoreSignals()
 {
+    if (!m_coreSignalsConnected) {
+        return;
+    }
+
     // Disconnect signals from client
-    m_handler_init_message->disconnect();
-    m_handler_show_progress->disconnect();
+    if (m_handler_init_message) {
+        m_handler_init_message->disconnect();
+        m_handler_init_message.reset();
+    }
+    if (m_handler_show_progress) {
+        m_handler_show_progress->disconnect();
+        m_handler_show_progress.reset();
+    }
+    if (m_handler_load_wallet) {
+        m_handler_load_wallet->disconnect();
+        m_handler_load_wallet.reset();
+    }
     for (const auto& handler : m_connected_wallet_handlers) {
         handler->disconnect();
     }
     m_connected_wallet_handlers.clear();
     m_connected_wallets.clear();
+    m_coreSignalsConnected = false;
 }
 
 void SplashScreen::showMessage(const QString &message, int alignment, const QColor &color)
 {
+    if (m_isFinishing) {
+        return;
+    }
+
     curMessage = message;
     curAlignment = alignment;
     curColor = color;
@@ -255,23 +353,50 @@ void SplashScreen::showMessage(const QString &message, int alignment, const QCol
 void SplashScreen::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    drawAnimatedBackground(painter);
     painter.drawPixmap(0, 0, pixmap);
     Q_UNUSED(event);
 
-    const QRect textRect(100, 360, 300, 150);
-    painter.setFont(QFont(QStringLiteral("Inter"), 15));
+    const int panelHorizontalMargin = 22;
+    const int textHorizontalPadding = 16;
+    const int textVerticalPadding = 6;
+    const int panelBottom = 430;
+    const int panelWidth = width() - (panelHorizontalMargin * 2);
+
+    QFont statusFont(QStringLiteral("Inter"), 15);
+    painter.setFont(statusFont);
+    QFontMetrics statusMetrics(statusFont);
+    const QRect measureRect(panelHorizontalMargin + textHorizontalPadding, 0,
+        panelWidth - (textHorizontalPadding * 2), height());
+    const int textFlags = (curAlignment | Qt::TextWordWrap) & ~Qt::AlignVCenter;
+    QRect measuredTextRect = statusMetrics.boundingRect(measureRect, textFlags, curMessage);
+    if (measuredTextRect.height() < statusMetrics.lineSpacing()) {
+        measuredTextRect.setHeight(statusMetrics.lineSpacing());
+    }
+
+    const int panelHeight = measuredTextRect.height() + (textVerticalPadding * 2);
+    const QRect textPanelRect(panelHorizontalMargin, panelBottom - panelHeight, panelWidth, panelHeight);
+    const QRect textRect = textPanelRect.adjusted(textHorizontalPadding, textVerticalPadding,
+        -textHorizontalPadding, -textVerticalPadding);
+    QLinearGradient textPanelGradient(textPanelRect.topLeft(), textPanelRect.bottomLeft());
+    textPanelGradient.setColorAt(0.0, QColor(14, 8, 30, 150));
+    textPanelGradient.setColorAt(1.0, QColor(7, 6, 18, 110));
+    painter.setBrush(textPanelGradient);
+    painter.setPen(QPen(QColor(255, 109, 225, 74), 1.0));
+    painter.drawRoundedRect(textPanelRect, 18, 18);
 
     QLinearGradient gradient(textRect.left() - textRect.width() + m_textGradientOffset, textRect.center().y(),
                              textRect.left() + m_textGradientOffset, textRect.center().y());
     gradient.setSpread(QGradient::RepeatSpread);
     gradient.setColorAt(0.00, QColor(255, 255, 255, curColor.alpha()));
-    gradient.setColorAt(0.35, QColor(220, 255, 255, curColor.alpha()));
-    gradient.setColorAt(0.50, QColor(0, 92, 92, curColor.alpha()));
-    gradient.setColorAt(0.65, QColor(220, 255, 255, curColor.alpha()));
+    gradient.setColorAt(0.25, QColor(255, 118, 226, curColor.alpha()));
+    gradient.setColorAt(0.50, QColor(118, 236, 255, curColor.alpha()));
+    gradient.setColorAt(0.75, QColor(190, 123, 255, curColor.alpha()));
     gradient.setColorAt(1.00, QColor(255, 255, 255, curColor.alpha()));
 
     painter.setPen(QPen(QBrush(gradient), 0));
-    painter.drawText(textRect, curAlignment, curMessage);
+    painter.drawText(textRect, textFlags, curMessage);
 }
 
 void SplashScreen::closeEvent(QCloseEvent *event)

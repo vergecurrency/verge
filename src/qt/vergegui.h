@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QComboBox;
 class QDateTime;
+class QFrame;
 class QMenuBar;
 class QMouseEvent;
 class QProgressBar;
@@ -109,9 +110,17 @@ private:
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
+    QFrame *syncStatusCard;
+    QWidget *proxyStatusChip;
+    QWidget *networkStatusChip;
+    QWidget *chainStatusChip;
+    QLabel *proxyStatusLabel;
+    QLabel *networkStatusLabel;
+    QLabel *chainStatusLabel;
     QProgressDialog *progressDialog;
     QTimer* m_syncProgressBarTimer;
     int m_syncProgressBarOffset;
+    bool m_hasAnimatedShell;
 
     QMenuBar *appMenuBar;
     QToolBar *appToolBar;
@@ -119,6 +128,8 @@ private:
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
+    QAction *tradeAction;
+    QAction *gamesAction;
     QAction *sendCoinsMenuAction;
     QAction *usedSendingAddressesAction;
     QAction *usedReceivingAddressesAction;
@@ -147,25 +158,9 @@ private:
     HelpMessageDialog *helpMessageDialog;
     ModalOverlay *modalOverlay;
 
-    /** Keep track of previous number of blocks, to detect progress */
-    int prevBlocks;
     int spinnerFrame;
 
     const PlatformStyle *platformStyle;
-    QWidget* m_titleBar;
-    QLabel* m_titleLabel;
-    QToolButton* m_minimizeButton;
-    QToolButton* m_maximizeButton;
-    QToolButton* m_closeButton;
-    bool m_titleBarDragging;
-    QPoint m_dragOffset;
-#ifndef Q_OS_MAC
-    bool m_resizeActive;
-    Qt::Edges m_activeResizeEdges;
-    QRect m_resizeStartGeometry;
-    QPoint m_resizeStartGlobalPos;
-    int m_resizeMargin;
-#endif
 
     /** Create the main UI actions. */
     void createActions();
@@ -191,14 +186,8 @@ private:
 
     void updateHeadersSyncProgressLabel();
     void updateSyncProgressBarStyle();
-    void setupCustomTitleBar();
-    void updateMaximizeRestoreButton();
-    void showWindowSystemMenu(const QPoint& globalPos);
-#ifndef Q_OS_MAC
-    Qt::Edges hitTestResizeEdges(const QPoint& localPos) const;
-    void updateResizeCursor(const QPoint& localPos);
-    QRect calculateResizedGeometry(const QPoint& globalPos) const;
-#endif
+    void updateSyncSpinnerIcon();
+    void polishShellWidgets();
 
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */
@@ -263,6 +252,10 @@ private Q_SLOTS:
     /** Switch to send coins page */
     void gotoSendCoinsPage();
     void gotoSendCoinsPage(QString addr);
+    /** Switch to trade page */
+    void gotoTradePage();
+    /** Switch to games page */
+    void gotoGamesPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab();
@@ -284,6 +277,8 @@ private Q_SLOTS:
     void showDebugWindow();
     /** Show debug window and set focus to the console */
     void showDebugWindowActivateConsole();
+    /** Show debug window and set focus to the peers tab */
+    void showDebugWindowActivatePeers();
     /** Show help message dialog */
     void showHelpMessageClicked();
 #ifndef Q_OS_MAC

@@ -26,6 +26,46 @@ public:
     explicit SSLVerifyError(std::string err) : std::runtime_error(err) { }
 };
 
+namespace {
+QString GetCommonNameFromCert(const X509* cert)
+{
+    if (!cert) {
+        return QString();
+    }
+
+    const X509_NAME* certname = X509_get_subject_name(cert);
+    if (!certname) {
+        return QString();
+    }
+
+    const int commonNameIndex = X509_NAME_get_index_by_NID(certname, NID_commonName, -1);
+    if (commonNameIndex < 0) {
+        return QString();
+    }
+
+    const X509_NAME_ENTRY* commonNameEntry = X509_NAME_get_entry(certname, commonNameIndex);
+    if (!commonNameEntry) {
+        return QString();
+    }
+
+    const ASN1_STRING* commonNameData = X509_NAME_ENTRY_get_data(commonNameEntry);
+    if (!commonNameData) {
+        return QString();
+    }
+
+    unsigned char* utf8Data = nullptr;
+    const int utf8Length = ASN1_STRING_to_UTF8(&utf8Data, commonNameData);
+    if (utf8Length <= 0 || utf8Data == nullptr) {
+        OPENSSL_free(utf8Data);
+        return QString();
+    }
+
+    const QString commonName = QString::fromUtf8(reinterpret_cast<const char*>(utf8Data), utf8Length);
+    OPENSSL_free(utf8Data);
+    return commonName;
+}
+} // namespace
+
 bool PaymentRequestPlus::parse(const QByteArray& data)
 {
     bool parseOK = paymentRequest.ParseFromArray(data.data(), data.size());
@@ -130,7 +170,6 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         return false;
     }
 
-    char *website = nullptr;
     bool fResult = true;
     try
     {
@@ -152,8 +191,6 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
                qDebug() << "PaymentRequestPlus::getMerchant: Allowing self signed root certificate, because -allowselfsignedrootcertificates is true.";
             }
         }
-        X509_NAME *certname = X509_get_subject_name(signing_cert);
-
         // Valid cert; check signature:
         payments::PaymentRequest rcopy(paymentRequest); // Copy
         rcopy.set_signature(std::string(""));
@@ -179,13 +216,8 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         EVP_MD_CTX_free(ctx);
 #endif
 
-        // OpenSSL API for getting human printable strings from certs is baroque.
-        int textlen = X509_NAME_get_text_by_NID(certname, NID_commonName, nullptr, 0);
-        website = new char[textlen + 1];
-        if (X509_NAME_get_text_by_NID(certname, NID_commonName, website, textlen + 1) == textlen && textlen > 0) {
-            merchant = website;
-        }
-        else {
+        merchant = GetCommonNameFromCert(signing_cert);
+        if (merchant.isEmpty()) {
             throw SSLVerifyError("Bad certificate, missing common name.");
         }
         // TODO: detect EV certificates and set merchant = business name instead of unfriendly NID_commonName ?
@@ -195,7 +227,6 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         qWarning() << "PaymentRequestPlus::getMerchant: SSL error: " << err.what();
     }
 
-    delete[] website;
     X509_STORE_CTX_free(store_ctx);
     for (unsigned int i = 0; i < certs.size(); i++)
         X509_free(certs[i]);

@@ -189,7 +189,7 @@ public:
     bool ResetBlockFailureFlags(CBlockIndex *pindex);
 
     bool ReplayBlocks(const CChainParams& params, CCoinsView* view);
-    bool RewindBlockIndex(const CChainParams& params);
+    bool RewindBlockIndex(const CChainParams& params, int nStartHeight);
     bool LoadGenesisBlock(const CChainParams& chainparams);
 
     void PruneBlockIndexCandidates();
@@ -304,6 +304,43 @@ CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& loc
 std::unique_ptr<CCoinsViewDB> pcoinsdbview;
 std::unique_ptr<CCoinsViewCache> pcoinsTip;
 std::unique_ptr<CBlockTreeDB> pblocktree;
+
+namespace {
+constexpr char DB_STARTUP_WITNESS_CHECK = 'w';
+const std::pair<char, std::string> DB_STARTUP_WITNESS_CHECK_HEIGHT_KEY =
+    std::make_pair(DB_STARTUP_WITNESS_CHECK, std::string("last_startup_witness_check_height"));
+
+bool ReadStartupWitnessCheckHeight(int& nHeight)
+{
+    if (!pblocktree) {
+        return false;
+    }
+    return pblocktree->Read(DB_STARTUP_WITNESS_CHECK_HEIGHT_KEY, nHeight);
+}
+
+bool WriteStartupWitnessCheckHeight(int nHeight)
+{
+    if (!pblocktree) {
+        return false;
+    }
+    return pblocktree->Write(DB_STARTUP_WITNESS_CHECK_HEIGHT_KEY, nHeight, true);
+}
+
+int GetStartupWitnessCheckStartHeight(int chainHeight, bool fForceFullScan)
+{
+    if (fForceFullScan || chainHeight < 1) {
+        return 1;
+    }
+
+    int nLastCheckedHeight = 0;
+    if (!ReadStartupWitnessCheckHeight(nLastCheckedHeight)) {
+        return 1;
+    }
+
+    nLastCheckedHeight = std::max(nLastCheckedHeight, 0);
+    return std::min(chainHeight + 1, nLastCheckedHeight + 1);
+}
+} // namespace
 
 enum class FlushStateMode {
     NONE,
@@ -4226,13 +4263,13 @@ bool ReplayBlocks(const CChainParams& params, CCoinsView* view) {
     return g_chainstate.ReplayBlocks(params, view);
 }
 
-bool CChainState::RewindBlockIndex(const CChainParams& params)
+bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
 {
     LOCK(cs_main);
 
     // Note that during -reindex-chainstate we are called with an empty chainActive!
 
-    int nHeight = 1;
+    int nHeight = std::max(1, nStartHeight);
     while (nHeight <= chainActive.Height()) {
         // Although SCRIPT_VERIFY_WITNESS is now generally enforced on all
         // blocks in ConnectBlock, we don't need to go back and
@@ -4241,6 +4278,10 @@ bool CChainState::RewindBlockIndex(const CChainParams& params)
             break;
         }
         nHeight++;
+    }
+
+    if (nHeight <= chainActive.Height()) {
+        LogPrintf("RewindBlockIndex: first block missing witness startup validation is height %d (tip %d)\n", nHeight, chainActive.Height());
     }
 
     // nHeight is now the height of the first insufficiently-validated block, or tipheight + 1
@@ -4317,8 +4358,26 @@ bool CChainState::RewindBlockIndex(const CChainParams& params)
     return true;
 }
 
-bool RewindBlockIndex(const CChainParams& params) {
-    if (!g_chainstate.RewindBlockIndex(params)) {
+bool RewindBlockIndex(const CChainParams& params, bool fForceFullScan) {
+    int nTipHeight = -1;
+    int nStartHeight = 1;
+    {
+        LOCK(cs_main);
+        nTipHeight = chainActive.Height();
+        nStartHeight = GetStartupWitnessCheckStartHeight(nTipHeight, fForceFullScan);
+    }
+
+    if (nStartHeight > nTipHeight) {
+        LogPrintf("RewindBlockIndex: startup witness check already completed through height %d; skipping scan\n", nTipHeight);
+        return true;
+    }
+
+    LogPrintf("RewindBlockIndex: %s witness scan starting at height %d (tip %d)\n",
+        fForceFullScan ? "forced full startup" : "resuming startup",
+        nStartHeight,
+        nTipHeight);
+
+    if (!g_chainstate.RewindBlockIndex(params, nStartHeight)) {
         return false;
     }
 
@@ -4332,6 +4391,16 @@ bool RewindBlockIndex(const CChainParams& params) {
             return false;
         }
     }
+
+    int nCheckedHeight = 0;
+    {
+        LOCK(cs_main);
+        nCheckedHeight = std::max(chainActive.Height(), 0);
+    }
+    if (!WriteStartupWitnessCheckHeight(nCheckedHeight)) {
+        return error("RewindBlockIndex: unable to persist successful startup witness check height %d", nCheckedHeight);
+    }
+    LogPrintf("RewindBlockIndex: persisted successful startup witness check through height %d\n", nCheckedHeight);
 
     return true;
 }

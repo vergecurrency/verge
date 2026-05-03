@@ -27,5 +27,8 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  $(MAKE) DESTDIR=$($(package)_staging_dir) install_lib install_include
+  $(MAKE) DESTDIR=$($(package)_staging_dir) install_lib install_include && \
+  mkdir -p $($(package)_staging_prefix_dir)/include/db4 && \
+  install -m 0644 db.h db_cxx.h $($(package)_staging_prefix_dir)/include/ && \
+  install -m 0644 db.h db_cxx.h $($(package)_staging_prefix_dir)/include/db4/
 endef

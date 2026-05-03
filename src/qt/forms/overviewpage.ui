@@ -34,7 +34,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="12,28">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>

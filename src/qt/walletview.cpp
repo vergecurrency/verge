@@ -10,12 +10,14 @@
 #include <qt/vergegui.h>
 #include <qt/clientmodel.h>
 #include <qt/guiutil.h>
+#include <qt/gamespage.h>
 #include <qt/optionsmodel.h>
 #include <qt/overviewpage.h>
 #include <qt/platformstyle.h>
 #include <qt/receivecoinsdialog.h>
 #include <qt/sendcoinsdialog.h>
 #include <qt/signverifymessagedialog.h>
+#include <qt/tradepage.h>
 #include <qt/transactiontablemodel.h>
 #include <qt/transactionview.h>
 #include <qt/walletmodel.h>
@@ -41,11 +43,16 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     overviewPage = new OverviewPage(platformStyle);
 
     transactionsPage = new QWidget(this);
+    transactionsPage->setObjectName("TransactionsPage");
     QVBoxLayout *vbox = new QVBoxLayout();
+    vbox->setContentsMargins(0, 0, 0, 0);
+    vbox->setSpacing(14);
     QHBoxLayout *hbox_buttons = new QHBoxLayout();
+    hbox_buttons->setContentsMargins(0, 0, 0, 0);
     transactionView = new TransactionView(platformStyle, this);
     vbox->addWidget(transactionView);
     QPushButton *exportButton = new QPushButton(tr("&Export"), this);
+    exportButton->setObjectName("TransactionsExportButton");
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
     if (platformStyle->getImagesOnButtons()) {
         exportButton->setIcon(platformStyle->SingleColorIcon(":/icons/export"));
@@ -57,6 +64,8 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
+    tradePage = new TradePage(this);
+    gamesPage = new GamesPage(this);
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
     usedReceivingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ReceivingTab, this);
@@ -65,6 +74,8 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
+    addWidget(tradePage);
+    addWidget(gamesPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -198,6 +209,16 @@ void WalletView::gotoSendCoinsPage(QString addr)
 
     if (!addr.isEmpty())
         sendCoinsPage->setAddress(addr);
+}
+
+void WalletView::gotoTradePage()
+{
+    setCurrentWidget(tradePage);
+}
+
+void WalletView::gotoGamesPage()
+{
+    setCurrentWidget(gamesPage);
 }
 
 void WalletView::gotoSignMessageTab(QString addr)

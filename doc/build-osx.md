@@ -1,100 +1,81 @@
-macOS Build Instructions and Notes
-====================================
-The commands in this guide should be executed in a Terminal application.
-The built-in one is located in `/Applications/Utilities/Terminal.app`.
+macOS Build Instructions (macOS 14 / macOS 26)
+==============================================
 
-Preparation
------------
-Install the macOS command line tools:
+This document matches the macOS jobs in `.github/workflows/check-commit.yml`.
 
-`xcode-select --install`
+Prerequisites
+-------------
 
-When the popup appears, click `Install`.
-
-Then install [Homebrew](https://brew.sh).
-
-Dependencies
-----------------------
-
-    brew install automake berkeley-db4 libtool gperf boost miniupnpc openssl pkg-config protobuf python qt libevent qrencode
-
-See [dependencies.md](dependencies.md) for a complete overview.
-
-If you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG
-
-    brew install librsvg
-
-NOTE: Building with Qt4 is still supported, however, could result in a broken UI. Building with Qt5 is recommended.
-
-Berkeley DB
------------
-It is recommended to use Berkeley DB 4.8. If you have to build it yourself,
-you can use [the installation script included in contrib/](/contrib/install_db4.sh)
-like so
+Install Xcode command line tools:
 
 ```shell
-./contrib/install_db4.sh .
+xcode-select --install
 ```
 
-from the root of the repository.
+Install Homebrew, then install dependencies:
 
-**Note**: You only need Berkeley DB if the wallet is enabled (see the section *Disable-Wallet mode* below).
+```shell
+brew tap-new verge/local || true
+mkdir -p "$(brew --repo verge/local)/Formula"
+curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb \
+  -o "$(brew --repo verge/local)/Formula/boost176.rb"
+brew install verge/local/boost176
 
-Build Verge Core
-------------------------
+brew install automake autoconf pkg-config libtool \
+  berkeley-db@4 zeromq miniupnpc \
+  qt qtwebengine gperf qrencode librsvg \
+  openssl@3 libevent
 
-1. Clone the verge source code and cd into `verge`
+brew link qt berkeley-db@4 boost176
+```
 
-        git clone https://github.com/vergecurrency/VERGE
-        cd verge
+Build
+-----
 
-2.  Build verge-core:
+```shell
+./autogen.sh
 
-    Configure and build the headless verge binaries as well as the GUI (if Qt is found).
+mkdir -p "$PWD/.qt-tool-aliases"
+ln -sf "$(command -v moc)" "$PWD/.qt-tool-aliases/moc-qt6"
+ln -sf "$(command -v uic)" "$PWD/.qt-tool-aliases/uic-qt6"
+ln -sf "$(command -v rcc)" "$PWD/.qt-tool-aliases/rcc-qt6"
 
-    You can disable the GUI build by passing `--without-gui` to configure.
+BREW_PREFIX="$(brew --prefix)"
+BOOST_PREFIX="$(brew --prefix boost176)"
+BDB_PREFIX="$(brew --prefix berkeley-db@4)"
+OPENSSL_PREFIX="$(brew --prefix openssl@3)"
+LIBEVENT_PREFIX="$(brew --prefix libevent)"
 
-    You can build without Tor by passing `--without-tor` to configure.
+export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+export PKG_CONFIG_PATH="$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
+export OBJCXXFLAGS="$CXXFLAGS"
+export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
 
-        ./autogen.sh
-        ./configure
-        make
+./configure \
+  --disable-tests \
+  --disable-bench \
+  --disable-werror \
+  --with-gui=qt6 \
+  --with-qt-bindir="$PWD/.qt-tool-aliases" \
+  --with-boost="$BOOST_PREFIX" \
+  --bindir="$PWD/release/bin" \
+  --libdir="$PWD/release/lib" \
+  --with-openssl-dir="$OPENSSL_PREFIX" \
+  --with-libevent-dir="$LIBEVENT_PREFIX"
 
-3.  It is recommended to build and run the unit tests:
-
-        make check
-
-4.  You can also create a .dmg that contains the .app bundle (optional):
-
-        make deploy
-
-Running
--------
-
-Verge Core is now available at `./src/verged`
-
-Before running, it's recommended you create an RPC configuration file.
-
-    echo -e "rpcuser=vergerpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Verge/verge.conf"
-
-    chmod 600 "/Users/${USER}/Library/Application Support/Verge/verge.conf"
-
-The first time you run verged, it will start downloading the blockchain. This process could take several hours.
-
-You can monitor the download process by looking at the debug.log file:
-
-    tail -f $HOME/Library/Application\ Support/Verge/debug.log
-
-Other commands:
--------
-
-    ./src/verged -daemon # Starts the verge daemon.
-    ./src/verge-cli --help # Outputs a list of command-line options.
-    ./src/verge-cli help # Outputs a list of RPC commands when the daemon is running.
+make -j4
+```
 
 Notes
 -----
 
-* Tested on OS X 10.8 Mountain Lion through macOS 10.13 High Sierra on 64-bit Intel processors only.
+- CI resolves Qt host tools (`moc`, `uic`, `rcc`) from Homebrew Qt locations and provides aliases.
+- If local configure cannot find Qt tools, add the following to `PATH`:
 
-* Building with downloaded Qt binaries is not officially supported.
+```shell
+export PATH="$(brew --prefix qtbase)/bin:$(brew --prefix qtbase)/libexec:$(brew --prefix qt)/bin:$(brew --prefix qt)/libexec:$PATH"
+```
+
+- `verge-qt` binary output is `src/qt/verge-qt`.

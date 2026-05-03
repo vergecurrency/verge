@@ -18,12 +18,27 @@
 
 #include <QAbstractItemDelegate>
 #include <QDateTime>
+#include <QFrame>
+#include <QFontMetrics>
+#include <QGraphicsDropShadowEffect>
+#include <QLabel>
 #include <QPainter>
 
-#define DECORATION_SIZE 54
 #define NUM_ITEMS 5
 
 Q_DECLARE_METATYPE(interfaces::WalletBalances)
+
+namespace {
+void ApplyCardShadow(QWidget* widget)
+{
+    if (!widget) return;
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(widget);
+    effect->setBlurRadius(30.0);
+    effect->setOffset(0, 10);
+    effect->setColor(QColor(88, 28, 140, 96));
+    widget->setGraphicsEffect(effect);
+}
+}
 
 class TxViewDelegate : public QAbstractItemDelegate
 {
@@ -43,16 +58,27 @@ public:
 
         QIcon icon = qvariant_cast<QIcon>(index.data(TransactionTableModel::RawDecorationRole));
         QRect mainRect = option.rect;
-        QRect decorationRect(mainRect.topLeft(), QSize(DECORATION_SIZE, DECORATION_SIZE));
-        int xspace = DECORATION_SIZE + 8;
-        int ypad = 6;
-        int halfheight = (mainRect.height() - 2*ypad)/2;
-        QRect amountRect(mainRect.left() + xspace, mainRect.top()+ypad, mainRect.width() - xspace, halfheight);
-        QRect addressRect(mainRect.left() + xspace, mainRect.top()+ypad+halfheight, mainRect.width() - xspace, halfheight);
+        QRect cardRect = mainRect.adjusted(0, 4, -2, -4);
+        painter->setRenderHint(QPainter::Antialiasing, true);
+        painter->setPen(QColor("#2a3347"));
+        painter->setBrush(QColor("#171d2a"));
+        painter->drawRoundedRect(cardRect, 12, 12);
+
+        QRect decorationRect(cardRect.left() + 16, cardRect.top() + 14, 18, 18);
+        int xspace = decorationRect.right() + 14;
+        const int amountWidth = qMax(170, cardRect.width() / 3);
+        const int typeWidth = 88;
+        QRect amountRect(cardRect.right() - amountWidth - 16, cardRect.top() + 18, amountWidth, 28);
+        QRect dateRect(xspace, cardRect.top() + 10, amountRect.left() - xspace - 12, 20);
+        QRect typeRect(xspace, cardRect.top() + 32, typeWidth, 22);
+        QRect addressRect(typeRect.right() + 10, cardRect.top() + 30, amountRect.left() - typeRect.right() - 28, 26);
         icon = platformStyle->SingleColorIcon(icon);
-        icon.paint(painter, decorationRect);
+        if (!icon.isNull()) {
+            icon.paint(painter, decorationRect);
+        }
 
         QDateTime date = index.data(TransactionTableModel::DateRole).toDateTime();
+        QString type = index.sibling(index.row(), TransactionTableModel::Type).data(Qt::DisplayRole).toString();
         QString address = index.data(Qt::DisplayRole).toString();
         qint64 amount = index.data(TransactionTableModel::AmountRole).toLongLong();
         bool confirmed = index.data(TransactionTableModel::ConfirmedRole).toBool();
@@ -64,14 +90,45 @@ public:
             foreground = brush.color();
         }
 
-        painter->setPen(foreground);
+        const qreal basePointSize = option.font.pointSizeF() > 0 ? option.font.pointSizeF() : 11.0;
+        QFont dateFont = option.font;
+        dateFont.setPointSizeF(basePointSize * 1.08);
+        dateFont.setWeight(QFont::Medium);
+        QFont typeFont = option.font;
+        typeFont.setPointSizeF(basePointSize * 1.12);
+        typeFont.setWeight(QFont::DemiBold);
+        QFont addressFont = option.font;
+        addressFont.setPointSizeF(basePointSize * 1.15);
+        addressFont.setWeight(QFont::Medium);
+        QFont amountFont = option.font;
+        amountFont.setPointSizeF(basePointSize * 1.15);
+        amountFont.setWeight(QFont::DemiBold);
+
+        painter->setFont(dateFont);
+        painter->setPen(QColor("#8e9bb3"));
+        painter->drawText(dateRect, Qt::AlignLeft|Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
+
+        QColor typeColor("#8ea2c4");
+        if (type == tr("Received")) {
+            typeColor = QColor("#4fd38a");
+        } else if (type == tr("Sent")) {
+            typeColor = QColor("#ff6f7d");
+        }
+        painter->setFont(typeFont);
+        painter->setPen(typeColor);
+        painter->drawText(typeRect, Qt::AlignLeft|Qt::AlignVCenter, type);
+
+        painter->setFont(addressFont);
+        painter->setPen(QColor("#ecf1ff"));
+        const QFontMetrics addressMetrics(addressFont);
+        const QString addressText = addressMetrics.elidedText(address, Qt::ElideRight, addressRect.width());
         QRect boundingRect;
-        painter->drawText(addressRect, Qt::AlignLeft|Qt::AlignVCenter, address, &boundingRect);
+        painter->drawText(addressRect, Qt::AlignLeft|Qt::AlignVCenter, addressText, &boundingRect);
 
         if (index.data(TransactionTableModel::WatchonlyRole).toBool())
         {
             QIcon iconWatchonly = qvariant_cast<QIcon>(index.data(TransactionTableModel::WatchonlyDecorationRole));
-            QRect watchonlyRect(boundingRect.right() + 5, mainRect.top()+ypad+halfheight, 16, halfheight);
+            QRect watchonlyRect(boundingRect.right() + 6, addressRect.top(), 16, addressRect.height());
             iconWatchonly.paint(painter, watchonlyRect);
         }
 
@@ -87,6 +144,7 @@ public:
         {
             foreground = option.palette.color(QPalette::Text);
         }
+        painter->setFont(amountFont);
         painter->setPen(foreground);
         QString amountText = VERGEUnits::formatWithUnit(unit, amount, true, VERGEUnits::separatorAlways);
         if(!confirmed)
@@ -95,15 +153,14 @@ public:
         }
         painter->drawText(amountRect, Qt::AlignRight|Qt::AlignVCenter, amountText);
 
-        painter->setPen(option.palette.color(QPalette::Text));
-        painter->drawText(amountRect, Qt::AlignLeft|Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
-
         painter->restore();
     }
 
     inline QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
-        return QSize(DECORATION_SIZE, DECORATION_SIZE);
+        Q_UNUSED(option);
+        Q_UNUSED(index);
+        return QSize(OVERVIEW_DECORATION_SIZE, 72);
     }
 
     int unit;
@@ -120,6 +177,37 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     txdelegate(new TxViewDelegate(platformStyle, this))
 {
     ui->setupUi(this);
+    setObjectName("OverviewPage");
+    ui->frame->setObjectName("OverviewBalanceCard");
+    ui->frame_2->setObjectName("OverviewTransactionsCard");
+    ui->labelAlerts->setObjectName("OverviewAlertBanner");
+    ui->label_5->setObjectName("OverviewSectionTitle");
+    ui->label_4->setObjectName("OverviewSectionTitle");
+    ui->labelBalance->setObjectName("OverviewPrimaryBalance");
+    ui->labelTotal->setObjectName("OverviewPrimaryBalance");
+    ui->labelUnconfirmed->setObjectName("OverviewSecondaryBalance");
+    ui->labelImmature->setObjectName("OverviewSecondaryBalance");
+    ui->labelWatchAvailable->setObjectName("OverviewSecondaryBalance");
+    ui->labelWatchPending->setObjectName("OverviewSecondaryBalance");
+    ui->labelWatchImmature->setObjectName("OverviewSecondaryBalance");
+    ui->labelWatchTotal->setObjectName("OverviewSecondaryBalance");
+
+    const QList<QLabel*> mutedLabels = {
+        ui->labelBalanceText,
+        ui->labelPendingText,
+        ui->labelImmatureText,
+        ui->labelTotalText,
+        ui->labelSpendable,
+        ui->labelWatchonly
+    };
+    for (QLabel* label : mutedLabels) {
+        label->setObjectName("OverviewMutedLabel");
+    }
+
+    const QList<QFrame*> separators = {ui->line, ui->lineWatchBalance};
+    for (QFrame* separator : separators) {
+        separator->setObjectName("OverviewDivider");
+    }
 
     m_balances.balance = -1;
 
@@ -131,9 +219,12 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
-    ui->listTransactions->setIconSize(QSize(DECORATION_SIZE, DECORATION_SIZE));
-    ui->listTransactions->setMinimumHeight(NUM_ITEMS * (DECORATION_SIZE + 2));
+    ui->listTransactions->setIconSize(QSize(OVERVIEW_DECORATION_SIZE, OVERVIEW_DECORATION_SIZE));
+    ui->listTransactions->setSpacing(8);
+    ui->listTransactions->setMinimumHeight(NUM_ITEMS * 80);
     ui->listTransactions->setAttribute(Qt::WA_MacShowFocusRect, false);
+    ApplyCardShadow(ui->frame);
+    ApplyCardShadow(ui->frame_2);
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
 

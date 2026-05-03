@@ -14,43 +14,68 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_26.0.1.app
 
-      - name: Install boost176 via temporary tap
-        run: |
-          brew tap-new verge/local || true
-          mkdir -p "$(brew --repo verge/local)/Formula"
-          curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb \
-            -o "$(brew --repo verge/local)/Formula/boost176.rb"
-          brew install verge/local/boost176
-
       - name: Install dependencies
         run: |
           brew install automake autoconf pkg-config libtool \
-            berkeley-db@4 zeromq miniupnpc \
-            qt gperf qrencode librsvg \
-            openssl@3 libevent
+            berkeley-db@4 zeromq miniupnpc boost \
+            gperf qrencode librsvg \
+            openssl@4 libevent
 
       - name: Link brew deps
-        run: brew link qt berkeley-db@4 boost176
+        run: brew link berkeley-db@4 boost
+
+      - name: Create local tap & stage protobuf261.rb
+        run: |
+          set -euo pipefail
+          if ! brew tap | grep -q '^vergecurrency/local$'; then
+            brew tap-new vergecurrency/local
+          fi
+          TAP_DIR="$(brew --repo vergecurrency/local)"
+          mkdir -p "$TAP_DIR/Formula"
+          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
+          if [ -f "$FORMULA_LOCAL" ]; then
+            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+          else
+            REF="${GITHUB_REF_NAME:-master}"
+            curl -fL "https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb" -o "$TAP_DIR/Formula/protobuf261.rb"
+          fi
+
+      - name: Install protobuf261 via tap
+        run: brew install vergecurrency/local/protobuf261
+
+      - name: Install Qt 6.10.2 for macOS
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/aqt-venv"
+          source "$RUNNER_TEMP/aqt-venv/bin/activate"
+          python -m pip install --upgrade pip aqtinstall
+          QT_ROOT="$RUNNER_TEMP/qt"
+          python -m aqt install-qt mac desktop 6.10.2 clang_64 \
+            --outputdir "$QT_ROOT" \
+            -m qtwebengine qtwebchannel qtpositioning qt5compat
+          QMAKE_PATH="$(find "$QT_ROOT" -type f \( -name qmake6 -o -name qmake \) -path "*/bin/*" | head -n1 || true)"
+          if [ -z "${QMAKE_PATH:-}" ]; then
+            echo "ERROR: Failed to resolve qmake under $QT_ROOT"
+            find "$QT_ROOT" -maxdepth 5 -type d | sed -n '1,200p'
+            exit 1
+          fi
+          QT_PREFIX="$(dirname "$(dirname "$QMAKE_PATH")")"
+          echo "QT_PREFIX=$QT_PREFIX" >> "$GITHUB_ENV"
+          echo "Installed Qt prefix: $QT_PREFIX"
 
       - name: Add Qt tools to PATH
         run: |
-          echo "$(brew --prefix qtbase)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qtbase)/libexec" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/bin" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/libexec" >> "$GITHUB_PATH"
 
       - name: Resolve Qt host tools
         run: |
           set -euo pipefail
 
-          QT_PREFIX="$(brew --prefix qt)"
-          QTBASE_PREFIX="$(brew --prefix qtbase)"
           ALIAS_DIR="$PWD/.qt-tool-aliases"
           mkdir -p "$ALIAS_DIR"
 
           declare -a QT_TOOL_DIRS=(
-            "$QTBASE_PREFIX/libexec"
-            "$QTBASE_PREFIX/bin"
             "$QT_PREFIX/libexec"
             "$QT_PREFIX/bin"
           )
@@ -124,10 +149,8 @@ jobs:
           which moc || true
           which moc6 || true
           ls -l "$PWD/.qt-tool-aliases" || true
-          ls -l "$(brew --prefix qtbase)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qtbase)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
           moc -v
 
       - name: Autogen
@@ -137,14 +160,26 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
-          BOOST_PREFIX="$(brew --prefix boost176)"
+          BREW_CELLAR="$(brew --cellar)"
+          BOOST_PREFIX="$(brew --prefix boost)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
-          OPENSSL_PREFIX="$(brew --prefix openssl@3)"
+          OPENSSL_PREFIX="$(brew --prefix openssl@4)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
+          QMAKE_BIN="$(command -v qmake6 || command -v qmake)"
+          QT_INCLUDE_DIR="$("$QMAKE_BIN" -query QT_INSTALL_HEADERS)"
+          QT_LIB_DIR="$("$QMAKE_BIN" -query QT_INSTALL_LIBS)"
+          QT_PLUGIN_DIR="$("$QMAKE_BIN" -query QT_INSTALL_PLUGINS)"
+          if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTOBUF_PREFIX="$BREW_PREFIX/opt/protobuf261"
+          else
+            PROTOBUF_CELLAR="$BREW_CELLAR/protobuf261"
+            PROTOBUF_VER="$(ls -1 "$PROTOBUF_CELLAR" | sort -V | tail -n1 || true)"
+            PROTOBUF_PREFIX="$PROTOBUF_CELLAR/$PROTOBUF_VER"
+          fi
 
-          export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
-          export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
-          export PKG_CONFIG_PATH="$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export CPPFLAGS="-I$PROTOBUF_PREFIX/include -I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+          export LDFLAGS="-L$PROTOBUF_PREFIX/lib -L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+          export PKG_CONFIG_PATH="$PROTOBUF_PREFIX/lib/pkgconfig:$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
@@ -154,6 +189,9 @@ jobs:
             --disable-werror \
             --with-gui=qt6 \
             --with-qt-bindir="$PWD/.qt-tool-aliases" \
+            --with-qt-incdir="$QT_INCLUDE_DIR" \
+            --with-qt-libdir="$QT_LIB_DIR" \
+            --with-qt-plugindir="$QT_PLUGIN_DIR" \
             --with-boost="$BOOST_PREFIX" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
@@ -193,6 +231,8 @@ jobs:
       - name: Test verge-qt directly
         run: |
             QT_BIN="./src/qt/verge-qt"
+            export DYLD_FRAMEWORK_PATH="$QT_PREFIX/lib:${DYLD_FRAMEWORK_PATH:-}"
+            export DYLD_LIBRARY_PATH="$QT_PREFIX/lib:${DYLD_LIBRARY_PATH:-}"
             
             if [ ! -f "$QT_BIN" ]; then
             echo "::error::verge-qt not found at $QT_BIN"
@@ -223,18 +263,46 @@ jobs:
 
       - name: Wrap binary into .app bundle
         run: |
-            # Locate the verge-qt binary
-            BINARY=$(find . -name "verge-qt" -type f | head -n1)
+            resolve_macho_binary() {
+            local candidate="$1"
+            if [ -f "$candidate" ] && file "$candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$candidate"
+              return 0
+            fi
+            local libtool_candidate
+            libtool_candidate="$(find "$(dirname "$candidate")" -path "*/.libs/$(basename "$candidate")" -type f | head -n1)"
+            if [ -n "$libtool_candidate" ] && file "$libtool_candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$libtool_candidate"
+              return 0
+            fi
+            return 1
+            }
+
+            BINARY="./src/qt/verge-qt"
+            if [ ! -f "$BINARY" ]; then
+            BINARY="$(find . -path '*/src/qt/verge-qt' -type f | head -n1)"
+            fi
             if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
             echo "::error::verge-qt binary not found after make"
             exit 1
             fi
-            echo "Found verge-qt at $BINARY"
+
+            MACHO_BINARY="$(resolve_macho_binary "$BINARY" || true)"
+            if [ -z "$MACHO_BINARY" ]; then
+            echo "::error::Unable to resolve a Mach-O verge-qt binary from $BINARY"
+            ls -la "$(dirname "$BINARY")" || true
+            file "$BINARY" || true
+            find "$(dirname "$BINARY")" -path '*/.libs/verge-qt' -type f -exec file {} \; || true
+            exit 1
+            fi
+            echo "Found verge-qt launcher at $BINARY"
+            echo "Using Mach-O binary at $MACHO_BINARY"
             
             # Create .app bundle
             APP_NAME="Verge-Qt.app"
             mkdir -p "$APP_NAME/Contents/MacOS"
-            cp "$BINARY" "$APP_NAME/Contents/MacOS/"
+            cp -fL "$MACHO_BINARY" "$APP_NAME/Contents/MacOS/verge-qt"
+            chmod +x "$APP_NAME/Contents/MacOS/verge-qt"
             
             # Minimal Info.plist
             echo '<?xml version="1.0" encoding="UTF-8"?>' > "$APP_NAME/Contents/Info.plist"
@@ -259,14 +327,513 @@ jobs:
           APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
 
+      - name: Bundle QtWebEngine helper frameworks
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
+          HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
+
+          if [ ! -x "$HELPER_BIN" ]; then
+            echo "::error::QtWebEngineProcess helper missing at $HELPER_BIN"
+            exit 1
+          fi
+
+          extract_framework_root() {
+            python3 -c 'import sys; path=sys.argv[1]; marker=".framework/"; idx=path.find(marker); print(path[:idx+len(".framework")] if idx >= 0 else "")' "$1"
+          }
+
+          framework_binary_name() {
+            python3 -c 'import os,sys; name=os.path.basename(sys.argv[1]); print(name[:-10] if name.endswith(".framework") else name)' "$1"
+          }
+
+          is_macho_binary() {
+            file "$1" 2>/dev/null | grep -Eq 'Mach-O'
+          }
+
+          is_homebrew_qt_framework_ref() {
+            case "$1" in
+              /opt/homebrew/*/Qt*.framework/*|/usr/local/*/Qt*.framework/*) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          copy_qt_framework() {
+            local source_framework="$1"
+            local framework_name
+            framework_name="$(basename "$source_framework")"
+            local dest_framework="$FRAMEWORKS_DIR/$framework_name"
+
+            if [ -e "$dest_framework" ]; then
+              return 0
+            fi
+
+            if [ ! -d "$source_framework" ]; then
+              echo "::error::Missing Qt framework source: $source_framework"
+              exit 1
+            fi
+
+            cp -R "$source_framework" "$dest_framework"
+            chmod -R u+w "$dest_framework"
+          }
+
+          map_qt_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              if ! is_homebrew_qt_framework_ref "$dep_path"; then
+                continue
+              fi
+              local framework_root
+              framework_root="$(extract_framework_root "$dep_path")"
+              if [ -z "$framework_root" ]; then
+                echo "::error::Could not determine framework root for $dep_path"
+                exit 1
+              fi
+              local framework_name
+              framework_name="$(basename "$framework_root")"
+              copy_qt_framework "$framework_root"
+              local framework_binary
+              framework_binary="$(framework_binary_name "$framework_name")"
+              local new_ref
+              new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary")"
+              install_name_tool -change "$dep_path" "$new_ref" "$binary"
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
+          map_bundle_framework_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                @executable_path/../Frameworks/*)
+                  local target_path=""
+                  case "$dep_path" in
+                    *@executable_path/../Frameworks/*.framework/*|@executable_path/../Frameworks/*.framework/*)
+                      local framework_root
+                      framework_root="$(extract_framework_root "$dep_path")"
+                      [ -n "$framework_root" ] || continue
+                      local framework_name
+                      framework_name="$(basename "$framework_root")"
+                      local framework_binary
+                      framework_binary="$(framework_binary_name "$framework_name")"
+                      target_path="$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary"
+                      ;;
+                    *)
+                      local dep_name
+                      dep_name="$(basename "$dep_path")"
+                      target_path="$FRAMEWORKS_DIR/$dep_name"
+                      ;;
+                  esac
+                  [ -e "$target_path" ] || continue
+                  local new_ref
+                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$target_path")"
+                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
+                  ;;
+              esac
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
+          map_qt_refs "$HELPER_BIN"
+          map_bundle_framework_refs "$HELPER_BIN"
+          while read -r bundled_bin; do
+            [ -n "$bundled_bin" ] || continue
+            is_macho_binary "$bundled_bin" || continue
+            map_qt_refs "$bundled_bin"
+            map_bundle_framework_refs "$bundled_bin"
+          done < <(find "$FRAMEWORKS_DIR" -type f)
+
+          add_rpath_if_missing() {
+            local binary="$1"
+            local rpath="$2"
+            if ! otool -l "$binary" | awk '
+              $1 == "cmd" && $2 == "LC_RPATH" { in_rpath=1; next }
+              in_rpath && $1 == "path" { print $2; in_rpath=0 }
+            ' | grep -Fxq "$rpath"; then
+              install_name_tool -add_rpath "$rpath" "$binary"
+            fi
+          }
+
+          add_rpath_if_missing "$APP_BIN" "@executable_path/../Frameworks"
+          add_rpath_if_missing "$HELPER_BIN" "@executable_path/../../../../.."
+
+          if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
+            echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
+            otool -L "$HELPER_BIN"
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+
+          frameworks_dir = os.path.join("Verge-Qt.app", "Contents", "Frameworks")
+          bad = []
+          pattern = re.compile(r'^@executable_path/\.\./Frameworks/')
+
+          for root, _, files in os.walk(frameworks_dir):
+              for name in files:
+                  if "/Versions/A/" not in os.path.join(root, name).replace("\\", "/"):
+                      continue
+                  binary = os.path.join(root, name)
+                  try:
+                      file_output = subprocess.check_output(["file", binary], text=True)
+                  except subprocess.CalledProcessError:
+                      continue
+                  if "Mach-O" not in file_output:
+                      continue
+                  try:
+                      output = subprocess.check_output(["otool", "-L", binary], text=True)
+                  except subprocess.CalledProcessError:
+                      continue
+                  lines = [line.strip() for line in output.splitlines()[1:]]
+                  framework_name = None
+                  if ".framework/Versions/A/" in binary:
+                      framework_name = binary.split(".framework/Versions/A/")[0].split("/")[-1] + ".framework"
+                  for line in lines:
+                      dep = line.split(" ", 1)[0]
+                      if not pattern.match(dep):
+                          continue
+                      if framework_name and dep == f"@executable_path/../Frameworks/{framework_name}/Versions/A/{name}":
+                          continue
+                      bad.append((binary, dep))
+
+          if bad:
+              print("::error::Bundled binaries still reference bundle deps via @executable_path")
+              for binary, dep in bad:
+                  print(f"-- {binary}")
+                  print(dep)
+              sys.exit(1)
+          PY
+
+          echo "QtWebEngine helper linkage:"
+          otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
+
+      - name: Bundle transitive Boost dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          BOOST_LIB_DIR="$(brew --prefix boost)/lib"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          shopt -s nullglob
+          rm -f "$FRAMEWORKS_DIR"/libboost_*.dylib
+
+          resolve_boost_source() {
+            local dep_name="$1"
+            local candidate
+            for candidate in \
+              "$BOOST_LIB_DIR/$dep_name" \
+              "$BOOST_LIB_DIR/$dep_name".*.dylib \
+              "$BOOST_LIB_DIR/$dep_name"-*.dylib
+            do
+              [ -e "$candidate" ] || continue
+              candidate="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
+              [ -f "$candidate" ] || continue
+              if file "$candidate" | grep -q 'Mach-O'; then
+                printf '%s\n' "$candidate"
+                return 0
+              fi
+            done
+            {
+              echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
+              ls -la "$BOOST_LIB_DIR" | grep libboost || true
+            } >&2
+            exit 1
+          }
+
+          copy_boost_dep() {
+            local dep_name="$1"
+            local source target
+            source="$(resolve_boost_source "$dep_name")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied Boost library is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
+            install_name_tool -id "@loader_path/$dep_name" "$target"
+          }
+
+          collect_boost_names() {
+            local file="$1"
+            otool -L "$file" | awk 'NR > 1 && /libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); sub(/:$/, "", n); print n }'
+          }
+
+          declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/boost-seen-$$.txt"
+          : > "$SEEN_FILE"
+          while read -r dep_name; do
+            [ -n "$dep_name" ] || continue
+            if ! grep -Fxq "$dep_name" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_name" >> "$SEEN_FILE"
+              queue+=("$dep_name")
+            fi
+          done < <(collect_boost_names "$APP_BIN")
+
+          if [ "${#queue[@]}" -eq 0 ]; then
+            echo "::error::No Boost dylibs referenced by $APP_BIN"
+            otool -L "$APP_BIN" || true
+            exit 1
+          fi
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_name="${queue[$index]}"
+            copy_boost_dep "$dep_name"
+            while read -r child_name; do
+              [ -n "$child_name" ] || continue
+              if ! grep -Fxq "$child_name" "$SEEN_FILE"; then
+                printf '%s\n' "$child_name" >> "$SEEN_FILE"
+                queue+=("$child_name")
+              fi
+            done < <(collect_boost_names "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
+          done
+          rm -f "$SEEN_FILE"
+
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(otool -L "$APP_BIN" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
+
+          for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(otool -L "$lib" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            echo "Boost linkage for $file"
+            otool -L "$file" | grep -E 'libboost_|verge-qt' || true
+          done
+
+      - name: Bundle locally built dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          WORKSPACE_ROOT="$(pwd)"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          collect_local_dep_paths() {
+            local file="$1"
+            otool -L "$file" | awk 'NR > 1 { print $1 }' | while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                "$WORKSPACE_ROOT"/*.dylib)
+                  printf '%s\n' "$dep_path"
+                  ;;
+              esac
+            done
+          }
+
+          resolve_local_dep_source() {
+            local source="$1"
+            local resolved dep_name candidate
+            if [ -e "$source" ]; then
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            fi
+
+            dep_name="$(basename "$source")"
+            while read -r candidate; do
+              [ -n "$candidate" ] || continue
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            done < <(find "$WORKSPACE_ROOT" \( -path "*/.libs/$dep_name" -o -path "*/$dep_name" \) \( -type f -o -type l \) 2>/dev/null)
+
+            return 1
+          }
+
+          copy_local_dep() {
+            local source="$1"
+            local dep_name target
+            source="$(resolve_local_dep_source "$source" || true)"
+            if [ -z "$source" ] || [ ! -f "$source" ]; then
+              echo "::error::Missing local dylib dependency at $source"
+              exit 1
+            fi
+            dep_name="$(basename "$source")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied local dependency is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
+            install_name_tool -id "@loader_path/$dep_name" "$target"
+          }
+
+          declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/local-dylib-seen-$$.txt"
+          : > "$SEEN_FILE"
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$dep_path")"
+            if ! grep -Fxq "$dep_path" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_path" >> "$SEEN_FILE"
+              queue+=("$dep_path")
+            fi
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_path="${queue[$index]}"
+            dep_name="$(basename "$dep_path")"
+            copy_local_dep "$dep_path"
+            while read -r child_path; do
+              [ -n "$child_path" ] || continue
+              child_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$child_path")"
+              if ! grep -Fxq "$child_path" "$SEEN_FILE"; then
+                printf '%s\n' "$child_path" >> "$SEEN_FILE"
+                queue+=("$child_path")
+              fi
+            done < <(collect_local_dep_paths "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
+          done
+          rm -f "$SEEN_FILE"
+
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          shopt -s nullglob
+          for lib in "$FRAMEWORKS_DIR"/*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(collect_local_dep_paths "$lib")
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/*.dylib; do
+            [ -e "$file" ] || continue
+            echo "Local dylib linkage for $file"
+            otool -L "$file" | grep -E 'libunivalue|verge-qt' || true
+          done
+
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
+      - name: Import Apple signing certificate
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_P12_PASSWORD: ${{ secrets.MACOS_CERT_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          CERT_PATH="$RUNNER_TEMP/macos-cert.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 24)"
+
+          echo -n "$MACOS_CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$MACOS_CERT_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F '\"' '/Developer ID Application:/ { print $2; exit }')"
+          if [ -z "$SIGNING_IDENTITY" ]; then
+            echo "::error::No Developer ID Application identity found in imported certificate."
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+            exit 1
+          fi
+
+          echo "MACOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "MACOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
+
       - name: Codesign app
-        run: codesign --force --deep --sign - "Verge-Qt.app"
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
+        run: |
+          set -euo pipefail
+          ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
+          echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
+
+          sign_file() {
+            local target="$1"
+            shift
+            echo "Signing file: $target"
+            codesign --force --options runtime --timestamp \
+              --keychain "$MACOS_KEYCHAIN_PATH" \
+              --sign "$MACOS_SIGNING_IDENTITY" "$@" "$target"
+          }
+
+          find "Verge-Qt.app" -type f \( \
+            -name "*.dylib" -o \
+            -path "*/Contents/MacOS/*" \
+          \) ! -path "*/_CodeSignature/*" | sort | while read -r TARGET; do
+            case "$TARGET" in
+              */QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess|*/Contents/MacOS/verge-qt)
+                sign_file "$TARGET" --entitlements "$ENTITLEMENTS"
+                ;;
+              *)
+                sign_file "$TARGET"
+                ;;
+            esac
+          done
+
+          find "Verge-Qt.app" -depth \( \
+            -type d -name "*.framework" -o \
+            -type d -name "*.app" \
+          \) | while read -r BUNDLE; do
+            case "$BUNDLE" in
+              "Verge-Qt.app")
+                ;;
+              *)
+                echo "Signing bundle: $BUNDLE"
+                codesign --force --options runtime --timestamp \
+                  --keychain "$MACOS_KEYCHAIN_PATH" \
+                  --sign "$MACOS_SIGNING_IDENTITY" "$BUNDLE"
+                ;;
+            esac
+          done
+
+          codesign --force --options runtime --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
+
+      - name: Sign DMG
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
+        run: |
+          set -euo pipefail
+          codesign --force --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.dmg"
 
       - name: Test app launch from DMG
         run: |
@@ -312,12 +879,15 @@ jobs:
           trap cleanup EXIT
 
           APP_BIN="$MOUNT_POINT/Verge-Qt.app/Contents/MacOS/verge-qt"
+          APP_FRAMEWORKS="$MOUNT_POINT/Verge-Qt.app/Contents/Frameworks"
           if [ ! -x "$APP_BIN" ]; then
             echo "::error::App binary not found in DMG at $APP_BIN"
             ls -la "$MOUNT_POINT"
             exit 1
           fi
-
+          
+          DYLD_FRAMEWORK_PATH="$APP_FRAMEWORKS:${DYLD_FRAMEWORK_PATH:-}" \
+          DYLD_LIBRARY_PATH="$APP_FRAMEWORKS:${DYLD_LIBRARY_PATH:-}" \
           "$APP_BIN" &
           APP_PID=$!
           sleep 8
@@ -346,8 +916,9 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos26
+          name: verge-macos26-raw
           path: Verge-Qt.dmg
+          if-no-files-found: error
 
 
   macos14:
@@ -359,48 +930,73 @@ jobs:
       - name: git config credential.helper
         run: git config credential.helper
 
-      - name: Install boost176 via temporary tap
-        run: |
-          brew tap-new verge/local || true
-          mkdir -p "$(brew --repo verge/local)/Formula"
-          curl -L https://raw.githubusercontent.com/vergecurrency/verge/refs/heads/master/depends/homebrew-formulas/boost176.rb \
-            -o "$(brew --repo verge/local)/Formula/boost176.rb"
-          brew install verge/local/boost176
-
       - name: Brew install base dependencies
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool qt gperf qrencode librsvg openssl@3 libevent
+          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool boost gperf qrencode librsvg openssl@4 libevent
         
       - name: Brew link dependencies
-        run: brew link qt berkeley-db@4 boost176
+        run: brew link berkeley-db@4 boost
+
+      - name: Create local tap & stage protobuf261.rb
+        run: |
+          set -euo pipefail
+          if ! brew tap | grep -q '^vergecurrency/local$'; then
+            brew tap-new vergecurrency/local
+          fi
+          TAP_DIR="$(brew --repo vergecurrency/local)"
+          mkdir -p "$TAP_DIR/Formula"
+          FORMULA_LOCAL="depends/homebrew-formulas/protobuf261.rb"
+          if [ -f "$FORMULA_LOCAL" ]; then
+            cp "$FORMULA_LOCAL" "$TAP_DIR/Formula/"
+          else
+            REF="${GITHUB_REF_NAME:-master}"
+            curl -fL "https://raw.githubusercontent.com/vergecurrency/verge/${REF}/depends/homebrew-formulas/protobuf261.rb" -o "$TAP_DIR/Formula/protobuf261.rb"
+          fi
+
+      - name: Install protobuf261 via tap
+        run: brew install vergecurrency/local/protobuf261
+
+      - name: Install Qt 6.10.2 for macOS
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/aqt-venv"
+          source "$RUNNER_TEMP/aqt-venv/bin/activate"
+          python -m pip install --upgrade pip aqtinstall
+          QT_ROOT="$RUNNER_TEMP/qt"
+          python -m aqt install-qt mac desktop 6.10.2 clang_64 \
+            --outputdir "$QT_ROOT" \
+            -m qtwebengine qtwebchannel qtpositioning qt5compat
+          QMAKE_PATH="$(find "$QT_ROOT" -type f \( -name qmake6 -o -name qmake \) -path "*/bin/*" | head -n1 || true)"
+          if [ -z "${QMAKE_PATH:-}" ]; then
+            echo "ERROR: Failed to resolve qmake under $QT_ROOT"
+            find "$QT_ROOT" -maxdepth 5 -type d | sed -n '1,200p'
+            exit 1
+          fi
+          QT_PREFIX="$(dirname "$(dirname "$QMAKE_PATH")")"
+          echo "QT_PREFIX=$QT_PREFIX" >> "$GITHUB_ENV"
+          echo "Installed Qt prefix: $QT_PREFIX"
 
       - name: check cellar for openssl 
-        run: cd /opt/homebrew/Cellar/openssl@3/ && ls
+        run: cd /opt/homebrew/Cellar/openssl@4/ && ls
         
       - name: which clang/xcode
         run: clang --version
 
       - name: Add Qt tools to PATH
         run: |
-          echo "$(brew --prefix qtbase)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qtbase)/libexec" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/bin" >> "$GITHUB_PATH"
-          echo "$(brew --prefix qt)/libexec" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/bin" >> "$GITHUB_PATH"
+          echo "$QT_PREFIX/libexec" >> "$GITHUB_PATH"
 
       - name: Resolve Qt host tools
         run: |
           set -euo pipefail
 
-          QT_PREFIX="$(brew --prefix qt)"
-          QTBASE_PREFIX="$(brew --prefix qtbase)"
           ALIAS_DIR="$PWD/.qt-tool-aliases"
           mkdir -p "$ALIAS_DIR"
 
           declare -a QT_TOOL_DIRS=(
-            "$QTBASE_PREFIX/libexec"
-            "$QTBASE_PREFIX/bin"
             "$QT_PREFIX/libexec"
             "$QT_PREFIX/bin"
           )
@@ -474,10 +1070,8 @@ jobs:
           which moc || true
           which moc6 || true
           ls -l "$PWD/.qt-tool-aliases" || true
-          ls -l "$(brew --prefix qtbase)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qtbase)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
-          ls -l "$(brew --prefix qt)/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/bin" | egrep 'moc|moc6|uic|rcc|qmake' || true
+          ls -l "$QT_PREFIX/libexec" | egrep 'moc|moc6|uic|rcc|qmake' || true
           moc -v
 
       - name: Auto generate
@@ -487,13 +1081,25 @@ jobs:
         run: |
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
-          BOOST_PREFIX="$(brew --prefix boost176)"
+          BREW_CELLAR="$(brew --cellar)"
+          BOOST_PREFIX="$(brew --prefix boost)"
           BDB_PREFIX="$(brew --prefix berkeley-db@4)"
-          OPENSSL_PREFIX="$(brew --prefix openssl@3)"
+          OPENSSL_PREFIX="$(brew --prefix openssl@4)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
-          export CPPFLAGS="-I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
-          export LDFLAGS="-L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
-          export PKG_CONFIG_PATH="$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          QMAKE_BIN="$(command -v qmake6 || command -v qmake)"
+          QT_INCLUDE_DIR="$("$QMAKE_BIN" -query QT_INSTALL_HEADERS)"
+          QT_LIB_DIR="$("$QMAKE_BIN" -query QT_INSTALL_LIBS)"
+          QT_PLUGIN_DIR="$("$QMAKE_BIN" -query QT_INSTALL_PLUGINS)"
+          if [ -d "$BREW_PREFIX/opt/protobuf261/lib" ]; then
+            PROTOBUF_PREFIX="$BREW_PREFIX/opt/protobuf261"
+          else
+            PROTOBUF_CELLAR="$BREW_CELLAR/protobuf261"
+            PROTOBUF_VER="$(ls -1 "$PROTOBUF_CELLAR" | sort -V | tail -n1 || true)"
+            PROTOBUF_PREFIX="$PROTOBUF_CELLAR/$PROTOBUF_VER"
+          fi
+          export CPPFLAGS="-I$PROTOBUF_PREFIX/include -I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+          export LDFLAGS="-L$PROTOBUF_PREFIX/lib -L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+          export PKG_CONFIG_PATH="$PROTOBUF_PREFIX/lib/pkgconfig:$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
@@ -504,6 +1110,9 @@ jobs:
             --disable-werror \
             --with-gui=qt6 \
             --with-qt-bindir="$PWD/.qt-tool-aliases" \
+            --with-qt-incdir="$QT_INCLUDE_DIR" \
+            --with-qt-libdir="$QT_LIB_DIR" \
+            --with-qt-plugindir="$QT_PLUGIN_DIR" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
             --with-openssl-dir="$OPENSSL_PREFIX" \
@@ -511,7 +1120,11 @@ jobs:
             --with-boost="$BOOST_PREFIX"
 
       - name: make
-        run: make -j4
+        run: |
+          export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
+          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
+          export LDFLAGS="-L$DEPENDS_PREFIX/lib"
+          make -j4
 
       - name: Test verged daemon
         run: |
@@ -536,6 +1149,8 @@ jobs:
       - name: Test verge-qt directly
         run: |
           QT_BIN="./src/qt/verge-qt"
+          export DYLD_FRAMEWORK_PATH="$QT_PREFIX/lib:${DYLD_FRAMEWORK_PATH:-}"
+          export DYLD_LIBRARY_PATH="$QT_PREFIX/lib:${DYLD_LIBRARY_PATH:-}"
 
           if [ ! -f "$QT_BIN" ]; then
             echo "::error::verge-qt not found at $QT_BIN"
@@ -570,16 +1185,45 @@ jobs:
 
       - name: Wrap binary into .app bundle
         run: |
-          BINARY=$(find . -name "verge-qt" -type f | head -n1)
+          resolve_macho_binary() {
+            local candidate="$1"
+            if [ -f "$candidate" ] && file "$candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$candidate"
+              return 0
+            fi
+            local libtool_candidate
+            libtool_candidate="$(find "$(dirname "$candidate")" -path "*/.libs/$(basename "$candidate")" -type f | head -n1)"
+            if [ -n "$libtool_candidate" ] && file "$libtool_candidate" | grep -q 'Mach-O'; then
+              printf '%s\n' "$libtool_candidate"
+              return 0
+            fi
+            return 1
+          }
+
+          BINARY="./src/qt/verge-qt"
+          if [ ! -f "$BINARY" ]; then
+            BINARY="$(find . -path '*/src/qt/verge-qt' -type f | head -n1)"
+          fi
           if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
             echo "::error::verge-qt binary not found after make"
             exit 1
           fi
-          echo "Found verge-qt at $BINARY"
+
+          MACHO_BINARY="$(resolve_macho_binary "$BINARY" || true)"
+          if [ -z "$MACHO_BINARY" ]; then
+            echo "::error::Unable to resolve a Mach-O verge-qt binary from $BINARY"
+            ls -la "$(dirname "$BINARY")" || true
+            file "$BINARY" || true
+            find "$(dirname "$BINARY")" -path '*/.libs/verge-qt' -type f -exec file {} \; || true
+            exit 1
+          fi
+          echo "Found verge-qt launcher at $BINARY"
+          echo "Using Mach-O binary at $MACHO_BINARY"
 
           APP_NAME="Verge-Qt.app"
           mkdir -p "$APP_NAME/Contents/MacOS"
-          cp "$BINARY" "$APP_NAME/Contents/MacOS/"
+          cp -fL "$MACHO_BINARY" "$APP_NAME/Contents/MacOS/verge-qt"
+          chmod +x "$APP_NAME/Contents/MacOS/verge-qt"
 
           echo '<?xml version="1.0" encoding="UTF-8"?>' > "$APP_NAME/Contents/Info.plist"
           echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> "$APP_NAME/Contents/Info.plist"
@@ -603,14 +1247,513 @@ jobs:
           APP_NAME="Verge-Qt.app"
           macdeployqt "$APP_NAME" -verbose=2
 
+      - name: Bundle QtWebEngine helper frameworks
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          HELPER_APP="$FRAMEWORKS_DIR/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
+          HELPER_BIN="$HELPER_APP/Contents/MacOS/QtWebEngineProcess"
+
+          if [ ! -x "$HELPER_BIN" ]; then
+            echo "::error::QtWebEngineProcess helper missing at $HELPER_BIN"
+            exit 1
+          fi
+
+          extract_framework_root() {
+            python3 -c 'import sys; path=sys.argv[1]; marker=".framework/"; idx=path.find(marker); print(path[:idx+len(".framework")] if idx >= 0 else "")' "$1"
+          }
+
+          framework_binary_name() {
+            python3 -c 'import os,sys; name=os.path.basename(sys.argv[1]); print(name[:-10] if name.endswith(".framework") else name)' "$1"
+          }
+
+          is_macho_binary() {
+            file "$1" 2>/dev/null | grep -Eq 'Mach-O'
+          }
+
+          is_homebrew_qt_framework_ref() {
+            case "$1" in
+              /opt/homebrew/*/Qt*.framework/*|/usr/local/*/Qt*.framework/*) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          copy_qt_framework() {
+            local source_framework="$1"
+            local framework_name
+            framework_name="$(basename "$source_framework")"
+            local dest_framework="$FRAMEWORKS_DIR/$framework_name"
+
+            if [ -e "$dest_framework" ]; then
+              return 0
+            fi
+
+            if [ ! -d "$source_framework" ]; then
+              echo "::error::Missing Qt framework source: $source_framework"
+              exit 1
+            fi
+
+            cp -R "$source_framework" "$dest_framework"
+            chmod -R u+w "$dest_framework"
+          }
+
+          map_qt_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              if ! is_homebrew_qt_framework_ref "$dep_path"; then
+                continue
+              fi
+              local framework_root
+              framework_root="$(extract_framework_root "$dep_path")"
+              if [ -z "$framework_root" ]; then
+                echo "::error::Could not determine framework root for $dep_path"
+                exit 1
+              fi
+              local framework_name
+              framework_name="$(basename "$framework_root")"
+              copy_qt_framework "$framework_root"
+              local framework_binary
+              framework_binary="$(framework_binary_name "$framework_name")"
+              local new_ref
+              new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary")"
+              install_name_tool -change "$dep_path" "$new_ref" "$binary"
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
+          map_bundle_framework_refs() {
+            local binary="$1"
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                @executable_path/../Frameworks/*)
+                  local target_path=""
+                  case "$dep_path" in
+                    *@executable_path/../Frameworks/*.framework/*|@executable_path/../Frameworks/*.framework/*)
+                      local framework_root
+                      framework_root="$(extract_framework_root "$dep_path")"
+                      [ -n "$framework_root" ] || continue
+                      local framework_name
+                      framework_name="$(basename "$framework_root")"
+                      local framework_binary
+                      framework_binary="$(framework_binary_name "$framework_name")"
+                      target_path="$FRAMEWORKS_DIR/$framework_name/Versions/A/$framework_binary"
+                      ;;
+                    *)
+                      local dep_name
+                      dep_name="$(basename "$dep_path")"
+                      target_path="$FRAMEWORKS_DIR/$dep_name"
+                      ;;
+                  esac
+                  [ -e "$target_path" ] || continue
+                  local new_ref
+                  new_ref="$(python3 -c 'import os,sys; binary=sys.argv[1]; target=sys.argv[2]; print("@loader_path/" + os.path.relpath(target, os.path.dirname(binary)).replace(os.sep, "/"))' "$binary" "$target_path")"
+                  install_name_tool -change "$dep_path" "$new_ref" "$binary"
+                  ;;
+              esac
+            done < <(otool -L "$binary" | awk 'NR > 1 { print $1 }')
+          }
+
+          map_qt_refs "$HELPER_BIN"
+          map_bundle_framework_refs "$HELPER_BIN"
+          while read -r bundled_bin; do
+            [ -n "$bundled_bin" ] || continue
+            is_macho_binary "$bundled_bin" || continue
+            map_qt_refs "$bundled_bin"
+            map_bundle_framework_refs "$bundled_bin"
+          done < <(find "$FRAMEWORKS_DIR" -type f)
+
+          add_rpath_if_missing() {
+            local binary="$1"
+            local rpath="$2"
+            if ! otool -l "$binary" | awk '
+              $1 == "cmd" && $2 == "LC_RPATH" { in_rpath=1; next }
+              in_rpath && $1 == "path" { print $2; in_rpath=0 }
+            ' | grep -Fxq "$rpath"; then
+              install_name_tool -add_rpath "$rpath" "$binary"
+            fi
+          }
+
+          add_rpath_if_missing "$APP_BIN" "@executable_path/../Frameworks"
+          add_rpath_if_missing "$HELPER_BIN" "@executable_path/../../../../.."
+
+          if otool -L "$HELPER_BIN" | awk 'NR > 1 { print $1 }' | grep -Eq '^(/opt/homebrew|/usr/local)/.*Qt.*\.framework/'; then
+            echo "::error::QtWebEngineProcess still has Homebrew Qt framework references after bundling"
+            otool -L "$HELPER_BIN"
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+
+          frameworks_dir = os.path.join("Verge-Qt.app", "Contents", "Frameworks")
+          bad = []
+          pattern = re.compile(r'^@executable_path/\.\./Frameworks/')
+
+          for root, _, files in os.walk(frameworks_dir):
+              for name in files:
+                  if "/Versions/A/" not in os.path.join(root, name).replace("\\", "/"):
+                      continue
+                  binary = os.path.join(root, name)
+                  try:
+                      file_output = subprocess.check_output(["file", binary], text=True)
+                  except subprocess.CalledProcessError:
+                      continue
+                  if "Mach-O" not in file_output:
+                      continue
+                  try:
+                      output = subprocess.check_output(["otool", "-L", binary], text=True)
+                  except subprocess.CalledProcessError:
+                      continue
+                  lines = [line.strip() for line in output.splitlines()[1:]]
+                  framework_name = None
+                  if ".framework/Versions/A/" in binary:
+                      framework_name = binary.split(".framework/Versions/A/")[0].split("/")[-1] + ".framework"
+                  for line in lines:
+                      dep = line.split(" ", 1)[0]
+                      if not pattern.match(dep):
+                          continue
+                      if framework_name and dep == f"@executable_path/../Frameworks/{framework_name}/Versions/A/{name}":
+                          continue
+                      bad.append((binary, dep))
+
+          if bad:
+              print("::error::Bundled binaries still reference bundle deps via @executable_path")
+              for binary, dep in bad:
+                  print(f"-- {binary}")
+                  print(dep)
+              sys.exit(1)
+          PY
+
+          echo "QtWebEngine helper linkage:"
+          otool -L "$HELPER_BIN" | grep -E 'Qt(WebEngine|Qml|Quick|Core|Gui|Network|OpenGL)' || true
+
+      - name: Bundle transitive Boost dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          BOOST_LIB_DIR="$(brew --prefix boost)/lib"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          shopt -s nullglob
+          rm -f "$FRAMEWORKS_DIR"/libboost_*.dylib
+
+          resolve_boost_source() {
+            local dep_name="$1"
+            local candidate
+            for candidate in \
+              "$BOOST_LIB_DIR/$dep_name" \
+              "$BOOST_LIB_DIR/$dep_name".*.dylib \
+              "$BOOST_LIB_DIR/$dep_name"-*.dylib
+            do
+              [ -e "$candidate" ] || continue
+              candidate="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
+              [ -f "$candidate" ] || continue
+              if file "$candidate" | grep -q 'Mach-O'; then
+                printf '%s\n' "$candidate"
+                return 0
+              fi
+            done
+            {
+              echo "::error::Unable to locate Boost dependency $dep_name in $BOOST_LIB_DIR"
+              ls -la "$BOOST_LIB_DIR" | grep libboost || true
+            } >&2
+            exit 1
+          }
+
+          copy_boost_dep() {
+            local dep_name="$1"
+            local source target
+            source="$(resolve_boost_source "$dep_name")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied Boost library is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
+            install_name_tool -id "@loader_path/$dep_name" "$target"
+          }
+
+          collect_boost_names() {
+            local file="$1"
+            otool -L "$file" | awk 'NR > 1 && /libboost_[^[:space:]]+\.dylib/ { n=$1; sub(/^.*\//, "", n); sub(/:$/, "", n); print n }'
+          }
+
+          declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/boost-seen-$$.txt"
+          : > "$SEEN_FILE"
+          while read -r dep_name; do
+            [ -n "$dep_name" ] || continue
+            if ! grep -Fxq "$dep_name" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_name" >> "$SEEN_FILE"
+              queue+=("$dep_name")
+            fi
+          done < <(collect_boost_names "$APP_BIN")
+
+          if [ "${#queue[@]}" -eq 0 ]; then
+            echo "::error::No Boost dylibs referenced by $APP_BIN"
+            otool -L "$APP_BIN" || true
+            exit 1
+          fi
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_name="${queue[$index]}"
+            copy_boost_dep "$dep_name"
+            while read -r child_name; do
+              [ -n "$child_name" ] || continue
+              if ! grep -Fxq "$child_name" "$SEEN_FILE"; then
+                printf '%s\n' "$child_name" >> "$SEEN_FILE"
+                queue+=("$child_name")
+              fi
+            done < <(collect_boost_names "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
+          done
+          rm -f "$SEEN_FILE"
+
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(otool -L "$APP_BIN" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
+
+          for lib in "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(otool -L "$lib" | awk '/libboost_[^[:space:]]+\.dylib/ { print $1 }')
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/libboost_*.dylib; do
+            echo "Boost linkage for $file"
+            otool -L "$file" | grep -E 'libboost_|verge-qt' || true
+          done
+
+      - name: Bundle locally built dylibs
+        run: |
+          set -euo pipefail
+          APP_NAME="Verge-Qt.app"
+          APP_BIN="$APP_NAME/Contents/MacOS/verge-qt"
+          FRAMEWORKS_DIR="$APP_NAME/Contents/Frameworks"
+          WORKSPACE_ROOT="$(pwd)"
+          mkdir -p "$FRAMEWORKS_DIR"
+
+          collect_local_dep_paths() {
+            local file="$1"
+            otool -L "$file" | awk 'NR > 1 { print $1 }' | while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              case "$dep_path" in
+                "$WORKSPACE_ROOT"/*.dylib)
+                  printf '%s\n' "$dep_path"
+                  ;;
+              esac
+            done
+          }
+
+          resolve_local_dep_source() {
+            local source="$1"
+            local resolved dep_name candidate
+            if [ -e "$source" ]; then
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$source")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            fi
+
+            dep_name="$(basename "$source")"
+            while read -r candidate; do
+              [ -n "$candidate" ] || continue
+              resolved="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate")"
+              if [ -f "$resolved" ] && file "$resolved" | grep -q 'Mach-O'; then
+                printf '%s\n' "$resolved"
+                return 0
+              fi
+            done < <(find "$WORKSPACE_ROOT" \( -path "*/.libs/$dep_name" -o -path "*/$dep_name" \) \( -type f -o -type l \) 2>/dev/null)
+
+            return 1
+          }
+
+          copy_local_dep() {
+            local source="$1"
+            local dep_name target
+            source="$(resolve_local_dep_source "$source" || true)"
+            if [ -z "$source" ] || [ ! -f "$source" ]; then
+              echo "::error::Missing local dylib dependency at $source"
+              exit 1
+            fi
+            dep_name="$(basename "$source")"
+            target="$FRAMEWORKS_DIR/$dep_name"
+            cp -fL "$source" "$target"
+            chmod u+w "$target"
+            if ! file "$target" | grep -q 'Mach-O'; then
+              echo "::error::Copied local dependency is not Mach-O: $target"
+              ls -l "$target" || true
+              file "$target" || true
+              exit 1
+            fi
+            install_name_tool -id "@loader_path/$dep_name" "$target"
+          }
+
+          declare -a queue=()
+          SEEN_FILE="$RUNNER_TEMP/local-dylib-seen-$$.txt"
+          : > "$SEEN_FILE"
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$dep_path")"
+            if ! grep -Fxq "$dep_path" "$SEEN_FILE"; then
+              printf '%s\n' "$dep_path" >> "$SEEN_FILE"
+              queue+=("$dep_path")
+            fi
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          index=0
+          while [ "$index" -lt "${#queue[@]}" ]; do
+            dep_path="${queue[$index]}"
+            dep_name="$(basename "$dep_path")"
+            copy_local_dep "$dep_path"
+            while read -r child_path; do
+              [ -n "$child_path" ] || continue
+              child_path="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$child_path")"
+              if ! grep -Fxq "$child_path" "$SEEN_FILE"; then
+                printf '%s\n' "$child_path" >> "$SEEN_FILE"
+                queue+=("$child_path")
+              fi
+            done < <(collect_local_dep_paths "$FRAMEWORKS_DIR/$dep_name")
+            index=$((index + 1))
+          done
+          rm -f "$SEEN_FILE"
+
+          while read -r dep_path; do
+            [ -n "$dep_path" ] || continue
+            dep_name="$(basename "$dep_path")"
+            install_name_tool -change "$dep_path" "@executable_path/../Frameworks/$dep_name" "$APP_BIN" || true
+          done < <(collect_local_dep_paths "$APP_BIN")
+
+          shopt -s nullglob
+          for lib in "$FRAMEWORKS_DIR"/*.dylib; do
+            while read -r dep_path; do
+              [ -n "$dep_path" ] || continue
+              dep_name="$(basename "$dep_path")"
+              install_name_tool -change "$dep_path" "@loader_path/$dep_name" "$lib" || true
+            done < <(collect_local_dep_paths "$lib")
+          done
+
+          for file in "$APP_BIN" "$FRAMEWORKS_DIR"/*.dylib; do
+            [ -e "$file" ] || continue
+            echo "Local dylib linkage for $file"
+            otool -L "$file" | grep -E 'libunivalue|verge-qt' || true
+          done
+
       - name: Remove quarantine
         run: find . -name "*.app" -type d -exec xattr -cr {} +
 
+      - name: Import Apple signing certificate
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_P12_PASSWORD: ${{ secrets.MACOS_CERT_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          CERT_PATH="$RUNNER_TEMP/macos-cert.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 24)"
+
+          echo -n "$MACOS_CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$MACOS_CERT_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F '\"' '/Developer ID Application:/ { print $2; exit }')"
+          if [ -z "$SIGNING_IDENTITY" ]; then
+            echo "::error::No Developer ID Application identity found in imported certificate."
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+            exit 1
+          fi
+
+          echo "MACOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "MACOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
+
       - name: Codesign app
-        run: codesign --force --deep --sign - "Verge-Qt.app"
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
+        run: |
+          set -euo pipefail
+          ENTITLEMENTS="$GITHUB_WORKSPACE/contrib/macdeploy/qtwebengine.entitlements"
+          echo "Signing app with Developer ID identity: $MACOS_SIGNING_IDENTITY"
+
+          sign_file() {
+            local target="$1"
+            shift
+            echo "Signing file: $target"
+            codesign --force --options runtime --timestamp \
+              --keychain "$MACOS_KEYCHAIN_PATH" \
+              --sign "$MACOS_SIGNING_IDENTITY" "$@" "$target"
+          }
+
+          find "Verge-Qt.app" -type f \( \
+            -name "*.dylib" -o \
+            -path "*/Contents/MacOS/*" \
+          \) ! -path "*/_CodeSignature/*" | sort | while read -r TARGET; do
+            case "$TARGET" in
+              */QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess|*/Contents/MacOS/verge-qt)
+                sign_file "$TARGET" --entitlements "$ENTITLEMENTS"
+                ;;
+              *)
+                sign_file "$TARGET"
+                ;;
+            esac
+          done
+
+          find "Verge-Qt.app" -depth \( \
+            -type d -name "*.framework" -o \
+            -type d -name "*.app" \
+          \) | while read -r BUNDLE; do
+            case "$BUNDLE" in
+              "Verge-Qt.app")
+                ;;
+              *)
+                echo "Signing bundle: $BUNDLE"
+                codesign --force --options runtime --timestamp \
+                  --keychain "$MACOS_KEYCHAIN_PATH" \
+                  --sign "$MACOS_SIGNING_IDENTITY" "$BUNDLE"
+                ;;
+            esac
+          done
+
+          codesign --force --options runtime --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
+
+      - name: Sign DMG
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
+          MACOS_KEYCHAIN_PATH: ${{ env.MACOS_KEYCHAIN_PATH }}
+        run: |
+          set -euo pipefail
+          codesign --force --timestamp \
+            --keychain "$MACOS_KEYCHAIN_PATH" \
+            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.dmg"
 
       - name: Test app launch from DMG
         run: |
@@ -656,12 +1799,15 @@ jobs:
           trap cleanup EXIT
 
           APP_BIN="$MOUNT_POINT/Verge-Qt.app/Contents/MacOS/verge-qt"
+          APP_FRAMEWORKS="$MOUNT_POINT/Verge-Qt.app/Contents/Frameworks"
           if [ ! -x "$APP_BIN" ]; then
             echo "::error::App binary not found in DMG at $APP_BIN"
             ls -la "$MOUNT_POINT"
             exit 1
           fi
 
+          DYLD_FRAMEWORK_PATH="$APP_FRAMEWORKS:${DYLD_FRAMEWORK_PATH:-}" \
+          DYLD_LIBRARY_PATH="$APP_FRAMEWORKS:${DYLD_LIBRARY_PATH:-}" \
           "$APP_BIN" &
           APP_PID=$!
           sleep 8
@@ -690,25 +1836,359 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-macos14
+          name: verge-macos14-raw
           path: Verge-Qt.dmg
+          if-no-files-found: error
+
+  macos-26-notarize:
+    runs-on: macos-26
+    needs:
+      - macos-26
+    steps:
+      - name: Download previous notary state (if present)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: verge-macos26-notary-state
+          path: notary_state
+
+      - name: Download signed macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: verge-macos26-raw
+          path: notarize_input
+
+      - name: Notarize and staple DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
+            echo "::error::Missing one or more required Apple notarization secrets: APPLE_ID, APPLE_TEAM_ID, APPLE_APP_SPECIFIC_PASSWORD"
+            exit 1
+          fi
+
+          DMG_PATH="$(find notarize_input -name 'Verge-Qt.dmg' -type f | head -n1)"
+          if [ -z "${DMG_PATH:-}" ]; then
+            echo "::error::No DMG found to notarize"
+            exit 1
+          fi
+
+          DMG_SHA256="$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')"
+          echo "DMG SHA256: $DMG_SHA256"
+
+          mkdir -p notary_state
+
+          if [ -f "notary_state/dmg_sha256.txt" ] && [ "$(cat notary_state/dmg_sha256.txt)" = "$DMG_SHA256" ] && [ -f "notary_state/notary_submission_id.txt" ]; then
+            SUBMISSION_ID="$(cat notary_state/notary_submission_id.txt)"
+            echo "Reusing prior notary submission id for same DMG: $SUBMISSION_ID"
+          else
+            rm -f notary_state/notary_submission_id.txt \
+                  notary_state/notarytool-submit.json \
+                  notary_state/notarytool-info.json \
+                  notary_state/notarytool-log.json
+            xcrun notarytool submit "$DMG_PATH" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --output-format json > notary_state/notarytool-submit.json
+
+            SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notary_state/notarytool-submit.json)"
+            if [ -z "${SUBMISSION_ID:-}" ]; then
+              echo "::error::Failed to parse notarization submission ID."
+              cat notary_state/notarytool-submit.json
+              exit 1
+            fi
+          fi
+
+          echo "$SUBMISSION_ID" > notary_state/notary_submission_id.txt
+          echo "$DMG_SHA256" > notary_state/dmg_sha256.txt
+          echo "Notarization submission ID: $SUBMISSION_ID"
+
+          set +e
+          xcrun notarytool wait "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --timeout 90m
+          WAIT_RC=$?
+          set -e
+
+          xcrun notarytool info "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --output-format json > notary_state/notarytool-info.json || true
+
+          STATUS="$(python3 -c 'import json,sys; import pathlib; p=pathlib.Path(sys.argv[1]); print((json.load(open(p)).get("status","") if p.exists() and p.stat().st_size else ""))' notary_state/notarytool-info.json)"
+
+          dump_notary_diagnostics() {
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+
+            echo "===== notarytool info ====="
+            cat notary_state/notarytool-info.json 2>/dev/null || true
+            echo "===== notarytool log ====="
+            cat notary_state/notarytool-log.json 2>/dev/null || true
+
+            MOUNT_DIR="$(mktemp -d /tmp/verge-notary-XXXXXX)"
+            MOUNT_OUTPUT="$(hdiutil attach "$DMG_PATH" -nobrowse -readonly -mountpoint "$MOUNT_DIR" 2>/dev/null)" || true
+            APP_BUNDLE="$MOUNT_DIR/Verge-Qt.app"
+            APP_BIN="$APP_BUNDLE/Contents/MacOS/verge-qt"
+            HELPER_BIN="$APP_BUNDLE/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+
+            if [ -e "$APP_BIN" ]; then
+              echo "===== codesign verify app ====="
+              codesign --verify --verbose=4 "$APP_BIN" || true
+              echo "===== entitlements app ====="
+              codesign -d --entitlements :- "$APP_BIN" || true
+            fi
+
+            if [ -e "$HELPER_BIN" ]; then
+              echo "===== codesign verify helper ====="
+              codesign --verify --verbose=4 "$HELPER_BIN" || true
+              echo "===== entitlements helper ====="
+              codesign -d --entitlements :- "$HELPER_BIN" || true
+            fi
+
+            if [ -n "${MOUNT_OUTPUT:-}" ]; then
+              hdiutil detach "$MOUNT_DIR" -force >/dev/null 2>&1 || true
+            fi
+            rm -rf "$MOUNT_DIR"
+          }
+
+          if [ "$WAIT_RC" -ne 0 ]; then
+            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+            dump_notary_diagnostics
+            exit "$WAIT_RC"
+          fi
+
+          if [ "${STATUS:-}" != "Accepted" ]; then
+            echo "Notarization did not return Accepted status (status=${STATUS:-unknown})."
+            dump_notary_diagnostics
+            exit 1
+          fi
+
+          xcrun stapler staple "$DMG_PATH"
+          xcrun stapler validate "$DMG_PATH"
+
+          set +e
+          spctl --assess --type open --verbose "$DMG_PATH"
+          SPCTL_RC=$?
+          set -e
+          if [ "$SPCTL_RC" -ne 0 ]; then
+            echo "::warning::spctl assessment rejected the DMG in CI despite successful notarization and stapling."
+          fi
+
+          {
+            echo "Apple notarization accepted for macos-26."
+            echo "Submission ID: $SUBMISSION_ID"
+            echo "Stapled artifact uploaded from this job."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload notary state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos26-notary-state
+          path: notary_state/*
+          if-no-files-found: ignore
+
+      - name: Upload notarized macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos26
+          path: notarize_input/Verge-Qt.dmg
+          if-no-files-found: error
+
+  macos14-notarize:
+    runs-on: macos-14
+    needs:
+      - macos14
+    steps:
+      - name: Download previous notary state (if present)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: verge-macos14-notary-state
+          path: notary_state
+
+      - name: Download signed macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: verge-macos14-raw
+          path: notarize_input
+
+      - name: Notarize and staple DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${APPLE_ID:-}" ] || [ -z "${APPLE_TEAM_ID:-}" ] || [ -z "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
+            echo "::error::Missing one or more required Apple notarization secrets: APPLE_ID, APPLE_TEAM_ID, APPLE_APP_SPECIFIC_PASSWORD"
+            exit 1
+          fi
+
+          DMG_PATH="$(find notarize_input -name 'Verge-Qt.dmg' -type f | head -n1)"
+          if [ -z "${DMG_PATH:-}" ]; then
+            echo "::error::No DMG found to notarize"
+            exit 1
+          fi
+
+          DMG_SHA256="$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')"
+          echo "DMG SHA256: $DMG_SHA256"
+
+          mkdir -p notary_state
+
+          if [ -f "notary_state/dmg_sha256.txt" ] && [ "$(cat notary_state/dmg_sha256.txt)" = "$DMG_SHA256" ] && [ -f "notary_state/notary_submission_id.txt" ]; then
+            SUBMISSION_ID="$(cat notary_state/notary_submission_id.txt)"
+            echo "Reusing prior notary submission id for same DMG: $SUBMISSION_ID"
+          else
+            rm -f notary_state/notary_submission_id.txt \
+                  notary_state/notarytool-submit.json \
+                  notary_state/notarytool-info.json \
+                  notary_state/notarytool-log.json
+            xcrun notarytool submit "$DMG_PATH" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --output-format json > notary_state/notarytool-submit.json
+
+            SUBMISSION_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' notary_state/notarytool-submit.json)"
+            if [ -z "${SUBMISSION_ID:-}" ]; then
+              echo "::error::Failed to parse notarization submission ID."
+              cat notary_state/notarytool-submit.json
+              exit 1
+            fi
+          fi
+
+          echo "$SUBMISSION_ID" > notary_state/notary_submission_id.txt
+          echo "$DMG_SHA256" > notary_state/dmg_sha256.txt
+          echo "Notarization submission ID: $SUBMISSION_ID"
+
+          set +e
+          xcrun notarytool wait "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --timeout 90m
+          WAIT_RC=$?
+          set -e
+
+          xcrun notarytool info "$SUBMISSION_ID" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --output-format json > notary_state/notarytool-info.json || true
+
+          STATUS="$(python3 -c 'import json,sys; import pathlib; p=pathlib.Path(sys.argv[1]); print((json.load(open(p)).get("status","") if p.exists() and p.stat().st_size else ""))' notary_state/notarytool-info.json)"
+
+          dump_notary_diagnostics() {
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" > notary_state/notarytool-log.json || true
+
+            echo "===== notarytool info ====="
+            cat notary_state/notarytool-info.json 2>/dev/null || true
+            echo "===== notarytool log ====="
+            cat notary_state/notarytool-log.json 2>/dev/null || true
+
+            MOUNT_DIR="$(mktemp -d /tmp/verge-notary-XXXXXX)"
+            MOUNT_OUTPUT="$(hdiutil attach "$DMG_PATH" -nobrowse -readonly -mountpoint "$MOUNT_DIR" 2>/dev/null)" || true
+            APP_BUNDLE="$MOUNT_DIR/Verge-Qt.app"
+            APP_BIN="$APP_BUNDLE/Contents/MacOS/verge-qt"
+            HELPER_BIN="$APP_BUNDLE/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+
+            if [ -e "$APP_BIN" ]; then
+              echo "===== codesign verify app ====="
+              codesign --verify --verbose=4 "$APP_BIN" || true
+              echo "===== entitlements app ====="
+              codesign -d --entitlements :- "$APP_BIN" || true
+            fi
+
+            if [ -e "$HELPER_BIN" ]; then
+              echo "===== codesign verify helper ====="
+              codesign --verify --verbose=4 "$HELPER_BIN" || true
+              echo "===== entitlements helper ====="
+              codesign -d --entitlements :- "$HELPER_BIN" || true
+            fi
+
+            if [ -n "${MOUNT_OUTPUT:-}" ]; then
+              hdiutil detach "$MOUNT_DIR" -force >/dev/null 2>&1 || true
+            fi
+            rm -rf "$MOUNT_DIR"
+          }
+
+          if [ "$WAIT_RC" -ne 0 ]; then
+            echo "Notarization failed or timed out. Submission ID: $SUBMISSION_ID"
+            dump_notary_diagnostics
+            exit "$WAIT_RC"
+          fi
+
+          if [ "${STATUS:-}" != "Accepted" ]; then
+            echo "Notarization did not return Accepted status (status=${STATUS:-unknown})."
+            dump_notary_diagnostics
+            exit 1
+          fi
+
+          xcrun stapler staple "$DMG_PATH"
+          xcrun stapler validate "$DMG_PATH"
+
+          set +e
+          spctl --assess --type open --verbose "$DMG_PATH"
+          SPCTL_RC=$?
+          set -e
+          if [ "$SPCTL_RC" -ne 0 ]; then
+            echo "::warning::spctl assessment rejected the DMG in CI despite successful notarization and stapling."
+          fi
+
+          {
+            echo "Apple notarization accepted for macos14."
+            echo "Submission ID: $SUBMISSION_ID"
+            echo "Stapled artifact uploaded from this job."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload notary state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos14-notary-state
+          path: notary_state/*
+          if-no-files-found: ignore
+
+      - name: Upload notarized macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verge-macos14
+          path: notarize_input/Verge-Qt.dmg
+          if-no-files-found: error
 
   ubuntu24:
     runs-on: ubuntu-24.04
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache depends artifacts
+      - name: Cache non-Qt depends build artifacts
         uses: actions/cache@v4
         with:
           path: |
             depends/built
             depends/x86_64-linux-gnu
-            depends/work
             depends/sources
-          key: depends-${{ runner.os }}-linux64-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-base-${{ runner.os }}-linux64-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-${{ runner.os }}-linux64-
+            depends-base-${{ runner.os }}-linux64-v5-
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -726,7 +2206,16 @@ jobs:
           sudo apt-get install -y \
           build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
           bsdmainutils libattr1-dev make automake bison byacc cmake curl \
-          g++-multilib binutils-gold python3 ccache
+          g++-multilib binutils-gold python3 python3-setuptools gyp ccache ninja-build flex nodejs \
+          libgl1-mesa-dev libegl1-mesa-dev libopengl-dev \
+          libx11-dev libx11-xcb-dev libxcb1-dev libxcb-render0-dev libxkbcommon-dev libxkbcommon-x11-dev \
+          libxcb-cursor-dev libxcb-icccm4-dev libxcb-util-dev libxcb-image0-dev libxcb-keysyms1-dev \
+          libxcb-randr0-dev libxcb-render-util0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-xfixes0-dev \
+          libxcb-shape0-dev libxcb-xkb-dev \
+          libboost-all-dev \
+          libevent-dev libssl-dev zlib1g-dev libseccomp-dev libcap-dev libprotobuf-dev protobuf-compiler \
+          qt6-base-dev qt6-base-private-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools \
+          qt6-webengine-dev qt6-webengine-dev-tools
 
       - name: Enable ccache wrappers
         run: |
@@ -734,47 +2223,364 @@ jobs:
           echo "/usr/lib/ccache" >> "$GITHUB_PATH"
 
       - name: Configure ccache
-        env:
-          CCACHE_DIR: ~/.ccache
         run: |
           mkdir -p ~/.ccache
           echo 'max_size = 2G' > ~/.ccache/ccache.conf
           echo 'compression = true' >> ~/.ccache/ccache.conf
           ccache -z || true
 
-      - name: Export toolchain env
+      - name: Prepare Qt6 host tool aliases
         run: |
-          echo "CC=gcc"        >> "$GITHUB_ENV"
-          echo "CXX=g++"       >> "$GITHUB_ENV"
-          echo "AR=ar"         >> "$GITHUB_ENV"
-          echo "RANLIB=ranlib" >> "$GITHUB_ENV"
-          echo "STRIP=strip"   >> "$GITHUB_ENV"
-          echo "CCACHE_DIR=$HOME/.ccache" >> "$GITHUB_ENV"
+          set -euo pipefail
+          QT_HOST_BINS="$(qtpaths6 --query QT_HOST_BINS)"
+          QT_HOST_LIBEXECS="$(qtpaths6 --query QT_HOST_LIBEXECS || true)"
+          QT_INSTALL_LIBEXECS="$(qtpaths6 --query QT_INSTALL_LIBEXECS || true)"
+          ALIAS_DIR="$PWD/.qt-tool-aliases"
+          mkdir -p "$ALIAS_DIR"
 
-      - name: Build depends
+          resolve_qt_tool() {
+            local tool="$1"
+            shift
+            local candidate=""
+            for candidate in "$@"; do
+              if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+                printf '%s\n' "$candidate"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          MOC_REAL="$(resolve_qt_tool moc \
+            "$(command -v moc-qt6 || true)" \
+            "$(command -v moc6 || true)" \
+            "$(command -v moc || true)" \
+            "$QT_HOST_BINS/moc-qt6" \
+            "$QT_HOST_BINS/moc6" \
+            "$QT_HOST_BINS/moc" \
+            "$QT_HOST_LIBEXECS/moc-qt6" \
+            "$QT_HOST_LIBEXECS/moc6" \
+            "$QT_HOST_LIBEXECS/moc" \
+            "$QT_INSTALL_LIBEXECS/moc-qt6" \
+            "$QT_INSTALL_LIBEXECS/moc6" \
+            "$QT_INSTALL_LIBEXECS/moc" \
+            "/usr/lib/qt6/libexec/moc")"
+          UIC_REAL="$(resolve_qt_tool uic \
+            "$(command -v uic-qt6 || true)" \
+            "$(command -v uic6 || true)" \
+            "$(command -v uic || true)" \
+            "$QT_HOST_BINS/uic-qt6" \
+            "$QT_HOST_BINS/uic6" \
+            "$QT_HOST_BINS/uic" \
+            "$QT_HOST_LIBEXECS/uic-qt6" \
+            "$QT_HOST_LIBEXECS/uic6" \
+            "$QT_HOST_LIBEXECS/uic" \
+            "$QT_INSTALL_LIBEXECS/uic-qt6" \
+            "$QT_INSTALL_LIBEXECS/uic6" \
+            "$QT_INSTALL_LIBEXECS/uic" \
+            "/usr/lib/qt6/libexec/uic")"
+          RCC_REAL="$(resolve_qt_tool rcc \
+            "$(command -v rcc-qt6 || true)" \
+            "$(command -v rcc6 || true)" \
+            "$(command -v rcc || true)" \
+            "$QT_HOST_BINS/rcc-qt6" \
+            "$QT_HOST_BINS/rcc6" \
+            "$QT_HOST_BINS/rcc" \
+            "$QT_HOST_LIBEXECS/rcc-qt6" \
+            "$QT_HOST_LIBEXECS/rcc6" \
+            "$QT_HOST_LIBEXECS/rcc" \
+            "$QT_INSTALL_LIBEXECS/rcc-qt6" \
+            "$QT_INSTALL_LIBEXECS/rcc6" \
+            "$QT_INSTALL_LIBEXECS/rcc" \
+            "/usr/lib/qt6/libexec/rcc")"
+
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc"
+          ln -sf "$MOC_REAL" "$ALIAS_DIR/moc-qt6"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic"
+          ln -sf "$UIC_REAL" "$ALIAS_DIR/uic-qt6"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc"
+          ln -sf "$RCC_REAL" "$ALIAS_DIR/rcc-qt6"
+
+          echo "$ALIAS_DIR" >> "$GITHUB_PATH"
+          echo "MOC=$ALIAS_DIR/moc" >> "$GITHUB_ENV"
+          echo "UIC=$ALIAS_DIR/uic" >> "$GITHUB_ENV"
+          echo "RCC=$ALIAS_DIR/rcc" >> "$GITHUB_ENV"
+
+      - name: Sanity-check cached non-Qt depends
+        run: |
+          set -euo pipefail
+          missing=0
+          for path in \
+            depends/x86_64-linux-gnu/include/db4/db_cxx.h \
+            depends/x86_64-linux-gnu/lib/libdb_cxx-4.8.a \
+            depends/x86_64-linux-gnu/share/config.site
+          do
+            if [ ! -e "$path" ]; then
+              echo "::warning::Missing cached depends artifact $path"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "::warning::Clearing stale non-Qt depends cache state so required packages rebuild."
+            rm -rf depends/built depends/x86_64-linux-gnu
+          fi
+
+      - name: Build non-Qt depends
         run: |
           cd depends/
-          make -j4 HOST=x86_64-linux-gnu
+          make -j4 HOST=x86_64-linux-gnu NO_QT=1 install
 
       - name: Auto generate
         run: ./autogen.sh
 
       - name: configure
         run: |
+          export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
+          export SYSTEM_QT_PLUGIN_DIR="/usr/lib/x86_64-linux-gnu/qt6/plugins/platforms"
+          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
+          export LDFLAGS="-L$DEPENDS_PREFIX/lib -L$SYSTEM_QT_PLUGIN_DIR"
+          export PKG_CONFIG_PATH="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          export BDB_CFLAGS="-I$DEPENDS_PREFIX/include/db4"
+          export BDB_LIBS="-L$DEPENDS_PREFIX/lib -ldb_cxx-4.8"
+          export LIBCAP_LIBS="-lcap"
           CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
+          --with-gui=qt6 \
+          --with-qt-bindir="$PWD/.qt-tool-aliases" \
           --prefix="$(pwd)/depends/x86_64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
           --libdir="$(pwd)/release/lib"
 
       - name: make
-        run: make -j4
+        run: |
+          export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
+          export SYSTEM_QT_PLUGIN_DIR="/usr/lib/x86_64-linux-gnu/qt6/plugins/platforms"
+          export CPPFLAGS="-I$DEPENDS_PREFIX/include -I$DEPENDS_PREFIX/include/db4"
+          export LDFLAGS="-L$DEPENDS_PREFIX/lib -L$SYSTEM_QT_PLUGIN_DIR"
+          export LIBCAP_LIBS="-lcap"
+          echo "UIC=$UIC"
+          "$UIC" --version
+          "$UIC" -o /tmp/ui_addressbookpage.h src/qt/forms/addressbookpage.ui
+          "$UIC" -o /tmp/ui_messagepage.h src/qt/forms/messagepage.ui
+          make -j4 V=1 CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
 
       - name: strip
         run: |
-          cd ./src && strip verged verge-cli verge-tx
-          cd ./qt && strip verge-qt
+          cd ./src && strip .libs/verged .libs/verge-cli .libs/verge-tx
+          cd ./qt && strip .libs/verge-qt
+
+      - name: Build Qt AppImage
+        run: |
+          set -euo pipefail
+
+          if ! pkg-config --exists Qt6WebEngineWidgets; then
+            echo "::error::Qt6WebEngineWidgets is required to build the Verge-Qt AppImage"
+            exit 1
+          fi
+
+          mkdir -p "$PWD/release"
+
+          curl -L -o "$PWD/linuxdeploy-x86_64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          curl -L -o "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x "$PWD/linuxdeploy-x86_64.AppImage" "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage"
+
+          rm -rf "$PWD/linuxdeploy-root" "$PWD/linuxdeploy-plugin-qt-root" "$PWD/AppDir-verge-qt"
+          "$PWD/linuxdeploy-x86_64.AppImage" --appimage-extract >/dev/null
+          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-root"
+          "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage" --appimage-extract >/dev/null
+          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-plugin-qt-root"
+
+          export PATH="$PWD/linuxdeploy-plugin-qt-root/usr/bin:$PATH"
+          export QMAKE="$(command -v qmake6 || command -v qmake)"
+          export VERSION="${GITHUB_SHA::7}"
+
+          APPDIR="$PWD/AppDir-verge-qt"
+          QT_BIN="$PWD/src/qt/.libs/verge-qt"
+          UNIVALUE_LIBDIR="$PWD/src/univalue/.libs"
+          if [ ! -f "$QT_BIN" ]; then
+            echo "::error::Expected ELF Qt binary not found at $QT_BIN"
+            exit 1
+          fi
+          if ! find "$UNIVALUE_LIBDIR" -maxdepth 1 -type f -name 'libunivalue.so*' | grep -q .; then
+            echo "::error::Expected local libunivalue shared library not found under $UNIVALUE_LIBDIR"
+            exit 1
+          fi
+          export LD_LIBRARY_PATH="$UNIVALUE_LIBDIR:${LD_LIBRARY_PATH:-}"
+          mkdir -p "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+          cat > "$APPDIR/usr/share/applications/verge-qt.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=Verge Qt
+          Exec=verge-qt
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=false
+          StartupWMClass=verge-qt
+          EOF
+          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/verge.png"
+          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/verge.png"
+
+          "$PWD/linuxdeploy-root/AppRun" \
+            --appdir "$APPDIR" \
+            --plugin qt \
+            --executable "$QT_BIN" \
+            --desktop-file "$APPDIR/usr/share/applications/verge-qt.desktop" \
+            --icon-file "$PWD/share/pixmaps/verge256.png"
+
+          QT_PLUGINS="$(qtpaths6 --query QT_INSTALL_PLUGINS)"
+          QT_LIBEXECS="$(qtpaths6 --query QT_INSTALL_LIBEXECS)"
+          QT_DATA="$(qtpaths6 --query QT_INSTALL_DATA)"
+          QT_TRANSLATIONS="$(qtpaths6 --query QT_INSTALL_TRANSLATIONS)"
+
+          mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/resources" "$APPDIR/usr/translations" "$APPDIR/usr/etc/fonts"
+          cp "$QT_LIBEXECS/QtWebEngineProcess" "$APPDIR/usr/bin/QtWebEngineProcess"
+          chmod +x "$APPDIR/usr/bin/QtWebEngineProcess"
+
+          for res in icudtl.dat v8_context_snapshot.bin qtwebengine_devtools_resources.pak; do
+            if [ -f "$QT_DATA/resources/$res" ]; then
+              cp "$QT_DATA/resources/$res" "$APPDIR/usr/resources/"
+            fi
+          done
+          if ls "$QT_DATA/resources/qtwebengine_resources"*.pak >/dev/null 2>&1; then
+            cp "$QT_DATA/resources/qtwebengine_resources"*.pak "$APPDIR/usr/resources/"
+          fi
+          if [ -d "$QT_DATA/resources/locales" ]; then
+            cp -a "$QT_DATA/resources/locales" "$APPDIR/usr/resources/"
+          fi
+          if [ -d "$QT_TRANSLATIONS/qtwebengine_locales" ]; then
+            cp -a "$QT_TRANSLATIONS/qtwebengine_locales" "$APPDIR/usr/translations/"
+          fi
+          if [ -d /etc/fonts ]; then
+            cp -a /etc/fonts/. "$APPDIR/usr/etc/fonts/"
+          fi
+
+          cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$APPDIR/usr/lib/"
+          rm -f "$APPDIR/AppRun"
+          rm -f "$APPDIR/usr/bin/verge-qt"
+          rm -f "$APPDIR/usr/bin/usr/bin/verge-qt" || true
+          install -m755 "$QT_BIN" "$APPDIR/usr/bin/verge-qt"
+          patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/verge-qt"
+
+          for required in             "$APPDIR/usr/lib/libQt6Core.so.6"             "$APPDIR/usr/lib/libQt6Gui.so.6"             "$APPDIR/usr/lib/libQt6Network.so.6"             "$APPDIR/usr/lib/libQt6Widgets.so.6"             "$APPDIR/usr/lib/libQt6WebEngineCore.so.6"             "$APPDIR/usr/lib/libQt6WebEngineWidgets.so.6"             "$APPDIR/usr/plugins/platforms/libqxcb.so"             "$APPDIR/usr/bin/QtWebEngineProcess"; do
+            if [ ! -e "$required" ]; then
+              echo "::error::Missing required AppImage runtime file: $required"
+              exit 1
+            fi
+          done
+
+          cat > "$APPDIR/AppRun" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          export FONTCONFIG_PATH="\$HERE/usr/etc/fonts"
+          export FONTCONFIG_FILE="\$HERE/usr/etc/fonts/fonts.conf"
+          export QTWEBENGINE_DISABLE_SANDBOX=1
+          export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
+          exec "\$HERE/usr/bin/verge-qt" "\$@"
+          EOF
+          chmod +x "$APPDIR/AppRun"
+
+          "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$APPDIR"
+          GENERATED_APPIMAGE="$(find "$PWD" -maxdepth 1 -type f -name 'Verge_Qt-*-x86_64.AppImage' -print -quit)"
+          if [ -z "$GENERATED_APPIMAGE" ]; then
+            echo "::error::Generated Verge Qt AppImage not found"
+            exit 1
+          fi
+          mv "$GENERATED_APPIMAGE" "$PWD/release/Verge-Qt-x86_64.AppImage"
+
+          build_cli_appimage() {
+            local binary_path="$1"
+            local app_name="$2"
+            local exec_name="$3"
+            local output_name="$4"
+            local terminal_flag="$5"
+            local appdir="$PWD/AppDir-$exec_name"
+
+            rm -rf "$appdir"
+            mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/256x256/apps"
+
+            install -m755 "$binary_path" "$appdir/usr/bin/$exec_name"
+            cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$appdir/usr/lib/"
+            patchelf --set-rpath '$ORIGIN/../lib' "$appdir/usr/bin/$exec_name"
+
+            cat > "$appdir/usr/share/applications/$exec_name.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=$app_name
+          Exec=$exec_name
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=$terminal_flag
+          EOF
+            cp "$appdir/usr/share/applications/$exec_name.desktop" "$appdir/$exec_name.desktop"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
+
+            cat > "$appdir/AppRun" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          exec "\$HERE/usr/bin/$exec_name" "\$@"
+          EOF
+            chmod +x "$appdir/AppRun"
+
+            export ARCH=x86_64
+            export LDAI_OUTPUT="$PWD/release/$output_name"
+            rm -f "$PWD/release/$output_name"
+            "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
+            generated_appimage="$(find "$PWD" -maxdepth 1 -type f -name '*.AppImage' ! -name 'linuxdeploy*.AppImage' -printf '%T@ %p\n' | sort -nr | awk 'NR==1 {print $2}')"
+            if [ -z "$generated_appimage" ]; then
+              echo "::error::Generated AppImage not found for $exec_name"
+              exit 1
+            fi
+            mv "$generated_appimage" "$PWD/release/$output_name"
+          }
+
+          build_cli_appimage "$PWD/src/.libs/verged" "Verge Daemon" "verged" "verged-x86_64.AppImage" "false"
+          build_cli_appimage "$PWD/src/.libs/verge-cli" "Verge CLI" "verge-cli" "verge-cli-x86_64.AppImage" "true"
+          build_cli_appimage "$PWD/src/.libs/verge-tx" "Verge TX" "verge-tx" "verge-tx-x86_64.AppImage" "true"
+
+          (
+            cd "$PWD/release"
+            zip -j verge-ubuntu24-appimages.zip \
+              Verge-Qt-x86_64.AppImage \
+              verged-x86_64.AppImage \
+              verge-cli-x86_64.AppImage \
+              verge-tx-x86_64.AppImage
+          )
+
+      - name: Test verge-qt AppImage launch
+        run: |
+          set -euo pipefail
+
+          APP_BIN="$PWD/release/Verge-Qt-x86_64.AppImage"
+          export QTWEBENGINE_DISABLE_SANDBOX=1
+          export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
+
+          if [ ! -x "$APP_BIN" ]; then
+            echo "::error::Verge-Qt AppImage not found at $APP_BIN"
+            exit 1
+          fi
+
+          xvfb-run -a "$APP_BIN" &
+          APP_PID=$!
+
+          sleep 10
+
+          if ! kill -0 "$APP_PID" 2>/dev/null; then
+            echo "::error::Verge-Qt AppImage exited early"
+            wait "$APP_PID"
+            exit 1
+          fi
+
+          pkill -9 -f 'Verge-Qt-x86_64.AppImage' || true
+          pkill -9 -f '/tmp/.mount_Verge-' || true
+          pkill -9 Xvfb || true
+          sleep 2
+          kill -9 "$APP_PID" 2>/dev/null || true
+          wait "$APP_PID" || true
 
       - name: ccache stats
         env:
@@ -785,101 +2591,19 @@ jobs:
         with:
           name: verge-ubuntu24
           path: |
-            ./src/verged
+            ./release/Verge-Qt-x86_64.AppImage
+            ./release/verged-x86_64.AppImage
+            ./release/verge-cli-x86_64.AppImage
+            ./release/verge-tx-x86_64.AppImage
+            ./release/verge-ubuntu24-appimages.zip
             ./src/verge-cli
-            ./src/verge-tx
-            ./src/qt/verge-qt
-
-  ubuntu22:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Cache depends artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            depends/built
-            depends/x86_64-linux-gnu
-            depends/work
-            depends/sources
-          key: depends-${{ runner.os }}-linux64-22-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-          restore-keys: |
-            depends-${{ runner.os }}-linux64-22-
-
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-linux64-22-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-linux64-22-
-
-      - name: Update apt repos
-        run: sudo apt-get update
-
-      - name: Install base dependencies
-        run: |
-          sudo apt-get install -y \
-          build-essential xutils-dev libtool gperf autotools-dev automake pkg-config \
-          bsdmainutils libattr1-dev make automake bison byacc cmake curl \
-          g++-multilib binutils-gold python3 ccache
-
-      - name: Enable ccache wrappers
-        run: |
-          sudo /usr/sbin/update-ccache-symlinks || true
-          echo "/usr/lib/ccache" >> "$GITHUB_PATH"
-
-      - name: Configure ccache
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: |
-          mkdir -p ~/.ccache
-          echo 'max_size = 2G' > ~/.ccache/ccache.conf
-          echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true
-
-      - name: Build depends
-        run: |
-          cd depends/
-          make -j4 HOST=x86_64-linux-gnu
-
-      - name: Auto generate
-        run: ./autogen.sh
-
-      - name: configure
-        run: |
-          CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site \
-          ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
-          --disable-dependency-tracking --disable-werror \
-          --prefix="$(pwd)/depends/x86_64-linux-gnu" \
-          --bindir="$(pwd)/release/bin" \
-          --libdir="$(pwd)/release/lib"
-
-      - name: make
-        run: make -j4
-
-      - name: strip
-        run: |
-          cd ./src && strip verged verge-cli verge-tx
-          cd ./qt && strip verge-qt
-
-      - name: ccache stats
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: ccache -s || true
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-ubuntu22
-          path: |
             ./src/verged
-            ./src/verge-cli
             ./src/verge-tx
-            ./src/qt/verge-qt
-            
+
   raspberrypi:
     runs-on: ubuntu-24.04-arm
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -891,7 +2615,8 @@ jobs:
           sudo apt-get install -y \
           libseccomp-dev git build-essential xutils-dev libtool gperf autotools-dev \
           automake pkg-config bsdmainutils libattr1-dev make automake bison byacc \
-          cmake curl bison byacc python3 libcap-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          cmake curl bison byacc python3 libcap-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+          ninja-build flex nodejs gyp libgl1-mesa-dev libegl1-mesa-dev libopengl-dev
 
       - name: Export toolchain env
         run: |
@@ -904,7 +2629,7 @@ jobs:
       - name: Build depends
         run: |
           cd depends/
-          make -j4 HOST=aarch64-linux-gnu
+          make -j1 HOST=aarch64-linux-gnu QT_SKIP_WEBENGINE=1 QT_SKIP_QTDECLARATIVE=1 QT_DISABLE_OPENSSL=1
 
       - name: Auto generate
         run: ./autogen.sh
@@ -929,462 +2654,368 @@ jobs:
 
       - name: strip
         run: |
-          cd ./src && strip verged verge-cli verge-tx
-          cd ./qt && strip verge-qt
+          cd ./src && strip .libs/verged .libs/verge-cli .libs/verge-tx
+          cd ./qt && strip .libs/verge-qt
+
+      - name: Build Qt AppImage (ARM64)
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$PWD/release"
+
+          curl -L -o "$PWD/linuxdeploy-aarch64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
+          chmod +x "$PWD/linuxdeploy-aarch64.AppImage"
+
+          rm -rf "$PWD/linuxdeploy-root" "$PWD/AppDir-verge-qt"
+          "$PWD/linuxdeploy-aarch64.AppImage" --appimage-extract >/dev/null
+          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-root"
+
+          export VERSION="${GITHUB_SHA::7}"
+
+          APPDIR="$PWD/AppDir-verge-qt"
+          QT_BIN="$PWD/src/qt/.libs/verge-qt"
+          UNIVALUE_LIBDIR="$PWD/src/univalue/.libs"
+          QT_TARGET_PREFIX="$PWD/depends/aarch64-linux-gnu"
+          QT_TARGET_LIBDIR="$QT_TARGET_PREFIX/lib"
+          if [ ! -f "$QT_BIN" ]; then
+            echo "::error::Expected ELF Qt binary not found at $QT_BIN"
+            exit 1
+          fi
+          if ! find "$UNIVALUE_LIBDIR" -maxdepth 1 -type f -name 'libunivalue.so*' | grep -q .; then
+            echo "::error::Expected local libunivalue shared library not found under $UNIVALUE_LIBDIR"
+            exit 1
+          fi
+          export LD_LIBRARY_PATH="$QT_TARGET_LIBDIR:$UNIVALUE_LIBDIR:${LD_LIBRARY_PATH:-}"
+          mkdir -p "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+          cat > "$APPDIR/usr/share/applications/verge-qt.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=Verge Qt
+          Exec=verge-qt
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=false
+          StartupWMClass=verge-qt
+          EOF
+          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/verge.png"
+          cp "$PWD/share/pixmaps/verge256.png" "$APPDIR/verge.png"
+
+          "$PWD/linuxdeploy-root/AppRun" \
+            --appdir "$APPDIR" \
+            --executable "$QT_BIN" \
+            --desktop-file "$APPDIR/usr/share/applications/verge-qt.desktop" \
+            --icon-file "$PWD/share/pixmaps/verge256.png"
+
+          QT_PLATFORM_PLUGIN="$(find "$QT_TARGET_PREFIX" -path '*/plugins/platforms/libqxcb.so' -type f | head -n1 || true)"
+          if [ -z "$QT_PLATFORM_PLUGIN" ]; then
+            echo "::error::Target Qt platform plugin libqxcb.so not found under $QT_TARGET_PREFIX"
+            find "$QT_TARGET_PREFIX" -path '*/plugins/platforms' -type d -print
+            exit 1
+          fi
+          mkdir -p "$APPDIR/usr/plugins/platforms"
+          cp "$QT_PLATFORM_PLUGIN" "$APPDIR/usr/plugins/platforms/libqxcb.so"
+
+          QT_XCB_QPA_LIB="$(find "$QT_TARGET_PREFIX" -path '*/libQt6XcbQpa.so.6' \( -type f -o -type l \) | head -n1 || true)"
+          if [ -z "$QT_XCB_QPA_LIB" ]; then
+            echo "::error::Target Qt XcbQpa library libQt6XcbQpa.so.6 not found under $QT_TARGET_PREFIX"
+            find "$QT_TARGET_PREFIX" -path '*/libQt6XcbQpa.so*' -print
+            exit 1
+          fi
+          cp "$(readlink -f "$QT_XCB_QPA_LIB")" "$APPDIR/usr/lib/libQt6XcbQpa.so.6"
+
+          "$PWD/linuxdeploy-root/AppRun" \
+            --appdir "$APPDIR" \
+            --library "$APPDIR/usr/lib/libQt6XcbQpa.so.6"
+
+          "$PWD/linuxdeploy-root/AppRun" \
+            --appdir "$APPDIR" \
+            --library "$APPDIR/usr/plugins/platforms/libqxcb.so"
+
+          cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$APPDIR/usr/lib/"
+
+          for required in \
+            "$APPDIR/usr/bin/verge-qt" \
+            "$APPDIR/usr/share/applications/verge-qt.desktop" \
+            "$APPDIR/verge.png" \
+            "$APPDIR/usr/lib/libQt6XcbQpa.so.6" \
+            "$APPDIR/usr/plugins/platforms/libqxcb.so"
+          do
+            if [ ! -e "$required" ]; then
+              echo "::error::Missing required AppImage runtime file: $required"
+              exit 1
+            fi
+          done
+
+          cat > "$APPDIR/usr/bin/qt.conf" <<EOF
+          [Paths]
+          Plugins=../plugins
+          EOF
+
+          cat > "$APPDIR/AppRun" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          exec "\$HERE/usr/bin/verge-qt" "\$@"
+          EOF
+          chmod +x "$APPDIR/AppRun"
+
+          export ARCH=aarch64
+          export LDAI_OUTPUT="$PWD/release/Verge-Qt-aarch64.AppImage"
+          rm -f "$PWD/release/Verge-Qt-aarch64.AppImage"
+          "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$APPDIR"
+          GENERATED_APPIMAGE="$(find "$PWD" -maxdepth 1 -type f -name 'Verge_Qt-*-aarch64.AppImage' -printf '%T@ %p\n' | sort -nr | awk 'NR==1 {print $2}')"
+          if [ -z "$GENERATED_APPIMAGE" ]; then
+            echo "::error::Generated Verge Qt ARM64 AppImage not found"
+            ls -lah "$PWD" | grep AppImage || true
+            ls -lah "$PWD/release" || true
+            exit 1
+          fi
+          mv "$GENERATED_APPIMAGE" "$PWD/release/Verge-Qt-aarch64.AppImage"
+
+          build_cli_appimage() {
+            local binary_path="$1"
+            local app_name="$2"
+            local exec_name="$3"
+            local output_name="$4"
+            local terminal_flag="$5"
+            local appdir="$PWD/AppDir-$exec_name"
+
+            rm -rf "$appdir"
+            mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/256x256/apps"
+
+            install -m755 "$binary_path" "$appdir/usr/bin/$exec_name"
+            cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$appdir/usr/lib/"
+            patchelf --set-rpath '$ORIGIN/../lib' "$appdir/usr/bin/$exec_name"
+
+            cat > "$appdir/usr/share/applications/$exec_name.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=$app_name
+          Exec=$exec_name
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=$terminal_flag
+          EOF
+            cp "$appdir/usr/share/applications/$exec_name.desktop" "$appdir/$exec_name.desktop"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
+
+            cat > "$appdir/AppRun" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          exec "\$HERE/usr/bin/$exec_name" "\$@"
+          EOF
+            chmod +x "$appdir/AppRun"
+
+            export ARCH=aarch64
+            export LDAI_OUTPUT="$PWD/release/$output_name"
+            rm -f "$PWD/release/$output_name"
+            "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
+            generated_appimage="$(find "$PWD" -maxdepth 1 -type f -name '*.AppImage' ! -name 'linuxdeploy*.AppImage' -printf '%T@ %p\n' | sort -nr | awk 'NR==1 {print $2}')"
+            if [ -z "$generated_appimage" ]; then
+              echo "::error::Generated AppImage not found for $exec_name"
+              exit 1
+            fi
+            mv "$generated_appimage" "$PWD/release/$output_name"
+          }
+
+          build_cli_appimage "$PWD/src/.libs/verged" "Verge Daemon" "verged" "verged-aarch64.AppImage" "false"
+          build_cli_appimage "$PWD/src/.libs/verge-cli" "Verge CLI" "verge-cli" "verge-cli-aarch64.AppImage" "true"
+          build_cli_appimage "$PWD/src/.libs/verge-tx" "Verge TX" "verge-tx" "verge-tx-aarch64.AppImage" "true"
+
+          (
+            cd "$PWD/release"
+            zip -j verge-aarch64-pi5-appimages.zip \
+              Verge-Qt-aarch64.AppImage \
+              verged-aarch64.AppImage \
+              verge-cli-aarch64.AppImage \
+              verge-tx-aarch64.AppImage
+          )
 
       - uses: actions/upload-artifact@v4
         with:
           name: verge-aarch64-pi5
           path: |
+            ./release/Verge-Qt-aarch64.AppImage
+            ./release/verged-aarch64.AppImage
+            ./release/verge-cli-aarch64.AppImage
+            ./release/verge-tx-aarch64.AppImage
+            ./release/verge-aarch64-pi5-appimages.zip
             ./src/verged
             ./src/verge-cli
             ./src/verge-tx
             ./src/qt/verge-qt
 
-  windows32-ubuntu24:
-    runs-on: ubuntu-24.04
+  windows64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache depends artifacts
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            git
+            make
+            autoconf
+            automake
+            libtool
+            pkgconf
+            gperf
+            flex
+            bison
+            diffutils
+            patch
+            curl
+            file
+            unzip
+            zip
+            tar
+            perl
+            python
+            mingw-w64-x86_64-nsis
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up MSVC x64 environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Cache MSVC bootstrap artifacts
         uses: actions/cache@v4
         with:
           path: |
-            depends/built
-            depends/i686-w64-mingw32
-            depends/work
-            depends/sources
-          key: depends-${{ runner.os }}-mingw32-32-va-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+            build-msvc
+          key: windows64-msvc-bootstrap-v1-${{ hashFiles('contrib/windows-msvc/**') }}
           restore-keys: |
-            depends-${{ runner.os }}-mingw32-32-va-
+            windows64-msvc-bootstrap-v1-
 
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw32-32-va-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-mingw32-32-va-
-
-      - name: Update apt repos
-        run: sudo apt-get update
-
-      - name: Install base dependencies
+      - name: Bootstrap native Windows MSVC dependencies
+        shell: pwsh
         run: |
-          sudo apt-get install -y \
-          build-essential libtool gperf autotools-dev automake pkg-config \
-          bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-i686 mingw-w64-i686-dev
+          ./contrib/windows-msvc/bootstrap.ps1
+          . ./build-msvc/env-msvc.ps1
+          @(
+            "QTDIR=$env:QTDIR"
+            "Qt6_DIR=$env:Qt6_DIR"
+            "BOOST_ROOT=$env:BOOST_ROOT"
+            "BOOST_INCLUDEDIR=$env:BOOST_INCLUDEDIR"
+            "BOOST_LIBRARYDIR=$env:BOOST_LIBRARYDIR"
+            "OPENSSL_ROOT_DIR=$env:OPENSSL_ROOT_DIR"
+            "OPENSSL_INCLUDE_DIR=$env:OPENSSL_INCLUDE_DIR"
+            "OPENSSL_LIB_DIR=$env:OPENSSL_LIB_DIR"
+            "BDB_PREFIX=$env:BDB_PREFIX"
+            "BDB_CFLAGS=$env:BDB_CFLAGS"
+            "BDB_LIBS=$env:BDB_LIBS"
+            "VCPKG_ROOT=$env:VCPKG_ROOT"
+            "VCPKG_INSTALLED_DIR=$env:VCPKG_INSTALLED_DIR"
+            "VCPKG_DEFAULT_TRIPLET=$env:VCPKG_DEFAULT_TRIPLET"
+            "VERGE_MSVC_PKGCONFIG=$env:VERGE_MSVC_PKGCONFIG"
+            "PKG_CONFIG_PATH=$env:PKG_CONFIG_PATH"
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Force Posix
-        run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
-
-      - name: Build depends for MingW32 Cross Compile
-        env:
-          STRIP: "strip"
-          V: "1"
-        run: |
-          set -euo pipefail
-          cd depends/
-          ( while true; do
-              echo "---- depends heartbeat $(date -u +'%Y-%m-%dT%H:%M:%SZ') ----"
-              ps -ef | egrep 'cmake|ninja|mingw|windres|ar|ranlib|ld|gcc|g\+\+|make|libtool' | grep -v egrep || true
-              sleep 60
-            done ) &
-          HB=$!
-          trap 'kill "$HB" || true' EXIT
-          timeout 120m make HOST=i686-w64-mingw32 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
-
-      - name: Auto generate
-        run: ./autogen.sh
-
-      - name: Export toolchain env (target)
-        run: |
-          echo "CC=i686-w64-mingw32-gcc-posix"          >> "$GITHUB_ENV"
-          echo "CXX=i686-w64-mingw32-g++-posix"         >> "$GITHUB_ENV"
-          echo "AR=i686-w64-mingw32-ar"                 >> "$GITHUB_ENV"
-          echo "RANLIB=i686-w64-mingw32-ranlib"         >> "$GITHUB_ENV"
-          echo "WINDRES=i686-w64-mingw32-windres"       >> "$GITHUB_ENV"
-          echo "PKG_CONFIG=i686-w64-mingw32-pkg-config" >> "$GITHUB_ENV"
-          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"       >> "$GITHUB_ENV"
-          echo "CCACHE_DIR=$HOME/.ccache"               >> "$GITHUB_ENV"
-          echo "ARFLAGS=rcs"                            >> "$GITHUB_ENV"
-
-      - name: Configure ccache
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: |
-          mkdir -p ~/.ccache
-          echo 'max_size = 2G' > ~/.ccache/ccache.conf
-          echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true
-
-      - name: configure (Qt6 GUI required)
+      - name: Build native Windows64 with MSVC dependencies
         run: |
           set -euo pipefail
+          BUNDLE="$PWD/release/windows64"
+          bash ./contrib/windows-msvc/build-msys.sh
+          mkdir -p "$BUNDLE"
+          cp "$PWD/src/verged.exe" "$BUNDLE/" || true
+          cp "$PWD/src/verge-cli.exe" "$BUNDLE/" || true
+          cp "$PWD/src/verge-tx.exe" "$BUNDLE/" || true
+          cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/" || true
 
-          QT_HOST_PREFIX="$PWD/depends/i686-w64-mingw32/native/qt-host"
-          QT_HOST_BIN="$QT_HOST_PREFIX/bin"
-          QT_TARGET_PREFIX="$PWD/depends/i686-w64-mingw32"
-
-          test -x "$QT_HOST_BIN/moc"
-          test -x "$QT_HOST_BIN/uic"
-          test -x "$QT_HOST_BIN/rcc"
-
-          mkdir -p "$PWD/.qt-tool-aliases"
-          ln -sf "$QT_HOST_BIN/moc" "$PWD/.qt-tool-aliases/moc-qt6"
-          ln -sf "$QT_HOST_BIN/uic" "$PWD/.qt-tool-aliases/uic-qt6"
-          ln -sf "$QT_HOST_BIN/rcc" "$PWD/.qt-tool-aliases/rcc-qt6"
-
-          export PATH="$PWD/.qt-tool-aliases:$QT_HOST_BIN:$QT_HOST_PREFIX/libexec:$PWD/depends/i686-w64-mingw32/native/bin:$PATH"
-          export MOC="$QT_HOST_BIN/moc"
-          export UIC="$QT_HOST_BIN/uic"
-          export RCC="$QT_HOST_BIN/rcc"
-
-          echo "Qt target plugin dir snapshot:"
-          find "$QT_TARGET_PREFIX/plugins/platforms" -maxdepth 1 -type f 2>/dev/null | sort || true
-          echo "Qt target static resource object snapshot:"
-          find "$QT_TARGET_PREFIX/lib/objects-Release" -type f \( \
-            -name 'qrc_openglblacklists_init.cpp.obj' -o \
-            -name 'qrc_cursors_init.cpp.obj' -o \
-            -name 'qrc_gui_shaders_init.cpp.obj' \
-          \) 2>/dev/null | sort || true
-          if [ -f "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl" ]; then
-            echo "qwindows.prl:"
-            sed -n '1,80p' "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl"
-          fi
-
-          if ! CONFIG_SITE="$PWD/depends/i686-w64-mingw32/share/config.site" \
-            ./configure --prefix=/ --disable-bench --disable-tests \
-              --with-gui=qt6 \
-              --with-qt-bindir="$QT_HOST_BIN"; then
-            echo "configure failed; dumping Qt static plugin diagnostics from config.log"
-            grep -nE "qwindows|QWindowsIntegrationPlugin|qdirect2d|Could not resolve|Qt6 static Windows integration plugin" config.log || true
-            tail -n 240 config.log || true
-            exit 1
-          fi
-
-          # Hard requirement: automake conditional ENABLE_QT must be enabled
-          grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
-
-          # Hard requirement: verge-qt target exists in generated makefiles
-          grep -Fq 'qt/verge-qt$(EXEEXT)' src/Makefile
-
-          # Hard requirement: Qt6 windows static resource objects are present in link flags.
-          # They are listed in qwindows/qdirect2d .prl, but autotools must wire them explicitly.
-          if ! grep -nE 'qrc_(openglblacklists|cursors|gui_shaders)_init[.]cpp[.]obj' src/Makefile; then
-            echo "ERROR: Missing Qt6 static resource object files in src/Makefile link flags"
-            exit 1
-          fi
-
-
-      - name: make (serialized, verbose, heartbeat)
-        env:
-          STRIP: ""
-          V: "1"
+      - name: Bundle Qt runtime
+        shell: pwsh
         run: |
-          set -e
-          ( while true; do
-              echo "---- heartbeat $(date) ----"
-              ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
-              sleep 60
-            done ) &
-          HB=$!
-          timeout 60m make -j1 --output-sync=recurse
-          kill "$HB" || true
-
-      - name: strip (cross)
-        run: |
-          cd ./src && i686-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
-          cd ./qt && i686-w64-mingw32-strip verge-qt.exe
-
-      - name: Bundle win32 runtime for verge-qt
-        run: |
-          set -euo pipefail
-
-          PREFIX="$PWD/depends/i686-w64-mingw32"
-          BUNDLE="$PWD/release/windows32"
-
-          mkdir -p "$BUNDLE/platforms" "$BUNDLE/plugins/platforms"
-
-          cp "$PWD/src/verged.exe" "$BUNDLE/"
-          cp "$PWD/src/verge-cli.exe" "$BUNDLE/"
-          cp "$PWD/src/verge-tx.exe" "$BUNDLE/"
-          cp "$PWD/src/qt/verge-qt.exe" "$BUNDLE/"
-
-          copy_local_dll_deps() {
-            local target="$1"
-            i686-w64-mingw32-objdump -p "$target" \
-              | awk '/DLL Name:/{print $3}' \
-              | while read -r dll; do
-                  [ -n "$dll" ] || continue
-                  if [ -f "$BUNDLE/$dll" ] || [ -f "$BUNDLE/platforms/$dll" ]; then
-                    continue
-                  fi
-                  local found=""
-                  found="$(find "$PREFIX" -type f -iname "$dll" | head -n1 || true)"
-                  if [ -n "$found" ] && [ -f "$found" ]; then
-                    cp "$found" "$BUNDLE/"
-                  fi
-                done
+          . ./build-msvc/env-msvc.ps1
+          $bundle = Join-Path $PWD "release/windows64"
+          $qtExe = Join-Path $bundle "verge-qt.exe"
+          if (Test-Path $qtExe) {
+            & (Join-Path $env:QTDIR "bin/windeployqt.exe") --release --compiler-runtime --dir $bundle $qtExe
+          }
+          $bdbDll = Get-ChildItem (Join-Path $PWD "build-msvc/deps/bdb") -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^libdb48\.dll$|^db48\.dll$|^libdb.*48.*\.dll$|^db.*48.*\.dll$' } |
+            Select-Object -First 1
+          if ($bdbDll) {
+            Copy-Item $bdbDll.FullName (Join-Path $bundle $bdbDll.Name) -Force
           }
 
-          copy_local_dll_deps_recursive() {
-            local seed="$1"
-            local prev_count=-1
-            while true; do
-              local cur_count
-              cur_count="$(find "$BUNDLE" -maxdepth 1 -type f -iname '*.dll' | wc -l)"
-              if [ "$cur_count" -eq "$prev_count" ]; then
-                break
-              fi
-              prev_count="$cur_count"
-              copy_local_dll_deps "$seed"
-              find "$BUNDLE" -maxdepth 1 -type f -iname '*.dll' -print0 \
-                | while IFS= read -r -d '' dllfile; do
-                    copy_local_dll_deps "$dllfile"
-                  done
-            done
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          $template = Join-Path $PWD "contrib/windows-msvc/verge-installer.nsi.in"
+          $script = Join-Path $PWD "build-msvc/verge-installer.nsi"
+          $bundle = (Resolve-Path (Join-Path $PWD "release/windows64")).Path
+          $output = Join-Path $PWD "release/verge-windows64-setup.exe"
+          $icon = (Resolve-Path (Join-Path $PWD "share/pixmaps/verge.ico")).Path
+          $wizardSource = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-wizard.png")).Path
+          $wizard = Join-Path $PWD "build-msvc/verge-installer.bmp"
+          $header = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-header.bmp")).Path
+          $license = (Resolve-Path (Join-Path $PWD "COPYING")).Path
+
+          Add-Type -AssemblyName System.Drawing
+          $wizardImage = [System.Drawing.Image]::FromFile($wizardSource)
+          $wizardBitmap = New-Object System.Drawing.Bitmap $wizardImage
+          try {
+            $wizardBitmap.Save($wizard, [System.Drawing.Imaging.ImageFormat]::Bmp)
+          } finally {
+            $wizardBitmap.Dispose()
+            $wizardImage.Dispose()
           }
 
-          if i686-w64-mingw32-objdump -p "$BUNDLE/verge-qt.exe" | grep -qi 'Qt6Core.dll'; then
-            echo "ERROR: dynamic Qt linkage detected in verge-qt.exe; windows32 build must be fully static"
-            exit 1
-          else
-            echo "Detected static Qt linkage."
-          fi
+          $scriptBody = Get-Content $template -Raw
+          $replacements = @{
+            '@APP_NAME@' = 'Verge (64-bit)'
+            '@OUTPUT_EXE@' = $output
+            '@BUNDLE_DIR@' = $bundle
+            '@ICON_FILE@' = $icon
+            '@WIZARD_BITMAP@' = $wizard
+            '@HEADER_BITMAP@' = $header
+            '@LICENSE_FILE@' = $license
+          }
 
-          QWINDOWS_DLL="$(find "$PREFIX" -type f -path '*/platforms/qwindows.dll' | head -n1 || true)"
-          if [ -n "$QWINDOWS_DLL" ] && [ -f "$QWINDOWS_DLL" ]; then
-            cp "$QWINDOWS_DLL" "$BUNDLE/platforms/"
-            cp "$QWINDOWS_DLL" "$BUNDLE/plugins/platforms/"
-            copy_local_dll_deps_recursive "$BUNDLE/platforms/qwindows.dll"
-          fi
+          foreach ($entry in $replacements.GetEnumerator()) {
+            $scriptBody = $scriptBody.Replace($entry.Key, $entry.Value)
+          }
 
-          copy_local_dll_deps_recursive "$BUNDLE/verge-qt.exe"
+          Set-Content -Path $script -Value $scriptBody -Encoding ASCII -NoNewline
 
-          test -f "$BUNDLE/verge-qt.exe"
+          $makensisCandidates = @(
+            (Join-Path $env:RUNNER_TEMP "msys64/mingw64/bin/makensis.exe"),
+            (Join-Path $env:RUNNER_TEMP "msys64/usr/bin/makensis.exe")
+          )
+          $makensis = $makensisCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $makensis) {
+            throw "makensis.exe not found under $env:RUNNER_TEMP\\msys64"
+          }
 
-      - name: Verify verge-qt binary shape and plugin linkage
-        run: |
-          set -euo pipefail
-          EXE="$PWD/release/windows32/verge-qt.exe"
-          test -f "$EXE"
-
-          file "$EXE"
-          i686-w64-mingw32-objdump -p "$EXE" | awk '/DLL Name:/{print}'
-
-          if i686-w64-mingw32-objdump -p "$EXE" | grep -qi 'DLL Name:.*Qt6'; then
-            echo "ERROR: dynamic Qt DLL dependency detected"
-            exit 1
-          fi
-
-          if ! strings "$EXE" | grep -qi 'QWindowsIntegrationPlugin'; then
-            echo "ERROR: QWindowsIntegrationPlugin string not found in verge-qt.exe"
-            exit 1
-          fi
-
-      - name: ccache stats
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: ccache -s || true
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verge-windows32-ubuntu24
-          path: /home/runner/work/verge/verge/release/windows32
-
-  windows64-ubuntu24:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Cache depends artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            depends/built
-            depends/x86_64-w64-mingw32
-            depends/work
-            depends/sources
-          key: depends-${{ runner.os }}-mingw64-64-v8-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
-          restore-keys: |
-            depends-${{ runner.os }}-mingw64-64-v8-
-
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-mingw64-64-v8-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-mingw64-64-v8-
-
-      - name: Update apt repos
-        run: sudo apt-get update
-
-      - name: Install base dependencies
-        run: |
-          sudo apt-get install -y \
-          build-essential libtool gperf autotools-dev automake pkg-config \
-          bsdmainutils curl git bison byacc python3 nsis ccache \
-          g++-mingw-w64-x86-64 mingw-w64-x86-64-dev
-
-      - name: Force Posix
-        run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
-
-      - name: Build depends for MingW64 Cross Compile
-        env:
-          STRIP: "strip"
-          V: "1"
-        run: |
-          set -euo pipefail
-          cd depends/
-          ( while true; do
-              echo "---- depends heartbeat $(date -u +'%Y-%m-%dT%H:%M:%SZ') ----"
-              ps -ef | egrep 'cmake|ninja|mingw|windres|ar|ranlib|ld|gcc|g\+\+|make|libtool' | grep -v egrep || true
-              sleep 60
-            done ) &
-          HB=$!
-          trap 'kill "$HB" || true' EXIT
-          timeout 120m make HOST=x86_64-w64-mingw32 -j2 STRIP="${STRIP}" V="${V}" --output-sync=recurse
-
-      - name: Auto generate
-        run: ./autogen.sh
-
-      - name: Export toolchain env
-        run: |
-          echo "CC=x86_64-w64-mingw32-gcc-posix"          >> "$GITHUB_ENV"
-          echo "CXX=x86_64-w64-mingw32-g++-posix"         >> "$GITHUB_ENV"
-          echo "AR=x86_64-w64-mingw32-ar"                 >> "$GITHUB_ENV"
-          echo "RANLIB=x86_64-w64-mingw32-ranlib"         >> "$GITHUB_ENV"
-          echo "WINDRES=x86_64-w64-mingw32-windres"       >> "$GITHUB_ENV"
-          echo "PKG_CONFIG=x86_64-w64-mingw32-pkg-config" >> "$GITHUB_ENV"
-          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"         >> "$GITHUB_ENV"
-          echo "CCACHE_DIR=$HOME/.ccache"                 >> "$GITHUB_ENV"
-          echo "ARFLAGS=rcs"                               >> "$GITHUB_ENV"
-
-      - name: Configure ccache
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: |
-          mkdir -p ~/.ccache
-          echo 'max_size = 2G' > ~/.ccache/ccache.conf
-          echo 'compression = true' >> ~/.ccache/ccache.conf
-          ccache -z || true
-
-      - name: configure (Qt6 GUI required)
-        run: |
-          set -euo pipefail
-
-          QT_HOST_PREFIX="$PWD/depends/x86_64-w64-mingw32/native/qt-host"
-          QT_HOST_BIN="$QT_HOST_PREFIX/bin"
-          QT_TARGET_PREFIX="$PWD/depends/x86_64-w64-mingw32"
-
-          test -x "$QT_HOST_BIN/moc"
-          test -x "$QT_HOST_BIN/uic"
-          test -x "$QT_HOST_BIN/rcc"
-
-          mkdir -p "$PWD/.qt-tool-aliases"
-          ln -sf "$QT_HOST_BIN/moc" "$PWD/.qt-tool-aliases/moc-qt6"
-          ln -sf "$QT_HOST_BIN/uic" "$PWD/.qt-tool-aliases/uic-qt6"
-          ln -sf "$QT_HOST_BIN/rcc" "$PWD/.qt-tool-aliases/rcc-qt6"
-
-          export PATH="$PWD/.qt-tool-aliases:$QT_HOST_BIN:$QT_HOST_PREFIX/libexec:$PWD/depends/x86_64-w64-mingw32/native/bin:$PATH"
-          export MOC="$QT_HOST_BIN/moc"
-          export UIC="$QT_HOST_BIN/uic"
-          export RCC="$QT_HOST_BIN/rcc"
-
-          echo "Qt target plugin dir snapshot:"
-          find "$QT_TARGET_PREFIX/plugins/platforms" -maxdepth 1 -type f 2>/dev/null | sort || true
-          echo "Qt target static resource object snapshot:"
-          find "$QT_TARGET_PREFIX/lib/objects-Release" -type f \( \
-            -name 'qrc_openglblacklists_init.cpp.obj' -o \
-            -name 'qrc_cursors_init.cpp.obj' -o \
-            -name 'qrc_gui_shaders_init.cpp.obj' \
-          \) 2>/dev/null | sort || true
-          if [ -f "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl" ]; then
-            echo "qwindows.prl:"
-            sed -n '1,80p' "$QT_TARGET_PREFIX/plugins/platforms/qwindows.prl"
-          fi
-
-          if ! CONFIG_SITE="$PWD/depends/x86_64-w64-mingw32/share/config.site" \
-            ./configure --enable-scrypt-sse2 --prefix=/ --disable-bench --disable-tests \
-              --with-gui=qt6 \
-              --with-qt-bindir="$QT_HOST_BIN"; then
-            echo "configure failed; dumping Qt static plugin diagnostics from config.log"
-            grep -nE "qwindows|QWindowsIntegrationPlugin|qdirect2d|Could not resolve|Qt6 static Windows integration plugin" config.log || true
-            tail -n 240 config.log || true
-            exit 1
-          fi
-
-          # Hard requirement: automake conditional ENABLE_QT must be enabled
-          grep -Fq 'S["ENABLE_QT_TRUE"]=""' config.status
-
-          # Hard requirement: verge-qt target exists in generated makefiles
-          grep -Fq 'qt/verge-qt$(EXEEXT)' src/Makefile
-
-          # Hard requirement: Qt6 windows static resource objects are present in link flags.
-          if ! grep -nE 'qrc_(openglblacklists|cursors|gui_shaders)_init[.]cpp[.]obj' src/Makefile; then
-            echo "ERROR: Missing Qt6 static resource object files in src/Makefile link flags"
-            exit 1
-          fi
-
-      - name: make (serialized, verbose, heartbeat)
-        env:
-          STRIP: ""
-          V: "1"
-        run: |
-          set -euo pipefail
-          mkdir -p "$PWD/.ccache-tmp"
-          export CCACHE_TEMPDIR="$PWD/.ccache-tmp"
-          ( while true; do
-              echo "---- heartbeat $(date) ----"
-              ps -ef | egrep 'mingw|windres|ar|ranlib|ld|gcc|g\+\+|libtool' | grep -v egrep || true
-              sleep 60
-            done ) &
-          HB=$!
-          trap 'kill "$HB" || true' EXIT
-          timeout 60m make -j1 --output-sync=recurse
-          kill "$HB" || true
-
-      - name: strip (cross)
-        run: |
-          cd ./src && x86_64-w64-mingw32-strip verged.exe verge-cli.exe verge-tx.exe
-          cd ./qt && x86_64-w64-mingw32-strip verge-qt.exe
-
-      - name: Verify windows64 binary shape and static Qt linkage
-        run: |
-          set -euo pipefail
-          for exe in "$PWD/src/verged.exe" "$PWD/src/verge-cli.exe" "$PWD/src/verge-tx.exe" "$PWD/src/qt/verge-qt.exe"; do
-            test -f "$exe"
-            file "$exe"
-            x86_64-w64-mingw32-objdump -p "$exe" | awk '/DLL Name:/{print}'
-          done
-
-          if x86_64-w64-mingw32-objdump -p "$PWD/src/qt/verge-qt.exe" | grep -qi 'DLL Name:.*Qt6'; then
-            echo "ERROR: dynamic Qt DLL dependency detected in verge-qt.exe"
-            exit 1
-          fi
-
-          if ! strings "$PWD/src/qt/verge-qt.exe" | grep -qi 'QWindowsIntegrationPlugin'; then
-            echo "ERROR: QWindowsIntegrationPlugin string not found in verge-qt.exe"
-            exit 1
-          fi
-
-      - name: ccache stats
-        env:
-          CCACHE_DIR: ~/.ccache
-        run: ccache -s || true
+          & $makensis -V2 $script
 
       - name: Dump config.log on failure
         if: failure()
-        run: test -f config.log && sed -n '1,200p' config.log || true
+        run: |
+          test -f config.log && sed -n '1,200p' config.log || true
+          test -f config.status && sed -n '1,200p' config.status || true
+          test -f src/tor/config.log && sed -n '1,260p' src/tor/config.log || true
+          test -f src/tor/config.log && grep -nE -C 20 'evdns_base_new|event_new|libevent2 is installed but linking it failed|undefined reference|undefined symbol|lld-link|linker command failed' src/tor/config.log || true
+          test -f src/tor/config.status && sed -n '1,200p' src/tor/config.status || true
+          find build-msvc/vcpkg/installed -maxdepth 4 -type f \( -iname 'event*.lib' -o -iname 'libevent*.lib' -o -iname 'libevent*.pc' \) -print || true
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-windows64bit-ubuntu24
+          name: verge-windows64bit
           path: |
-            /home/runner/work/verge/verge/src/verged.exe
-            /home/runner/work/verge/verge/src/verge-cli.exe
-            /home/runner/work/verge/verge/src/verge-tx.exe
-            /home/runner/work/verge/verge/src/qt/verge-qt.exe
+            release/windows64
+            release/verge-windows64-setup.exe

@@ -17,11 +17,24 @@
 #include <qt/guiutil.h>
 #include <qt/platformstyle.h>
 
+#include <QGraphicsDropShadowEffect>
 #include <QIcon>
 #include <QMenu>
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QSortFilterProxyModel>
+
+namespace {
+void ApplyCardShadow(QWidget* widget)
+{
+    if (!widget) return;
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(widget);
+    effect->setBlurRadius(28.0);
+    effect->setOffset(0, 10);
+    effect->setColor(QColor(88, 28, 140, 92));
+    widget->setGraphicsEffect(effect);
+}
+}
 
 class AddressBookSortFilterProxyModel final : public QSortFilterProxyModel
 {
@@ -68,6 +81,18 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
 {
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
+    setObjectName("AddressBookPage");
+    setMinimumSize(880, 520);
+    ui->labelExplanation->setObjectName("AddressBookIntroText");
+    ui->searchLineEdit->setObjectName("AddressBookSearchField");
+    ui->tableView->setObjectName("AddressBookTable");
+    ui->tableView->horizontalHeader()->setObjectName("AddressBookTableHeader");
+    ui->newAddress->setObjectName("AddressBookPrimaryButton");
+    ui->copyAddress->setObjectName("AddressBookSecondaryButton");
+    ui->deleteAddress->setObjectName("AddressBookDangerButton");
+    ui->exportButton->setObjectName("AddressBookSecondaryButton");
+    ui->closeButton->setObjectName("DialogSecondaryButton");
+    ApplyCardShadow(ui->tableView);
 
     if (!platformStyle->getImagesOnButtons()) {
         ui->newAddress->setIcon(QIcon());
@@ -162,6 +187,12 @@ void AddressBookPage::setModel(AddressTableModel *_model)
 
     ui->tableView->setModel(proxyModel);
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
+    ui->tableView->setAlternatingRowColors(false);
+    ui->tableView->verticalHeader()->hide();
+    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tableView->setShowGrid(false);
+    ui->tableView->setWordWrap(false);
 
     // Set column widths
 #if QT_VERSION < 0x050000
@@ -171,6 +202,8 @@ void AddressBookPage::setModel(AddressTableModel *_model)
     ui->tableView->horizontalHeader()->setSectionResizeMode(AddressTableModel::Label, QHeaderView::Stretch);
     ui->tableView->horizontalHeader()->setSectionResizeMode(AddressTableModel::Address, QHeaderView::ResizeToContents);
 #endif
+    ui->tableView->horizontalHeader()->setHighlightSections(false);
+    ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     connect(ui->tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
         this, SLOT(selectionChanged()));

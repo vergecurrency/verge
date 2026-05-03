@@ -6,13 +6,14 @@
 #ifndef VERGE_QT_SPLASHSCREEN_H
 #define VERGE_QT_SPLASHSCREEN_H
 
-#include <functional>
 #include <QSplashScreen>
 #include <QTimer>
+#include <QVector>
 
 #include <memory>
 
 class NetworkStyle;
+class QPainter;
 
 namespace interfaces {
 class Handler;
@@ -49,6 +50,9 @@ protected:
     bool eventFilter(QObject * obj, QEvent * ev);
 
 private:
+    void drawAnimatedBackground(QPainter& painter) const;
+    void beginFinish();
+
     /** Connect core signals to splash screen */
     void subscribeToCoreSignals();
     /** Disconnect core signals to splash screen */
@@ -60,8 +64,12 @@ private:
     QString curMessage;
     QColor curColor;
     int curAlignment;
+    QTimer m_backgroundAnimationTimer;
     QTimer m_textGradientTimer;
+    int m_backgroundPhase;
     int m_textGradientOffset;
+    bool m_isFinishing;
+    bool m_coreSignalsConnected;
 
     interfaces::Node& m_node;
     std::unique_ptr<interfaces::Handler> m_handler_init_message;

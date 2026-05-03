@@ -504,8 +504,11 @@ def deployPlugins(appBundleInfo: ApplicationBundleInfo, deploymentInfo: Deployme
                 deployFrameworks([dependency], appBundleInfo.path, destinationPath, strip, verbose, deploymentInfo)
 
 qt_conf="""[Paths]
+Prefix=..
 Translations=Resources
 Plugins=PlugIns
+Resources=Resources
+LibraryExecutables=Frameworks/QtWebEngineCore.framework/Versions/A/Helpers
 """
 
 ap = ArgumentParser(description="""Improved version of macdeployqt.
