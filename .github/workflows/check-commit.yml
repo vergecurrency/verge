@@ -2515,6 +2515,7 @@ jobs:
           Categories=Network;Finance;
           Terminal=$terminal_flag
           EOF
+            cp "$appdir/usr/share/applications/$exec_name.desktop" "$appdir/$exec_name.desktop"
             cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
             cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
 
@@ -2763,6 +2764,7 @@ jobs:
           Categories=Network;Finance;
           Terminal=$terminal_flag
           EOF
+            cp "$appdir/usr/share/applications/$exec_name.desktop" "$appdir/$exec_name.desktop"
             cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
             cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
 
