@@ -2491,6 +2491,63 @@ jobs:
           fi
           mv "$GENERATED_APPIMAGE" "$PWD/release/Verge-Qt-x86_64.AppImage"
 
+          build_cli_appimage() {
+            local binary_path="$1"
+            local app_name="$2"
+            local exec_name="$3"
+            local output_name="$4"
+            local terminal_flag="$5"
+            local appdir="$PWD/AppDir-$exec_name"
+
+            rm -rf "$appdir"
+            mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/256x256/apps"
+
+            install -m755 "$binary_path" "$appdir/usr/bin/$exec_name"
+            cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$appdir/usr/lib/"
+            patchelf --set-rpath '$ORIGIN/../lib' "$appdir/usr/bin/$exec_name"
+
+            cat > "$appdir/usr/share/applications/$exec_name.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=$app_name
+          Exec=$exec_name
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=$terminal_flag
+          EOF
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
+
+            cat > "$appdir/AppRun" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          exec "\$HERE/usr/bin/$exec_name" "\$@"
+          EOF
+            chmod +x "$appdir/AppRun"
+
+            export ARCH=x86_64
+            export LDAI_OUTPUT="$PWD/release/$output_name"
+            "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
+
+            if [ ! -f "$PWD/release/$output_name" ]; then
+              echo "::error::Generated AppImage not found: $PWD/release/$output_name"
+              exit 1
+            fi
+          }
+
+          build_cli_appimage "$PWD/src/.libs/verged" "Verge Daemon" "verged" "verged-x86_64.AppImage" "false"
+          build_cli_appimage "$PWD/src/.libs/verge-cli" "Verge CLI" "verge-cli" "verge-cli-x86_64.AppImage" "true"
+          build_cli_appimage "$PWD/src/.libs/verge-tx" "Verge TX" "verge-tx" "verge-tx-x86_64.AppImage" "true"
+
+          (
+            cd "$PWD/release"
+            zip -j verge-ubuntu24-appimages.zip \
+              Verge-Qt-x86_64.AppImage \
+              verged-x86_64.AppImage \
+              verge-cli-x86_64.AppImage \
+              verge-tx-x86_64.AppImage
+          )
+
       - name: Test verge-qt AppImage launch
         run: |
           set -euo pipefail
@@ -2532,6 +2589,10 @@ jobs:
           name: verge-ubuntu24
           path: |
             ./release/Verge-Qt-x86_64.AppImage
+            ./release/verged-x86_64.AppImage
+            ./release/verge-cli-x86_64.AppImage
+            ./release/verge-tx-x86_64.AppImage
+            ./release/verge-ubuntu24-appimages.zip
             ./src/verge-cli
             ./src/verged
             ./src/verge-tx
@@ -2678,11 +2739,72 @@ jobs:
             exit 1
           fi
 
+          build_cli_appimage() {
+            local binary_path="$1"
+            local app_name="$2"
+            local exec_name="$3"
+            local output_name="$4"
+            local terminal_flag="$5"
+            local appdir="$PWD/AppDir-$exec_name"
+
+            rm -rf "$appdir"
+            mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/256x256/apps"
+
+            install -m755 "$binary_path" "$appdir/usr/bin/$exec_name"
+            cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$appdir/usr/lib/"
+            patchelf --set-rpath '$ORIGIN/../lib' "$appdir/usr/bin/$exec_name"
+
+            cat > "$appdir/usr/share/applications/$exec_name.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=$app_name
+          Exec=$exec_name
+          Icon=verge
+          Categories=Network;Finance;
+          Terminal=$terminal_flag
+          EOF
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/usr/share/icons/hicolor/256x256/apps/verge.png"
+            cp "$PWD/share/pixmaps/verge256.png" "$appdir/verge.png"
+
+            cat > "$appdir/AppRun" <<EOF
+          #!/bin/sh
+          HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          exec "\$HERE/usr/bin/$exec_name" "\$@"
+          EOF
+            chmod +x "$appdir/AppRun"
+
+            export ARCH=aarch64
+            export LDAI_OUTPUT="$PWD/release/$output_name"
+            "$PWD/linuxdeploy-root/plugins/linuxdeploy-plugin-appimage/usr/bin/appimagetool" "$appdir"
+
+            if [ ! -f "$PWD/release/$output_name" ]; then
+              echo "::error::Generated AppImage not found: $PWD/release/$output_name"
+              exit 1
+            fi
+          }
+
+          build_cli_appimage "$PWD/src/.libs/verged" "Verge Daemon" "verged" "verged-aarch64.AppImage" "false"
+          build_cli_appimage "$PWD/src/.libs/verge-cli" "Verge CLI" "verge-cli" "verge-cli-aarch64.AppImage" "true"
+          build_cli_appimage "$PWD/src/.libs/verge-tx" "Verge TX" "verge-tx" "verge-tx-aarch64.AppImage" "true"
+
+          (
+            cd "$PWD/release"
+            zip -j verge-aarch64-pi5-appimages.zip \
+              Verge-Qt-aarch64.AppImage \
+              verged-aarch64.AppImage \
+              verge-cli-aarch64.AppImage \
+              verge-tx-aarch64.AppImage
+          )
+
       - uses: actions/upload-artifact@v4
         with:
           name: verge-aarch64-pi5
           path: |
             ./release/Verge-Qt-aarch64.AppImage
+            ./release/verged-aarch64.AppImage
+            ./release/verge-cli-aarch64.AppImage
+            ./release/verge-tx-aarch64.AppImage
+            ./release/verge-aarch64-pi5-appimages.zip
             ./src/verged
             ./src/verge-cli
             ./src/verge-tx
