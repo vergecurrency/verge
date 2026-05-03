@@ -2671,35 +2671,18 @@ jobs:
 
           curl -L -o "$PWD/linuxdeploy-aarch64.AppImage" \
             https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
-          curl -L -o "$PWD/linuxdeploy-plugin-qt-aarch64.AppImage" \
-            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-aarch64.AppImage
-          chmod +x "$PWD/linuxdeploy-aarch64.AppImage" "$PWD/linuxdeploy-plugin-qt-aarch64.AppImage"
+          chmod +x "$PWD/linuxdeploy-aarch64.AppImage"
 
-          rm -rf "$PWD/linuxdeploy-root" "$PWD/linuxdeploy-plugin-qt-root" "$PWD/AppDir-verge-qt"
+          rm -rf "$PWD/linuxdeploy-root" "$PWD/AppDir-verge-qt"
           "$PWD/linuxdeploy-aarch64.AppImage" --appimage-extract >/dev/null
           mv "$PWD/squashfs-root" "$PWD/linuxdeploy-root"
-          "$PWD/linuxdeploy-plugin-qt-aarch64.AppImage" --appimage-extract >/dev/null
-          mv "$PWD/squashfs-root" "$PWD/linuxdeploy-plugin-qt-root"
 
-          export PATH="$PWD/linuxdeploy-plugin-qt-root/usr/bin:$PATH"
-          QT_TARGET_BIN="$PWD/depends/aarch64-linux-gnu/bin"
-          QT_HOST_BIN="$PWD/depends/aarch64-linux-gnu/native/qt-host/bin"
-          export PATH="$QT_TARGET_BIN:$QT_HOST_BIN:$PATH"
-          export QMAKE="$(find "$QT_TARGET_BIN" -maxdepth 1 -type f \( -name qmake6 -o -name qmake \) | head -n1)"
-          if [ -z "${QMAKE:-}" ] || [ ! -x "$QMAKE" ]; then
-            export QMAKE="$(find "$QT_HOST_BIN" -maxdepth 1 -type f \( -name qmake6 -o -name qmake \) | head -n1)"
-          fi
-          if [ -z "${QMAKE:-}" ] || [ ! -x "$QMAKE" ]; then
-            echo "::error::Qt qmake not found under $QT_TARGET_BIN or $QT_HOST_BIN"
-            ls -la "$QT_TARGET_BIN" || true
-            ls -la "$QT_HOST_BIN" || true
-            exit 1
-          fi
           export VERSION="${GITHUB_SHA::7}"
 
           APPDIR="$PWD/AppDir-verge-qt"
           QT_BIN="$PWD/src/qt/.libs/verge-qt"
           UNIVALUE_LIBDIR="$PWD/src/univalue/.libs"
+          QT_TARGET_PREFIX="$PWD/depends/aarch64-linux-gnu"
           if [ ! -f "$QT_BIN" ]; then
             echo "::error::Expected ELF Qt binary not found at $QT_BIN"
             exit 1
@@ -2726,23 +2709,41 @@ jobs:
 
           "$PWD/linuxdeploy-root/AppRun" \
             --appdir "$APPDIR" \
-            --plugin qt \
             --executable "$QT_BIN" \
             --desktop-file "$APPDIR/usr/share/applications/verge-qt.desktop" \
             --icon-file "$PWD/share/pixmaps/verge256.png"
+
+          QT_PLATFORM_PLUGIN="$(find "$QT_TARGET_PREFIX" -path '*/plugins/platforms/libqxcb.so' -type f | head -n1 || true)"
+          if [ -z "$QT_PLATFORM_PLUGIN" ]; then
+            echo "::error::Target Qt platform plugin libqxcb.so not found under $QT_TARGET_PREFIX"
+            find "$QT_TARGET_PREFIX" -path '*/plugins/platforms' -type d -print
+            exit 1
+          fi
+          mkdir -p "$APPDIR/usr/plugins/platforms"
+          cp "$QT_PLATFORM_PLUGIN" "$APPDIR/usr/plugins/platforms/libqxcb.so"
+
+          "$PWD/linuxdeploy-root/AppRun" \
+            --appdir "$APPDIR" \
+            --library "$APPDIR/usr/plugins/platforms/libqxcb.so"
 
           cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$APPDIR/usr/lib/"
 
           for required in \
             "$APPDIR/usr/bin/verge-qt" \
             "$APPDIR/usr/share/applications/verge-qt.desktop" \
-            "$APPDIR/verge.png"
+            "$APPDIR/verge.png" \
+            "$APPDIR/usr/plugins/platforms/libqxcb.so"
           do
             if [ ! -e "$required" ]; then
               echo "::error::Missing required AppImage runtime file: $required"
               exit 1
             fi
           done
+
+          cat > "$APPDIR/usr/bin/qt.conf" <<EOF
+          [Paths]
+          Plugins=../plugins
+          EOF
 
           cat > "$APPDIR/AppRun" <<EOF
           #!/bin/sh
