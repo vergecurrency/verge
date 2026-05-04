@@ -3071,16 +3071,35 @@ jobs:
           set -euo pipefail
           mkdir -p dist
 
-          cp release-assets/macos26/Verge-Qt.dmg dist/Verge-Qt-macos26.dmg
-          cp release-assets/macos14/Verge-Qt.dmg dist/Verge-Qt-macos14.dmg
-          cp release-assets/ubuntu24/verge-ubuntu24-appimages.zip dist/
+          find_one() {
+            local base="$1"
+            local pattern="$2"
+            local match
+            match="$(find "$base" -type f -name "$pattern" -print | head -n1 || true)"
+            if [ -z "$match" ]; then
+              echo "::error::Could not find $pattern under $base"
+              find "$base" -maxdepth 4 -type f | sed -n '1,200p'
+              exit 1
+            fi
+            printf '%s\n' "$match"
+          }
 
-          cp release-assets/windows64/verge-windows64-setup.exe dist/
+          cp "$(find_one release-assets/macos26 'Verge-Qt.dmg')" dist/Verge-Qt-macos26.dmg
+          cp "$(find_one release-assets/macos14 'Verge-Qt.dmg')" dist/Verge-Qt-macos14.dmg
+          cp "$(find_one release-assets/ubuntu24 'verge-ubuntu24-appimages.zip')" dist/
+
+          cp "$(find_one release-assets/windows64 'verge-windows64-setup.exe')" dist/
           if [ -d release-assets/windows64/windows64 ]; then
             (cd release-assets/windows64 && zip -r "$PWD/../../dist/verge-windows64bit.zip" windows64)
+          elif [ -d release-assets/windows64/release/windows64 ]; then
+            (cd release-assets/windows64/release && zip -r "$PWD/../../../dist/verge-windows64bit.zip" windows64)
+          else
+            echo "::error::Could not find windows64 bundle directory"
+            find release-assets/windows64 -maxdepth 4 -type d | sed -n '1,200p'
+            exit 1
           fi
 
-          cp release-assets/raspberrypi/verge-aarch64-pi5-appimages.zip dist/
+          cp "$(find_one release-assets/raspberrypi 'verge-aarch64-pi5-appimages.zip')" dist/
 
           ls -lah dist
 
