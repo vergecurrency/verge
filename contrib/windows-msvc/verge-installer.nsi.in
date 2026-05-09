@@ -28,6 +28,7 @@ VIAddVersionKey LegalCopyright "Copyright (C) 2026 Verge"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\verge-qt.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Launch Verge"
 
+!include "LogicLib.nsh"
 !include "MUI2.nsh"
 
 Var StartMenuFolder
@@ -48,6 +49,16 @@ Var StartMenuFolder
 Section "Install"
   SetOutPath "$INSTDIR"
   File /r "@BUNDLE_DIR@\*.*"
+
+  IfFileExists "$INSTDIR\vc_redist.x64.exe" 0 +12
+    DetailPrint "Installing Microsoft Visual C++ Redistributable..."
+    ExecWait '"$INSTDIR\vc_redist.x64.exe" /install /quiet /norestart' $0
+    ${If} $0 <> 0
+    ${AndIf} $0 <> 1638
+    ${AndIf} $0 <> 1641
+    ${AndIf} $0 <> 3010
+      MessageBox MB_OK|MB_ICONEXCLAMATION "Microsoft Visual C++ Redistributable installation returned exit code $0.$\r$\n$\r$\nVerge may not start correctly until vc_redist.x64.exe is installed."
+    ${EndIf}
 
   WriteRegStr HKLM "Software\Verge" "Install_Dir" "$INSTDIR"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Verge" "DisplayName" "@APP_NAME@"

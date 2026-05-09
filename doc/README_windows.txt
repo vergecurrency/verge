@@ -13,6 +13,10 @@ Setup
 -----
 Unpack the files into a directory and run verge-qt.exe.
 
+If you are using the portable zip build on a clean Windows system, run
+vc_redist.x64.exe in the same folder first. Without the Microsoft Visual C++
+runtime, Verge may appear to hang on the splash screen during startup.
+
 Verge Core is the original Verge client and it builds the backbone of the network.
 However, it downloads and stores the entire history of Verge transactions;
 depending on the speed of your computer and network connection, the synchronization
