@@ -815,6 +815,13 @@ jobs:
             case "$BUNDLE" in
               "Verge-Qt.app")
                 ;;
+              */QtWebEngineProcess.app)
+                echo "Signing QtWebEngine helper bundle: $BUNDLE"
+                codesign --force --options runtime --timestamp \
+                  --keychain "$MACOS_KEYCHAIN_PATH" \
+                  --sign "$MACOS_SIGNING_IDENTITY" \
+                  --entitlements "$ENTITLEMENTS" "$BUNDLE"
+                ;;
               *)
                 echo "Signing bundle: $BUNDLE"
                 codesign --force --options runtime --timestamp \
@@ -826,7 +833,8 @@ jobs:
 
           codesign --force --options runtime --timestamp \
             --keychain "$MACOS_KEYCHAIN_PATH" \
-            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
+            --sign "$MACOS_SIGNING_IDENTITY" \
+            --entitlements "$ENTITLEMENTS" "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
@@ -1735,6 +1743,13 @@ jobs:
             case "$BUNDLE" in
               "Verge-Qt.app")
                 ;;
+              */QtWebEngineProcess.app)
+                echo "Signing QtWebEngine helper bundle: $BUNDLE"
+                codesign --force --options runtime --timestamp \
+                  --keychain "$MACOS_KEYCHAIN_PATH" \
+                  --sign "$MACOS_SIGNING_IDENTITY" \
+                  --entitlements "$ENTITLEMENTS" "$BUNDLE"
+                ;;
               *)
                 echo "Signing bundle: $BUNDLE"
                 codesign --force --options runtime --timestamp \
@@ -1746,7 +1761,8 @@ jobs:
 
           codesign --force --options runtime --timestamp \
             --keychain "$MACOS_KEYCHAIN_PATH" \
-            --sign "$MACOS_SIGNING_IDENTITY" "Verge-Qt.app"
+            --sign "$MACOS_SIGNING_IDENTITY" \
+            --entitlements "$ENTITLEMENTS" "Verge-Qt.app"
 
       - name: Create DMG
         run: hdiutil create Verge-Qt.dmg -srcfolder "Verge-Qt.app" -ov -format UDZO
