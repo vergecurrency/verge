@@ -396,6 +396,9 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
 #if defined(Q_OS_LINUX)
         targetWidth = static_cast<int>(targetWidth * 1.25);
 #endif
+#if defined(Q_OS_MAC)
+        targetWidth = static_cast<int>(targetWidth * 1.40);
+#endif
 
         targetWidth = qMin(targetWidth, static_cast<int>(available.width() * 0.95));
         targetHeight = qMin(targetHeight, static_cast<int>(available.height() * 0.95));
