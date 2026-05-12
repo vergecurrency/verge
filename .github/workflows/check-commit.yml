@@ -2607,9 +2607,6 @@ jobs:
             ./release/verged-x86_64.AppImage
             ./release/verge-cli-x86_64.AppImage
             ./release/verge-tx-x86_64.AppImage
-            ./src/verge-cli
-            ./src/verged
-            ./src/verge-tx
 
   raspberrypi:
     runs-on: ubuntu-24.04-arm
