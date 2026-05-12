@@ -2412,6 +2412,17 @@ jobs:
           rm -f "$APPDIR/usr/bin/usr/bin/verge-qt" || true
           install -m755 "$QT_BIN" "$APPDIR/usr/bin/verge-qt"
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/verge-qt"
+          patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/QtWebEngineProcess"
+
+          cat > "$APPDIR/usr/bin/qt.conf" <<EOF
+          [Paths]
+          Prefix=..
+          Plugins=plugins
+          Libraries=lib
+          LibraryExecutables=bin
+          Data=.
+          Translations=translations
+          EOF
 
           for required in             "$APPDIR/usr/lib/libQt6Core.so.6"             "$APPDIR/usr/lib/libQt6Gui.so.6"             "$APPDIR/usr/lib/libQt6Network.so.6"             "$APPDIR/usr/lib/libQt6Widgets.so.6"             "$APPDIR/usr/lib/libQt6WebEngineCore.so.6"             "$APPDIR/usr/lib/libQt6WebEngineWidgets.so.6"             "$APPDIR/usr/plugins/platforms/libqxcb.so"             "$APPDIR/usr/bin/QtWebEngineProcess"; do
             if [ ! -e "$required" ]; then
@@ -2423,8 +2434,17 @@ jobs:
           cat > "$APPDIR/AppRun" <<EOF
           #!/bin/sh
           HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
+          export PATH="\$HERE/usr/bin:\$PATH"
+          export LD_LIBRARY_PATH="\$HERE/usr/lib\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}"
+          export QT_PLUGIN_PATH="\$HERE/usr/plugins"
+          export QT_QPA_PLATFORM_PLUGIN_PATH="\$HERE/usr/plugins/platforms"
+          export QML2_IMPORT_PATH="\$HERE/usr/qml"
+          export XDG_DATA_DIRS="\$HERE/usr/share\${XDG_DATA_DIRS:+:\$XDG_DATA_DIRS}"
           export FONTCONFIG_PATH="\$HERE/usr/etc/fonts"
           export FONTCONFIG_FILE="\$HERE/usr/etc/fonts/fonts.conf"
+          export QTWEBENGINEPROCESS_PATH="\$HERE/usr/bin/QtWebEngineProcess"
+          export QTWEBENGINE_RESOURCES_PATH="\$HERE/usr/resources"
+          export QTWEBENGINE_LOCALES_PATH="\$HERE/usr/translations/qtwebengine_locales"
           export QTWEBENGINE_DISABLE_SANDBOX=1
           export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
           exec "\$HERE/usr/bin/verge-qt" "\$@"
