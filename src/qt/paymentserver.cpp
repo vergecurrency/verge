@@ -135,10 +135,32 @@ void PaymentServer::LoadRootCAs(X509_STORE* _store)
     // Note: use "-system-" default here so that users can pass -rootcertificates=""
     // and get 'I don't like X.509 certificates, don't trust anybody' behavior:
     QString certFile = QString::fromStdString(gArgs.GetArg("-rootcertificates", "-system-"));
+    const bool running_from_appimage = qEnvironmentVariableIsSet("APPIMAGE") || qEnvironmentVariableIsSet("APPDIR");
+
+    if (running_from_appimage && certFile == "-system-") {
+        const QString sslCertFile = QString::fromLocal8Bit(qgetenv("SSL_CERT_FILE"));
+        if (!sslCertFile.isEmpty()) {
+            certFile = sslCertFile;
+        }
+    }
 
     // Empty store
     if (certFile.isEmpty()) {
         qDebug() << QString("PaymentServer::%1: Payment request authentication via X.509 certificates disabled.").arg(__func__);
+        return;
+    }
+
+    if (running_from_appimage && certFile != "-system-") {
+        const QByteArray certPath = QFile::encodeName(certFile);
+        if (X509_STORE_load_locations(certStore.get(), certPath.constData(), nullptr) != 1) {
+            qWarning() << QString("PaymentServer::%1: Failed to load AppImage CA bundle \"%2\" directly into OpenSSL store; payment request certificate verification will be unavailable.")
+                              .arg(__func__)
+                              .arg(certFile);
+        } else {
+            qWarning() << QString("PaymentServer::%1: Loaded AppImage CA bundle \"%2\" directly into OpenSSL store to avoid Qt SSL startup crashes.")
+                              .arg(__func__)
+                              .arg(certFile);
+        }
         return;
     }
 
