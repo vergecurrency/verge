@@ -185,6 +185,11 @@ static int TradeConnectivityRetryDelayMs(int attempt)
     if (attempt == 3) return 15000;
     return 30000;
 }
+
+static bool TradeShouldBypassConnectivityProbe()
+{
+    return qEnvironmentVariableIsSet("APPIMAGE") || qEnvironmentVariableIsSet("APPDIR");
+}
 #endif
 } // namespace
 
@@ -232,8 +237,14 @@ void TradePage::ensureInitialized()
         startConnectivityProbe();
     });
 
-    updateStatusLabel(TradeWaitingForNetworkText());
-    startConnectivityProbe();
+    if (TradeShouldBypassConnectivityProbe()) {
+        LogTradeDiagnostic(QStringLiteral("TradePage: bypassing QtNetwork connectivity probe for AppImage runtime"));
+        updateStatusLabel(tr("Loading Trade widget..."));
+        ensureWebViewLoaded();
+    } else {
+        updateStatusLabel(TradeWaitingForNetworkText());
+        startConnectivityProbe();
+    }
 #else
     if (m_statusLabel) {
         m_statusLabel->setText(
