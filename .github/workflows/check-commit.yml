@@ -2386,7 +2386,7 @@ jobs:
           OPENSSL_LIBDIR="$(pkg-config --variable=libdir libssl)"
           TLS_PLUGIN="$APPDIR/usr/plugins/tls/libqopensslbackend.so"
 
-          mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/resources" "$APPDIR/usr/translations" "$APPDIR/usr/etc/fonts"
+          mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/resources" "$APPDIR/usr/translations" "$APPDIR/usr/etc/fonts" "$APPDIR/usr/ssl"
           cp "$QT_LIBEXECS/QtWebEngineProcess" "$APPDIR/usr/bin/QtWebEngineProcess"
           chmod +x "$APPDIR/usr/bin/QtWebEngineProcess"
 
@@ -2406,6 +2406,9 @@ jobs:
           fi
           if [ -d /etc/fonts ]; then
             cp -a /etc/fonts/. "$APPDIR/usr/etc/fonts/"
+          fi
+          if [ -f /etc/ssl/certs/ca-certificates.crt ]; then
+            cp /etc/ssl/certs/ca-certificates.crt "$APPDIR/usr/ssl/ca-certificates.crt"
           fi
 
           cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$APPDIR/usr/lib/"
@@ -2456,6 +2459,19 @@ jobs:
             fi
           fi
 
+          cat > "$APPDIR/usr/ssl/openssl.cnf" <<EOF
+          openssl_conf = openssl_init
+
+          [openssl_init]
+          providers = provider_sect
+
+          [provider_sect]
+          default = default_sect
+
+          [default_sect]
+          activate = 1
+          EOF
+
           cat > "$APPDIR/AppRun" <<EOF
           #!/bin/sh
           HERE=\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)
@@ -2467,6 +2483,9 @@ jobs:
           export XDG_DATA_DIRS="\$HERE/usr/share\${XDG_DATA_DIRS:+:\$XDG_DATA_DIRS}"
           export FONTCONFIG_PATH="\$HERE/usr/etc/fonts"
           export FONTCONFIG_FILE="\$HERE/usr/etc/fonts/fonts.conf"
+          export OPENSSL_CONF="\$HERE/usr/ssl/openssl.cnf"
+          export SSL_CERT_FILE="\$HERE/usr/ssl/ca-certificates.crt"
+          export SSL_CERT_DIR="/etc/ssl/certs"
           export QTWEBENGINEPROCESS_PATH="\$HERE/usr/bin/QtWebEngineProcess"
           export QTWEBENGINE_RESOURCES_PATH="\$HERE/usr/resources"
           export QTWEBENGINE_LOCALES_PATH="\$HERE/usr/translations/qtwebengine_locales"
@@ -2588,7 +2607,6 @@ jobs:
             ./release/verged-x86_64.AppImage
             ./release/verge-cli-x86_64.AppImage
             ./release/verge-tx-x86_64.AppImage
-            ./release/verge-ubuntu24-appimages.zip
             ./src/verge-cli
             ./src/verged
             ./src/verge-tx
