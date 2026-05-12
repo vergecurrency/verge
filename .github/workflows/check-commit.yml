@@ -2850,10 +2850,6 @@ jobs:
             ./release/verge-cli-aarch64.AppImage
             ./release/verge-tx-aarch64.AppImage
             ./release/verge-aarch64-pi5-appimages.zip
-            ./src/verged
-            ./src/verge-cli
-            ./src/verge-tx
-            ./src/qt/verge-qt
 
   windows64:
     runs-on: windows-latest
