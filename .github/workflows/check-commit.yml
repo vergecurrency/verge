@@ -2450,7 +2450,7 @@ jobs:
           if [ -f "$TLS_PLUGIN" ]; then
             echo "Qt TLS backend linkage:"
             ldd "$TLS_PLUGIN" || true
-            if ldd "$TLS_PLUGIN" | grep -Eq '/lib.*/lib(ssl|crypto)[.]so'; then
+            if ldd "$TLS_PLUGIN" | grep -E 'lib(ssl|crypto)[.]so' | grep -Fv "$APPDIR/usr/lib/" | grep -q .; then
               echo "::error::Qt TLS backend still resolves against host OpenSSL"
               exit 1
             fi
