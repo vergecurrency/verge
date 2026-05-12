@@ -2383,6 +2383,8 @@ jobs:
           QT_LIBEXECS="$(qtpaths6 --query QT_INSTALL_LIBEXECS)"
           QT_DATA="$(qtpaths6 --query QT_INSTALL_DATA)"
           QT_TRANSLATIONS="$(qtpaths6 --query QT_INSTALL_TRANSLATIONS)"
+          OPENSSL_LIBDIR="$(pkg-config --variable=libdir libssl)"
+          TLS_PLUGIN="$APPDIR/usr/plugins/tls/libqopensslbackend.so"
 
           mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/resources" "$APPDIR/usr/translations" "$APPDIR/usr/etc/fonts"
           cp "$QT_LIBEXECS/QtWebEngineProcess" "$APPDIR/usr/bin/QtWebEngineProcess"
@@ -2407,12 +2409,18 @@ jobs:
           fi
 
           cp -a "$UNIVALUE_LIBDIR"/libunivalue.so* "$APPDIR/usr/lib/"
+          find "$OPENSSL_LIBDIR" -maxdepth 1 \( -type f -o -type l \) \
+            \( -name 'libssl.so*' -o -name 'libcrypto.so*' \) \
+            -exec cp -a {} "$APPDIR/usr/lib/" \;
           rm -f "$APPDIR/AppRun"
           rm -f "$APPDIR/usr/bin/verge-qt"
           rm -f "$APPDIR/usr/bin/usr/bin/verge-qt" || true
           install -m755 "$QT_BIN" "$APPDIR/usr/bin/verge-qt"
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/verge-qt"
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/QtWebEngineProcess"
+          if [ -f "$TLS_PLUGIN" ]; then
+            patchelf --set-rpath '$ORIGIN/../../lib' "$TLS_PLUGIN"
+          fi
 
           cat > "$APPDIR/usr/bin/qt.conf" <<EOF
           [Paths]
@@ -2430,6 +2438,23 @@ jobs:
               exit 1
             fi
           done
+          if ! find "$APPDIR/usr/lib" -maxdepth 1 \( -type f -o -type l \) -name 'libssl.so*' | grep -q .; then
+            echo "::error::Missing bundled OpenSSL libssl in AppImage"
+            exit 1
+          fi
+          if ! find "$APPDIR/usr/lib" -maxdepth 1 \( -type f -o -type l \) -name 'libcrypto.so*' | grep -q .; then
+            echo "::error::Missing bundled OpenSSL libcrypto in AppImage"
+            exit 1
+          fi
+
+          if [ -f "$TLS_PLUGIN" ]; then
+            echo "Qt TLS backend linkage:"
+            ldd "$TLS_PLUGIN" || true
+            if ldd "$TLS_PLUGIN" | grep -Eq '/lib.*/lib(ssl|crypto)[.]so'; then
+              echo "::error::Qt TLS backend still resolves against host OpenSSL"
+              exit 1
+            fi
+          fi
 
           cat > "$APPDIR/AppRun" <<EOF
           #!/bin/sh
