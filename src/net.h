@@ -102,6 +102,9 @@ struct SecMsgNode
     int64_t lastSeen{-1};
     int64_t lastMatched{0};
     int64_t ignoreUntil{0};
+    int64_t rateWindowStart{0};
+    uint32_t nRateMessages{0};
+    uint32_t nRateBytes{0};
     uint32_t nWakeCounter{0};
     int64_t nPeerId{0};
     bool fEnabled{false};

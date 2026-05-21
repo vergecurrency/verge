@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QPlainTextEdit>
+#include <QSignalBlocker>
 
 SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
     QFrame(parent),
@@ -28,6 +29,10 @@ SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
 #endif
 
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
+    ui->sendTo->setPlaceholderText(tr("Recipient Verge address"));
+    ui->publicKey->setPlaceholderText(tr("Auto-fills if known, otherwise paste recipient pubkey"));
+    ui->publicKey->setToolTip(tr("Recipient public key. If this address is already known locally, the field fills automatically."));
+    ui->messageText->setPlaceholderText(tr("Type an encrypted message"));
 }
 
 SendMessagesEntry::~SendMessagesEntry()
@@ -59,7 +64,6 @@ bool SendMessagesEntry::validate()
     bool valid = true;
     QString sendTo = ui->sendTo->text().trimmed();
     QString publicKey = ui->publicKey->text().trimmed();
-    QString resolvedAddress = sendTo;
 
     if (!model->getWalletModel()->validateAddress(sendTo)) {
         ui->sendTo->setValid(false);
@@ -72,12 +76,9 @@ bool SendMessagesEntry::validate()
     }
 
     if (valid && publicKey.isEmpty()) {
-        QString resolvedPubKey;
-        if (!model->getAddressOrPubkey(resolvedAddress, resolvedPubKey)) {
+        if (!resolveKnownPublicKey(sendTo, true)) {
             ui->publicKey->setValid(false);
             valid = false;
-        } else {
-            ui->publicKey->setText(resolvedPubKey);
         }
     }
 
@@ -175,6 +176,7 @@ void SendMessagesEntry::on_addressBookButton_clicked()
 void SendMessagesEntry::on_sendTo_textChanged(const QString& address)
 {
     updateLabel(address);
+    resolveKnownPublicKey(address.trimmed(), true);
 }
 
 bool SendMessagesEntry::updateLabel(const QString& address)
@@ -190,4 +192,24 @@ bool SendMessagesEntry::updateLabel(const QString& address)
     }
 
     return false;
+}
+
+bool SendMessagesEntry::resolveKnownPublicKey(const QString& address, bool updateField)
+{
+    if (!model || address.isEmpty()) {
+        return false;
+    }
+
+    QString resolvedAddress = address;
+    QString resolvedPubKey;
+    if (!model->getAddressOrPubkey(resolvedAddress, resolvedPubKey) || resolvedPubKey.isEmpty()) {
+        return false;
+    }
+
+    if (updateField && ui->publicKey->text().trimmed() != resolvedPubKey) {
+        const QSignalBlocker blocker(ui->publicKey);
+        ui->publicKey->setText(resolvedPubKey);
+    }
+
+    return true;
 }

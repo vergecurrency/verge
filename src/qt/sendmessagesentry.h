@@ -46,6 +46,7 @@ private Q_SLOTS:
 
 private:
     bool updateLabel(const QString& address);
+    bool resolveKnownPublicKey(const QString& address, bool updateField);
 
     Ui::SendMessagesEntry* ui;
     MessageModel* model;

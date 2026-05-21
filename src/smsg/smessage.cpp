@@ -1117,6 +1117,39 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         return SMSG_NO_ERROR;
     }
 
+    {
+        const int64_t now = GetAdjustedTime();
+        const uint32_t payloadBytes = static_cast<uint32_t>(vRecv.size() + strCommand.size());
+        LOCK(pfrom->smsgData.cs_smsg_net);
+
+        if (now >= pfrom->smsgData.rateWindowStart + SMSG_RATE_WINDOW) {
+            pfrom->smsgData.rateWindowStart = now;
+            pfrom->smsgData.nRateMessages = 0;
+            pfrom->smsgData.nRateBytes = 0;
+        }
+
+        pfrom->smsgData.nRateMessages++;
+        pfrom->smsgData.nRateBytes += payloadBytes;
+
+        if (pfrom->smsgData.nRateMessages > SMSG_MAX_MSGS_PER_WINDOW
+            || pfrom->smsgData.nRateBytes > SMSG_MAX_BYTES_PER_WINDOW) {
+            pfrom->smsgData.ignoreUntil = now + SMSG_TIME_IGNORE;
+
+            std::vector<uint8_t> vchData(8);
+            memcpy(vchData.data(), &pfrom->smsgData.ignoreUntil, 8);
+            g_connman->PushMessage(pfrom,
+                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgIgnore", vchData));
+
+            LogPrint(BCLog::SMSG,
+                "Rate limiting peer %d for excessive secure messaging traffic: msgs=%u bytes=%u window=%u\n",
+                pfrom->GetId(),
+                pfrom->smsgData.nRateMessages,
+                pfrom->smsgData.nRateBytes,
+                SMSG_RATE_WINDOW);
+            return SMSG_GENERAL_ERROR;
+        }
+    }
+
     if (strCommand == "smsgInv") {
         std::vector<uint8_t> vchData;
         vRecv >> vchData;

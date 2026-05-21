@@ -112,8 +112,12 @@ void SendMessagesDialog::on_sendButton_clicked()
                 valid = false;
         }
     }
-    if (!valid || recipients.isEmpty())
+    if (!valid || recipients.isEmpty()) {
+        QMessageBox::warning(this, tr("Send Secure Message"),
+            tr("A recipient address, an encrypted message, and a known recipient public key are required. If the key is already known, it will auto-fill when you enter the address."),
+            QMessageBox::Ok, QMessageBox::Ok);
         return;
+    }
     // Format confirmation message
     QStringList formatted;
     for (const SendMessagesRecipient& rcp : recipients) {
