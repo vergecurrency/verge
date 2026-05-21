@@ -13,7 +13,6 @@ class QSortFilterProxyModel;
 class QMenu;
 class QModelIndex;
 class MessageViewDelegate;
-class MRichTextEdit;
 QT_END_NAMESPACE
  /** Widget that shows a list of sending or receiving addresses.
   */
@@ -26,7 +25,7 @@ class MessagePage : public QWidget
      void setModel(MessageModel *model);
  private:
     void setupTextActions();
- public slots:
+ public Q_SLOTS:
     void exportClicked();
  private:
     Ui::MessagePage *ui;
@@ -40,8 +39,7 @@ class MessagePage : public QWidget
     QString replyFromAddress;
     QString replyToAddress;
     MessageViewDelegate *msgdelegate;
-    MRichTextEdit *messageTextEdit;
- private slots:
+ private Q_SLOTS:
     void on_sendButton_clicked();
     void on_newButton_clicked();
     void on_copyFromAddressButton_clicked();
@@ -54,7 +52,7 @@ class MessagePage : public QWidget
     void incomingMessage();
     /** Spawn contextual menu (right mouse menu) for address book entry */
     void contextualMenu(const QPoint &point);
- signals:
+ Q_SIGNALS:
 };
 
 #endif // VERGE_QT_MESSAGEPAGE_H

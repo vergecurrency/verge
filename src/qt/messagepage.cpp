@@ -1,11 +1,11 @@
-#include <messagepage.h>
-#include <ui_messagepage.h>
-#include <sendmessagesdialog.h>
-#include <mrichtextedit.h>
-#include <messagemodel.h>
-#include <vergegui.h>
-#include <csvmodelwriter.h>
-#include <guiutil.h>
+#include <qt/messagepage.h>
+#include <qt/forms/ui_messagepage.h>
+#include <qt/sendmessagesdialog.h>
+#include <qt/messagemodel.h>
+#include <qt/vergegui.h>
+#include <qt/csvmodelwriter.h>
+#include <qt/guiconstants.h>
+#include <qt/guiutil.h>
 #include <QSortFilterProxyModel>
 #include <QClipboard>
 #include <QMessageBox>
@@ -23,21 +23,21 @@ protected:
 };
  void MessageViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QStyleOptionViewItemV4 optionV4 = option;
-    initStyleOption(&optionV4, index);
-     QStyle *style = optionV4.widget? optionV4.widget->style() : QApplication::style();
+    QStyleOptionViewItem optionCopy = option;
+    initStyleOption(&optionCopy, index);
+     QStyle *style = optionCopy.widget? optionCopy.widget->style() : QApplication::style();
      QTextDocument doc;
     QString align(index.data(MessageModel::TypeRole) == 1 ? "left" : "right");
     QString html = "<p align=\"" + align + "\" style=\"color:black;\">" + index.data(MessageModel::HTMLRole).toString() + "</p>";
     doc.setHtml(html);
      /// Painting item without text
-    optionV4.text = QString();
-    style->drawControl(QStyle::CE_ItemViewItem, &optionV4, painter);
+    optionCopy.text = QString();
+    style->drawControl(QStyle::CE_ItemViewItem, &optionCopy, painter);
      QAbstractTextDocumentLayout::PaintContext ctx;
      // Highlighting text if item is selected
-    if (optionV4.state & QStyle::State_Selected)
-        ctx.palette.setColor(QPalette::Text, optionV4.palette.color(QPalette::Active, QPalette::HighlightedText));
-     QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionV4);
+    if (optionCopy.state & QStyle::State_Selected)
+        ctx.palette.setColor(QPalette::Text, optionCopy.palette.color(QPalette::Active, QPalette::HighlightedText));
+     QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionCopy);
     doc.setTextWidth( textRect.width() );
     painter->save();
     painter->translate(textRect.topLeft());
@@ -47,19 +47,18 @@ protected:
 }
  QSize MessageViewDelegate::sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const
 {
-    QStyleOptionViewItemV4 options = option;
+    QStyleOptionViewItem options = option;
     initStyleOption(&options, index);
      QTextDocument doc;
     doc.setHtml(index.data(MessageModel::HTMLRole).toString());
     doc.setTextWidth(options.rect.width());
     return QSize(doc.idealWidth(), doc.size().height() + 20);
 }
- MessagePage::MessagePage(QWidget *parent) :
+MessagePage::MessagePage(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MessagePage),
     model(0),
-    msgdelegate(new MessageViewDelegate()),
-    messageTextEdit(new MRichTextEdit())
+    msgdelegate(new MessageViewDelegate())
 {
     ui->setupUi(this);
    
@@ -133,22 +132,34 @@ protected:
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(incomingMessage()));
      selectionChanged();
 }
- void MessagePage::on_sendButton_clicked()
+void MessagePage::on_sendButton_clicked()
 {
     if(!model)
         return;
-     std::string sError;
-    std::string sendTo  = replyToAddress.toStdString();
-    std::string message = ui->messageEdit->toHtml().toStdString();
-    std::string addFrom = replyFromAddress.toStdString();
-     if (SecureMsgSend(addFrom, sendTo, message, sError) != 0)
-    {
-        QMessageBox::warning(NULL, tr("Send Secure Message"),
-            tr("Send failed: %1.").arg(sError.c_str()),
+
+    SendMessagesRecipient recipient;
+    recipient.address = replyToAddress;
+    recipient.message = ui->messageEdit->toPlainText().trimmed();
+
+    if (recipient.address.isEmpty() || recipient.message.isEmpty()) {
+        return;
+    }
+
+    QList<SendMessagesRecipient> recipients;
+    recipients.append(recipient);
+
+    const QString fromAddress = replyFromAddress.isEmpty() ? QStringLiteral("anon") : replyFromAddress;
+    const MessageModel::StatusCode status = fromAddress == QLatin1String("anon")
+        ? model->sendMessages(recipients)
+        : model->sendMessages(recipients, fromAddress);
+
+    if (status != MessageModel::OK) {
+        QMessageBox::warning(this, tr("Send Secure Message"),
+            tr("Send failed."),
             QMessageBox::Ok, QMessageBox::Ok);
-         return;
-    };
-     //ui->messageEdit->setMaximumHeight(30);
+        return;
+    }
+
     ui->messageEdit->clear();
     ui->listConversation->scrollToBottom();
 }
@@ -228,16 +239,16 @@ protected:
         QModelIndexList addressToColumn   = table->selectionModel()->selectedRows(MessageModel::ToAddress);
         QModelIndexList typeColumn        = table->selectionModel()->selectedRows(MessageModel::Type);
          int type;
-         foreach (QModelIndex index, typeColumn)
+         for (const QModelIndex& index : typeColumn)
             type = (table->model()->data(index).toString() == MessageModel::Sent ? MessageTableEntry::Sent : MessageTableEntry::Received);
-         foreach (QModelIndex index, labelColumn)
+         for (const QModelIndex& index : labelColumn)
             ui->contactLabel->setText(table->model()->data(index).toString());
-         foreach (QModelIndex index, addressFromColumn)
+         for (const QModelIndex& index : addressFromColumn)
             if(type == MessageTableEntry::Sent)
                 replyFromAddress = table->model()->data(index).toString();
             else
                 replyToAddress = table->model()->data(index).toString();
-         foreach (QModelIndex index, addressToColumn)
+         for (const QModelIndex& index : addressToColumn)
             if(type == MessageTableEntry::Sent)
                 replyToAddress = table->model()->data(index).toString();
             else
@@ -320,7 +331,8 @@ protected:
     QString filename = GUIUtil::getSaveFileName(
             this,
             tr("Export Messages"), QString(),
-            tr("Comma separated file (*.csv)"));
+            tr("Comma separated file (*.csv)"),
+            nullptr);
      if (filename.isNull()) return;
      CSVModelWriter writer(filename);
      // name, column, role

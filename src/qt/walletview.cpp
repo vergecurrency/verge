@@ -11,6 +11,8 @@
 #include <qt/clientmodel.h>
 #include <qt/guiutil.h>
 #include <qt/gamespage.h>
+#include <qt/messagepage.h>
+#include <qt/messagemodel.h>
 #include <qt/optionsmodel.h>
 #include <qt/overviewpage.h>
 #include <qt/platformstyle.h>
@@ -64,6 +66,8 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
+    messagesPage = new MessagePage(this);
+    messageModel = nullptr;
     tradePage = new TradePage(this);
     gamesPage = new GamesPage(this);
 
@@ -74,6 +78,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
+    addWidget(messagesPage);
     addWidget(tradePage);
     addWidget(gamesPage);
 
@@ -141,6 +146,16 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     overviewPage->setWalletModel(_walletModel);
     receiveCoinsPage->setModel(_walletModel);
     sendCoinsPage->setModel(_walletModel);
+    if (messageModel) {
+        delete messageModel;
+        messageModel = nullptr;
+    }
+    if (_walletModel) {
+        messageModel = new MessageModel(_walletModel, this);
+        messagesPage->setModel(messageModel);
+    } else {
+        messagesPage->setModel(nullptr);
+    }
     usedReceivingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
     usedSendingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
 
@@ -209,6 +224,11 @@ void WalletView::gotoSendCoinsPage(QString addr)
 
     if (!addr.isEmpty())
         sendCoinsPage->setAddress(addr);
+}
+
+void WalletView::gotoMessagesPage()
+{
+    setCurrentWidget(messagesPage);
 }
 
 void WalletView::gotoTradePage()

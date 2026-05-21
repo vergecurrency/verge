@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
 // Copyright (c) 2017-2018 The Particl Core developers
-// Copyright (c) 2017-2018 The Verge Core developers
+// Copyright (c) 2017-2026 The Verge Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -34,6 +34,7 @@ Notes:
 #include <compat/byteswap.h>
 
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread/thread.hpp>
 
 
@@ -60,13 +61,17 @@ Notes:
 #ifdef ENABLE_WALLET
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
-#include <interfaces/chain.h>
 #endif
 
 #include <util/strencodings.h>
+#include <util/system.h>
+#include <util/time.h>
 #include <clientversion.h>
+#include <base58.h>
 
+#include <crypto/lz4/lz4.c>
 #include <crypto/xxhash/xxhash.h>
+#include <crypto/xxhash/xxhash.c>
 
 #include <smsg/crypter.h>
 #include <smsg/db.h>
@@ -86,6 +91,27 @@ boost::signals2::signal<void (SecMsgStored &inboxHdr)> NotifySecMsgInboxChanged;
 boost::signals2::signal<void (SecMsgStored &outboxHdr)> NotifySecMsgOutboxChanged;
 boost::signals2::signal<void ()> NotifySecMsgWalletUnlocked;
 
+template <typename... Args>
+static int errorN(int code, const char* fmt, const Args&... args)
+{
+    LogPrintf("ERROR: %s\n", strprintf(fmt, args...));
+    return code;
+}
+
+template <typename... Args>
+static int errorN(int code, std::string& out, const char* fmt, const Args&... args)
+{
+    out = strprintf(fmt, args...);
+    LogPrintf("ERROR: %s\n", out);
+    return code;
+}
+
+namespace part {
+static bool endsWith(const std::string& value, const std::string& suffix)
+{
+    return boost::algorithm::ends_with(value, suffix);
+}
+} // namespace part
 
 secp256k1_context *secp256k1_context_smsg = nullptr;
 
@@ -232,14 +258,9 @@ void ThreadSecureMsg()
 
             // Look through the nodes for the peer that locked this bucket
 
-            {
-                LOCK(g_connman->cs_vNodes);
-                for (auto *pnode : g_connman->vNodes) {
-                    if (pnode->GetId() != nPeerId) {
-                        continue;
-                    }
-
-                    fExists = 1; //found in g_connman->vNodes
+            if (g_connman) {
+                g_connman->ForNode(nPeerId, [&](CNode* pnode) {
+                    fExists = 1;
 
                     LOCK(pnode->smsgData.cs_smsg_net);
                     int64_t ignoreUntil = GetTime() + SMSG_TIME_IGNORE;
@@ -253,14 +274,14 @@ void ThreadSecureMsg()
                         CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgIgnore", vchData));
 
                     LogPrint(BCLog::SMSG, "This node will ignore peer %d until %d.\n", nPeerId, ignoreUntil);
-                    break;
-                }
-            } // g_connman->cs_vNodes
+                    return true;
+                });
+            }
 
             LogPrint(BCLog::SMSG, "smsg-thread: ignoring - looked peer %d, status on search %u\n", nPeerId, fExists);
         }
 
-        MilliSleep(SMSG_THREAD_DELAY * 1000); //  // check every SMSG_THREAD_DELAY seconds
+        UninterruptibleSleep(std::chrono::seconds{SMSG_THREAD_DELAY});
     }
     return;
 };
@@ -390,18 +411,18 @@ void ThreadSecureMsgPow()
         delete it;
 
         // Shutdown thread waits 5 seconds, this should be less
-        MilliSleep(2000);
+        UninterruptibleSleep(std::chrono::milliseconds{2000});
     };
     return;
 };
 
 void AddOptions()
 {
-    gArgs.AddArg("-smsg", _("Enable secure messaging. (default: true)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgscanchain", _("Scan the block chain for public key addresses on startup. (default: false)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgscanincoming", _("Scan incoming blocks for public key addresses. (default: false)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgnotify=<cmd>", _("Execute command when a message is received. (%s in cmd is replaced by receiving address)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgsaddnewkeys", _("Scan for incoming messages on new wallet keys. (default: false)"), false, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsg", _("Enable secure messaging. (default: true)"), false, OptionsCategory::WALLET);
+    gArgs.AddArg("-smsgscanchain", _("Scan the block chain for public key addresses on startup. (default: false)"), false, OptionsCategory::WALLET);
+    gArgs.AddArg("-smsgscanincoming", _("Scan incoming blocks for public key addresses. (default: false)"), false, OptionsCategory::WALLET);
+    gArgs.AddArg("-smsgnotify=<cmd>", _("Execute command when a message is received. (%s in cmd is replaced by receiving address)"), false, OptionsCategory::WALLET);
+    gArgs.AddArg("-smsgsaddnewkeys", _("Scan for incoming messages on new wallet keys. (default: false)"), false, OptionsCategory::WALLET);
 
     return;
 };
@@ -444,12 +465,6 @@ const char *GetString(size_t errorCode)
             return "Unknown error";
     };
     return "No Error";
-};
-
-static void NotifyUnload(CSMSG *ps)
-{
-    LogPrintf("SMSG NotifyUnload\n");
-    ps->Disable();
 };
 
 int CSMSG::BuildBucketSet()
@@ -859,11 +874,9 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
     }
     pwallet = pwalletIn;
 #ifdef ENABLE_WALLET
-    m_handler_unload = interfaces::MakeHandler(pwallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this)));
 #endif
 
     fSecMsgEnabled = true;
-    g_connman->SetLocalServices(ServiceFlags(g_connman->GetLocalServices() | NODE_SMSG));
 
     if (ReadIni() != 0) {
         LogPrintf("Failed to read smsg.ini\n");
@@ -933,7 +946,6 @@ bool CSMSG::Shutdown()
     }
 
     fSecMsgEnabled = false;
-    g_connman->SetLocalServices(ServiceFlags(g_connman->GetLocalServices() & ~NODE_SMSG));
 
     threadGroupSmsg.interrupt_all();
     threadGroupSmsg.join_all();
@@ -952,7 +964,9 @@ bool CSMSG::Shutdown()
     secp256k1_context_smsg = nullptr;
 
 #ifdef ENABLE_WALLET
-    m_handler_unload->disconnect();
+    if (m_handler_unload) {
+        m_handler_unload->disconnect();
+    }
 #endif
     pwallet.reset();
     return true;
@@ -978,18 +992,17 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
     } // cs_smsg
 
     // Ping each peer advertising smsg
-    {
-        LOCK(g_connman->cs_vNodes);
-        for(auto *pnode : g_connman->vNodes) {
-            if (!(pnode->GetLocalServices() & NODE_SMSG)) {
-                continue;
+    if (g_connman) {
+        g_connman->ForEachNode([&](CNode* pnode) {
+            if (!(pnode->nServices.load() & NODE_SMSG)) {
+                return;
             }
             g_connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPing"));
             g_connman->PushMessage(pnode,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong")); // Send pong as have missed initial ping sent by peer when it connected
-        };
-    } // g_connman->cs_vNodes
+                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong"));
+        });
+    }
 
     LogPrintf("Secure messaging enabled.\n");
     return true;
@@ -1020,18 +1033,17 @@ bool CSMSG::Disable()
     } // cs_smsg
 
     // Tell each smsg enabled peer that this node is disabling
-    {
-        LOCK(g_connman->cs_vNodes);
-        for (auto *pnode : g_connman->vNodes) {
+    if (g_connman) {
+        g_connman->ForEachNode([&](CNode* pnode) {
             if (!pnode->smsgData.fEnabled) {
-                continue;
+                return;
             }
             LOCK(pnode->smsgData.cs_smsg_net);
             g_connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgDisabled"));
             pnode->smsgData.fEnabled = false;
-        }
-    } // g_connman->cs_vNodes
+        });
+    }
 
     LogPrintf("Secure messaging disabled.\n");
     return true;
@@ -1701,19 +1713,9 @@ static bool ScanBlock(CSMSG &smsg, const CBlock &block, SecMsgDB &addrpkdb,
 {
     AssertLockHeld(cs_smsgDB);
 
-    std::string reason;
-
     // Only scan inputs of standard txns and coinstakes
     for (const auto &tx : block.vtx) {
-        // Harvest public keys from coinstake txns
-
-        if (!tx->IsVergeVersion()) // skip legacy txns
-            continue;
-
         for (const auto &txin : tx->vin) {
-            if (txin.IsAnonInput()) {
-                continue;
-            }
             if (txin.scriptWitness.stack.size() != 2) {
                 continue;
             }
@@ -1733,10 +1735,6 @@ static bool ScanBlock(CSMSG &smsg, const CBlock &block, SecMsgDB &addrpkdb,
             switch (InsertAddress(addrKey, pubKey, addrpkdb)) {
                 case SMSG_NO_ERROR: nPubkeys++; break;          // added key
                 case SMSG_PUBKEY_EXISTS: nDuplicates++; break;  // duplicate key
-            }
-
-            if (tx->IsCoinStake()) { // coinstake inputs are always from the same address/pubkey
-                break;
             }
         }
 
@@ -2010,7 +2008,6 @@ int CSMSG::ManageLocalKey(CKeyID &keyId, ChangeType mode)
 
         switch(mode)
         {
-            case CT_REPLACE:
             case CT_NEW:
                 if (itFound == addresses.end()) {
                     addresses.push_back(SecMsgAddress(keyId, options.fNewAddressRecv, options.fNewAddressAnon));
@@ -2353,7 +2350,6 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                 t.detach(); // thread runs free
             }
 
-            GetMainSignals().NewSecureMessage(psmsg, hash);
         }
     }
 
@@ -2500,10 +2496,10 @@ int CSMSG::AddLocalAddress(const std::string &sAddress)
 #endif
 };
 
-int CSMSG::ImportPrivkey(const CBitcoinSecret &vchSecret, const std::string &sLabel)
+int CSMSG::ImportPrivkey(const CKey &keyIn, const std::string &sLabel)
 {
     SecMsgKey key;
-    key.key = vchSecret.GetKey();
+    key.key = keyIn;
     key.sLabel = sLabel;
     CKeyID idk = key.key.GetPubKey().GetID();
     key.nFlags |= SMK_RECEIVE_ON;
@@ -3088,93 +3084,8 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
     }
 
     if (psmsg->version[0] == 3) {
-        if (Params().GetConsensus().nPaidSmsgTime > now) {
-            LogPrintf("%s: Paid SMSG not yet active on mainnet.\n", __func__);
-            return SMSG_GENERAL_ERROR;
-        }
-
-        size_t nDaysRetention = psmsg->nonce[0];
-        int64_t ttl = SMSGGetSecondsInDay() * nDaysRetention;
-        if (ttl < SMSGGetSecondsInDay() || ttl > SMSG_MAX_PAID_TTL) {
-            LogPrint(BCLog::SMSG, "TTL out of range %d.\n", ttl);
-            return SMSG_GENERAL_ERROR;
-        }
-        if (now > psmsg->timestamp + ttl) {
-            LogPrint(BCLog::SMSG, "Time expired %d, ttl %d.\n", psmsg->timestamp, ttl);
-            return SMSG_TIME_EXPIRED;
-        }
-
-        size_t nMsgBytes = SMSG_HDR_LEN + psmsg->nPayload;
-        int64_t nExpectFee = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
-
-        uint256 txid;
-        uint160 msgId;
-        if (0 != HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId)
-            || !GetFundingTxid(pPayload, psmsg->nPayload, txid)) {
-            LogPrintf("%s: Get msgID or Txn Hash failed.\n", __func__);
-            return SMSG_GENERAL_ERROR;
-        }
-
-        CTransactionRef txOut;
-        uint256 hashBlock;
-        {
-            LOCK(cs_main);
-            if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock) || hashBlock.IsNull()) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s not found for message %s.\n", __func__, txid.ToString(), msgId.ToString());
-            }
-
-            if (txOut->IsCoinStake()) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, is coinstake.\n", __func__, txid.ToString(), msgId.ToString());
-            }
-
-            int blockDepth = -1;
-            BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-            if (mi != mapBlockIndex.end()) {
-                CBlockIndex *pindex = mi->second;
-                if (pindex && chainActive.Contains(pindex)) {
-                    blockDepth = chainActive.Height() - pindex->nHeight + 1;
-                }
-            }
-
-            if (blockDepth < 1) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, low depth %d.\n", __func__, txid.ToString(), msgId.ToString(), blockDepth);
-            }
-
-            bool fFound = false;
-            // Find all msg pairs
-            // Message funding is enforced in tx_verify.cpp
-            for (const auto &v : txOut->vpout) {
-                if (!v->IsType(OUTPUT_DATA)) {
-                    continue;
-                }
-                CTxOutData *txd = (CTxOutData*) v.get();
-                if (txd->vData.size() < 25 || txd->vData[0] != DO_FUND_MSG) {
-                    continue;
-                }
-
-                size_t n = (txd->vData.size()-1) / 24;
-
-                for (size_t k = 0; k < n; ++k) {
-                    uint160 *pMsgIdTx = (uint160*)&txd->vData[1+k*24];
-                    uint32_t *nAmount = (uint32_t*)&txd->vData[1+k*24+20];
-
-                    if (*pMsgIdTx == msgId) {
-                        if (*nAmount < nExpectFee) {
-                            LogPrintf("%s: Transaction %s underfunded message %s, expected %d paid %d.\n", __func__, txid.ToString(), msgId.ToString(), nExpectFee, *nAmount);
-                            return SMSG_FUND_FAILED;
-                        }
-                        fFound = true;
-                    }
-                }
-            }
-
-            if (!fFound) {
-                return errorN(SMSG_FUND_FAILED, "%s: Transaction %s does not fund message %s.\n", __func__, txid.ToString(), msgId.ToString());
-            }
-
-        }
-
-        return SMSG_NO_ERROR; // smsg is valid and funded
+        LogPrint(BCLog::SMSG, "Paid secure messages are not supported in this build.\n");
+        return SMSG_UNKNOWN_VERSION;
     }
 
     if (psmsg->version[0] != 2)
@@ -3205,7 +3116,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         rv = SMSG_NO_ERROR; // smsg is valid
     }
 
-    if (part::memcmp_nta(psmsg->hash, sha256Hash, 4) != 0) {
+    if (std::memcmp(psmsg->hash, sha256Hash, 4) != 0) {
         LogPrint(BCLog::SMSG, "Checksum mismatch.\n");
         rv = SMSG_CHECKSUM_MISMATCH; // checksum mismatch
     }
@@ -3353,7 +3264,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
     }
 
     uint256 P;
-    if (!secp256k1_ecdh(secp256k1_context_smsg, P.begin(), &pubkey, keyR.begin())) {
+    if (!secp256k1_ecdh(secp256k1_context_smsg, P.begin(), &pubkey, keyR.begin(), nullptr, nullptr)) {
         return errorN(SMSG_GENERAL_ERROR, "%s: secp256k1_ecdh failed.", __func__);
     }
 
@@ -3484,6 +3395,9 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     if (pwallet->IsLocked()) {
         return errorN(SMSG_WALLET_LOCKED, sError, __func__, "Wallet is locked, wallet must be unlocked to send messages");
     }
+    if (fPaid) {
+        return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Paid secure messages are not supported in this build");
+    }
 
     std::string sFromFile;
     if (fFromFile) {
@@ -3596,7 +3510,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             continue;
         }
 
-        const CBitcoinAddress &address = entry.first;
+        CBitcoinAddress address(entry.first);
 
         if (!address.IsValid()) {
             continue;
@@ -3686,94 +3600,12 @@ int CSMSG::HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t 
 
 int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee)
 {
-    // smsg.pPayload must have smsg.nPayload + 32 bytes allocated
-#ifdef ENABLE_WALLET
-    if (!pwallet) {
-        return SMSG_WALLET_UNSET;
+    (void)smsg;
+    (void)fTestFee;
+    if (nFee) {
+        *nFee = 0;
     }
-
-    if (smsg.version[0] != 3) {
-        return errorN(SMSG_UNKNOWN_VERSION, sError, __func__, "Bad message version.");
-    }
-
-    size_t nDaysRetention = smsg.nonce[0];
-    if (nDaysRetention < 1 || nDaysRetention > 31) {
-        return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Bad message ttl.");
-    }
-
-    uint256 txfundId;
-    uint160 msgId;
-    CMutableTransaction txFund;
-
-    if (0 != HashMsg(smsg, smsg.pPayload, smsg.nPayload-32, msgId)) {
-        return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Message hash failed.");
-    }
-
-    txFund.nVersion = VERGE_TXN_VERSION;
-
-    size_t nMsgBytes = SMSG_HDR_LEN + smsg.nPayload;
-
-    CCoinControl coinControl;
-    coinControl.m_feerate = CFeeRate(nFundingTxnFeePerK);
-    coinControl.fOverrideFeeRate = true;
-    coinControl.m_extrafee = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
-
-    assert(coinControl.m_extrafee <= std::numeric_limits<uint32_t>::max());
-    uint32_t msgFee = coinControl.m_extrafee;
-
-    OUTPUT_PTR<CTxOutData> out0 = MAKE_OUTPUT<CTxOutData>();
-    out0->vData.resize(25); // 4 byte fee, max 42.94967295
-    out0->vData[0] = DO_FUND_MSG;
-    memcpy(&out0->vData[1], msgId.begin(), 20);
-    memcpy(&out0->vData[21], &msgFee, 4);
-    txFund.vpout.push_back(out0);
-
-    int nChangePosInOut;
-    CAmount nFeeRet;
-    const std::set<int> setSubtractFeeFromOutputs;
-
-    {
-        auto locked_chain = pwallet->chain().lock();
-        LOCK(pwallet->cs_wallet);
-        if (!pwallet->FundTransaction(txFund, nFeeRet, nChangePosInOut, sError, false, setSubtractFeeFromOutputs, coinControl)) {
-            return errorN(SMSG_GENERAL_ERROR, "%s: FundTransaction failed.\n", __func__);
-        }
-
-        if (nFee) {
-            *nFee = pwallet->GetDebit(txFund, ISMINE_ALL) - pwallet->GetCredit(txFund, ISMINE_ALL);
-        }
-
-        if (fTestFee) {
-            return SMSG_NO_ERROR;
-        }
-
-        if (!pwallet->SignTransaction(txFund)) {
-            return errorN(SMSG_GENERAL_ERROR, sError, __func__, "SignTransaction failed.");
-        }
-
-        txfundId = txFund.GetHash();
-
-        if (!pwallet->GetBroadcastTransactions()) {
-            return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Broadcast transactions disabled.");
-        }
-
-        CWalletTx wtx(pwallet.get(), MakeTransactionRef(txFund));
-
-        CAmount maxTxFee = 1 * COIN;
-
-        CValidationState state;
-        if (!wtx.AcceptToMemoryPool(*locked_chain, maxTxFee, state)) {
-            return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Transaction cannot be broadcast immediately: %s.", state.GetRejectReason());
-        }
-
-        pwallet->AddToWallet(wtx);
-        wtx.RelayWalletTransaction(*locked_chain, g_connman.get());
-    }
-    memcpy(smsg.pPayload+(smsg.nPayload-32), txfundId.begin(), 32);
-#else
-    return SMSG_WALLET_UNSET;
-#endif
-    return SMSG_NO_ERROR;
+    return errorN(SMSG_GENERAL_ERROR, sError, "%s: Paid secure messages are not supported in this build.", __func__);
 };
 
 std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload)
@@ -3835,7 +3667,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     uint256 P;
-    if (!secp256k1_ecdh(secp256k1_context_smsg, P.begin(), &R, keyDest.begin())) {
+    if (!secp256k1_ecdh(secp256k1_context_smsg, P.begin(), &R, keyDest.begin(), nullptr, nullptr)) {
         return errorN(SMSG_GENERAL_ERROR, "%s: secp256k1_ecdh failed.", __func__);
     }
 
@@ -3857,7 +3689,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     ctx.Write((uint8_t*) pPayload, nPayload);
     ctx.Finalize(MAC);
 
-    if (part::memcmp_nta(MAC, psmsg->mac, 32) != 0) {
+    if (std::memcmp(MAC, psmsg->mac, 32) != 0) {
         LogPrint(BCLog::SMSG, "MAC does not match.\n"); // expected if message is not to address on node
         return SMSG_MAC_MISMATCH;
     }

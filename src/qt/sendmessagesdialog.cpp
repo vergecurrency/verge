@@ -1,12 +1,12 @@
-#include <sendmessagesdialog.h>
-#include <ui_sendmessagesdialog.h>
-//#include <init.h>
-#include <addressbookpage.h>
-#include <messagemodel.h>
-#include <optionsmodel.h>
-#include <sendmessagesentry.h>
-#include <walletmodel.h>
-//#include <guiutil.h>
+#include <qt/sendmessagesdialog.h>
+#include <qt/forms/ui_sendmessagesdialog.h>
+#include <qt/addressbookpage.h>
+#include <qt/messagemodel.h>
+#include <qt/optionsmodel.h>
+#include <qt/sendmessagesentry.h>
+#include <qt/walletmodel.h>
+
+#include <QApplication>
 #include <QClipboard>
 #include <QDataWidgetMapper>
 #include <QLocale>
@@ -87,7 +87,7 @@ void SendMessagesDialog::on_addressBookButton_clicked()
 {
     if (!model)
         return;
-    AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::ReceivingTab, this);
+    AddressBookPage dlg(model->getWalletModel()->getPlatformStyle(), AddressBookPage::ForSelection, AddressBookPage::ReceivingTab, this);
     dlg.setModel(model->getWalletModel()->getAddressTableModel());
     if (dlg.exec()) {
         ui->addressFrom->setText(dlg.getReturnValue());
@@ -116,8 +116,10 @@ void SendMessagesDialog::on_sendButton_clicked()
         return;
     // Format confirmation message
     QStringList formatted;
-    foreach (const SendMessagesRecipient& rcp, recipients) {
-        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(rcp.message, Qt::escape(rcp.label), rcp.address));
+    for (const SendMessagesRecipient& rcp : recipients) {
+        const QString label = rcp.label.toHtmlEscaped();
+        const QString address = rcp.address.toHtmlEscaped();
+        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(rcp.message.toHtmlEscaped(), label, address));
     }
     fNewRecipientAllowed = false;
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send messages"),

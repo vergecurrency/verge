@@ -347,6 +347,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     historyAction(0),
     quitAction(0),
     sendCoinsAction(0),
+    messagesAction(0),
     tradeAction(0),
     gamesAction(0),
     sendCoinsMenuAction(0),
@@ -667,18 +668,25 @@ void VERGEGUI::createActions()
     historyAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_4));
     tabGroup->addAction(historyAction);
 
+    messagesAction = new QAction(platformStyle->SingleColorIcon(":/icons/edit"), tr("&Messages"), this);
+    messagesAction->setStatusTip(tr("Read and send secure messages"));
+    messagesAction->setToolTip(messagesAction->statusTip());
+    messagesAction->setCheckable(true);
+    messagesAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_5));
+    tabGroup->addAction(messagesAction);
+
     tradeAction = new QAction(platformStyle->SingleColorIcon(":/icons/trade"), tr("&Trade"), this);
     tradeAction->setStatusTip(tr("Trade using the integrated StealthEX widget"));
     tradeAction->setToolTip(tradeAction->statusTip());
     tradeAction->setCheckable(true);
-    tradeAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_5));
+    tradeAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_6));
     tabGroup->addAction(tradeAction);
 
     gamesAction = new QAction(platformStyle->SingleColorIcon(":/icons/games"), tr("&Games"), this);
     gamesAction->setStatusTip(tr("Play built-in games"));
     gamesAction->setToolTip(gamesAction->statusTip());
     gamesAction->setCheckable(true);
-    gamesAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_6));
+    gamesAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_7));
     tabGroup->addAction(gamesAction);
 
 #ifdef ENABLE_WALLET
@@ -696,6 +704,8 @@ void VERGEGUI::createActions()
     connect(receiveCoinsMenuAction, SIGNAL(triggered(bool)), this, SLOT(gotoReceiveCoinsPage()));
     connect(historyAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
     connect(historyAction, SIGNAL(triggered(bool)), this, SLOT(gotoHistoryPage()));
+    connect(messagesAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
+    connect(messagesAction, SIGNAL(triggered(bool)), this, SLOT(gotoMessagesPage()));
     connect(tradeAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
     connect(tradeAction, SIGNAL(triggered(bool)), this, SLOT(gotoTradePage()));
     connect(gamesAction, SIGNAL(triggered(bool)), this, SLOT(showNormalIfMinimized()));
@@ -839,6 +849,7 @@ void VERGEGUI::createToolBars()
         toolbar->addAction(sendCoinsAction);
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
+        toolbar->addAction(messagesAction);
         toolbar->addAction(tradeAction);
         toolbar->addAction(gamesAction);
         overviewAction->setChecked(true);
@@ -857,7 +868,7 @@ void VERGEGUI::createToolBars()
 void VERGEGUI::polishShellWidgets()
 {
     if (appToolBar) {
-        const QList<QAction*> navigationActions{overviewAction, sendCoinsAction, receiveCoinsAction, historyAction, tradeAction, gamesAction};
+        const QList<QAction*> navigationActions{overviewAction, sendCoinsAction, receiveCoinsAction, historyAction, messagesAction, tradeAction, gamesAction};
         for (QAction* action : navigationActions) {
             if (!action) {
                 continue;
@@ -1065,6 +1076,7 @@ void VERGEGUI::setWalletActionsEnabled(bool enabled)
     receiveCoinsAction->setEnabled(enabled);
     receiveCoinsMenuAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
+    messagesAction->setEnabled(enabled);
     tradeAction->setEnabled(enabled);
     gamesAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
@@ -1287,6 +1299,12 @@ void VERGEGUI::gotoSendCoinsPage(QString addr)
 void VERGEGUI::gotoSendCoinsPage()
 {
     gotoSendCoinsPage(QString());
+}
+
+void VERGEGUI::gotoMessagesPage()
+{
+    messagesAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoMessagesPage();
 }
 
 void VERGEGUI::gotoTradePage()

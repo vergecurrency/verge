@@ -34,7 +34,7 @@ class SendMessagesDialog : public QDialog
      */
     QWidget *setupTabChain(QWidget *prev);
      void pasteEntry(const SendMessagesRecipient &rv);
- public slots:
+ public Q_SLOTS:
     void done(int retval);
     void clear();
     void reject();
@@ -47,7 +47,7 @@ class SendMessagesDialog : public QDialog
     bool fNewRecipientAllowed;
     Mode mode;
     Type type;
- private slots:
+ private Q_SLOTS:
     void on_sendButton_clicked();
     void removeEntry(SendMessagesEntry* entry);
     void on_addressBookButton_clicked();

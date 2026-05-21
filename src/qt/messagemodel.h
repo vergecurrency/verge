@@ -1,9 +1,9 @@
 #ifndef VERGE_QT_MESSAGEMODEL_H
 #define VERGE_QT_MESSAGEMODEL_H
+
 #include <uint256.h>
 #include <vector>
-#include <allocators.h> /* for SecureString */
-#include <smessage.h>
+#include <smsg/smessage.h>
 #include <map>
 #include <QSortFilterProxyModel>
 #include <QAbstractTableModel>
@@ -13,7 +13,6 @@
 class InvoiceTableModel;
 class InvoiceItemTableModel;
 class ReceiptTableModel;
-class CWallet;
 class WalletModel;
 class OptionsModel;
  class SendMessagesRecipient
@@ -63,8 +62,8 @@ public:
 class MessageModel : public QAbstractTableModel
 {
     Q_OBJECT
- public:
-    explicit MessageModel(CWallet *wallet, WalletModel *walletModel, QObject *parent = 0);
+public:
+    explicit MessageModel(WalletModel *walletModel, QObject *parent = 0);
     ~MessageModel();
      enum StatusCode // Returned by sendMessages
     {
@@ -146,23 +145,22 @@ class MessageModel : public QAbstractTableModel
     QSortFilterProxyModel *proxyModel;
     
 private:
-    CWallet *wallet;
     WalletModel *walletModel;
     OptionsModel *optionsModel;
     MessageTablePriv *priv;
     QStringList columns;
      void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
- public slots:
+public Q_SLOTS:
      /* Check for new messages */
-    void newMessage(const SecMsgStored& smsg);
-    void newOutboxMessage(const SecMsgStored& smsg);
+    void newMessage(const smsg::SecMsgStored& smsg);
+    void newOutboxMessage(const smsg::SecMsgStored& smsg);
     
     void walletUnlocked();
     
-    void setEncryptionStatus(int status);
+    void setEncryptionStatus();
      friend class MessageTablePriv;
- signals:
+Q_SIGNALS:
     // Asynchronous error notification
     void error(const QString &title, const QString &message, bool modal);
 };

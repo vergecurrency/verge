@@ -17,6 +17,8 @@ class PlatformStyle;
 class ReceiveCoinsDialog;
 class SendCoinsDialog;
 class SendCoinsRecipient;
+class MessagePage;
+class MessageModel;
 class TradePage;
 class GamesPage;
 class TransactionView;
@@ -66,6 +68,8 @@ private:
     QWidget *transactionsPage;
     ReceiveCoinsDialog *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
+    MessagePage *messagesPage;
+    MessageModel *messageModel;
     TradePage *tradePage;
     GamesPage *gamesPage;
     AddressBookPage *usedSendingAddressesPage;
@@ -85,6 +89,8 @@ public Q_SLOTS:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
+    /** Switch to messages page */
+    void gotoMessagesPage();
     /** Switch to trade page */
     void gotoTradePage();
     /** Switch to games page */

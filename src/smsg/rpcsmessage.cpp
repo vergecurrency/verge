@@ -7,12 +7,16 @@
 #include <rpc/server.h>
 
 #include <algorithm>
+#include <cctype>
+#include <cstring>
 #include <string>
+#include <sstream>
 
 #include <smsg/smessage.h>
 #include <smsg/db.h>
 #include <script/ismine.h>
 #include <util/strencodings.h>
+#include <util/time.h>
 #include <core_io.h>
 #include <base58.h>
 #include <rpc/util.h>
@@ -22,6 +26,78 @@
 #endif
 
 #include <univalue.h>
+
+static bool GetBool(const UniValue& value)
+{
+    if (value.isBool()) return value.get_bool();
+    if (value.isNum()) return value.get_int() != 0;
+    if (value.isStr()) {
+        std::string s = value.get_str();
+        std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c){ return std::tolower(c); });
+        return s == "1" || s == "true" || s == "yes" || s == "+";
+    }
+    return false;
+}
+
+static void PushTime(UniValue& obj, const char* key, int64_t ts)
+{
+    obj.pushKV(key, FormatISO8601DateTime(ts));
+}
+
+namespace part {
+static bool GetStringBool(const std::string& value, bool& out)
+{
+    std::string s(value);
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c){ return std::tolower(c); });
+    if (s == "1" || s == "true" || s == "yes" || s == "on" || s == "+") { out = true; return true; }
+    if (s == "0" || s == "false" || s == "no" || s == "off" || s == "-") { out = false; return true; }
+    return false;
+}
+
+static bool stringsMatchI(const std::string& haystack, const std::string& needle, int)
+{
+    std::string h(haystack), n(needle);
+    std::transform(h.begin(), h.end(), h.begin(), [](unsigned char c){ return std::tolower(c); });
+    std::transform(n.begin(), n.end(), n.begin(), [](unsigned char c){ return std::tolower(c); });
+    return h.find(n) != std::string::npos;
+}
+
+static std::string GetTimeString(int64_t ts, char* buf, size_t len)
+{
+    std::string out = FormatISO8601DateTime(ts);
+    if (buf && len > 0) {
+        strncpy(buf, out.c_str(), len - 1);
+        buf[len - 1] = '\0';
+    }
+    return out;
+}
+
+static std::string BytesReadable(uint64_t bytes)
+{
+    static const char* suffixes[] = {"B", "KB", "MB", "GB", "TB"};
+    double size = static_cast<double>(bytes);
+    size_t suffix = 0;
+    while (size >= 1024.0 && suffix < 4) {
+        size /= 1024.0;
+        ++suffix;
+    }
+    std::ostringstream oss;
+    if (suffix == 0) {
+        oss << static_cast<uint64_t>(size) << ' ' << suffixes[suffix];
+    } else {
+        oss.setf(std::ios::fixed);
+        oss.precision(2);
+        oss << size << ' ' << suffixes[suffix];
+    }
+    return oss.str();
+}
+
+static int64_t strToEpoch(const char* str)
+{
+    if (!str) return 0;
+    return ParseISO8601DateTime(str);
+}
+} // namespace part
 
 static void EnsureSMSGIsEnabled()
 {
@@ -553,16 +629,19 @@ static UniValue smsgimportprivkey(const JSONRPCRequest &request)
 
     EnsureSMSGIsEnabled();
 
-    CBitcoinSecret vchSecret;
-    if (!request.params[0].isStr()
-        || !vchSecret.SetString(request.params[0].get_str()))
+    CKey key;
+    if (!request.params[0].isStr())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
+
+    key = DecodeSecret(request.params[0].get_str());
+    if (!key.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
     std::string strLabel = "";
     if (!request.params[1].isNull())
         strLabel = request.params[1].get_str();
 
-    int rv = smsgModule.ImportPrivkey(vchSecret, strLabel);
+    int rv = smsgModule.ImportPrivkey(key, strLabel);
     if (0 != rv)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Import failed.");
 
@@ -694,9 +773,6 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     };
 
     CAmount nFee;
-
-    if (fPaid && Params().GetConsensus().nPaidSmsgTime > GetTime())
-        throw std::runtime_error("Paid SMSG not yet active on mainnet.");
 
     CKeyID kiFrom, kiTo;
     CBitcoinAddress coinAddress(addrFrom);

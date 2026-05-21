@@ -24,6 +24,7 @@
 #include <primitives/transaction.h>
 #include <random.h>
 #include <reverse_iterator.h>
+#include <smsg/smessage.h>
 #include <scheduler.h>
 #include <tinyformat.h>
 #include <txmempool.h>
@@ -2774,6 +2775,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             LOCK(cs_main);
             mapBlockSource.erase(pblock->GetHash());
         }
+
+        if (smsg::fSecMsgEnabled) {
+            smsgModule.ScanBlock(*pblock);
+        }
     }
 
 
@@ -2978,6 +2983,19 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     }
 
     else {
+        if (smsg::fSecMsgEnabled && strCommand.rfind("smsg", 0) == 0) {
+            const int rv = smsgModule.ReceiveData(pfrom, strCommand, vRecv);
+            if (rv == smsg::SMSG_NO_ERROR) {
+                return true;
+            }
+            if (rv != smsg::SMSG_UNKNOWN_MESSAGE) {
+                LogPrint(BCLog::NET, "Secure message command \"%s\" from peer=%d failed: %s\n",
+                    SanitizeString(strCommand),
+                    pfrom->GetId(),
+                    smsg::GetString(rv));
+            }
+        }
+
         // Ignore unknown commands for extensibility
         LogPrint(BCLog::NET, "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->GetId());
     }
@@ -3812,6 +3830,10 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                      (currentFilter < 3 * pto->lastSentFeeFilter / 4 || currentFilter > 4 * pto->lastSentFeeFilter / 3)) {
                 pto->nextSendTimeFeeFilter = timeNow + GetRandInt(MAX_FEEFILTER_CHANGE_DELAY) * 1000000;
             }
+        }
+
+        if (smsg::fSecMsgEnabled) {
+            smsgModule.SendData(pto, true);
         }
     }
     return true;

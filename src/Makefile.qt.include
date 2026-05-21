@@ -101,7 +101,9 @@ QT_FORMS_UI = \
   qt/forms/editaddressdialog.ui \
   qt/forms/helpmessagedialog.ui \
   qt/forms/intro.ui \
+  qt/forms/messagepage.ui \
   qt/forms/modaloverlay.ui \
+  qt/plugins/mrichtexteditor/mrichtextedit.ui \
   qt/forms/openuridialog.ui \
   qt/forms/optionsdialog.ui \
   qt/forms/overviewpage.ui \
@@ -110,6 +112,8 @@ QT_FORMS_UI = \
   qt/forms/debugwindow.ui \
   qt/forms/sendcoinsdialog.ui \
   qt/forms/sendcoinsentry.ui \
+  qt/forms/sendmessagesdialog.ui \
+  qt/forms/sendmessagesentry.ui \
   qt/forms/signverifymessagedialog.ui \
   qt/forms/transactiondescdialog.ui
 
@@ -130,8 +134,11 @@ QT_MOC_CPP = \
   qt/moc_editaddressdialog.cpp \
   qt/moc_guiutil.cpp \
   qt/moc_intro.cpp \
+  qt/moc_messagepage.cpp \
+  qt/moc_messagemodel.cpp \
   qt/moc_macdockiconhandler.cpp \
   qt/moc_macnotificationhandler.cpp \
+  qt/moc_mrichtextedit.cpp \
   qt/moc_modaloverlay.cpp \
   qt/moc_notificator.cpp \
   qt/moc_openuridialog.cpp \
@@ -146,6 +153,8 @@ QT_MOC_CPP = \
   qt/moc_receiverequestdialog.cpp \
   qt/moc_recentrequeststablemodel.cpp \
   qt/moc_rpcconsole.cpp \
+  qt/moc_sendmessagesdialog.cpp \
+  qt/moc_sendmessagesentry.cpp \
   qt/moc_sendcoinsdialog.cpp \
   qt/moc_sendcoinsentry.cpp \
   qt/moc_signverifymessagedialog.cpp \
@@ -157,6 +166,7 @@ QT_MOC_CPP = \
   qt/moc_transactiontablemodel.cpp \
   qt/moc_transactionview.cpp \
   qt/moc_utilitydialog.cpp \
+  qt/moc_qvalidatedtextedit.cpp \
   qt/moc_walletframe.cpp \
   qt/moc_walletmodel.cpp \
   qt/moc_walletview.cpp
@@ -204,6 +214,8 @@ VERGE_QT_H = \
   qt/games/tetriswidget.h \
   qt/gamespage.h \
   qt/intro.h \
+  qt/messagepage.h \
+  qt/messagemodel.h \
   qt/macdockiconhandler.h \
   qt/macnotificationhandler.h \
   qt/modaloverlay.h \
@@ -217,7 +229,9 @@ VERGE_QT_H = \
   qt/paymentserver.h \
   qt/peertablemodel.h \
   qt/platformstyle.h \
+  qt/plugins/mrichtexteditor/mrichtextedit.h \
   qt/qvalidatedlineedit.h \
+  qt/qvalidatedtextedit.h \
   qt/qvaluecombobox.h \
   qt/receivecoinsdialog.h \
   qt/receiverequestdialog.h \
@@ -225,6 +239,8 @@ VERGE_QT_H = \
   qt/rpcconsole.h \
   qt/sendcoinsdialog.h \
   qt/sendcoinsentry.h \
+  qt/sendmessagesdialog.h \
+  qt/sendmessagesentry.h \
   qt/signverifymessagedialog.h \
   qt/tradepage.h \
   qt/splashscreen.h \
@@ -354,6 +370,7 @@ VERGE_QT_BASE_CPP = \
   qt/gamespage.cpp \
   qt/guiutil.cpp \
   qt/intro.cpp \
+  qt/plugins/mrichtexteditor/mrichtextedit.cpp \
   qt/modaloverlay.cpp \
   qt/networkstyle.cpp \
   qt/notificator.cpp \
@@ -377,15 +394,20 @@ VERGE_QT_WALLET_CPP = \
   qt/coincontroldialog.cpp \
   qt/coincontroltreewidget.cpp \
   qt/editaddressdialog.cpp \
+  qt/messagepage.cpp \
+  qt/messagemodel.cpp \
   qt/openuridialog.cpp \
   qt/overviewpage.cpp \
   qt/paymentrequestplus.cpp \
   qt/paymentserver.cpp \
+  qt/qvalidatedtextedit.cpp \
   qt/receivecoinsdialog.cpp \
   qt/receiverequestdialog.cpp \
   qt/recentrequeststablemodel.cpp \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
+  qt/sendmessagesdialog.cpp \
+  qt/sendmessagesentry.cpp \
   qt/signverifymessagedialog.cpp \
   qt/tradepage.cpp \
   qt/transactiondesc.cpp \
@@ -416,7 +438,7 @@ VERGE_RC = qt/res/verge-qt-res.rc
 
 VERGE_QT_INCLUDES = -DQT_NO_KEYWORDS -DQT_USE_QSTRINGBUILDER
 
-qt_libvergeqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(VERGE_QT_INCLUDES) \
+qt_libvergeqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(VERGE_QT_INCLUDES) -I$(srcdir)/qt/plugins/mrichtexteditor \
   $(QT_INCLUDES) $(QT_DBUS_INCLUDES) $(PROTOBUF_CFLAGS) $(QR_CFLAGS) $(BOOST_CPPFLAGS)
 qt_libvergeqt_a_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS) $(QT_CXXFLAGS)
 qt_libvergeqt_a_OBJCXXFLAGS = $(AM_OBJCXXFLAGS) $(QT_PIE_FLAGS)
@@ -515,6 +537,10 @@ ui_%.h: %.ui
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(MOC) $(DEFAULT_INCLUDES) $(QT_INCLUDES_UNSUPPRESSED) $(MOC_DEFS) $< > $@
 
 moc_%.cpp: %.h
+	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(MOC) $(DEFAULT_INCLUDES) $(QT_INCLUDES_UNSUPPRESSED) $(MOC_DEFS) $< > $@
+
+qt/moc_mrichtextedit.cpp: qt/plugins/mrichtexteditor/mrichtextedit.h
+	@$(MKDIR_P) $(@D)
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(MOC) $(DEFAULT_INCLUDES) $(QT_INCLUDES_UNSUPPRESSED) $(MOC_DEFS) $< > $@
 
 %.qm: %.ts

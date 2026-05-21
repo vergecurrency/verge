@@ -96,6 +96,17 @@ struct AddedNodeInfo
     bool fInbound;
 };
 
+struct SecMsgNode
+{
+    CCriticalSection cs_smsg_net;
+    int64_t lastSeen{-1};
+    int64_t lastMatched{0};
+    int64_t ignoreUntil{0};
+    uint32_t nWakeCounter{0};
+    int64_t nPeerId{0};
+    bool fEnabled{false};
+};
+
 class CNodeStats;
 class CClientUIInterface;
 
@@ -737,6 +748,7 @@ public:
     CCriticalSection cs_feeFilter;
     CAmount lastSentFeeFilter;
     int64_t nextSendTimeFeeFilter;
+    SecMsgNode smsgData;
 
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn, const CAddress &addrBindIn, const std::string &addrNameIn = "", bool fInboundIn = false);
     ~CNode();

@@ -34,13 +34,14 @@
 #include <QImageReader>
 #include <QSettings>
 #include <QBuffer>
+#include <QKeySequence>
 #include <QUrl>
 #include <QRegularExpression>
 
 MRichTextEdit::MRichTextEdit(QWidget *parent) : QWidget(parent) {
     setupUi(this);
     m_lastBlockList = 0;
-    f_textedit->setTabStopWidth(40);
+    f_textedit->setTabStopDistance(40.0);
 
     connect(f_textedit, SIGNAL(currentCharFormatChanged(QTextCharFormat)),
             this,     SLOT(slotCurrentCharFormatChanged(QTextCharFormat)));
@@ -106,15 +107,15 @@ MRichTextEdit::MRichTextEdit(QWidget *parent) : QWidget(parent) {
 
     // link
 
-    f_link->setShortcut(Qt::CTRL + Qt::Key_L);
+    f_link->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L));
 
     connect(f_link, SIGNAL(clicked(bool)), this, SLOT(textLink(bool)));
 
     // bold, italic & underline
 
-    f_bold->setShortcut(Qt::CTRL + Qt::Key_B);
-    f_italic->setShortcut(Qt::CTRL + Qt::Key_I);
-    f_underline->setShortcut(Qt::CTRL + Qt::Key_U);
+    f_bold->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
+    f_italic->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_I));
+    f_underline->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_U));
 
     connect(f_bold, SIGNAL(clicked()), this, SLOT(textBold()));
     connect(f_italic, SIGNAL(clicked()), this, SLOT(textItalic()));
@@ -123,24 +124,24 @@ MRichTextEdit::MRichTextEdit(QWidget *parent) : QWidget(parent) {
 
     // lists
 
-    f_list_bullet->setShortcut(Qt::CTRL + Qt::Key_Minus);
-    f_list_ordered->setShortcut(Qt::CTRL + Qt::Key_Equal);
+    f_list_bullet->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus));
+    f_list_ordered->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Equal));
 
     connect(f_list_bullet, SIGNAL(clicked(bool)), this, SLOT(listBullet(bool)));
     connect(f_list_ordered, SIGNAL(clicked(bool)), this, SLOT(listOrdered(bool)));
 
     // indentation
 
-    f_indent_dec->setShortcut(Qt::CTRL + Qt::Key_Comma);
-    f_indent_inc->setShortcut(Qt::CTRL + Qt::Key_Period);
+    f_indent_dec->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Comma));
+    f_indent_inc->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Period));
 
     connect(f_indent_inc, SIGNAL(clicked()), this, SLOT(increaseIndentation()));
     connect(f_indent_dec, SIGNAL(clicked()), this, SLOT(decreaseIndentation()));
 
     // font size
 
-    QFontDatabase db;
-    foreach(int size, db.standardSizes())
+    const QList<int> standardSizes = QFontDatabase::standardSizes();
+    for (int size : standardSizes)
         f_fontsize->addItem(QString::number(size));
 
     connect(f_fontsize, SIGNAL(activated(QString)),
@@ -264,7 +265,7 @@ void MRichTextEdit::textStyle(int index) {
         }
     if (index == ParagraphMonospace) {
         fmt = cursor.charFormat();
-        fmt.setFontFamily("Monospace");
+        fmt.setFontFamilies(QStringList(QStringLiteral("Monospace")));
         fmt.setFontStyleHint(QFont::Monospace);
         fmt.setFontFixedPitch(true);
         }

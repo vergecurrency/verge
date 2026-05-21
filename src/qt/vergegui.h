@@ -128,6 +128,7 @@ private:
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
+    QAction *messagesAction;
     QAction *tradeAction;
     QAction *gamesAction;
     QAction *sendCoinsMenuAction;
@@ -252,6 +253,8 @@ private Q_SLOTS:
     /** Switch to send coins page */
     void gotoSendCoinsPage();
     void gotoSendCoinsPage(QString addr);
+    /** Switch to messages page */
+    void gotoMessagesPage();
     /** Switch to trade page */
     void gotoTradePage();
     /** Switch to games page */

@@ -1753,6 +1753,11 @@ bool AppInitMain()
         nLocalServices = ServiceFlags(nLocalServices | NODE_WITNESS);
     }
 
+    if (!gArgs.GetBoolArg("-disablewallet", false) &&
+        gArgs.GetBoolArg("-smsg", true)) {
+        nLocalServices = ServiceFlags(nLocalServices | NODE_SMSG);
+    }
+
     // ********************************************************* Step 11: import blocks
 
     if (!CheckDiskSpace(GetDataDir())) {

@@ -9,6 +9,8 @@
 #include <init.h>
 #include <net.h>
 #include <scheduler.h>
+#include <smsg/rpcsmessage.h>
+#include <smsg/smessage.h>
 #include <util/system.h>
 #include <util/moneystr.h>
 #include <validation.h>
@@ -84,6 +86,7 @@ void WalletInit::AddWalletOptions() const
     gArgs.AddArg("-flushwallet", strprintf("Run a thread to flush wallet periodically (default: %u)", DEFAULT_FLUSHWALLET), true, OptionsCategory::WALLET_DEBUG_TEST);
     gArgs.AddArg("-privdb", strprintf("Sets the DB_PRIVATE flag in the wallet db environment (default: %u)", DEFAULT_WALLET_PRIVDB), true, OptionsCategory::WALLET_DEBUG_TEST);
     gArgs.AddArg("-walletrejectlongchains", strprintf("Wallet will not create transactions that violate mempool chain limits (default: %u)", DEFAULT_WALLET_REJECT_LONG_CHAINS), true, OptionsCategory::WALLET_DEBUG_TEST);
+    smsg::AddOptions();
 }
 
 bool WalletInit::ParameterInteraction() const
@@ -177,6 +180,7 @@ void WalletInit::RegisterRPC(CRPCTable &t) const
     }
 
     RegisterWalletRPCCommands(t);
+    RegisterSmsgRPCCommands(t);
 }
 
 bool WalletInit::Verify() const
@@ -252,6 +256,14 @@ void WalletInit::Start(CScheduler& scheduler) const
         pwallet->postInitProcess();
     }
 
+    const auto wallets = GetWallets();
+    if (!wallets.empty()) {
+        smsgModule.Start(
+            wallets.front(),
+            !gArgs.GetBoolArg("-smsg", true),
+            gArgs.GetBoolArg("-smsgscanchain", false));
+    }
+
     // Run a thread to flush wallet periodically
     scheduler.scheduleEvery(MaybeCompactWalletDB, 500);
 }
@@ -265,6 +277,7 @@ void WalletInit::Flush() const
 
 void WalletInit::Stop() const
 {
+    smsgModule.Shutdown();
     for (const std::shared_ptr<CWallet>& pwallet : GetWallets()) {
         pwallet->Flush(true);
     }

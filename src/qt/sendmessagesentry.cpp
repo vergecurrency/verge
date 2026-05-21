@@ -1,0 +1,193 @@
+// Copyright (c) 2026 The Verge Developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <qt/sendmessagesentry.h>
+#include <qt/forms/ui_sendmessagesentry.h>
+
+#include <qt/addressbookpage.h>
+#include <qt/addresstablemodel.h>
+#include <qt/messagemodel.h>
+#include <qt/walletmodel.h>
+
+#include <QApplication>
+#include <QClipboard>
+#include <QPlainTextEdit>
+
+SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
+    QFrame(parent),
+    ui(new Ui::SendMessagesEntry),
+    model(nullptr)
+{
+    ui->setupUi(this);
+
+#ifdef Q_OS_MAC
+    ui->addressBookButton->setIcon(QIcon());
+    ui->pasteButton->setIcon(QIcon());
+    ui->deleteButton->setIcon(QIcon());
+#endif
+
+    connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
+}
+
+SendMessagesEntry::~SendMessagesEntry()
+{
+    delete ui;
+}
+
+void SendMessagesEntry::setModel(MessageModel* modelIn)
+{
+    model = modelIn;
+    clear();
+}
+
+void SendMessagesEntry::clear()
+{
+    ui->sendTo->clear();
+    ui->addAsLabel->clear();
+    ui->publicKey->clear();
+    ui->messageText->clear();
+    ui->messageText->setErrorText(tr("The message cannot be empty."));
+}
+
+bool SendMessagesEntry::validate()
+{
+    if (!model) {
+        return false;
+    }
+
+    bool valid = true;
+    QString sendTo = ui->sendTo->text().trimmed();
+    QString publicKey = ui->publicKey->text().trimmed();
+    QString resolvedAddress = sendTo;
+
+    if (!model->getWalletModel()->validateAddress(sendTo)) {
+        ui->sendTo->setValid(false);
+        valid = false;
+    }
+
+    if (ui->messageText->toPlainText().trimmed().isEmpty()) {
+        ui->messageText->setValid(false);
+        valid = false;
+    }
+
+    if (valid && publicKey.isEmpty()) {
+        QString resolvedPubKey;
+        if (!model->getAddressOrPubkey(resolvedAddress, resolvedPubKey)) {
+            ui->publicKey->setValid(false);
+            valid = false;
+        } else {
+            ui->publicKey->setText(resolvedPubKey);
+        }
+    }
+
+    return valid;
+}
+
+SendMessagesRecipient SendMessagesEntry::getValue()
+{
+    SendMessagesRecipient recipient;
+    recipient.address = ui->sendTo->text().trimmed();
+    recipient.label = ui->addAsLabel->text().trimmed();
+    recipient.pubkey = ui->publicKey->text().trimmed();
+    recipient.message = ui->messageText->toPlainText().trimmed();
+    return recipient;
+}
+
+bool SendMessagesEntry::isClear()
+{
+    return ui->sendTo->text().trimmed().isEmpty()
+        && ui->publicKey->text().trimmed().isEmpty()
+        && ui->messageText->toPlainText().trimmed().isEmpty();
+}
+
+void SendMessagesEntry::setValue(const SendMessagesRecipient& value)
+{
+    ui->sendTo->setText(value.address);
+    ui->addAsLabel->setText(value.label);
+    ui->publicKey->setText(value.pubkey);
+    static_cast<QPlainTextEdit*>(ui->messageText)->setPlainText(value.message);
+}
+
+void SendMessagesEntry::loadRow(int row)
+{
+    if (!model) {
+        return;
+    }
+
+    const QModelIndex typeIndex = model->index(row, MessageModel::Type, QModelIndex());
+    const bool received = model->data(typeIndex, Qt::DisplayRole).toString() == MessageModel::Received;
+    const QString sendTo = model->data(model->index(row, received ? MessageModel::FromAddress : MessageModel::ToAddress, QModelIndex()), Qt::DisplayRole).toString();
+    const QString label = model->data(model->index(row, MessageModel::Label, QModelIndex()), Qt::DisplayRole).toString();
+
+    ui->sendTo->setText(sendTo);
+    if (!label.isEmpty() && label != tr("(no label)")) {
+        ui->addAsLabel->setText(label);
+    }
+}
+
+void SendMessagesEntry::setRemoveEnabled(bool enabled)
+{
+    ui->deleteButton->setEnabled(enabled);
+}
+
+QWidget* SendMessagesEntry::setupTabChain(QWidget* prev)
+{
+    QWidget::setTabOrder(prev, ui->sendTo);
+    QWidget::setTabOrder(ui->sendTo, ui->addAsLabel);
+    QWidget::setTabOrder(ui->addAsLabel, ui->publicKey);
+    QWidget::setTabOrder(ui->publicKey, ui->messageText);
+    QWidget::setTabOrder(ui->messageText, ui->addressBookButton);
+    QWidget::setTabOrder(ui->addressBookButton, ui->pasteButton);
+    QWidget::setTabOrder(ui->pasteButton, ui->deleteButton);
+    return ui->deleteButton;
+}
+
+void SendMessagesEntry::setFocus()
+{
+    ui->sendTo->setFocus();
+}
+
+void SendMessagesEntry::deleteClicked()
+{
+    Q_EMIT removeEntry(this);
+}
+
+void SendMessagesEntry::on_pasteButton_clicked()
+{
+    ui->sendTo->setText(QApplication::clipboard()->text());
+}
+
+void SendMessagesEntry::on_addressBookButton_clicked()
+{
+    if (!model) {
+        return;
+    }
+
+    AddressBookPage dlg(model->getWalletModel()->getPlatformStyle(), AddressBookPage::ForSelection, AddressBookPage::SendingTab, this);
+    dlg.setModel(model->getWalletModel()->getAddressTableModel());
+    if (dlg.exec()) {
+        ui->sendTo->setText(dlg.getReturnValue());
+        ui->messageText->setFocus();
+    }
+}
+
+void SendMessagesEntry::on_sendTo_textChanged(const QString& address)
+{
+    updateLabel(address);
+}
+
+bool SendMessagesEntry::updateLabel(const QString& address)
+{
+    if (!model) {
+        return false;
+    }
+
+    const QString associatedLabel = model->getWalletModel()->getAddressTableModel()->labelForAddress(address);
+    if (!associatedLabel.isEmpty()) {
+        ui->addAsLabel->setText(associatedLabel);
+        return true;
+    }
+
+    return false;
+}

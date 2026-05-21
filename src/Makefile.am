@@ -346,6 +346,11 @@ libverge_wallet_a_SOURCES = \
   wallet/walletdb.cpp \
   wallet/walletutil.cpp \
   wallet/coinselection.cpp \
+  smsg/crypter.cpp \
+  smsg/db.cpp \
+  smsg/keystore.cpp \
+  smsg/rpcsmessage.cpp \
+  smsg/smessage.cpp \
   stealth.cpp \
   $(VERGE_CORE_H)
 

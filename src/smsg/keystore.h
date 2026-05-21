@@ -34,12 +34,28 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action)
     {
+        CPrivKey privkey;
+        if (!ser_action.ForRead() && key.IsValid()) {
+            privkey = key.GetPrivKey();
+        }
+
         READWRITE(nCreateTime);
         READWRITE(nFlags);
         READWRITE(sLabel);
-        READWRITE(key);
+        READWRITE(privkey);
+        READWRITE(pubkey);
         READWRITE(hdKeypath);
         READWRITE(hdMasterKeyID);
+
+        if (ser_action.ForRead()) {
+            if (!privkey.empty()) {
+                if (!key.Load(privkey, pubkey, true)) {
+                    throw std::ios_base::failure("Failed to load secure messaging private key");
+                }
+            } else {
+                key = CKey();
+            }
+        }
     };
 };
 

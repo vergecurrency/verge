@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
 // Copyright (c) 2017-2018 The Particl Core developers
-// Copyright (c) 2017-2018 The Verge Core developers
+// Copyright (c) 2017-2026 The Verge Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,13 +11,88 @@
 #include <net.h>
 #include <serialize.h>
 #include <ui_interface.h>
-#include <lz4/lz4.h>
+#include <crypto/lz4/lz4.h>
 #include <smsg/keystore.h>
 #include <interfaces/handler.h>
 
 #include <boost/signals2/signal.hpp>
 
 class CWallet;
+
+class CBitcoinAddress
+{
+public:
+    CBitcoinAddress() = default;
+    explicit CBitcoinAddress(const std::string& strAddress) { SetString(strAddress); }
+    explicit CBitcoinAddress(const CKeyID& keyID) : m_destination(keyID) {}
+    explicit CBitcoinAddress(const CTxDestination& dest) : m_destination(dest) {}
+
+    bool SetString(const std::string& strAddress)
+    {
+        m_destination = DecodeDestination(strAddress);
+        return IsValid();
+    }
+
+    bool Set(const CKeyID& keyID)
+    {
+        m_destination = keyID;
+        return IsValid();
+    }
+
+    bool Set(const CTxDestination& dest)
+    {
+        m_destination = dest;
+        return IsValid();
+    }
+
+    bool IsValid() const
+    {
+        return IsValidDestination(m_destination);
+    }
+
+    bool IsValid(int) const
+    {
+        return IsValid();
+    }
+
+    bool GetKeyID(CKeyID& keyID) const
+    {
+        if (const auto* key = boost::get<CKeyID>(&m_destination)) {
+            keyID = *key;
+            return true;
+        }
+        return false;
+    }
+
+    std::string ToString() const
+    {
+        return IsValid() ? EncodeDestination(m_destination) : std::string();
+    }
+
+    bool operator==(const CBitcoinAddress& other) const
+    {
+        return m_destination == other.m_destination;
+    }
+
+    bool operator!=(const CBitcoinAddress& other) const
+    {
+        return !(*this == other);
+    }
+
+    CTxDestination Get() const
+    {
+        return m_destination;
+    }
+
+    unsigned char getVersion() const
+    {
+        const auto& prefix = Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS);
+        return prefix.empty() ? 0 : prefix[0];
+    }
+
+private:
+    CTxDestination m_destination = CNoDestination();
+};
 
 namespace smsg {
 
@@ -414,7 +489,7 @@ public:
 
     int AddAddress(std::string &address, std::string &publicKey);
     int AddLocalAddress(const std::string &sAddress);
-    int ImportPrivkey(const CBitcoinSecret &vchSecret, const std::string &sLabel);
+    int ImportPrivkey(const CKey &keyIn, const std::string &sLabel);
 
     bool SetWalletAddressOption(const CKeyID &idk, std::string sOption, bool fValue);
     bool SetSmsgAddressOption(const CKeyID &idk, std::string sOption, bool fValue);
