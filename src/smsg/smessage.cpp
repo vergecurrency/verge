@@ -69,9 +69,7 @@ Notes:
 #include <clientversion.h>
 #include <base58.h>
 
-#include <crypto/lz4/lz4.c>
 #include <crypto/xxhash/xxhash.h>
-#include <crypto/xxhash/xxhash.c>
 
 #include <smsg/crypter.h>
 #include <smsg/db.h>
