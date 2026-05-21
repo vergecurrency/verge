@@ -181,6 +181,7 @@ void ThreadSecureMsg()
     uint32_t nLoop = 0;
     std::vector<std::pair<int64_t, NodeId> > vTimedOutLocks;
     while (fSecMsgEnabled) {
+        boost::this_thread::interruption_point();
         nLoop++;
         int64_t now = GetAdjustedTime();
 
@@ -281,7 +282,7 @@ void ThreadSecureMsg()
             LogPrint(BCLog::SMSG, "smsg-thread: ignoring - looked peer %d, status on search %u\n", nPeerId, fExists);
         }
 
-        UninterruptibleSleep(std::chrono::seconds{SMSG_THREAD_DELAY});
+        boost::this_thread::sleep_for(boost::chrono::seconds(SMSG_THREAD_DELAY));
     }
     return;
 };
@@ -298,6 +299,7 @@ void ThreadSecureMsgPow()
     uint8_t chKey[30];
 
     while (fSecMsgEnabled) {
+        boost::this_thread::interruption_point();
         // Sleep at end, then fSecMsgEnabled is tested on wake
 
         SecMsgDB dbOutbox;
@@ -314,6 +316,7 @@ void ThreadSecureMsgPow()
         // Break up lock, SecureMsgSetHash will take long
 
         for (;;) {
+            boost::this_thread::interruption_point();
             if (!fSecMsgEnabled) {
                 break;
             }
@@ -411,7 +414,7 @@ void ThreadSecureMsgPow()
         delete it;
 
         // Shutdown thread waits 5 seconds, this should be less
-        UninterruptibleSleep(std::chrono::milliseconds{2000});
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
     };
     return;
 };
@@ -947,8 +950,11 @@ bool CSMSG::Shutdown()
 
     fSecMsgEnabled = false;
 
+    LogPrint(BCLog::SMSG, "Interrupting secure messaging threads.\n");
     threadGroupSmsg.interrupt_all();
+    LogPrint(BCLog::SMSG, "Waiting for secure messaging threads to exit.\n");
     threadGroupSmsg.join_all();
+    LogPrint(BCLog::SMSG, "Secure messaging threads exited.\n");
 
     if (smsgDB) {
         LOCK(cs_smsgDB);
