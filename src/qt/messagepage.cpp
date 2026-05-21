@@ -28,7 +28,7 @@ protected:
      QStyle *style = optionCopy.widget? optionCopy.widget->style() : QApplication::style();
      QTextDocument doc;
     QString align(index.data(MessageModel::TypeRole) == 1 ? "left" : "right");
-    QString html = "<p align=\"" + align + "\" style=\"color:black;\">" + index.data(MessageModel::HTMLRole).toString() + "</p>";
+    QString html = "<p align=\"" + align + "\" style=\"color:#5CFF7A; font-family:'Consolas','Courier New',monospace;\">" + index.data(MessageModel::HTMLRole).toString() + "</p>";
     doc.setHtml(html);
      /// Painting item without text
     optionCopy.text = QString();
@@ -87,6 +87,8 @@ MessagePage::MessagePage(QWidget *parent) :
     ui->listConversation->setIconSize(QSize(MESSAGE_DECORATION_SIZE, MESSAGE_DECORATION_SIZE));
     ui->listConversation->setMinimumHeight(NUM_ITEMS * (MESSAGE_DECORATION_SIZE + 2));
     ui->listConversation->setAttribute(Qt::WA_MacShowFocusRect, false);
+    ui->listConversation->setStyleSheet("QListView { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; }");
+    ui->messageEdit->setStyleSheet("QPlainTextEdit { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; font-family: 'Consolas', 'Courier New', monospace; }");
 }
  MessagePage::~MessagePage()
 {
