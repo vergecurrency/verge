@@ -630,7 +630,7 @@ color: rgb(255, 255, 255);</string>
   <customwidget>
    <class>QValidatedTextEdit</class>
    <extends>QPlainTextEdit</extends>
-   <header>qvalidatedtextedit.h</header>
+   <header>qt/qvalidatedtextedit.h</header>
   </customwidget>
  </customwidgets>
  <resources>
