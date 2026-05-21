@@ -152,11 +152,12 @@ private:
      void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 public Q_SLOTS:
-     /* Check for new messages */
+    /* Check for new messages */
     void newMessage(const smsg::SecMsgStored& smsg);
     void newOutboxMessage(const smsg::SecMsgStored& smsg);
     
     void walletUnlocked();
+    void reloadMessages();
     
     void setEncryptionStatus();
      friend class MessageTablePriv;

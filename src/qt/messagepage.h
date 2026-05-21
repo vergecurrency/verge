@@ -13,6 +13,7 @@ class QSortFilterProxyModel;
 class QMenu;
 class QModelIndex;
 class MessageViewDelegate;
+class QPushButton;
 QT_END_NAMESPACE
  /** Widget that shows a list of sending or receiving addresses.
   */
@@ -39,9 +40,11 @@ class MessagePage : public QWidget
     QString replyFromAddress;
     QString replyToAddress;
     MessageViewDelegate *msgdelegate;
+    QPushButton *flushButton;
  private Q_SLOTS:
     void on_sendButton_clicked();
     void on_newButton_clicked();
+    void on_flushButton_clicked();
     void on_copyFromAddressButton_clicked();
     void on_copyToAddressButton_clicked();
     void on_deleteButton_clicked();

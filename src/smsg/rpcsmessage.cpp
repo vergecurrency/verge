@@ -988,6 +988,28 @@ static UniValue smsginbox(const JSONRPCRequest &request)
     return result;
 };
 
+static UniValue flushsmgsdb(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 0)
+        throw std::runtime_error(
+            "flushsmgsdb\n"
+            "\nWipe locally stored secure messages, queued messages, bucket files, and purged markers.\n"
+            "Preserves local secure messaging keys and known public keys.\n");
+
+    EnsureSMSGIsEnabled();
+
+    std::string error;
+    const int rv = smsgModule.FlushMessageData(error);
+    if (rv != smsg::SMSG_NO_ERROR) {
+        throw JSONRPCError(RPC_MISC_ERROR, error.empty() ? smsg::GetString(rv) : error);
+    }
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("result", "Local secure message storage flushed.");
+    result.pushKV("cap_bytes", static_cast<uint64_t>(smsg::SMSG_LOCAL_STORAGE_CAP_BYTES));
+    return result;
+};
+
 static UniValue smsgoutbox(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 2)
@@ -1729,6 +1751,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsglocalkeys",          &smsglocalkeys,          {} },
     { "smsg",               "smsgscanchain",          &smsgscanchain,          {} },
     { "smsg",               "smsgscanbuckets",        &smsgscanbuckets,        {} },
+    { "smsg",               "flushsmgsdb",            &flushsmgsdb,            {} },
     { "smsg",               "smsgaddaddress",         &smsgaddaddress,         {"address","pubkey"} },
     { "smsg",               "smsgaddlocaladdress",    &smsgaddlocaladdress,    {"address"} },
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },

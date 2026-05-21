@@ -130,6 +130,7 @@ enum SecureMessageCodes {
     SMSG_ENCRYPT_FAILED,
     SMSG_FUND_FAILED,
     SMSG_PURGED_MSG,
+    SMSG_STORE_FULL,
 };
 
 const unsigned int SMSG_HDR_LEN        = 104;               // length of unencrypted header, 4 + 2 + 1 + 8 + 16 + 33 + 32 + 4 + 4
@@ -155,6 +156,7 @@ const unsigned int SMSG_MAX_BYTES_PER_WINDOW = 1024 * 1024;
 const unsigned int SMSG_MAX_MSG_BYTES  = 24000;             // the user input part
 const unsigned int SMSG_MAX_AMSG_BYTES = 512;               // the user input part (ANON)
 const unsigned int SMSG_MAX_MSG_BYTES_PAID = 512 * 1024;    // the user input part (Paid)
+const uint64_t SMSG_LOCAL_STORAGE_CAP_BYTES = 1024ULL * 1024ULL * 1024ULL;
 
 // Max size of payload worst case compression
 const unsigned int SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMSG_PL_HDR_LEN);
@@ -509,6 +511,7 @@ public:
     int StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
     int Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool fHashBucket);
     int Store(const SecureMessage &smsg, bool fHashBucket);
+    int FlushMessageData(std::string &sError);
 
     int Purge(std::vector<uint8_t> &vMsgId, std::string &sError);
 

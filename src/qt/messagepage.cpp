@@ -6,6 +6,7 @@
 #include <qt/csvmodelwriter.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
+#include <smsg/smessage.h>
 #include <QSortFilterProxyModel>
 #include <QClipboard>
 #include <QMessageBox>
@@ -14,6 +15,7 @@
 #include <QPainter>
 #include <QToolBar>
 #include <QMenu>
+#include <QPushButton>
 #define NUM_ITEMS 3
  class MessageViewDelegate : public QStyledItemDelegate
 {
@@ -58,7 +60,8 @@ MessagePage::MessagePage(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MessagePage),
     model(0),
-    msgdelegate(new MessageViewDelegate())
+    msgdelegate(new MessageViewDelegate()),
+    flushButton(nullptr)
 {
     ui->setupUi(this);
    
@@ -89,6 +92,12 @@ MessagePage::MessagePage(QWidget *parent) :
     ui->listConversation->setAttribute(Qt::WA_MacShowFocusRect, false);
     ui->listConversation->setStyleSheet("QListView { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; }");
     ui->messageEdit->setStyleSheet("QPlainTextEdit { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; font-family: 'Consolas', 'Courier New', monospace; }");
+
+    flushButton = new QPushButton(tr("F&lush Storage"), this);
+    flushButton->setToolTip(tr("Delete locally stored secure messages and queued message data"));
+    flushButton->setStyleSheet("background-color: rgb(80, 0, 120); color: rgb(255, 255, 255);");
+    ui->horizontalLayout->insertWidget(ui->horizontalLayout->count() - 1, flushButton);
+    connect(flushButton, SIGNAL(clicked()), this, SLOT(on_flushButton_clicked()));
 }
  MessagePage::~MessagePage()
 {
@@ -165,13 +174,47 @@ void MessagePage::on_sendButton_clicked()
     ui->messageEdit->clear();
     ui->listConversation->scrollToBottom();
 }
- void MessagePage::on_newButton_clicked()
+void MessagePage::on_newButton_clicked()
 {
     if(!model)
         return;
      SendMessagesDialog dlg(SendMessagesDialog::Encrypted, SendMessagesDialog::Dialog, this);
-     dlg.setModel(model);
+    dlg.setModel(model);
     dlg.exec();
+}
+
+void MessagePage::on_flushButton_clicked()
+{
+    if (!model) {
+        return;
+    }
+
+    if (QMessageBox::question(this,
+            tr("Flush Secure Messages"),
+            tr("This will permanently delete locally stored secure messages, queued messages, and bucket data on this wallet. Continue?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    std::string error;
+    const int rv = smsgModule.FlushMessageData(error);
+    if (rv != smsg::SMSG_NO_ERROR) {
+        QMessageBox::warning(this,
+            tr("Flush Secure Messages"),
+            error.empty() ? tr("Failed to flush local secure message storage.") : QString::fromStdString(error),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+        return;
+    }
+
+    on_backButton_clicked();
+    model->reloadMessages();
+    QMessageBox::information(this,
+        tr("Flush Secure Messages"),
+        tr("Local secure message storage was flushed."),
+        QMessageBox::Ok,
+        QMessageBox::Ok);
 }
  void MessagePage::on_copyFromAddressButton_clicked()
 {

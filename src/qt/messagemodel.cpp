@@ -477,9 +477,16 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
 {
     priv->newOutboxMessage(smsgOutbox);
 }
- void MessageModel::walletUnlocked()
+void MessageModel::walletUnlocked()
 {
     priv->walletUnlocked();
+}
+
+void MessageModel::reloadMessages()
+{
+    priv->refreshMessageTable();
+    beginResetModel();
+    endResetModel();
 }
  void MessageModel::setEncryptionStatus()
 {

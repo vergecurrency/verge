@@ -111,6 +111,51 @@ static bool endsWith(const std::string& value, const std::string& suffix)
 }
 } // namespace part
 
+static uint64_t GetSmsgStorageUsageBytes()
+{
+    uint64_t total = 0;
+    const fs::path roots[] = {GetDataDir() / "smsgstore", GetDataDir() / "smsgdb"};
+
+    for (const fs::path& root : roots) {
+        if (!fs::exists(root)) {
+            continue;
+        }
+        try {
+            if (fs::is_regular_file(root)) {
+                total += fs::file_size(root);
+                continue;
+            }
+            if (!fs::is_directory(root)) {
+                continue;
+            }
+
+            for (fs::recursive_directory_iterator it(root), end; it != end; ++it) {
+                if (!fs::is_regular_file(it->status())) {
+                    continue;
+                }
+                total += fs::file_size(it->path());
+            }
+        } catch (const fs::filesystem_error& ex) {
+            LogPrintf("%s: failed sizing %s: %s\n", __func__, root.string(), ex.what());
+        }
+    }
+
+    return total;
+}
+
+static bool HasSmsgStorageCapacity(uint64_t bytesToAdd, std::string* reason = nullptr)
+{
+    const uint64_t current = GetSmsgStorageUsageBytes();
+    if (current + bytesToAdd <= SMSG_LOCAL_STORAGE_CAP_BYTES) {
+        return true;
+    }
+
+    if (reason) {
+        *reason = strprintf("Local secure message storage cap reached (%u MiB).", static_cast<unsigned>(SMSG_LOCAL_STORAGE_CAP_BYTES / (1024 * 1024)));
+    }
+    return false;
+}
+
 secp256k1_context *secp256k1_context_smsg = nullptr;
 
 uint32_t SMSGGetSecondsInDay()
@@ -462,6 +507,7 @@ const char *GetString(size_t errorCode)
         case SMSG_COMPRESS_FAILED:                      return "Compression failed";
         case SMSG_ENCRYPT_FAILED:                       return "Encryption failed";
         case SMSG_FUND_FAILED:                          return "Fund message failed";
+        case SMSG_STORE_FULL:                           return "Local secure message storage cap reached";
         default:
             return "Unknown error";
     };
@@ -974,6 +1020,78 @@ bool CSMSG::Shutdown()
 #endif
     pwallet.reset();
     return true;
+};
+
+int CSMSG::FlushMessageData(std::string &sError)
+{
+    LOCK2(cs_smsg, cs_smsgDB);
+
+    std::vector<std::pair<std::string, std::string>> preservedEntries;
+    SecMsgDB db;
+    if (db.Open("cr+")) {
+        leveldb::Iterator* it = db.pdb->NewIterator(leveldb::ReadOptions());
+        for (it->SeekToFirst(); it->Valid(); it->Next()) {
+            const leveldb::Slice key = it->key();
+            if (key.size() < 2) {
+                continue;
+            }
+
+            const std::string prefix(key.data(), 2);
+            if (prefix == "im" || prefix == "sm" || prefix == "qm" || prefix == "pm") {
+                continue;
+            }
+            preservedEntries.emplace_back(key.ToString(), it->value().ToString());
+        }
+        delete it;
+    }
+
+    if (smsgDB) {
+        delete smsgDB;
+        smsgDB = nullptr;
+    }
+
+    try {
+        fs::remove_all(GetDataDir() / "smsgstore");
+    } catch (const fs::filesystem_error &ex) {
+        sError = ex.what();
+        return SMSG_GENERAL_ERROR;
+    }
+
+    try {
+        leveldb::Options destroyOptions;
+        leveldb::DestroyDB((GetDataDir() / "smsgdb").string(), destroyOptions);
+    } catch (const std::exception &ex) {
+        sError = ex.what();
+        return SMSG_GENERAL_ERROR;
+    }
+
+    SecMsgDB newdb;
+    if (!newdb.Open("cw")) {
+        sError = "Failed to recreate secure message database.";
+        return SMSG_GENERAL_ERROR;
+    }
+
+    leveldb::WriteOptions writeOptions;
+    writeOptions.sync = true;
+    for (const auto& entry : preservedEntries) {
+        leveldb::Status status = newdb.pdb->Put(writeOptions, entry.first, entry.second);
+        if (!status.ok()) {
+            sError = status.ToString();
+            return SMSG_GENERAL_ERROR;
+        }
+    }
+
+    buckets.clear();
+    setPurged.clear();
+    setPurgedTimestamps.clear();
+    nLastProcessedPurged = 0;
+    keyStore.Clear();
+    if (LoadKeyStore() != SMSG_NO_ERROR) {
+        sError = "Failed to reload secure message keys after flush.";
+        return SMSG_GENERAL_ERROR;
+    }
+
+    return SMSG_NO_ERROR;
 };
 
 bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
@@ -2367,6 +2485,10 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                     fExisted = true;
                     LogPrint(BCLog::SMSG, "Message already exists in inbox db.\n");
                 } else {
+                    std::string storageReason;
+                    if (!HasSmsgStorageCapacity(smsgInbox.vchMessage.size(), &storageReason)) {
+                        return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
+                    }
                     dbInbox.WriteSmesg(chKey, smsgInbox);
                     if (reportToGui) {
                         NotifySecMsgInboxChanged(smsgInbox);
@@ -2894,6 +3016,10 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
+    std::string storageReason;
+    if (!HasSmsgStorageCapacity(SMSG_HDR_LEN + nPayload, &storageReason)) {
+        return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
+    }
 
     if (SMSG_NO_ERROR != CheckPurged(psmsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
@@ -2947,6 +3073,10 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
+    std::string storageReason;
+    if (!HasSmsgStorageCapacity(SMSG_HDR_LEN + nPayload, &storageReason)) {
+        return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
+    }
 
     if (SMSG_NO_ERROR != CheckPurged(psmsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
@@ -3529,6 +3659,11 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         LOCK(cs_smsgDB);
         SecMsgDB dbSendQueue;
         if (dbSendQueue.Open("cw")) {
+            std::string storageReason;
+            if (!HasSmsgStorageCapacity(smsgSQ.vchMessage.size(), &storageReason)) {
+                sError = storageReason;
+                return SMSG_STORE_FULL;
+            }
             dbSendQueue.WriteSmesg(chKey, smsgSQ);
             //NotifySecMsgSendQueueChanged(smsgOutbox);
         }
@@ -3606,6 +3741,11 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                 SecMsgDB dbSent;
 
                 if (dbSent.Open("cw")) {
+                    std::string storageReason;
+                    if (!HasSmsgStorageCapacity(smsgOutbox.vchMessage.size(), &storageReason)) {
+                        sError = storageReason;
+                        return SMSG_STORE_FULL;
+                    }
                     dbSent.WriteSmesg(chKey, smsgOutbox);
                     NotifySecMsgOutboxChanged(smsgOutbox);
                 }
