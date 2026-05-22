@@ -61,17 +61,16 @@ protected:
 {
     QStyleOptionViewItem optionCopy = option;
     initStyleOption(&optionCopy, index);
-     QStyle *style = optionCopy.widget? optionCopy.widget->style() : QApplication::style();
-     QTextDocument doc;
+ QStyle *style = optionCopy.widget? optionCopy.widget->style() : QApplication::style();
+ QTextDocument doc;
     const bool outgoing = index.data(MessageModel::TypeRole).toInt() != 1;
     doc.setHtml(BuildConversationHtml(index.data(MessageModel::HTMLRole).toString(), outgoing));
+    optionCopy.state &= ~QStyle::State_Selected;
      /// Painting item without text
     optionCopy.text = QString();
     style->drawControl(QStyle::CE_ItemViewItem, &optionCopy, painter);
      QAbstractTextDocumentLayout::PaintContext ctx;
-     // Highlighting text if item is selected
-    if (optionCopy.state & QStyle::State_Selected)
-        ctx.palette.setColor(QPalette::Text, optionCopy.palette.color(QPalette::Active, QPalette::HighlightedText));
+    ctx.palette.setColor(QPalette::Text, QColor(QStringLiteral("#5CFF7A")));
      QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionCopy);
     doc.setTextWidth( textRect.width() );
     painter->save();
@@ -376,10 +375,25 @@ void MessagePage::refreshStorageUsage()
         model->proxyModel->setFilterRole(MessageModel::FilterAddressRole);
         model->proxyModel->setFilterFixedString(filter);
         ui->messageDetails->show();
-        ui->listConversation->setCurrentIndex(model->proxyModel->index(0, 0, QModelIndex()));
+        const QModelIndex firstConversationIndex = model->proxyModel->index(0, 0, QModelIndex());
+        if (firstConversationIndex.isValid() && ui->listConversation->selectionModel()) {
+            ui->listConversation->selectionModel()->setCurrentIndex(
+                firstConversationIndex,
+                QItemSelectionModel::ClearAndSelect);
+        }
     }
     else
     {
+        if (!ui->tableView->isVisible() && ui->listConversation->model() && ui->listConversation->model()->rowCount() > 0 && ui->listConversation->selectionModel()) {
+            const QModelIndex firstConversationIndex = ui->listConversation->model()->index(0, 0, QModelIndex());
+            if (firstConversationIndex.isValid()) {
+                ui->listConversation->selectionModel()->setCurrentIndex(
+                    firstConversationIndex,
+                    QItemSelectionModel::ClearAndSelect);
+                return;
+            }
+        }
+
         ui->newButton->setEnabled(true);
         ui->newButton->setVisible(true);
         ui->sendButton->setEnabled(false);
