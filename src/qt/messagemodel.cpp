@@ -397,9 +397,8 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     const QString filter_address = rec->type == MessageTableEntry::Sent
         ? rec->to_address + rec->from_address
         : rec->from_address + rec->to_address;
-    const QString html = QStringLiteral("<span style=\"color:#A4FFC0;\">%1</span><br>%2<br>%3<br>%4")
+    const QString html = QStringLiteral("<span style=\"color:#FF9A2F; font-size:12px;\">%1</span><br>%2<br>%3")
         .arg(rec->received_datetime.toString(),
-             rec->status,
              rec->label.isEmpty() ? rec->from_address : rec->label,
              rec->message);
      switch(role)
