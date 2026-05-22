@@ -1,17 +1,21 @@
 #include <qt/sendmessagesdialog.h>
 #include <qt/forms/ui_sendmessagesdialog.h>
 #include <qt/addressbookpage.h>
+#include <qt/addresstablemodel.h>
 #include <qt/messagemodel.h>
 #include <qt/optionsmodel.h>
 #include <qt/sendmessagesentry.h>
 #include <qt/walletmodel.h>
+#include <smsg/smessage.h>
 
 #include <QApplication>
 #include <QClipboard>
+#include <QComboBox>
 #include <QDataWidgetMapper>
 #include <QLocale>
 #include <QMessageBox>
 #include <QScrollBar>
+#include <QSignalBlocker>
 #include <QTextDocument>
 
 SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : QDialog(parent),
@@ -27,9 +31,8 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
     ui->sendButton->setIcon(QIcon());
 #endif
 #if QT_VERSION >= 0x040700
-    /* Do not move this to the XML file, Qt before 4.7 will choke on it */
     if (mode == SendMessagesDialog::Encrypted)
-        ui->addressFrom->setPlaceholderText(tr("Enter a Verge address (e.g. DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV)"));
+        ui->addressFrom->setToolTip(tr("Choose one of your local message-enabled addresses."));
 #endif
     addEntry();
     connect(ui->addButton, SIGNAL(clicked()), this, SLOT(addEntry()));
@@ -44,6 +47,7 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
 void SendMessagesDialog::setModel(MessageModel* model)
 {
     this->model = model;
+    refreshAddressFromChoices();
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
         if (entry)
@@ -53,9 +57,9 @@ void SendMessagesDialog::setModel(MessageModel* model)
 void SendMessagesDialog::loadRow(int row)
 {
     if (model->data(model->index(row, model->Type, QModelIndex()), Qt::DisplayRole).toString() == MessageModel::Received)
-        ui->addressFrom->setText(model->data(model->index(row, model->ToAddress, QModelIndex()), Qt::DisplayRole).toString());
+        setSelectedAddressFrom(model->data(model->index(row, model->ToAddress, QModelIndex()), Qt::DisplayRole).toString());
     else
-        ui->addressFrom->setText(model->data(model->index(row, model->FromAddress, QModelIndex()), Qt::DisplayRole).toString());
+        setSelectedAddressFrom(model->data(model->index(row, model->FromAddress, QModelIndex()), Qt::DisplayRole).toString());
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
         if (entry)
@@ -68,8 +72,7 @@ bool SendMessagesDialog::checkMode(Mode mode)
 }
 bool SendMessagesDialog::validate()
 {
-    if (mode == SendMessagesDialog::Encrypted && ui->addressFrom->text() == "") {
-        ui->addressFrom->setValid(false);
+    if (mode == SendMessagesDialog::Encrypted && ui->addressFrom->currentData().toString().isEmpty()) {
         return false;
     }
     return true;
@@ -80,8 +83,7 @@ SendMessagesDialog::~SendMessagesDialog()
 }
 void SendMessagesDialog::on_pasteButton_clicked()
 {
-    // Paste text from clipboard into recipient field
-    ui->addressFrom->setText(QApplication::clipboard()->text());
+    setSelectedAddressFrom(QApplication::clipboard()->text().trimmed());
 }
 void SendMessagesDialog::on_addressBookButton_clicked()
 {
@@ -90,7 +92,7 @@ void SendMessagesDialog::on_addressBookButton_clicked()
     AddressBookPage dlg(model->getWalletModel()->getPlatformStyle(), AddressBookPage::ForSelection, AddressBookPage::ReceivingTab, this);
     dlg.setModel(model->getWalletModel()->getAddressTableModel());
     if (dlg.exec()) {
-        ui->addressFrom->setText(dlg.getReturnValue());
+        setSelectedAddressFrom(dlg.getReturnValue());
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(0)->widget());
         entry->setFocus();
         // findChild( const QString "sentTo")->setFocus();
@@ -138,7 +140,7 @@ void SendMessagesDialog::on_sendButton_clicked()
     if (mode == SendMessagesDialog::Anonymous)
         sendstatus = model->sendMessages(recipients);
     else
-        sendstatus = model->sendMessages(recipients, ui->addressFrom->text());
+        sendstatus = model->sendMessages(recipients, ui->addressFrom->currentData().toString());
     switch (sendstatus) {
     case MessageModel::InvalidAddress:
         QMessageBox::warning(this, tr("Send Message"),
@@ -220,6 +222,59 @@ SendMessagesEntry* SendMessagesDialog::addEntry()
     if (bar && isVisible())
         bar->setSliderPosition(bar->maximum());
     return entry;
+}
+void SendMessagesDialog::refreshAddressFromChoices()
+{
+    const QString selectedAddress = ui->addressFrom->currentData().toString();
+    const QSignalBlocker blocker(ui->addressFrom);
+    ui->addressFrom->clear();
+
+#ifdef ENABLE_WALLET
+    if (!model || !smsg::fSecMsgEnabled || !smsgModule.pwallet) {
+        return;
+    }
+
+    LOCK(smsgModule.cs_smsg);
+    for (const auto& smsgAddress : smsgModule.addresses) {
+        if (!smsgAddress.fReceiveEnabled) {
+            continue;
+        }
+
+        const QString address = QString::fromStdString(CBitcoinAddress(smsgAddress.address).ToString());
+        if (address.isEmpty()) {
+            continue;
+        }
+
+        QString label;
+        if (model && model->getWalletModel() && model->getWalletModel()->getAddressTableModel()) {
+            label = model->getWalletModel()->getAddressTableModel()->labelForAddress(address).trimmed();
+        }
+
+        const QString display = label.isEmpty()
+            ? address
+            : tr("%1 (%2)").arg(label, address);
+        ui->addressFrom->addItem(display, address);
+    }
+#endif
+
+    setSelectedAddressFrom(selectedAddress);
+}
+
+void SendMessagesDialog::setSelectedAddressFrom(const QString& address)
+{
+    if (address.isEmpty()) {
+        if (ui->addressFrom->count() > 0) {
+            ui->addressFrom->setCurrentIndex(0);
+        }
+        return;
+    }
+
+    const int index = ui->addressFrom->findData(address);
+    if (index >= 0) {
+        ui->addressFrom->setCurrentIndex(index);
+    } else if (ui->addressFrom->count() > 0) {
+        ui->addressFrom->setCurrentIndex(0);
+    }
 }
 void SendMessagesDialog::updateRemoveEnabled()
 {

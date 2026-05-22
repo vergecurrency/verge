@@ -60,7 +60,14 @@
          <number>1</number>
         </property>
         <item>
-         <widget class="QValidatedLineEdit" name="addressFrom"/>
+         <widget class="QComboBox" name="addressFrom">
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToMinimumContentsLengthWithIcon</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QToolButton" name="addressBookButton">
@@ -248,13 +255,7 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QValidatedLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>qt/qvalidatedlineedit.h</header>
-  </customwidget>
- </customwidgets>
+ <customwidgets/>
  <resources>
   <include location="../verge.qrc"/>
  </resources>

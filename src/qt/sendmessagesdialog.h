@@ -34,6 +34,8 @@ class SendMessagesDialog : public QDialog
      */
     QWidget *setupTabChain(QWidget *prev);
      void pasteEntry(const SendMessagesRecipient &rv);
+    void refreshAddressFromChoices();
+    void setSelectedAddressFrom(const QString& address);
  public Q_SLOTS:
     void done(int retval);
     void clear();
