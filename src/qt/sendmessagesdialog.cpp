@@ -216,9 +216,8 @@ SendMessagesEntry* SendMessagesDialog::addEntry()
     entry->clear();
     entry->setFocus();
     ui->scrollAreaWidgetContents->resize(ui->scrollAreaWidgetContents->sizeHint());
-    QCoreApplication::instance()->processEvents();
     QScrollBar* bar = ui->scrollArea->verticalScrollBar();
-    if (bar)
+    if (bar && isVisible())
         bar->setSliderPosition(bar->maximum());
     return entry;
 }

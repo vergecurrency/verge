@@ -14,6 +14,9 @@ class QMenu;
 class QModelIndex;
 class MessageViewDelegate;
 class QPushButton;
+class QLabel;
+class QTimer;
+class QPlainTextEdit;
 QT_END_NAMESPACE
  /** Widget that shows a list of sending or receiving addresses.
   */
@@ -41,15 +44,20 @@ class MessagePage : public QWidget
     QString replyToAddress;
     MessageViewDelegate *msgdelegate;
     QPushButton *flushButton;
+    QLabel *storageLabel;
+    QLabel *messageCountLabel;
+    QTimer *storageRefreshTimer;
  private Q_SLOTS:
     void on_sendButton_clicked();
     void on_newButton_clicked();
     void on_flushButton_clicked();
+    void refreshStorageUsage();
     void on_copyFromAddressButton_clicked();
     void on_copyToAddressButton_clicked();
     void on_deleteButton_clicked();
     void on_backButton_clicked();
     void messageTextChanged();
+    void updateMessageCountdown();
     void selectionChanged();
     void itemSelectionChanged();
     void incomingMessage();

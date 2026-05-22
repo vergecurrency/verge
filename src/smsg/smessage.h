@@ -153,7 +153,7 @@ const unsigned int SMSG_MAX_MSGS_PER_WINDOW = 240;
 const unsigned int SMSG_MAX_BYTES_PER_WINDOW = 1024 * 1024;
 
 
-const unsigned int SMSG_MAX_MSG_BYTES  = 24000;             // the user input part
+const unsigned int SMSG_MAX_MSG_BYTES  = 512;               // the user input part
 const unsigned int SMSG_MAX_AMSG_BYTES = 512;               // the user input part (ANON)
 const unsigned int SMSG_MAX_MSG_BYTES_PAID = 512 * 1024;    // the user input part (Paid)
 const uint64_t SMSG_LOCAL_STORAGE_CAP_BYTES = 1024ULL * 1024ULL * 1024ULL;
@@ -512,6 +512,7 @@ public:
     int Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool fHashBucket);
     int Store(const SecureMessage &smsg, bool fHashBucket);
     int FlushMessageData(std::string &sError);
+    uint64_t GetLocalStorageUsageBytes();
 
     int Purge(std::vector<uint8_t> &vMsgId, std::string &sError);
 

@@ -14,6 +14,8 @@ namespace Ui {
 class SendMessagesEntry;
 }
 
+class QLabel;
+
 class SendMessagesEntry : public QFrame
 {
     Q_OBJECT
@@ -43,13 +45,16 @@ private Q_SLOTS:
     void on_pasteButton_clicked();
     void on_addressBookButton_clicked();
     void on_sendTo_textChanged(const QString& address);
+    void updateMessageCountdown();
 
 private:
     bool updateLabel(const QString& address);
     bool resolveKnownPublicKey(const QString& address, bool updateField);
+    void enforceMessageLimit();
 
     Ui::SendMessagesEntry* ui;
     MessageModel* model;
+    QLabel* messageCountLabel;
 };
 
 #endif // VERGE_QT_SENDMESSAGESENTRY_H

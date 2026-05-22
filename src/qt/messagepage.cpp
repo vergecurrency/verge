@@ -16,8 +16,42 @@
 #include <QToolBar>
 #include <QMenu>
 #include <QPushButton>
+#include <QLabel>
+#include <QPlainTextEdit>
+#include <QTimer>
+#include <sstream>
 #define NUM_ITEMS 3
- class MessageViewDelegate : public QStyledItemDelegate
+
+static QString BuildConversationHtml(const QString& body, bool outgoing)
+{
+    const QString align = outgoing ? QStringLiteral("right") : QStringLiteral("left");
+    return QStringLiteral("<p align=\"%1\" style=\"color:#5CFF7A; font-family:'Consolas','Courier New',monospace; font-size:22px; line-height:1.45; margin:0;\">%2</p>")
+        .arg(align, body);
+}
+
+static QString FormatStorageUsage(uint64_t bytes)
+{
+    static const char* suffixes[] = {"B", "KB", "MB", "GB", "TB"};
+    double size = static_cast<double>(bytes);
+    size_t suffix = 0;
+    while (size >= 1024.0 && suffix < 4) {
+        size /= 1024.0;
+        ++suffix;
+    }
+
+    std::ostringstream oss;
+    if (suffix == 0) {
+        oss << static_cast<uint64_t>(size);
+    } else {
+        oss.setf(std::ios::fixed);
+        oss.precision(2);
+        oss << size;
+    }
+    oss << ' ' << suffixes[suffix];
+    return QString::fromStdString(oss.str());
+}
+
+class MessageViewDelegate : public QStyledItemDelegate
 {
 protected:
     void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
@@ -29,9 +63,8 @@ protected:
     initStyleOption(&optionCopy, index);
      QStyle *style = optionCopy.widget? optionCopy.widget->style() : QApplication::style();
      QTextDocument doc;
-    QString align(index.data(MessageModel::TypeRole) == 1 ? "left" : "right");
-    QString html = "<p align=\"" + align + "\" style=\"color:#5CFF7A; font-family:'Consolas','Courier New',monospace;\">" + index.data(MessageModel::HTMLRole).toString() + "</p>";
-    doc.setHtml(html);
+    const bool outgoing = index.data(MessageModel::TypeRole).toInt() != 1;
+    doc.setHtml(BuildConversationHtml(index.data(MessageModel::HTMLRole).toString(), outgoing));
      /// Painting item without text
     optionCopy.text = QString();
     style->drawControl(QStyle::CE_ItemViewItem, &optionCopy, painter);
@@ -52,7 +85,8 @@ protected:
     QStyleOptionViewItem options = option;
     initStyleOption(&options, index);
      QTextDocument doc;
-    doc.setHtml(index.data(MessageModel::HTMLRole).toString());
+    const bool outgoing = index.data(MessageModel::TypeRole).toInt() != 1;
+    doc.setHtml(BuildConversationHtml(index.data(MessageModel::HTMLRole).toString(), outgoing));
     doc.setTextWidth(options.rect.width());
     return QSize(doc.idealWidth(), doc.size().height() + 20);
 }
@@ -61,7 +95,9 @@ MessagePage::MessagePage(QWidget *parent) :
     ui(new Ui::MessagePage),
     model(0),
     msgdelegate(new MessageViewDelegate()),
-    flushButton(nullptr)
+    flushButton(nullptr),
+    storageLabel(nullptr),
+    storageRefreshTimer(nullptr)
 {
     ui->setupUi(this);
    
@@ -91,19 +127,35 @@ MessagePage::MessagePage(QWidget *parent) :
     ui->listConversation->setMinimumHeight(NUM_ITEMS * (MESSAGE_DECORATION_SIZE + 2));
     ui->listConversation->setAttribute(Qt::WA_MacShowFocusRect, false);
     ui->listConversation->setStyleSheet("QListView { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; }");
-    ui->messageEdit->setStyleSheet("QPlainTextEdit { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; font-family: 'Consolas', 'Courier New', monospace; }");
+    auto* plainMessageEdit = qobject_cast<QPlainTextEdit*>(ui->messageEdit);
+    if (plainMessageEdit) {
+        plainMessageEdit->setStyleSheet("QPlainTextEdit { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; font-family: 'Consolas', 'Courier New', monospace; font-size: 14pt; }");
+    }
 
     flushButton = new QPushButton(tr("F&lush Storage"), this);
     flushButton->setToolTip(tr("Delete locally stored secure messages and queued message data"));
     flushButton->setStyleSheet("background-color: rgb(80, 0, 120); color: rgb(255, 255, 255);");
     ui->horizontalLayout->insertWidget(ui->horizontalLayout->count() - 1, flushButton);
     connect(flushButton, SIGNAL(clicked()), this, SLOT(on_flushButton_clicked()));
+
+    storageLabel = new QLabel(this);
+    storageLabel->setStyleSheet("color: rgb(92, 255, 122);");
+    ui->horizontalLayout->insertWidget(ui->horizontalLayout->count() - 1, storageLabel);
+
+    messageCountLabel = new QLabel(this);
+    messageCountLabel->setStyleSheet("color: rgb(92, 255, 122);");
+    ui->horizontalLayout->insertWidget(2, messageCountLabel);
+
+    connect(ui->messageEdit, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
+
+    refreshStorageUsage();
+    updateMessageCountdown();
 }
  MessagePage::~MessagePage()
 {
     delete ui;
 }
- void MessagePage::setModel(MessageModel *model)
+void MessagePage::setModel(MessageModel *model)
 {
     this->model = model;
     if(!model)
@@ -124,7 +176,8 @@ MessagePage::MessagePage(QWidget *parent) :
      ui->listConversation->setModel(model->proxyModel);
     ui->listConversation->setModelColumn(MessageModel::HTML);
      // Set column widths
-    ui->tableView->horizontalHeader()->resizeSection(MessageModel::Type,             100);
+     ui->tableView->horizontalHeader()->resizeSection(MessageModel::Type,             100);
+    ui->tableView->horizontalHeader()->resizeSection(MessageModel::Status,           140);
     ui->tableView->horizontalHeader()->resizeSection(MessageModel::Label,            100);
     ui->tableView->horizontalHeader()->setSectionResizeMode(MessageModel::Label,     QHeaderView::Stretch);
     ui->tableView->horizontalHeader()->resizeSection(MessageModel::FromAddress,      320);
@@ -142,6 +195,7 @@ MessagePage::MessagePage(QWidget *parent) :
      // Scroll to bottom
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(incomingMessage()));
      selectionChanged();
+    refreshStorageUsage();
 }
 void MessagePage::on_sendButton_clicked()
 {
@@ -173,6 +227,8 @@ void MessagePage::on_sendButton_clicked()
 
     ui->messageEdit->clear();
     ui->listConversation->scrollToBottom();
+    refreshStorageUsage();
+    updateMessageCountdown();
 }
 void MessagePage::on_newButton_clicked()
 {
@@ -181,6 +237,7 @@ void MessagePage::on_newButton_clicked()
      SendMessagesDialog dlg(SendMessagesDialog::Encrypted, SendMessagesDialog::Dialog, this);
     dlg.setModel(model);
     dlg.exec();
+    refreshStorageUsage();
 }
 
 void MessagePage::on_flushButton_clicked()
@@ -210,11 +267,23 @@ void MessagePage::on_flushButton_clicked()
 
     on_backButton_clicked();
     model->reloadMessages();
+    refreshStorageUsage();
     QMessageBox::information(this,
         tr("Flush Secure Messages"),
         tr("Local secure message storage was flushed."),
         QMessageBox::Ok,
         QMessageBox::Ok);
+}
+
+void MessagePage::refreshStorageUsage()
+{
+    if (!storageLabel) {
+        return;
+    }
+    const uint64_t usage = smsgModule.GetLocalStorageUsageBytes();
+    storageLabel->setText(tr("SMSG Storage: %1 / %2")
+        .arg(FormatStorageUsage(usage),
+             FormatStorageUsage(smsg::SMSG_LOCAL_STORAGE_CAP_BYTES)));
 }
  void MessagePage::on_copyFromAddressButton_clicked()
 {
@@ -256,6 +325,7 @@ void MessagePage::on_flushButton_clicked()
     ui->sendButton->setEnabled(false);
     ui->sendButton->setVisible(false);
     ui->messageEdit->setVisible(false);
+    if (messageCountLabel) messageCountLabel->setVisible(false);
 }
  void MessagePage::selectionChanged()
 {
@@ -277,6 +347,7 @@ void MessagePage::on_flushButton_clicked()
         ui->sendButton->setEnabled(true);
         ui->sendButton->setVisible(true);
         ui->messageEdit->setVisible(true);
+        if (messageCountLabel) messageCountLabel->setVisible(true);
          ui->tableView->hide();
          // Figure out which message was selected
         QModelIndexList labelColumn       = table->selectionModel()->selectedRows(MessageModel::Label);
@@ -317,8 +388,10 @@ void MessagePage::on_flushButton_clicked()
         ui->copyToAddressButton->setEnabled(false);
         ui->deleteButton->setEnabled(false);
         ui->messageEdit->hide();
+        if (messageCountLabel) messageCountLabel->hide();
         ui->messageDetails->hide();
         ui->messageEdit->clear();
+        updateMessageCountdown();
     }
 }
  void MessagePage::itemSelectionChanged()
@@ -341,6 +414,7 @@ void MessagePage::on_flushButton_clicked()
         ui->sendButton->setEnabled(true);
         ui->sendButton->setVisible(true);
         ui->messageEdit->setVisible(true);
+        if (messageCountLabel) messageCountLabel->setVisible(true);
          ui->tableView->hide();
      }
     else
@@ -353,8 +427,10 @@ void MessagePage::on_flushButton_clicked()
         ui->copyToAddressButton->setEnabled(false);
         ui->deleteButton->setEnabled(false);
         ui->messageEdit->hide();
+        if (messageCountLabel) messageCountLabel->hide();
         ui->messageDetails->hide();
         ui->messageEdit->clear();
+        updateMessageCountdown();
     }
 }
  void MessagePage::incomingMessage()
@@ -363,13 +439,36 @@ void MessagePage::on_flushButton_clicked()
 }
  void MessagePage::messageTextChanged()
 {
-    /*
-    if(ui->messageEdit->toPlainText().endsWith("\n"))
-    {
-        ui->messageEdit->setMaximumHeight(80);
-        ui->messageEdit->resize(256, ui->messageEdit->document()->size().height() + 10);
-    }*/
+    updateMessageCountdown();
  }
+
+void MessagePage::updateMessageCountdown()
+{
+    auto* plainMessageEdit = qobject_cast<QPlainTextEdit*>(ui->messageEdit);
+    if (!plainMessageEdit || !messageCountLabel) {
+        return;
+    }
+
+    QString text = plainMessageEdit->toPlainText();
+    QByteArray utf8 = text.toUtf8();
+    if (utf8.size() > static_cast<int>(smsg::SMSG_MAX_MSG_BYTES)) {
+        utf8.truncate(smsg::SMSG_MAX_MSG_BYTES);
+        const QString truncated = QString::fromUtf8(utf8);
+        if (truncated != text) {
+            plainMessageEdit->blockSignals(true);
+            plainMessageEdit->setPlainText(truncated);
+            QTextCursor cursor = plainMessageEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            plainMessageEdit->setTextCursor(cursor);
+            plainMessageEdit->blockSignals(false);
+            text = truncated;
+            utf8 = text.toUtf8();
+        }
+    }
+
+    const int remaining = static_cast<int>(smsg::SMSG_MAX_MSG_BYTES) - utf8.size();
+    messageCountLabel->setText(tr("Characters left: %1").arg(remaining));
+}
  void MessagePage::exportClicked()
 {
     // CSV is currently the only supported format

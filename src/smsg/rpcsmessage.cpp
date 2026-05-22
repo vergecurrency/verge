@@ -19,6 +19,7 @@
 #include <util/time.h>
 #include <core_io.h>
 #include <base58.h>
+#include <net.h>
 #include <rpc/util.h>
 
 #ifdef ENABLE_WALLET
@@ -104,6 +105,20 @@ static void EnsureSMSGIsEnabled()
     if (!smsg::fSecMsgEnabled)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Secure messaging is disabled.");
 };
+
+static size_t CountSmsgEntries(leveldb::DB* pdb, const std::string& prefix)
+{
+    size_t count = 0;
+    std::unique_ptr<leveldb::Iterator> it(pdb->NewIterator(leveldb::ReadOptions()));
+    for (it->Seek(prefix); it->Valid(); it->Next()) {
+        const leveldb::Slice key = it->key();
+        if (key.size() < prefix.size() || memcmp(key.data(), prefix.data(), prefix.size()) != 0) {
+            break;
+        }
+        ++count;
+    }
+    return count;
+}
 
 static UniValue smsgenable(const JSONRPCRequest &request)
 {
@@ -553,6 +568,120 @@ static UniValue smsgscanbuckets(const JSONRPCRequest &request)
         result.pushKV("result", "Scan Buckets Completed.");
     };
 
+    return result;
+}
+
+static UniValue smsginfo(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 0)
+        throw std::runtime_error(
+            "smsginfo\n"
+            "\nReturn secure messaging runtime, storage, queue, and peer information.\n");
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("enabled", smsg::fSecMsgEnabled);
+
+    const uint64_t storageUsed = smsgModule.GetLocalStorageUsageBytes();
+    result.pushKV("storage_used_bytes", storageUsed);
+    result.pushKV("storage_used", part::BytesReadable(storageUsed));
+    result.pushKV("storage_cap_bytes", static_cast<uint64_t>(smsg::SMSG_LOCAL_STORAGE_CAP_BYTES));
+    result.pushKV("storage_cap", part::BytesReadable(smsg::SMSG_LOCAL_STORAGE_CAP_BYTES));
+
+    UniValue options(UniValue::VOBJ);
+    options.pushKV("newAddressRecv", smsgModule.options.fNewAddressRecv);
+    options.pushKV("newAddressAnon", smsgModule.options.fNewAddressAnon);
+    options.pushKV("scanIncoming", smsgModule.options.fScanIncoming);
+    result.pushKV("options", options);
+
+    UniValue peers(UniValue::VOBJ);
+    int totalPeers = 0;
+    int smsgServicePeers = 0;
+    int smsgEnabledPeers = 0;
+    int ignoredPeers = 0;
+    UniValue peerList(UniValue::VARR);
+    if (g_connman) {
+        g_connman->ForEachNode([&](CNode* pnode) {
+            ++totalPeers;
+
+            const uint64_t services = static_cast<uint64_t>(pnode->nServices.load());
+            const bool advertisesSmsg = (services & NODE_SMSG) != 0;
+            if (advertisesSmsg) {
+                ++smsgServicePeers;
+            }
+
+            bool enabled = false;
+            int64_t ignoreUntil = 0;
+            int64_t lastSeen = 0;
+            int64_t lastMatched = 0;
+            uint32_t rateMessages = 0;
+            uint32_t rateBytes = 0;
+            {
+                LOCK(pnode->smsgData.cs_smsg_net);
+                enabled = pnode->smsgData.fEnabled;
+                ignoreUntil = pnode->smsgData.ignoreUntil;
+                lastSeen = pnode->smsgData.lastSeen;
+                lastMatched = pnode->smsgData.lastMatched;
+                rateMessages = pnode->smsgData.nRateMessages;
+                rateBytes = pnode->smsgData.nRateBytes;
+            }
+            if (enabled) {
+                ++smsgEnabledPeers;
+            }
+            if (ignoreUntil > GetTime()) {
+                ++ignoredPeers;
+            }
+
+            UniValue peer(UniValue::VOBJ);
+            peer.pushKV("id", static_cast<int64_t>(pnode->GetId()));
+            peer.pushKV("address", pnode->addr.ToString());
+            peer.pushKV("services", strprintf("%016x", services));
+            peer.pushKV("advertises_smsg", advertisesSmsg);
+            peer.pushKV("enabled", enabled);
+            peer.pushKV("ignored", ignoreUntil > GetTime());
+            peer.pushKV("ignore_until", ignoreUntil);
+            peer.pushKV("last_seen", lastSeen);
+            peer.pushKV("last_matched", lastMatched);
+            peer.pushKV("rate_messages", static_cast<uint64_t>(rateMessages));
+            peer.pushKV("rate_bytes", static_cast<uint64_t>(rateBytes));
+            peerList.push_back(peer);
+        });
+    }
+    peers.pushKV("total", totalPeers);
+    peers.pushKV("advertising_smsg", smsgServicePeers);
+    peers.pushKV("enabled", smsgEnabledPeers);
+    peers.pushKV("ignored", ignoredPeers);
+    peers.pushKV("details", peerList);
+    result.pushKV("peers", peers);
+
+    UniValue counts(UniValue::VOBJ);
+    counts.pushKV("local_keys", static_cast<uint64_t>(smsgModule.keyStore.Count()));
+
+    uint64_t bucketCount = 0;
+    uint64_t bucketMessages = 0;
+    {
+        LOCK(smsgModule.cs_smsg);
+        bucketCount = smsgModule.buckets.size();
+        for (const auto& entry : smsgModule.buckets) {
+            bucketMessages += entry.second.setTokens.size();
+        }
+    }
+    counts.pushKV("buckets", bucketCount);
+    counts.pushKV("bucket_messages", bucketMessages);
+
+    {
+        LOCK(smsg::cs_smsgDB);
+        smsg::SecMsgDB db;
+        if (db.Open("cr+")) {
+            counts.pushKV("inbox", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "im")));
+            counts.pushKV("outbox", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "sm")));
+            counts.pushKV("send_queue", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "qm")));
+            counts.pushKV("purged", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "pm")));
+            counts.pushKV("known_pubkeys", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "pk")));
+            counts.pushKV("stored_private_keys", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "sk")));
+        }
+    }
+    result.pushKV("counts", counts);
+    result.pushKV("result", "Success.");
     return result;
 }
 
@@ -1751,6 +1880,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsglocalkeys",          &smsglocalkeys,          {} },
     { "smsg",               "smsgscanchain",          &smsgscanchain,          {} },
     { "smsg",               "smsgscanbuckets",        &smsgscanbuckets,        {} },
+    { "smsg",               "smsginfo",               &smsginfo,               {} },
     { "smsg",               "flushsmgsdb",            &flushsmgsdb,            {} },
     { "smsg",               "smsgaddaddress",         &smsgaddaddress,         {"address","pubkey"} },
     { "smsg",               "smsgaddlocaladdress",    &smsgaddlocaladdress,    {"address"} },

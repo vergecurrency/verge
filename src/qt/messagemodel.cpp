@@ -19,6 +19,7 @@
 #include <QMenu>
 #include <QFont>
 #include <QColor>
+#include <logging.h>
 
 #include <algorithm>
 Q_DECLARE_METATYPE(std::vector<unsigned char>);
@@ -30,6 +31,15 @@ using smsg::SecMsgStored;
 using smsg::SecureMessage;
 using smsg::SMSG_HDR_LEN;
 using boost::placeholders::_1;
+
+static bool HasQueuedOutboxEntry(SecMsgDB &dbSmsg, const uint8_t *outboxKey)
+{
+    uint8_t queueKey[30];
+    memcpy(queueKey, outboxKey, 30);
+    memcpy(queueKey, "qm", 2);
+    return dbSmsg.ExistsSmesg(queueKey);
+}
+
  QList<QString> ambiguous; /**< Specifies Ambiguous addresses */
  const QString MessageModel::Sent = "Sent";
 const QString MessageModel::Received = "Received";
@@ -62,9 +72,9 @@ public:
              if (!dbSmsg.Open("cr+"))
                 //throw runtime_error("Could not open DB.");
                 return;
-             unsigned char chKey[18];
+             unsigned char chKey[30];
             std::vector<unsigned char> vchKey;
-            vchKey.resize(18);
+            vchKey.resize(30);
              SecMsgStored smsgStored;
             MessageData msg;
             QString label;
@@ -81,15 +91,16 @@ public:
                     sent_datetime = QDateTime::fromSecsSinceEpoch(msg.timestamp);
                     received_datetime = QDateTime::fromSecsSinceEpoch(smsgStored.timeReceived);
                     
-                    memcpy(&vchKey[0], chKey, 18);
-                     addMessageEntry(MessageTableEntry(vchKey,
-                                                      MessageTableEntry::Received,
-                                                      label,
-                                                      QString::fromStdString(CBitcoinAddress(smsgStored.addrTo).ToString()),
-                                                      QString::fromStdString(msg.sFromAddress),
-                                                      sent_datetime,
-                                                      received_datetime,
-                                                      (char*)&msg.vchMessage[0]),
+                    memcpy(&vchKey[0], chKey, 30);
+                    addMessageEntry(MessageTableEntry(vchKey,
+                                                     MessageTableEntry::Received,
+                                                     label,
+                                                     QString::fromStdString(CBitcoinAddress(smsgStored.addrTo).ToString()),
+                                                     QString::fromStdString(msg.sFromAddress),
+                                                     sent_datetime,
+                                                     received_datetime,
+                                                     QObject::tr("Received locally"),
+                                                     (char*)&msg.vchMessage[0]),
                                     true);
                 }
             };
@@ -104,8 +115,11 @@ public:
                     label = parent->getWalletModel()->getAddressTableModel()->labelForAddress(QString::fromStdString(CBitcoinAddress(smsgStored.addrTo).ToString()));
                     sent_datetime = QDateTime::fromSecsSinceEpoch(msg.timestamp);
                     received_datetime = QDateTime::fromSecsSinceEpoch(smsgStored.timeReceived);
+                    const QString status = HasQueuedOutboxEntry(dbSmsg, chKey)
+                        ? QObject::tr("Queued")
+                        : QObject::tr("Stored locally");
                     
-                    memcpy(&vchKey[0], chKey, 18);
+                    memcpy(&vchKey[0], chKey, 30);
                      addMessageEntry(MessageTableEntry(vchKey,
                                                       MessageTableEntry::Sent,
                                                       label,
@@ -113,6 +127,7 @@ public:
                                                       QString::fromStdString(msg.sFromAddress),
                                                       sent_datetime,
                                                       received_datetime,
+                                                      status,
                                                       (char*)&msg.vchMessage[0]),
                                     true);
                 }
@@ -138,17 +153,18 @@ public:
             SecureMessage* psmsg = (SecureMessage*) &smsgStored.vchMessage[0];
             
             std::vector<unsigned char> vchKey;
-            vchKey.resize(18);
+            vchKey.resize(30);
             memcpy(&vchKey[0],  sPrefix.data(),  2);
             memcpy(&vchKey[2],  &psmsg->timestamp, 8);
-            memcpy(&vchKey[10], &smsgStored.vchMessage[SMSG_HDR_LEN], 8);    // sample
-             addMessageEntry(MessageTableEntry(vchKey,
+            memcpy(&vchKey[10], &smsgStored.vchMessage[SMSG_HDR_LEN], 20);
+            addMessageEntry(MessageTableEntry(vchKey,
                                               MessageTableEntry::Received,
                                               label,
                                               QString::fromStdString(CBitcoinAddress(smsgStored.addrTo).ToString()),
                                               QString::fromStdString(msg.sFromAddress),
                                               sent_datetime,
                                               received_datetime,
+                                              QObject::tr("Received locally"),
                                               (char*)&msg.vchMessage[0]),
                             false);
         }
@@ -166,13 +182,23 @@ public:
             label = parent->getWalletModel()->getAddressTableModel()->labelForAddress(QString::fromStdString(CBitcoinAddress(smsgStored.addrTo).ToString()));
             sent_datetime = QDateTime::fromSecsSinceEpoch(msg.timestamp);
             received_datetime = QDateTime::fromSecsSinceEpoch(smsgStored.timeReceived);
+            QString status = QObject::tr("Stored locally");
              std::string sPrefix("sm");
             SecureMessage* psmsg = (SecureMessage*) &smsgStored.vchMessage[0];
             std::vector<unsigned char> vchKey;
-            vchKey.resize(18);
+            vchKey.resize(30);
             memcpy(&vchKey[0],  sPrefix.data(),  2);
             memcpy(&vchKey[2],  &psmsg->timestamp, 8);
-            memcpy(&vchKey[10], &smsgStored.vchMessage[SMSG_HDR_LEN], 8);    // sample
+            memcpy(&vchKey[10], &smsgStored.vchMessage[SMSG_HDR_LEN], 20);
+            {
+                LOCK(smsg::cs_smsgDB);
+                SecMsgDB dbSmsg;
+                if (dbSmsg.Open("cr+")) {
+                    status = HasQueuedOutboxEntry(dbSmsg, &vchKey[0])
+                        ? QObject::tr("Queued")
+                        : QObject::tr("Stored locally");
+                }
+            }
              addMessageEntry(MessageTableEntry(vchKey,
                                               MessageTableEntry::Sent,
                                               label,
@@ -180,6 +206,7 @@ public:
                                               QString::fromStdString(msg.sFromAddress),
                                               sent_datetime,
                                               received_datetime,
+                                              status,
                                               (char*)&msg.vchMessage[0]),
                             false);
         }
@@ -242,12 +269,12 @@ public:
 MessageModel::MessageModel(WalletModel *walletModel, QObject *parent) :
     QAbstractTableModel(parent), walletModel(walletModel), optionsModel(0), priv(0)
 {
-    columns << tr("Type") << tr("Sent Date Time") << tr("Received Date Time") << tr("Label") << tr("To Address") << tr("From Address") << tr("Message");
+    columns << tr("Type") << tr("Status") << tr("Sent Date Time") << tr("Received Date Time") << tr("Label") << tr("To Address") << tr("From Address") << tr("Message");
     
     proxyModel = NULL;
     
     optionsModel = walletModel->getOptionsModel();
-     priv = new MessageTablePriv(this);
+    priv = new MessageTablePriv(this);
     priv->refreshMessageTable();
      subscribeToCoreSignals();
 }
@@ -370,8 +397,9 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     const QString filter_address = rec->type == MessageTableEntry::Sent
         ? rec->to_address + rec->from_address
         : rec->from_address + rec->to_address;
-    const QString html = QStringLiteral("%1<br>%2<br>%3")
+    const QString html = QStringLiteral("<span style=\"color:#A4FFC0;\">%1</span><br>%2<br>%3<br>%4")
         .arg(rec->received_datetime.toString(),
+             rec->status,
              rec->label.isEmpty() ? rec->from_address : rec->label,
              rec->message);
      switch(role)
@@ -388,6 +416,7 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     case Qt::DisplayRole:
         switch(index.column())
         {
+            case Status:           return rec->status;
             case Label:	           return (rec->label.isEmpty() ? tr("(no label)") : rec->label);
             case ToAddress:	       return rec->to_address;
             case FromAddress:      return rec->from_address;
@@ -414,6 +443,7 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     case ToAddressRole:     return rec->to_address;
     case FilterAddressRole: return filter_address;
     case LabelRole:         return rec->label;
+    case StatusRole:        return rec->status;
     case MessageRole:       return rec->message;
     case ShortMessageRole:  return rec->message; // TODO: Short message
     case HTMLRole:          return html;

@@ -1094,6 +1094,12 @@ int CSMSG::FlushMessageData(std::string &sError)
     return SMSG_NO_ERROR;
 };
 
+uint64_t CSMSG::GetLocalStorageUsageBytes()
+{
+    LOCK2(cs_smsg, cs_smsgDB);
+    return GetSmsgStorageUsageBytes();
+}
+
 bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
 {
     // Start secure messaging at runtime

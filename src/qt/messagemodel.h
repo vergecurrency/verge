@@ -37,6 +37,7 @@ public:
     QString from_address;
     QDateTime sent_datetime;
     QDateTime received_datetime;
+    QString status;
     QString message;
      MessageTableEntry() {}
     MessageTableEntry(std::vector<unsigned char> &chKey,
@@ -46,6 +47,7 @@ public:
                       const QString &from_address,
                       const QDateTime &sent_datetime,
                       const QDateTime &received_datetime,
+                      const QString &status,
                       const QString &message):
         chKey(chKey),
         type(type),
@@ -54,6 +56,7 @@ public:
         from_address(from_address),
         sent_datetime(sent_datetime),
         received_datetime(received_datetime),
+        status(status),
         message(message)
     {
     }
@@ -76,17 +79,18 @@ public:
         Aborted,
         FailedErrorShown
     };
-     enum ColumnIndex {
+    enum ColumnIndex {
         Type = 0,   /**< Sent/Received */
-        SentDateTime = 1, /**< Time Sent */
-        ReceivedDateTime = 2, /**< Time Received */
-        Label = 3,   /**< User specified label */
-        ToAddress = 4, /**< To Verge address */
-        FromAddress = 5, /**< From Verge address */
-        Message = 6, /**< Plaintext */
-        TypeInt = 7, /**< Plaintext */
-        Key = 8, /**< chKey */
-        HTML = 9, /**< HTML Formatted Data */
+        Status = 1, /**< Delivery / receive status */
+        SentDateTime = 2, /**< Time Sent */
+        ReceivedDateTime = 3, /**< Time Received */
+        Label = 4,   /**< User specified label */
+        ToAddress = 5, /**< To Verge address */
+        FromAddress = 6, /**< From Verge address */
+        Message = 7, /**< Plaintext */
+        TypeInt = 8, /**< Plaintext */
+        Key = 9, /**< chKey */
+        HTML = 10, /**< HTML Formatted Data */
     };
      /** Roles to get specific information from a message row.
         These are independent of column.
@@ -108,6 +112,8 @@ public:
         FilterAddressRole,
         /** Label of address related to message */
         LabelRole,
+        /** Delivery / receive status */
+        StatusRole,
         /** Full Message */
         MessageRole,
         /** Short Message */

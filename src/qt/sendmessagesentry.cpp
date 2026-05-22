@@ -9,16 +9,19 @@
 #include <qt/addresstablemodel.h>
 #include <qt/messagemodel.h>
 #include <qt/walletmodel.h>
+#include <smsg/smessage.h>
 
 #include <QApplication>
 #include <QClipboard>
+#include <QLabel>
 #include <QPlainTextEdit>
 #include <QSignalBlocker>
 
 SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
     QFrame(parent),
     ui(new Ui::SendMessagesEntry),
-    model(nullptr)
+    model(nullptr),
+    messageCountLabel(nullptr)
 {
     ui->setupUi(this);
 
@@ -33,6 +36,13 @@ SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
     ui->publicKey->setPlaceholderText(tr("Auto-fills if known, otherwise paste recipient pubkey"));
     ui->publicKey->setToolTip(tr("Recipient public key. If this address is already known locally, the field fills automatically."));
     ui->messageText->setPlaceholderText(tr("Type an encrypted message"));
+
+    messageCountLabel = new QLabel(this);
+    messageCountLabel->setStyleSheet(QStringLiteral("background-color: rgb(0, 0, 0); color: rgb(92, 255, 122);"));
+    ui->gridLayout->addWidget(messageCountLabel, 7, 2, 1, 1, Qt::AlignRight);
+
+    connect(ui->messageText, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
+    updateMessageCountdown();
 }
 
 SendMessagesEntry::~SendMessagesEntry()
@@ -53,6 +63,7 @@ void SendMessagesEntry::clear()
     ui->publicKey->clear();
     ui->messageText->clear();
     ui->messageText->setErrorText(tr("The message cannot be empty."));
+    updateMessageCountdown();
 }
 
 bool SendMessagesEntry::validate()
@@ -108,6 +119,7 @@ void SendMessagesEntry::setValue(const SendMessagesRecipient& value)
     ui->addAsLabel->setText(value.label);
     ui->publicKey->setText(value.pubkey);
     static_cast<QPlainTextEdit*>(ui->messageText)->setPlainText(value.message);
+    updateMessageCountdown();
 }
 
 void SendMessagesEntry::loadRow(int row)
@@ -212,4 +224,37 @@ bool SendMessagesEntry::resolveKnownPublicKey(const QString& address, bool updat
     }
 
     return true;
+}
+
+void SendMessagesEntry::enforceMessageLimit()
+{
+    QString text = ui->messageText->toPlainText();
+    QByteArray utf8 = text.toUtf8();
+    if (utf8.size() <= static_cast<int>(smsg::SMSG_MAX_MSG_BYTES)) {
+        return;
+    }
+
+    utf8.truncate(smsg::SMSG_MAX_MSG_BYTES);
+    const QString truncated = QString::fromUtf8(utf8);
+    if (truncated == text) {
+        return;
+    }
+
+    ui->messageText->blockSignals(true);
+    ui->messageText->setPlainText(truncated);
+    QTextCursor cursor = ui->messageText->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    ui->messageText->setTextCursor(cursor);
+    ui->messageText->blockSignals(false);
+}
+
+void SendMessagesEntry::updateMessageCountdown()
+{
+    enforceMessageLimit();
+    if (!messageCountLabel) {
+        return;
+    }
+
+    const int remaining = static_cast<int>(smsg::SMSG_MAX_MSG_BYTES) - ui->messageText->toPlainText().toUtf8().size();
+    messageCountLabel->setText(tr("Characters left: %1").arg(remaining));
 }

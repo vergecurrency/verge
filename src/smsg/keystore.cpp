@@ -42,6 +42,12 @@ bool SecMsgKeyStore::GetPubKey(const CKeyID &idk, CPubKey &pk)
     return false;
 };
 
+size_t SecMsgKeyStore::Count() const
+{
+    LOCK(cs_KeyStore);
+    return mapKeys.size();
+}
+
 bool SecMsgKeyStore::Clear()
 {
     LOCK(cs_KeyStore);

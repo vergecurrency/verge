@@ -26,7 +26,6 @@
 
 #include <interfaces/node.h>
 #include <ui_interface.h>
-
 #include <QAction>
 #include <QActionGroup>
 #include <QFileDialog>
