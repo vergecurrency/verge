@@ -7,14 +7,70 @@
     <x>0</x>
     <y>0</y>
     <width>850</width>
-    <height>400</height>
+    <height>460</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Send Messages</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">#SendMessagesDialog { background-color: #383838; }</string>
+   <string notr="true">#SendMessagesDialog {
+background-color: #14051f;
+color: #f3e9ff;
+}
+QFrame#frameAddressFrom {
+background-color: #1c082b;
+border: 1px solid #7d2cff;
+border-radius: 6px;
+}
+QLabel {
+color: #f3e9ff;
+background: transparent;
+}
+QScrollArea {
+background-color: #14051f;
+border: 1px solid #54207f;
+border-radius: 6px;
+}
+QScrollArea > QWidget > QWidget {
+background-color: #14051f;
+}
+QComboBox, QPushButton, QToolButton {
+background-color: #2a0b44;
+color: #f3e9ff;
+border: 1px solid #8c39ff;
+border-radius: 5px;
+padding: 5px 8px;
+}
+QComboBox::drop-down {
+border: 0px;
+}
+QComboBox QAbstractItemView {
+background-color: #1a0829;
+color: #f3e9ff;
+selection-background-color: #7d2cff;
+selection-color: #ffffff;
+border: 1px solid #8c39ff;
+}
+QPushButton:hover, QToolButton:hover, QComboBox:hover {
+background-color: #3a1260;
+border-color: #b06cff;
+}
+QPushButton:pressed, QToolButton:pressed {
+background-color: #4b1780;
+}
+QPushButton#sendButton {
+background-color: #7d2cff;
+border-color: #c08dff;
+font-weight: 600;
+}
+QPushButton#sendButton:hover {
+background-color: #9247ff;
+}
+QPushButton#closeButton, QPushButton#clearButton {
+background-color: #220934;
+}
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
    <property name="bottomMargin">
@@ -42,10 +98,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QLabel" name="addressFromLabel">
-        <property name="styleSheet">
-         <string notr="true">color: #ffffff;</string>
-        </property>
+         <widget class="QLabel" name="addressFromLabel">
         <property name="text">
          <string>Address &amp;From:</string>
         </property>
@@ -55,17 +108,26 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0,0">
         <property name="spacing">
-         <number>1</number>
+         <number>6</number>
         </property>
         <item>
          <widget class="QComboBox" name="addressFrom">
+          <property name="minimumSize">
+           <size>
+            <width>420</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="editable">
            <bool>false</bool>
           </property>
           <property name="sizeAdjustPolicy">
            <enum>QComboBox::AdjustToMinimumContentsLengthWithIcon</enum>
+          </property>
+          <property name="minimumContentsLength">
+           <number>48</number>
           </property>
          </widget>
         </item>

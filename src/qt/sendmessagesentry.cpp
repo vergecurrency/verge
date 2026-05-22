@@ -33,9 +33,12 @@ SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
 
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     ui->sendTo->setPlaceholderText(tr("Recipient Verge address"));
-    ui->publicKey->setPlaceholderText(tr("Auto-fills if known, otherwise paste recipient pubkey"));
-    ui->publicKey->setToolTip(tr("Recipient public key. If this address is already known locally, the field fills automatically."));
+    ui->publicKey->setPlaceholderText(tr("Auto-fills if known, otherwise paste recipient chatkey"));
+    ui->publicKey->setToolTip(tr("Recipient chatkey. If this address is already known locally, the field fills automatically."));
     ui->messageText->setPlaceholderText(tr("Type an encrypted message"));
+    ui->addressBookButton->setFixedSize(28, 28);
+    ui->pasteButton->setFixedSize(28, 28);
+    ui->deleteButton->setFixedSize(28, 28);
 
     messageCountLabel = new QLabel(this);
     messageCountLabel->setStyleSheet(QStringLiteral("background-color: rgb(0, 0, 0); color: rgb(92, 255, 122);"));

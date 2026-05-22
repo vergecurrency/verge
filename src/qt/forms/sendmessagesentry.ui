@@ -429,7 +429,7 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background: rgb(0,0,0); color: rgb(255,255,255); border: 1px inset white; border-radius: 3px; margin: 0px;</string>
+   <string notr="true">background: rgb(20,5,31); color: rgb(243,233,255); border: 1px solid rgb(84,32,127); border-radius: 8px; margin: 0px;</string>
   </property>
   <property name="frameShape">
    <enum>QFrame::StyledPanel</enum>
@@ -465,7 +465,13 @@
         <string>Choose address from address book</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 255, 255);</string>
+        <string notr="true">background-color: rgb(42, 11, 68); color: rgb(243, 233, 255); border: 1px solid rgb(140, 57, 255); border-radius: 5px; padding: 3px;</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
        <property name="text">
         <string/>
@@ -485,7 +491,13 @@
         <string>Paste address from clipboard</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 255, 255);</string>
+        <string notr="true">background-color: rgb(42, 11, 68); color: rgb(243, 233, 255); border: 1px solid rgb(140, 57, 255); border-radius: 5px; padding: 3px;</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
        <property name="text">
         <string/>
@@ -505,7 +517,13 @@
         <string>Remove this recipient</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 255, 255);</string>
+        <string notr="true">background-color: rgb(42, 11, 68); color: rgb(243, 233, 255); border: 1px solid rgb(140, 57, 255); border-radius: 5px; padding: 3px;</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
        <property name="text">
         <string/>
@@ -519,10 +537,10 @@
     </layout>
    </item>
    <item row="6" column="0">
-    <widget class="QLabel" name="messageLabel">
+   <widget class="QLabel" name="messageLabel">
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+      <string notr="true">background: transparent;
+color: rgb(243, 233, 255);</string>
      </property>
      <property name="text">
       <string>&amp;Message:</string>
@@ -536,10 +554,10 @@ color: rgb(255, 255, 255);</string>
     </widget>
    </item>
    <item row="3" column="0">
-    <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="label_2">
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+      <string notr="true">background: transparent;
+color: rgb(243, 233, 255);</string>
      </property>
      <property name="text">
       <string>Send &amp;To:</string>
@@ -582,10 +600,10 @@ color: rgb(255, 255, 255);</string>
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QLabel" name="label_4">
+   <widget class="QLabel" name="label_4">
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+      <string notr="true">background: transparent;
+color: rgb(243, 233, 255);</string>
      </property>
      <property name="text">
       <string>&amp;Label:</string>
@@ -599,13 +617,13 @@ color: rgb(255, 255, 255);</string>
     </widget>
    </item>
    <item row="5" column="0">
-    <widget class="QLabel" name="publicKeyLabel">
+   <widget class="QLabel" name="publicKeyLabel">
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+      <string notr="true">background: transparent;
+color: rgb(243, 233, 255);</string>
      </property>
      <property name="text">
-      <string>&amp;Public Key:</string>
+      <string>&amp;Chatkey:</string>
      </property>
      <property name="buddy">
       <cstring>publicKey</cstring>

@@ -14,6 +14,7 @@
 #include <QDataWidgetMapper>
 #include <QLocale>
 #include <QMessageBox>
+#include <QListView>
 #include <QScrollBar>
 #include <QSignalBlocker>
 #include <QTextDocument>
@@ -25,6 +26,82 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
                                                                                 type(type)
 {
     ui->setupUi(this);
+    setObjectName(QStringLiteral("SendMessagesDialog"));
+    setAttribute(Qt::WA_StyledBackground, true);
+    setStyleSheet(QStringLiteral(
+        "#SendMessagesDialog {"
+        " background-color: #14051f;"
+        " color: #f3e9ff;"
+        "}"
+        "QFrame#frameAddressFrom {"
+        " background-color: #1c082b;"
+        " border: 1px solid #7d2cff;"
+        " border-radius: 6px;"
+        "}"
+        "QScrollArea {"
+        " background-color: #14051f;"
+        " border: 1px solid #54207f;"
+        " border-radius: 6px;"
+        "}"
+        "QScrollArea > QWidget > QWidget {"
+        " background-color: #14051f;"
+        "}"
+        "QLabel {"
+        " color: #f3e9ff;"
+        " background: transparent;"
+        "}"
+        "QComboBox, QPushButton, QToolButton {"
+        " background-color: #2a0b44;"
+        " color: #f3e9ff;"
+        " border: 1px solid #8c39ff;"
+        " border-radius: 5px;"
+        " padding: 5px 8px;"
+        "}"
+        "QComboBox::drop-down {"
+        " border: 0px;"
+        "}"
+        "QComboBox QAbstractItemView {"
+        " background-color: #1a0829;"
+        " color: #f3e9ff;"
+        " selection-background-color: #7d2cff;"
+        " selection-color: #ffffff;"
+        " border: 1px solid #8c39ff;"
+        "}"
+        "QPushButton:hover, QToolButton:hover, QComboBox:hover {"
+        " background-color: #3a1260;"
+        " border-color: #b06cff;"
+        "}"
+        "QPushButton:pressed, QToolButton:pressed {"
+        " background-color: #4b1780;"
+        "}"
+        "QPushButton#sendButton {"
+        " background-color: #7d2cff;"
+        " border-color: #c08dff;"
+        " font-weight: 600;"
+        "}"
+        "QPushButton#sendButton:hover {"
+        " background-color: #9247ff;"
+        "}"
+        "QPushButton#closeButton, QPushButton#clearButton {"
+        " background-color: #220934;"
+        "}"
+    ));
+    ui->frameAddressFrom->setAttribute(Qt::WA_StyledBackground, true);
+    ui->scrollArea->setAttribute(Qt::WA_StyledBackground, true);
+    ui->scrollAreaWidgetContents->setAttribute(Qt::WA_StyledBackground, true);
+    resize(width(), 460);
+    ui->addressFrom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    ui->addressFrom->setMinimumWidth(420);
+    ui->addressFrom->setInsertPolicy(QComboBox::NoInsert);
+    ui->addressFrom->setView(new QListView(ui->addressFrom));
+    ui->addressFrom->view()->setTextElideMode(Qt::ElideMiddle);
+    ui->addressFrom->setStyleSheet(ui->addressFrom->styleSheet() + QStringLiteral("QComboBox { padding-left: 8px; text-align: left; }"));
+    if (ui->scrollArea->viewport()) {
+        ui->scrollArea->viewport()->setAttribute(Qt::WA_StyledBackground, true);
+        ui->scrollArea->viewport()->setStyleSheet(QStringLiteral("background-color: #14051f;"));
+    }
+    ui->scrollArea->setStyleSheet(QStringLiteral("background-color: #14051f; border: 1px solid #54207f; border-radius: 6px;"));
+    ui->scrollAreaWidgetContents->setStyleSheet(QStringLiteral("background-color: #14051f;"));
 #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     ui->addButton->setIcon(QIcon());
     ui->clearButton->setIcon(QIcon());
@@ -116,7 +193,7 @@ void SendMessagesDialog::on_sendButton_clicked()
     }
     if (!valid || recipients.isEmpty()) {
         QMessageBox::warning(this, tr("Send Secure Message"),
-            tr("A recipient address, an encrypted message, and a known recipient public key are required. If the key is already known, it will auto-fill when you enter the address."),
+            tr("A recipient address, an encrypted message, and a known recipient chatkey are required. If the chatkey is already known, it will auto-fill when you enter the address."),
             QMessageBox::Ok, QMessageBox::Ok);
         return;
     }

@@ -98,6 +98,16 @@
          </widget>
         </item>
         <item row="7" column="2">
+         <widget class="QCheckBox" name="allowMessaging">
+          <property name="toolTip">
+           <string>Enable secure messaging on this new address so it appears in your local message address list.</string>
+          </property>
+          <property name="text">
+           <string>Allow messaging on this address</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="2">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QPushButton" name="receiveButton">
@@ -154,7 +164,7 @@
           </item>
          </layout>
         </item>
-        <item row="7" column="0">
+        <item row="8" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string/>

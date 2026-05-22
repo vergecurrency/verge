@@ -17,7 +17,10 @@
 #include <qt/recentrequeststablemodel.h>
 #include <qt/walletmodel.h>
 
+#include <smsg/smessage.h>
+
 #include <QAction>
+#include <QCheckBox>
 #include <QCursor>
 #include <QGraphicsDropShadowEffect>
 #include <QMessageBox>
@@ -94,6 +97,13 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
 
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
+    connect(ui->useStealth, &QCheckBox::toggled, this, [this](bool checked) {
+        ui->allowMessaging->setEnabled(!checked);
+        if (checked) {
+            ui->allowMessaging->setChecked(false);
+        }
+    });
+    ui->allowMessaging->setEnabled(!ui->useStealth->isChecked());
 }
 
 void ReceiveCoinsDialog::setModel(WalletModel *_model)
@@ -149,6 +159,7 @@ void ReceiveCoinsDialog::clear()
     ui->reqAmount->clear();
     ui->reqLabel->setText("");
     ui->reqMessage->setText("");
+    ui->allowMessaging->setChecked(false);
     updateDisplayUnit();
 }
 
@@ -185,6 +196,15 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
         address_type = OutputType::LEGACY;
     }
     address = model->getAddressTableModel()->addRow(AddressTableModel::Receive, label, "", address_type);
+    if (ui->allowMessaging->isChecked()) {
+        const int rv = smsgModule.AddLocalAddress(address.toStdString());
+        if (rv != smsg::SMSG_NO_ERROR) {
+            QMessageBox::warning(this, tr("Enable Messaging"),
+                tr("The address was created, but secure messaging could not be enabled for it: %1")
+                    .arg(QString::fromLatin1(smsg::GetString(rv))),
+                QMessageBox::Ok, QMessageBox::Ok);
+        }
+    }
     SendCoinsRecipient info(address, label,
         ui->reqAmount->value(), ui->reqMessage->text());
     ReceiveRequestDialog *dialog = new ReceiveRequestDialog(this);
