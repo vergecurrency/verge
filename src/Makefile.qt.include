@@ -103,7 +103,6 @@ QT_FORMS_UI = \
   qt/forms/intro.ui \
   qt/forms/messagepage.ui \
   qt/forms/modaloverlay.ui \
-  qt/plugins/mrichtexteditor/mrichtextedit.ui \
   qt/forms/openuridialog.ui \
   qt/forms/optionsdialog.ui \
   qt/forms/overviewpage.ui \
@@ -138,7 +137,6 @@ QT_MOC_CPP = \
   qt/moc_messagemodel.cpp \
   qt/moc_macdockiconhandler.cpp \
   qt/moc_macnotificationhandler.cpp \
-  qt/moc_mrichtextedit.cpp \
   qt/moc_modaloverlay.cpp \
   qt/moc_notificator.cpp \
   qt/moc_openuridialog.cpp \
@@ -229,7 +227,6 @@ VERGE_QT_H = \
   qt/paymentserver.h \
   qt/peertablemodel.h \
   qt/platformstyle.h \
-  qt/plugins/mrichtexteditor/mrichtextedit.h \
   qt/qvalidatedlineedit.h \
   qt/qvalidatedtextedit.h \
   qt/qvaluecombobox.h \
@@ -370,7 +367,6 @@ VERGE_QT_BASE_CPP = \
   qt/gamespage.cpp \
   qt/guiutil.cpp \
   qt/intro.cpp \
-  qt/plugins/mrichtexteditor/mrichtextedit.cpp \
   qt/modaloverlay.cpp \
   qt/networkstyle.cpp \
   qt/notificator.cpp \
@@ -438,7 +434,7 @@ VERGE_RC = qt/res/verge-qt-res.rc
 
 VERGE_QT_INCLUDES = -DQT_NO_KEYWORDS -DQT_USE_QSTRINGBUILDER
 
-qt_libvergeqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(VERGE_QT_INCLUDES) -I$(srcdir)/qt/plugins/mrichtexteditor \
+qt_libvergeqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES) $(VERGE_QT_INCLUDES) \
   $(QT_INCLUDES) $(QT_DBUS_INCLUDES) $(PROTOBUF_CFLAGS) $(QR_CFLAGS) $(BOOST_CPPFLAGS)
 qt_libvergeqt_a_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS) $(QT_CXXFLAGS)
 qt_libvergeqt_a_OBJCXXFLAGS = $(AM_OBJCXXFLAGS) $(QT_PIE_FLAGS)
@@ -537,10 +533,6 @@ ui_%.h: %.ui
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(MOC) $(DEFAULT_INCLUDES) $(QT_INCLUDES_UNSUPPRESSED) $(MOC_DEFS) $< > $@
 
 moc_%.cpp: %.h
-	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(MOC) $(DEFAULT_INCLUDES) $(QT_INCLUDES_UNSUPPRESSED) $(MOC_DEFS) $< > $@
-
-qt/moc_mrichtextedit.cpp: qt/plugins/mrichtexteditor/mrichtextedit.h
-	@$(MKDIR_P) $(@D)
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(MOC) $(DEFAULT_INCLUDES) $(QT_INCLUDES_UNSUPPRESSED) $(MOC_DEFS) $< > $@
 
 %.qm: %.ts
