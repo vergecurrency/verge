@@ -1658,11 +1658,10 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             LogPrint(BCLog::SMSG, "Peer match time set to now.\n");
             time = now;
         }
-        /*
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.lastMatched = time;
-        }*/
+        }
         LogPrint(BCLog::SMSG, "Peer buckets matched in smsgWant at %d.\n", time);
     } else
     if (strCommand == "smsgPing") {
@@ -1836,7 +1835,6 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
     } // cs_smsg
 
     pto->smsgData.lastSeen = now;
-    pto->smsgData.lastMatched = now; //bug fix smsg 3
 
     return true;
 };
