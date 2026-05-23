@@ -1378,6 +1378,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         // TODO: should include hash?
         memcpy(&vchDataOut[0], &nShowBuckets, 4);
         if (vchDataOut.size() > 4) {
+            LogPrintf("SMSG: sending smsgShow to peer=%d addr=%s buckets=%u\n",
+                pfrom->GetId(), pfrom->addr.ToString(), nShowBuckets);
             g_connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgShow", vchDataOut));
         } else
@@ -1450,14 +1452,16 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     p += 16;
                     nMessages++;
                 }
-                if (nMessages != tokenSet.size()) {
-                    try { vchDataOut.resize(8 + 16 * nMessages);
+            if (nMessages != tokenSet.size()) {
+                try { vchDataOut.resize(8 + 16 * nMessages);
                     } catch (std::exception &e) {
                         LogPrintf("vchDataOut.resize %u threw: %s.\n", 8 + 16 * nMessages, e.what());
                         continue;
                     }
                 }
             }
+            LogPrintf("SMSG: sending smsgHave to peer=%d addr=%s bucket=%d messages=%u\n",
+                pfrom->GetId(), pfrom->addr.ToString(), time, (unsigned int)((vchDataOut.size() - 8) / 16));
             g_connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgHave", vchDataOut));
         }
@@ -1545,6 +1549,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 buckets[time].nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
                 buckets[time].nLockPeerId  = pfrom->GetId();
             }
+            LogPrintf("SMSG: sending smsgWant to peer=%d addr=%s bucket=%d messages=%u\n",
+                pfrom->GetId(), pfrom->addr.ToString(), time, (unsigned int)((vchDataOut.size() - 8) / 16));
             g_connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgWant", vchDataOut));
         }
@@ -1612,6 +1618,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
             memcpy(&vchBunch[0], &nBunch, 4);
             memcpy(&vchBunch[4], &time, 8);
+            LogPrintf("SMSG: sending smsgMsg to peer=%d addr=%s bucket=%d messages=%u bytes=%u\n",
+                pfrom->GetId(), pfrom->addr.ToString(), time, nBunch, (unsigned int)vchBunch.size());
             g_connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgMsg", vchBunch));
         }
@@ -1620,6 +1628,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
+        LogPrintf("SMSG: received smsgMsg from peer=%d addr=%s bytes=%u\n",
+            pfrom->GetId(), pfrom->addr.ToString(), (unsigned int)vchData.size());
         LogPrint(BCLog::SMSG, "smsgMsg vchData.size() %u.\n", vchData.size());
 
         Receive(pfrom, vchData);
@@ -1657,10 +1667,12 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     } else
     if (strCommand == "smsgPing") {
         // smsgPing is the initial message, send reply
+        LogPrintf("SMSG: received smsgPing from peer=%d addr=%s\n", pfrom->GetId(), pfrom->addr.ToString());
         g_connman->PushMessage(pfrom,
             CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong"));
     } else
     if (strCommand == "smsgPong") {
+        LogPrintf("SMSG: received smsgPong from peer=%d addr=%s, enabling relay\n", pfrom->GetId(), pfrom->addr.ToString());
         LogPrint(BCLog::SMSG, "Peer replied, secure messaging enabled.\n");
 
         {
@@ -1724,11 +1736,13 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         // First contact
         LogPrint(BCLog::SMSG, "%s: New node %s, peer id %u.\n", __func__, pto->GetAddrName(), pto->GetId());
         // Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
+        LogPrintf("SMSG: sending smsgPing to peer=%d addr=%s\n", pto->GetId(), pto->addr.ToString());
         g_connman->PushMessage(pto,
             CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPing"));
 
         // Send smsgPong message if received smsgPing from peer while syncing chain
         if (pto->smsgData.lastSeen < 0) {
+            LogPrintf("SMSG: sending smsgPong to peer=%d addr=%s while syncing\n", pto->GetId(), pto->addr.ToString());
             g_connman->PushMessage(pto,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong"));
         }
@@ -1811,6 +1825,8 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
 
             if (vchData.size() > 4) {
                 memcpy(&vchData[0], &nBucketsShown, 4);
+                LogPrintf("SMSG: sending smsgInv to peer=%d addr=%s buckets=%u\n",
+                    pto->GetId(), pto->addr.ToString(), nBucketsShown);
                 LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
                 g_connman->PushMessage(pto,
