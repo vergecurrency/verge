@@ -19,6 +19,7 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QTimer>
+#include <logging.h>
 #include <sstream>
 #define NUM_ITEMS 3
 
@@ -98,6 +99,7 @@ MessagePage::MessagePage(QWidget *parent) :
     storageLabel(nullptr),
     storageRefreshTimer(nullptr)
 {
+    LogPrintf("GUI: MessagePage ctor begin\n");
     ui->setupUi(this);
    
     
@@ -149,6 +151,7 @@ MessagePage::MessagePage(QWidget *parent) :
 
     refreshStorageUsage();
     updateMessageCountdown();
+    LogPrintf("GUI: MessagePage ctor end\n");
 }
  MessagePage::~MessagePage()
 {
@@ -156,6 +159,7 @@ MessagePage::MessagePage(QWidget *parent) :
 }
 void MessagePage::setModel(MessageModel *model)
 {
+    LogPrintf("GUI: MessagePage::setModel begin model=%p\n", model);
     this->model = model;
     if(!model)
         return;
@@ -193,8 +197,10 @@ void MessagePage::setModel(MessageModel *model)
     //connect(ui->messageEdit,                        SIGNAL(textChanged()),                                    this, SLOT(messageTextChanged()));
      // Scroll to bottom
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(incomingMessage()));
+    connect(model, SIGNAL(modelReset()), this, SLOT(handleModelReset()));
      selectionChanged();
     refreshStorageUsage();
+    LogPrintf("GUI: MessagePage::setModel end rows=%d\n", model->proxyModel ? model->proxyModel->rowCount() : -1);
 }
 void MessagePage::on_sendButton_clicked()
 {
@@ -308,6 +314,7 @@ void MessagePage::refreshStorageUsage()
 }
  void MessagePage::on_backButton_clicked()
 {
+    LogPrintf("GUI: MessagePage::on_backButton_clicked begin\n");
     model->proxyModel->setFilterRole(false);
     model->proxyModel->setFilterFixedString("");
     model->resetFilter();
@@ -325,6 +332,7 @@ void MessagePage::refreshStorageUsage()
     ui->sendButton->setVisible(false);
     ui->messageEdit->setVisible(false);
     if (messageCountLabel) messageCountLabel->setVisible(false);
+    LogPrintf("GUI: MessagePage::on_backButton_clicked end\n");
 }
  void MessagePage::selectionChanged()
 {
@@ -332,6 +340,9 @@ void MessagePage::refreshStorageUsage()
     QTableView *table = ui->tableView;
     if(!table->selectionModel())
         return;
+    LogPrintf("GUI: MessagePage::selectionChanged hasSelection=%d tableVisible=%d\n",
+        table->selectionModel()->hasSelection(),
+        ui->tableView->isVisible());
      if(table->selectionModel()->hasSelection())
     {
         replyAction->setEnabled(true);
@@ -369,6 +380,11 @@ void MessagePage::refreshStorageUsage()
             else
                 replyFromAddress = table->model()->data(index).toString();
          QString filter = (type == MessageTableEntry::Sent ? replyToAddress + replyFromAddress : replyToAddress + replyFromAddress);
+        LogPrintf("GUI: MessagePage::selectionChanged open thread type=%d from=%s to=%s filter=%s\n",
+            type,
+            replyFromAddress.toStdString(),
+            replyToAddress.toStdString(),
+            filter.toStdString());
          model->proxyModel->setFilterRole(false);
         model->proxyModel->setFilterFixedString("");
         model->proxyModel->sort(MessageModel::ReceivedDateTime);
@@ -377,6 +393,7 @@ void MessagePage::refreshStorageUsage()
         ui->messageDetails->show();
         const QModelIndex firstConversationIndex = model->proxyModel->index(0, 0, QModelIndex());
         if (firstConversationIndex.isValid() && ui->listConversation->selectionModel()) {
+            LogPrintf("GUI: MessagePage::selectionChanged selecting row=%d\n", firstConversationIndex.row());
             ui->listConversation->selectionModel()->setCurrentIndex(
                 firstConversationIndex,
                 QItemSelectionModel::ClearAndSelect);
@@ -387,6 +404,7 @@ void MessagePage::refreshStorageUsage()
         if (!ui->tableView->isVisible() && ui->listConversation->model() && ui->listConversation->model()->rowCount() > 0 && ui->listConversation->selectionModel()) {
             const QModelIndex firstConversationIndex = ui->listConversation->model()->index(0, 0, QModelIndex());
             if (firstConversationIndex.isValid()) {
+                LogPrintf("GUI: MessagePage::selectionChanged reselection row=%d\n", firstConversationIndex.row());
                 ui->listConversation->selectionModel()->setCurrentIndex(
                     firstConversationIndex,
                     QItemSelectionModel::ClearAndSelect);
@@ -394,6 +412,7 @@ void MessagePage::refreshStorageUsage()
             }
         }
 
+        LogPrintf("GUI: MessagePage::selectionChanged clearing detail view\n");
         ui->newButton->setEnabled(true);
         ui->newButton->setVisible(true);
         ui->sendButton->setEnabled(false);
@@ -414,6 +433,10 @@ void MessagePage::refreshStorageUsage()
     QListView *list = ui->listConversation;
     if(!list->selectionModel())
         return;
+    LogPrintf("GUI: MessagePage::itemSelectionChanged hasSelection=%d listRows=%d tableVisible=%d\n",
+        list->selectionModel()->hasSelection(),
+        list->model() ? list->model()->rowCount() : -1,
+        ui->tableView->isVisible());
      if(list->selectionModel()->hasSelection())
     {
         replyAction->setEnabled(true);
@@ -433,6 +456,7 @@ void MessagePage::refreshStorageUsage()
      }
     else
     {
+        LogPrintf("GUI: MessagePage::itemSelectionChanged clearing detail view\n");
         ui->newButton->setEnabled(true);
         ui->newButton->setVisible(true);
         ui->sendButton->setEnabled(false);
@@ -447,9 +471,22 @@ void MessagePage::refreshStorageUsage()
         updateMessageCountdown();
     }
 }
- void MessagePage::incomingMessage()
+void MessagePage::incomingMessage()
 {
     ui->listConversation->scrollToBottom();
+}
+
+void MessagePage::handleModelReset()
+{
+    LogPrintf("GUI: MessagePage::handleModelReset rows=%d tableVisible=%d\n",
+        model && model->proxyModel ? model->proxyModel->rowCount() : -1,
+        ui->tableView->isVisible());
+
+    ui->tableView->clearSelection();
+    ui->listConversation->clearSelection();
+    selectionChanged();
+    itemSelectionChanged();
+    refreshStorageUsage();
 }
  void MessagePage::messageTextChanged()
 {

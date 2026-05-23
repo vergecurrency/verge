@@ -211,12 +211,11 @@ public:
                             false);
         }
     }
-     void walletUnlocked()
+    void walletUnlocked()
     {
         // -- wallet is unlocked, can get at the private keys now
-        refreshMessageTable();
-
         parent->beginResetModel();
+        refreshMessageTable();
         parent->endResetModel();
         
         if (parent->proxyModel)
@@ -237,8 +236,8 @@ public:
         if (status == WalletModel::Locked)
         {
             // -- Wallet is locked, clear secure message display.
-            cachedMessageTable.clear();
             parent->beginResetModel();
+            cachedMessageTable.clear();
             parent->endResetModel();
         };
     };
@@ -516,8 +515,8 @@ void MessageModel::walletUnlocked()
 
 void MessageModel::reloadMessages()
 {
-    priv->refreshMessageTable();
     beginResetModel();
+    priv->refreshMessageTable();
     endResetModel();
 }
  void MessageModel::setEncryptionStatus()

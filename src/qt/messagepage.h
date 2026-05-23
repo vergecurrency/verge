@@ -61,6 +61,7 @@ class MessagePage : public QWidget
     void selectionChanged();
     void itemSelectionChanged();
     void incomingMessage();
+    void handleModelReset();
     /** Spawn contextual menu (right mouse menu) for address book entry */
     void contextualMenu(const QPoint &point);
  Q_SIGNALS:
