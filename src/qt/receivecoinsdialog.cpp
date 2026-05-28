@@ -13,6 +13,7 @@
 #include <qt/vergeunits.h>
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
+#include <qt/guiconstants.h>
 #include <qt/receiverequestdialog.h>
 #include <qt/recentrequeststablemodel.h>
 #include <qt/walletmodel.h>
@@ -22,13 +23,30 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QCursor>
+#include <QDialogButtonBox>
+#include <QGridLayout>
 #include <QGraphicsDropShadowEffect>
+#include <QHBoxLayout>
 #include <QInputDialog>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTextDocument>
+#include <QTextEdit>
+#include <QToolButton>
+#include <QUrl>
+#include <QVBoxLayout>
+
+#if defined(HAVE_CONFIG_H)
+#include <config/verge-config.h>
+#endif
+
+#ifdef USE_QRCODE
+#include <qrencode.h>
+#endif
 
 namespace {
 void ApplyCardShadow(QWidget* widget)
@@ -39,6 +57,183 @@ void ApplyCardShadow(QWidget* widget)
     effect->setOffset(0, 10);
     effect->setColor(QColor(88, 28, 140, 92));
     widget->setGraphicsEffect(effect);
+}
+
+bool ReceivingLabelExists(const AddressTableModel* model, const QString& label, const QString& exceptAddress = QString())
+{
+    const QString trimmedLabel = label.trimmed();
+    if (!model || trimmedLabel.isEmpty()) {
+        return false;
+    }
+
+    for (int row = 0; row < model->rowCount(QModelIndex()); ++row) {
+        const QModelIndex labelIndex = model->index(row, AddressTableModel::Label, QModelIndex());
+        if (model->data(labelIndex, AddressTableModel::TypeRole).toString() != AddressTableModel::Receive) {
+            continue;
+        }
+
+        const QString address = model->data(model->index(row, AddressTableModel::Address, QModelIndex()), Qt::DisplayRole).toString();
+        if (!exceptAddress.isEmpty() && address == exceptAddress) {
+            continue;
+        }
+
+        if (model->data(labelIndex, Qt::EditRole).toString().trimmed().compare(trimmedLabel, Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+QString EncodeUriValue(const QString& value)
+{
+    return QString::fromLatin1(QUrl::toPercentEncoding(value));
+}
+
+QString FormatChatkeyURI(const QString& address, const QString& chatkey, const QString& label)
+{
+    QString uri = QStringLiteral("verge:%1?chatkey=%2").arg(address, EncodeUriValue(chatkey));
+    if (!label.isEmpty()) {
+        uri += QStringLiteral("&label=%1").arg(EncodeUriValue(label));
+    }
+    return uri;
+}
+
+QToolButton* CreateCopyButton(const PlatformStyle* platformStyle, const QString& text, const QString& clipboardText, QWidget* parent)
+{
+    QToolButton* button = new QToolButton(parent);
+    button->setToolTip(text);
+    button->setAutoRaise(true);
+    button->setIcon(platformStyle->SingleColorIcon(":/icons/editcopy"));
+    QObject::connect(button, &QToolButton::clicked, button, [clipboardText]() {
+        GUIUtil::setClipboard(clipboardText);
+    });
+    return button;
+}
+
+QPixmap BuildChatkeyQRCode(const QString& payload, const QString& caption)
+{
+#ifdef USE_QRCODE
+    if (payload.length() > MAX_URI_LENGTH) {
+        return QPixmap();
+    }
+
+    QRcode* code = QRcode_encodeString(payload.toUtf8().constData(), 0, QR_ECLEVEL_L, QR_MODE_8, 1);
+    if (!code) {
+        return QPixmap();
+    }
+
+    QImage qrImage(code->width + 8, code->width + 8, QImage::Format_RGB32);
+    qrImage.fill(0xffffff);
+    unsigned char* p = code->data;
+    for (int y = 0; y < code->width; y++) {
+        for (int x = 0; x < code->width; x++) {
+            qrImage.setPixel(x + 4, y + 4, ((*p & 1) ? 0x0 : 0xffffff));
+            p++;
+        }
+    }
+    QRcode_free(code);
+
+    QImage qrAddrImage(QR_IMAGE_SIZE, QR_IMAGE_SIZE + 44, QImage::Format_RGB32);
+    qrAddrImage.fill(0xffffff);
+    QPainter painter(&qrAddrImage);
+    painter.drawImage(0, 0, qrImage.scaled(QR_IMAGE_SIZE, QR_IMAGE_SIZE));
+    QFont font = GUIUtil::fixedPitchFont();
+    QRect paddedRect = qrAddrImage.rect();
+    qreal fontSize = GUIUtil::calculateIdealFontSize(paddedRect.width() - 20, caption, font);
+    font.setPointSizeF(fontSize);
+    painter.setFont(font);
+    paddedRect.setHeight(QR_IMAGE_SIZE + 36);
+    painter.drawText(paddedRect, Qt::AlignBottom | Qt::AlignCenter, caption);
+    painter.end();
+
+    return QPixmap::fromImage(qrAddrImage);
+#else
+    Q_UNUSED(payload);
+    Q_UNUSED(caption);
+    return QPixmap();
+#endif
+}
+
+void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, const QString& address, const QString& chatkey, const QString& label)
+{
+    const QString payload = FormatChatkeyURI(address, chatkey, label);
+
+    QDialog dialog(parent);
+    dialog.setObjectName("ReceiveRequestDialog");
+    dialog.setWindowTitle(QObject::tr("Created chatkey"));
+    dialog.setMinimumSize(640, 680);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(&dialog);
+
+    QRImageWidget* qrCode = new QRImageWidget(&dialog);
+    qrCode->setObjectName("ReceiveRequestQRCode");
+    qrCode->setMinimumSize(300, 340);
+    qrCode->setAlignment(Qt::AlignCenter);
+    qrCode->setWordWrap(true);
+
+    const QPixmap qrPixmap = BuildChatkeyQRCode(payload, address);
+    if (qrPixmap.isNull()) {
+        qrCode->setText(QObject::tr("QR code unavailable for this chatkey payload."));
+    } else {
+        qrCode->setPixmap(qrPixmap);
+    }
+    mainLayout->addWidget(qrCode);
+
+    QTextEdit* details = new QTextEdit(&dialog);
+    details->setObjectName("ReceiveRequestDetails");
+    details->setReadOnly(true);
+    details->setMinimumHeight(120);
+    details->setTextInteractionFlags(Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse);
+    QString html;
+    html += QStringLiteral("<b>%1</b><br>").arg(QObject::tr("Chatkey information"));
+    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Label"), GUIUtil::HtmlEscape(label));
+    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Address"), GUIUtil::HtmlEscape(address));
+    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Chatkey"), GUIUtil::HtmlEscape(chatkey));
+    html += QStringLiteral("<b>%1</b>: <a href=\"%2\">%3</a>")
+        .arg(QObject::tr("QR payload"), GUIUtil::HtmlEscape(payload), GUIUtil::HtmlEscape(payload));
+    details->setHtml(html);
+    mainLayout->addWidget(details);
+
+    QGridLayout* copyLayout = new QGridLayout();
+    auto addCopyRow = [&](int row, const QString& title, const QString& value) {
+        QLabel* labelWidget = new QLabel(title, &dialog);
+        QLineEdit* valueWidget = new QLineEdit(value, &dialog);
+        valueWidget->setReadOnly(true);
+        valueWidget->setMinimumWidth(420);
+        copyLayout->addWidget(labelWidget, row, 0);
+        copyLayout->addWidget(valueWidget, row, 1);
+        copyLayout->addWidget(CreateCopyButton(platformStyle, QObject::tr("Copy %1").arg(title.toLower()), value, &dialog), row, 2);
+    };
+    addCopyRow(0, QObject::tr("Address"), address);
+    addCopyRow(1, QObject::tr("Chatkey"), chatkey);
+    addCopyRow(2, QObject::tr("QR payload"), payload);
+    mainLayout->addLayout(copyLayout);
+
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    QPushButton* copyQrPayloadButton = new QPushButton(QObject::tr("Copy QR payload"), &dialog);
+    copyQrPayloadButton->setObjectName("ReceiveRequestActionButton");
+    QObject::connect(copyQrPayloadButton, &QPushButton::clicked, copyQrPayloadButton, [payload]() {
+        GUIUtil::setClipboard(payload);
+    });
+    buttonLayout->addWidget(copyQrPayloadButton);
+
+    QPushButton* saveQrButton = new QPushButton(QObject::tr("Save Image..."), &dialog);
+    saveQrButton->setObjectName("ReceiveRequestActionButton");
+    saveQrButton->setEnabled(!qrPixmap.isNull());
+    QObject::connect(saveQrButton, SIGNAL(clicked()), qrCode, SLOT(saveImage()));
+    buttonLayout->addWidget(saveQrButton);
+
+    buttonLayout->addStretch();
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    if (QPushButton* closeButton = buttonBox->button(QDialogButtonBox::Close)) {
+        closeButton->setObjectName("DialogSecondaryButton");
+    }
+    QObject::connect(buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+    buttonLayout->addWidget(buttonBox);
+    mainLayout->addLayout(buttonLayout);
+
+    dialog.exec();
 }
 }
 
@@ -61,6 +256,7 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     ui->reqMessage->setObjectName("ReceiveTextField");
     ui->useStealth->setObjectName("ReceiveStealthToggle");
     ui->receiveButton->setObjectName("ReceivePrimaryButton");
+    ui->createChatkeyButton->setObjectName("ReceivePrimaryButton");
     ui->clearButton->setObjectName("ReceiveSecondaryButton");
     ui->showRequestButton->setObjectName("ReceiveSecondaryButton");
     ui->removeRequestButton->setObjectName("ReceiveSecondaryButton");
@@ -71,11 +267,13 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     if (!_platformStyle->getImagesOnButtons()) {
         ui->clearButton->setIcon(QIcon());
         ui->receiveButton->setIcon(QIcon());
+        ui->createChatkeyButton->setIcon(QIcon());
         ui->showRequestButton->setIcon(QIcon());
         ui->removeRequestButton->setIcon(QIcon());
     } else {
         ui->clearButton->setIcon(_platformStyle->SingleColorIcon(":/icons/remove"));
         ui->receiveButton->setIcon(_platformStyle->SingleColorIcon(":/icons/receiving_addresses"));
+        ui->createChatkeyButton->setIcon(_platformStyle->SingleColorIcon(":/icons/editcopy"));
         ui->showRequestButton->setIcon(_platformStyle->SingleColorIcon(":/icons/edit"));
         ui->removeRequestButton->setIcon(_platformStyle->SingleColorIcon(":/icons/remove"));
     }
@@ -229,6 +427,75 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
 
     /* Store request for later reference */
     model->getRecentRequestsTableModel()->addNewRequest(info);
+}
+
+void ReceiveCoinsDialog::on_createChatkeyButton_clicked()
+{
+    if (!model || !model->getAddressTableModel()) {
+        return;
+    }
+
+    QString label = tr("MyChatkey1");
+    while (true) {
+        bool accepted = false;
+        label = QInputDialog::getText(this,
+            tr("Create Chatkey"),
+            tr("Label:"),
+            QLineEdit::Normal,
+            label,
+            &accepted).trimmed();
+        if (!accepted) {
+            return;
+        }
+        if (!ReceivingLabelExists(model->getAddressTableModel(), label)) {
+            break;
+        }
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("The label \"%1\" already exists. Choose a different label.").arg(label),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+    }
+
+    const QString address = model->getAddressTableModel()->addRow(
+        AddressTableModel::Receive,
+        label,
+        QString(),
+        OutputType::LEGACY);
+    if (address.isEmpty()) {
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("Could not create a new address."),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+        return;
+    }
+
+    int rv = smsgModule.AddLocalAddress(address.toStdString());
+    if (rv != smsg::SMSG_NO_ERROR) {
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("The address was created, but secure messaging could not be enabled for it: %1")
+                .arg(QString::fromLatin1(smsg::GetString(rv))),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+        return;
+    }
+
+    std::string publicKey;
+    std::string addressString = address.toStdString();
+    rv = smsgModule.GetLocalPublicKey(addressString, publicKey);
+    if (rv != smsg::SMSG_NO_ERROR) {
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("The address was created, but its chatkey could not be loaded: %1")
+                .arg(QString::fromLatin1(smsg::GetString(rv))),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+        return;
+    }
+
+    ShowChatkeyDialog(this, platformStyle, address, QString::fromStdString(publicKey), label);
 }
 
 void ReceiveCoinsDialog::on_recentRequestsView_doubleClicked(const QModelIndex &index)

@@ -31,7 +31,8 @@ class AddressBookPage : public QDialog
 public:
     enum Tabs {
         SendingTab = 0,
-        ReceivingTab = 1
+        ReceivingTab = 1,
+        ChatAddressesTab = 2
     };
 
     enum Mode {

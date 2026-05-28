@@ -166,7 +166,7 @@ void SendMessagesDialog::on_addressBookButton_clicked()
 {
     if (!model)
         return;
-    AddressBookPage dlg(model->getWalletModel()->getPlatformStyle(), AddressBookPage::ForSelection, AddressBookPage::ReceivingTab, this);
+    AddressBookPage dlg(model->getWalletModel()->getPlatformStyle(), AddressBookPage::ForSelection, AddressBookPage::ChatAddressesTab, this);
     dlg.setModel(model->getWalletModel()->getAddressTableModel());
     if (dlg.exec()) {
         setSelectedAddressFrom(dlg.getReturnValue());

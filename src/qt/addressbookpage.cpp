@@ -17,6 +17,8 @@
 #include <qt/guiutil.h>
 #include <qt/platformstyle.h>
 
+#include <smsg/smessage.h>
+
 #include <QGraphicsDropShadowEffect>
 #include <QIcon>
 #include <QMenu>
@@ -39,11 +41,13 @@ void ApplyCardShadow(QWidget* widget)
 class AddressBookSortFilterProxyModel final : public QSortFilterProxyModel
 {
     const QString m_type;
+    const bool m_chatOnly;
 
 public:
-    AddressBookSortFilterProxyModel(const QString& type, QObject* parent)
+    AddressBookSortFilterProxyModel(const QString& type, bool chatOnly, QObject* parent)
         : QSortFilterProxyModel(parent)
         , m_type(type)
+        , m_chatOnly(chatOnly)
     {
         setDynamicSortFilter(true);
         setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -61,9 +65,16 @@ protected:
         }
 
         auto address = model->index(row, AddressTableModel::Address, parent);
+        const QString addressString = model->data(address).toString();
+        if (m_chatOnly) {
+            std::string publicKey;
+            if (smsgModule.GetLocalPublicKey(addressString.toStdString(), publicKey) != smsg::SMSG_NO_ERROR) {
+                return false;
+            }
+        }
 
         const QRegularExpression re = filterRegularExpression();
-        if (!re.match(model->data(address).toString()).hasMatch() &&
+        if (!re.match(addressString).hasMatch() &&
             !re.match(model->data(label).toString()).hasMatch()) {
             return false;
         }
@@ -113,6 +124,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
         {
         case SendingTab: setWindowTitle(tr("Choose the address to send coins to")); break;
         case ReceivingTab: setWindowTitle(tr("Choose the address to receive coins with")); break;
+        case ChatAddressesTab: setWindowTitle(tr("Choose the address to send messages from")); break;
         }
         connect(ui->tableView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(accept()));
         ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -125,6 +137,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
         {
         case SendingTab: setWindowTitle(tr("Sending addresses")); break;
         case ReceivingTab: setWindowTitle(tr("Receiving addresses")); break;
+        case ChatAddressesTab: setWindowTitle(tr("Chat addresses")); break;
         }
         break;
     }
@@ -137,6 +150,11 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
         break;
     case ReceivingTab:
         ui->labelExplanation->setText(tr("These are your VERGE addresses for receiving payments. It is recommended to use a new receiving address for each transaction."));
+        ui->deleteAddress->setVisible(false);
+        ui->newAddress->setVisible(false);
+        break;
+    case ChatAddressesTab:
+        ui->labelExplanation->setText(tr("These are your local chat-enabled addresses. Choose the labeled address you want to send this message from."));
         ui->deleteAddress->setVisible(false);
         ui->newAddress->setVisible(false);
         break;
@@ -179,8 +197,8 @@ void AddressBookPage::setModel(AddressTableModel *_model)
     if(!_model)
         return;
 
-    auto type = tab == ReceivingTab ? AddressTableModel::Receive : AddressTableModel::Send;
-    proxyModel = new AddressBookSortFilterProxyModel(type, this);
+    auto type = tab == SendingTab ? AddressTableModel::Send : AddressTableModel::Receive;
+    proxyModel = new AddressBookSortFilterProxyModel(type, tab == ChatAddressesTab, this);
     proxyModel->setSourceModel(_model);
 
     connect(ui->searchLineEdit, SIGNAL(textChanged(QString)), proxyModel, SLOT(setFilterWildcard(QString)));
@@ -293,6 +311,7 @@ void AddressBookPage::selectionChanged()
             deleteAction->setEnabled(true);
             break;
         case ReceivingTab:
+        case ChatAddressesTab:
             // Deleting receiving addresses, however, is not allowed
             ui->deleteAddress->setEnabled(false);
             ui->deleteAddress->setVisible(false);

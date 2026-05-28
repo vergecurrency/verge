@@ -68,6 +68,7 @@ private:
 
 private Q_SLOTS:
     void on_receiveButton_clicked();
+    void on_createChatkeyButton_clicked();
     void on_showRequestButton_clicked();
     void on_removeRequestButton_clicked();
     void on_recentRequestsView_doubleClicked(const QModelIndex &index);

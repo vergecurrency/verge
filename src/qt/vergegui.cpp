@@ -250,6 +250,36 @@ static QPixmap CreateConnectionSignalBarsPixmap(int litBars, const QColor& activ
     return pixmap;
 }
 
+static QPixmap CreateChatBubblePixmap(const QColor& bubbleColor)
+{
+    const int width = 20;
+    const int height = 18;
+    QPixmap pixmap(width, height);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(bubbleColor);
+    painter.drawRoundedRect(QRectF(2.0, 2.0, 15.0, 11.0), 5.0, 5.0);
+
+    QPainterPath tail;
+    tail.moveTo(7.0, 12.0);
+    tail.lineTo(5.0, 16.0);
+    tail.lineTo(11.0, 12.0);
+    tail.closeSubpath();
+    painter.drawPath(tail);
+
+    QColor highlight = Qt::white;
+    highlight.setAlpha(180);
+    painter.setBrush(highlight);
+    painter.drawEllipse(QPointF(6.5, 7.5), 1.1, 1.1);
+    painter.drawEllipse(QPointF(10.0, 7.5), 1.1, 1.1);
+    painter.drawEllipse(QPointF(13.5, 7.5), 1.1, 1.1);
+
+    return pixmap;
+}
+
 static QPixmap CreateSyncedCheckPixmap(const QColor& checkColor)
 {
     const int size = 18;
@@ -326,6 +356,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     labelWalletEncryptionIcon(0),
     labelWalletHDStatusIcon(0),
     labelProxyIcon(0),
+    labelSmsgIcon(0),
     connectionsControl(0),
     labelBlocksIcon(0),
     progressBarLabel(0),
@@ -339,6 +370,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     chainStatusLabel(0),
     progressDialog(0),
     m_syncProgressBarTimer(0),
+    m_smsgStatusTimer(0),
     m_syncProgressBarOffset(0),
     m_hasAnimatedShell(false),
     appMenuBar(0),
@@ -502,6 +534,9 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     labelWalletHDStatusIcon->setObjectName("WalletStatusIcon");
     labelProxyIcon = new QLabel();
     labelProxyIcon->setObjectName("StatusChipIcon");
+    labelSmsgIcon = new QLabel();
+    labelSmsgIcon->setObjectName("StatusChipIcon");
+    labelSmsgIcon->setMinimumSize(20, 18);
     connectionsControl = new GUIUtil::ClickableLabel();
     connectionsControl->setObjectName("StatusChipIcon");
     connectionsControl->setMinimumSize(22, 19);
@@ -541,6 +576,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     networkLayout->setSpacing(8);
     networkStatusLabel = new QLabel(tr("Searching"));
     networkStatusLabel->setObjectName("StatusChipText");
+    networkLayout->addWidget(labelSmsgIcon);
     networkLayout->addWidget(connectionsControl);
     networkLayout->addWidget(networkStatusLabel);
     frameBlocksLayout->addWidget(networkStatusChip);
@@ -575,6 +611,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     syncStatusCard->hide();
 
     updateSyncProgressBarStyle();
+    updateSmsgStatusIcon();
     m_syncProgressBarTimer = new QTimer(this);
     m_syncProgressBarTimer->setInterval(50);
     connect(m_syncProgressBarTimer, &QTimer::timeout, this, [this]() {
@@ -585,6 +622,10 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
             updateSyncSpinnerIcon();
         }
     });
+    m_smsgStatusTimer = new QTimer(this);
+    m_smsgStatusTimer->setInterval(5000);
+    connect(m_smsgStatusTimer, &QTimer::timeout, this, &VERGEGUI::updateSmsgStatusIcon);
+    m_smsgStatusTimer->start();
 
     statusBar()->addWidget(syncStatusCard, 1);
     statusBar()->addPermanentWidget(frameBlocks);
@@ -650,8 +691,8 @@ void VERGEGUI::createActions()
     sendCoinsMenuAction->setStatusTip(sendCoinsAction->statusTip());
     sendCoinsMenuAction->setToolTip(sendCoinsMenuAction->statusTip());
 
-    receiveCoinsAction = new QAction(platformStyle->SingleColorIcon(":/icons/receiving_addresses"), tr("&Receive"), this);
-    receiveCoinsAction->setStatusTip(tr("Request payments (generates QR codes and verge: URIs)"));
+    receiveCoinsAction = new QAction(platformStyle->SingleColorIcon(":/icons/receiving_addresses"), tr("&Addresses"), this);
+    receiveCoinsAction->setStatusTip(tr("Manage receiving addresses, request payments, and create chatkeys"));
     receiveCoinsAction->setToolTip(receiveCoinsAction->statusTip());
     receiveCoinsAction->setCheckable(true);
     receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_3));
@@ -1385,6 +1426,33 @@ void VERGEGUI::updateNetworkState()
         networkStatusChip->setProperty("networkState", networkState);
         RefreshWidgetStyle(networkStatusChip);
     }
+    updateSmsgStatusIcon();
+}
+
+void VERGEGUI::updateSmsgStatusIcon()
+{
+    if (!labelSmsgIcon) {
+        return;
+    }
+
+    interfaces::Node::NodesStats nodeStats;
+    bool hasSmsgPeer = false;
+    int smsgPeerCount = 0;
+    if (m_node.getNetworkActive() && m_node.getNodesStats(nodeStats)) {
+        for (const auto& nodeStat : nodeStats) {
+            const CNodeStats& stats = std::get<0>(nodeStat);
+            if (stats.fSmsgEnabled) {
+                hasSmsgPeer = true;
+                ++smsgPeerCount;
+            }
+        }
+    }
+
+    const QColor color = hasSmsgPeer ? QColor(82, 225, 116) : QColor(255, 86, 113);
+    labelSmsgIcon->setPixmap(CreateChatBubblePixmap(color));
+    labelSmsgIcon->setToolTip(hasSmsgPeer
+        ? tr("Secure messaging relay is connected to %n SMSG peer(s).", "", smsgPeerCount)
+        : tr("Secure messaging relay has no connected SMSG peers."));
 }
 
 void VERGEGUI::setNumConnections(int count)

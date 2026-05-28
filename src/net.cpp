@@ -781,6 +781,10 @@ void CNode::copyStats(CNodeStats &stats)
     }
     X(fInbound);
     X(m_manual_connection);
+    {
+        LOCK(smsgData.cs_smsg_net);
+        stats.fSmsgEnabled = smsgData.fEnabled;
+    }
     X(nStartingHeight);
     {
         LOCK(cs_vSend);

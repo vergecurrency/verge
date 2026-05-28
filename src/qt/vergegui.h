@@ -106,6 +106,7 @@ private:
     QLabel *labelWalletEncryptionIcon;
     QLabel *labelWalletHDStatusIcon;
     QLabel *labelProxyIcon;
+    QLabel *labelSmsgIcon;
     QLabel *connectionsControl;
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
@@ -119,6 +120,7 @@ private:
     QLabel *chainStatusLabel;
     QProgressDialog *progressDialog;
     QTimer* m_syncProgressBarTimer;
+    QTimer* m_smsgStatusTimer;
     int m_syncProgressBarOffset;
     bool m_hasAnimatedShell;
 
@@ -184,6 +186,7 @@ private:
 
     /** Update UI with latest network info from model. */
     void updateNetworkState();
+    void updateSmsgStatusIcon();
 
     void updateHeadersSyncProgressLabel();
     void updateSyncProgressBarStyle();
