@@ -329,7 +329,7 @@ void SendMessagesDialog::refreshAddressFromChoices()
 
         const QString display = label.isEmpty()
             ? address
-            : tr("%1 (%2)").arg(label, address);
+            : tr("%1 (%2)").arg(address, label);
         ui->addressFrom->addItem(display, address);
     }
 #endif

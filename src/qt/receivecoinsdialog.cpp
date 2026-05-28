@@ -23,7 +23,10 @@
 #include <QCheckBox>
 #include <QCursor>
 #include <QGraphicsDropShadowEffect>
+#include <QInputDialog>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QTextDocument>
 
@@ -44,6 +47,7 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     ui(new Ui::ReceiveCoinsDialog),
     columnResizingFixer(0),
     model(0),
+    editLabelButton(nullptr),
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
@@ -81,6 +85,7 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
     QAction *copyMessageAction = new QAction(tr("Copy message"), this);
     QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
+    QAction *editLabelAction = new QAction(tr("Edit label"), this);
 
     // context menu
     contextMenu = new QMenu(this);
@@ -88,6 +93,8 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyMessageAction);
     contextMenu->addAction(copyAmountAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(editLabelAction);
 
     // context menu signals
     connect(ui->recentRequestsView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showMenu(QPoint)));
@@ -95,8 +102,14 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
     connect(copyMessageAction, SIGNAL(triggered()), this, SLOT(copyMessage()));
     connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
+    connect(editLabelAction, SIGNAL(triggered()), this, SLOT(editSelectedLabel()));
 
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
+    editLabelButton = new QPushButton(tr("Edit label"), this);
+    editLabelButton->setObjectName("ReceiveSecondaryButton");
+    editLabelButton->setEnabled(false);
+    ui->horizontalLayout_2->insertWidget(0, editLabelButton);
+    connect(editLabelButton, SIGNAL(clicked()), this, SLOT(editSelectedLabel()));
     connect(ui->useStealth, &QCheckBox::toggled, this, [this](bool checked) {
         ui->allowMessaging->setEnabled(!checked);
         if (checked) {
@@ -234,6 +247,9 @@ void ReceiveCoinsDialog::recentRequestsView_selectionChanged(const QItemSelectio
     bool enable = !ui->recentRequestsView->selectionModel()->selectedRows().isEmpty();
     ui->showRequestButton->setEnabled(enable);
     ui->removeRequestButton->setEnabled(enable);
+    if (editLabelButton) {
+        editLabelButton->setEnabled(enable);
+    }
 }
 
 void ReceiveCoinsDialog::on_showRequestButton_clicked()
@@ -343,4 +359,44 @@ void ReceiveCoinsDialog::copyMessage()
 void ReceiveCoinsDialog::copyAmount()
 {
     copyColumnToClipboard(RecentRequestsTableModel::Amount);
+}
+
+void ReceiveCoinsDialog::editSelectedLabel()
+{
+    QModelIndex sel = selectedRow();
+    if (!sel.isValid() || !model || !model->getRecentRequestsTableModel() || !model->getAddressTableModel()) {
+        return;
+    }
+
+    RecentRequestsTableModel* requestsModel = model->getRecentRequestsTableModel();
+    const RecentRequestEntry& request = requestsModel->entry(sel.row());
+    const QString currentLabel = request.recipient.label;
+
+    bool accepted = false;
+    const QString newLabel = QInputDialog::getText(this,
+        tr("Edit label"),
+        tr("Label:"),
+        QLineEdit::Normal,
+        currentLabel,
+        &accepted).trimmed();
+
+    if (!accepted) {
+        return;
+    }
+
+    const int addressRow = model->getAddressTableModel()->lookupAddress(request.recipient.address);
+    if (addressRow >= 0) {
+        model->getAddressTableModel()->setData(
+            model->getAddressTableModel()->index(addressRow, AddressTableModel::Label, QModelIndex()),
+            newLabel,
+            Qt::EditRole);
+    }
+
+    if (!requestsModel->updateLabel(sel.row(), newLabel)) {
+        QMessageBox::warning(this,
+            tr("Edit label"),
+            tr("Could not update the receive request label."),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+    }
 }
