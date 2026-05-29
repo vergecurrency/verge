@@ -18,7 +18,7 @@ const std::string CLIENT_NAME("verge");
 /**
  * Client version number
  */
-#define CLIENT_VERSION_SUFFIX ""
+#define CLIENT_VERSION_SUFFIX ".beta"
 
 
 /**
@@ -57,7 +57,10 @@ const std::string CLIENT_NAME("verge");
  *    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-g" commit
  */
 
-#if CLIENT_VERSION_BUILD == 0
+#if CLIENT_VERSION_BUILD == 0 && CLIENT_VERSION_REVISION == 0
+#define BUILD_DESC_FROM_UNKNOWN(maj, min, rev, build) \
+    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min)
+#elif CLIENT_VERSION_BUILD == 0
 #define BUILD_DESC_FROM_UNKNOWN(maj, min, rev, build) \
     "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev)
 #else
