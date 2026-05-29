@@ -111,16 +111,16 @@ QToolButton* CreateCopyButton(const PlatformStyle* platformStyle, const QString&
     return button;
 }
 
-QPixmap BuildChatkeyQRCode(const QString& payload, const QString& caption)
+QString BuildChatkeyQRCode(const QString& payload, const QString& caption, QPixmap& pixmap)
 {
 #ifdef USE_QRCODE
     if (payload.length() > MAX_URI_LENGTH) {
-        return QPixmap();
+        return QObject::tr("QR payload is too long. Shorten the label and try again.");
     }
 
     QRcode* code = QRcode_encodeString(payload.toUtf8().constData(), 0, QR_ECLEVEL_L, QR_MODE_8, 1);
     if (!code) {
-        return QPixmap();
+        return QObject::tr("Error encoding chatkey payload into QR code.");
     }
 
     QImage qrImage(code->width + 8, code->width + 8, QImage::Format_RGB32);
@@ -147,11 +147,13 @@ QPixmap BuildChatkeyQRCode(const QString& payload, const QString& caption)
     painter.drawText(paddedRect, Qt::AlignBottom | Qt::AlignCenter, caption);
     painter.end();
 
-    return QPixmap::fromImage(qrAddrImage);
+    pixmap = QPixmap::fromImage(qrAddrImage);
+    return QString();
 #else
     Q_UNUSED(payload);
     Q_UNUSED(caption);
-    return QPixmap();
+    Q_UNUSED(pixmap);
+    return QObject::tr("QR code support is not available in this build.");
 #endif
 }
 
@@ -172,9 +174,10 @@ void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, cons
     qrCode->setAlignment(Qt::AlignCenter);
     qrCode->setWordWrap(true);
 
-    const QPixmap qrPixmap = BuildChatkeyQRCode(payload, address);
-    if (qrPixmap.isNull()) {
-        qrCode->setText(QObject::tr("QR code unavailable for this chatkey payload."));
+    QPixmap qrPixmap;
+    const QString qrError = BuildChatkeyQRCode(payload, address, qrPixmap);
+    if (!qrError.isEmpty()) {
+        qrCode->setText(qrError);
     } else {
         qrCode->setPixmap(qrPixmap);
     }
