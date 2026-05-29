@@ -136,6 +136,7 @@ private:
     QAction *sendCoinsMenuAction;
     QAction *usedSendingAddressesAction;
     QAction *usedReceivingAddressesAction;
+    QAction *usedChatAddressesAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;

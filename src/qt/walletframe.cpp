@@ -228,6 +228,13 @@ void WalletFrame::usedReceivingAddresses()
         walletView->usedReceivingAddresses();
 }
 
+void WalletFrame::usedChatAddresses()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->usedChatAddresses();
+}
+
 WalletView *WalletFrame::currentWalletView()
 {
     return qobject_cast<WalletView*>(walletStack->currentWidget());

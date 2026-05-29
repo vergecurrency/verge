@@ -72,6 +72,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
     usedReceivingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ReceivingTab, this);
+    usedChatAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ChatAddressesTab, this);
 
     addWidget(overviewPage);
     addWidget(transactionsPage);
@@ -157,6 +158,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     }
     usedReceivingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
     usedSendingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
+    usedChatAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
 
     if (_walletModel)
     {
@@ -347,6 +349,16 @@ void WalletView::usedReceivingAddresses()
     usedReceivingAddressesPage->show();
     usedReceivingAddressesPage->raise();
     usedReceivingAddressesPage->activateWindow();
+}
+
+void WalletView::usedChatAddresses()
+{
+    if(!walletModel)
+        return;
+
+    usedChatAddressesPage->show();
+    usedChatAddressesPage->raise();
+    usedChatAddressesPage->activateWindow();
 }
 
 void WalletView::showProgress(const QString &title, int nProgress)

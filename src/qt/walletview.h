@@ -74,6 +74,7 @@ private:
     GamesPage *gamesPage;
     AddressBookPage *usedSendingAddressesPage;
     AddressBookPage *usedReceivingAddressesPage;
+    AddressBookPage *usedChatAddressesPage;
 
     TransactionView *transactionView;
 
@@ -119,6 +120,8 @@ public Q_SLOTS:
     void usedSendingAddresses();
     /** Show used receiving addresses */
     void usedReceivingAddresses();
+    /** Show local chat-enabled receiving addresses */
+    void usedChatAddresses();
 
     /** Re-emit encryption status signal */
     void updateEncryptionStatus();

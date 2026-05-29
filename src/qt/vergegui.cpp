@@ -385,6 +385,7 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     sendCoinsMenuAction(0),
     usedSendingAddressesAction(0),
     usedReceivingAddressesAction(0),
+    usedChatAddressesAction(0),
     signMessageAction(0),
     verifyMessageAction(0),
     aboutAction(0),
@@ -792,6 +793,8 @@ void VERGEGUI::createActions()
     usedSendingAddressesAction->setStatusTip(tr("Show the list of used sending addresses and labels"));
     usedReceivingAddressesAction = new QAction(platformStyle->TextColorIcon(":/icons/address-book"), tr("&Receiving addresses..."), this);
     usedReceivingAddressesAction->setStatusTip(tr("Show the list of used receiving addresses and labels"));
+    usedChatAddressesAction = new QAction(platformStyle->TextColorIcon(":/icons/address-book"), tr("&Chat addresses..."), this);
+    usedChatAddressesAction->setStatusTip(tr("Show local chat-enabled addresses, chatkeys, and QR payloads"));
 
     openAction = new QAction(platformStyle->TextColorIcon(":/icons/open"), tr("Open &URI..."), this);
     openAction->setStatusTip(tr("Open a verge: URI"));
@@ -820,6 +823,7 @@ void VERGEGUI::createActions()
         connect(verifyMessageAction, SIGNAL(triggered(bool)), this, SLOT(gotoVerifyMessageTab()));
         connect(usedSendingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedSendingAddresses()));
         connect(usedReceivingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedReceivingAddresses()));
+        connect(usedChatAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedChatAddresses()));
         connect(openAction, SIGNAL(triggered()), this, SLOT(openClicked()));
     }
 #endif // ENABLE_WALLET
@@ -851,6 +855,7 @@ void VERGEGUI::createMenuBar()
         file->addSeparator();
         file->addAction(usedSendingAddressesAction);
         file->addAction(usedReceivingAddressesAction);
+        file->addAction(usedChatAddressesAction);
         file->addSeparator();
     }
     file->addAction(quitAction);
@@ -1127,6 +1132,7 @@ void VERGEGUI::setWalletActionsEnabled(bool enabled)
     verifyMessageAction->setEnabled(enabled);
     usedSendingAddressesAction->setEnabled(enabled);
     usedReceivingAddressesAction->setEnabled(enabled);
+    usedChatAddressesAction->setEnabled(enabled);
     openAction->setEnabled(enabled);
 }
 
