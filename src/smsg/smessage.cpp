@@ -3577,13 +3577,13 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     }
 
     if (!pwallet) {
-        return errorN(SMSG_WALLET_LOCKED, sError, __func__, "Wallet is not enabled");
+        return errorN(SMSG_WALLET_LOCKED, sError, "%s: Wallet is not enabled", __func__);
     }
     if (pwallet->IsLocked()) {
-        return errorN(SMSG_WALLET_LOCKED, sError, __func__, "Wallet is locked, wallet must be unlocked to send messages");
+        return errorN(SMSG_WALLET_LOCKED, sError, "%s: Wallet is locked, wallet must be unlocked to send messages", __func__);
     }
     if (fPaid) {
-        return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Paid secure messages are not supported in this build");
+        return errorN(SMSG_GENERAL_ERROR, sError, "%s: Paid secure messages are not supported in this build", __func__);
     }
 
     std::string sFromFile;
@@ -3591,18 +3591,18 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         FILE *fp;
         errno = 0;
         if (!(fp = fopen(message.c_str(), "rb"))) {
-            return errorN(SMSG_GENERAL_ERROR, sError, __func__, "fopen failed: %s", strerror(errno));
+            return errorN(SMSG_GENERAL_ERROR, sError, "%s: fopen failed: %s", __func__, strerror(errno));
         }
 
         if (fseek(fp, 0, SEEK_END) != 0) {
             fclose(fp);
-            return errorN(SMSG_GENERAL_ERROR, sError, __func__, "fseek failed: %s", strerror(errno));
+            return errorN(SMSG_GENERAL_ERROR, sError, "%s: fseek failed: %s", __func__, strerror(errno));
         }
 
         int64_t ofs = ftell(fp);
         if (ofs > SMSG_MAX_MSG_BYTES_PAID) {
             fclose(fp);
-            return errorN(SMSG_MESSAGE_TOO_LONG, sError, __func__, "Message is too long, %d > %d", ofs, SMSG_MAX_MSG_BYTES_PAID);
+            return errorN(SMSG_MESSAGE_TOO_LONG, sError, "%s: Message is too long, %d > %d", __func__, ofs, SMSG_MAX_MSG_BYTES_PAID);
         }
         rewind(fp);
 
@@ -3611,7 +3611,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         int64_t nRead = fread(&sFromFile[0], 1, ofs, fp);
         fclose(fp);
         if (ofs != nRead) {
-            return errorN(SMSG_GENERAL_ERROR, sError, __func__, "fread failed: %s", strerror(errno));
+            return errorN(SMSG_GENERAL_ERROR, sError, "%s: fread failed: %s", __func__, strerror(errno));
         }
     }
 
@@ -3726,7 +3726,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             if (fPaid) {
                 uint256 txfundId;
                 if (!smsg.GetFundingTxid(txfundId)) {
-                    return errorN(SMSG_GENERAL_ERROR, "%s: GetFundingTxid failed.\n");
+                    return errorN(SMSG_GENERAL_ERROR, "%s: GetFundingTxid failed.\n", __func__);
                 }
                 // SecureMsgEncrypt will alloc an extra 32 bytes when smsg version describes paid msg
                 memcpy(smsgForOutbox.pPayload+smsgForOutbox.nPayload-32, txfundId.begin(), 32);
