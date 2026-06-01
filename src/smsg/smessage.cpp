@@ -218,6 +218,18 @@ private:
     uint8_t* bytes = nullptr;
     size_t bytesLen = 0;
 };
+
+void RecordRecentRejectedToken(smsg::CSMSG& module, const smsg::SecMsgToken& token)
+{
+    if (!module.setRecentRejected.insert(token).second) {
+        return;
+    }
+    module.vRecentRejected.push_back(token);
+    while (module.vRecentRejected.size() > smsg::SMSG_MAX_RECENT_REJECTED_TOKENS) {
+        module.setRecentRejected.erase(module.vRecentRejected.front());
+        module.vRecentRejected.pop_front();
+    }
+}
 } // namespace
 
 namespace smsg {
@@ -1224,6 +1236,8 @@ int CSMSG::FlushMessageData(std::string &sError)
     buckets.clear();
     setPurged.clear();
     setPurgedTimestamps.clear();
+    setRecentRejected.clear();
+    vRecentRejected.clear();
     nLastProcessedPurged = 0;
     keyStore.Clear();
     if (LoadKeyStore() != SMSG_NO_ERROR) {
@@ -3137,10 +3151,47 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         }
 
         SecureMessage *psmsg = (SecureMessage*) &vchData[n];
+        if (psmsg->nPayload > vchData.size() - n - SMSG_HDR_LEN) {
+            LogPrintf("Error: message payload overruns smsgMsg bunch, n = %u, payload = %u, size = %u.\n",
+                n, psmsg->nPayload, (unsigned int)vchData.size());
+            Misbehaving(pfrom->GetId(), 1);
+            break;
+        }
+
+        SecMsgToken token(psmsg->timestamp, &vchData[n + SMSG_HDR_LEN], psmsg->nPayload, 0, 0);
+        const int64_t msgBucketTime = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
+        if (msgBucketTime != bktTime) {
+            LogPrintf("Error: message timestamp bucket %d does not match smsgMsg bucket %d.\n", msgBucketTime, bktTime);
+            Misbehaving(pfrom->GetId(), 1);
+            {
+                LOCK(cs_smsg);
+                RecordRecentRejectedToken(*this, token);
+            }
+            n += SMSG_HDR_LEN + psmsg->nPayload;
+            continue;
+        }
+
+        bool fKnownMessage = false;
+        bool fKnownRejected = false;
+        {
+            LOCK(cs_smsg);
+            const auto bucketIt = buckets.find(bktTime);
+            fKnownMessage = bucketIt != buckets.end() && bucketIt->second.setTokens.count(token) > 0;
+            fKnownRejected = setRecentRejected.count(token) > 0;
+        }
+        if (fKnownMessage || fKnownRejected) {
+            LogPrint(BCLog::SMSG, "Skipping known SMSG token %s.\n", token.ToString());
+            n += SMSG_HDR_LEN + psmsg->nPayload;
+            continue;
+        }
 
         int rv;
         if ((rv = Validate(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload)) != 0) {
             // Message dropped
+            {
+                LOCK(cs_smsg);
+                RecordRecentRejectedToken(*this, token);
+            }
             if (rv == SMSG_INVALID_HASH) { // Invalid proof of work
                 Misbehaving(pfrom->GetId(), 10);
             } else
@@ -3149,6 +3200,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
             } else {
                 Misbehaving(pfrom->GetId(), 1);
             }
+            n += SMSG_HDR_LEN + psmsg->nPayload;
             continue;
         }
 

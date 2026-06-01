@@ -17,6 +17,8 @@
 
 #include <boost/signals2/signal.hpp>
 
+#include <deque>
+
 class CWallet;
 
 class CBitcoinAddress
@@ -156,6 +158,7 @@ const unsigned int SMSG_MAX_SHOW_BUCKETS = SMSG_MAX_INV_BUCKETS;
 const unsigned int SMSG_MAX_HAVE_TOKENS = 4096;
 const unsigned int SMSG_MAX_WANT_TOKENS = 500;
 const unsigned int SMSG_MAX_MSG_PAYLOAD_BYTES = 128 * 1024;
+const unsigned int SMSG_MAX_RECENT_REJECTED_TOKENS = 8192;
 
 
 const unsigned int SMSG_MAX_MSG_BYTES  = 512;               // the user input part
@@ -550,6 +553,8 @@ public:
     std::vector<SecMsgAddress> addresses;
     std::set<SecMsgPurged> setPurged;
     std::set<int64_t> setPurgedTimestamps;
+    std::set<SecMsgToken> setRecentRejected;
+    std::deque<SecMsgToken> vRecentRejected;
     SecMsgOptions options;
     std::shared_ptr<CWallet> pwallet;
     std::unique_ptr<interfaces::Handler> m_handler_unload;
