@@ -151,6 +151,11 @@ const unsigned int SMSG_TIME_IGNORE    = 90;                // seconds a peer is
 const unsigned int SMSG_RATE_WINDOW    = 60;                // seconds
 const unsigned int SMSG_MAX_MSGS_PER_WINDOW = 240;
 const unsigned int SMSG_MAX_BYTES_PER_WINDOW = 1024 * 1024;
+const unsigned int SMSG_MAX_INV_BUCKETS = (SMSG_RETENTION / SMSG_BUCKET_LEN) + 1;
+const unsigned int SMSG_MAX_SHOW_BUCKETS = SMSG_MAX_INV_BUCKETS;
+const unsigned int SMSG_MAX_HAVE_TOKENS = 4096;
+const unsigned int SMSG_MAX_WANT_TOKENS = 500;
+const unsigned int SMSG_MAX_MSG_PAYLOAD_BYTES = 128 * 1024;
 
 
 const unsigned int SMSG_MAX_MSG_BYTES  = 512;               // the user input part

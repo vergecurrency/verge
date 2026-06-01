@@ -96,6 +96,37 @@ bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
         && smsg.version[1] == SMSG_UNPAID_VERSION_MINOR;
 }
 
+bool IsSmsgHandshakeCommand(const std::string& command)
+{
+    return command == "smsgPing"
+        || command == "smsgPong"
+        || command == "smsgDisabled"
+        || command == "smsgIgnore";
+}
+
+size_t MaxSmsgVectorPayloadBytes(const std::string& command)
+{
+    if (command == "smsgInv") {
+        return 4 + smsg::SMSG_MAX_INV_BUCKETS * 16;
+    }
+    if (command == "smsgShow") {
+        return 4 + smsg::SMSG_MAX_SHOW_BUCKETS * 8;
+    }
+    if (command == "smsgHave") {
+        return 8 + smsg::SMSG_MAX_HAVE_TOKENS * 16;
+    }
+    if (command == "smsgWant") {
+        return 8 + smsg::SMSG_MAX_WANT_TOKENS * 16;
+    }
+    if (command == "smsgMsg") {
+        return smsg::SMSG_MAX_MSG_PAYLOAD_BYTES;
+    }
+    if (command == "smsgMatch" || command == "smsgIgnore") {
+        return 8;
+    }
+    return std::numeric_limits<size_t>::max();
+}
+
 void DeriveSmsgKeys(const uint256& ecdhSecret,
                     const uint8_t* ephemeralPubkey,
                     const CKeyID& destination,
@@ -1348,6 +1379,25 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         return SMSG_NO_ERROR;
     }
 
+    const size_t maxVectorPayloadBytes = MaxSmsgVectorPayloadBytes(strCommand);
+    if (maxVectorPayloadBytes != std::numeric_limits<size_t>::max()
+        && vRecv.size() > maxVectorPayloadBytes + 9) { // CompactSize prefix is at most 9 bytes.
+        LogPrintf("Peer sent oversized %s payload %u, max %u.\n",
+            strCommand.c_str(), (unsigned int)vRecv.size(), (unsigned int)(maxVectorPayloadBytes + 9));
+        Misbehaving(pfrom->GetId(), 1);
+        return SMSG_GENERAL_ERROR;
+    }
+
+    {
+        LOCK(pfrom->smsgData.cs_smsg_net);
+        if (!pfrom->smsgData.fEnabled && !IsSmsgHandshakeCommand(strCommand)) {
+            LogPrint(BCLog::SMSG,
+                "Ignoring %s from peer %d before SMSG handshake completed.\n",
+                strCommand, pfrom->GetId());
+            return SMSG_GENERAL_ERROR;
+        }
+    }
+
     {
         const int64_t now = GetAdjustedTime();
         const uint32_t payloadBytes = static_cast<uint32_t>(vRecv.size() + strCommand.size());
@@ -1409,13 +1459,13 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
 
         // Check no of buckets:
-        if (nInvBuckets > (SMSG_RETENTION / SMSG_BUCKET_LEN) + 1) { // +1 for some leeway
-            LogPrintf("Peer sent more bucket headers than possible %u, %u.\n", nInvBuckets, (SMSG_RETENTION / SMSG_BUCKET_LEN));
+        if (nInvBuckets > SMSG_MAX_INV_BUCKETS) {
+            LogPrintf("Peer sent too many bucket headers %u, max %u.\n", nInvBuckets, SMSG_MAX_INV_BUCKETS);
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
 
-        if (vchData.size() < 4 + nInvBuckets * 16) {
+        if (vchData.size() != 4 + nInvBuckets * 16) {
             LogPrintf("Remote node did not send enough data.\n");
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
@@ -1453,6 +1503,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
             if (ncontent < 1) {
                 LogPrint(BCLog::SMSG, "Peer sent empty bucket, ignore %d %u %u.\n", time, ncontent, hash);
+                continue;
+            }
+            if (ncontent > SMSG_MAX_HAVE_TOKENS) {
+                LogPrintf("Peer sent oversized bucket count %u, max %u.\n", ncontent, SMSG_MAX_HAVE_TOKENS);
+                Misbehaving(pfrom->GetId(), 1);
                 continue;
             }
 
@@ -1516,7 +1571,13 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         uint32_t nBuckets;
         memcpy(&nBuckets, &vchData[0], 4);
 
-        if (vchData.size() < 4 + nBuckets * 8) {
+        if (nBuckets > SMSG_MAX_SHOW_BUCKETS) {
+            LogPrintf("Peer requested too many SMSG buckets %u, max %u.\n", nBuckets, SMSG_MAX_SHOW_BUCKETS);
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
+
+        if (vchData.size() != 4 + nBuckets * 8) {
             return SMSG_GENERAL_ERROR;
         }
 
@@ -1583,8 +1644,18 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         if (vchData.size() < 8) {
             return SMSG_GENERAL_ERROR;
         }
+        if ((vchData.size() - 8) % 16 != 0) {
+            LogPrintf("smsgHave malformed token list size %u.\n", vchData.size());
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
 
         int n = (vchData.size() - 8) / 16;
+        if (n > static_cast<int>(SMSG_MAX_HAVE_TOKENS)) {
+            LogPrintf("Peer sent too many SMSG tokens %d, max %u.\n", n, SMSG_MAX_HAVE_TOKENS);
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
 
         int64_t time;
         memcpy(&time, &vchData[0], 8);
@@ -1670,12 +1741,22 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
         if (vchData.size() < 8)
             return SMSG_GENERAL_ERROR;
+        if ((vchData.size() - 8) % 16 != 0) {
+            LogPrintf("smsgWant malformed token list size %u.\n", vchData.size());
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
 
         std::vector<uint8_t> vchOne, vchBunch;
 
         vchBunch.resize(4 + 8); // nMessages + bucketTime
 
         int n = (vchData.size() - 8) / 16;
+        if (n > static_cast<int>(SMSG_MAX_WANT_TOKENS)) {
+            LogPrintf("Peer requested too many SMSG messages %d, max %u.\n", n, SMSG_MAX_WANT_TOKENS);
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
 
         int64_t time;
         uint32_t nBunch = 0;
@@ -1736,6 +1817,13 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     if (strCommand == "smsgMsg") {
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
+
+        if (vchData.size() > SMSG_MAX_MSG_PAYLOAD_BYTES) {
+            LogPrintf("Peer sent oversized smsgMsg payload %u, max %u.\n",
+                (unsigned int)vchData.size(), SMSG_MAX_MSG_PAYLOAD_BYTES);
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
 
         LogPrintf("SMSG: received smsgMsg from peer=%d addr=%s bytes=%u\n",
             pfrom->GetId(), pfrom->addr.ToString(), (unsigned int)vchData.size());
