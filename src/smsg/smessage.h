@@ -246,7 +246,7 @@ public:
     };
 
     uint8_t hash[4] = {0, 0, 0, 0};
-    uint8_t version[2] = {2, 1};
+    uint8_t version[2] = {2, 2};
     uint8_t flags = 0;
     int64_t timestamp = 0;
     uint8_t iv[16];

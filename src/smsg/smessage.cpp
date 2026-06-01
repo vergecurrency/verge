@@ -27,6 +27,8 @@ Notes:
 
 #include <stdint.h>
 #include <time.h>
+#include <algorithm>
+#include <cstring>
 #include <map>
 #include <stdexcept>
 #include <errno.h>
@@ -43,7 +45,7 @@ Notes:
 #include <secp256k1_recovery.h>
 
 #include <crypto/hmac_sha256.h>
-#include <crypto/sha512.h>
+#include <crypto/sha256.h>
 
 #include <script/ismine.h>
 #include <policy/policy.h>
@@ -79,6 +81,74 @@ extern CChain &chainActive;
 extern CCriticalSection cs_main;
 
 smsg::CSMSG smsgModule;
+
+namespace {
+constexpr uint8_t SMSG_UNPAID_VERSION_MAJOR = 2;
+constexpr uint8_t SMSG_UNPAID_VERSION_MINOR = 2;
+constexpr size_t SMSG_DERIVED_KEY_LEN = 32;
+constexpr size_t SMSG_HKDF_OUTPUT_LEN = SMSG_DERIVED_KEY_LEN * 2;
+constexpr const char* SMSG_HKDF_INFO = "verge-smsg-v2.2";
+
+bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
+{
+    return smsg.version[0] == SMSG_UNPAID_VERSION_MAJOR
+        && smsg.version[1] == SMSG_UNPAID_VERSION_MINOR;
+}
+
+void DeriveSmsgKeys(const uint256& ecdhSecret,
+                    const uint8_t* ephemeralPubkey,
+                    const CKeyID& destination,
+                    const uint8_t* iv,
+                    std::vector<uint8_t>& key_e,
+                    std::vector<uint8_t>& key_m)
+{
+    uint8_t salt[CSHA256::OUTPUT_SIZE];
+    CSHA256()
+        .Write(ephemeralPubkey, 33)
+        .Write(destination.begin(), destination.size())
+        .Write(iv, 16)
+        .Finalize(salt);
+
+    uint8_t prk[CHMAC_SHA256::OUTPUT_SIZE];
+    CHMAC_SHA256(salt, sizeof(salt))
+        .Write(ecdhSecret.begin(), 32)
+        .Finalize(prk);
+
+    std::vector<uint8_t> okm(SMSG_HKDF_OUTPUT_LEN);
+    uint8_t previous[CHMAC_SHA256::OUTPUT_SIZE] = {};
+    size_t previousLen = 0;
+    size_t written = 0;
+    uint8_t counter = 1;
+    const uint8_t* info = reinterpret_cast<const uint8_t*>(SMSG_HKDF_INFO);
+    const size_t infoLen = std::strlen(SMSG_HKDF_INFO);
+
+    while (written < okm.size()) {
+        uint8_t block[CHMAC_SHA256::OUTPUT_SIZE];
+        CHMAC_SHA256 hmac(prk, sizeof(prk));
+        if (previousLen > 0) {
+            hmac.Write(previous, previousLen);
+        }
+        hmac.Write(info, infoLen);
+        hmac.Write(&counter, 1);
+        hmac.Finalize(block);
+
+        const size_t copyLen = std::min(sizeof(block), okm.size() - written);
+        std::memcpy(okm.data() + written, block, copyLen);
+        std::memcpy(previous, block, sizeof(previous));
+        previousLen = sizeof(previous);
+        written += copyLen;
+        ++counter;
+    }
+
+    key_e.assign(okm.begin(), okm.begin() + SMSG_DERIVED_KEY_LEN);
+    key_m.assign(okm.begin() + SMSG_DERIVED_KEY_LEN, okm.end());
+
+    memory_cleanse(salt, sizeof(salt));
+    memory_cleanse(prk, sizeof(prk));
+    memory_cleanse(previous, sizeof(previous));
+    memory_cleanse(okm.data(), okm.size());
+}
+} // namespace
 
 namespace smsg {
 bool fSecMsgEnabled = false;
@@ -3275,7 +3345,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         return SMSG_UNKNOWN_VERSION;
     }
 
-    if (psmsg->version[0] != 2)
+    if (!IsCurrentUnpaidSmsgVersion(*psmsg))
         return SMSG_UNKNOWN_VERSION;
 
     uint8_t civ[32];
@@ -3462,14 +3532,9 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
     memcpy(smsg.cpkR, cpkR.begin(), 33);
 
-    // Use public key P and calculate the SHA512 hash H.
-    //   The first 32 bytes of H are called key_e and the last 32 bytes are called key_m.
-    std::vector<uint8_t> vchHashed;
-    vchHashed.resize(64); // 512
-    memset(vchHashed.data(), 0, 64);
-    CSHA512().Write(P.begin(), 32).Finalize(&vchHashed[0]);
-    std::vector<uint8_t> key_e(&vchHashed[0], &vchHashed[0]+32);
-    std::vector<uint8_t> key_m(&vchHashed[32], &vchHashed[32]+32);
+    std::vector<uint8_t> key_e;
+    std::vector<uint8_t> key_m;
+    DeriveSmsgKeys(P, smsg.cpkR, ckidDest, smsg.iv, key_e, key_m);
 
     std::vector<uint8_t> vchPayload;
     std::vector<uint8_t> vchCompressed;
@@ -3547,7 +3612,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
     memcpy(smsg.pPayload, vchCiphertext.data(), vchCiphertext.size());
     smsg.nPayload = vchCiphertext.size() + (fPaid ? 32 : 0);
 
-    // Calculate a 32 byte MAC with HMACSHA256, using key_m as salt
+    // Calculate a 32 byte MAC with HMAC-SHA256 using the HKDF MAC key.
     //  Message authentication code, (hash of timestamp + iv + destination + payload)
     CHMAC_SHA256 ctx(&key_m[0], 32);
     ctx.Write((uint8_t*) &smsg.timestamp, sizeof(smsg.timestamp));
@@ -3848,10 +3913,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
-    if (psmsg->version[0] == 3) {
-        nPayload -= 32; // Exclude funding txid
-    } else
-    if (psmsg->version[0] != 2) {
+    if (!IsCurrentUnpaidSmsgVersion(*psmsg)) {
         return errorN(SMSG_UNKNOWN_VERSION, "%s: Unknown version number.", __func__);
     }
 
@@ -3868,14 +3930,9 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
         return errorN(SMSG_GENERAL_ERROR, "%s: secp256k1_ecdh failed.", __func__);
     }
 
-    // Use public key P to calculate the SHA512 hash H.
-    //  The first 32 bytes of H are called key_e and the last 32 bytes are called key_m.
-    std::vector<uint8_t> vchHashedDec;
-    vchHashedDec.resize(64);    // 512 bits
-    memset(vchHashedDec.data(), 0, 64);
-    CSHA512().Write(P.begin(), 32).Finalize(&vchHashedDec[0]);
-    std::vector<uint8_t> key_e(&vchHashedDec[0], &vchHashedDec[0]+32);
-    std::vector<uint8_t> key_m(&vchHashedDec[32], &vchHashedDec[32]+32);
+    std::vector<uint8_t> key_e;
+    std::vector<uint8_t> key_m;
+    DeriveSmsgKeys(P, psmsg->cpkR, address, psmsg->iv, key_e, key_m);
 
     // Message authentication code, (hash of timestamp + iv + destination + payload)
     uint8_t MAC[32];
