@@ -3,6 +3,7 @@
 #include <qt/sendmessagesdialog.h>
 #include <qt/messagemodel.h>
 #include <qt/vergegui.h>
+#include <qt/walletmodel.h>
 #include <qt/csvmodelwriter.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
@@ -206,6 +207,13 @@ void MessagePage::on_sendButton_clicked()
 {
     if(!model)
         return;
+    if (model->getWalletModel()
+        && model->getWalletModel()->getEncryptionStatus() == WalletModel::Locked) {
+        QMessageBox::warning(this, tr("Send Secure Message"),
+            tr("Wallet is locked. Unlock the wallet before sending encrypted messages."),
+            QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
 
     SendMessagesRecipient recipient;
     recipient.address = replyToAddress;

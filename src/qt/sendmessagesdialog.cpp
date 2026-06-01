@@ -181,6 +181,14 @@ void SendMessagesDialog::on_sendButton_clicked()
     bool valid = true;
     if (!model)
         return;
+    if (mode == SendMessagesDialog::Encrypted
+        && model->getWalletModel()
+        && model->getWalletModel()->getEncryptionStatus() == WalletModel::Locked) {
+        QMessageBox::warning(this, tr("Send Secure Message"),
+            tr("Wallet is locked. Unlock the wallet before sending encrypted messages."),
+            QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
     valid = validate();
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());

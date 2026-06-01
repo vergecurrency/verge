@@ -50,6 +50,7 @@ Notes:
 #include <script/ismine.h>
 #include <policy/policy.h>
 #include <support/allocators/secure.h>
+#include <support/cleanse.h>
 #include <consensus/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
@@ -148,6 +149,44 @@ void DeriveSmsgKeys(const uint256& ecdhSecret,
     memory_cleanse(previous, sizeof(previous));
     memory_cleanse(okm.data(), okm.size());
 }
+
+void CleanseVector(std::vector<uint8_t>& data)
+{
+    if (!data.empty()) {
+        memory_cleanse(data.data(), data.size());
+    }
+}
+
+class ScopedSmsgCleanse
+{
+public:
+    explicit ScopedSmsgCleanse(uint256* secretIn = nullptr) : secret(secretIn) {}
+    ~ScopedSmsgCleanse()
+    {
+        if (secret) {
+            memory_cleanse(secret->begin(), secret->size());
+        }
+        for (std::vector<uint8_t>* vector : vectors) {
+            CleanseVector(*vector);
+        }
+        if (bytes && bytesLen > 0) {
+            memory_cleanse(bytes, bytesLen);
+        }
+    }
+
+    void Add(std::vector<uint8_t>& data) { vectors.push_back(&data); }
+    void SetBytes(uint8_t* data, size_t len)
+    {
+        bytes = data;
+        bytesLen = len;
+    }
+
+private:
+    uint256* secret;
+    std::vector<std::vector<uint8_t>*> vectors;
+    uint8_t* bytes = nullptr;
+    size_t bytesLen = 0;
+};
 } // namespace
 
 namespace smsg {
@@ -3538,6 +3577,13 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
     std::vector<uint8_t> vchPayload;
     std::vector<uint8_t> vchCompressed;
+    std::vector<uint8_t> vchCiphertext;
+    ScopedSmsgCleanse cleanseEncrypt(&P);
+    cleanseEncrypt.Add(key_e);
+    cleanseEncrypt.Add(key_m);
+    cleanseEncrypt.Add(vchPayload);
+    cleanseEncrypt.Add(vchCompressed);
+    cleanseEncrypt.Add(vchCiphertext);
     uint8_t *pMsgData;
     uint32_t lenMsgData;
 
@@ -3598,7 +3644,6 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
     SecMsgCrypter crypter;
     crypter.SetKey(key_e, smsg.iv);
-    std::vector<uint8_t> vchCiphertext;
 
     if (!crypter.Encrypt(vchPayload.data(), vchPayload.size(), vchCiphertext)) {
         return errorN(SMSG_ENCRYPT_FAILED, "%s: Encrypt failed.", __func__);
@@ -3936,6 +3981,12 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
 
     // Message authentication code, (hash of timestamp + iv + destination + payload)
     uint8_t MAC[32];
+    std::vector<uint8_t> vchPayload;
+    ScopedSmsgCleanse cleanseDecrypt(&P);
+    cleanseDecrypt.Add(key_e);
+    cleanseDecrypt.Add(key_m);
+    cleanseDecrypt.Add(vchPayload);
+    cleanseDecrypt.SetBytes(MAC, sizeof(MAC));
 
     CHMAC_SHA256 ctx(key_m.data(), 32);
     ctx.Write((uint8_t*) &psmsg->timestamp, sizeof(psmsg->timestamp));
@@ -3943,7 +3994,9 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     ctx.Write((uint8_t*) pPayload, nPayload);
     ctx.Finalize(MAC);
 
-    if (std::memcmp(MAC, psmsg->mac, 32) != 0) {
+    const std::vector<uint8_t> computedMac(MAC, MAC + sizeof(MAC));
+    const std::vector<uint8_t> messageMac(psmsg->mac, psmsg->mac + sizeof(psmsg->mac));
+    if (!TimingResistantEqual(computedMac, messageMac)) {
         LogPrint(BCLog::SMSG, "MAC does not match.\n"); // expected if message is not to address on node
         return SMSG_MAC_MISMATCH;
     }
@@ -3954,7 +4007,6 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
 
     SecMsgCrypter crypter;
     crypter.SetKey(key_e, psmsg->iv);
-    std::vector<uint8_t> vchPayload;
     if (!crypter.Decrypt(pPayload, nPayload, vchPayload)) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Decrypt failed.", __func__);
     }
