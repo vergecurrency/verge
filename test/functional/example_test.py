@@ -78,7 +78,7 @@ class ExampleTest(VergeTestFramework):
     def set_test_params(self):
         """Override test parameters for your individual test.
 
-        This method must be overridden and num_nodes must be exlicitly set."""
+        This method must be overridden and num_nodes must be explicitly set."""
         self.setup_clean_chain = True
         self.num_nodes = 3
         # Use self.extra_args to change command-line arguments for the nodes
@@ -149,7 +149,7 @@ class ExampleTest(VergeTestFramework):
         # name on the node object. Notice also how we used a keyword argument
         # to specify a named RPC argument. Neither of those are defined on the
         # node object. Instead there's some __getattr__() magic going on under
-        # the covers to dispatch unrecognised attribute calls to the RPC
+        # the covers to dispatch unrecognized attribute calls to the RPC
         # interface.
 
         # Logs are nice. Do plenty of them. They can be used in place of comments for
