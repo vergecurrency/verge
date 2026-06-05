@@ -65,7 +65,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
-    messagesPage = new MessagePage(this);
+    messagesPage = new MessagePage(platformStyle, this);
     messageModel = nullptr;
     tradePage = new TradePage(this);
     gamesPage = new GamesPage(this);
@@ -158,7 +158,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     }
     usedReceivingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
     usedSendingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
-    usedChatAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
+    usedChatAddressesPage->setWalletModel(_walletModel);
 
     if (_walletModel)
     {

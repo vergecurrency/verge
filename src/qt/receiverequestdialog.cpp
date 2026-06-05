@@ -140,7 +140,8 @@ void QRImageWidget::contextMenuEvent(QContextMenuEvent *event)
 ReceiveRequestDialog::ReceiveRequestDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ReceiveRequestDialog),
-    model(0)
+    model(0),
+    requestMode(PaymentRequest)
 {
     ui->setupUi(this);
     setMinimumSize(560, 660);
@@ -181,7 +182,13 @@ void ReceiveRequestDialog::setModel(WalletModel *_model)
 
 void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info)
 {
+    setInfo(_info, PaymentRequest);
+}
+
+void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info, RequestMode mode)
+{
     this->info = _info;
+    this->requestMode = mode;
     update();
 }
 
@@ -193,10 +200,10 @@ void ReceiveRequestDialog::update()
     if(target.isEmpty())
         target = info.address;
     const QString chatkey = GetLocalChatkey(info.address);
-    const bool isChatkey = !chatkey.isEmpty();
+    const bool isChatkey = requestMode == ChatkeyRequest && !chatkey.isEmpty();
     setWindowTitle(isChatkey ? tr("Share chatkey for %1").arg(target) : tr("Request payment to %1").arg(target));
 
-    QString uri = DialogURIForRecipient(info, chatkey);
+    QString uri = DialogURIForRecipient(info, isChatkey ? chatkey : QString());
     ui->btnSaveAs->setEnabled(false);
     ui->btnCopyAddress->setText(isChatkey ? tr("Copy Chatkey") : tr("Copy Address"));
     QString html;
@@ -274,11 +281,11 @@ void ReceiveRequestDialog::update()
 
 void ReceiveRequestDialog::on_btnCopyURI_clicked()
 {
-    GUIUtil::setClipboard(DialogURIForRecipient(info, GetLocalChatkey(info.address)));
+    GUIUtil::setClipboard(DialogURIForRecipient(info, requestMode == ChatkeyRequest ? GetLocalChatkey(info.address) : QString()));
 }
 
 void ReceiveRequestDialog::on_btnCopyAddress_clicked()
 {
-    const QString chatkey = GetLocalChatkey(info.address);
+    const QString chatkey = requestMode == ChatkeyRequest ? GetLocalChatkey(info.address) : QString();
     GUIUtil::setClipboard(chatkey.isEmpty() ? info.address : chatkey);
 }

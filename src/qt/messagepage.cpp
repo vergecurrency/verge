@@ -1,4 +1,5 @@
 #include <qt/messagepage.h>
+#include <qt/addressbookpage.h>
 #include <qt/forms/ui_messagepage.h>
 #include <qt/sendmessagesdialog.h>
 #include <qt/messagemodel.h>
@@ -7,6 +8,7 @@
 #include <qt/csvmodelwriter.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
+#include <qt/platformstyle.h>
 #include <smsg/smessage.h>
 #include <QSortFilterProxyModel>
 #include <QClipboard>
@@ -91,12 +93,14 @@ protected:
     doc.setTextWidth(options.rect.width());
     return QSize(doc.idealWidth(), doc.size().height() + 20);
 }
-MessagePage::MessagePage(QWidget *parent) :
+MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MessagePage),
     model(0),
+    platformStyle(platformStyle),
     msgdelegate(new MessageViewDelegate()),
     flushButton(nullptr),
+    addressBookButton(nullptr),
     storageLabel(nullptr),
     storageRefreshTimer(nullptr)
 {
@@ -149,6 +153,15 @@ MessagePage::MessagePage(QWidget *parent) :
     ui->horizontalLayout->insertWidget(2, messageCountLabel);
 
     connect(ui->messageEdit, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
+
+    addressBookButton = new QPushButton(tr("Address &Book"), this);
+    addressBookButton->setToolTip(tr("Open local chat-enabled addresses and share chatkey QR payloads"));
+    addressBookButton->setStyleSheet("background-color: rgb(80, 0, 120); color: rgb(255, 255, 255);");
+    if (platformStyle && platformStyle->getImagesOnButtons()) {
+        addressBookButton->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
+    }
+    ui->horizontalLayout->insertWidget(1, addressBookButton);
+    connect(addressBookButton, SIGNAL(clicked()), this, SLOT(on_addressBookButton_clicked()));
 
     refreshStorageUsage();
     updateMessageCountdown();
@@ -251,6 +264,17 @@ void MessagePage::on_newButton_clicked()
     dlg.setModel(model);
     dlg.exec();
     refreshStorageUsage();
+}
+
+void MessagePage::on_addressBookButton_clicked()
+{
+    if (!model || !model->getWalletModel()) {
+        return;
+    }
+
+    AddressBookPage dialog(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ChatAddressesTab, this);
+    dialog.setWalletModel(model->getWalletModel());
+    dialog.exec();
 }
 
 void MessagePage::on_flushButton_clicked()

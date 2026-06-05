@@ -16,6 +16,8 @@
 #include <qt/editaddressdialog.h>
 #include <qt/guiutil.h>
 #include <qt/platformstyle.h>
+#include <qt/receiverequestdialog.h>
+#include <qt/walletmodel.h>
 
 #include <smsg/smessage.h>
 
@@ -87,6 +89,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     QDialog(parent),
     ui(new Ui::AddressBookPage),
     model(0),
+    walletModel(0),
     mode(_mode),
     tab(_tab)
 {
@@ -154,7 +157,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
         ui->newAddress->setVisible(false);
         break;
     case ChatAddressesTab:
-        ui->labelExplanation->setText(tr("These are your local chat-enabled addresses. Choose the labeled address you want to send this message from."));
+        ui->labelExplanation->setText(tr("These are your local chat-enabled addresses. Double-click an address to show its chatkey QR payload."));
         ui->deleteAddress->setVisible(false);
         ui->newAddress->setVisible(false);
         break;
@@ -164,6 +167,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     QAction *copyAddressAction = new QAction(tr("&Copy Address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy &Label"), this);
     QAction *editAction = new QAction(tr("&Edit"), this);
+    QAction *showChatkeyAction = new QAction(tr("Show Chatkey QR"), this);
     deleteAction = new QAction(ui->deleteAddress->text(), this);
 
     // Build context menu
@@ -171,6 +175,9 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(editAction);
+    if (tab == ChatAddressesTab) {
+        contextMenu->addAction(showChatkeyAction);
+    }
     if(tab == SendingTab)
         contextMenu->addAction(deleteAction);
     contextMenu->addSeparator();
@@ -179,9 +186,13 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(on_copyAddress_clicked()));
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(onCopyLabelAction()));
     connect(editAction, SIGNAL(triggered()), this, SLOT(onEditAction()));
+    connect(showChatkeyAction, SIGNAL(triggered()), this, SLOT(showSelectedChatkey()));
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(on_deleteAddress_clicked()));
 
     connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
+    if (mode == ForEditing && tab == ChatAddressesTab) {
+        connect(ui->tableView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(showSelectedChatkey()));
+    }
 
     connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(accept()));
 }
@@ -232,6 +243,12 @@ void AddressBookPage::setModel(AddressTableModel *_model)
     selectionChanged();
 }
 
+void AddressBookPage::setWalletModel(WalletModel *_walletModel)
+{
+    walletModel = _walletModel;
+    setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
+}
+
 void AddressBookPage::on_copyAddress_clicked()
 {
     GUIUtil::copyEntryData(ui->tableView, AddressTableModel::Address);
@@ -261,6 +278,29 @@ void AddressBookPage::onEditAction()
     QModelIndex origIndex = proxyModel->mapToSource(indexes.at(0));
     dlg.loadRow(origIndex.row());
     dlg.exec();
+}
+
+void AddressBookPage::showSelectedChatkey()
+{
+    if (tab != ChatAddressesTab || !walletModel || !ui->tableView->selectionModel()) {
+        return;
+    }
+
+    const QModelIndexList indexes = ui->tableView->selectionModel()->selectedRows();
+    if (indexes.isEmpty()) {
+        return;
+    }
+
+    const QModelIndex sourceIndex = proxyModel->mapToSource(indexes.at(0));
+    const QString label = model->data(model->index(sourceIndex.row(), AddressTableModel::Label, QModelIndex()), Qt::EditRole).toString();
+    const QString address = model->data(model->index(sourceIndex.row(), AddressTableModel::Address, QModelIndex()), Qt::EditRole).toString();
+    SendCoinsRecipient info(address, label, 0, QString());
+
+    ReceiveRequestDialog* dialog = new ReceiveRequestDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setModel(walletModel);
+    dialog->setInfo(info, ReceiveRequestDialog::ChatkeyRequest);
+    dialog->show();
 }
 
 void AddressBookPage::on_newAddress_clicked()
