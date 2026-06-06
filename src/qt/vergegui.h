@@ -118,11 +118,17 @@ private:
     QLabel *proxyStatusLabel;
     QLabel *networkStatusLabel;
     QLabel *chainStatusLabel;
+    QWidget *windowControls;
+    QToolButton *minimizeWindowButton;
+    QToolButton *maximizeWindowButton;
+    QToolButton *closeWindowButton;
     QProgressDialog *progressDialog;
     QTimer* m_syncProgressBarTimer;
     QTimer* m_smsgStatusTimer;
     int m_syncProgressBarOffset;
     bool m_hasAnimatedShell;
+    bool m_titleBarDragging;
+    QPoint m_titleBarDragOffset;
 
     QMenuBar *appMenuBar;
     QToolBar *appToolBar;
@@ -170,6 +176,9 @@ private:
     void createActions();
     /** Create the menu bar and sub-menus. */
     void createMenuBar();
+    /** Add main-window chrome controls to the in-window menu bar. */
+    void createMainWindowChrome();
+    void updateMainWindowChromeButtons();
     /** Create the toolbars */
     void createToolBars();
     /** Create system tray icon and notification */

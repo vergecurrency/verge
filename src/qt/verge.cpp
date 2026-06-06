@@ -1244,6 +1244,33 @@ QDialog[customChrome="true"] {
     border: 1px solid #2a3347;
 }
 
+QMainWindow[customChrome="true"] {
+    background-color: #121722;
+    border: 1px solid #2a3347;
+}
+
+QWidget#ShellWindowControls {
+    background: transparent;
+}
+
+QToolButton#ShellWindowControlButton,
+QToolButton#ShellWindowCloseButton {
+    background: #1a2231;
+    border: 1px solid #313c52;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+QToolButton#ShellWindowControlButton:hover {
+    background: #26324a;
+    border-color: #6fa6ff;
+}
+
+QToolButton#ShellWindowCloseButton:hover {
+    background: #5a1d2a;
+    border-color: #ff6b86;
+}
+
 QDialog[customChrome="true"] QWidget#CustomDialogContent {
     background-color: #121722;
 }
@@ -2147,15 +2174,24 @@ QTabWidget#SignVerifyTabs QTabBar::tab:selected {
 }
 
 QToolButton#CustomTitleButton,
-QToolButton#CustomTitleCloseButton {
+QToolButton#CustomTitleCloseButton,
+QToolButton#ShellWindowControlButton,
+QToolButton#ShellWindowCloseButton {
     background: #190b2b;
     border: 1px solid #5b347d;
+    border-radius: 6px;
     color: #faf7ff;
 }
 
-QToolButton#CustomTitleButton:hover {
+QToolButton#CustomTitleButton:hover,
+QToolButton#ShellWindowControlButton:hover {
     background: #27103f;
     border-color: #d966ff;
+}
+
+QToolButton#ShellWindowCloseButton:hover {
+    background: #66122a;
+    border-color: #ff6b9d;
 }
 
 QToolButton#CustomTitleCloseButton:hover {

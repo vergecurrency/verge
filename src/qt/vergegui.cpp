@@ -368,11 +368,16 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     proxyStatusLabel(0),
     networkStatusLabel(0),
     chainStatusLabel(0),
+    windowControls(0),
+    minimizeWindowButton(0),
+    maximizeWindowButton(0),
+    closeWindowButton(0),
     progressDialog(0),
     m_syncProgressBarTimer(0),
     m_smsgStatusTimer(0),
     m_syncProgressBarOffset(0),
     m_hasAnimatedShell(false),
+    m_titleBarDragging(false),
     appMenuBar(0),
     appToolBar(0),
     overviewAction(0),
@@ -459,6 +464,10 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
     MacDockIconHandler::instance()->setIcon(networkStyle->getAppIcon());
 #endif
     setWindowTitle(windowTitle);
+#ifndef Q_OS_MAC
+    setProperty("customChrome", true);
+    setWindowFlag(Qt::FramelessWindowHint, true);
+#endif
 
 #if defined(Q_OS_MAC) && QT_VERSION < 0x050000
     // This property is not implemented in Qt 5. Setting it has no effect.
@@ -878,6 +887,70 @@ void VERGEGUI::createMenuBar()
     help->addSeparator();
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
+
+    createMainWindowChrome();
+}
+
+void VERGEGUI::createMainWindowChrome()
+{
+#ifdef Q_OS_MAC
+    return;
+#else
+    if (!appMenuBar || windowControls) {
+        return;
+    }
+
+    appMenuBar->installEventFilter(this);
+    appMenuBar->setMouseTracking(true);
+
+    windowControls = new QWidget(appMenuBar);
+    windowControls->setObjectName("ShellWindowControls");
+    QHBoxLayout* controlsLayout = new QHBoxLayout(windowControls);
+    controlsLayout->setContentsMargins(0, 0, 6, 0);
+    controlsLayout->setSpacing(4);
+
+    auto makeButton = [this](const char* objectName, QStyle::StandardPixmap icon, const QString& tooltip) {
+        QToolButton* button = new QToolButton(windowControls);
+        button->setObjectName(objectName);
+        button->setAutoRaise(true);
+        button->setIcon(style()->standardIcon(icon));
+        button->setToolTip(tooltip);
+        button->setFixedSize(34, 26);
+        return button;
+    };
+
+    minimizeWindowButton = makeButton("ShellWindowControlButton", QStyle::SP_TitleBarMinButton, tr("Minimize"));
+    maximizeWindowButton = makeButton("ShellWindowControlButton", QStyle::SP_TitleBarMaxButton, tr("Maximize"));
+    closeWindowButton = makeButton("ShellWindowCloseButton", QStyle::SP_TitleBarCloseButton, tr("Close"));
+
+    controlsLayout->addWidget(minimizeWindowButton);
+    controlsLayout->addWidget(maximizeWindowButton);
+    controlsLayout->addWidget(closeWindowButton);
+    appMenuBar->setCornerWidget(windowControls, Qt::TopRightCorner);
+
+    connect(minimizeWindowButton, &QToolButton::clicked, this, &QWidget::showMinimized);
+    connect(maximizeWindowButton, &QToolButton::clicked, this, [this]() {
+        if (isMaximized()) {
+            showNormal();
+        } else {
+            showMaximized();
+        }
+        updateMainWindowChromeButtons();
+    });
+    connect(closeWindowButton, &QToolButton::clicked, this, &QWidget::close);
+    updateMainWindowChromeButtons();
+#endif
+}
+
+void VERGEGUI::updateMainWindowChromeButtons()
+{
+    if (!maximizeWindowButton) {
+        return;
+    }
+
+    const bool maximized = isMaximized();
+    maximizeWindowButton->setIcon(style()->standardIcon(maximized ? QStyle::SP_TitleBarNormalButton : QStyle::SP_TitleBarMaxButton));
+    maximizeWindowButton->setToolTip(maximized ? tr("Restore") : tr("Maximize"));
 }
 
 void VERGEGUI::createToolBars()
@@ -1744,6 +1817,7 @@ void VERGEGUI::changeEvent(QEvent *e)
 #ifndef Q_OS_MAC // Ignored on Mac
     if(e->type() == QEvent::WindowStateChange)
     {
+        updateMainWindowChromeButtons();
         if(clientModel && clientModel->getOptionsModel() && clientModel->getOptionsModel()->getMinimizeToTray())
         {
             QWindowStateChangeEvent *wsevt = static_cast<QWindowStateChangeEvent*>(e);
@@ -1851,6 +1925,57 @@ void VERGEGUI::dropEvent(QDropEvent *event)
 
 bool VERGEGUI::eventFilter(QObject *object, QEvent *event)
 {
+#ifndef Q_OS_MAC
+    if (object == appMenuBar && event) {
+        switch (event->type()) {
+        case QEvent::MouseButtonPress: {
+            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+            if (!appMenuBar->actionAt(mouseEvent->pos()) && mouseEvent->button() == Qt::LeftButton && !isMaximized()) {
+                m_titleBarDragging = true;
+                m_titleBarDragOffset = mouseEvent->globalPos() - frameGeometry().topLeft();
+                return true;
+            }
+            if (!appMenuBar->actionAt(mouseEvent->pos()) && mouseEvent->button() == Qt::RightButton) {
+                QMenu menu(this);
+                QAction* minimizeAction = menu.addAction(tr("Minimize"));
+                QAction* maximizeAction = menu.addAction(isMaximized() ? tr("Restore") : tr("Maximize"));
+                menu.addSeparator();
+                QAction* closeAction = menu.addAction(tr("Close"));
+                QAction* chosen = menu.exec(mouseEvent->globalPos());
+                if (chosen == minimizeAction) showMinimized();
+                if (chosen == maximizeAction) isMaximized() ? showNormal() : showMaximized();
+                if (chosen == closeAction) close();
+                updateMainWindowChromeButtons();
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseMove: {
+            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+            if (m_titleBarDragging && (mouseEvent->buttons() & Qt::LeftButton)) {
+                move(mouseEvent->globalPos() - m_titleBarDragOffset);
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseButtonDblClick: {
+            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+            if (!appMenuBar->actionAt(mouseEvent->pos()) && mouseEvent->button() == Qt::LeftButton) {
+                isMaximized() ? showNormal() : showMaximized();
+                updateMainWindowChromeButtons();
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseButtonRelease:
+            m_titleBarDragging = false;
+            break;
+        default:
+            break;
+        }
+    }
+#endif
+
     // Catch status tip events
     if (event->type() == QEvent::StatusTip)
     {
@@ -1873,11 +1998,13 @@ void VERGEGUI::mouseMoveEvent(QMouseEvent* event)
 
 void VERGEGUI::mouseReleaseEvent(QMouseEvent* event)
 {
+    m_titleBarDragging = false;
     QMainWindow::mouseReleaseEvent(event);
 }
 
 void VERGEGUI::leaveEvent(QEvent* event)
 {
+    m_titleBarDragging = false;
     QMainWindow::leaveEvent(event);
 }
 
