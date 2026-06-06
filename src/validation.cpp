@@ -3927,6 +3927,7 @@ bool CChainState::LoadBlockIndex(const CChainParams& chainparams, const Consensu
     boost::this_thread::interruption_point();
 
     // Calculate nChainWork
+    uiInterface.ShowProgress(_("Processing block index..."), 0, false);
     std::vector<std::pair<int, CBlockIndex*> > vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
     for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex)
@@ -3936,6 +3937,9 @@ bool CChainState::LoadBlockIndex(const CChainParams& chainparams, const Consensu
     }
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
     const MapCheckpoints& checkpoints = chainparams.BlockIndexCheckpoints().mapCheckpoints;
+    int64_t nProcessedBlockIndexEntries = 0;
+    int64_t nLastBlockIndexProcessProgressTime = 0;
+    const int64_t nTotalBlockIndexEntries = vSortedByHeight.size();
     for (const std::pair<int, CBlockIndex*>& item : vSortedByHeight)
     {
         CBlockIndex* pindex = item.second;
@@ -3978,8 +3982,19 @@ bool CChainState::LoadBlockIndex(const CChainParams& chainparams, const Consensu
             pindex->BuildSkip();
         if (pindex->IsValid(BLOCK_VALID_TREE) && (pindexBestHeader == nullptr || CBlockIndexWorkComparator()(pindexBestHeader, pindex)))
             pindexBestHeader = pindex;
+
+        ++nProcessedBlockIndexEntries;
+        const int64_t nNow = GetTimeMillis();
+        if (nProcessedBlockIndexEntries == 1 || nNow - nLastBlockIndexProcessProgressTime >= 250) {
+            const int nProgress = nTotalBlockIndexEntries > 0
+                ? std::max(1, std::min(99, static_cast<int>((nProcessedBlockIndexEntries * 100) / nTotalBlockIndexEntries)))
+                : 100;
+            uiInterface.ShowProgress(_("Processing block index..."), nProgress, false);
+            nLastBlockIndexProcessProgressTime = nNow;
+        }
     }
 
+    uiInterface.ShowProgress(_("Processing block index..."), 100, false);
     return true;
 }
 
@@ -4007,6 +4022,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
 
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
+    uiInterface.ShowProgress(_("Checking block files..."), 0, false);
     std::set<int> setBlkDataFiles;
     for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex)
     {
@@ -4015,13 +4031,26 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
             setBlkDataFiles.insert(pindex->nFile);
         }
     }
+    int64_t nCheckedBlockFiles = 0;
+    int64_t nLastBlockFileProgressTime = 0;
+    const int64_t nTotalBlockFiles = setBlkDataFiles.size();
     for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++)
     {
         FlatFilePos pos(*it, 0);
         if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION).IsNull()) {
             return false;
         }
+        ++nCheckedBlockFiles;
+        const int64_t nNow = GetTimeMillis();
+        if (nCheckedBlockFiles == 1 || nNow - nLastBlockFileProgressTime >= 250) {
+            const int nProgress = nTotalBlockFiles > 0
+                ? std::max(1, std::min(99, static_cast<int>((nCheckedBlockFiles * 100) / nTotalBlockFiles)))
+                : 100;
+            uiInterface.ShowProgress(_("Checking block files..."), nProgress, false);
+            nLastBlockFileProgressTime = nNow;
+        }
     }
+    uiInterface.ShowProgress(_("Checking block files..."), 100, false);
 
     // Check whether we have ever pruned block & undo files
     pblocktree->ReadFlag("prunedblockfiles", fHavePruned);
@@ -4270,6 +4299,11 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
     // Note that during -reindex-chainstate we are called with an empty chainActive!
 
     int nHeight = std::max(1, nStartHeight);
+    const int nTipHeight = chainActive.Height();
+    const int nScanTotal = nTipHeight >= nHeight ? nTipHeight - nHeight + 1 : 0;
+    int64_t nScannedHeights = 0;
+    int64_t nLastRewindProgressTime = 0;
+    uiInterface.ShowProgress(_("Rewinding blocks..."), 0, false);
     while (nHeight <= chainActive.Height()) {
         // Although SCRIPT_VERIFY_WITNESS is now generally enforced on all
         // blocks in ConnectBlock, we don't need to go back and
@@ -4278,6 +4312,15 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
             break;
         }
         nHeight++;
+        ++nScannedHeights;
+        const int64_t nNow = GetTimeMillis();
+        if (nScannedHeights == 1 || nNow - nLastRewindProgressTime >= 250) {
+            const int nProgress = nScanTotal > 0
+                ? std::max(1, std::min(45, static_cast<int>((nScannedHeights * 45) / nScanTotal)))
+                : 45;
+            uiInterface.ShowProgress(_("Rewinding blocks..."), nProgress, false);
+            nLastRewindProgressTime = nNow;
+        }
     }
 
     if (nHeight <= chainActive.Height()) {
@@ -4287,6 +4330,8 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
     // nHeight is now the height of the first insufficiently-validated block, or tipheight + 1
     CValidationState state;
     CBlockIndex* pindex = chainActive.Tip();
+    const int nDisconnectTotal = chainActive.Height() >= nHeight ? chainActive.Height() - nHeight + 1 : 0;
+    int64_t nDisconnectedBlocks = 0;
     while (chainActive.Height() >= nHeight) {
         if (fPruneMode && !(chainActive.Tip()->nStatus & BLOCK_HAVE_DATA)) {
             // If pruning, don't try rewinding past the HAVE_DATA point;
@@ -4304,11 +4349,22 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
             LogPrintf("RewindBlockIndex: unable to flush state to disk (%s)\n", FormatStateMessage(state));
             return false;
         }
+        ++nDisconnectedBlocks;
+        const int64_t nNow = GetTimeMillis();
+        if (nDisconnectedBlocks == 1 || nNow - nLastRewindProgressTime >= 250) {
+            const int nProgress = nDisconnectTotal > 0
+                ? 45 + std::max(1, std::min(25, static_cast<int>((nDisconnectedBlocks * 25) / nDisconnectTotal)))
+                : 70;
+            uiInterface.ShowProgress(_("Rewinding blocks..."), nProgress, false);
+            nLastRewindProgressTime = nNow;
+        }
     }
 
     // Reduce validity flag and have-data flags.
     // We do this after actual disconnecting, otherwise we'll end up writing the lack of data
     // to disk before writing the chainstate, resulting in a failure to continue if interrupted.
+    int64_t nRewindCleanupEntries = 0;
+    const int64_t nRewindCleanupTotal = mapBlockIndex.size();
     for (const auto& entry : mapBlockIndex) {
         CBlockIndex* pindexIter = entry.second;
 
@@ -4345,6 +4401,16 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
         } else if (pindexIter->IsValid(BLOCK_VALID_TRANSACTIONS) && pindexIter->nChainTx) {
             setBlockIndexCandidates.insert(pindexIter);
         }
+
+        ++nRewindCleanupEntries;
+        const int64_t nNow = GetTimeMillis();
+        if (nRewindCleanupEntries == 1 || nNow - nLastRewindProgressTime >= 250) {
+            const int nProgress = nRewindCleanupTotal > 0
+                ? 70 + std::max(1, std::min(25, static_cast<int>((nRewindCleanupEntries * 25) / nRewindCleanupTotal)))
+                : 95;
+            uiInterface.ShowProgress(_("Rewinding blocks..."), nProgress, false);
+            nLastRewindProgressTime = nNow;
+        }
     }
 
     if (chainActive.Tip() != nullptr) {
@@ -4355,6 +4421,7 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
         CheckBlockIndex(params.GetConsensus());
     }
 
+    uiInterface.ShowProgress(_("Rewinding blocks..."), 100, false);
     return true;
 }
 
@@ -4369,6 +4436,7 @@ bool RewindBlockIndex(const CChainParams& params, bool fForceFullScan) {
 
     if (nStartHeight > nTipHeight) {
         LogPrintf("RewindBlockIndex: startup witness check already completed through height %d; skipping scan\n", nTipHeight);
+        uiInterface.ShowProgress(_("Rewinding blocks..."), 100, false);
         return true;
     }
 
