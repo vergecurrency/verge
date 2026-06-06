@@ -94,6 +94,11 @@ const std::string VERGEGUI::DEFAULT_UIPLATFORM =
 namespace {
 static const char* kGuiAppName = "Verge";
 
+bool IsCountableSmsgPeer(const CNodeStats& stats)
+{
+    return stats.fSmsgEnabled && !stats.fDisconnect;
+}
+
 static void RefreshWidgetStyle(QWidget* widget)
 {
     if (!widget) {
@@ -1520,7 +1525,7 @@ void VERGEGUI::updateSmsgStatusIcon()
     if (m_node.getNetworkActive() && m_node.getNodesStats(nodeStats)) {
         for (const auto& nodeStat : nodeStats) {
             const CNodeStats& stats = std::get<0>(nodeStat);
-            if (stats.fSmsgEnabled) {
+            if (IsCountableSmsgPeer(stats)) {
                 hasSmsgPeer = true;
                 ++smsgPeerCount;
             }

@@ -565,6 +565,7 @@ public:
     bool fInbound;
     bool m_manual_connection;
     bool fSmsgEnabled;
+    bool fDisconnect;
     int nStartingHeight;
     uint64_t nSendBytes;
     mapMsgCmdSize mapSendBytesPerMsgCmd;

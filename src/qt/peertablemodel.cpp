@@ -18,6 +18,21 @@
 #include <QTimer>
 #include <algorithm>
 
+namespace {
+bool IsPeerVisibleInGui(const CNodeStats& stats)
+{
+    return !stats.fDisconnect;
+}
+
+QString FormatPeerAddressForGui(const CNodeStats& stats)
+{
+    if (stats.addr.IsLocal()) {
+        return stats.fInbound ? QObject::tr("Tor inbound (local handoff)") : QObject::tr("Local peer");
+    }
+    return QString::fromStdString(stats.addrName);
+}
+} // namespace
+
 bool NodeLessThan::operator()(const CNodeCombinedStats &left, const CNodeCombinedStats &right) const
 {
     const CNodeStats *pLeft = &(left.nodeStats);
@@ -73,6 +88,9 @@ public:
             {
                 CNodeCombinedStats stats;
                 stats.nodeStats = std::get<0>(node_stats);
+                if (!IsPeerVisibleInGui(stats.nodeStats)) {
+                    continue;
+                }
                 stats.fNodeStateStatsAvailable = std::get<1>(node_stats);
                 stats.nodeStateStats = std::get<2>(node_stats);
                 cachedNodeStats.append(stats);
@@ -164,7 +182,7 @@ QVariant PeerTableModel::data(const QModelIndex &index, int role) const
         case NetNodeId:
             return (qint64)rec->nodeStats.nodeid;
         case Address:
-            return QString::fromStdString(rec->nodeStats.addrName);
+            return FormatPeerAddressForGui(rec->nodeStats);
         case Subversion:
             return QString::fromStdString(rec->nodeStats.cleanSubVer);
         case Ping:

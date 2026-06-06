@@ -225,6 +225,7 @@ bool AddLocal(const CService& addr, int nScore)
 
     LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
 
+    bool fAdvertiseNow = false;
     {
         LOCK(cs_mapLocalHost);
         bool fAlready = mapLocalHost.count(addr) > 0;
@@ -232,7 +233,20 @@ bool AddLocal(const CService& addr, int nScore)
         if (!fAlready || nScore >= info.nScore) {
             info.nScore = nScore + (fAlready ? 1 : 0);
             info.nPort = addr.GetPort();
+            fAdvertiseNow = true;
         }
+    }
+
+    if (fAdvertiseNow && g_connman) {
+        CAddress localAddress(addr, g_connman->GetLocalServices());
+        localAddress.nTime = GetAdjustedTime();
+        FastRandomContext insecure_rand;
+        g_connman->ForEachNode([&localAddress, &insecure_rand](CNode* pnode) {
+            if (pnode->fSuccessfullyConnected && !pnode->fDisconnect) {
+                pnode->PushAddress(localAddress, insecure_rand);
+                pnode->nNextAddrSend = 0;
+            }
+        });
     }
 
     return true;
@@ -785,6 +799,7 @@ void CNode::copyStats(CNodeStats &stats)
         LOCK(smsgData.cs_smsg_net);
         stats.fSmsgEnabled = smsgData.fEnabled;
     }
+    X(fDisconnect);
     X(nStartingHeight);
     {
         LOCK(cs_vSend);
