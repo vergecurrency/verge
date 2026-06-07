@@ -1385,20 +1385,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         LogPrintf("%s: %s %s.\n", __func__, pfrom->GetAddrName(), strCommand);
     }
 
-    if (IsInitialBlockDownload()) { // Wait until chain synced
-        if (strCommand == "smsgPing") {
-            pfrom->smsgData.lastSeen = -1; // Mark node as requiring a response once chain is synced
-        }
-        return SMSG_NO_ERROR;
-    }
-
-    if (!fSecMsgEnabled) {
-        if (strCommand == "smsgPing") { // ignore smsgPing
-            return SMSG_NO_ERROR;
-        }
-        return SMSG_UNKNOWN_MESSAGE;
-    }
-
     if (pfrom->nVersion < MIN_SMSG_PROTO_VERSION) {
         return SMSG_NO_ERROR;
     }
@@ -1449,6 +1435,24 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             return SMSG_GENERAL_ERROR;
         }
 
+    }
+
+    if (IsInitialBlockDownload()) { // Wait until chain synced
+        if (strCommand == "smsgPing") {
+            pfrom->smsgData.lastSeen = -1; // Mark node as requiring a response once chain is synced
+        }
+        return SMSG_NO_ERROR;
+    }
+
+    if (!fSecMsgEnabled) {
+        if (strCommand == "smsgPing") { // ignore smsgPing
+            return SMSG_NO_ERROR;
+        }
+        return SMSG_UNKNOWN_MESSAGE;
+    }
+
+    {
+        LOCK(pfrom->smsgData.cs_smsg_net);
         if (!pfrom->smsgData.fEnabled && !IsSmsgHandshakeCommand(strCommand)) {
             LogPrint(BCLog::SMSG,
                 "Ignoring %s from peer %d before SMSG handshake completed.\n",
@@ -1957,6 +1961,19 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
         int64_t time;
         memcpy(&time, &vchData[0], 8);
+
+        const int64_t now = GetAdjustedTime();
+        if (time <= now) {
+            LogPrint(BCLog::SMSG, "Peer %d sent stale smsgIgnore timestamp %d.\n", pfrom->GetId(), time);
+            return SMSG_NO_ERROR;
+        }
+
+        const int64_t maxIgnoreUntil = now + SMSG_TIME_IGNORE;
+        if (time > maxIgnoreUntil) {
+            LogPrint(BCLog::SMSG, "Peer %d sent excessive smsgIgnore timestamp %d, clamping to %d.\n",
+                pfrom->GetId(), time, maxIgnoreUntil);
+            time = maxIgnoreUntil;
+        }
 
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
@@ -4201,16 +4218,46 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
 
     uint8_t *pMsgData;
     bool fFromAnonymous;
+    if (vchPayload.empty()) {
+        return errorN(SMSG_GENERAL_ERROR, "%s: Decrypted payload is empty.", __func__);
+    }
+
     if ((uint32_t)vchPayload[0] == 250) {
+        if (vchPayload.size() < 9) {
+            return errorN(SMSG_GENERAL_ERROR, "%s: Anonymous payload header is too short.", __func__);
+        }
         fFromAnonymous = true;
         lenData = vchPayload.size() - (9);
         memcpy(&lenPlain, &vchPayload[5], 4);
         pMsgData = &vchPayload[9];
+        if (lenPlain > SMSG_MAX_AMSG_BYTES) {
+            return errorN(SMSG_MESSAGE_TOO_LONG, "%s: Anonymous message is too long, %u > %u.", __func__, lenPlain, SMSG_MAX_AMSG_BYTES);
+        }
     } else {
+        if (vchPayload.size() < SMSG_PL_HDR_LEN) {
+            return errorN(SMSG_GENERAL_ERROR, "%s: Signed payload header is too short.", __func__);
+        }
         fFromAnonymous = false;
         lenData = vchPayload.size() - (SMSG_PL_HDR_LEN);
         memcpy(&lenPlain, &vchPayload[1+20+65], 4);
         pMsgData = &vchPayload[SMSG_PL_HDR_LEN];
+        if (lenPlain > SMSG_MAX_MSG_BYTES) {
+            return errorN(SMSG_MESSAGE_TOO_LONG, "%s: Message is too long, %u > %u.", __func__, lenPlain, SMSG_MAX_MSG_BYTES);
+        }
+    }
+
+    if (lenPlain <= 128) {
+        if (lenData != lenPlain) {
+            return errorN(SMSG_GENERAL_ERROR, "%s: Plaintext payload length mismatch, declared %u got %u.", __func__, lenPlain, lenData);
+        }
+    } else {
+        if (lenData == 0) {
+            return errorN(SMSG_GENERAL_ERROR, "%s: Compressed payload is empty.", __func__);
+        }
+        const int maxCompressedLen = LZ4_compressBound(lenPlain);
+        if (maxCompressedLen <= 0 || lenData > static_cast<uint32_t>(maxCompressedLen)) {
+            return errorN(SMSG_GENERAL_ERROR, "%s: Compressed payload length is invalid, declared %u compressed %u.", __func__, lenPlain, lenData);
+        }
     }
 
     try {
