@@ -3594,8 +3594,8 @@ int SecureMsgSend(std::string& addressFrom, std::string& addressTo, std::string&
     
     if (pwalletMain->IsLocked())
     {
-        sError = "Wallet is locked, wallet must be unlocked to send and recieve messages.";
-        printf("Wallet is locked, wallet must be unlocked to send and recieve messages.\n");
+        sError = "Wallet is locked, wallet must be unlocked to send and receive messages.";
+        printf("Wallet is locked, wallet must be unlocked to send and receive messages.\n");
         return 1;
     };
     

@@ -1187,7 +1187,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 }
 
                 // If this node has more than the peer node, peer node will pull from this
-                //  if then peer node has more this node will pull fom peer
+                //  if then peer node has more this node will pull from peer
                 if (buckets[time].setTokens.size() < ncontent
                     || (buckets[time].setTokens.size() == ncontent
                         && buckets[time].hash != hash)) { // if same amount in buckets check hash
