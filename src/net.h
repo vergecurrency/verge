@@ -108,6 +108,8 @@ struct SecMsgNode
     uint32_t nWakeCounter{0};
     int64_t nPeerId{0};
     bool fEnabled{false};
+    bool fValidatedRelay{false};
+    bool fSentValidationProbe{false};
 };
 
 class CNodeStats;
@@ -565,6 +567,7 @@ public:
     bool fInbound;
     bool m_manual_connection;
     bool fSmsgEnabled;
+    bool fSmsgValidatedRelay;
     bool fDisconnect;
     int nStartingHeight;
     uint64_t nSendBytes;

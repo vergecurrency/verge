@@ -96,7 +96,7 @@ static const char* kGuiAppName = "Verge";
 
 bool IsCountableSmsgPeer(const CNodeStats& stats)
 {
-    return stats.fSmsgEnabled && !stats.fDisconnect;
+    return stats.fSmsgValidatedRelay && !stats.fDisconnect;
 }
 
 static void RefreshWidgetStyle(QWidget* widget)

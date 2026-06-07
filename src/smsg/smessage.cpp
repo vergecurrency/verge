@@ -104,6 +104,16 @@ bool IsSmsgHandshakeCommand(const std::string& command)
         || command == "smsgIgnore";
 }
 
+void MarkSmsgRelayValidated(CNode* pfrom)
+{
+    LOCK(pfrom->smsgData.cs_smsg_net);
+    if (!pfrom->smsgData.fValidatedRelay) {
+        pfrom->smsgData.fValidatedRelay = true;
+        LogPrint(BCLog::SMSG, "SMSG: validated relay peer=%d addr=%s\n",
+            pfrom->GetId(), pfrom->addr.ToString());
+    }
+}
+
 size_t MaxSmsgVectorPayloadBytes(const std::string& command)
 {
     if (command == "smsgInv") {
@@ -946,7 +956,7 @@ int CSMSG::ReadIni()
     char *pName, *pValue;
 
     char cAddress[64];
-    int addrRecv, addrRecvAnon;
+    int addrRecv = 0, addrRecvAnon = 0;
 
     while (fgets(cLine, 512, fp))  {
         cLine[strcspn(cLine, "\n")] = '\0';
@@ -973,7 +983,7 @@ int CSMSG::ReadIni()
             options.fScanIncoming = (strcmp(pValue, "true") == 0) ? true : false;
         } else
         if (strcmp(pName, "key") == 0) {
-            int rv = sscanf(pValue, "%64[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
+            int rv = sscanf(pValue, "%63[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
             if (rv == 3) {
                 CKeyID k;
                 CBitcoinAddress(cAddress).GetKeyID(k);
@@ -1403,19 +1413,14 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     }
 
     {
-        LOCK(pfrom->smsgData.cs_smsg_net);
-        if (!pfrom->smsgData.fEnabled && !IsSmsgHandshakeCommand(strCommand)) {
-            LogPrint(BCLog::SMSG,
-                "Ignoring %s from peer %d before SMSG handshake completed.\n",
-                strCommand, pfrom->GetId());
-            return SMSG_GENERAL_ERROR;
-        }
-    }
-
-    {
         const int64_t now = GetAdjustedTime();
         const uint32_t payloadBytes = static_cast<uint32_t>(vRecv.size() + strCommand.size());
         LOCK(pfrom->smsgData.cs_smsg_net);
+
+        if (now < pfrom->smsgData.ignoreUntil) {
+            LogPrint(BCLog::SMSG, "Node is ignoring peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.ignoreUntil);
+            return SMSG_GENERAL_ERROR;
+        }
 
         if (now >= pfrom->smsgData.rateWindowStart + SMSG_RATE_WINDOW) {
             pfrom->smsgData.rateWindowStart = now;
@@ -1441,6 +1446,13 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 pfrom->smsgData.nRateMessages,
                 pfrom->smsgData.nRateBytes,
                 SMSG_RATE_WINDOW);
+            return SMSG_GENERAL_ERROR;
+        }
+
+        if (!pfrom->smsgData.fEnabled && !IsSmsgHandshakeCommand(strCommand)) {
+            LogPrint(BCLog::SMSG,
+                "Ignoring %s from peer %d before SMSG handshake completed.\n",
+                strCommand, pfrom->GetId());
             return SMSG_GENERAL_ERROR;
         }
     }
@@ -1484,6 +1496,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
+        MarkSmsgRelayValidated(pfrom);
 
         std::vector<uint8_t> vchDataOut;
         vchDataOut.reserve(4 + 8 * nInvBuckets); // Reserve max possible size
@@ -1594,6 +1607,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         if (vchData.size() != 4 + nBuckets * 8) {
             return SMSG_GENERAL_ERROR;
         }
+        MarkSmsgRelayValidated(pfrom);
 
         LogPrint(BCLog::SMSG, "smsgShow: peer wants to see content of %u buckets.\n", nBuckets);
 
@@ -1606,6 +1620,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         for (uint32_t i = 0; i < nBuckets; ++i, pIn += 8) {
             memcpy(&time, pIn, 8);
 
+            size_t nTokenSetSize = 0;
             {
                 LOCK(cs_smsg);
                 itb = buckets.find(time);
@@ -1615,10 +1630,12 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 }
 
                 std::set<SecMsgToken> &tokenSet = itb->second.setTokens;
+                nTokenSetSize = tokenSet.size();
+                const size_t nMaxHaveTokens = std::min(nTokenSetSize, static_cast<size_t>(SMSG_MAX_HAVE_TOKENS));
 
-                try { vchDataOut.resize(8 + 16 * tokenSet.size());
+                try { vchDataOut.resize(8 + 16 * nMaxHaveTokens);
                 } catch (std::exception &e) {
-                    LogPrintf("vchDataOut.resize %u threw: %s.\n", 8 + 16 * tokenSet.size(), e.what());
+                    LogPrintf("vchDataOut.resize %u threw: %s.\n", 8 + 16 * nMaxHaveTokens, e.what());
                     continue;
                 }
                 memcpy(&vchDataOut[0], &time, 8);
@@ -1635,14 +1652,21 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
                     p += 16;
                     nMessages++;
+                    if (nMessages >= SMSG_MAX_HAVE_TOKENS) {
+                        break;
+                    }
                 }
-            if (nMessages != tokenSet.size()) {
+            if (nMessages != nMaxHaveTokens) {
                 try { vchDataOut.resize(8 + 16 * nMessages);
                     } catch (std::exception &e) {
                         LogPrintf("vchDataOut.resize %u threw: %s.\n", 8 + 16 * nMessages, e.what());
                         continue;
                     }
                 }
+            }
+            if (nTokenSetSize > SMSG_MAX_HAVE_TOKENS) {
+                LogPrint(BCLog::SMSG, "Truncated smsgHave for bucket %d to %u of %u tokens.\n",
+                    time, SMSG_MAX_HAVE_TOKENS, (unsigned int)nTokenSetSize);
             }
             LogPrintf("SMSG: sending smsgHave to peer=%d addr=%s bucket=%d messages=%u\n",
                 pfrom->GetId(), pfrom->addr.ToString(), time, (unsigned int)((vchDataOut.size() - 8) / 16));
@@ -1685,6 +1709,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
+        MarkSmsgRelayValidated(pfrom);
 
         std::vector<uint8_t> vchDataOut;
 
@@ -1843,7 +1868,9 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             pfrom->GetId(), pfrom->addr.ToString(), (unsigned int)vchData.size());
         LogPrint(BCLog::SMSG, "smsgMsg vchData.size() %u.\n", vchData.size());
 
-        Receive(pfrom, vchData);
+        if (Receive(pfrom, vchData) == SMSG_NO_ERROR) {
+            MarkSmsgRelayValidated(pfrom);
+        }
     } else
     if (strCommand == "smsgMatch") {
         /*
@@ -1859,6 +1886,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
+        MarkSmsgRelayValidated(pfrom);
 
         int64_t time;
         memcpy(&time, &vchData[0], 8);
@@ -1885,9 +1913,24 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         LogPrintf("SMSG: received smsgPong from peer=%d addr=%s, enabling relay\n", pfrom->GetId(), pfrom->addr.ToString());
         LogPrint(BCLog::SMSG, "Peer replied, secure messaging enabled.\n");
 
+        bool fSendValidationProbe = false;
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.fEnabled = true;
+            fSendValidationProbe = !pfrom->smsgData.fValidatedRelay && !pfrom->smsgData.fSentValidationProbe;
+            if (fSendValidationProbe) {
+                pfrom->smsgData.fSentValidationProbe = true;
+            }
+        }
+
+        if (fSendValidationProbe) {
+            uint32_t nProbeBuckets = 0;
+            std::vector<uint8_t> vchData(4);
+            memcpy(vchData.data(), &nProbeBuckets, 4);
+            LogPrint(BCLog::SMSG, "SMSG: sending empty relay validation probe to peer=%d addr=%s\n",
+                pfrom->GetId(), pfrom->addr.ToString());
+            g_connman->PushMessage(pfrom,
+                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgInv", vchData));
         }
     } else
     if (strCommand == "smsgDisabled") {
@@ -1896,6 +1939,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.fEnabled = false;
+            pfrom->smsgData.fValidatedRelay = false;
+            pfrom->smsgData.fSentValidationProbe = false;
         }
     } else
     if (strCommand == "smsgIgnore") {

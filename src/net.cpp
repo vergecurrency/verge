@@ -798,6 +798,7 @@ void CNode::copyStats(CNodeStats &stats)
     {
         LOCK(smsgData.cs_smsg_net);
         stats.fSmsgEnabled = smsgData.fEnabled;
+        stats.fSmsgValidatedRelay = smsgData.fValidatedRelay;
     }
     X(fDisconnect);
     X(nStartingHeight);
