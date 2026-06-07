@@ -40,8 +40,7 @@ static bool HasQueuedOutboxEntry(SecMsgDB &dbSmsg, const uint8_t *outboxKey)
     return dbSmsg.ExistsSmesg(queueKey);
 }
 
- QList<QString> ambiguous; /**< Specifies Ambiguous addresses */
- const QString MessageModel::Sent = "Sent";
+const QString MessageModel::Sent = "Sent";
 const QString MessageModel::Received = "Received";
  struct MessageTableEntryLessThan
 {
@@ -49,6 +48,33 @@ const QString MessageModel::Received = "Received";
     bool operator()(const MessageTableEntry &a, const QDateTime         &b) const {return a.received_datetime < b;}
     bool operator()(const QDateTime         &a, const MessageTableEntry &b) const {return a < b.received_datetime;}
 };
+
+static QString ConversationFilterAddress(const MessageTableEntry& entry)
+{
+    return entry.type == MessageTableEntry::Sent
+        ? entry.to_address + entry.from_address
+        : entry.from_address + entry.to_address;
+}
+
+static QDateTime ConversationTimestamp(const MessageTableEntry& entry)
+{
+    return entry.sent_datetime.isValid() ? entry.sent_datetime : entry.received_datetime;
+}
+
+static bool IsLaterConversationEntry(const MessageTableEntry& candidate, const MessageTableEntry& current)
+{
+    const QDateTime candidateTimestamp = ConversationTimestamp(candidate);
+    const QDateTime currentTimestamp = ConversationTimestamp(current);
+
+    if (candidateTimestamp != currentTimestamp) {
+        return candidateTimestamp > currentTimestamp;
+    }
+    if (candidate.received_datetime != current.received_datetime) {
+        return candidate.received_datetime > current.received_datetime;
+    }
+    return candidate.chKey > current.chKey;
+}
+
  // Private implementation
 class MessageTablePriv
 {
@@ -393,9 +419,7 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
      MessageTableEntry *rec = static_cast<MessageTableEntry*>(index.internalPointer());
-    const QString filter_address = rec->type == MessageTableEntry::Sent
-        ? rec->to_address + rec->from_address
-        : rec->from_address + rec->to_address;
+    const QString filter_address = ConversationFilterAddress(*rec);
     QString messageLabel = rec->label;
     if (rec->type == MessageTableEntry::Sent && walletModel && walletModel->getAddressTableModel()) {
         messageLabel = walletModel->getAddressTableModel()->labelForAddress(rec->from_address).trimmed();
@@ -456,14 +480,15 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     case ShortMessageRole:  return rec->message; // TODO: Short message
     case HTMLRole:          return html;
     case Ambiguous:
-        int it;
-         for (it = 0; it<ambiguous.length(); it++) {
-            if(ambiguous[it] == filter_address)
+        for (const MessageTableEntry& entry : priv->cachedMessageTable) {
+            if (ConversationFilterAddress(entry) != filter_address) {
+                continue;
+            }
+            if (IsLaterConversationEntry(entry, *rec)) {
                 return false;
+            }
         }
-        ambiguous.append(filter_address);
-         return QStringLiteral("true");
-        break;
+        return QStringLiteral("true");
     }
      return QVariant();
 }
@@ -503,9 +528,8 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     endRemoveRows();
      return true;
 }
- void MessageModel::resetFilter()
+void MessageModel::resetFilter()
 {
-    ambiguous.clear();
 }
  void MessageModel::newMessage(const SecMsgStored &smsg)
 {
