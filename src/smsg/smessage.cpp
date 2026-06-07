@@ -326,6 +326,80 @@ uint32_t SMSGGetSecondsInDay()
     return fIsRegTest ? 600 : SMSG_SECONDS_IN_DAY;
 }
 
+int64_t GetSmsgTTLSeconds(const SecureMessage& smsg)
+{
+    if (smsg.version[0] == 3) {
+        return static_cast<int64_t>(smsg.nonce[0]) * SMSGGetSecondsInDay();
+    }
+
+    return 2 * static_cast<int64_t>(SMSGGetSecondsInDay());
+}
+
+bool IsSmsgExpired(const SecureMessage& smsg, int64_t now)
+{
+    const int64_t ttlSeconds = GetSmsgTTLSeconds(smsg);
+    return ttlSeconds > 0 && smsg.timestamp + ttlSeconds < now;
+}
+
+int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut, uint32_t* lenDataOut, uint32_t* lenPlainOut)
+{
+    if (vchPayload.empty()) {
+        return SMSG_GENERAL_ERROR;
+    }
+
+    bool fFromAnonymous = false;
+    uint32_t lenData = 0;
+    uint32_t lenPlain = 0;
+
+    if (vchPayload[0] == 250) {
+        if (vchPayload.size() < 9) {
+            return SMSG_GENERAL_ERROR;
+        }
+        fFromAnonymous = true;
+        lenData = vchPayload.size() - 9;
+        memcpy(&lenPlain, &vchPayload[5], 4);
+        if (lenPlain > SMSG_MAX_AMSG_BYTES) {
+            return SMSG_MESSAGE_TOO_LONG;
+        }
+    } else {
+        if (vchPayload.size() < SMSG_PL_HDR_LEN) {
+            return SMSG_GENERAL_ERROR;
+        }
+        fFromAnonymous = false;
+        lenData = vchPayload.size() - SMSG_PL_HDR_LEN;
+        memcpy(&lenPlain, &vchPayload[1 + 20 + 65], 4);
+        if (lenPlain > SMSG_MAX_MSG_BYTES) {
+            return SMSG_MESSAGE_TOO_LONG;
+        }
+    }
+
+    if (lenPlain <= 128) {
+        if (lenData != lenPlain) {
+            return SMSG_GENERAL_ERROR;
+        }
+    } else {
+        if (lenData == 0) {
+            return SMSG_GENERAL_ERROR;
+        }
+        const int maxCompressedLen = LZ4_compressBound(lenPlain);
+        if (maxCompressedLen <= 0 || lenData > static_cast<uint32_t>(maxCompressedLen)) {
+            return SMSG_GENERAL_ERROR;
+        }
+    }
+
+    if (fFromAnonymousOut) {
+        *fFromAnonymousOut = fFromAnonymous;
+    }
+    if (lenDataOut) {
+        *lenDataOut = lenData;
+    }
+    if (lenPlainOut) {
+        *lenPlainOut = lenPlain;
+    }
+
+    return SMSG_NO_ERROR;
+}
+
 std::string SecMsgToken::ToString() const
 {
     return strprintf("%d-%08x", timestamp, *((uint64_t*)sample));
@@ -3371,6 +3445,9 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
     if (psmsg->timestamp < now - SMSG_RETENTION) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Message < SMSG_RETENTION.", __func__);
     }
+    if (IsSmsgExpired(*psmsg, now)) {
+        return errorN(SMSG_TIME_EXPIRED, "%s: Message TTL expired.", __func__);
+    }
 
     int64_t bucket = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
 
@@ -3428,6 +3505,9 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
     if (psmsg->timestamp < now - SMSG_RETENTION) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Message < SMSG_RETENTION.", __func__);
+    }
+    if (IsSmsgExpired(*psmsg, now)) {
+        return errorN(SMSG_TIME_EXPIRED, "%s: Message TTL expired.", __func__);
     }
 
     int64_t bucketTime = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
@@ -3588,6 +3668,11 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
 
     if (!IsCurrentUnpaidSmsgVersion(*psmsg))
         return SMSG_UNKNOWN_VERSION;
+
+    if (IsSmsgExpired(*psmsg, now)) {
+        LogPrint(BCLog::SMSG, "Message expired by TTL, timestamp %d.\n", psmsg->timestamp);
+        return SMSG_TIME_EXPIRED;
+    }
 
     uint8_t civ[32];
     uint8_t sha256Hash[32];
@@ -3887,6 +3972,12 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         LogPrintf("SecureMsgSend(%s, %s, ...)\n",
             fSendAnonymous ? "anon" : CBitcoinAddress(addressFrom).ToString(), CBitcoinAddress(addressTo).ToString());
     }
+    LogPrint(BCLog::SMSG, "SMSG send start: from=%s to=%s bytes=%u paid=%u from_file=%u\n",
+        fSendAnonymous ? "anon" : CBitcoinAddress(addressFrom).ToString(),
+        CBitcoinAddress(addressTo).ToString(),
+        static_cast<unsigned int>(message.size()),
+        fPaid ? 1 : 0,
+        fFromFile ? 1 : 0);
 
     if (!pwallet) {
         return errorN(SMSG_WALLET_LOCKED, sError, "%s: Wallet is not enabled", __func__);
@@ -3944,8 +4035,10 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     smsg = SecureMessage(fPaid, nDaysRetention);
     if ((rv = Encrypt(smsg, addressFrom, addressTo, sData)) != 0) {
         sError = GetString(rv);
+        LogPrint(BCLog::SMSG, "SMSG send failed during encryption: code=%d error=%s\n", rv, sError);
         return errorN(rv, "%s: %s.", __func__, sError);
     }
+    LogPrint(BCLog::SMSG, "SMSG send encrypted network payload: timestamp=%d payload=%u\n", smsg.timestamp, smsg.nPayload);
 
     if (fPaid) {
         if (0 != FundMsg(smsg, sError, fTestFee, nFee)) {
@@ -3958,6 +4051,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     } else {
         // HACK: Premine so hash unpaid outbox hashes match, remove with unpaid messages
         if (SMSG_NO_ERROR != SetHash((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)) {
+            LogPrint(BCLog::SMSG, "SMSG send failed during PoW hash generation.\n");
             return errorN(SMSG_FUND_FAILED, "%s: SetHash failed %s.", __func__, sError);
         }
     }
@@ -3994,10 +4088,15 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             std::string storageReason;
             if (!HasSmsgStorageCapacity(smsgSQ.vchMessage.size(), &storageReason)) {
                 sError = storageReason;
+                LogPrint(BCLog::SMSG, "SMSG send queue storage rejected: %s\n", sError);
                 return SMSG_STORE_FULL;
             }
             dbSendQueue.WriteSmesg(chKey, smsgSQ);
+            LogPrint(BCLog::SMSG, "SMSG send queued network message: key=%s bytes=%u\n",
+                HexStr(chKey, chKey + sizeof(chKey)), static_cast<unsigned int>(smsgSQ.vchMessage.size()));
             //NotifySecMsgSendQueueChanged(smsgOutbox);
+        } else {
+            LogPrint(BCLog::SMSG, "SMSG send failed opening send queue database.\n");
         }
     } // cs_smsgDB
 
@@ -4076,10 +4175,15 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                     std::string storageReason;
                     if (!HasSmsgStorageCapacity(smsgOutbox.vchMessage.size(), &storageReason)) {
                         sError = storageReason;
+                        LogPrint(BCLog::SMSG, "SMSG outbox storage rejected: %s\n", sError);
                         return SMSG_STORE_FULL;
                     }
                     dbSent.WriteSmesg(chKey, smsgOutbox);
                     NotifySecMsgOutboxChanged(smsgOutbox);
+                    LogPrint(BCLog::SMSG, "SMSG outbox saved sent copy: key=%s bytes=%u\n",
+                        HexStr(chKey, chKey + sizeof(chKey)), static_cast<unsigned int>(smsgOutbox.vchMessage.size()));
+                } else {
+                    LogPrint(BCLog::SMSG, "SMSG send failed opening outbox database.\n");
                 }
             } // cs_smsgDB
         }
@@ -4218,46 +4322,15 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
 
     uint8_t *pMsgData;
     bool fFromAnonymous;
-    if (vchPayload.empty()) {
-        return errorN(SMSG_GENERAL_ERROR, "%s: Decrypted payload is empty.", __func__);
+    const int shapeRv = ValidateDecryptedPayloadShape(vchPayload, &fFromAnonymous, &lenData, &lenPlain);
+    if (shapeRv != SMSG_NO_ERROR) {
+        return errorN(shapeRv, "%s: Decrypted payload shape is invalid.", __func__);
     }
 
-    if ((uint32_t)vchPayload[0] == 250) {
-        if (vchPayload.size() < 9) {
-            return errorN(SMSG_GENERAL_ERROR, "%s: Anonymous payload header is too short.", __func__);
-        }
-        fFromAnonymous = true;
-        lenData = vchPayload.size() - (9);
-        memcpy(&lenPlain, &vchPayload[5], 4);
+    if (fFromAnonymous) {
         pMsgData = &vchPayload[9];
-        if (lenPlain > SMSG_MAX_AMSG_BYTES) {
-            return errorN(SMSG_MESSAGE_TOO_LONG, "%s: Anonymous message is too long, %u > %u.", __func__, lenPlain, SMSG_MAX_AMSG_BYTES);
-        }
     } else {
-        if (vchPayload.size() < SMSG_PL_HDR_LEN) {
-            return errorN(SMSG_GENERAL_ERROR, "%s: Signed payload header is too short.", __func__);
-        }
-        fFromAnonymous = false;
-        lenData = vchPayload.size() - (SMSG_PL_HDR_LEN);
-        memcpy(&lenPlain, &vchPayload[1+20+65], 4);
         pMsgData = &vchPayload[SMSG_PL_HDR_LEN];
-        if (lenPlain > SMSG_MAX_MSG_BYTES) {
-            return errorN(SMSG_MESSAGE_TOO_LONG, "%s: Message is too long, %u > %u.", __func__, lenPlain, SMSG_MAX_MSG_BYTES);
-        }
-    }
-
-    if (lenPlain <= 128) {
-        if (lenData != lenPlain) {
-            return errorN(SMSG_GENERAL_ERROR, "%s: Plaintext payload length mismatch, declared %u got %u.", __func__, lenPlain, lenData);
-        }
-    } else {
-        if (lenData == 0) {
-            return errorN(SMSG_GENERAL_ERROR, "%s: Compressed payload is empty.", __func__);
-        }
-        const int maxCompressedLen = LZ4_compressBound(lenPlain);
-        if (maxCompressedLen <= 0 || lenData > static_cast<uint32_t>(maxCompressedLen)) {
-            return errorN(SMSG_GENERAL_ERROR, "%s: Compressed payload length is invalid, declared %u compressed %u.", __func__, lenPlain, lenData);
-        }
     }
 
     try {

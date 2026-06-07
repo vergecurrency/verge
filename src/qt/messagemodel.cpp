@@ -358,6 +358,11 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
         std::string pubkey  = rcp.pubkey.toStdString();
         std::string message = rcp.message.toStdString();
         std::string addFrom = addressFrom.toStdString();
+        LogPrint(BCLog::SMSG, "SMSG UI send request: from=%s to=%s bytes=%u has_pubkey=%u\n",
+            addFrom,
+            sendTo,
+            static_cast<unsigned int>(message.size()),
+            pubkey.empty() ? 0 : 1);
         if (!pubkey.empty()) {
             smsgModule.AddAddress(sendTo, pubkey);
         }

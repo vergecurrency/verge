@@ -37,6 +37,7 @@
 #include <util/system.h>
 #include <chain.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -1522,21 +1523,32 @@ void VERGEGUI::updateSmsgStatusIcon()
     interfaces::Node::NodesStats nodeStats;
     bool hasSmsgPeer = false;
     int smsgPeerCount = 0;
+    int advertisedSmsgPeerCount = 0;
+    int pendingSmsgPeerCount = 0;
     if (m_node.getNetworkActive() && m_node.getNodesStats(nodeStats)) {
         for (const auto& nodeStat : nodeStats) {
             const CNodeStats& stats = std::get<0>(nodeStat);
+            if ((stats.nServices & NODE_SMSG) && !stats.fDisconnect) {
+                ++advertisedSmsgPeerCount;
+            }
             if (IsCountableSmsgPeer(stats)) {
                 hasSmsgPeer = true;
                 ++smsgPeerCount;
             }
         }
     }
+    pendingSmsgPeerCount = std::max(0, advertisedSmsgPeerCount - smsgPeerCount);
 
     const QColor color = hasSmsgPeer ? QColor(82, 225, 116) : QColor(255, 86, 113);
     labelSmsgIcon->setPixmap(CreateChatBubblePixmap(color));
     labelSmsgIcon->setToolTip(hasSmsgPeer
-        ? tr("Secure messaging relay is connected to %n SMSG peer(s).", "", smsgPeerCount)
-        : tr("Secure messaging relay has no connected SMSG peers."));
+        ? tr("Secure messaging relay is ready.<br>Validated SMSG peers: %1<br>Pending SMSG peers: %2<br>Total peers: %3")
+            .arg(smsgPeerCount)
+            .arg(pendingSmsgPeerCount)
+            .arg(nodeStats.size())
+        : tr("Secure messaging relay is not ready.<br>Validated SMSG peers: 0<br>Pending SMSG peers: %1<br>Total peers: %2")
+            .arg(pendingSmsgPeerCount)
+            .arg(nodeStats.size()));
 }
 
 void VERGEGUI::setNumConnections(int count)

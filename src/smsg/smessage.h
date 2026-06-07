@@ -172,6 +172,7 @@ const unsigned int SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTE
 
 static const int MIN_SMSG_PROTO_VERSION = 90007;
 
+int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut = nullptr, uint32_t* lenDataOut = nullptr, uint32_t* lenPlainOut = nullptr);
 
 const CAmount nFundingTxnFeePerK = 200000;
 const CAmount nMsgFeePerKPerDay =   50000;
