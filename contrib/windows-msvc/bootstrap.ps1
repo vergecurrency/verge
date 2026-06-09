@@ -249,7 +249,7 @@ function Install-Boost {
     if ($LASTEXITCODE -ne 0) {
         throw "Boost bootstrap failed"
     }
-    cmd.exe /c "b2.exe --prefix=`"$InstallRoot`" toolset=msvc address-model=64 variant=release link=static runtime-link=shared threading=multi --with-chrono --with-filesystem --with-program_options --with-system --with-thread install"
+    cmd.exe /c "b2.exe --prefix=`"$InstallRoot`" toolset=msvc address-model=64 variant=release link=static runtime-link=shared threading=multi --with-chrono --with-filesystem --with-program_options --with-thread install"
     if ($LASTEXITCODE -ne 0) {
         throw "Boost build failed"
     }
