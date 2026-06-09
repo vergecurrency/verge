@@ -2984,6 +2984,14 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
     else {
         if (smsg::fSecMsgEnabled && strCommand.rfind("smsg", 0) == 0) {
+            if (!(pfrom->nServices.load() & NODE_SMSG)) {
+                LogPrint(BCLog::SMSG,
+                    "Ignoring secure message command \"%s\" from peer=%d without NODE_SMSG.\n",
+                    SanitizeString(strCommand),
+                    pfrom->GetId());
+                return true;
+            }
+
             const int rv = smsgModule.ReceiveData(pfrom, strCommand, vRecv);
             if (rv == smsg::SMSG_NO_ERROR) {
                 return true;
@@ -3832,7 +3840,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
             }
         }
 
-        if (smsg::fSecMsgEnabled) {
+        if (smsg::fSecMsgEnabled && (pto->nServices.load() & NODE_SMSG)) {
             smsgModule.SendData(pto, true);
         }
     }

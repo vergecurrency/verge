@@ -1398,6 +1398,7 @@ bool AppInitMain()
         if(!gArgs.GetBoolArg("-dynamic-network", false)) {
             SetProxy(NET_IPV4, addrOnion);
             SetProxy(NET_IPV6, addrOnion);
+            SetNameProxy(addrOnion);
         }
 
         SetLimited(NET_TOR, false);
