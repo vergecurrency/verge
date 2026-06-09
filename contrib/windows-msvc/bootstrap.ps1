@@ -245,7 +245,7 @@ function Install-Boost {
     }
 
     Push-Location $sourceRoot
-    cmd.exe /c "bootstrap.bat"
+    cmd.exe /c "bootstrap.bat msvc"
     if ($LASTEXITCODE -ne 0) {
         throw "Boost bootstrap failed"
     }
