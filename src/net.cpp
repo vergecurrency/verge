@@ -285,6 +285,39 @@ bool IsLimited(const CNetAddr &addr)
     return IsLimited(addr.GetNetwork());
 }
 
+static bool HostEndsWithOnion(std::string host)
+{
+    Downcase(host);
+    return host.size() > 6 && host.compare(host.size() - 6, 6, ".onion") == 0;
+}
+
+static bool IsLimitedDestination(const std::string& strDest, int default_port)
+{
+    int port = default_port;
+    std::string host;
+    SplitHostPort(strDest, port, host);
+
+    if (host.empty()) {
+        return false;
+    }
+
+    CNetAddr special;
+    if (special.SetSpecial(host)) {
+        return IsLimited(special);
+    }
+
+    if (HostEndsWithOnion(host)) {
+        return IsLimited(NET_TOR);
+    }
+
+    CService numeric = LookupNumeric(strDest.c_str(), default_port);
+    if (numeric.IsValid()) {
+        return IsLimited(numeric);
+    }
+
+    return IsLimited(NET_IPV4) && IsLimited(NET_IPV6);
+}
+
 /** vote for a local address */
 bool SeenLocal(const CService& addr)
 {
@@ -475,7 +508,18 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
     if (pszDest) {
         std::vector<CService> resolved;
         if (Lookup(pszDest, resolved,  default_port, fNameLookup && !HaveNameProxy(), 256) && !resolved.empty()) {
-            addrConnect = CAddress(resolved[GetRand(resolved.size())], NODE_NONE);
+            std::vector<CService> reachable;
+            reachable.reserve(resolved.size());
+            for (const CService& service : resolved) {
+                if (!IsLimited(service)) {
+                    reachable.push_back(service);
+                }
+            }
+            if (reachable.empty()) {
+                LogPrint(BCLog::NET, "Skipping connection to %s: resolved addresses are limited by network mode\n", pszDest);
+                return nullptr;
+            }
+            addrConnect = CAddress(reachable[GetRand(reachable.size())], NODE_NONE);
             if (!addrConnect.IsValid()) {
                 LogPrint(BCLog::NET, "Resolver returned invalid address %s for %s\n", addrConnect.ToString(), pszDest);
                 return nullptr;
@@ -509,6 +553,10 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
     SOCKET hSocket = INVALID_SOCKET;
     proxyType proxy;
     if (addrConnect.IsValid()) {
+        if (IsLimited(addrConnect)) {
+            LogPrint(BCLog::NET, "Skipping connection to %s: network limited by current mode\n", addrConnect.ToString());
+            return nullptr;
+        }
         bool proxyConnectionFailed = false;
 
         if (GetProxy(addrConnect.GetNetwork(), proxy)) {
@@ -531,6 +579,10 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
             addrman.Attempt(addrConnect, fCountFailure);
         }
     } else if (pszDest && GetNameProxy(proxy)) {
+        if (IsLimitedDestination(pszDest, default_port)) {
+            LogPrint(BCLog::NET, "Skipping connection to %s: destination limited by current network mode\n", pszDest);
+            return nullptr;
+        }
         hSocket = CreateSocket(proxy.proxy);
         if (hSocket == INVALID_SOCKET) {
             return nullptr;
@@ -1722,7 +1774,9 @@ void CConnman::ThreadDNSAddressSeed()
             return;
         }
         if (HaveNameProxy()) {
-            AddOneShot(seed);
+            if (!IsLimitedDestination(seed, Params().GetDefaultPort())) {
+                AddOneShot(seed);
+            }
         } else {
             std::vector<CNetAddr> vIPs;
             std::vector<CAddress> vAdd;
@@ -1737,6 +1791,9 @@ void CConnman::ThreadDNSAddressSeed()
             {
                 for (const CNetAddr& ip : vIPs)
                 {
+                    if (IsLimited(ip)) {
+                        continue;
+                    }
                     int nOneDay = 24*3600;
                     CAddress addr = CAddress(CService(ip, Params().GetDefaultPort()), requiredServiceBits);
                     addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
@@ -1746,7 +1803,9 @@ void CConnman::ThreadDNSAddressSeed()
                 addrman.Add(vAdd, resolveSource);
             } else {
                 LogPrintf("One Shot the seed: %s\n", seed);
-                AddOneShot(seed);
+                if (!IsLimitedDestination(seed, Params().GetDefaultPort())) {
+                    AddOneShot(seed);
+                }
             }
         }
     }
@@ -2089,12 +2148,18 @@ void CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFai
         return;
     }
     if (!pszDest) {
-        if (IsLocal(addrConnect) ||
+        if (IsLimited(addrConnect) || IsLocal(addrConnect) ||
             FindNode(static_cast<CNetAddr>(addrConnect)) || IsBanned(addrConnect) ||
             FindNode(addrConnect.ToStringIPPort()))
             return;
-    } else if (FindNode(std::string(pszDest)))
-        return;
+    } else {
+        if (IsLimitedDestination(pszDest, Params().GetDefaultPort())) {
+            LogPrint(BCLog::NET, "Skipping connection to %s: destination limited by current network mode\n", pszDest);
+            return;
+        }
+        if (FindNode(std::string(pszDest)))
+            return;
+    }
 
     CNode* pnode = ConnectNode(addrConnect, pszDest, fCountFailure, manual_connection);
 
