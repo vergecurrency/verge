@@ -1964,8 +1964,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
-        MarkSmsgRelayValidated(pfrom);
-
         int64_t time;
         memcpy(&time, &vchData[0], 8);
 
@@ -3279,10 +3277,13 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
     }
 
     uint32_t n = 12;
+    bool fMalformedBunch = false;
 
     for (uint32_t i = 0; i < nBunch; ++i) {
         if (vchData.size() - n < SMSG_HDR_LEN) {
             LogPrintf("Error: not enough data sent, n = %u.\n", n);
+            Misbehaving(pfrom->GetId(), 1);
+            fMalformedBunch = true;
             break;
         }
 
@@ -3291,6 +3292,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
             LogPrintf("Error: message payload overruns smsgMsg bunch, n = %u, payload = %u, size = %u.\n",
                 n, psmsg->nPayload, (unsigned int)vchData.size());
             Misbehaving(pfrom->GetId(), 1);
+            fMalformedBunch = true;
             break;
         }
 
@@ -3345,6 +3347,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
             // Store message, but don't hash bucket
             if (Store(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload, false) != 0) {
                 // Message dropped
+                fMalformedBunch = true;
                 break;
             }
 
@@ -3370,7 +3373,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         itb->second.hashBucket();
     } // cs_smsg
 
-    return SMSG_NO_ERROR;
+    return fMalformedBunch ? SMSG_GENERAL_ERROR : SMSG_NO_ERROR;
 };
 
 int CSMSG::CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload)
