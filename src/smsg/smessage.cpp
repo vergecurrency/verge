@@ -114,6 +114,11 @@ void MarkSmsgRelayValidated(CNode* pfrom)
     }
 }
 
+bool IsSmsgBucketTimeAligned(int64_t time)
+{
+    return time >= 0 && time % smsg::SMSG_BUCKET_LEN == 0;
+}
+
 size_t MaxSmsgVectorPayloadBytes(const std::string& command)
 {
     if (command == "smsgInv") {
@@ -1555,7 +1560,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             }
         }
 
-        uint32_t nBuckets = buckets.size();
+        uint32_t nBuckets = 0;
+        {
+            LOCK(cs_smsg);
+            nBuckets = buckets.size();
+        }
         uint32_t nLocked = 0;           // no. of locked buckets on this node
         uint32_t nInvBuckets;           // no. of bucket headers sent by peer in smsgInv
         memcpy(&nInvBuckets, &vchData[0], 4);
@@ -1605,6 +1614,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 Misbehaving(pfrom->GetId(), 1);
                 continue;
             }
+            if (!IsSmsgBucketTimeAligned(time)) {
+                LogPrintf("Peer sent unaligned SMSG bucket time %d.\n", time);
+                Misbehaving(pfrom->GetId(), 1);
+                continue;
+            }
 
             if (ncontent < 1) {
                 LogPrint(BCLog::SMSG, "Peer sent empty bucket, ignore %d %u %u.\n", time, ncontent, hash);
@@ -1616,23 +1630,30 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 continue;
             }
 
-            if (LogAcceptCategory(BCLog::SMSG)) {
-                LogPrintf("Peer bucket %d %u %u.\n", time, ncontent, hash);
-                LogPrintf("This bucket %d %u %u.\n", time, buckets[time].setTokens.size(), buckets[time].hash);
-            }
             {
                 LOCK(cs_smsg);
-                if (buckets[time].nLockCount > 0) {
-                    LogPrint(BCLog::SMSG, "Bucket is locked %u, waiting for peer %u to send data.\n", buckets[time].nLockCount, buckets[time].nLockPeerId);
+                const auto bucketIt = buckets.find(time);
+                const bool fHaveBucket = bucketIt != buckets.end();
+                const size_t localTokenCount = fHaveBucket ? bucketIt->second.setTokens.size() : 0;
+                const uint32_t localHash = fHaveBucket ? bucketIt->second.hash : 0;
+
+                if (LogAcceptCategory(BCLog::SMSG)) {
+                    LogPrintf("Peer bucket %d %u %u.\n", time, ncontent, hash);
+                    LogPrintf("This bucket %d %u %u.\n", time, (unsigned int)localTokenCount, localHash);
+                }
+
+                if (fHaveBucket && bucketIt->second.nLockCount > 0) {
+                    LogPrint(BCLog::SMSG, "Bucket is locked %u, waiting for peer %u to send data.\n",
+                        bucketIt->second.nLockCount, bucketIt->second.nLockPeerId);
                     nLocked++;
                     continue;
                 }
 
                 // If this node has more than the peer node, peer node will pull from this
                 //  if then peer node has more this node will pull fom peer
-                if (buckets[time].setTokens.size() < ncontent
-                    || (buckets[time].setTokens.size() == ncontent
-                        && buckets[time].hash != hash)) { // if same amount in buckets check hash
+                if (localTokenCount < ncontent
+                    || (localTokenCount == ncontent
+                        && localHash != hash)) { // if same amount in buckets check hash
                     LogPrint(BCLog::SMSG, "Requesting contents of bucket %d.\n", time);
 
                     uint32_t sz = vchDataOut.size();
@@ -1695,8 +1716,14 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         std::vector<uint8_t> vchDataOut;
         int64_t time;
         uint8_t *pIn = &vchData[4];
+        int64_t now = GetAdjustedTime();
         for (uint32_t i = 0; i < nBuckets; ++i, pIn += 8) {
             memcpy(&time, pIn, 8);
+            if (time < now - SMSG_RETENTION || time > now + SMSG_TIME_LEEWAY || !IsSmsgBucketTimeAligned(time)) {
+                LogPrintf("Peer requested invalid SMSG bucket time %d.\n", time);
+                Misbehaving(pfrom->GetId(), 1);
+                continue;
+            }
 
             size_t nTokenSetSize = 0;
             {
@@ -1787,14 +1814,21 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
+        if (!IsSmsgBucketTimeAligned(time)) {
+            LogPrintf("Peer sent unaligned SMSG bucket time %d.\n", time);
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
         MarkSmsgRelayValidated(pfrom);
 
         std::vector<uint8_t> vchDataOut;
 
         {
             LOCK(cs_smsg);
-            if (buckets[time].nLockCount > 0) {
-                LogPrint(BCLog::SMSG, "Bucket %d lock count %u, waiting for message data from peer %u.\n", time, buckets[time].nLockCount, buckets[time].nLockPeerId);
+            auto bucketIt = buckets.find(time);
+            if (bucketIt != buckets.end() && bucketIt->second.nLockCount > 0) {
+                LogPrint(BCLog::SMSG, "Bucket %d lock count %u, waiting for message data from peer %u.\n",
+                    time, bucketIt->second.nLockCount, bucketIt->second.nLockPeerId);
                 return SMSG_GENERAL_ERROR;
             }
 
@@ -1803,8 +1837,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             vchDataOut.resize(8);
             memcpy(&vchDataOut[0], &vchData[0], 8);
 
-            std::set<SecMsgToken> &tokenSet = buckets[time].setTokens;
-            std::set<SecMsgToken>::iterator it;
             SecMsgToken token;
             SecMsgPurged purgedToken;
             uint8_t *p = &vchData[8];
@@ -1821,8 +1853,9 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     }
                 }
 
-                it = tokenSet.find(token);
-                if (it == tokenSet.end()) {
+                const bool fHaveToken = bucketIt != buckets.end()
+                    && bucketIt->second.setTokens.find(token) != bucketIt->second.setTokens.end();
+                if (!fHaveToken) {
                     int nd = vchDataOut.size();
                     try {
                         vchDataOut.resize(nd + 16);
@@ -1843,8 +1876,9 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             }
             {
                 LOCK(cs_smsg);
-                buckets[time].nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
-                buckets[time].nLockPeerId  = pfrom->GetId();
+                SecMsgBucket &bucket = buckets[time];
+                bucket.nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
+                bucket.nLockPeerId  = pfrom->GetId();
             }
             LogPrintf("SMSG: sending smsgWant to peer=%d addr=%s bucket=%d messages=%u\n",
                 pfrom->GetId(), pfrom->addr.ToString(), time, (unsigned int)((vchDataOut.size() - 8) / 16));
@@ -1878,6 +1912,12 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         int64_t time;
         uint32_t nBunch = 0;
         memcpy(&time, &vchData[0], 8);
+        int64_t now = GetAdjustedTime();
+        if (time < now - SMSG_RETENTION || time > now + SMSG_TIME_LEEWAY || !IsSmsgBucketTimeAligned(time)) {
+            LogPrintf("Peer requested invalid SMSG bucket time %d.\n", time);
+            Misbehaving(pfrom->GetId(), 1);
+            return SMSG_GENERAL_ERROR;
+        }
 
         {
             LOCK(cs_smsg);
@@ -3259,6 +3299,11 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         // misbehave?
         return SMSG_GENERAL_ERROR;
     }
+    if (!IsSmsgBucketTimeAligned(bktTime)) {
+        LogPrintf("Peer sent unaligned smsgMsg bucket time %d.\n", bktTime);
+        Misbehaving(pfrom->GetId(), 1);
+        return SMSG_GENERAL_ERROR;
+    }
 
     std::map<int64_t, SecMsgBucket>::iterator itb;
 
@@ -3280,7 +3325,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
     bool fMalformedBunch = false;
 
     for (uint32_t i = 0; i < nBunch; ++i) {
-        if (vchData.size() - n < SMSG_HDR_LEN) {
+        if (n > vchData.size() || vchData.size() - n < SMSG_HDR_LEN) {
             LogPrintf("Error: not enough data sent, n = %u.\n", n);
             Misbehaving(pfrom->GetId(), 1);
             fMalformedBunch = true;
