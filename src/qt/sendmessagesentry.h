@@ -31,6 +31,7 @@ public:
     void setValue(const SendMessagesRecipient& value);
     void loadRow(int row);
     void setRemoveEnabled(bool enabled);
+    void setPaidMessageEnabled(bool enabled);
     QWidget* setupTabChain(QWidget* prev);
     void setFocus();
 
@@ -55,6 +56,7 @@ private:
     Ui::SendMessagesEntry* ui;
     MessageModel* model;
     QLabel* messageCountLabel;
+    bool paidMessageEnabled;
 };
 
 #endif // VERGE_QT_SENDMESSAGESENTRY_H

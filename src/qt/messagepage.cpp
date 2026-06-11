@@ -22,6 +22,8 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QTimer>
+#include <QCheckBox>
+#include <QSpinBox>
 #include <logging.h>
 #include <sstream>
 #define NUM_ITEMS 3
@@ -102,6 +104,9 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     flushButton(nullptr),
     addressBookButton(nullptr),
     storageLabel(nullptr),
+    paidMessageCheckBox(nullptr),
+    retentionDaysSpinBox(nullptr),
+    paidFeeLabel(nullptr),
     storageRefreshTimer(nullptr)
 {
     LogPrintf("GUI: MessagePage ctor begin\n");
@@ -152,7 +157,26 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     messageCountLabel->setStyleSheet("color: rgb(92, 255, 122);");
     ui->horizontalLayout->insertWidget(2, messageCountLabel);
 
+    paidMessageCheckBox = new QCheckBox(tr("Paid v3"), this);
+    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Fee: 0.1 XVG."));
+    paidMessageCheckBox->setStyleSheet("color: rgb(92, 255, 122);");
+    ui->horizontalLayout->insertWidget(3, paidMessageCheckBox);
+
+    retentionDaysSpinBox = new QSpinBox(this);
+    retentionDaysSpinBox->setRange(1, 31);
+    retentionDaysSpinBox->setValue(1);
+    retentionDaysSpinBox->setSuffix(tr(" days"));
+    retentionDaysSpinBox->setEnabled(false);
+    retentionDaysSpinBox->setToolTip(tr("Paid v3 message retention."));
+    ui->horizontalLayout->insertWidget(4, retentionDaysSpinBox);
+
+    paidFeeLabel = new QLabel(tr("Fee: 0.1 XVG"), this);
+    paidFeeLabel->setStyleSheet("color: rgb(92, 255, 122);");
+    paidFeeLabel->setVisible(false);
+    ui->horizontalLayout->insertWidget(5, paidFeeLabel);
+
     connect(ui->messageEdit, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
+    connect(paidMessageCheckBox, SIGNAL(toggled(bool)), this, SLOT(updatePaidMessageControls()));
 
     addressBookButton = new QPushButton(tr("Address &Book"), this);
     addressBookButton->setToolTip(tr("Open local chat-enabled addresses and share chatkey QR payloads"));
@@ -240,9 +264,11 @@ void MessagePage::on_sendButton_clicked()
     recipients.append(recipient);
 
     const QString fromAddress = replyFromAddress.isEmpty() ? QStringLiteral("anon") : replyFromAddress;
+    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
+    const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 1;
     const MessageModel::StatusCode status = fromAddress == QLatin1String("anon")
-        ? model->sendMessages(recipients)
-        : model->sendMessages(recipients, fromAddress);
+        ? model->sendMessages(recipients, paidMessage, retentionDays)
+        : model->sendMessages(recipients, fromAddress, paidMessage, retentionDays);
 
     if (status != MessageModel::OK) {
         QMessageBox::warning(this, tr("Send Secure Message"),
@@ -532,10 +558,13 @@ void MessagePage::updateMessageCountdown()
         return;
     }
 
+    const int maxBytes = paidMessageCheckBox && paidMessageCheckBox->isChecked()
+        ? static_cast<int>(smsg::SMSG_MAX_MSG_BYTES_PAID)
+        : static_cast<int>(smsg::SMSG_MAX_MSG_BYTES);
     QString text = plainMessageEdit->toPlainText();
     QByteArray utf8 = text.toUtf8();
-    if (utf8.size() > static_cast<int>(smsg::SMSG_MAX_MSG_BYTES)) {
-        utf8.truncate(smsg::SMSG_MAX_MSG_BYTES);
+    if (utf8.size() > maxBytes) {
+        utf8.truncate(maxBytes);
         const QString truncated = QString::fromUtf8(utf8);
         if (truncated != text) {
             plainMessageEdit->blockSignals(true);
@@ -549,8 +578,20 @@ void MessagePage::updateMessageCountdown()
         }
     }
 
-    const int remaining = static_cast<int>(smsg::SMSG_MAX_MSG_BYTES) - utf8.size();
+    const int remaining = maxBytes - utf8.size();
     messageCountLabel->setText(tr("Characters left: %1").arg(remaining));
+}
+
+void MessagePage::updatePaidMessageControls()
+{
+    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
+    if (retentionDaysSpinBox) {
+        retentionDaysSpinBox->setEnabled(paidMessage);
+    }
+    if (paidFeeLabel) {
+        paidFeeLabel->setVisible(paidMessage);
+    }
+    updateMessageCountdown();
 }
  void MessagePage::exportClicked()
 {

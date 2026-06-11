@@ -21,7 +21,8 @@ SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
     QFrame(parent),
     ui(new Ui::SendMessagesEntry),
     model(nullptr),
-    messageCountLabel(nullptr)
+    messageCountLabel(nullptr),
+    paidMessageEnabled(false)
 {
     ui->setupUi(this);
 
@@ -147,6 +148,12 @@ void SendMessagesEntry::setRemoveEnabled(bool enabled)
     ui->deleteButton->setEnabled(enabled);
 }
 
+void SendMessagesEntry::setPaidMessageEnabled(bool enabled)
+{
+    paidMessageEnabled = enabled;
+    updateMessageCountdown();
+}
+
 QWidget* SendMessagesEntry::setupTabChain(QWidget* prev)
 {
     QWidget::setTabOrder(prev, ui->sendTo);
@@ -233,11 +240,14 @@ void SendMessagesEntry::enforceMessageLimit()
 {
     QString text = ui->messageText->toPlainText();
     QByteArray utf8 = text.toUtf8();
-    if (utf8.size() <= static_cast<int>(smsg::SMSG_MAX_MSG_BYTES)) {
+    const int maxBytes = paidMessageEnabled
+        ? static_cast<int>(smsg::SMSG_MAX_MSG_BYTES_PAID)
+        : static_cast<int>(smsg::SMSG_MAX_MSG_BYTES);
+    if (utf8.size() <= maxBytes) {
         return;
     }
 
-    utf8.truncate(smsg::SMSG_MAX_MSG_BYTES);
+    utf8.truncate(maxBytes);
     const QString truncated = QString::fromUtf8(utf8);
     if (truncated == text) {
         return;
@@ -258,6 +268,9 @@ void SendMessagesEntry::updateMessageCountdown()
         return;
     }
 
-    const int remaining = static_cast<int>(smsg::SMSG_MAX_MSG_BYTES) - ui->messageText->toPlainText().toUtf8().size();
+    const int maxBytes = paidMessageEnabled
+        ? static_cast<int>(smsg::SMSG_MAX_MSG_BYTES_PAID)
+        : static_cast<int>(smsg::SMSG_MAX_MSG_BYTES);
+    const int remaining = maxBytes - ui->messageText->toPlainText().toUtf8().size();
     messageCountLabel->setText(tr("Characters left: %1").arg(remaining));
 }

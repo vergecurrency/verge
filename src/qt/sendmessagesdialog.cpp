@@ -11,19 +11,25 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QDataWidgetMapper>
+#include <QHBoxLayout>
 #include <QLocale>
 #include <QMessageBox>
 #include <QListView>
 #include <QScrollBar>
 #include <QSignalBlocker>
+#include <QSpinBox>
 #include <QTextDocument>
 
 SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : QDialog(parent),
                                                                                 ui(new Ui::SendMessagesDialog),
                                                                                 model(0),
                                                                                 mode(mode),
-                                                                                type(type)
+                                                                                type(type),
+                                                                                paidMessageCheckBox(nullptr),
+                                                                                retentionDaysSpinBox(nullptr),
+                                                                                paidFeeLabel(nullptr)
 {
     ui->setupUi(this);
     setObjectName(QStringLiteral("SendMessagesDialog"));
@@ -102,6 +108,20 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
     }
     ui->scrollArea->setStyleSheet(QStringLiteral("background-color: #14051f; border: 1px solid #54207f; border-radius: 6px;"));
     ui->scrollAreaWidgetContents->setStyleSheet(QStringLiteral("background-color: #14051f;"));
+    paidMessageCheckBox = new QCheckBox(tr("Paid v3"), this);
+    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Fee: 0.1 XVG."));
+    retentionDaysSpinBox = new QSpinBox(this);
+    retentionDaysSpinBox->setRange(1, 31);
+    retentionDaysSpinBox->setValue(1);
+    retentionDaysSpinBox->setSuffix(tr(" days"));
+    retentionDaysSpinBox->setEnabled(false);
+    retentionDaysSpinBox->setToolTip(tr("Paid v3 message retention."));
+    paidFeeLabel = new QLabel(tr("Fee: 0.1 XVG"), this);
+    paidFeeLabel->setVisible(false);
+    ui->horizontalLayout_3->addWidget(paidMessageCheckBox);
+    ui->horizontalLayout_3->addWidget(retentionDaysSpinBox);
+    ui->horizontalLayout_3->addWidget(paidFeeLabel);
+    connect(paidMessageCheckBox, SIGNAL(toggled(bool)), this, SLOT(updatePaidMessageControls()));
 #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     ui->addButton->setIcon(QIcon());
     ui->clearButton->setIcon(QIcon());
@@ -127,8 +147,10 @@ void SendMessagesDialog::setModel(MessageModel* model)
     refreshAddressFromChoices();
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
-        if (entry)
+        if (entry) {
             entry->setModel(model);
+            entry->setPaidMessageEnabled(paidMessageCheckBox && paidMessageCheckBox->isChecked());
+        }
     }
 }
 void SendMessagesDialog::loadRow(int row)
@@ -222,10 +244,12 @@ void SendMessagesDialog::on_sendButton_clicked()
         return;
     }
     MessageModel::StatusCode sendstatus;
+    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
+    const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 1;
     if (mode == SendMessagesDialog::Anonymous)
-        sendstatus = model->sendMessages(recipients);
+        sendstatus = model->sendMessages(recipients, paidMessage, retentionDays);
     else
-        sendstatus = model->sendMessages(recipients, ui->addressFrom->currentData().toString());
+        sendstatus = model->sendMessages(recipients, ui->addressFrom->currentData().toString(), paidMessage, retentionDays);
     switch (sendstatus) {
     case MessageModel::InvalidAddress:
         QMessageBox::warning(this, tr("Send Message"),
@@ -296,6 +320,7 @@ SendMessagesEntry* SendMessagesDialog::addEntry()
 {
     SendMessagesEntry* entry = new SendMessagesEntry(this);
     entry->setModel(model);
+    entry->setPaidMessageEnabled(paidMessageCheckBox && paidMessageCheckBox->isChecked());
     ui->entries->addWidget(entry);
     connect(entry, SIGNAL(removeEntry(SendMessagesEntry*)), this, SLOT(removeEntry(SendMessagesEntry*)));
     updateRemoveEnabled();
@@ -376,6 +401,23 @@ void SendMessagesDialog::removeEntry(SendMessagesEntry* entry)
 {
     delete entry;
     updateRemoveEnabled();
+}
+
+void SendMessagesDialog::updatePaidMessageControls()
+{
+    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
+    if (retentionDaysSpinBox) {
+        retentionDaysSpinBox->setEnabled(paidMessage);
+    }
+    if (paidFeeLabel) {
+        paidFeeLabel->setVisible(paidMessage);
+    }
+    for (int i = 0; i < ui->entries->count(); ++i) {
+        SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
+        if (entry) {
+            entry->setPaidMessageEnabled(paidMessage);
+        }
+    }
 }
 QWidget* SendMessagesDialog::setupTabChain(QWidget* prev)
 {

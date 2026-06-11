@@ -335,7 +335,7 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
 {
     return optionsModel;
 }
- MessageModel::StatusCode MessageModel::sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom)
+ MessageModel::StatusCode MessageModel::sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom, bool paidMessage, int retentionDays)
 {
      QSet<QString> setAddress;
      if(recipients.empty())
@@ -358,11 +358,13 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
         std::string pubkey  = rcp.pubkey.toStdString();
         std::string message = rcp.message.toStdString();
         std::string addFrom = addressFrom.toStdString();
-        LogPrint(BCLog::SMSG, "SMSG UI send request: from=%s to=%s bytes=%u has_pubkey=%u\n",
+        LogPrint(BCLog::SMSG, "SMSG UI send request: from=%s to=%s bytes=%u has_pubkey=%u paid=%u retention=%d\n",
             addFrom,
             sendTo,
             static_cast<unsigned int>(message.size()),
-            pubkey.empty() ? 0 : 1);
+            pubkey.empty() ? 0 : 1,
+            paidMessage ? 1 : 0,
+            retentionDays);
         if (!pubkey.empty()) {
             smsgModule.AddAddress(sendTo, pubkey);
         }
@@ -381,7 +383,7 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
             return InvalidAddress;
         }
         smsg::SecureMessage smsgOut;
-        if (smsgModule.Send(addressFrom, addressTo, message, smsgOut, sError) != 0)
+        if (smsgModule.Send(addressFrom, addressTo, message, smsgOut, sError, paidMessage, retentionDays) != 0)
         {
             QMessageBox::warning(NULL, tr("Send Secure Message"),
                 tr("Send failed: %1.").arg(sError.c_str()),
@@ -405,9 +407,9 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
     }
     return OK;
 }
- MessageModel::StatusCode MessageModel::sendMessages(const QList<SendMessagesRecipient> &recipients)
+ MessageModel::StatusCode MessageModel::sendMessages(const QList<SendMessagesRecipient> &recipients, bool paidMessage, int retentionDays)
 {
-    return sendMessages(recipients, "anon");
+    return sendMessages(recipients, "anon", paidMessage, retentionDays);
 }
  int MessageModel::rowCount(const QModelIndex &parent) const
 {
