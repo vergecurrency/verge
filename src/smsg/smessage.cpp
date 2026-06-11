@@ -125,6 +125,28 @@ CScript BuildPaidFundingScript(const std::vector<uint8_t>& msgId)
     return CScript() << OP_RETURN << BuildPaidFundingData(msgId);
 }
 
+void SetPaidSmsgChecksum(smsg::SecureMessage& smsg)
+{
+    const uint32_t nCiphertext = GetSmsgCiphertextLength(smsg);
+    uint8_t sha256Hash[CSHA256::OUTPUT_SIZE];
+    CSHA256()
+        .Write(smsg.data() + 4, smsg::SMSG_HDR_LEN - 4)
+        .Write(smsg.pPayload, nCiphertext)
+        .Finalize(sha256Hash);
+    std::memcpy(smsg.hash, sha256Hash, sizeof(smsg.hash));
+}
+
+bool CheckPaidSmsgChecksum(const smsg::SecureMessage& smsg, const uint8_t* pPayload)
+{
+    const uint32_t nCiphertext = GetSmsgCiphertextLength(smsg);
+    uint8_t sha256Hash[CSHA256::OUTPUT_SIZE];
+    CSHA256()
+        .Write(smsg.data() + 4, smsg::SMSG_HDR_LEN - 4)
+        .Write(pPayload, nCiphertext)
+        .Finalize(sha256Hash);
+    return std::memcmp(smsg.hash, sha256Hash, sizeof(smsg.hash)) == 0;
+}
+
 bool IsSmsgHandshakeCommand(const std::string& command)
 {
     return command == "smsgPing"
@@ -3710,6 +3732,12 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         if (nPayload > SMSG_MAX_MSG_WORST_PAID + 32) {
             return SMSG_PAYLOAD_OVER_SIZE;
         }
+        if (psmsg->nonce[0] < 1 || psmsg->nonce[0] > 31) {
+            return SMSG_TIME_EXPIRED;
+        }
+        if (!CheckPaidSmsgChecksum(*psmsg, pPayload)) {
+            return SMSG_CHECKSUM_MISMATCH;
+        }
     } else
     if (nPayload > SMSG_MAX_MSG_WORST) {
         return SMSG_PAYLOAD_OVER_SIZE;
@@ -4130,6 +4158,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     LogPrint(BCLog::SMSG, "SMSG send encrypted network payload: timestamp=%d payload=%u\n", smsg.timestamp, smsg.nPayload);
 
     if (fPaid) {
+        SetPaidSmsgChecksum(smsg);
         if (0 != FundMsg(smsg, sError, fTestFee, nFee)) {
             return errorN(SMSG_FUND_FAILED, "%s: SecureMsgFund failed %s.", __func__, sError);
         }
