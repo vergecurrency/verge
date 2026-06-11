@@ -59,6 +59,7 @@ Notes:
 #include <random.h>
 #include <chain.h>
 #include <netmessagemaker.h>
+#include <script/script.h>
 #include <fs.h>
 
 #ifdef ENABLE_WALLET
@@ -89,11 +90,39 @@ constexpr uint8_t SMSG_UNPAID_VERSION_MINOR = 2;
 constexpr size_t SMSG_DERIVED_KEY_LEN = 32;
 constexpr size_t SMSG_HKDF_OUTPUT_LEN = SMSG_DERIVED_KEY_LEN * 2;
 constexpr const char* SMSG_HKDF_INFO = "verge-smsg-v2.2";
+const std::vector<uint8_t> SMSG_PAID_FUNDING_MAGIC{'S', 'M', 'S', 'G', '3'};
 
 bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
 {
     return smsg.version[0] == SMSG_UNPAID_VERSION_MAJOR
         && smsg.version[1] == SMSG_UNPAID_VERSION_MINOR;
+}
+
+bool IsCurrentPaidSmsgVersion(const smsg::SecureMessage& smsg)
+{
+    return smsg.version[0] == 3 && smsg.version[1] == 0;
+}
+
+uint32_t GetSmsgCiphertextLength(const smsg::SecureMessage& smsg)
+{
+    if (smsg.IsPaidVersion()) {
+        return smsg.nPayload > 32 ? smsg.nPayload - 32 : 0;
+    }
+    return smsg.nPayload;
+}
+
+std::vector<uint8_t> BuildPaidFundingData(const std::vector<uint8_t>& msgId)
+{
+    std::vector<uint8_t> data;
+    data.reserve(SMSG_PAID_FUNDING_MAGIC.size() + msgId.size());
+    data.insert(data.end(), SMSG_PAID_FUNDING_MAGIC.begin(), SMSG_PAID_FUNDING_MAGIC.end());
+    data.insert(data.end(), msgId.begin(), msgId.end());
+    return data;
+}
+
+CScript BuildPaidFundingScript(const std::vector<uint8_t>& msgId)
+{
+    return CScript() << OP_RETURN << BuildPaidFundingData(msgId);
 }
 
 bool IsSmsgHandshakeCommand(const std::string& command)
@@ -346,7 +375,7 @@ bool IsSmsgExpired(const SecureMessage& smsg, int64_t now)
     return ttlSeconds > 0 && smsg.timestamp + ttlSeconds < now;
 }
 
-int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut, uint32_t* lenDataOut, uint32_t* lenPlainOut)
+int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut, uint32_t* lenDataOut, uint32_t* lenPlainOut, uint32_t maxPlainBytes)
 {
     if (vchPayload.empty()) {
         return SMSG_GENERAL_ERROR;
@@ -363,7 +392,8 @@ int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* 
         fFromAnonymous = true;
         lenData = vchPayload.size() - 9;
         memcpy(&lenPlain, &vchPayload[5], 4);
-        if (lenPlain > SMSG_MAX_AMSG_BYTES) {
+        const uint32_t maxAnonBytes = maxPlainBytes > 0 ? maxPlainBytes : SMSG_MAX_AMSG_BYTES;
+        if (lenPlain > maxAnonBytes) {
             return SMSG_MESSAGE_TOO_LONG;
         }
     } else {
@@ -373,7 +403,8 @@ int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* 
         fFromAnonymous = false;
         lenData = vchPayload.size() - SMSG_PL_HDR_LEN;
         memcpy(&lenPlain, &vchPayload[1 + 20 + 65], 4);
-        if (lenPlain > SMSG_MAX_MSG_BYTES) {
+        const uint32_t maxMsgBytes = maxPlainBytes > 0 ? maxPlainBytes : SMSG_MAX_MSG_BYTES;
+        if (lenPlain > maxMsgBytes) {
             return SMSG_MESSAGE_TOO_LONG;
         }
     }
@@ -618,42 +649,9 @@ void ThreadSecureMsgPow()
             int64_t now = GetTime();
 
             if (psmsg->version[0] == 3) {
-                uint256 txid;
-                uint160 msgId;
-                if (0 != smsgModule.HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId)
-                    || !GetFundingTxid(pPayload, psmsg->nPayload, txid)) {
-                    LogPrintf("%s: Get msgID or Txn Hash failed.\n", __func__);
-                    LOCK(cs_smsgDB);
-                    dbOutbox.EraseSmesg(chKey);
-                    continue;
-                }
-
-                CTransactionRef txOut;
-                uint256 hashBlock;
-                {
-                    LOCK(cs_main);
-                    if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock)) {
-                        // drop through
-                    }
-                }
-
-                int blockDepth = -1;
-                if (!hashBlock.IsNull()) {
-                    BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-                    if (mi != mapBlockIndex.end()) {
-                        CBlockIndex *pindex = mi->second;
-                        if (pindex && chainActive.Contains(pindex)) {
-                            blockDepth = chainActive.Height() - pindex->nHeight + 1;
-                        }
-                    }
-                }
-
-                if (blockDepth > 0) {
-                    LogPrintf("Found txn %s at depth %d\n", txid.ToString(), blockDepth);
-                } else {
-                    // Failure
-                    if (psmsg->timestamp > now + FUND_TXN_TIMEOUT) {
-                        LogPrintf("%s: Funding txn timeout, dropping message %s\n", __func__, msgId.ToString());
+                if (smsgModule.Validate(pHeader, pPayload, psmsg->nPayload) != SMSG_NO_ERROR) {
+                    if (now > psmsg->timestamp + FUND_TXN_TIMEOUT) {
+                        LogPrintf("%s: Funding txn timeout, dropping message %s\n", __func__, HexStr(smsgModule.GetMsgID(psmsg, pPayload)));
                         LOCK(cs_smsgDB);
                         dbOutbox.EraseSmesg(chKey);
                     }
@@ -3693,11 +3691,25 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
 int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
 {
     // return SecureMessageCodes
+    if (!pHeader || !pPayload) {
+        return SMSG_GENERAL_ERROR;
+    }
+
     SecureMessage *psmsg = (SecureMessage*) pHeader;
+    if (psmsg->nPayload != nPayload) {
+        return SMSG_PAYLOAD_OVER_SIZE;
+    }
 
     if (psmsg->IsPaidVersion()) {
-        if (nPayload > SMSG_MAX_MSG_BYTES_PAID)
+        if (!IsCurrentPaidSmsgVersion(*psmsg)) {
+            return SMSG_UNKNOWN_VERSION;
+        }
+        if (nPayload <= 32) {
             return SMSG_PAYLOAD_OVER_SIZE;
+        }
+        if (nPayload > SMSG_MAX_MSG_WORST_PAID + 32) {
+            return SMSG_PAYLOAD_OVER_SIZE;
+        }
     } else
     if (nPayload > SMSG_MAX_MSG_WORST) {
         return SMSG_PAYLOAD_OVER_SIZE;
@@ -3709,17 +3721,46 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         return SMSG_TIME_IN_FUTURE;
     }
 
-    if (psmsg->version[0] == 3) {
-        LogPrint(BCLog::SMSG, "Paid secure messages are not supported in this build.\n");
-        return SMSG_UNKNOWN_VERSION;
-    }
-
-    if (!IsCurrentUnpaidSmsgVersion(*psmsg))
+    if (!psmsg->IsPaidVersion() && !IsCurrentUnpaidSmsgVersion(*psmsg))
         return SMSG_UNKNOWN_VERSION;
 
     if (IsSmsgExpired(*psmsg, now)) {
         LogPrint(BCLog::SMSG, "Message expired by TTL, timestamp %d.\n", psmsg->timestamp);
         return SMSG_TIME_EXPIRED;
+    }
+
+    if (psmsg->IsPaidVersion()) {
+        uint256 txid;
+        if (!GetFundingTxid(pPayload, nPayload, txid)) {
+            return SMSG_FUND_FAILED;
+        }
+
+        const std::vector<uint8_t> msgId = GetMsgID(psmsg, pPayload);
+        const CScript fundingScript = BuildPaidFundingScript(msgId);
+
+        CTransactionRef txOut;
+        uint256 hashBlock;
+        {
+            LOCK(cs_main);
+            if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock)) {
+                return SMSG_FUND_FAILED;
+            }
+            if (hashBlock.IsNull()) {
+                return SMSG_FUND_FAILED;
+            }
+            const auto mi = mapBlockIndex.find(hashBlock);
+            if (mi == mapBlockIndex.end() || !mi->second || !chainActive.Contains(mi->second)) {
+                return SMSG_FUND_FAILED;
+            }
+        }
+
+        for (const CTxOut& txout : txOut->vout) {
+            if (txout.nValue >= SMSG_PAID_MSG_FEE && txout.scriptPubKey == fundingScript) {
+                return SMSG_NO_ERROR;
+            }
+        }
+
+        return SMSG_FUND_FAILED;
     }
 
     uint8_t civ[32];
@@ -4033,10 +4074,6 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     if (pwallet->IsLocked()) {
         return errorN(SMSG_WALLET_LOCKED, sError, "%s: Wallet is locked, wallet must be unlocked to send messages", __func__);
     }
-    if (fPaid) {
-        return errorN(SMSG_GENERAL_ERROR, sError, "%s: Paid secure messages are not supported in this build", __func__);
-    }
-
     std::string sFromFile;
     if (fFromFile) {
         FILE *fp;
@@ -4069,6 +4106,10 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     std::string &sData = fFromFile ? sFromFile : message;
 
     if (fPaid) {
+        if (nDaysRetention < 1 || nDaysRetention > 31) {
+            sError = "Paid message retention must be between 1 and 31 days.";
+            return errorN(SMSG_GENERAL_ERROR, "%s: %s", __func__, sError);
+        }
         if (sData.size() > SMSG_MAX_MSG_BYTES_PAID) {
             sError = strprintf("Message is too long, %d > %d", sData.size(), SMSG_MAX_MSG_BYTES_PAID);
             return errorN(SMSG_MESSAGE_TOO_LONG, "%s: %s.", __func__, sError);
@@ -4261,12 +4302,58 @@ int CSMSG::HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t 
 
 int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee)
 {
-    (void)smsg;
-    (void)fTestFee;
     if (nFee) {
-        *nFee = 0;
+        *nFee = SMSG_PAID_MSG_FEE;
     }
-    return errorN(SMSG_GENERAL_ERROR, sError, "%s: Paid secure messages are not supported in this build.", __func__);
+
+#ifdef ENABLE_WALLET
+    if (!pwallet) {
+        return errorN(SMSG_WALLET_LOCKED, sError, "%s: Wallet is not enabled.", __func__);
+    }
+    if (pwallet->IsLocked()) {
+        return errorN(SMSG_WALLET_LOCKED, sError, "%s: Wallet is locked.", __func__);
+    }
+    if (!smsg.IsPaidVersion()) {
+        return errorN(SMSG_GENERAL_ERROR, sError, "%s: Message is not a paid SMSG.", __func__);
+    }
+    if (smsg.nPayload <= 32 || !smsg.pPayload) {
+        return errorN(SMSG_GENERAL_ERROR, sError, "%s: Paid SMSG payload is invalid.", __func__);
+    }
+
+    if (fTestFee) {
+        return SMSG_NO_ERROR;
+    }
+
+    const std::vector<uint8_t> msgId = GetMsgID(smsg);
+    const CScript fundingScript = BuildPaidFundingScript(msgId);
+    std::vector<CRecipient> vecSend;
+    vecSend.push_back({fundingScript, SMSG_PAID_MSG_FEE, false});
+
+    CReserveKey reservekey(pwallet.get());
+    CAmount nFeeRequired = 0;
+    int nChangePosRet = -1;
+    std::string strError;
+    CCoinControl coinControl;
+    CTransactionRef tx;
+    if (!pwallet->CreateTransaction(vecSend, tx, reservekey, nFeeRequired, nChangePosRet, strError, coinControl)) {
+        sError = strError;
+        return errorN(SMSG_FUND_FAILED, "%s: CreateTransaction failed: %s", __func__, sError);
+    }
+
+    CValidationState state;
+    if (!pwallet->CommitTransaction(tx, mapValue_t(), {}, {}, reservekey, g_connman.get(), state)) {
+        sError = FormatStateMessage(state);
+        return errorN(SMSG_FUND_FAILED, "%s: CommitTransaction failed: %s", __func__, sError);
+    }
+
+    const uint256 txid = tx->GetHash();
+    memcpy(smsg.pPayload + smsg.nPayload - 32, txid.begin(), 32);
+    LogPrint(BCLog::SMSG, "%s: Funded paid SMSG %s with tx %s amount %d.\n",
+        __func__, HexStr(msgId), txid.ToString(), SMSG_PAID_MSG_FEE);
+    return SMSG_NO_ERROR;
+#else
+    return errorN(SMSG_WALLET_UNSET, sError, "%s: Wallet support is not enabled.", __func__);
+#endif
 };
 
 std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload)
@@ -4312,8 +4399,12 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
-    if (!IsCurrentUnpaidSmsgVersion(*psmsg)) {
+    if (!IsCurrentUnpaidSmsgVersion(*psmsg) && !IsCurrentPaidSmsgVersion(*psmsg)) {
         return errorN(SMSG_UNKNOWN_VERSION, "%s: Unknown version number.", __func__);
+    }
+    const uint32_t nCiphertext = GetSmsgCiphertextLength(*psmsg);
+    if (nCiphertext == 0 || nCiphertext > nPayload) {
+        return errorN(SMSG_PAYLOAD_OVER_SIZE, "%s: Invalid ciphertext length.", __func__);
     }
 
     // Do an EC point multiply with private key k and public key R. This gives you public key P.
@@ -4345,7 +4436,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     CHMAC_SHA256 ctx(key_m.data(), 32);
     ctx.Write((uint8_t*) &psmsg->timestamp, sizeof(psmsg->timestamp));
     ctx.Write((uint8_t*) psmsg->iv, sizeof(psmsg->iv));
-    ctx.Write((uint8_t*) pPayload, nPayload);
+    ctx.Write((uint8_t*) pPayload, nCiphertext);
     ctx.Finalize(MAC);
 
     const std::vector<uint8_t> computedMac(MAC, MAC + sizeof(MAC));
@@ -4361,7 +4452,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
 
     SecMsgCrypter crypter;
     crypter.SetKey(key_e, psmsg->iv);
-    if (!crypter.Decrypt(pPayload, nPayload, vchPayload)) {
+    if (!crypter.Decrypt(pPayload, nCiphertext, vchPayload)) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Decrypt failed.", __func__);
     }
 
@@ -4370,7 +4461,8 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
 
     uint8_t *pMsgData;
     bool fFromAnonymous;
-    const int shapeRv = ValidateDecryptedPayloadShape(vchPayload, &fFromAnonymous, &lenData, &lenPlain);
+    const uint32_t maxPlainBytes = psmsg->IsPaidVersion() ? SMSG_MAX_MSG_BYTES_PAID : 0;
+    const int shapeRv = ValidateDecryptedPayloadShape(vchPayload, &fFromAnonymous, &lenData, &lenPlain, maxPlainBytes);
     if (shapeRv != SMSG_NO_ERROR) {
         return errorN(shapeRv, "%s: Decrypted payload shape is invalid.", __func__);
     }

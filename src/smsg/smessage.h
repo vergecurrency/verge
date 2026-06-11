@@ -163,7 +163,7 @@ const unsigned int SMSG_MAX_RECENT_REJECTED_TOKENS = 8192;
 
 const unsigned int SMSG_MAX_MSG_BYTES  = 512;               // the user input part
 const unsigned int SMSG_MAX_AMSG_BYTES = 512;               // the user input part (ANON)
-const unsigned int SMSG_MAX_MSG_BYTES_PAID = 512 * 1024;    // the user input part (Paid)
+const unsigned int SMSG_MAX_MSG_BYTES_PAID = 5 * 1024;      // the user input part (Paid)
 const uint64_t SMSG_LOCAL_STORAGE_CAP_BYTES = 1024ULL * 1024ULL * 1024ULL;
 
 // Max size of payload worst case compression
@@ -172,10 +172,9 @@ const unsigned int SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTE
 
 static const int MIN_SMSG_PROTO_VERSION = 90007;
 
-int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut = nullptr, uint32_t* lenDataOut = nullptr, uint32_t* lenPlainOut = nullptr);
+int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut = nullptr, uint32_t* lenDataOut = nullptr, uint32_t* lenPlainOut = nullptr, uint32_t maxPlainBytes = 0);
 
-const CAmount nFundingTxnFeePerK = 200000;
-const CAmount nMsgFeePerKPerDay =   50000;
+const CAmount SMSG_PAID_MSG_FEE = COIN / 10;                // 0.1 XVG flat
 
 #define SMSG_MASK_UNREAD (1 << 0)
 
