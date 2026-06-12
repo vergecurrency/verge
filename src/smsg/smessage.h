@@ -14,10 +14,14 @@
 #include <crypto/lz4/lz4.h>
 #include <smsg/keystore.h>
 #include <interfaces/handler.h>
+#include <validationinterface.h>
 
 #include <boost/signals2/signal.hpp>
 
 #include <deque>
+#include <map>
+#include <memory>
+#include <set>
 
 class CWallet;
 
@@ -466,7 +470,7 @@ void AddOptions();
 const char *GetString(size_t errorCode);
 
 extern bool fSecMsgEnabled;
-class CSMSG
+class CSMSG : public CValidationInterface
 {
 public:
     int BuildBucketSet();
@@ -537,6 +541,7 @@ public:
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);
 
     int Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
+    bool IsPaidFundingTxConfirmed(const uint256& txid);
     int SetHash (uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);
 
     int Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID &addressTo, const std::string &message);
@@ -561,6 +566,31 @@ public:
     std::unique_ptr<interfaces::Handler> m_handler_unload;
 
     int64_t nLastProcessedPurged = 0;
+
+protected:
+    void BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex, const std::vector<CTransactionRef> &txnConflicted) override;
+    void BlockDisconnected(const std::shared_ptr<const CBlock> &block) override;
+
+private:
+    struct PaidFundingRecord {
+        uint256 txid;
+        uint256 blockHash;
+        int height = 0;
+    };
+
+    void IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height);
+    void RemovePaidFundingTransaction(const CTransaction& tx);
+    void RebuildPaidFundingIndex();
+    bool HasConfirmedPaidFunding(const std::vector<uint8_t>& msgId, const uint256& txid);
+    bool IsRecentFundingMiss(const uint256& txid, int64_t now);
+    void RecordFundingMiss(const uint256& txid, int64_t now);
+    void ClearFundingMiss(const uint256& txid);
+
+    std::map<std::vector<uint8_t>, PaidFundingRecord> mapPaidFundingByMsgId;
+    std::map<uint256, PaidFundingRecord> mapPaidFundingByTxid;
+    std::map<uint256, int64_t> mapPaidFundingMisses;
+    std::deque<uint256> vPaidFundingMisses;
+    bool fRegisteredValidationInterface = false;
 };
 
 } // namespace smsg

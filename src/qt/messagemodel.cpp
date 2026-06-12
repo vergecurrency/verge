@@ -68,6 +68,10 @@ static bool IsFundingTxConfirmed(const QString& txHash)
 
     uint256 txid;
     txid.SetHex(txHash.toStdString());
+    if (smsgModule.IsPaidFundingTxConfirmed(txid)) {
+        return true;
+    }
+
     CTransactionRef tx;
     uint256 hashBlock;
     {

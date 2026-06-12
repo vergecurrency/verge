@@ -91,6 +91,10 @@ constexpr size_t SMSG_DERIVED_KEY_LEN = 32;
 constexpr size_t SMSG_HKDF_OUTPUT_LEN = SMSG_DERIVED_KEY_LEN * 2;
 constexpr const char* SMSG_HKDF_INFO = "verge-smsg-v2.2";
 const std::vector<uint8_t> SMSG_PAID_FUNDING_MAGIC{'S', 'M', 'S', 'G', '3'};
+constexpr size_t SMSG_PAID_MSGID_LEN = 28;
+constexpr size_t SMSG_PAID_FUNDING_DATA_LEN = 5 + SMSG_PAID_MSGID_LEN;
+constexpr size_t SMSG_MAX_FUNDING_MISS_CACHE = 4096;
+constexpr int64_t SMSG_FUNDING_MISS_CACHE_TTL = 10 * 60;
 
 bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
 {
@@ -123,6 +127,32 @@ std::vector<uint8_t> BuildPaidFundingData(const std::vector<uint8_t>& msgId)
 CScript BuildPaidFundingScript(const std::vector<uint8_t>& msgId)
 {
     return CScript() << OP_RETURN << BuildPaidFundingData(msgId);
+}
+
+bool ExtractPaidFundingMsgId(const CScript& script, std::vector<uint8_t>& msgId)
+{
+    CScript::const_iterator pc = script.begin();
+    opcodetype opcode;
+    std::vector<unsigned char> data;
+
+    if (!script.GetOp(pc, opcode) || opcode != OP_RETURN) {
+        return false;
+    }
+    if (!script.GetOp(pc, opcode, data)) {
+        return false;
+    }
+    if (pc != script.end()) {
+        return false;
+    }
+    if (data.size() != SMSG_PAID_FUNDING_DATA_LEN) {
+        return false;
+    }
+    if (!std::equal(SMSG_PAID_FUNDING_MAGIC.begin(), SMSG_PAID_FUNDING_MAGIC.end(), data.begin())) {
+        return false;
+    }
+
+    msgId.assign(data.begin() + SMSG_PAID_FUNDING_MAGIC.size(), data.end());
+    return true;
 }
 
 void SetPaidSmsgChecksum(smsg::SecureMessage& smsg)
@@ -395,6 +425,153 @@ bool IsSmsgExpired(const SecureMessage& smsg, int64_t now)
 {
     const int64_t ttlSeconds = GetSmsgTTLSeconds(smsg);
     return ttlSeconds > 0 && smsg.timestamp + ttlSeconds < now;
+}
+
+void CSMSG::IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height)
+{
+    const uint256 txid = tx.GetHash();
+    for (const CTxOut& txout : tx.vout) {
+        if (txout.nValue < SMSG_PAID_MSG_FEE) {
+            continue;
+        }
+
+        std::vector<uint8_t> msgId;
+        if (!ExtractPaidFundingMsgId(txout.scriptPubKey, msgId)) {
+            continue;
+        }
+
+        LOCK(cs_smsg);
+        PaidFundingRecord record;
+        record.txid = txid;
+        record.blockHash = blockHash;
+        record.height = height;
+        mapPaidFundingByMsgId[msgId] = record;
+        mapPaidFundingByTxid[txid] = record;
+        ClearFundingMiss(txid);
+    }
+}
+
+void CSMSG::RemovePaidFundingTransaction(const CTransaction& tx)
+{
+    const uint256 txid = tx.GetHash();
+    LOCK(cs_smsg);
+    for (const CTxOut& txout : tx.vout) {
+        std::vector<uint8_t> msgId;
+        if (ExtractPaidFundingMsgId(txout.scriptPubKey, msgId)) {
+            mapPaidFundingByMsgId.erase(msgId);
+        }
+    }
+    mapPaidFundingByTxid.erase(txid);
+}
+
+void CSMSG::RebuildPaidFundingIndex()
+{
+    std::vector<const CBlockIndex*> indexes;
+    const int64_t cutoffTime = GetAdjustedTime() - SMSG_RETENTION;
+    {
+        LOCK(cs_main);
+        for (const CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->GetBlockTime() >= cutoffTime; pindex = pindex->pprev) {
+            indexes.push_back(pindex);
+        }
+    }
+
+    {
+        LOCK(cs_smsg);
+        mapPaidFundingByMsgId.clear();
+        mapPaidFundingByTxid.clear();
+        mapPaidFundingMisses.clear();
+        vPaidFundingMisses.clear();
+    }
+
+    for (const CBlockIndex* pindex : indexes) {
+        CBlock block;
+        if (!ReadBlockFromDisk(block, pindex, Params().GetConsensus())) {
+            LogPrint(BCLog::SMSG, "%s: failed reading block %s.\n", __func__, pindex->GetBlockHash().ToString());
+            continue;
+        }
+        for (const CTransactionRef& tx : block.vtx) {
+            IndexPaidFundingTransaction(*tx, pindex->GetBlockHash(), pindex->nHeight);
+        }
+    }
+
+    LOCK(cs_smsg);
+    LogPrint(BCLog::SMSG, "%s: indexed %u paid SMSG funding txs from %u recent blocks.\n",
+        __func__, static_cast<unsigned int>(mapPaidFundingByTxid.size()), static_cast<unsigned int>(indexes.size()));
+}
+
+bool CSMSG::HasConfirmedPaidFunding(const std::vector<uint8_t>& msgId, const uint256& txid)
+{
+    LOCK(cs_smsg);
+    const auto it = mapPaidFundingByMsgId.find(msgId);
+    return it != mapPaidFundingByMsgId.end() && it->second.txid == txid;
+}
+
+bool CSMSG::IsPaidFundingTxConfirmed(const uint256& txid)
+{
+    LOCK(cs_smsg);
+    return mapPaidFundingByTxid.count(txid) > 0;
+}
+
+bool CSMSG::IsRecentFundingMiss(const uint256& txid, int64_t now)
+{
+    LOCK(cs_smsg);
+    const auto it = mapPaidFundingMisses.find(txid);
+    if (it == mapPaidFundingMisses.end()) {
+        return false;
+    }
+    return it->second + SMSG_FUNDING_MISS_CACHE_TTL > now;
+}
+
+void CSMSG::RecordFundingMiss(const uint256& txid, int64_t now)
+{
+    LOCK(cs_smsg);
+    if (mapPaidFundingMisses.insert(std::make_pair(txid, now)).second) {
+        vPaidFundingMisses.push_back(txid);
+    } else {
+        mapPaidFundingMisses[txid] = now;
+    }
+
+    while (!vPaidFundingMisses.empty()) {
+        const uint256& oldest = vPaidFundingMisses.front();
+        const auto it = mapPaidFundingMisses.find(oldest);
+        if (mapPaidFundingMisses.size() <= SMSG_MAX_FUNDING_MISS_CACHE
+            && it != mapPaidFundingMisses.end()
+            && it->second + SMSG_FUNDING_MISS_CACHE_TTL > now) {
+            break;
+        }
+        if (it != mapPaidFundingMisses.end()
+            && (mapPaidFundingMisses.size() > SMSG_MAX_FUNDING_MISS_CACHE
+                || it->second + SMSG_FUNDING_MISS_CACHE_TTL <= now)) {
+            mapPaidFundingMisses.erase(it);
+        }
+        vPaidFundingMisses.pop_front();
+    }
+}
+
+void CSMSG::ClearFundingMiss(const uint256& txid)
+{
+    mapPaidFundingMisses.erase(txid);
+}
+
+void CSMSG::BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex, const std::vector<CTransactionRef> &txnConflicted)
+{
+    (void)txnConflicted;
+    if (!block || !pindex) {
+        return;
+    }
+    for (const CTransactionRef& tx : block->vtx) {
+        IndexPaidFundingTransaction(*tx, pindex->GetBlockHash(), pindex->nHeight);
+    }
+}
+
+void CSMSG::BlockDisconnected(const std::shared_ptr<const CBlock> &block)
+{
+    if (!block) {
+        return;
+    }
+    for (const CTransactionRef& tx : block->vtx) {
+        RemovePaidFundingTransaction(*tx);
+    }
 }
 
 int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut, uint32_t* lenDataOut, uint32_t* lenPlainOut, uint32_t maxPlainBytes)
@@ -1247,6 +1424,10 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
         return error("%s: Could not load purged sets, secure messaging disabled.", __func__);
     }
 
+    RebuildPaidFundingIndex();
+    RegisterValidationInterface(this);
+    fRegisteredValidationInterface = true;
+
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
 
@@ -1272,6 +1453,11 @@ bool CSMSG::Shutdown()
     LogPrint(BCLog::SMSG, "Waiting for secure messaging threads to exit.\n");
     threadGroupSmsg.join_all();
     LogPrint(BCLog::SMSG, "Secure messaging threads exited.\n");
+
+    if (fRegisteredValidationInterface) {
+        UnregisterValidationInterface(this);
+        fRegisteredValidationInterface = false;
+    }
 
     if (smsgDB) {
         LOCK(cs_smsgDB);
@@ -1359,6 +1545,10 @@ int CSMSG::FlushMessageData(std::string &sError)
     setPurgedTimestamps.clear();
     setRecentRejected.clear();
     vRecentRejected.clear();
+    mapPaidFundingByMsgId.clear();
+    mapPaidFundingByTxid.clear();
+    mapPaidFundingMisses.clear();
+    vPaidFundingMisses.clear();
     nLastProcessedPurged = 0;
     keyStore.Clear();
     if (LoadKeyStore() != SMSG_NO_ERROR) {
@@ -3786,13 +3976,22 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         }
 
         const std::vector<uint8_t> msgId = GetMsgID(psmsg, pPayload);
+        if (HasConfirmedPaidFunding(msgId, txid)) {
+            return SMSG_NO_ERROR;
+        }
+        if (IsRecentFundingMiss(txid, now)) {
+            return SMSG_FUND_NOT_READY;
+        }
+
         const CScript fundingScript = BuildPaidFundingScript(msgId);
 
         CTransactionRef txOut;
         uint256 hashBlock;
+        int fundingHeight = 0;
         {
             LOCK(cs_main);
             if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock, true)) {
+                RecordFundingMiss(txid, now);
                 return SMSG_FUND_NOT_READY;
             }
             if (hashBlock.IsNull()) {
@@ -3800,12 +3999,15 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             }
             const auto mi = mapBlockIndex.find(hashBlock);
             if (mi == mapBlockIndex.end() || !mi->second || !chainActive.Contains(mi->second)) {
+                RecordFundingMiss(txid, now);
                 return SMSG_FUND_NOT_READY;
             }
+            fundingHeight = mi->second->nHeight;
         }
 
         for (const CTxOut& txout : txOut->vout) {
             if (txout.nValue >= SMSG_PAID_MSG_FEE && txout.scriptPubKey == fundingScript) {
+                IndexPaidFundingTransaction(*txOut, hashBlock, fundingHeight);
                 return SMSG_NO_ERROR;
             }
         }
