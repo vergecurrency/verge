@@ -768,6 +768,7 @@ const char *GetString(size_t errorCode)
         case SMSG_COMPRESS_FAILED:                      return "Compression failed";
         case SMSG_ENCRYPT_FAILED:                       return "Encryption failed";
         case SMSG_FUND_FAILED:                          return "Fund message failed";
+        case SMSG_FUND_NOT_READY:                       return "Fund message is not confirmed yet";
         case SMSG_STORE_FULL:                           return "Local secure message storage cap reached";
         default:
             return "Unknown error";
@@ -3390,17 +3391,27 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
 
         int rv;
         if ((rv = Validate(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload)) != 0) {
-            // Message dropped
-            {
-                LOCK(cs_smsg);
-                RecordRecentRejectedToken(*this, token);
-            }
             if (rv == SMSG_INVALID_HASH) { // Invalid proof of work
+                {
+                    LOCK(cs_smsg);
+                    RecordRecentRejectedToken(*this, token);
+                }
                 Misbehaving(pfrom->GetId(), 10);
             } else
+            if (rv == SMSG_FUND_NOT_READY && psmsg->IsPaidVersion()) {
+                LogPrint(BCLog::SMSG, "Paid SMSG funding not ready for token %s, leaving retryable.\n", token.ToString());
+            } else
             if (rv == SMSG_FUND_FAILED) { // Bad funding tx
+                {
+                    LOCK(cs_smsg);
+                    RecordRecentRejectedToken(*this, token);
+                }
                 Misbehaving(pfrom->GetId(), 10);
             } else {
+                {
+                    LOCK(cs_smsg);
+                    RecordRecentRejectedToken(*this, token);
+                }
                 Misbehaving(pfrom->GetId(), 1);
             }
             n += SMSG_HDR_LEN + psmsg->nPayload;
@@ -3771,14 +3782,14 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         {
             LOCK(cs_main);
             if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock)) {
-                return SMSG_FUND_FAILED;
+                return SMSG_FUND_NOT_READY;
             }
             if (hashBlock.IsNull()) {
-                return SMSG_FUND_FAILED;
+                return SMSG_FUND_NOT_READY;
             }
             const auto mi = mapBlockIndex.find(hashBlock);
             if (mi == mapBlockIndex.end() || !mi->second || !chainActive.Contains(mi->second)) {
-                return SMSG_FUND_FAILED;
+                return SMSG_FUND_NOT_READY;
             }
         }
 
