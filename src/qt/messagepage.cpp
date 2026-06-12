@@ -191,7 +191,7 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     connect(ui->messageEdit, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
     connect(paidMessageCheckBox, SIGNAL(toggled(bool)), this, SLOT(updatePaidMessageControls()));
 
-    addressBookButton = new QPushButton(tr("Address &Book"), this);
+    addressBookButton = new QPushButton(tr("My &Chatkeys"), this);
     addressBookButton->setToolTip(tr("Open local chat-enabled addresses and share chatkey QR payloads"));
     addressBookButton->setStyleSheet("background-color: rgb(80, 0, 120); color: rgb(255, 255, 255);");
     if (platformStyle && platformStyle->getImagesOnButtons()) {
