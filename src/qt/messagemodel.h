@@ -39,6 +39,7 @@ public:
     QDateTime received_datetime;
     QString status;
     QString message;
+    QString funding_txid;
      MessageTableEntry() {}
     MessageTableEntry(std::vector<unsigned char> &chKey,
                       Type type,
@@ -48,7 +49,8 @@ public:
                       const QDateTime &sent_datetime,
                       const QDateTime &received_datetime,
                       const QString &status,
-                      const QString &message):
+                      const QString &message,
+                      const QString &funding_txid = QString()):
         chKey(chKey),
         type(type),
         label(label),
@@ -57,7 +59,8 @@ public:
         sent_datetime(sent_datetime),
         received_datetime(received_datetime),
         status(status),
-        message(message)
+        message(message),
+        funding_txid(funding_txid)
     {
     }
 };
@@ -121,7 +124,11 @@ public:
         /** HTML Formatted */
         HTMLRole,
         /** Ambiguous bool */
-        Ambiguous
+        Ambiguous,
+        /** Paid v3 funding receipt data */
+        ReceiptAvailableRole,
+        ReceiptTxHashRole,
+        ReceiptConfirmedRole
     };
      static const QString Sent; /**< Specifies sent message */
     static const QString Received; /**< Specifies sent message */

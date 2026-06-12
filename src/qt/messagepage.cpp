@@ -24,6 +24,7 @@
 #include <QTimer>
 #include <QCheckBox>
 #include <QSpinBox>
+#include <QTextDocument>
 #include <logging.h>
 #include <sstream>
 #define NUM_ITEMS 3
@@ -104,6 +105,8 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     flushButton(nullptr),
     addressBookButton(nullptr),
     storageLabel(nullptr),
+    messageCountLabel(nullptr),
+    receiptLink(nullptr),
     paidMessageCheckBox(nullptr),
     retentionDaysSpinBox(nullptr),
     paidFeeLabel(nullptr),
@@ -138,6 +141,16 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     ui->listConversation->setMinimumHeight(NUM_ITEMS * (MESSAGE_DECORATION_SIZE + 2));
     ui->listConversation->setAttribute(Qt::WA_MacShowFocusRect, false);
     ui->listConversation->setStyleSheet("QListView { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; }");
+    receiptLink = new QLabel(this);
+    receiptLink->setText(QStringLiteral("<a href=\"receipt\" style=\"color:#5CFF7A;\">receipt</a>"));
+    receiptLink->setTextFormat(Qt::RichText);
+    receiptLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    receiptLink->setOpenExternalLinks(false);
+    receiptLink->setVisible(false);
+    receiptLink->setToolTip(tr("Show paid v3 message receipt"));
+    ui->horizontalLayout_3->insertWidget(ui->horizontalLayout_3->count() - 1, receiptLink);
+    connect(receiptLink, SIGNAL(linkActivated(QString)), this, SLOT(showReceipt()));
+
     auto* plainMessageEdit = qobject_cast<QPlainTextEdit*>(ui->messageEdit);
     if (plainMessageEdit) {
         plainMessageEdit->setStyleSheet("QPlainTextEdit { background-color: #000000; color: #5CFF7A; border: 1px solid #11331A; font-family: 'Consolas', 'Courier New', monospace; font-size: 14pt; }");
@@ -382,8 +395,9 @@ void MessagePage::refreshStorageUsage()
     ui->listConversation->clearSelection();
     itemSelectionChanged();
     selectionChanged();
-     ui->messageDetails->hide();
+    ui->messageDetails->hide();
     ui->tableView->show();
+    if (receiptLink) receiptLink->hide();
     ui->newButton->setEnabled(true);
     ui->newButton->setVisible(true);
     ui->sendButton->setEnabled(false);
@@ -481,6 +495,7 @@ void MessagePage::refreshStorageUsage()
         ui->messageEdit->hide();
         if (messageCountLabel) messageCountLabel->hide();
         ui->messageDetails->hide();
+        if (receiptLink) receiptLink->hide();
         ui->messageEdit->clear();
         updateMessageCountdown();
     }
@@ -510,6 +525,9 @@ void MessagePage::refreshStorageUsage()
         ui->sendButton->setVisible(true);
         ui->messageEdit->setVisible(true);
         if (messageCountLabel) messageCountLabel->setVisible(true);
+        const QModelIndex current = list->selectionModel()->currentIndex();
+        const bool hasReceipt = current.isValid() && current.data(MessageModel::ReceiptAvailableRole).toBool();
+        if (receiptLink) receiptLink->setVisible(hasReceipt);
          ui->tableView->hide();
      }
     else
@@ -524,6 +542,7 @@ void MessagePage::refreshStorageUsage()
         ui->deleteButton->setEnabled(false);
         ui->messageEdit->hide();
         if (messageCountLabel) messageCountLabel->hide();
+        if (receiptLink) receiptLink->hide();
         ui->messageDetails->hide();
         ui->messageEdit->clear();
         updateMessageCountdown();
@@ -592,6 +611,47 @@ void MessagePage::updatePaidMessageControls()
         paidFeeLabel->setVisible(paidMessage);
     }
     updateMessageCountdown();
+}
+
+void MessagePage::showReceipt()
+{
+    if (!model || !ui->listConversation->selectionModel()) {
+        return;
+    }
+
+    const QModelIndex current = ui->listConversation->selectionModel()->currentIndex();
+    if (!current.isValid() || !current.data(MessageModel::ReceiptAvailableRole).toBool()) {
+        return;
+    }
+
+    const QString from = current.data(MessageModel::FromAddressRole).toString();
+    const QString to = current.data(MessageModel::ToAddressRole).toString();
+    const QString txHash = current.data(MessageModel::ReceiptTxHashRole).toString();
+    const bool confirmed = current.data(MessageModel::ReceiptConfirmedRole).toBool();
+    const QString status = confirmed
+        ? QStringLiteral("<span style=\"color:#00AA00; font-weight:bold;\">Confirmed</span>")
+        : QStringLiteral("<span style=\"color:#CC0000; font-weight:bold;\">Not confirmed</span>");
+
+    QMessageBox box(this);
+    box.setWindowTitle(tr("SMSG Receipt"));
+    box.setTextFormat(Qt::RichText);
+    box.setText(QStringLiteral(
+        "<table>"
+        "<tr><td><b>%1</b></td><td>%2</td></tr>"
+        "<tr><td><b>%3</b></td><td>%4</td></tr>"
+        "<tr><td><b>%5</b></td><td><code>%6</code></td></tr>"
+        "<tr><td><b>%7</b></td><td>%8</td></tr>"
+        "</table>")
+        .arg(tr("From:").toHtmlEscaped(),
+             from.toHtmlEscaped(),
+             tr("To:").toHtmlEscaped(),
+             to.toHtmlEscaped(),
+             tr("Tx hash:").toHtmlEscaped(),
+             txHash.toHtmlEscaped(),
+             tr("Status:").toHtmlEscaped(),
+             status));
+    box.setStandardButtons(QMessageBox::Ok);
+    box.exec();
 }
  void MessagePage::exportClicked()
 {

@@ -671,9 +671,20 @@ void ThreadSecureMsgPow()
             int64_t now = GetTime();
 
             if (psmsg->version[0] == 3) {
-                if (smsgModule.Validate(pHeader, pPayload, psmsg->nPayload) != SMSG_NO_ERROR) {
+                rv = smsgModule.Validate(pHeader, pPayload, psmsg->nPayload);
+                if (rv != SMSG_NO_ERROR) {
                     if (now > psmsg->timestamp + FUND_TXN_TIMEOUT) {
                         LogPrintf("%s: Funding txn timeout, dropping message %s\n", __func__, HexStr(smsgModule.GetMsgID(psmsg, pPayload)));
+                        LOCK(cs_smsgDB);
+                        dbOutbox.EraseSmesg(chKey);
+                        continue;
+                    }
+                    if (rv == SMSG_FUND_NOT_READY) {
+                        LogPrint(BCLog::SMSG, "%s: Paid SMSG funding not ready for message %s, leaving queued.\n",
+                            __func__, HexStr(smsgModule.GetMsgID(psmsg, pPayload)));
+                    } else {
+                        LogPrintf("%s: Paid SMSG validation failed for message %s: %s, dropping queued message.\n",
+                            __func__, HexStr(smsgModule.GetMsgID(psmsg, pPayload)), GetString(rv));
                         LOCK(cs_smsgDB);
                         dbOutbox.EraseSmesg(chKey);
                     }
@@ -3781,7 +3792,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         uint256 hashBlock;
         {
             LOCK(cs_main);
-            if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock)) {
+            if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock, true)) {
                 return SMSG_FUND_NOT_READY;
             }
             if (hashBlock.IsNull()) {

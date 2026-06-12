@@ -51,6 +51,7 @@ class MessagePage : public QWidget
     QPushButton *addressBookButton;
     QLabel *storageLabel;
     QLabel *messageCountLabel;
+    QLabel *receiptLink;
     QCheckBox *paidMessageCheckBox;
     QSpinBox *retentionDaysSpinBox;
     QLabel *paidFeeLabel;
@@ -68,6 +69,7 @@ class MessagePage : public QWidget
     void messageTextChanged();
     void updateMessageCountdown();
     void updatePaidMessageControls();
+    void showReceipt();
     void selectionChanged();
     void itemSelectionChanged();
     void incomingMessage();

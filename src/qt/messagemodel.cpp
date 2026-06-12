@@ -10,6 +10,7 @@
 #include <boost/bind/bind.hpp>
 #include <smsg/db.h>
 #include <key_io.h>
+#include <validation.h>
 #include <QSet>
 #include <QTimer>
 #include <QDateTime>
@@ -38,6 +39,48 @@ static bool HasQueuedOutboxEntry(SecMsgDB &dbSmsg, const uint8_t *outboxKey)
     memcpy(queueKey, outboxKey, 30);
     memcpy(queueKey, "qm", 2);
     return dbSmsg.ExistsSmesg(queueKey);
+}
+
+static QString GetPaidFundingTxid(const SecMsgStored& smsgStored)
+{
+    if (smsgStored.vchMessage.size() <= SMSG_HDR_LEN) {
+        return QString();
+    }
+
+    const SecureMessage* psmsg = reinterpret_cast<const SecureMessage*>(&smsgStored.vchMessage[0]);
+    const uint32_t nPayload = smsgStored.vchMessage.size() - SMSG_HDR_LEN;
+    if (!psmsg->IsPaidVersion()) {
+        return QString();
+    }
+
+    uint256 txid;
+    if (!smsg::GetFundingTxid(&smsgStored.vchMessage[SMSG_HDR_LEN], nPayload, txid)) {
+        return QString();
+    }
+    return QString::fromStdString(txid.ToString());
+}
+
+static bool IsFundingTxConfirmed(const QString& txHash)
+{
+    if (txHash.isEmpty()) {
+        return false;
+    }
+
+    uint256 txid;
+    txid.SetHex(txHash.toStdString());
+    CTransactionRef tx;
+    uint256 hashBlock;
+    {
+        LOCK(cs_main);
+        if (!GetTransaction(txid, tx, Params().GetConsensus(), hashBlock, true)) {
+            return false;
+        }
+        if (hashBlock.IsNull()) {
+            return false;
+        }
+        const auto mi = mapBlockIndex.find(hashBlock);
+        return mi != mapBlockIndex.end() && mi->second && chainActive.Contains(mi->second);
+    }
 }
 
 const QString MessageModel::Sent = "Sent";
@@ -126,7 +169,8 @@ public:
                                                      sent_datetime,
                                                      received_datetime,
                                                      QObject::tr("Received locally"),
-                                                     (char*)&msg.vchMessage[0]),
+                                                     (char*)&msg.vchMessage[0],
+                                                     GetPaidFundingTxid(smsgStored)),
                                     true);
                 }
             };
@@ -154,7 +198,8 @@ public:
                                                       sent_datetime,
                                                       received_datetime,
                                                       status,
-                                                      (char*)&msg.vchMessage[0]),
+                                                      (char*)&msg.vchMessage[0],
+                                                      GetPaidFundingTxid(smsgStored)),
                                     true);
                 }
             };
@@ -191,7 +236,8 @@ public:
                                               sent_datetime,
                                               received_datetime,
                                               QObject::tr("Received locally"),
-                                              (char*)&msg.vchMessage[0]),
+                                              (char*)&msg.vchMessage[0],
+                                              GetPaidFundingTxid(smsgStored)),
                             false);
         }
     }
@@ -233,7 +279,8 @@ public:
                                               sent_datetime,
                                               received_datetime,
                                               status,
-                                              (char*)&msg.vchMessage[0]),
+                                              (char*)&msg.vchMessage[0],
+                                              GetPaidFundingTxid(smsgStored)),
                             false);
         }
     }
@@ -486,6 +533,9 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     case MessageRole:       return rec->message;
     case ShortMessageRole:  return rec->message; // TODO: Short message
     case HTMLRole:          return html;
+    case ReceiptAvailableRole: return !rec->funding_txid.isEmpty();
+    case ReceiptTxHashRole: return rec->funding_txid;
+    case ReceiptConfirmedRole: return IsFundingTxConfirmed(rec->funding_txid);
     case Ambiguous:
         for (const MessageTableEntry& entry : priv->cachedMessageTable) {
             if (ConversationFilterAddress(entry) != filter_address) {
