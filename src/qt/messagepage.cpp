@@ -231,6 +231,7 @@ void MessagePage::setModel(MessageModel *model)
     ui->listConversation->setModelColumn(MessageModel::HTML);
      // Set column widths
      ui->tableView->horizontalHeader()->resizeSection(MessageModel::Type,             100);
+    ui->tableView->horizontalHeader()->resizeSection(MessageModel::Version,           80);
     ui->tableView->horizontalHeader()->resizeSection(MessageModel::Status,           140);
     ui->tableView->horizontalHeader()->resizeSection(MessageModel::Label,            100);
     ui->tableView->horizontalHeader()->setSectionResizeMode(MessageModel::Label,     QHeaderView::Stretch);
