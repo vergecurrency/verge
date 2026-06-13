@@ -725,7 +725,7 @@ void VERGEGUI::createActions()
     historyAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_4));
     tabGroup->addAction(historyAction);
 
-    messagesAction = new QAction(platformStyle->SingleColorIcon(":/icons/edit"), tr("&Messages"), this);
+    messagesAction = new QAction(platformStyle->SingleColorIcon(":/icons/messages"), tr("&Messages"), this);
     messagesAction->setStatusTip(tr("Read and send secure messages"));
     messagesAction->setToolTip(messagesAction->statusTip());
     messagesAction->setCheckable(true);
