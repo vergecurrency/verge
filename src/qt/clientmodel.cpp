@@ -273,10 +273,13 @@ void ClientModel::unsubscribeFromCoreSignals()
 
 bool ClientModel::getProxyInfo(std::string& ip_port) const
 {
-    proxyType ipv4, ipv6;
-    if (m_node.getProxy((Network) 1, ipv4) && m_node.getProxy((Network) 2, ipv6)) {
-      ip_port = ipv4.proxy.ToStringIPPort();
-      return true;
+    proxyType proxy;
+    if (m_node.getProxy(NET_TOR, proxy) ||
+        m_node.getProxy(NET_IPV4, proxy) ||
+        m_node.getProxy(NET_IPV6, proxy) ||
+        m_node.getProxy(NET_I2P, proxy)) {
+        ip_port = proxy.proxy.ToStringIPPort();
+        return true;
     }
     return false;
 }
