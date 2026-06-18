@@ -597,6 +597,16 @@ patch_tor_configure_for_windows() {
   local tor_config_ac="$repo_root/src/tor/configure.ac"
   local tor_configure="$repo_root/src/tor/configure"
 
+  perl -0pi -e 's#AC_CHECK_FUNCS\(\s*_NSGetEnviron\b.*?\n\)#AC_CHECK_FUNCS([_NSGetEnviron RtlSecureZeroMemory SecureZeroMemory accept4 backtrace backtrace_symbols_fd eventfd explicit_bzero timingsafe_memcmp flock fsync ftime get_current_dir_name getaddrinfo getdelim getifaddrs getline getrlimit gettimeofday gmtime_r gnu_get_libc_version inet_aton ioctl issetugid llround localtime_r lround madvise memmem memset_s minherit mmap pipe pipe2 prctl readpassphrase rint sigaction snprintf socketpair statvfs strncasecmp strcasecmp strlcat strlcpy strnlen strptime strtok_r strtoull sysconf sysctl timegm truncate uname usleep vasprintf _vscprintf vsnprintf])#s' "$tor_config_ac"
+
+  perl -0pi -e 's#AC_CHECK_FUNCS\(\s*mach_approximate_time\s*\\\s*\)#AC_CHECK_FUNCS([mach_approximate_time])#s' "$tor_config_ac"
+
+  perl -0pi -e 's#AC_CHECK_FUNCS\(\s*clock_gettime\s*\\\s*getentropy\s*\\\s*\)#AC_CHECK_FUNCS([clock_gettime getentropy])#s' "$tor_config_ac"
+
+  perl -0pi -e 's#AC_CHECK_FUNCS\(\[evutil_secure_rng_set_urandom_device_file\s*\\\s*evutil_secure_rng_add_bytes\s*\\\s*evdns_base_get_nameserver_addr\s*\\\s*\]\)#AC_CHECK_FUNCS([evutil_secure_rng_set_urandom_device_file evutil_secure_rng_add_bytes evdns_base_get_nameserver_addr])#s' "$tor_config_ac"
+
+  perl -0pi -e 's#AC_CHECK_FUNCS\(\[\s*\\\s*EVP_PBE_scrypt\s*\\\s*SSL_CTX_set_security_level\s*\\\s*SSL_set_ciphersuites\s*\]\)#AC_CHECK_FUNCS([EVP_PBE_scrypt SSL_CTX_set_security_level SSL_set_ciphersuites])#s' "$tor_config_ac"
+
   if ! grep -q 'TOR_OPENSSL_LIBS="-lssl -lcrypto $TOR_LIB_GDI $TOR_LIB_WS32 $TOR_LIB_CRYPT32 $TOR_LIB_BCRYPT -ladvapi32 -luser32"' "$tor_config_ac" || \
      ! grep -q 'TOR_LIBEVENT_LIBS="$TOR_LIBEVENT_LIBS $TOR_LIB_IPHLPAPI $TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 $TOR_LIB_WS32"' "$tor_config_ac"; then
     perl -0pi -e 's#LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"#case "\$host" in\n  *mingw*|*windows*)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$save_LIBS"\n    ;;\n  *)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"\n    ;;\nesac#' "$tor_config_ac"
@@ -623,6 +633,8 @@ patch_tor_configure_for_windows() {
   fi
 
   grep -n 'TOR_LIBEVENT_LIBS=' "$tor_config_ac" >/dev/null
+  grep -n 'AC_CHECK_FUNCS(\[_NSGetEnviron RtlSecureZeroMemory' "$tor_config_ac" >/dev/null
+  grep -n 'AC_CHECK_FUNCS(\[EVP_PBE_scrypt SSL_CTX_set_security_level SSL_set_ciphersuites\])' "$tor_config_ac" >/dev/null
   if [ -f "$tor_configure" ]; then
     grep -n 'TOR_LIBEVENT_LIBS=' "$tor_configure" >/dev/null
   fi
@@ -701,15 +713,10 @@ patch_tor_build_helpers_for_windows() {
   local combine_libs="$repo_root/src/tor/scripts/build/combine_libs"
   local tor_autogen="$repo_root/src/tor/autogen.sh"
 
-  if ! grep -q 'VERGE_MSVC_USE_RELEASE_TOR_CONFIGURE' "$tor_autogen"; then
-    perl -0pi -e 's|\A(#![^\n]*\n)|$1\n# VERGE_MSVC_USE_RELEASE_TOR_CONFIGURE: avoid regenerating Tor configure with\n# newer Windows CI autoconf versions that emit invalid shell for Tor 0.4.9.x.\n[ -f configure ] && exit 0\n|' "$tor_autogen"
-  fi
-
   # Tor treats autoreconf warnings as fatal. Autoconf 2.73 emits literal-check
   # warnings for Tor's existing configure macros on the Windows runner, so keep
   # autoreconf strict enough to print warnings without failing before configure.
   perl -0pi -e 's/-W all,error/-W all/g' "$tor_autogen"
-  grep -n 'VERGE_MSVC_USE_RELEASE_TOR_CONFIGURE' "$tor_autogen" >/dev/null
   grep -n -- '-W all' "$tor_autogen" >/dev/null
   ! grep -n -- '-W all,error' "$tor_autogen" >/dev/null
 
