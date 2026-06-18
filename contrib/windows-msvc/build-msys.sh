@@ -683,6 +683,15 @@ patch_tor_sources_for_windows() {
 
 patch_tor_build_helpers_for_windows() {
   local combine_libs="$repo_root/src/tor/scripts/build/combine_libs"
+  local tor_autogen="$repo_root/src/tor/autogen.sh"
+
+  # Tor treats autoreconf warnings as fatal. Autoconf 2.73 emits literal-check
+  # warnings for Tor's existing configure macros on the Windows runner, so keep
+  # autoreconf strict enough to print warnings without failing before configure.
+  perl -0pi -e 's/-W all,error/-W all/g' "$tor_autogen"
+  grep -n -- '-W all' "$tor_autogen" >/dev/null
+  ! grep -n -- '-W all,error' "$tor_autogen" >/dev/null
+
   cat > "$combine_libs" <<'EOF'
 #!/bin/sh
 
