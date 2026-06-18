@@ -594,22 +594,38 @@ if [ -n "$OPENSSL_ROOT_DIR" ] && [ -d "$OPENSSL_ROOT_DIR" ]; then
 fi
 
 patch_tor_configure_for_windows() {
-  local tor_config="$repo_root/src/tor/configure.ac"
+  local tor_config_ac="$repo_root/src/tor/configure.ac"
+  local tor_configure="$repo_root/src/tor/configure"
 
-  if grep -q 'TOR_OPENSSL_LIBS="-lssl -lcrypto $TOR_LIB_GDI $TOR_LIB_WS32 $TOR_LIB_CRYPT32 $TOR_LIB_BCRYPT -ladvapi32 -luser32"' "$tor_config" && \
-     grep -q 'TOR_LIBEVENT_LIBS="$TOR_LIBEVENT_LIBS $TOR_LIB_IPHLPAPI $TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 $TOR_LIB_WS32"' "$tor_config"; then
-    return
+  if ! grep -q 'TOR_OPENSSL_LIBS="-lssl -lcrypto $TOR_LIB_GDI $TOR_LIB_WS32 $TOR_LIB_CRYPT32 $TOR_LIB_BCRYPT -ladvapi32 -luser32"' "$tor_config_ac" || \
+     ! grep -q 'TOR_LIBEVENT_LIBS="$TOR_LIBEVENT_LIBS $TOR_LIB_IPHLPAPI $TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 $TOR_LIB_WS32"' "$tor_config_ac"; then
+    perl -0pi -e 's#LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"#case "\$host" in\n  *mingw*|*windows*)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$save_LIBS"\n    ;;\n  *)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"\n    ;;\nesac#' "$tor_config_ac"
+
+    perl -0pi -e 's#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi\n       case "\$host" in\n         *mingw*|*windows*)\n           TOR_LIBEVENT_LIBS="\$TOR_LIBEVENT_LIBS \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$TOR_LIB_WS32"\n           ;;\n       esac#' "$tor_config_ac"
+
+    perl -0pi -e 's#TOR_SEARCH_LIBRARY\(openssl, \$tryssldir, \[-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32\],#TOR_SEARCH_LIBRARY(openssl, \$tryssldir, [-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32 -luser32],#' "$tor_config_ac"
+
+    perl -0pi -e 's#TOR_OPENSSL_LIBS="-lssl -lcrypto"#case "\$host" in\n  *mingw*|*windows*)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32 -luser32"\n     ;;\n  *)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto"\n     ;;\nesac#' "$tor_config_ac"
   fi
 
-  perl -0pi -e 's#LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"#case "\$host" in\n  *mingw*|*windows*)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$save_LIBS"\n    ;;\n  *)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"\n    ;;\nesac#' "$tor_config"
+  if [ -f "$tor_configure" ] && \
+     { ! grep -q 'TOR_OPENSSL_LIBS="-lssl -lcrypto $TOR_LIB_GDI $TOR_LIB_WS32 $TOR_LIB_CRYPT32 $TOR_LIB_BCRYPT -ladvapi32 -luser32"' "$tor_configure" || \
+       ! grep -q 'TOR_LIBEVENT_LIBS="$TOR_LIBEVENT_LIBS $TOR_LIB_IPHLPAPI $TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 $TOR_LIB_WS32"' "$tor_configure"; }; then
+    perl -0pi -e 's#LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"#case "\$host" in\n  *mingw*|*windows*)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$save_LIBS"\n    ;;\n  *)\n    LIBS="\$STATIC_LIBEVENT_FLAGS \$TOR_LIB_WS32 \$save_LIBS"\n    ;;\nesac#' "$tor_configure"
 
-  perl -0pi -e 's#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi\n       case "\$host" in\n         *mingw*|*windows*)\n           TOR_LIBEVENT_LIBS="\$TOR_LIBEVENT_LIBS \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$TOR_LIB_WS32"\n           ;;\n       esac#' "$tor_config"
+    perl -0pi -e 's#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi#if test "\$ac_cv_search_evdns_base_new" != "none required"; then\n         TOR_LIBEVENT_LIBS="\$ac_cv_search_evdns_base_new \$TOR_LIBEVENT_LIBS"\n       fi\n       case "\$host" in\n         *mingw*|*windows*)\n           TOR_LIBEVENT_LIBS="\$TOR_LIBEVENT_LIBS \$TOR_LIB_IPHLPAPI \$TOR_LIB_BCRYPT -ladvapi32 -lshell32 -luser32 \$TOR_LIB_WS32"\n           ;;\n       esac#' "$tor_configure"
 
-  perl -0pi -e 's#TOR_SEARCH_LIBRARY\(openssl, \$tryssldir, \[-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32\],#TOR_SEARCH_LIBRARY(openssl, \$tryssldir, [-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32 -luser32],#' "$tor_config"
+    perl -0pi -e 's#LIBS="-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$tor_saved_LIBS"#LIBS="-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32 -luser32 \$tor_saved_LIBS"#' "$tor_configure"
 
-  perl -0pi -e 's#TOR_OPENSSL_LIBS="-lssl -lcrypto"#case "\$host" in\n  *mingw*|*windows*)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32 -luser32"\n     ;;\n  *)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto"\n     ;;\nesac#' "$tor_config"
+    perl -0pi -e 's#LIBS="-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$LIBS"#LIBS="-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32 -luser32 \$LIBS"#' "$tor_configure"
 
-  grep -n 'TOR_LIBEVENT_LIBS=' "$tor_config" >/dev/null
+    perl -0pi -e 's#TOR_OPENSSL_LIBS="-lssl -lcrypto"#case "\$host" in\n  *mingw*|*windows*)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto \$TOR_LIB_GDI \$TOR_LIB_WS32 \$TOR_LIB_CRYPT32 \$TOR_LIB_BCRYPT -ladvapi32 -luser32"\n     ;;\n  *)\n     TOR_OPENSSL_LIBS="-lssl -lcrypto"\n     ;;\nesac#' "$tor_configure"
+  fi
+
+  grep -n 'TOR_LIBEVENT_LIBS=' "$tor_config_ac" >/dev/null
+  if [ -f "$tor_configure" ]; then
+    grep -n 'TOR_LIBEVENT_LIBS=' "$tor_configure" >/dev/null
+  fi
 }
 
 patch_tor_sources_for_windows() {
@@ -685,10 +701,15 @@ patch_tor_build_helpers_for_windows() {
   local combine_libs="$repo_root/src/tor/scripts/build/combine_libs"
   local tor_autogen="$repo_root/src/tor/autogen.sh"
 
+  if ! grep -q 'VERGE_MSVC_USE_RELEASE_TOR_CONFIGURE' "$tor_autogen"; then
+    perl -0pi -e 's|\A(#![^\n]*\n)|$1\n# VERGE_MSVC_USE_RELEASE_TOR_CONFIGURE: avoid regenerating Tor configure with\n# newer Windows CI autoconf versions that emit invalid shell for Tor 0.4.9.x.\n[ -f configure ] && exit 0\n|' "$tor_autogen"
+  fi
+
   # Tor treats autoreconf warnings as fatal. Autoconf 2.73 emits literal-check
   # warnings for Tor's existing configure macros on the Windows runner, so keep
   # autoreconf strict enough to print warnings without failing before configure.
   perl -0pi -e 's/-W all,error/-W all/g' "$tor_autogen"
+  grep -n 'VERGE_MSVC_USE_RELEASE_TOR_CONFIGURE' "$tor_autogen" >/dev/null
   grep -n -- '-W all' "$tor_autogen" >/dev/null
   ! grep -n -- '-W all,error' "$tor_autogen" >/dev/null
 
