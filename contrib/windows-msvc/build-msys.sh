@@ -745,8 +745,8 @@ patch_pow_sources_for_windows() {
   grep -n '^void reducedSqueezeRow0' "$sponge_c" >/dev/null
 }
 
-echo "==> Initializing tor submodule"
-git submodule update --init --recursive src/tor
+echo "==> Initializing submodules"
+git submodule update --init --recursive src/tor src/secp256k1
 echo "==> Patching tor configure for Windows MSVC"
 patch_tor_configure_for_windows
 echo "==> Patching tor sources for Windows MSVC"

@@ -3,3 +3,6 @@
 	url = https://gitlab.torproject.org/tpo/core/tor
 	branch = release-0.4.8
 
+[submodule "src/secp256k1"]
+	path = src/secp256k1
+	url = https://github.com/bitcoin-core/secp256k1
