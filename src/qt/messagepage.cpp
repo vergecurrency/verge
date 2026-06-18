@@ -171,7 +171,7 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     ui->horizontalLayout->insertWidget(2, messageCountLabel);
 
     paidMessageCheckBox = new QCheckBox(tr("Paid v3"), this);
-    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Fee: 0.1 XVG."));
+    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Marker: 0.000001 XVG plus the normal transaction fee."));
     paidMessageCheckBox->setStyleSheet("color: rgb(92, 255, 122);");
     ui->horizontalLayout->insertWidget(3, paidMessageCheckBox);
 
@@ -183,7 +183,7 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     retentionDaysSpinBox->setToolTip(tr("Paid v3 message retention."));
     ui->horizontalLayout->insertWidget(4, retentionDaysSpinBox);
 
-    paidFeeLabel = new QLabel(tr("Fee: 0.1 XVG"), this);
+    paidFeeLabel = new QLabel(tr("Marker: 0.000001 XVG"), this);
     paidFeeLabel->setStyleSheet("color: rgb(92, 255, 122);");
     paidFeeLabel->setVisible(false);
     ui->horizontalLayout->insertWidget(5, paidFeeLabel);

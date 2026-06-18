@@ -179,7 +179,7 @@ static const int MIN_SMSG_PROTO_VERSION = 90007;
 
 int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut = nullptr, uint32_t* lenDataOut = nullptr, uint32_t* lenPlainOut = nullptr, uint32_t maxPlainBytes = 0);
 
-const CAmount SMSG_PAID_MSG_FEE = COIN / 10;                // 0.1 XVG flat
+const CAmount SMSG_PAID_MSG_FEE = 1;                       // 0.000001 XVG marker
 
 #define SMSG_MASK_UNREAD (1 << 0)
 

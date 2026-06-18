@@ -109,14 +109,14 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
     ui->scrollArea->setStyleSheet(QStringLiteral("background-color: #14051f; border: 1px solid #54207f; border-radius: 6px;"));
     ui->scrollAreaWidgetContents->setStyleSheet(QStringLiteral("background-color: #14051f;"));
     paidMessageCheckBox = new QCheckBox(tr("Paid v3"), this);
-    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Fee: 0.1 XVG."));
+    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Marker: 0.000001 XVG plus the normal transaction fee."));
     retentionDaysSpinBox = new QSpinBox(this);
     retentionDaysSpinBox->setRange(1, 31);
     retentionDaysSpinBox->setValue(1);
     retentionDaysSpinBox->setSuffix(tr(" days"));
     retentionDaysSpinBox->setEnabled(false);
     retentionDaysSpinBox->setToolTip(tr("Paid v3 message retention."));
-    paidFeeLabel = new QLabel(tr("Fee: 0.1 XVG"), this);
+    paidFeeLabel = new QLabel(tr("Marker: 0.000001 XVG"), this);
     paidFeeLabel->setVisible(false);
     ui->horizontalLayout_3->addWidget(paidMessageCheckBox);
     ui->horizontalLayout_3->addWidget(retentionDaysSpinBox);
