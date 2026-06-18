@@ -67,7 +67,7 @@ fi
 export BOOST_ROOT
 export BOOST_INCLUDEDIR="${BOOST_INCLUDEDIR:-$boost_incdir}"
 export BOOST_LIBRARYDIR="$boost_libdir"
-export CPPFLAGS="${CPPFLAGS:-} -I${toolinclude_root} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_INCLUDEDIR}"
+export CPPFLAGS="${CPPFLAGS:-} -DSECP256K1_STATIC -I${toolinclude_root} -I${OPENSSL_ROOT_DIR}/include -I${BOOST_INCLUDEDIR}"
 export LDFLAGS="${LDFLAGS:-} -L${OPENSSL_ROOT_DIR}/lib -L${BOOST_LIBRARYDIR}"
 win_system_libs=(
   -lws2_32
