@@ -643,6 +643,7 @@ patch_tor_configure_for_windows() {
 patch_tor_sources_for_windows() {
   local control_getinfo="$repo_root/src/tor/src/feature/control/control_getinfo.c"
   local compat_compiler="$repo_root/src/tor/src/lib/cc/compat_compiler.h"
+  local compat_time="$repo_root/src/tor/src/lib/time/compat_time.h"
   local trunnel_header="$repo_root/src/tor/src/ext/trunnel/trunnel.h"
   local hashx_program_exec="$repo_root/src/tor/src/ext/equix/hashx/src/program_exec.c"
 
@@ -684,6 +685,11 @@ patch_tor_sources_for_windows() {
     perl -0pi -e 's/#include <sys\/types\.h>/#include <sys\/types.h>\n#include "lib\/cc\/torint.h"/' "$trunnel_header"
   fi
 
+  if ! grep -q 'VERGE_MSVC_WINSOCK_TIMEVAL' "$compat_time"; then
+    perl -0pi -e 's/#include "lib\/cc\/torint\.h"/#include "lib\/cc\/torint.h"\n\n#ifdef _WIN32\n#include <winsock2.h>\n#endif\n\/\* VERGE_MSVC_WINSOCK_TIMEVAL \*\//g' "$compat_time"
+  fi
+  perl -0pi -e 's/#if !defined\(HAVE_STRUCT_TIMEVAL_TV_SEC\)/#if !defined(HAVE_STRUCT_TIMEVAL_TV_SEC) \&\& !defined(_WIN32)/g' "$compat_time"
+
   perl -0pi -e 's/#if EVAL_DEFINE\(__MACHINEARM64_X64\(1\)\)/#if defined(_M_ARM64EC)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if EVAL_DEFINE\(__MACHINEARM64_X64\(1\)\)\s*\|\|\s*defined\(_M_ARM64EC\)/#if defined(_M_ARM64EC)/g' "$hashx_program_exec"
   perl -0pi -e 's/#if defined\(_M_ARM64EC\)\s*\|\|\s*\(defined\(__MACHINEARM64_X64\)\s*&&\s*EVAL_DEFINE\(__MACHINEARM64_X64\(1\)\)\)/#if defined(_M_ARM64EC)/g' "$hashx_program_exec"
@@ -705,6 +711,16 @@ patch_tor_sources_for_windows() {
   grep -n 'VERGE_MSVC_WINDOWS_CRT_COMPAT' "$compat_compiler" >/dev/null || {
     echo "failed to patch $compat_compiler for MSVC CRT compatibility" >&2
     sed -n '1,80p' "$compat_compiler" >&2
+    exit 1
+  }
+  grep -n 'VERGE_MSVC_WINSOCK_TIMEVAL' "$compat_time" >/dev/null || {
+    echo "failed to patch $compat_time for Winsock timeval" >&2
+    sed -n '145,170p' "$compat_time" >&2
+    exit 1
+  }
+  grep -n '#if !defined(HAVE_STRUCT_TIMEVAL_TV_SEC) && !defined(_WIN32)' "$compat_time" >/dev/null || {
+    echo "failed to guard $compat_time timeval fallback" >&2
+    sed -n '145,170p' "$compat_time" >&2
     exit 1
   }
 }
