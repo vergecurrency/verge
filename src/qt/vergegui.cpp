@@ -1539,14 +1539,29 @@ void VERGEGUI::updateSmsgStatusIcon()
     }
     pendingSmsgPeerCount = std::max(0, advertisedSmsgPeerCount - smsgPeerCount);
 
+    const int64_t lastBlockTime = m_node.getLastBlockTime();
+    const bool blockchainReady = !m_node.isInitialBlockDownload() &&
+        lastBlockTime > 0 &&
+        GetTime() - lastBlockTime < 90 * 60;
     const QColor color = hasSmsgPeer ? QColor(82, 225, 116) : QColor(255, 86, 113);
     labelSmsgIcon->setPixmap(CreateChatBubblePixmap(color));
-    labelSmsgIcon->setToolTip(hasSmsgPeer
-        ? tr("Secure messaging relay is ready.<br>Validated SMSG peers: %1<br>Pending SMSG peers: %2<br>Total peers: %3")
+
+    QString tooltip;
+    if (hasSmsgPeer) {
+        tooltip = tr("Secure messaging relay is ready.");
+    } else if (!m_node.getNetworkActive()) {
+        tooltip = tr("Secure messaging relay is not ready.<br>Network activity is disabled.");
+    } else if (!blockchainReady) {
+        tooltip = tr("Secure messaging relay is not ready.<br>The blockchain is still syncing, so messages cannot be sent or received yet.");
+    } else if (advertisedSmsgPeerCount > 0) {
+        tooltip = tr("Secure messaging relay is not ready.<br>Connected SMSG peers are still being validated.");
+    } else {
+        tooltip = tr("Secure messaging relay is not ready.<br>No connected peer currently supports secure messaging.");
+    }
+
+    labelSmsgIcon->setToolTip(tooltip +
+        tr("<br>Validated SMSG peers: %1<br>Pending SMSG peers: %2<br>Total peers: %3")
             .arg(smsgPeerCount)
-            .arg(pendingSmsgPeerCount)
-            .arg(nodeStats.size())
-        : tr("Secure messaging relay is not ready.<br>Validated SMSG peers: 0<br>Pending SMSG peers: %1<br>Total peers: %2")
             .arg(pendingSmsgPeerCount)
             .arg(nodeStats.size()));
 }
