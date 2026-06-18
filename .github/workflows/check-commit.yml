@@ -10,8 +10,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_26.0.1.app
@@ -902,8 +900,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: git config credential.helper
         run: git config credential.helper
@@ -2130,8 +2126,6 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Cache non-Qt depends build artifacts
         uses: actions/cache@v4
@@ -2622,8 +2616,6 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -2869,8 +2861,6 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
