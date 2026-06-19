@@ -99,6 +99,11 @@ QString FormatChatkeyURI(const QString& address, const QString& chatkey, const Q
     return uri;
 }
 
+QString FormatShareChatkey(const QString& address, const QString& chatkey)
+{
+    return QStringLiteral("%1 %2").arg(address, chatkey);
+}
+
 QToolButton* CreateCopyButton(const PlatformStyle* platformStyle, const QString& text, const QString& clipboardText, QWidget* parent)
 {
     QToolButton* button = new QToolButton(parent);
@@ -160,6 +165,7 @@ QString BuildChatkeyQRCode(const QString& payload, const QString& caption, QPixm
 void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, const QString& address, const QString& chatkey, const QString& label)
 {
     const QString payload = FormatChatkeyURI(address, chatkey, label);
+    const QString sharedChatkey = FormatShareChatkey(address, chatkey);
 
     QDialog dialog(parent);
     dialog.setObjectName("ReceiveRequestDialog");
@@ -192,7 +198,7 @@ void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, cons
     html += QStringLiteral("<b>%1</b><br>").arg(QObject::tr("Chatkey information"));
     html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Label"), GUIUtil::HtmlEscape(label));
     html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Address"), GUIUtil::HtmlEscape(address));
-    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Chatkey"), GUIUtil::HtmlEscape(chatkey));
+    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Chatkey"), GUIUtil::HtmlEscape(sharedChatkey));
     html += QStringLiteral("<b>%1</b>: <a href=\"%2\">%3</a>")
         .arg(QObject::tr("QR payload"), GUIUtil::HtmlEscape(payload), GUIUtil::HtmlEscape(payload));
     details->setHtml(html);
@@ -209,7 +215,7 @@ void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, cons
         copyLayout->addWidget(CreateCopyButton(platformStyle, QObject::tr("Copy %1").arg(title.toLower()), value, &dialog), row, 2);
     };
     addCopyRow(0, QObject::tr("Address"), address);
-    addCopyRow(1, QObject::tr("Chatkey"), chatkey);
+    addCopyRow(1, QObject::tr("Chatkey"), sharedChatkey);
     addCopyRow(2, QObject::tr("QR payload"), payload);
     mainLayout->addLayout(copyLayout);
 

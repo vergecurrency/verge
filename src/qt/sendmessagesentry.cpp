@@ -15,7 +15,24 @@
 #include <QClipboard>
 #include <QLabel>
 #include <QPlainTextEdit>
+#include <QRegularExpression>
 #include <QSignalBlocker>
+
+namespace {
+bool LooksLikeCompressedChatkey(const QString& value)
+{
+    const QString key = value.trimmed();
+    if (key.size() != 66 || (!key.startsWith(QStringLiteral("02")) && !key.startsWith(QStringLiteral("03")))) {
+        return false;
+    }
+    for (const QChar ch : key) {
+        if (!ch.isDigit() && (ch.toLower() < QLatin1Char('a') || ch.toLower() > QLatin1Char('f'))) {
+            return false;
+        }
+    }
+    return true;
+}
+} // namespace
 
 SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
     QFrame(parent),
@@ -33,9 +50,10 @@ SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
 #endif
 
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
-    ui->sendTo->setPlaceholderText(tr("Recipient Verge address"));
+    ui->sendTo->setPlaceholderText(tr("Recipient address or shared chatkey"));
+    ui->sendTo->setToolTip(tr("Paste a recipient address, or paste a shared chatkey line to fill the address and chatkey."));
     ui->publicKey->setPlaceholderText(tr("Auto-fills if known, otherwise paste recipient chatkey"));
-    ui->publicKey->setToolTip(tr("Recipient chatkey. If this address is already known locally, the field fills automatically."));
+    ui->publicKey->setToolTip(tr("Recipient chatkey. If this address is already known locally, the field fills automatically. Shared chatkey lines are also accepted."));
     ui->messageText->setPlaceholderText(tr("Type an encrypted message"));
     ui->addressBookButton->setFixedSize(28, 28);
     ui->pasteButton->setFixedSize(28, 28);
@@ -79,6 +97,11 @@ bool SendMessagesEntry::validate()
     bool valid = true;
     QString sendTo = ui->sendTo->text().trimmed();
     QString publicKey = ui->publicKey->text().trimmed();
+
+    if (applyCombinedChatkey(sendTo) || applyCombinedChatkey(publicKey)) {
+        sendTo = ui->sendTo->text().trimmed();
+        publicKey = ui->publicKey->text().trimmed();
+    }
 
     if (!model->getWalletModel()->validateAddress(sendTo)) {
         ui->sendTo->setValid(false);
@@ -178,7 +201,10 @@ void SendMessagesEntry::deleteClicked()
 
 void SendMessagesEntry::on_pasteButton_clicked()
 {
-    ui->sendTo->setText(QApplication::clipboard()->text());
+    const QString text = QApplication::clipboard()->text().trimmed();
+    if (!applyCombinedChatkey(text)) {
+        ui->sendTo->setText(text);
+    }
 }
 
 void SendMessagesEntry::on_addressBookButton_clicked()
@@ -197,8 +223,75 @@ void SendMessagesEntry::on_addressBookButton_clicked()
 
 void SendMessagesEntry::on_sendTo_textChanged(const QString& address)
 {
+    if (applyCombinedChatkey(address)) {
+        return;
+    }
     updateLabel(address);
     resolveKnownPublicKey(address.trimmed(), true);
+}
+
+bool SendMessagesEntry::splitCombinedChatkey(const QString& text, QString& addressOut, QString& pubkeyOut) const
+{
+    if (!model || !model->getWalletModel()) {
+        return false;
+    }
+
+    const QString value = text.trimmed();
+    if (value.isEmpty()) {
+        return false;
+    }
+
+    QString separated = value;
+    if (!separated.startsWith(QStringLiteral("verge:"), Qt::CaseInsensitive)) {
+        separated.replace(QLatin1Char(':'), QLatin1Char(' '));
+    }
+    const QStringList parts = separated.split(QRegularExpression(QStringLiteral("[\\s,;|]+")), Qt::SkipEmptyParts);
+    if (parts.size() >= 2) {
+        for (int i = 0; i + 1 < parts.size(); ++i) {
+            const QString candidateAddress = parts.at(i).trimmed();
+            const QString candidatePubkey = parts.at(i + 1).trimmed();
+            if (model->getWalletModel()->validateAddress(candidateAddress) && LooksLikeCompressedChatkey(candidatePubkey)) {
+                addressOut = candidateAddress;
+                pubkeyOut = candidatePubkey;
+                return true;
+            }
+        }
+    }
+
+    for (int i = 1; i + 66 <= value.size(); ++i) {
+        const QString candidateAddress = value.left(i).trimmed();
+        const QString candidatePubkey = value.mid(i, 66).trimmed();
+        const QString remainder = value.mid(i + 66).trimmed();
+        if (remainder.isEmpty() &&
+            model->getWalletModel()->validateAddress(candidateAddress) &&
+            LooksLikeCompressedChatkey(candidatePubkey)) {
+            addressOut = candidateAddress;
+            pubkeyOut = candidatePubkey;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool SendMessagesEntry::applyCombinedChatkey(const QString& text)
+{
+    QString address;
+    QString pubkey;
+    if (!splitCombinedChatkey(text, address, pubkey)) {
+        return false;
+    }
+
+    if (ui->sendTo->text().trimmed() != address) {
+        const QSignalBlocker blocker(ui->sendTo);
+        ui->sendTo->setText(address);
+    }
+    if (ui->publicKey->text().trimmed() != pubkey) {
+        const QSignalBlocker blocker(ui->publicKey);
+        ui->publicKey->setText(pubkey);
+    }
+    updateLabel(address);
+    return true;
 }
 
 bool SendMessagesEntry::updateLabel(const QString& address)

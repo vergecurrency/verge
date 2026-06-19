@@ -49,6 +49,8 @@ private Q_SLOTS:
     void updateMessageCountdown();
 
 private:
+    bool splitCombinedChatkey(const QString& text, QString& addressOut, QString& pubkeyOut) const;
+    bool applyCombinedChatkey(const QString& text);
     bool updateLabel(const QString& address);
     bool resolveKnownPublicKey(const QString& address, bool updateField);
     void enforceMessageLimit();

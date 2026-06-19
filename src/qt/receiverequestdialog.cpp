@@ -58,6 +58,11 @@ QString GetLocalChatkey(const QString& address)
     return QString::fromStdString(publicKey);
 }
 
+QString FormatShareChatkey(const QString& address, const QString& chatkey)
+{
+    return QStringLiteral("%1 %2").arg(address, chatkey);
+}
+
 QString FormatChatkeyURI(const QString& address, const QString& chatkey, const QString& label)
 {
     QString uri = QStringLiteral("verge:%1?chatkey=%2").arg(address, EncodeUriValue(chatkey));
@@ -212,7 +217,7 @@ void ReceiveRequestDialog::update()
     html += "<b>"+tr("URI")+"</b>: ";
     html += "<a href=\""+uri+"\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
     if (isChatkey) {
-        html += "<b>"+tr("Chatkey")+"</b>: " + GUIUtil::HtmlEscape(chatkey) + "<br>";
+        html += "<b>"+tr("Chatkey")+"</b>: " + GUIUtil::HtmlEscape(FormatShareChatkey(info.address, chatkey)) + "<br>";
     } else {
         html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
     }
@@ -287,5 +292,5 @@ void ReceiveRequestDialog::on_btnCopyURI_clicked()
 void ReceiveRequestDialog::on_btnCopyAddress_clicked()
 {
     const QString chatkey = requestMode == ChatkeyRequest ? GetLocalChatkey(info.address) : QString();
-    GUIUtil::setClipboard(chatkey.isEmpty() ? info.address : chatkey);
+    GUIUtil::setClipboard(chatkey.isEmpty() ? info.address : FormatShareChatkey(info.address, chatkey));
 }
