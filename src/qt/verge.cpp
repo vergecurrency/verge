@@ -2556,7 +2556,7 @@ void VERGEApplication::startThread()
     connect(this, SIGNAL(stopThread()), executor, SLOT(deleteLater()));
     connect(this, SIGNAL(stopThread()), coreThread, SLOT(quit()));
 
-    coreThread->start();
+    coreThread->start(QThread::LowPriority);
 }
 
 void VERGEApplication::parameterSetup()

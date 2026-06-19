@@ -256,12 +256,14 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
     pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
 
     int nLastBlockFile = 0;
-    CBlockFileInfo lastBlockFileInfo;
     int64_t nEstimatedBlockIndexEntries = 0;
-    if (ReadLastBlockFile(nLastBlockFile) &&
-        ReadBlockFileInfo(nLastBlockFile, lastBlockFileInfo) &&
-        lastBlockFileInfo.nHeightLast >= 0) {
-        nEstimatedBlockIndexEntries = static_cast<int64_t>(lastBlockFileInfo.nHeightLast) + 1;
+    if (ReadLastBlockFile(nLastBlockFile)) {
+        for (int nFile = 0; nFile <= nLastBlockFile; ++nFile) {
+            CBlockFileInfo blockFileInfo;
+            if (ReadBlockFileInfo(nFile, blockFileInfo)) {
+                nEstimatedBlockIndexEntries += blockFileInfo.nBlocks;
+            }
+        }
     }
     uiInterface.ShowProgress(_("Loading block index..."), nEstimatedBlockIndexEntries > 0 ? 1 : 0, false);
 
