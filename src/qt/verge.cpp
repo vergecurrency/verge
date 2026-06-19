@@ -2556,7 +2556,7 @@ void VERGEApplication::startThread()
     connect(this, SIGNAL(stopThread()), executor, SLOT(deleteLater()));
     connect(this, SIGNAL(stopThread()), coreThread, SLOT(quit()));
 
-    coreThread->start(QThread::LowPriority);
+    coreThread->start();
 }
 
 void VERGEApplication::parameterSetup()
@@ -3129,7 +3129,9 @@ int main(int argc, char *argv[])
         // This is acceptable because this function only contains steps that are quick to execute,
         // so the GUI thread won't be held up.
         if (node->baseInitialize()) {
-            app.requestInitialize();
+            QTimer::singleShot(0, &app, [&app]() {
+                app.requestInitialize();
+            });
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
             WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("%1 didn't yet exit safely...").arg(QObject::tr(PACKAGE_NAME)), (HWND)app.getMainWinId());
 #endif

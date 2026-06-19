@@ -255,17 +255,22 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
 
     pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
 
-    int nLastBlockFile = 0;
-    int64_t nEstimatedBlockIndexEntries = 0;
-    if (ReadLastBlockFile(nLastBlockFile)) {
-        for (int nFile = 0; nFile <= nLastBlockFile; ++nFile) {
-            CBlockFileInfo blockFileInfo;
-            if (ReadBlockFileInfo(nFile, blockFileInfo)) {
-                nEstimatedBlockIndexEntries += blockFileInfo.nBlocks;
-            }
+    uiInterface.ShowProgress(_("Loading block index..."), 0, false);
+
+    int64_t nTotalBlockIndexEntries = 0;
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        std::pair<char, uint256> key;
+        if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
+            ++nTotalBlockIndexEntries;
+            pcursor->Next();
+        } else {
+            break;
         }
     }
-    uiInterface.ShowProgress(_("Loading block index..."), nEstimatedBlockIndexEntries > 0 ? 1 : 0, false);
+
+    pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
+    uiInterface.ShowProgress(_("Loading block index..."), nTotalBlockIndexEntries > 0 ? 1 : 100, false);
 
     // Load mapBlockIndex
     int64_t nLoadedBlockIndexEntries = 0;
@@ -296,15 +301,12 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
 
                 ++nLoadedBlockIndexEntries;
                 const int64_t nNow = GetTimeMillis();
-                if (nLoadedBlockIndexEntries == 1 || nNow - nLastBlockIndexProgressTime >= 1000) {
-                    const int nProgress = nEstimatedBlockIndexEntries > 0
-                        ? std::max(1, std::min(99, static_cast<int>((nLoadedBlockIndexEntries * 100) / nEstimatedBlockIndexEntries)))
-                        : 1;
+                if (nLoadedBlockIndexEntries == 1 || nNow - nLastBlockIndexProgressTime >= 250) {
+                    const int nProgress = nTotalBlockIndexEntries > 0
+                        ? std::max(1, std::min(99, static_cast<int>((nLoadedBlockIndexEntries * 100) / nTotalBlockIndexEntries)))
+                        : 100;
                     uiInterface.ShowProgress(_("Loading block index..."), nProgress, false);
                     nLastBlockIndexProgressTime = nNow;
-                }
-                if (nLoadedBlockIndexEntries % 8192 == 0) {
-                    boost::this_thread::yield();
                 }
 
                 pcursor->Next();
