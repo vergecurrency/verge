@@ -1520,6 +1520,12 @@ void VERGEGUI::updateSmsgStatusIcon()
         return;
     }
 
+    if (!clientModel) {
+        labelSmsgIcon->setPixmap(CreateChatBubblePixmap(QColor(255, 86, 113)));
+        labelSmsgIcon->setToolTip(tr("Secure messaging relay is not ready.<br>The blockchain is still loading."));
+        return;
+    }
+
     interfaces::Node::NodesStats nodeStats;
     bool hasSmsgPeer = false;
     int smsgPeerCount = 0;
