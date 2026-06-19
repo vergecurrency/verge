@@ -141,7 +141,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     subscribeToCoreSignals();
     installEventFilter(this);
 
-    m_backgroundAnimationTimer.setInterval(45);
+    m_backgroundAnimationTimer.setInterval(125);
     connect(&m_backgroundAnimationTimer, &QTimer::timeout, this, [this]() {
         if (m_isFinishing) {
             return;
@@ -151,7 +151,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     });
     m_backgroundAnimationTimer.start();
 
-    m_textGradientTimer.setInterval(50);
+    m_textGradientTimer.setInterval(125);
     connect(&m_textGradientTimer, &QTimer::timeout, this, [this]() {
         if (m_isFinishing) {
             return;

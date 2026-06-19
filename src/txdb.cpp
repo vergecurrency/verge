@@ -303,6 +303,9 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                     uiInterface.ShowProgress(_("Loading block index..."), nProgress, false);
                     nLastBlockIndexProgressTime = nNow;
                 }
+                if (nLoadedBlockIndexEntries % 8192 == 0) {
+                    boost::this_thread::yield();
+                }
 
                 pcursor->Next();
             } else {
