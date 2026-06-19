@@ -141,25 +141,8 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     subscribeToCoreSignals();
     installEventFilter(this);
 
-    m_backgroundAnimationTimer.setInterval(125);
-    connect(&m_backgroundAnimationTimer, &QTimer::timeout, this, [this]() {
-        if (m_isFinishing) {
-            return;
-        }
-        m_backgroundPhase = (m_backgroundPhase + 1) % 1000000;
-        update();
-    });
-    m_backgroundAnimationTimer.start();
-
-    m_textGradientTimer.setInterval(125);
-    connect(&m_textGradientTimer, &QTimer::timeout, this, [this]() {
-        if (m_isFinishing) {
-            return;
-        }
-        m_textGradientOffset = (m_textGradientOffset + 5) % TEXT_GRADIENT_PERIOD;
-        update();
-    });
-    m_textGradientTimer.start();
+    // Keep startup splash repaint work tied to actual progress updates. Continuous
+    // animation during block-index loading can make the OS mark the window as hung.
 }
 
 SplashScreen::~SplashScreen()
