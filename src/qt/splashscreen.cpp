@@ -25,6 +25,7 @@
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QLinearGradient>
+#include <QMutexLocker>
 #include <QPainter>
 #include <QScreen>
 
@@ -47,6 +48,9 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     m_progressPercent(-1),
     m_isFinishing(false),
     m_coreSignalsConnected(false),
+    m_pendingProgressPercent(0),
+    m_pendingProgressAlignment(Qt::AlignCenter | Qt::AlignHCenter),
+    m_progressUpdateQueued(false),
     m_node(node)
 {
     setObjectName("SplashScreen");
@@ -280,12 +284,11 @@ static void ShowProgress(SplashScreen *splash, const std::string &title, int nPr
 {
     const std::string message = title + std::string("\n") +
             (resume_possible ? _("(press q to shutdown and continue later)") : _("press q to shutdown"));
-    QMetaObject::invokeMethod(splash, "showProgressMessage",
-        Qt::QueuedConnection,
-        Q_ARG(QString, QString::fromStdString(message)),
-        Q_ARG(int, nProgress),
-        Q_ARG(int, Qt::AlignCenter|Qt::AlignHCenter),
-        Q_ARG(QColor, QColor(255,255,255)));
+    splash->enqueueProgressMessage(
+        QString::fromStdString(message),
+        nProgress,
+        Qt::AlignCenter|Qt::AlignHCenter,
+        QColor(255,255,255));
 }
 #ifdef ENABLE_WALLET
 void SplashScreen::ConnectWallet(std::unique_ptr<interfaces::Wallet> wallet)
@@ -368,6 +371,49 @@ void SplashScreen::showProgressMessage(const QString& message, int progress, int
     curColor = color;
     m_progressPercent = std::max(0, std::min(100, progress));
     update();
+}
+
+void SplashScreen::enqueueProgressMessage(const QString& message, int progress, int alignment, const QColor& color)
+{
+    if (m_isFinishing) {
+        return;
+    }
+
+    bool queueUpdate = false;
+    {
+        QMutexLocker lock(&m_progressMutex);
+        m_pendingProgressMessage = message;
+        m_pendingProgressPercent = progress;
+        m_pendingProgressAlignment = alignment;
+        m_pendingProgressColor = color;
+        if (!m_progressUpdateQueued) {
+            m_progressUpdateQueued = true;
+            queueUpdate = true;
+        }
+    }
+
+    if (queueUpdate) {
+        QMetaObject::invokeMethod(this, "applyQueuedProgressMessage", Qt::QueuedConnection);
+    }
+}
+
+void SplashScreen::applyQueuedProgressMessage()
+{
+    QString message;
+    QColor color;
+    int progress = 0;
+    int alignment = Qt::AlignCenter | Qt::AlignHCenter;
+
+    {
+        QMutexLocker lock(&m_progressMutex);
+        message = m_pendingProgressMessage;
+        progress = m_pendingProgressPercent;
+        alignment = m_pendingProgressAlignment;
+        color = m_pendingProgressColor;
+        m_progressUpdateQueued = false;
+    }
+
+    showProgressMessage(message, progress, alignment, color);
 }
 
 void SplashScreen::paintEvent(QPaintEvent *event)

@@ -4314,7 +4314,7 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
         nHeight++;
         ++nScannedHeights;
         const int64_t nNow = GetTimeMillis();
-        if (nScannedHeights == 1 || nNow - nLastRewindProgressTime >= 250) {
+        if (nScannedHeights == 1 || nNow - nLastRewindProgressTime >= 1000) {
             const int nProgress = nScanTotal > 0
                 ? std::max(1, std::min(45, static_cast<int>((nScannedHeights * 45) / nScanTotal)))
                 : 45;
@@ -4351,7 +4351,7 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
         }
         ++nDisconnectedBlocks;
         const int64_t nNow = GetTimeMillis();
-        if (nDisconnectedBlocks == 1 || nNow - nLastRewindProgressTime >= 250) {
+        if (nDisconnectedBlocks == 1 || nNow - nLastRewindProgressTime >= 1000) {
             const int nProgress = nDisconnectTotal > 0
                 ? 45 + std::max(1, std::min(25, static_cast<int>((nDisconnectedBlocks * 25) / nDisconnectTotal)))
                 : 70;
@@ -4404,7 +4404,7 @@ bool CChainState::RewindBlockIndex(const CChainParams& params, int nStartHeight)
 
         ++nRewindCleanupEntries;
         const int64_t nNow = GetTimeMillis();
-        if (nRewindCleanupEntries == 1 || nNow - nLastRewindProgressTime >= 250) {
+        if (nRewindCleanupEntries == 1 || nNow - nLastRewindProgressTime >= 1000) {
             const int nProgress = nRewindCleanupTotal > 0
                 ? 70 + std::max(1, std::min(25, static_cast<int>((nRewindCleanupEntries * 25) / nRewindCleanupTotal)))
                 : 95;

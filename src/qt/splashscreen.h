@@ -7,6 +7,7 @@
 #define VERGE_QT_SPLASHSCREEN_H
 
 #include <QSplashScreen>
+#include <QMutex>
 #include <QTimer>
 #include <QVector>
 
@@ -46,6 +47,8 @@ public Q_SLOTS:
     /** Show message and progress */
     void showMessage(const QString &message, int alignment, const QColor &color);
     void showProgressMessage(const QString& message, int progress, int alignment, const QColor& color);
+    void enqueueProgressMessage(const QString& message, int progress, int alignment, const QColor& color);
+    void applyQueuedProgressMessage();
 
 protected:
     bool eventFilter(QObject * obj, QEvent * ev);
@@ -72,6 +75,12 @@ private:
     int m_progressPercent;
     bool m_isFinishing;
     bool m_coreSignalsConnected;
+    QMutex m_progressMutex;
+    QString m_pendingProgressMessage;
+    QColor m_pendingProgressColor;
+    int m_pendingProgressPercent;
+    int m_pendingProgressAlignment;
+    bool m_progressUpdateQueued;
 
     interfaces::Node& m_node;
     std::unique_ptr<interfaces::Handler> m_handler_init_message;
