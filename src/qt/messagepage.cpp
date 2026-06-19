@@ -147,7 +147,7 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     receiptLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
     receiptLink->setOpenExternalLinks(false);
     receiptLink->setVisible(false);
-    receiptLink->setToolTip(tr("Show paid v3 message receipt"));
+    receiptLink->setToolTip(tr("Show SMSG v1 receipt"));
     ui->horizontalLayout_3->insertWidget(ui->horizontalLayout_3->count() - 1, receiptLink);
     connect(receiptLink, SIGNAL(linkActivated(QString)), this, SLOT(showReceipt()));
 
@@ -170,8 +170,10 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     messageCountLabel->setStyleSheet("color: rgb(92, 255, 122);");
     ui->horizontalLayout->insertWidget(2, messageCountLabel);
 
-    paidMessageCheckBox = new QCheckBox(tr("Paid v3"), this);
-    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Marker: 0.000001 XVG plus the normal transaction fee."));
+    paidMessageCheckBox = new QCheckBox(tr("SMSG v1"), this);
+    paidMessageCheckBox->setToolTip(tr("SMSG v1 is paid by default. Marker: 0.000001 XVG plus the normal transaction fee."));
+    paidMessageCheckBox->setChecked(true);
+    paidMessageCheckBox->setEnabled(false);
     paidMessageCheckBox->setStyleSheet("color: rgb(92, 255, 122);");
     ui->horizontalLayout->insertWidget(3, paidMessageCheckBox);
 
@@ -179,13 +181,13 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     retentionDaysSpinBox->setRange(1, 31);
     retentionDaysSpinBox->setValue(1);
     retentionDaysSpinBox->setSuffix(tr(" days"));
-    retentionDaysSpinBox->setEnabled(false);
-    retentionDaysSpinBox->setToolTip(tr("Paid v3 message retention."));
+    retentionDaysSpinBox->setEnabled(true);
+    retentionDaysSpinBox->setToolTip(tr("SMSG v1 message retention."));
     ui->horizontalLayout->insertWidget(4, retentionDaysSpinBox);
 
     paidFeeLabel = new QLabel(tr("Marker: 0.000001 XVG"), this);
     paidFeeLabel->setStyleSheet("color: rgb(92, 255, 122);");
-    paidFeeLabel->setVisible(false);
+    paidFeeLabel->setVisible(true);
     ui->horizontalLayout->insertWidget(5, paidFeeLabel);
 
     connect(ui->messageEdit, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
@@ -278,11 +280,10 @@ void MessagePage::on_sendButton_clicked()
     recipients.append(recipient);
 
     const QString fromAddress = replyFromAddress.isEmpty() ? QStringLiteral("anon") : replyFromAddress;
-    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
     const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 1;
     const MessageModel::StatusCode status = fromAddress == QLatin1String("anon")
-        ? model->sendMessages(recipients, paidMessage, retentionDays)
-        : model->sendMessages(recipients, fromAddress, paidMessage, retentionDays);
+        ? model->sendMessages(recipients, true, retentionDays)
+        : model->sendMessages(recipients, fromAddress, true, retentionDays);
 
     if (status != MessageModel::OK) {
         QMessageBox::warning(this, tr("Send Secure Message"),
@@ -578,9 +579,7 @@ void MessagePage::updateMessageCountdown()
         return;
     }
 
-    const int maxBytes = paidMessageCheckBox && paidMessageCheckBox->isChecked()
-        ? static_cast<int>(smsg::SMSG_MAX_MSG_BYTES_PAID)
-        : static_cast<int>(smsg::SMSG_MAX_MSG_BYTES);
+    const int maxBytes = static_cast<int>(smsg::SMSG_MAX_MSG_BYTES_PAID);
     QString text = plainMessageEdit->toPlainText();
     QByteArray utf8 = text.toUtf8();
     if (utf8.size() > maxBytes) {
@@ -604,12 +603,11 @@ void MessagePage::updateMessageCountdown()
 
 void MessagePage::updatePaidMessageControls()
 {
-    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
     if (retentionDaysSpinBox) {
-        retentionDaysSpinBox->setEnabled(paidMessage);
+        retentionDaysSpinBox->setEnabled(true);
     }
     if (paidFeeLabel) {
-        paidFeeLabel->setVisible(paidMessage);
+        paidFeeLabel->setVisible(true);
     }
     updateMessageCountdown();
 }

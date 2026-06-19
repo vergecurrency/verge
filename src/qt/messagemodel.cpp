@@ -67,7 +67,7 @@ static QString GetSmsgVersionLabel(const SecMsgStored& smsgStored)
     }
 
     const SecureMessage* psmsg = reinterpret_cast<const SecureMessage*>(&smsgStored.vchMessage[0]);
-    return psmsg->IsPaidVersion() ? QObject::tr("v3") : QObject::tr("v2");
+    return psmsg->IsPaidVersion() ? QObject::tr("v1") : QObject::tr("legacy");
 }
 
 static bool IsFundingTxConfirmed(const QString& txHash)
@@ -402,6 +402,7 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
 }
  MessageModel::StatusCode MessageModel::sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom, bool paidMessage, int retentionDays)
 {
+    paidMessage = true;
      QSet<QString> setAddress;
      if(recipients.empty())
         return OK;
@@ -499,7 +500,7 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     if (messageLabel.isEmpty()) {
         messageLabel = rec->from_address;
     }
-    const QString version = rec->version.isEmpty() ? QStringLiteral("v2") : rec->version;
+    const QString version = rec->version.isEmpty() ? QStringLiteral("legacy") : rec->version;
     const QString html = QStringLiteral(
         "<span style=\"color:#FF9A2F; font-size:12px;\">%1</span> "
         "<span style=\"background-color:#6F2DBD; color:#FFFFFF; font-size:11px; font-weight:bold; padding:1px 5px; border-radius:3px;\">%2</span><br>"

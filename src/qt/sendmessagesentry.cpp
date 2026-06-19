@@ -22,7 +22,7 @@ SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
     ui(new Ui::SendMessagesEntry),
     model(nullptr),
     messageCountLabel(nullptr),
-    paidMessageEnabled(false)
+    paidMessageEnabled(true)
 {
     ui->setupUi(this);
 

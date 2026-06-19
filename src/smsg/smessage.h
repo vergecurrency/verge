@@ -174,6 +174,8 @@ const uint64_t SMSG_LOCAL_STORAGE_CAP_BYTES = 1024ULL * 1024ULL * 1024ULL;
 // Max size of payload worst case compression
 const unsigned int SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMSG_PL_HDR_LEN);
 const unsigned int SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES_PAID+SMSG_PL_HDR_LEN);
+// AES-CBC padding can add one full block; paid messages append a funding txid.
+const unsigned int SMSG_MAX_MSG_WORST_PAID_ENCRYPTED = SMSG_MAX_MSG_WORST_PAID + 16 + 32;
 
 static const int MIN_SMSG_PROTO_VERSION = 90007;
 
@@ -530,7 +532,7 @@ public:
     int Purge(std::vector<uint8_t> &vMsgId, std::string &sError);
 
     int Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
-        SecureMessage &smsg, std::string &sError, bool fPaid=false,
+        SecureMessage &smsg, std::string &sError, bool fPaid=true,
         size_t nDaysRetention=0, bool fTestFee=false, CAmount *nFee=NULL, bool fFromFile=false);
 
 

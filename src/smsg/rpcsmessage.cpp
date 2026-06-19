@@ -45,6 +45,11 @@ static void PushTime(UniValue& obj, const char* key, int64_t ts)
     obj.pushKV(key, FormatISO8601DateTime(ts));
 }
 
+static std::string SmsgVersionLabel(const smsg::SecureMessage* psmsg)
+{
+    return psmsg && psmsg->IsPaidVersion() ? "v1" : "legacy";
+}
+
 namespace part {
 static bool GetStringBool(const std::string& value, bool& out)
 {
@@ -852,13 +857,13 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 8)
         throw std::runtime_error(
             "smsgsend \"address_from\" \"address_to\" \"message\" ( paid_msg days_retention testfee )\n"
-            "Send an encrypted message from \"address_from\" to \"address_to\".\n"
+            "Send a paid SMSG v1 encrypted message from \"address_from\" to \"address_to\".\n"
             "\nArguments:\n"
             "1. \"address_from\"       (string, required) The address of the sender.\n"
             "2. \"address_to\"         (string, required) The address of the recipient.\n"
             "3. \"message\"            (string, required) The message.\n"
-            "4. paid_msg             (bool, optional, default=false) Send as paid message.\n"
-            "5. days_retention       (int, optional, default=1) Days paid message will be retained by network.\n"
+            "4. paid_msg             (bool, optional, default=true) Must be true; free legacy SMSG is disabled.\n"
+            "5. days_retention       (int, optional, default=1) Days SMSG v1 message will be retained by network.\n"
             "6. testfee              (bool, optional, default=false) Don't send the message, only estimate the fee.\n"
             "7. fromfile             (bool, optional, default=false) Send file as message, path specified in \"message\".\n"
             "8. decodehex            (bool, optional, default=false) Decode \"message\" from hex before sending.\n"
@@ -866,8 +871,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             "{\n"
             "  \"result\": \"Sent\"/\"Not Sent\"       (string) address of public key\n"
             "  \"msgid\": \"...\"                    (string) if sent, a message identifier\n"
-            "  \"txid\": \"...\"                     (string) if paid_msg the txnid of the funding txn\n"
-            "  \"fee\": n                          (amount) if paid_msg the fee paid\n"
+            "  \"txid\": \"...\"                     (string) the txnid of the funding txn\n"
+            "  \"fee\": n                          (amount) the marker amount paid\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("smsgsend", "\"myaddress\" \"toaddress\" \"message\"") +
@@ -884,7 +889,10 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     std::string addrTo    = request.params[1].get_str();
     std::string msg       = request.params[2].get_str();
 
-    bool fPaid = request.params[3].isNull() ? false : request.params[3].get_bool();
+    bool fPaid = true;
+    if (!request.params[3].isNull() && !request.params[3].get_bool()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Free legacy SMSG is disabled; paid SMSG v1 is required.");
+    }
     int nRetention = request.params[4].isNull() ? 1 : request.params[4].get_int();
     bool fTestFee = request.params[5].isNull() ? false : request.params[5].get_bool();
     bool fFromFile = request.params[6].isNull() ? false : request.params[6].get_bool();
@@ -926,16 +934,13 @@ static UniValue smsgsend(const JSONRPCRequest &request)
         if (!fTestFee)
             result.pushKV("msgid", HexStr(smsgModule.GetMsgID(smsgOut)));
 
-        if (fPaid)
+        if (!fTestFee)
         {
-            if (!fTestFee)
-            {
-                uint256 txid;
-                smsgOut.GetFundingTxid(txid);
-                result.pushKV("txid", txid.ToString());
-            };
-            result.pushKV("fee", ValueFromAmount(nFee));
-        }
+            uint256 txid;
+            smsgOut.GetFundingTxid(txid);
+            result.pushKV("txid", txid.ToString());
+        };
+        result.pushKV("fee", ValueFromAmount(nFee));
     };
 
     return result;
@@ -946,7 +951,7 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
     if (request.fHelp || request.params.size() != 2)
         throw std::runtime_error(
             "smsgsendanon \"address_to\" \"message\"\n"
-            "DEPRECATED. Send an anonymous encrypted message to addrTo.");
+            "DEPRECATED. Send a paid SMSG v1 anonymous encrypted message to addrTo.");
 
     EnsureSMSGIsEnabled();
 
@@ -961,13 +966,18 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
     std::string sError;
     smsg::SecureMessage smsgOut;
-    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError) != 0)
+    CAmount nFee = 0;
+    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, true, 1, false, &nFee) != 0)
     {
         result.pushKV("result", "Send failed.");
         result.pushKV("error", sError);
     } else
     {
         result.pushKV("msgid", HexStr(smsgModule.GetMsgID(smsgOut)));
+        uint256 txid;
+        smsgOut.GetFundingTxid(txid);
+        result.pushKV("txid", txid.ToString());
+        result.pushKV("fee", ValueFromAmount(nFee));
         result.pushKV("result", "Sent.");
     };
 
@@ -1054,7 +1064,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
                 UniValue objM(UniValue::VOBJ);
                 objM.pushKV("msgid", HexStr(&chKey[2], &chKey[2] + 28)); // timestamp+hash
-                objM.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
+                objM.pushKV("version", SmsgVersionLabel(psmsg));
 
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
                 int rv = smsgModule.Decrypt(false, smsgStored.addrTo, pHeader, pHeader + smsg::SMSG_HDR_LEN, nPayload, msg);
@@ -1212,7 +1222,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
                 UniValue objM(UniValue::VOBJ);
                 objM.pushKV("msgid", HexStr(&chKey[2], &chKey[2] + 28)); // timestamp+hash
-                objM.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
+                objM.pushKV("version", SmsgVersionLabel(psmsg));
 
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
                 int rv = smsgModule.Decrypt(false, smsgStored.addrOutbox, pHeader, pHeader + smsg::SMSG_HDR_LEN, nPayload, msg);
@@ -1700,7 +1710,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
             "  \"to\": \"str\"                       (string) Address the message was sent to\n"
             "  \"read\": bool                        (bool) Read status\n"
             "  \"sent\": int                         (int) Time the message was created\n"
-            "  \"paid\": bool                        (bool) Paid or free message\n"
+            "  \"paid\": bool                        (bool) Paid SMSG v1 or legacy free message\n"
             "  \"daysretention\": int                (int) Number of days message will stay in the network for\n"
             "  \"expiration\": int                   (int) Time the message will be dropped from the network\n"
             "  \"payloadsize\": int                  (int) Size of user message\n"
@@ -1781,7 +1791,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
     const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) &smsgStored.vchMessage[0];
 
     result.pushKV("msgid", sMsgId);
-    result.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
+    result.pushKV("version", SmsgVersionLabel(psmsg));
     result.pushKV("location", sType);
     PushTime(result, "received", smsgStored.timeReceived);
     result.pushKV("to", CBitcoinAddress(smsgStored.addrTo).ToString());

@@ -129,7 +129,7 @@ public:
         HTMLRole,
         /** Ambiguous bool */
         Ambiguous,
-        /** Paid v3 funding receipt data */
+        /** Paid SMSG v1 funding receipt data */
         ReceiptAvailableRole,
         ReceiptTxHashRole,
         ReceiptConfirmedRole,
@@ -157,8 +157,8 @@ public:
      void resetFilter();
      bool getAddressOrPubkey( QString &Address,  QString &Pubkey) const;
      // Send messages to a list of recipients
-    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, bool paidMessage = false, int retentionDays = 1);
-    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom, bool paidMessage = false, int retentionDays = 1);
+    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, bool paidMessage = true, int retentionDays = 1);
+    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom, bool paidMessage = true, int retentionDays = 1);
     
     QSortFilterProxyModel *proxyModel;
     

@@ -3941,7 +3941,8 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         if (nPayload <= 32) {
             return SMSG_PAYLOAD_OVER_SIZE;
         }
-        if (nPayload > SMSG_MAX_MSG_WORST_PAID + 32) {
+        // Paid payload is AES-CBC ciphertext plus the appended funding txid.
+        if (nPayload > SMSG_MAX_MSG_WORST_PAID_ENCRYPTED) {
             return SMSG_PAYLOAD_OVER_SIZE;
         }
         if (psmsg->nonce[0] < 1 || psmsg->nonce[0] > 31) {
@@ -3950,9 +3951,8 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         if (!CheckPaidSmsgChecksum(*psmsg, pPayload)) {
             return SMSG_CHECKSUM_MISMATCH;
         }
-    } else
-    if (nPayload > SMSG_MAX_MSG_WORST) {
-        return SMSG_PAYLOAD_OVER_SIZE;
+    } else {
+        return SMSG_UNKNOWN_VERSION;
     }
 
     int64_t now = GetAdjustedTime();
@@ -3960,9 +3960,6 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         LogPrint(BCLog::SMSG, "Time in future %d.\n", psmsg->timestamp);
         return SMSG_TIME_IN_FUTURE;
     }
-
-    if (!psmsg->IsPaidVersion() && !IsCurrentUnpaidSmsgVersion(*psmsg))
-        return SMSG_UNKNOWN_VERSION;
 
     if (IsSmsgExpired(*psmsg, now)) {
         LogPrint(BCLog::SMSG, "Message expired by TTL, timestamp %d.\n", psmsg->timestamp);
@@ -4306,6 +4303,11 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         Make a copy of the message to sender's first address and place in send queue db
         proof of work thread will pick up messages from  send queue db
     */
+
+    fPaid = true;
+    if (nDaysRetention == 0) {
+        nDaysRetention = 1;
+    }
 
     bool fSendAnonymous = (addressFrom.IsNull());
 

@@ -108,16 +108,18 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
     }
     ui->scrollArea->setStyleSheet(QStringLiteral("background-color: #14051f; border: 1px solid #54207f; border-radius: 6px;"));
     ui->scrollAreaWidgetContents->setStyleSheet(QStringLiteral("background-color: #14051f;"));
-    paidMessageCheckBox = new QCheckBox(tr("Paid v3"), this);
-    paidMessageCheckBox->setToolTip(tr("Send as a paid v3 SMSG. Marker: 0.000001 XVG plus the normal transaction fee."));
+    paidMessageCheckBox = new QCheckBox(tr("SMSG v1"), this);
+    paidMessageCheckBox->setToolTip(tr("SMSG v1 is paid by default. Marker: 0.000001 XVG plus the normal transaction fee."));
+    paidMessageCheckBox->setChecked(true);
+    paidMessageCheckBox->setEnabled(false);
     retentionDaysSpinBox = new QSpinBox(this);
     retentionDaysSpinBox->setRange(1, 31);
     retentionDaysSpinBox->setValue(1);
     retentionDaysSpinBox->setSuffix(tr(" days"));
-    retentionDaysSpinBox->setEnabled(false);
-    retentionDaysSpinBox->setToolTip(tr("Paid v3 message retention."));
+    retentionDaysSpinBox->setEnabled(true);
+    retentionDaysSpinBox->setToolTip(tr("SMSG v1 message retention."));
     paidFeeLabel = new QLabel(tr("Marker: 0.000001 XVG"), this);
-    paidFeeLabel->setVisible(false);
+    paidFeeLabel->setVisible(true);
     ui->horizontalLayout_3->addWidget(paidMessageCheckBox);
     ui->horizontalLayout_3->addWidget(retentionDaysSpinBox);
     ui->horizontalLayout_3->addWidget(paidFeeLabel);
@@ -149,7 +151,7 @@ void SendMessagesDialog::setModel(MessageModel* model)
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
         if (entry) {
             entry->setModel(model);
-            entry->setPaidMessageEnabled(paidMessageCheckBox && paidMessageCheckBox->isChecked());
+            entry->setPaidMessageEnabled(true);
         }
     }
 }
@@ -244,12 +246,11 @@ void SendMessagesDialog::on_sendButton_clicked()
         return;
     }
     MessageModel::StatusCode sendstatus;
-    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
     const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 1;
     if (mode == SendMessagesDialog::Anonymous)
-        sendstatus = model->sendMessages(recipients, paidMessage, retentionDays);
+        sendstatus = model->sendMessages(recipients, true, retentionDays);
     else
-        sendstatus = model->sendMessages(recipients, ui->addressFrom->currentData().toString(), paidMessage, retentionDays);
+        sendstatus = model->sendMessages(recipients, ui->addressFrom->currentData().toString(), true, retentionDays);
     switch (sendstatus) {
     case MessageModel::InvalidAddress:
         QMessageBox::warning(this, tr("Send Message"),
@@ -320,7 +321,7 @@ SendMessagesEntry* SendMessagesDialog::addEntry()
 {
     SendMessagesEntry* entry = new SendMessagesEntry(this);
     entry->setModel(model);
-    entry->setPaidMessageEnabled(paidMessageCheckBox && paidMessageCheckBox->isChecked());
+    entry->setPaidMessageEnabled(true);
     ui->entries->addWidget(entry);
     connect(entry, SIGNAL(removeEntry(SendMessagesEntry*)), this, SLOT(removeEntry(SendMessagesEntry*)));
     updateRemoveEnabled();
@@ -405,17 +406,16 @@ void SendMessagesDialog::removeEntry(SendMessagesEntry* entry)
 
 void SendMessagesDialog::updatePaidMessageControls()
 {
-    const bool paidMessage = paidMessageCheckBox && paidMessageCheckBox->isChecked();
     if (retentionDaysSpinBox) {
-        retentionDaysSpinBox->setEnabled(paidMessage);
+        retentionDaysSpinBox->setEnabled(true);
     }
     if (paidFeeLabel) {
-        paidFeeLabel->setVisible(paidMessage);
+        paidFeeLabel->setVisible(true);
     }
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
         if (entry) {
-            entry->setPaidMessageEnabled(paidMessage);
+            entry->setPaidMessageEnabled(true);
         }
     }
 }
