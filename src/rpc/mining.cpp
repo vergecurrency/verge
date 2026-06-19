@@ -461,8 +461,8 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     // Cache whether the last invocation was with segwit support, to avoid returning
     // a segwit-block to a non-segwit caller.
     // static bool fLastTemplateSupportsSegwit = true;
-    CBlock* pblockCache;
-    if (!pblocktemplate){
+    CBlock* pblockCache = nullptr;
+    if (!pblocktemplate) {
         pblockCache = &pblocktemplate->block;
     }
     int32_t templateAlgorithm = algorithm.isStr() ? GetAlgoByName(algorithm.get_str()) : ALGO;
