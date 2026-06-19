@@ -255,20 +255,15 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
 
     pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
 
-    int64_t nTotalBlockIndexEntries = 0;
-    while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
-        std::pair<char, uint256> key;
-        if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
-            ++nTotalBlockIndexEntries;
-            pcursor->Next();
-        } else {
-            break;
-        }
+    int nLastBlockFile = 0;
+    CBlockFileInfo lastBlockFileInfo;
+    int64_t nEstimatedBlockIndexEntries = 0;
+    if (ReadLastBlockFile(nLastBlockFile) &&
+        ReadBlockFileInfo(nLastBlockFile, lastBlockFileInfo) &&
+        lastBlockFileInfo.nHeightLast >= 0) {
+        nEstimatedBlockIndexEntries = static_cast<int64_t>(lastBlockFileInfo.nHeightLast) + 1;
     }
-
-    pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
-    uiInterface.ShowProgress(_("Loading block index..."), nTotalBlockIndexEntries > 0 ? 1 : 100, false);
+    uiInterface.ShowProgress(_("Loading block index..."), nEstimatedBlockIndexEntries > 0 ? 1 : 0, false);
 
     // Load mapBlockIndex
     int64_t nLoadedBlockIndexEntries = 0;
@@ -299,10 +294,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
 
                 ++nLoadedBlockIndexEntries;
                 const int64_t nNow = GetTimeMillis();
-                if (nLoadedBlockIndexEntries == 1 || nNow - nLastBlockIndexProgressTime >= 250) {
-                    const int nProgress = nTotalBlockIndexEntries > 0
-                        ? std::max(1, std::min(99, static_cast<int>((nLoadedBlockIndexEntries * 100) / nTotalBlockIndexEntries)))
-                        : 100;
+                if (nLoadedBlockIndexEntries == 1 || nNow - nLastBlockIndexProgressTime >= 1000) {
+                    const int nProgress = nEstimatedBlockIndexEntries > 0
+                        ? std::max(1, std::min(99, static_cast<int>((nLoadedBlockIndexEntries * 100) / nEstimatedBlockIndexEntries)))
+                        : 1;
                     uiInterface.ShowProgress(_("Loading block index..."), nProgress, false);
                     nLastBlockIndexProgressTime = nNow;
                 }
