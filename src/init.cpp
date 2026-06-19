@@ -1643,16 +1643,8 @@ bool AppInitMain()
                     assert(chainActive.Tip() != nullptr);
                 }
 
-                if (!fReset) {
-                    // Note that RewindBlockIndex MUST run even if we're about to -reindex-chainstate.
-                    // It both disconnects blocks based on chainActive, and drops block data in
-                    // mapBlockIndex based on lack of available witness data.
-                    uiInterface.InitMessage(_("Rewinding blocks..."));
-                    if (!RewindBlockIndex(chainparams, fReindexChainState)) {
-                        strLoadError = _("Unable to rewind the database to a pre-fork state. You will need to redownload the blockchain");
-                        break;
-                    }
-                }
+                // Verge does not use witness/SegWit block data, so the inherited
+                // Bitcoin startup witness rewind is unnecessary.
 
                 if (!is_coinsview_empty) {
                     uiInterface.InitMessage(_("Verifying blocks..."));
