@@ -1,10 +1,16 @@
+// Copyright (c) 2026 The Verge Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <qt/sendmessagesdialog.h>
 #include <qt/forms/ui_sendmessagesdialog.h>
 #include <qt/addressbookpage.h>
 #include <qt/addresstablemodel.h>
 #include <qt/messagemodel.h>
 #include <qt/optionsmodel.h>
+#include <qt/sendcoinsdialog.h>
 #include <qt/sendmessagesentry.h>
+#include <qt/vergeunits.h>
 #include <qt/walletmodel.h>
 #include <smsg/smessage.h>
 
@@ -12,6 +18,7 @@
 #include <QClipboard>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QCoreApplication>
 #include <QDataWidgetMapper>
 #include <QHBoxLayout>
 #include <QLocale>
@@ -21,6 +28,26 @@
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTextDocument>
+
+namespace {
+const CAmount SMSG_CONFIRM_NORMAL_TX_FEE = 10 * CENT;
+
+QString FormatPaidMessageCostText(int recipientCount)
+{
+    const CAmount perMessageCost = SMSG_CONFIRM_NORMAL_TX_FEE + smsg::SMSG_PAID_MSG_FEE;
+    const QString perMessageCostText = VERGEUnits::formatWithUnit(VERGEUnits::XVG, perMessageCost);
+    if (recipientCount <= 1) {
+        return QCoreApplication::translate("SendMessagesDialog", "This message will cost %1, are you sure you want to send it?")
+            .arg(perMessageCostText);
+    }
+
+    const QString totalCostText = VERGEUnits::formatWithUnit(VERGEUnits::XVG, perMessageCost * recipientCount);
+    return QCoreApplication::translate("SendMessagesDialog", "Each paid message will cost %1. Sending %2 messages will cost about %3 total. Are you sure you want to send them?")
+        .arg(perMessageCostText)
+        .arg(recipientCount)
+        .arg(totalCostText);
+}
+} // namespace
 
 SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : QDialog(parent),
                                                                                 ui(new Ui::SendMessagesDialog),
@@ -229,18 +256,11 @@ void SendMessagesDialog::on_sendButton_clicked()
             QMessageBox::Ok, QMessageBox::Ok);
         return;
     }
-    // Format confirmation message
-    QStringList formatted;
-    for (const SendMessagesRecipient& rcp : recipients) {
-        const QString label = rcp.label.toHtmlEscaped();
-        const QString address = rcp.address.toHtmlEscaped();
-        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(rcp.message.toHtmlEscaped(), label, address));
-    }
     fNewRecipientAllowed = false;
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send messages"),
-        tr("Are you sure you want to send %1?").arg(formatted.join(tr(" and "))),
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+    SendConfirmationDialog confirmationDialog(tr("Confirm paid message"),
+        FormatPaidMessageCostText(recipients.size()), 0, this);
+    confirmationDialog.exec();
+    QMessageBox::StandardButton retval = static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
     if (retval != QMessageBox::Yes) {
         fNewRecipientAllowed = true;
         return;
