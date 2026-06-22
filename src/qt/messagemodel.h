@@ -40,7 +40,6 @@ public:
     QString status;
     QString message;
     QString funding_txid;
-    QString version;
      MessageTableEntry() {}
     MessageTableEntry(std::vector<unsigned char> &chKey,
                       Type type,
@@ -51,8 +50,7 @@ public:
                       const QDateTime &received_datetime,
                       const QString &status,
                       const QString &message,
-                      const QString &funding_txid = QString(),
-                      const QString &version = QString()):
+                      const QString &funding_txid = QString()):
         chKey(chKey),
         type(type),
         label(label),
@@ -62,8 +60,7 @@ public:
         received_datetime(received_datetime),
         status(status),
         message(message),
-        funding_txid(funding_txid),
-        version(version)
+        funding_txid(funding_txid)
     {
     }
 };
@@ -87,17 +84,16 @@ public:
     };
     enum ColumnIndex {
         Type = 0,   /**< Sent/Received */
-        Version = 1, /**< SMSG protocol version */
-        Status = 2, /**< Delivery / receive status */
-        SentDateTime = 3, /**< Time Sent */
-        ReceivedDateTime = 4, /**< Time Received */
-        Label = 5,   /**< User specified label */
-        ToAddress = 6, /**< To Verge address */
-        FromAddress = 7, /**< From Verge address */
-        Message = 8, /**< Plaintext */
-        TypeInt = 9, /**< Plaintext */
-        Key = 10, /**< chKey */
-        HTML = 11, /**< HTML Formatted Data */
+        Status = 1, /**< Delivery / receive status */
+        SentDateTime = 2, /**< Time Sent */
+        ReceivedDateTime = 3, /**< Time Received */
+        Label = 4,   /**< User specified label */
+        ToAddress = 5, /**< To Verge address */
+        FromAddress = 6, /**< From Verge address */
+        Message = 7, /**< Plaintext */
+        TypeInt = 8, /**< Plaintext */
+        Key = 9, /**< chKey */
+        HTML = 10, /**< HTML Formatted Data */
     };
      /** Roles to get specific information from a message row.
         These are independent of column.
@@ -129,11 +125,10 @@ public:
         HTMLRole,
         /** Ambiguous bool */
         Ambiguous,
-        /** Paid SMSG v1 funding receipt data */
+        /** Paid SMSG funding receipt data */
         ReceiptAvailableRole,
         ReceiptTxHashRole,
-        ReceiptConfirmedRole,
-        VersionRole
+        ReceiptConfirmedRole
     };
      static const QString Sent; /**< Specifies sent message */
     static const QString Received; /**< Specifies sent message */

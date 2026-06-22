@@ -18,7 +18,6 @@ class QPushButton;
 class QLabel;
 class QTimer;
 class QPlainTextEdit;
-class QCheckBox;
 class QSpinBox;
 QT_END_NAMESPACE
  /** Widget that shows a list of sending or receiving addresses.
@@ -52,7 +51,6 @@ class MessagePage : public QWidget
     QLabel *storageLabel;
     QLabel *messageCountLabel;
     QLabel *receiptLink;
-    QCheckBox *paidMessageCheckBox;
     QSpinBox *retentionDaysSpinBox;
     QLabel *paidFeeLabel;
     QTimer *storageRefreshTimer;
@@ -68,7 +66,6 @@ class MessagePage : public QWidget
     void on_backButton_clicked();
     void messageTextChanged();
     void updateMessageCountdown();
-    void updatePaidMessageControls();
     void showReceipt();
     void selectionChanged();
     void itemSelectionChanged();

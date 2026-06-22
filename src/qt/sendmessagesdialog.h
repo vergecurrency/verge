@@ -8,7 +8,6 @@
 class MessageModel;
 class SendMessagesEntry;
 class SendMessagesRecipient;
-class QCheckBox;
 class QSpinBox;
 class QLabel;
  //QT_BEGIN_NAMESPACE
@@ -52,7 +51,6 @@ class SendMessagesDialog : public QDialog
     bool fNewRecipientAllowed;
     Mode mode;
     Type type;
-    QCheckBox *paidMessageCheckBox;
     QSpinBox *retentionDaysSpinBox;
     QLabel *paidFeeLabel;
  private Q_SLOTS:
@@ -60,7 +58,6 @@ class SendMessagesDialog : public QDialog
     void removeEntry(SendMessagesEntry* entry);
     void on_addressBookButton_clicked();
     void on_pasteButton_clicked();
-    void updatePaidMessageControls();
 };
 
 #endif // VERGE_QT_SENDMESSAGESDIALOG_H

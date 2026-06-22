@@ -22,7 +22,6 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QTimer>
-#include <QCheckBox>
 #include <QSpinBox>
 #include <QTextDocument>
 #include <logging.h>
@@ -107,7 +106,6 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     storageLabel(nullptr),
     messageCountLabel(nullptr),
     receiptLink(nullptr),
-    paidMessageCheckBox(nullptr),
     retentionDaysSpinBox(nullptr),
     paidFeeLabel(nullptr),
     storageRefreshTimer(nullptr)
@@ -147,7 +145,7 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     receiptLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
     receiptLink->setOpenExternalLinks(false);
     receiptLink->setVisible(false);
-    receiptLink->setToolTip(tr("Show SMSG v1 receipt"));
+    receiptLink->setToolTip(tr("Show secure message receipt"));
     ui->horizontalLayout_3->insertWidget(ui->horizontalLayout_3->count() - 1, receiptLink);
     connect(receiptLink, SIGNAL(linkActivated(QString)), this, SLOT(showReceipt()));
 
@@ -170,28 +168,20 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     messageCountLabel->setStyleSheet("color: rgb(92, 255, 122);");
     ui->horizontalLayout->insertWidget(2, messageCountLabel);
 
-    paidMessageCheckBox = new QCheckBox(tr("SMSG v1"), this);
-    paidMessageCheckBox->setToolTip(tr("SMSG v1 is paid by default. Marker: 0.000001 XVG plus the normal transaction fee."));
-    paidMessageCheckBox->setChecked(true);
-    paidMessageCheckBox->setEnabled(false);
-    paidMessageCheckBox->setStyleSheet("color: rgb(92, 255, 122);");
-    ui->horizontalLayout->insertWidget(3, paidMessageCheckBox);
-
     retentionDaysSpinBox = new QSpinBox(this);
     retentionDaysSpinBox->setRange(1, 31);
     retentionDaysSpinBox->setValue(1);
     retentionDaysSpinBox->setSuffix(tr(" days"));
     retentionDaysSpinBox->setEnabled(true);
-    retentionDaysSpinBox->setToolTip(tr("SMSG v1 message retention."));
-    ui->horizontalLayout->insertWidget(4, retentionDaysSpinBox);
+    retentionDaysSpinBox->setToolTip(tr("Secure message retention."));
+    ui->horizontalLayout->insertWidget(3, retentionDaysSpinBox);
 
     paidFeeLabel = new QLabel(tr("Marker: 0.000001 XVG"), this);
     paidFeeLabel->setStyleSheet("color: rgb(92, 255, 122);");
     paidFeeLabel->setVisible(true);
-    ui->horizontalLayout->insertWidget(5, paidFeeLabel);
+    ui->horizontalLayout->insertWidget(4, paidFeeLabel);
 
     connect(ui->messageEdit, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
-    connect(paidMessageCheckBox, SIGNAL(toggled(bool)), this, SLOT(updatePaidMessageControls()));
 
     addressBookButton = new QPushButton(tr("My &Chatkeys"), this);
     addressBookButton->setToolTip(tr("Open local chat-enabled addresses and share chatkey QR payloads"));
@@ -233,7 +223,6 @@ void MessagePage::setModel(MessageModel *model)
     ui->listConversation->setModelColumn(MessageModel::HTML);
      // Set column widths
      ui->tableView->horizontalHeader()->resizeSection(MessageModel::Type,             100);
-    ui->tableView->horizontalHeader()->resizeSection(MessageModel::Version,           80);
     ui->tableView->horizontalHeader()->resizeSection(MessageModel::Status,           140);
     ui->tableView->horizontalHeader()->resizeSection(MessageModel::Label,            100);
     ui->tableView->horizontalHeader()->setSectionResizeMode(MessageModel::Label,     QHeaderView::Stretch);
@@ -599,17 +588,6 @@ void MessagePage::updateMessageCountdown()
 
     const int remaining = maxBytes - utf8.size();
     messageCountLabel->setText(tr("Characters left: %1").arg(remaining));
-}
-
-void MessagePage::updatePaidMessageControls()
-{
-    if (retentionDaysSpinBox) {
-        retentionDaysSpinBox->setEnabled(true);
-    }
-    if (paidFeeLabel) {
-        paidFeeLabel->setVisible(true);
-    }
-    updateMessageCountdown();
 }
 
 void MessagePage::showReceipt()

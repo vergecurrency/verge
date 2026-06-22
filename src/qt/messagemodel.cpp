@@ -60,16 +60,6 @@ static QString GetPaidFundingTxid(const SecMsgStored& smsgStored)
     return QString::fromStdString(txid.ToString());
 }
 
-static QString GetSmsgVersionLabel(const SecMsgStored& smsgStored)
-{
-    if (smsgStored.vchMessage.size() < SMSG_HDR_LEN) {
-        return QString();
-    }
-
-    const SecureMessage* psmsg = reinterpret_cast<const SecureMessage*>(&smsgStored.vchMessage[0]);
-    return psmsg->IsPaidVersion() ? QObject::tr("v1") : QObject::tr("legacy");
-}
-
 static bool IsFundingTxConfirmed(const QString& txHash)
 {
     if (txHash.isEmpty()) {
@@ -184,8 +174,7 @@ public:
                                                      received_datetime,
                                                      QObject::tr("Received locally"),
                                                      (char*)&msg.vchMessage[0],
-                                                     GetPaidFundingTxid(smsgStored),
-                                                     GetSmsgVersionLabel(smsgStored)),
+                                                     GetPaidFundingTxid(smsgStored)),
                                     true);
                 }
             };
@@ -214,8 +203,7 @@ public:
                                                       received_datetime,
                                                       status,
                                                       (char*)&msg.vchMessage[0],
-                                                      GetPaidFundingTxid(smsgStored),
-                                                      GetSmsgVersionLabel(smsgStored)),
+                                                      GetPaidFundingTxid(smsgStored)),
                                     true);
                 }
             };
@@ -253,8 +241,7 @@ public:
                                               received_datetime,
                                               QObject::tr("Received locally"),
                                               (char*)&msg.vchMessage[0],
-                                              GetPaidFundingTxid(smsgStored),
-                                              GetSmsgVersionLabel(smsgStored)),
+                                              GetPaidFundingTxid(smsgStored)),
                             false);
         }
     }
@@ -297,8 +284,7 @@ public:
                                               received_datetime,
                                               status,
                                               (char*)&msg.vchMessage[0],
-                                              GetPaidFundingTxid(smsgStored),
-                                              GetSmsgVersionLabel(smsgStored)),
+                                              GetPaidFundingTxid(smsgStored)),
                             false);
         }
     }
@@ -359,7 +345,7 @@ public:
 MessageModel::MessageModel(WalletModel *walletModel, QObject *parent) :
     QAbstractTableModel(parent), walletModel(walletModel), optionsModel(0), priv(0)
 {
-    columns << tr("Type") << tr("Version") << tr("Status") << tr("Sent Date Time") << tr("Received Date Time") << tr("Label") << tr("To Address") << tr("From Address") << tr("Message");
+    columns << tr("Type") << tr("Status") << tr("Sent Date Time") << tr("Received Date Time") << tr("Label") << tr("To Address") << tr("From Address") << tr("Message");
     
     proxyModel = NULL;
     
@@ -500,14 +486,11 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     if (messageLabel.isEmpty()) {
         messageLabel = rec->from_address;
     }
-    const QString version = rec->version.isEmpty() ? QStringLiteral("legacy") : rec->version;
     const QString html = QStringLiteral(
-        "<span style=\"color:#FF9A2F; font-size:12px;\">%1</span> "
-        "<span style=\"background-color:#6F2DBD; color:#FFFFFF; font-size:11px; font-weight:bold; padding:1px 5px; border-radius:3px;\">%2</span><br>"
-        "<span style=\"color:#FFFFFF;\">%3</span><br>"
-        "<span style=\"color:#5CFF7A;\">%4</span>")
+        "<span style=\"color:#FF9A2F; font-size:12px;\">%1</span><br>"
+        "<span style=\"color:#FFFFFF;\">%2</span><br>"
+        "<span style=\"color:#5CFF7A;\">%3</span>")
         .arg(rec->received_datetime.toString(),
-             version.toHtmlEscaped(),
              messageLabel,
              rec->message);
      switch(role)
@@ -524,7 +507,6 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     case Qt::DisplayRole:
         switch(index.column())
         {
-            case Version:          return version;
             case Status:           return rec->status;
             case Label:	           return (rec->label.isEmpty() ? tr("(no label)") : rec->label);
             case ToAddress:	       return rec->to_address;
@@ -559,7 +541,6 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     case ReceiptAvailableRole: return !rec->funding_txid.isEmpty();
     case ReceiptTxHashRole: return rec->funding_txid;
     case ReceiptConfirmedRole: return IsFundingTxConfirmed(rec->funding_txid);
-    case VersionRole:       return version;
     case Ambiguous:
         for (const MessageTableEntry& entry : priv->cachedMessageTable) {
             if (ConversationFilterAddress(entry) != filter_address) {
