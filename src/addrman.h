@@ -247,6 +247,9 @@ protected:
     //! Select an address to connect to, if newOnly is set to true, only the new table is selected from.
     CAddrInfo Select_(bool newOnly) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
+    //! Select an address that advertises all requested service flags.
+    CAddrInfo SelectByService_(ServiceFlags requiredServices, int maxTries = 250) EXCLUSIVE_LOCKS_REQUIRED(cs);
+
     //! See if any to-be-evicted tried table entries have been tested and if so resolve the collisions.
     void ResolveCollisions_() EXCLUSIVE_LOCKS_REQUIRED(cs);
 
@@ -586,6 +589,21 @@ public:
             LOCK(cs);
             Check();
             addrRet = Select_(newOnly);
+            Check();
+        }
+        return addrRet;
+    }
+
+    /**
+     * Choose an address advertising all requested service flags.
+     */
+    CAddrInfo SelectByService(ServiceFlags requiredServices, int maxTries = 250)
+    {
+        CAddrInfo addrRet;
+        {
+            LOCK(cs);
+            Check();
+            addrRet = SelectByService_(requiredServices, maxTries);
             Check();
         }
         return addrRet;

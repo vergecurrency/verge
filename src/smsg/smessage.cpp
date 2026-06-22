@@ -28,6 +28,7 @@ Notes:
 #include <stdint.h>
 #include <time.h>
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <map>
 #include <stdexcept>
@@ -95,6 +96,8 @@ constexpr size_t SMSG_PAID_MSGID_LEN = 28;
 constexpr size_t SMSG_PAID_FUNDING_DATA_LEN = 5 + SMSG_PAID_MSGID_LEN;
 constexpr size_t SMSG_MAX_FUNDING_MISS_CACHE = 4096;
 constexpr int64_t SMSG_FUNDING_MISS_CACHE_TTL = 10 * 60;
+constexpr int DEFAULT_SMSG_PEER_TARGET = 3;
+constexpr int64_t SMSG_PEER_DISCOVERY_INTERVAL = 2 * 60;
 
 bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
 {
@@ -427,6 +430,84 @@ bool IsSmsgExpired(const SecureMessage& smsg, int64_t now)
     return ttlSeconds > 0 && smsg.timestamp + ttlSeconds < now;
 }
 
+size_t PruneExpiredLocalSmsgRecords()
+{
+    size_t nPruned = 0;
+    LOCK(cs_smsgDB);
+    SecMsgDB db;
+    if (!db.Open("cr+")) {
+        return 0;
+    }
+
+    std::vector<std::array<uint8_t, 30>> expiredKeys;
+    for (const std::string& prefix : {std::string("im"), std::string("sm")}) {
+        leveldb::Iterator* it = db.pdb->NewIterator(leveldb::ReadOptions());
+        uint8_t chKey[30];
+        SecMsgStored smsgStored;
+        while (db.NextSmesg(it, prefix, chKey, smsgStored)) {
+            if (smsgStored.vchMessage.size() < SMSG_HDR_LEN) {
+                continue;
+            }
+            const SecureMessage* psmsg = reinterpret_cast<const SecureMessage*>(&smsgStored.vchMessage[0]);
+            if (IsSmsgExpired(*psmsg, GetAdjustedTime())) {
+                std::array<uint8_t, 30> key;
+                std::memcpy(key.data(), chKey, key.size());
+                expiredKeys.push_back(key);
+            }
+        }
+        delete it;
+    }
+
+    for (const auto& key : expiredKeys) {
+        if (db.EraseSmesg(key.data())) {
+            ++nPruned;
+        }
+    }
+
+    if (nPruned > 0) {
+        LogPrintf("SMSG: pruned %u expired local inbox/outbox records.\n", static_cast<unsigned int>(nPruned));
+    }
+    return nPruned;
+}
+
+int CountValidatedSmsgPeers()
+{
+    if (!g_connman) {
+        return 0;
+    }
+
+    int count = 0;
+    g_connman->ForEachNode([&count](CNode* pnode) {
+        if (!(pnode->nServices.load() & NODE_SMSG) || pnode->fDisconnect) {
+            return;
+        }
+        LOCK(pnode->smsgData.cs_smsg_net);
+        if (pnode->smsgData.fValidatedRelay) {
+            ++count;
+        }
+    });
+    return count;
+}
+
+void MaintainSmsgPeerTarget(int64_t now, int64_t& lastAttempt)
+{
+    if (!g_connman || IsInitialBlockDownload() || now < lastAttempt + SMSG_PEER_DISCOVERY_INTERVAL) {
+        return;
+    }
+
+    const int target = static_cast<int>(std::max<int64_t>(0, gArgs.GetArg("-smsgpeers", DEFAULT_SMSG_PEER_TARGET)));
+    if (target <= 0 || CountValidatedSmsgPeers() >= target) {
+        return;
+    }
+
+    lastAttempt = now;
+    if (g_connman->OpenNetworkConnectionByService(NODE_SMSG)) {
+        LogPrint(BCLog::SMSG, "SMSG: opened extra outbound attempt for NODE_SMSG peer target %d.\n", target);
+    } else {
+        LogPrint(BCLog::SMSG, "SMSG: no NODE_SMSG peer candidate available for target %d.\n", target);
+    }
+}
+
 void CSMSG::IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height)
 {
     const uint256 txid = tx.GetHash();
@@ -693,6 +774,8 @@ void ThreadSecureMsg()
     // Bucket management thread
 
     uint32_t nLoop = 0;
+    int64_t nLastLocalPrune = 0;
+    int64_t nLastPeerDiscoveryAttempt = 0;
     std::vector<std::pair<int64_t, NodeId> > vTimedOutLocks;
     while (fSecMsgEnabled) {
         boost::this_thread::interruption_point();
@@ -764,6 +847,13 @@ void ThreadSecureMsg()
                 smsgModule.BuildPurgedSets();
             }
         } // cs_smsg
+
+        if (nLastLocalPrune + SMSGGetSecondsInDay() < now) {
+            PruneExpiredLocalSmsgRecords();
+            nLastLocalPrune = now;
+        }
+
+        MaintainSmsgPeerTarget(now, nLastPeerDiscoveryAttempt);
 
         for (std::vector<std::pair<int64_t, NodeId> >::iterator it(vTimedOutLocks.begin()); it != vTimedOutLocks.end(); it++) {
             NodeId nPeerId = it->second;
@@ -917,6 +1007,7 @@ void AddOptions()
     gArgs.AddArg("-smsgscanchain", _("Scan the block chain for public key addresses on startup. (default: false)"), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgscanincoming", _("Scan incoming blocks for public key addresses. (default: false)"), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgnotify=<cmd>", _("Execute command when a message is received. (%s in cmd is replaced by receiving address)"), false, OptionsCategory::WALLET);
+    gArgs.AddArg("-smsgpeers=<n>", strprintf(_("Target number of validated secure messaging relay peers to maintain, 0 disables targeted SMSG peer discovery. (default: %d)"), DEFAULT_SMSG_PEER_TARGET), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgsaddnewkeys", _("Scan for incoming messages on new wallet keys. (default: false)"), false, OptionsCategory::WALLET);
 
     return;

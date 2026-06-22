@@ -2181,6 +2181,46 @@ void CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFai
     }
 }
 
+bool CConnman::OpenNetworkConnectionByService(ServiceFlags requiredServices)
+{
+    if (interruptNet || !fNetworkActive || !semOutbound) {
+        return false;
+    }
+
+    CSemaphoreGrant grant(*semOutbound, true);
+    if (!grant) {
+        return false;
+    }
+
+    std::set<std::vector<unsigned char>> connectedGroups;
+    {
+        LOCK(cs_vNodes);
+        for (const CNode* pnode : vNodes) {
+            if (!pnode->fInbound && !pnode->m_manual_connection) {
+                connectedGroups.insert(pnode->addr.GetGroup());
+            }
+        }
+    }
+
+    for (int tries = 0; tries < 100; ++tries) {
+        CAddrInfo addr = addrman.SelectByService(requiredServices);
+        if (!addr.IsValid()
+            || connectedGroups.count(addr.GetGroup())
+            || IsLocal(addr)
+            || IsLimited(addr)
+            || IsBanned(addr)
+            || FindNode(static_cast<CNetAddr>(addr))
+            || FindNode(addr.ToStringIPPort())) {
+            continue;
+        }
+
+        OpenNetworkConnection(addr, true, &grant);
+        return true;
+    }
+
+    return false;
+}
+
 void CConnman::ThreadMessageHandler()
 {
     while (!flagInterruptMsgProc)

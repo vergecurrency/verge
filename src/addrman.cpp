@@ -394,6 +394,22 @@ CAddrInfo CAddrMan::Select_(bool newOnly)
     }
 }
 
+CAddrInfo CAddrMan::SelectByService_(ServiceFlags requiredServices, int maxTries)
+{
+    for (int i = 0; i < maxTries; ++i) {
+        CAddrInfo addr = Select_(false);
+        if (!addr.IsValid()) {
+            return CAddrInfo();
+        }
+        if (HasAllDesirableServiceFlags(addr.nServices)
+            && (addr.nServices & requiredServices) == requiredServices) {
+            return addr;
+        }
+    }
+
+    return CAddrInfo();
+}
+
 #ifdef DEBUG_ADDRMAN
 int CAddrMan::Check_()
 {
