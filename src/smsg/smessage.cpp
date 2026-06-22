@@ -97,7 +97,12 @@ constexpr size_t SMSG_PAID_FUNDING_DATA_LEN = 5 + SMSG_PAID_MSGID_LEN;
 constexpr size_t SMSG_MAX_FUNDING_MISS_CACHE = 4096;
 constexpr int64_t SMSG_FUNDING_MISS_CACHE_TTL = 10 * 60;
 constexpr int DEFAULT_SMSG_PEER_TARGET = 3;
+constexpr int MAX_SMSG_PEER_TARGET = 8;
 constexpr int64_t SMSG_PEER_DISCOVERY_INTERVAL = 2 * 60;
+constexpr int64_t SMSG_STORAGE_USAGE_CACHE_TTL = 60;
+CCriticalSection cs_smsgStorageUsage;
+uint64_t nCachedSmsgStorageUsage = 0;
+int64_t nLastSmsgStorageUsageScan = 0;
 
 bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
 {
@@ -394,10 +399,37 @@ static uint64_t GetSmsgStorageUsageBytes()
     return total;
 }
 
+static uint64_t RefreshSmsgStorageUsageCache(int64_t now)
+{
+    AssertLockHeld(cs_smsgStorageUsage);
+    nCachedSmsgStorageUsage = GetSmsgStorageUsageBytes();
+    nLastSmsgStorageUsageScan = now;
+    return nCachedSmsgStorageUsage;
+}
+
+static void InvalidateSmsgStorageUsageCache()
+{
+    LOCK(cs_smsgStorageUsage);
+    nCachedSmsgStorageUsage = 0;
+    nLastSmsgStorageUsageScan = 0;
+}
+
 static bool HasSmsgStorageCapacity(uint64_t bytesToAdd, std::string* reason = nullptr)
 {
-    const uint64_t current = GetSmsgStorageUsageBytes();
-    if (current + bytesToAdd <= SMSG_LOCAL_STORAGE_CAP_BYTES) {
+    const int64_t now = GetTime();
+    LOCK(cs_smsgStorageUsage);
+
+    uint64_t current = nCachedSmsgStorageUsage;
+    if (nLastSmsgStorageUsageScan == 0
+        || now >= nLastSmsgStorageUsageScan + SMSG_STORAGE_USAGE_CACHE_TTL
+        || bytesToAdd > SMSG_LOCAL_STORAGE_CAP_BYTES
+        || current > SMSG_LOCAL_STORAGE_CAP_BYTES - bytesToAdd) {
+        current = RefreshSmsgStorageUsageCache(now);
+    }
+
+    if (bytesToAdd <= SMSG_LOCAL_STORAGE_CAP_BYTES
+        && current <= SMSG_LOCAL_STORAGE_CAP_BYTES - bytesToAdd) {
+        nCachedSmsgStorageUsage = current + bytesToAdd;
         return true;
     }
 
@@ -465,6 +497,7 @@ size_t PruneExpiredLocalSmsgRecords()
     }
 
     if (nPruned > 0) {
+        InvalidateSmsgStorageUsageCache();
         LogPrintf("SMSG: pruned %u expired local inbox/outbox records.\n", static_cast<unsigned int>(nPruned));
     }
     return nPruned;
@@ -495,7 +528,9 @@ void MaintainSmsgPeerTarget(int64_t now, int64_t& lastAttempt)
         return;
     }
 
-    const int target = static_cast<int>(std::max<int64_t>(0, gArgs.GetArg("-smsgpeers", DEFAULT_SMSG_PEER_TARGET)));
+    const int target = static_cast<int>(std::min<int64_t>(
+        MAX_SMSG_PEER_TARGET,
+        std::max<int64_t>(0, gArgs.GetArg("-smsgpeers", DEFAULT_SMSG_PEER_TARGET))));
     if (target <= 0 || CountValidatedSmsgPeers() >= target) {
         return;
     }
@@ -1007,7 +1042,7 @@ void AddOptions()
     gArgs.AddArg("-smsgscanchain", _("Scan the block chain for public key addresses on startup. (default: false)"), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgscanincoming", _("Scan incoming blocks for public key addresses. (default: false)"), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgnotify=<cmd>", _("Execute command when a message is received. (%s in cmd is replaced by receiving address)"), false, OptionsCategory::WALLET);
-    gArgs.AddArg("-smsgpeers=<n>", strprintf(_("Target number of validated secure messaging relay peers to maintain, 0 disables targeted SMSG peer discovery. (default: %d)"), DEFAULT_SMSG_PEER_TARGET), false, OptionsCategory::WALLET);
+    gArgs.AddArg("-smsgpeers=<n>", strprintf(_("Target number of validated secure messaging relay peers to maintain, 0 disables targeted SMSG peer discovery. Values above %d are clamped. (default: %d)"), MAX_SMSG_PEER_TARGET, DEFAULT_SMSG_PEER_TARGET), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgsaddnewkeys", _("Scan for incoming messages on new wallet keys. (default: false)"), false, OptionsCategory::WALLET);
 
     return;
@@ -1647,13 +1682,20 @@ int CSMSG::FlushMessageData(std::string &sError)
         return SMSG_GENERAL_ERROR;
     }
 
+    InvalidateSmsgStorageUsageCache();
     return SMSG_NO_ERROR;
 };
 
 uint64_t CSMSG::GetLocalStorageUsageBytes()
 {
     LOCK2(cs_smsg, cs_smsgDB);
-    return GetSmsgStorageUsageBytes();
+    const uint64_t usage = GetSmsgStorageUsageBytes();
+    {
+        LOCK(cs_smsgStorageUsage);
+        nCachedSmsgStorageUsage = usage;
+        nLastSmsgStorageUsageScan = GetTime();
+    }
+    return usage;
 }
 
 bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
@@ -4070,37 +4112,8 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         if (IsRecentFundingMiss(txid, now)) {
             return SMSG_FUND_NOT_READY;
         }
-
-        const CScript fundingScript = BuildPaidFundingScript(msgId);
-
-        CTransactionRef txOut;
-        uint256 hashBlock;
-        int fundingHeight = 0;
-        {
-            LOCK(cs_main);
-            if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock, true)) {
-                RecordFundingMiss(txid, now);
-                return SMSG_FUND_NOT_READY;
-            }
-            if (hashBlock.IsNull()) {
-                return SMSG_FUND_NOT_READY;
-            }
-            const auto mi = mapBlockIndex.find(hashBlock);
-            if (mi == mapBlockIndex.end() || !mi->second || !chainActive.Contains(mi->second)) {
-                RecordFundingMiss(txid, now);
-                return SMSG_FUND_NOT_READY;
-            }
-            fundingHeight = mi->second->nHeight;
-        }
-
-        for (const CTxOut& txout : txOut->vout) {
-            if (txout.nValue >= SMSG_PAID_MSG_FEE && txout.scriptPubKey == fundingScript) {
-                IndexPaidFundingTransaction(*txOut, hashBlock, fundingHeight);
-                return SMSG_NO_ERROR;
-            }
-        }
-
-        return SMSG_FUND_FAILED;
+        RecordFundingMiss(txid, now);
+        return SMSG_FUND_NOT_READY;
     }
 
     uint8_t civ[32];
