@@ -97,7 +97,7 @@ constexpr size_t SMSG_PAID_FUNDING_DATA_LEN = 5 + SMSG_PAID_MSGID_LEN;
 constexpr size_t SMSG_MAX_FUNDING_MISS_CACHE = 4096;
 constexpr int64_t SMSG_FUNDING_MISS_CACHE_TTL = 10 * 60;
 constexpr int DEFAULT_SMSG_PEER_TARGET = 3;
-constexpr int MAX_SMSG_PEER_TARGET = 8;
+constexpr int MAX_SMSG_PEER_TARGET = 50;
 constexpr int64_t SMSG_PEER_DISCOVERY_INTERVAL = 2 * 60;
 constexpr int64_t SMSG_STORAGE_USAGE_CACHE_TTL = 60;
 CCriticalSection cs_smsgStorageUsage;
