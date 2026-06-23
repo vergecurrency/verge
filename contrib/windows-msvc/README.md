@@ -27,7 +27,7 @@ What the bootstrap script does
 5. build Berkeley DB `4.8.30.NC` from source with MSVC
 6. bootstrap `vcpkg` and install Windows-native support libraries currently
    used by the project:
-   - `libevent`
+   - `libevent` `2.1.12-stable`
    - `protobuf`
    - `qrencode`
    - `miniupnpc`

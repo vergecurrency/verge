@@ -567,8 +567,8 @@ $pcDir = Convert-ToForwardPath $pkgConfigRoot
 Write-Section "Writing pkg-config metadata"
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libssl" -Prefix $pcPrefixOpenSSL -Description "OpenSSL SSL" -Version $OpenSSLVersion -Libs '-L${libdir} -llibssl -lcrypt32 -lws2_32' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libcrypto" -Prefix $pcPrefixOpenSSL -Description "OpenSSL Crypto" -Version $OpenSSLVersion -Libs '-L${libdir} -llibcrypto -ladvapi32 -lcrypt32 -lws2_32 -luser32' -Cflags '-I${includedir}'
-Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent" -Prefix $pcPrefixVcpkg -Description "libevent" -Version "2" -Libs '-L${libdir} -levent' -Cflags '-I${includedir}'
-Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent_pthreads" -Prefix $pcPrefixVcpkg -Description "libevent pthreads" -Version "2" -Libs '-L${libdir} -levent_pthreads' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent" -Prefix $pcPrefixVcpkg -Description "libevent" -Version "2.1.12-stable" -Libs '-L${libdir} -levent' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent_pthreads" -Prefix $pcPrefixVcpkg -Description "libevent pthreads" -Version "2.1.12-stable" -Libs '-L${libdir} -levent_pthreads' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libqrencode" -Prefix $pcPrefixVcpkg -Description "QRencode" -Version "4" -Libs '-L${libdir} -lqrencode' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "protobuf" -Prefix $pcPrefixVcpkg -Description "Protocol Buffers" -Version "5" -Libs '-L${libdir} -llibprotobuf' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libzmq" -Prefix $pcPrefixVcpkg -Description "ZeroMQ" -Version "4" -Libs '-L${libdir} -llibzmq' -Cflags '-I${includedir}'

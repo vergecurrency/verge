@@ -14,7 +14,7 @@ These are the dependencies currently used by Verge Core. You can find instructio
 | FreeType | [2.7.1](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
 | GCC |  | [4.8+](https://gcc.gnu.org/) |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
-| libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
+| libevent | [2.1.12-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
 | libjpeg |  |  |  |  | [Yes](/depends/packages/qt.mk#L75) |
 | libpng |  |  |  |  | [Yes](/depends/packages/qt.mk#L74) |
 | MiniUPnPc | [2.0.20180203](http://miniupnp.free.fr/files) |  | No |  |  |
