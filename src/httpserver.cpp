@@ -612,7 +612,11 @@ CService HTTPRequest::GetPeer() const
     CService peer;
     if (con) {
         // evhttp retains ownership over returned address string
+#ifdef WIN32
+        const char* address = nullptr;
+#else
         char* address = nullptr;
+#endif
         uint16_t port = 0;
         evhttp_connection_get_peer(con, &address, &port);
         if (address) {
