@@ -440,6 +440,13 @@ static UniValue getnetworkinfo(const JSONRPCRequest& request)
             "  }\n"
             "  ,...\n"
             "  ],\n"
+            "  \"addrman\": [                           (array) known peer addresses by network\n"
+            "  {\n"
+            "    \"network\": \"xxx\",                  (string) network (ipv4, ipv6 or onion)\n"
+            "    \"count\": n                           (numeric) number of known addresses\n"
+            "  }\n"
+            "  ,...\n"
+            "  ],\n"
             "  \"relayfee\": x.xxxxxxxx,                (numeric) minimum relay fee for transactions in " + CURRENCY_UNIT + "/kB\n"
             "  \"incrementalfee\": x.xxxxxxxx,          (numeric) minimum fee increment for mempool limiting or BIP 125 replacement in " + CURRENCY_UNIT + "/kB\n"
             "  \"localaddresses\": [                    (array) list of local addresses\n"
@@ -471,6 +478,19 @@ static UniValue getnetworkinfo(const JSONRPCRequest& request)
         obj.pushKV("connections",   (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL));
     }
     obj.pushKV("networks",      GetNetworksInfo());
+    UniValue addrmanStats(UniValue::VARR);
+    if (g_connman) {
+        const std::map<Network, size_t> stats = g_connman->GetAddressCountsByNetwork();
+        for (const auto& entry : stats) {
+            if (entry.first == NET_UNROUTABLE || entry.first == NET_INTERNAL)
+                continue;
+            UniValue rec(UniValue::VOBJ);
+            rec.pushKV("network", GetNetworkName(entry.first));
+            rec.pushKV("count", static_cast<int64_t>(entry.second));
+            addrmanStats.push_back(rec);
+        }
+    }
+    obj.pushKV("addrman", addrmanStats);
     obj.pushKV("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()));
     obj.pushKV("incrementalfee", ValueFromAmount(::incrementalRelayFee.GetFeePerK()));
     UniValue localAddresses(UniValue::VARR);

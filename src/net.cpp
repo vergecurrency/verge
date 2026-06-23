@@ -678,6 +678,40 @@ bool CConnman::IsBanned(CSubNet subnet)
     return false;
 }
 
+void CConnman::Discourage(const CNetAddr& addr)
+{
+    if (!addr.IsValid() || addr.IsLocal()) {
+        return;
+    }
+
+    const int64_t discourage_until = GetTime() + gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME);
+    {
+        LOCK(cs_setBanned);
+        const auto it = mapDiscouraged.find(addr);
+        if (it != mapDiscouraged.end() && it->second >= discourage_until) {
+            return;
+        }
+        mapDiscouraged[addr] = discourage_until;
+    }
+
+    LogPrint(BCLog::NET, "Discouraging misbehaving peer %s until %d\n", addr.ToString(), discourage_until);
+}
+
+bool CConnman::IsDiscouraged(CNetAddr ip)
+{
+    LOCK(cs_setBanned);
+    const int64_t now = GetTime();
+    for (auto it = mapDiscouraged.begin(); it != mapDiscouraged.end();) {
+        if (it->second <= now) {
+            it = mapDiscouraged.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    const auto it = mapDiscouraged.find(ip);
+    return it != mapDiscouraged.end() && it->second > now;
+}
+
 void CConnman::Ban(const CNetAddr& addr, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch) {
     CSubNet subNet(addr);
     Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch);
@@ -1268,9 +1302,9 @@ void CConnman::AcceptConnection(const ListenSocket& hListenSocket) {
     // on all platforms.  Set it again here just to be sure.
     SetSocketNoDelay(hSocket);
 
-    if (IsBanned(addr) && !whitelisted)
+    if ((IsBanned(addr) || IsDiscouraged(addr)) && !whitelisted)
     {
-        LogPrint(BCLog::NET, "connection from %s dropped (banned)\n", addr.ToString());
+        LogPrint(BCLog::NET, "connection from %s dropped (banned or discouraged)\n", addr.ToString());
         CloseSocket(hSocket);
         return;
     }
@@ -2149,7 +2183,7 @@ void CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFai
     }
     if (!pszDest) {
         if (IsLimited(addrConnect) || IsLocal(addrConnect) ||
-            FindNode(static_cast<CNetAddr>(addrConnect)) || IsBanned(addrConnect) ||
+            FindNode(static_cast<CNetAddr>(addrConnect)) || IsBanned(addrConnect) || IsDiscouraged(addrConnect) ||
             FindNode(addrConnect.ToStringIPPort()))
             return;
     } else {
@@ -2209,6 +2243,7 @@ bool CConnman::OpenNetworkConnectionByService(ServiceFlags requiredServices)
             || IsLocal(addr)
             || IsLimited(addr)
             || IsBanned(addr)
+            || IsDiscouraged(addr)
             || FindNode(static_cast<CNetAddr>(addr))
             || FindNode(addr.ToStringIPPort())) {
             continue;
@@ -2470,6 +2505,7 @@ bool CConnman::InitBinds(const std::vector<CService>& binds, const std::vector<C
 bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
 {
     Init(connOptions);
+    addrman.SetCheckAddrman(gArgs.GetBoolArg("-checkaddrman", false));
 
     {
         LOCK(cs_totalBytesRecv);
@@ -2686,6 +2722,11 @@ CConnman::~CConnman()
 size_t CConnman::GetAddressCount() const
 {
     return addrman.size();
+}
+
+std::map<Network, size_t> CConnman::GetAddressCountsByNetwork() const
+{
+    return addrman.GetNetworkStats();
 }
 
 void CConnman::SetServices(const CService &addr, ServiceFlags nServices)

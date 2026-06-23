@@ -410,7 +410,6 @@ CAddrInfo CAddrMan::SelectByService_(ServiceFlags requiredServices, int maxTries
     return CAddrInfo();
 }
 
-#ifdef DEBUG_ADDRMAN
 int CAddrMan::Check_()
 {
     std::set<int> setTried;
@@ -486,7 +485,6 @@ int CAddrMan::Check_()
 
     return 0;
 }
-#endif
 
 void CAddrMan::GetAddr_(std::vector<CAddress>& vAddr)
 {

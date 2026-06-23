@@ -27,6 +27,7 @@
 
 #include <atomic>
 #include <deque>
+#include <map>
 #include <stdint.h>
 #include <thread>
 #include <memory>
@@ -244,6 +245,7 @@ public:
 
     // Addrman functions
     size_t GetAddressCount() const;
+    std::map<Network, size_t> GetAddressCountsByNetwork() const;
     void SetServices(const CService &addr, ServiceFlags nServices);
     void MarkAddressGood(const CAddress& addr);
     void AddNewAddresses(const std::vector<CAddress>& vAddr, const CAddress& addrFrom, int64_t nTimePenalty = 0);
@@ -265,9 +267,11 @@ public:
     // new code.
     void Ban(const CNetAddr& netAddr, const BanReason& reason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
     void Ban(const CSubNet& subNet, const BanReason& reason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
+    void Discourage(const CNetAddr& netAddr);
     void ClearBanned(); // needed for unit testing
     bool IsBanned(CNetAddr ip);
     bool IsBanned(CSubNet subnet);
+    bool IsDiscouraged(CNetAddr ip);
     bool Unban(const CNetAddr &ip);
     bool Unban(const CSubNet &ip);
     void GetBanned(banmap_t &banmap);
@@ -416,6 +420,7 @@ private:
     banmap_t setBanned;
     CCriticalSection cs_setBanned;
     bool setBannedIsDirty;
+    std::map<CNetAddr, int64_t> mapDiscouraged GUARDED_BY(cs_setBanned);
     bool fAddressesInitialized;
     CAddrMan addrman;
     std::deque<std::string> vOneShots;
