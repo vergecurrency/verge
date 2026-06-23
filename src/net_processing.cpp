@@ -888,7 +888,7 @@ static bool fWitnessesPresentInMostRecentCompactBlock;
  * to compatible peers.
  */
 void PeerLogicValidation::NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr<const CBlock>& pblock) {
-    std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock = std::make_shared<const CBlockHeaderAndShortTxIDs> (*pblock, true);
+    std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock = std::make_shared<const CBlockHeaderAndShortTxIDs> (*pblock, false);
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
 
     LOCK(cs_main);
@@ -1161,15 +1161,6 @@ void static ProcessGetBlockData(CNode* pfrom, const CChainParams& chainparams, c
         std::shared_ptr<const CBlock> pblock;
         if (a_recent_block && a_recent_block->GetHash() == pindex->GetBlockHash()) {
             pblock = a_recent_block;
-        } else if (inv.type == MSG_WITNESS_BLOCK) {
-            // Fast-path: in this case it is possible to serve the block directly from disk,
-            // as the network format matches the format on disk
-            std::vector<uint8_t> block_data;
-            if (!ReadRawBlockFromDisk(block_data, pindex, chainparams.MessageStart())) {
-                assert(!"cannot load block from disk");
-            }
-            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::BLOCK, MakeSpan(block_data)));
-            // Don't set pblock as we've sent the block
         } else {
             // Send block from disk
             std::shared_ptr<CBlock> pblockRead = std::make_shared<CBlock>();
@@ -1178,10 +1169,8 @@ void static ProcessGetBlockData(CNode* pfrom, const CChainParams& chainparams, c
             pblock = pblockRead;
         }
         if (pblock) {
-            if (inv.type == MSG_BLOCK)
+            if (inv.type == MSG_BLOCK || inv.type == MSG_WITNESS_BLOCK)
                 connman->PushMessage(pfrom, msgMaker.Make(SERIALIZE_TRANSACTION_NO_WITNESS, NetMsgType::BLOCK, *pblock));
-            else if (inv.type == MSG_WITNESS_BLOCK)
-                connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::BLOCK, *pblock));
             else if (inv.type == MSG_FILTERED_BLOCK)
             {
                 bool sendMerkleBlock = false;
@@ -1214,8 +1203,8 @@ void static ProcessGetBlockData(CNode* pfrom, const CChainParams& chainparams, c
                 // they won't have a useful mempool to match against a compact block,
                 // and we don't feel like constructing the object for them, so
                 // instead we respond with the full, non-compact block.
-                bool fPeerWantsWitness = State(pfrom->GetId())->fWantsCmpctWitness;
-                int nSendFlags = fPeerWantsWitness ? 0 : SERIALIZE_TRANSACTION_NO_WITNESS;
+                bool fPeerWantsWitness = false;
+                int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
                 if (CanDirectFetch(consensusParams) && pindex->nHeight >= chainActive.Height() - MAX_CMPCTBLOCK_DEPTH) {
                     if ((fPeerWantsWitness || !fWitnessesPresentInARecentCompactBlock) && a_recent_compact_block && a_recent_compact_block->header.GetHash() == pindex->GetBlockHash()) {
                         connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, *a_recent_compact_block));
@@ -1266,7 +1255,7 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
             // Send stream from relay memory
             bool push = false;
             auto mi = mapRelay.find(inv.hash);
-            int nSendFlags = (inv.type == MSG_TX ? SERIALIZE_TRANSACTION_NO_WITNESS : 0);
+            int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
             if (mi != mapRelay.end()) {
                 connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                 push = true;
@@ -1330,7 +1319,7 @@ inline void static SendBlockTransactions(const CBlock& block, const BlockTransac
     }
     LOCK(cs_main);
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
-    int nSendFlags = State(pfrom->GetId())->fWantsCmpctWitness ? 0 : SERIALIZE_TRANSACTION_NO_WITNESS;
+    int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
     connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
@@ -2408,8 +2397,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 if (RecursiveDynamicUsage(*ptx) < 100000) {
                     AddToCompactExtraTransactions(ptx);
                 }
-            } else if (tx.HasWitness() && RecursiveDynamicUsage(*ptx) < 100000) {
-                AddToCompactExtraTransactions(ptx);
             }
 
             if (pfrom->fWhitelisted && gArgs.GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) {
@@ -3533,16 +3520,17 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                     LogPrint(BCLog::NET, "%s sending header-and-ids %s to peer=%d\n", __func__,
                             vHeaders.front().GetHash().ToString(), pto->GetId());
 
-                    int nSendFlags = state.fWantsCmpctWitness ? 0 : SERIALIZE_TRANSACTION_NO_WITNESS;
+                    int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
+                    const bool fSendWitness = false;
 
                     bool fGotBlockFromCache = false;
                     {
                         LOCK(cs_most_recent_block);
                         if (most_recent_block_hash == pBestIndex->GetBlockHash()) {
-                            if (state.fWantsCmpctWitness || !fWitnessesPresentInMostRecentCompactBlock)
+                            if (!fWitnessesPresentInMostRecentCompactBlock)
                                 connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, *most_recent_compact_block));
                             else {
-                                CBlockHeaderAndShortTxIDs cmpctblock(*most_recent_block, state.fWantsCmpctWitness);
+                                CBlockHeaderAndShortTxIDs cmpctblock(*most_recent_block, fSendWitness);
                                 connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, cmpctblock));
                             }
                             fGotBlockFromCache = true;
@@ -3552,7 +3540,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                         CBlock block;
                         bool ret = ReadBlockFromDisk(block, pBestIndex, consensusParams);
                         assert(ret);
-                        CBlockHeaderAndShortTxIDs cmpctblock(block, state.fWantsCmpctWitness);
+                        CBlockHeaderAndShortTxIDs cmpctblock(block, fSendWitness);
                         connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, cmpctblock));
                     }
                     state.pindexBestHeaderSent = pBestIndex;
