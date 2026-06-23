@@ -1501,6 +1501,7 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
 
     fSecMsgEnabled = true;
 
+    uiInterface.InitMessage(_("Loading secure messaging settings..."));
     if (ReadIni() != 0) {
         LogPrintf("Failed to read smsg.ini\n");
     }
@@ -1516,6 +1517,7 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
         LogPrintf("Loaded addresses from SMSG.ini\n");
     }
 
+    uiInterface.InitMessage(_("Loading secure messaging keys..."));
     if (LoadKeyStore() != 0) {
         return error("%s: LoadKeyStore failed.", __func__);
     }
@@ -1537,23 +1539,28 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
     }
 
     if (fScanChain) {
+        uiInterface.InitMessage(_("Scanning secure messaging chain data..."));
         ScanBlockChain();
     }
 
+    uiInterface.InitMessage(_("Loading secure message buckets..."));
     if (BuildBucketSet() != 0) {
         fSecMsgEnabled = false;
         return error("%s: Could not load bucket sets, secure messaging disabled.", __func__);
     }
 
+    uiInterface.InitMessage(_("Loading secure message purges..."));
     if (BuildPurgedSets() != 0) {
         fSecMsgEnabled = false;
         return error("%s: Could not load purged sets, secure messaging disabled.", __func__);
     }
 
+    uiInterface.InitMessage(_("Indexing secure message funding..."));
     RebuildPaidFundingIndex();
     RegisterValidationInterface(this);
     fRegisteredValidationInterface = true;
 
+    uiInterface.InitMessage(_("Starting secure messaging threads..."));
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
 

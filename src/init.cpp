@@ -1870,11 +1870,13 @@ bool AppInitMain()
     // ********************************************************* Step 13: finished
 
     SetRPCWarmupFinished();
-    uiInterface.InitMessage(_("Done loading"));
 
+    uiInterface.InitMessage(_("Starting wallet services..."));
     g_wallet_init_interface.Start(scheduler);
 	
 	scheduler.scheduleFromNow(FlushAfterSync, SYNC_CHECK_INTERVAL * 1000);
+
+    uiInterface.InitMessage(_("Done loading"));
 
     return true;
 }

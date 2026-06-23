@@ -252,12 +252,14 @@ bool WalletInit::Open() const
 
 void WalletInit::Start(CScheduler& scheduler) const
 {
+    uiInterface.InitMessage(_("Reaccepting wallet transactions..."));
     for (const std::shared_ptr<CWallet>& pwallet : GetWallets()) {
         pwallet->postInitProcess();
     }
 
     const auto wallets = GetWallets();
     if (!wallets.empty()) {
+        uiInterface.InitMessage(_("Starting secure messaging..."));
         smsgModule.Start(
             wallets.front(),
             !gArgs.GetBoolArg("-smsg", true),
@@ -265,6 +267,7 @@ void WalletInit::Start(CScheduler& scheduler) const
     }
 
     // Run a thread to flush wallet periodically
+    uiInterface.InitMessage(_("Starting wallet database maintenance..."));
     scheduler.scheduleEvery(MaybeCompactWalletDB, 500);
 }
 
