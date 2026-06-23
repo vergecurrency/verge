@@ -2499,13 +2499,13 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         LOCK(cs_smsg);
         std::map<int64_t, SecMsgBucket>::iterator it;
 
-        uint32_t nBuckets = buckets.size();
+        size_t nBuckets = std::min<size_t>(buckets.size(), SMSG_MAX_INV_BUCKETS);
         if (nBuckets > 0) { // no need to send keep alive pkts, coin messages already do that
             std::vector<uint8_t> vchData;
-            // should reserve?
             vchData.reserve(4 + nBuckets*16); // timestamp + size + hash
 
             uint32_t nBucketsShown = 0;
+            uint32_t nBucketsSkipped = 0;
             vchData.resize(4);
 
             /*
@@ -2532,6 +2532,19 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
 
             for (it = buckets.begin(); it != buckets.end(); ++it) {
                 SecMsgBucket &bkt = it->second;
+                const int64_t bucketTime = it->first;
+
+                if (bucketTime % SMSG_BUCKET_LEN != 0
+                    || bucketTime < now - SMSG_RETENTION
+                    || bucketTime > now + SMSG_TIME_LEEWAY) {
+                    nBucketsSkipped++;
+                    continue;
+                }
+
+                if (nBucketsShown >= SMSG_MAX_INV_BUCKETS) {
+                    nBucketsSkipped++;
+                    continue;
+                }
 
                 uint32_t nMessages = bkt.setTokens.size();
 
@@ -2566,6 +2579,10 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                 memcpy(&vchData[0], &nBucketsShown, 4);
                 LogPrintf("SMSG: sending smsgInv to peer=%d addr=%s buckets=%u\n",
                     pto->GetId(), pto->addr.ToString(), nBucketsShown);
+                if (nBucketsSkipped > 0) {
+                    LogPrintf("SMSG: skipped %u buckets while building smsgInv, max %u\n",
+                        nBucketsSkipped, SMSG_MAX_INV_BUCKETS);
+                }
                 LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
                 g_connman->PushMessage(pto,
@@ -2873,6 +2890,12 @@ bool CSMSG::ScanBuckets()
                     break;
                 }
 
+                if (smsg.nPayload == 0 || smsg.nPayload > SMSG_MAX_MSG_WORST_PAID_ENCRYPTED) {
+                    LogPrintf("%s: rejecting malformed stored SMSG payload size, %u, max %u\n",
+                        __func__, smsg.nPayload, SMSG_MAX_MSG_WORST_PAID_ENCRYPTED);
+                    break;
+                }
+
                 try { vchData.resize(smsg.nPayload); } catch (std::exception &e) {
                     LogPrintf("SecureMsgWalletUnlocked(): Could not resize vchData, %u, %s\n", smsg.nPayload, e.what());
                     fclose(fp);
@@ -3035,6 +3058,12 @@ int CSMSG::WalletUnlocked()
                     } else {
                         //LogPrintf("End of file.\n");
                     }
+                    break;
+                }
+
+                if (smsg.nPayload == 0 || smsg.nPayload > SMSG_MAX_MSG_WORST_PAID_ENCRYPTED) {
+                    LogPrintf("%s: rejecting malformed stored SMSG payload size, %u, max %u\n",
+                        __func__, smsg.nPayload, SMSG_MAX_MSG_WORST_PAID_ENCRYPTED);
                     break;
                 }
 

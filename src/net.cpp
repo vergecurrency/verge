@@ -940,18 +940,18 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes, bool& complete
 
         // absorb network data
         int handled;
-        if (!msg.in_data)
+        if (!msg.in_data) {
             handled = msg.readHeader(pch, nBytes);
-        else
+            if (handled >= 0 && msg.in_data && msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
+                LogPrint(BCLog::NET, "Oversized message from peer=%i, disconnecting\n", GetId());
+                return false;
+            }
+        } else {
             handled = msg.readData(pch, nBytes);
+        }
 
         if (handled < 0)
             return false;
-
-        if (msg.in_data && msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
-            LogPrint(BCLog::NET, "Oversized message from peer=%i, disconnecting\n", GetId());
-            return false;
-        }
 
         pch += handled;
         nBytes -= handled;
