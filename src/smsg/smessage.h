@@ -102,6 +102,8 @@ private:
 
 namespace smsg {
 
+class SecMsgDB;
+
 enum SecureMessageCodes {
     SMSG_NO_ERROR = 0,
     SMSG_GENERAL_ERROR,
@@ -573,16 +575,37 @@ protected:
     void BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex, const std::vector<CTransactionRef> &txnConflicted) override;
     void BlockDisconnected(const std::shared_ptr<const CBlock> &block) override;
 
-private:
+public:
     struct PaidFundingRecord {
         uint256 txid;
         uint256 blockHash;
         int height = 0;
+        int64_t blockTime = 0;
+
+        template <typename Stream>
+        void Serialize(Stream &s) const
+        {
+            s << txid;
+            s << blockHash;
+            s << height;
+            s << blockTime;
+        }
+
+        template <typename Stream>
+        void Unserialize(Stream &s)
+        {
+            s >> txid;
+            s >> blockHash;
+            s >> height;
+            s >> blockTime;
+        }
     };
 
-    void IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height);
+private:
+    void IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height, int64_t blockTime, SecMsgDB* dbBatch=nullptr);
     void RemovePaidFundingTransaction(const CTransaction& tx);
     void RebuildPaidFundingIndex();
+    void ClearStoredPaidFundingIndex(SecMsgDB& db);
     bool HasConfirmedPaidFunding(const std::vector<uint8_t>& msgId, const uint256& txid);
     bool IsRecentFundingMiss(const uint256& txid, int64_t now);
     void RecordFundingMiss(const uint256& txid, int64_t now);

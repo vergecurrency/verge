@@ -104,6 +104,127 @@ CCriticalSection cs_smsgStorageUsage;
 uint64_t nCachedSmsgStorageUsage = 0;
 int64_t nLastSmsgStorageUsageScan = 0;
 
+struct PaidFundingIndexMarker {
+    int height = -1;
+    uint256 blockHash;
+
+    template <typename Stream>
+    void Serialize(Stream &s) const
+    {
+        s << height;
+        s << blockHash;
+    }
+
+    template <typename Stream>
+    void Unserialize(Stream &s)
+    {
+        s >> height;
+        s >> blockHash;
+    }
+};
+
+std::string PaidFundingRecordPrefix()
+{
+    return std::string("fm", 2);
+}
+
+std::string PaidFundingRecordKey(const std::vector<uint8_t>& msgId)
+{
+    std::string key = PaidFundingRecordPrefix();
+    key.append(reinterpret_cast<const char*>(msgId.data()), msgId.size());
+    return key;
+}
+
+std::string PaidFundingIndexMarkerKey()
+{
+    return std::string("fi", 2);
+}
+
+bool SliceStartsWith(const leveldb::Slice& slice, const std::string& prefix)
+{
+    return slice.size() >= prefix.size()
+        && std::memcmp(slice.data(), prefix.data(), prefix.size()) == 0;
+}
+
+bool ReadPaidFundingIndexMarker(smsg::SecMsgDB& db, PaidFundingIndexMarker& marker)
+{
+    std::string value;
+    leveldb::Status status = db.pdb->Get(leveldb::ReadOptions(), PaidFundingIndexMarkerKey(), &value);
+    if (!status.ok()) {
+        return false;
+    }
+
+    try {
+        CDataStream ssValue(value.data(), value.data() + value.size(), SER_DISK, CLIENT_VERSION);
+        ssValue >> marker;
+    } catch (const std::exception& e) {
+        LogPrintf("%s: unserialize threw: %s.\n", __func__, e.what());
+        return false;
+    }
+
+    return true;
+}
+
+bool WritePaidFundingIndexMarker(smsg::SecMsgDB& db, const CBlockIndex* pindex)
+{
+    PaidFundingIndexMarker marker;
+    if (pindex) {
+        marker.height = pindex->nHeight;
+        marker.blockHash = pindex->GetBlockHash();
+    }
+
+    CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+    ssValue << marker;
+
+    if (db.activeBatch) {
+        db.activeBatch->Put(PaidFundingIndexMarkerKey(), ssValue.str());
+        return true;
+    }
+
+    leveldb::WriteOptions writeOptions;
+    writeOptions.sync = true;
+    leveldb::Status status = db.pdb->Put(writeOptions, PaidFundingIndexMarkerKey(), ssValue.str());
+    if (!status.ok()) {
+        return error("%s: write failed: %s\n", __func__, status.ToString());
+    }
+    return true;
+}
+
+bool WritePaidFundingRecord(smsg::SecMsgDB& db, const std::vector<uint8_t>& msgId, const smsg::CSMSG::PaidFundingRecord& record)
+{
+    CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+    ssValue << record;
+
+    if (db.activeBatch) {
+        db.activeBatch->Put(PaidFundingRecordKey(msgId), ssValue.str());
+        return true;
+    }
+
+    leveldb::WriteOptions writeOptions;
+    writeOptions.sync = true;
+    leveldb::Status status = db.pdb->Put(writeOptions, PaidFundingRecordKey(msgId), ssValue.str());
+    if (!status.ok()) {
+        return error("%s: write failed: %s\n", __func__, status.ToString());
+    }
+    return true;
+}
+
+bool ErasePaidFundingRecord(smsg::SecMsgDB& db, const std::vector<uint8_t>& msgId)
+{
+    if (db.activeBatch) {
+        db.activeBatch->Delete(PaidFundingRecordKey(msgId));
+        return true;
+    }
+
+    leveldb::WriteOptions writeOptions;
+    writeOptions.sync = true;
+    leveldb::Status status = db.pdb->Delete(writeOptions, PaidFundingRecordKey(msgId));
+    if (status.ok() || status.IsNotFound()) {
+        return true;
+    }
+    return error("%s: erase failed: %s\n", __func__, status.ToString());
+}
+
 bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
 {
     return smsg.version[0] == SMSG_UNPAID_VERSION_MAJOR
@@ -543,7 +664,7 @@ void MaintainSmsgPeerTarget(int64_t now, int64_t& lastAttempt)
     }
 }
 
-void CSMSG::IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height)
+void CSMSG::IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height, int64_t blockTime, SecMsgDB* dbBatch)
 {
     const uint256 txid = tx.GetHash();
     for (const CTxOut& txout : tx.vout) {
@@ -561,9 +682,20 @@ void CSMSG::IndexPaidFundingTransaction(const CTransaction& tx, const uint256& b
         record.txid = txid;
         record.blockHash = blockHash;
         record.height = height;
+        record.blockTime = blockTime;
         mapPaidFundingByMsgId[msgId] = record;
         mapPaidFundingByTxid[txid] = record;
         ClearFundingMiss(txid);
+
+        if (dbBatch) {
+            WritePaidFundingRecord(*dbBatch, msgId, record);
+        } else {
+            LOCK(cs_smsgDB);
+            SecMsgDB db;
+            if (db.Open("cr+")) {
+                WritePaidFundingRecord(db, msgId, record);
+            }
+        }
     }
 }
 
@@ -575,30 +707,141 @@ void CSMSG::RemovePaidFundingTransaction(const CTransaction& tx)
         std::vector<uint8_t> msgId;
         if (ExtractPaidFundingMsgId(txout.scriptPubKey, msgId)) {
             mapPaidFundingByMsgId.erase(msgId);
+            LOCK(cs_smsgDB);
+            SecMsgDB db;
+            if (db.Open("cr+")) {
+                ErasePaidFundingRecord(db, msgId);
+            }
         }
     }
     mapPaidFundingByTxid.erase(txid);
+}
+
+void CSMSG::ClearStoredPaidFundingIndex(SecMsgDB& db)
+{
+    const std::string prefix = PaidFundingRecordPrefix();
+    std::unique_ptr<leveldb::Iterator> it(db.pdb->NewIterator(leveldb::ReadOptions()));
+    for (it->Seek(prefix); it->Valid() && SliceStartsWith(it->key(), prefix); it->Next()) {
+        db.activeBatch->Delete(it->key());
+    }
+    db.activeBatch->Delete(PaidFundingIndexMarkerKey());
 }
 
 void CSMSG::RebuildPaidFundingIndex()
 {
     std::vector<const CBlockIndex*> indexes;
     const int64_t cutoffTime = GetAdjustedTime() - SMSG_RETENTION;
+    const CBlockIndex* pindexTip = nullptr;
+    bool fFullRebuild = true;
+    int nStartHeight = 0;
+    bool fDbOpen = false;
     {
         LOCK(cs_main);
-        for (const CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->GetBlockTime() >= cutoffTime; pindex = pindex->pprev) {
-            indexes.push_back(pindex);
+        pindexTip = chainActive.Tip();
+    }
+
+    LOCK(cs_smsgDB);
+    SecMsgDB db;
+    if (!db.Open("cr+")) {
+        LogPrint(BCLog::SMSG, "%s: failed opening smsg database, rebuilding in memory only.\n", __func__);
+    } else {
+        fDbOpen = true;
+        const std::string prefix = PaidFundingRecordPrefix();
+        std::vector<std::vector<uint8_t>> staleMsgIds;
+        std::unique_ptr<leveldb::Iterator> it(db.pdb->NewIterator(leveldb::ReadOptions()));
+        for (it->Seek(prefix); it->Valid() && SliceStartsWith(it->key(), prefix); it->Next()) {
+            if (it->key().size() != prefix.size() + SMSG_PAID_MSGID_LEN) {
+                continue;
+            }
+
+            PaidFundingRecord record;
+            try {
+                CDataStream ssValue(it->value().data(), it->value().data() + it->value().size(), SER_DISK, CLIENT_VERSION);
+                ssValue >> record;
+            } catch (const std::exception& e) {
+                LogPrintf("%s: funding record unserialize threw: %s.\n", __func__, e.what());
+                continue;
+            }
+
+            bool fOnActiveChain = false;
+            {
+                LOCK(cs_main);
+                fOnActiveChain = record.height >= 0
+                    && record.height <= chainActive.Height()
+                    && chainActive[record.height]
+                    && chainActive[record.height]->GetBlockHash() == record.blockHash;
+            }
+
+            std::vector<uint8_t> msgId(
+                it->key().data() + prefix.size(),
+                it->key().data() + it->key().size());
+
+            if (!fOnActiveChain || record.blockTime < cutoffTime) {
+                staleMsgIds.push_back(msgId);
+                continue;
+            }
+
+            LOCK(cs_smsg);
+            mapPaidFundingByMsgId[msgId] = record;
+            mapPaidFundingByTxid[record.txid] = record;
+        }
+
+        PaidFundingIndexMarker marker;
+        {
+            LOCK(cs_main);
+            if (ReadPaidFundingIndexMarker(db, marker)
+                && marker.height >= 0
+                && marker.height <= chainActive.Height()
+                && chainActive[marker.height]
+                && chainActive[marker.height]->GetBlockHash() == marker.blockHash) {
+                fFullRebuild = false;
+                nStartHeight = marker.height + 1;
+            }
+        }
+
+        db.TxnBegin();
+        for (const std::vector<uint8_t>& msgId : staleMsgIds) {
+            ErasePaidFundingRecord(db, msgId);
+        }
+        if (fFullRebuild) {
+            LOCK(cs_smsg);
+            mapPaidFundingByMsgId.clear();
+            mapPaidFundingByTxid.clear();
+            ClearStoredPaidFundingIndex(db);
+        }
+        db.TxnCommit();
+    }
+
+    if (fFullRebuild) {
+        LOCK(cs_smsg);
+        mapPaidFundingByMsgId.clear();
+        mapPaidFundingByTxid.clear();
+    }
+
+    {
+        LOCK(cs_main);
+        if (fFullRebuild) {
+            for (const CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->GetBlockTime() >= cutoffTime; pindex = pindex->pprev) {
+                indexes.push_back(pindex);
+            }
+            std::reverse(indexes.begin(), indexes.end());
+        } else {
+            for (int nHeight = nStartHeight; nHeight <= chainActive.Height(); ++nHeight) {
+                const CBlockIndex* pindex = chainActive[nHeight];
+                if (pindex && pindex->GetBlockTime() >= cutoffTime) {
+                    indexes.push_back(pindex);
+                }
+            }
         }
     }
 
     {
         LOCK(cs_smsg);
-        mapPaidFundingByMsgId.clear();
-        mapPaidFundingByTxid.clear();
         mapPaidFundingMisses.clear();
         vPaidFundingMisses.clear();
     }
 
+    bool fHaveDbBatch = fDbOpen && db.TxnBegin();
     for (const CBlockIndex* pindex : indexes) {
         CBlock block;
         if (!ReadBlockFromDisk(block, pindex, Params().GetConsensus())) {
@@ -606,13 +849,19 @@ void CSMSG::RebuildPaidFundingIndex()
             continue;
         }
         for (const CTransactionRef& tx : block.vtx) {
-            IndexPaidFundingTransaction(*tx, pindex->GetBlockHash(), pindex->nHeight);
+            IndexPaidFundingTransaction(*tx, pindex->GetBlockHash(), pindex->nHeight, pindex->GetBlockTime(), fHaveDbBatch ? &db : nullptr);
         }
     }
 
+    if (fHaveDbBatch) {
+        WritePaidFundingIndexMarker(db, pindexTip);
+        db.TxnCommit();
+    }
+
     LOCK(cs_smsg);
-    LogPrint(BCLog::SMSG, "%s: indexed %u paid SMSG funding txs from %u recent blocks.\n",
-        __func__, static_cast<unsigned int>(mapPaidFundingByTxid.size()), static_cast<unsigned int>(indexes.size()));
+    LogPrint(BCLog::SMSG, "%s: %s %u paid SMSG funding txs, scanned %u recent blocks.\n",
+        __func__, fFullRebuild ? "rebuilt" : "loaded",
+        static_cast<unsigned int>(mapPaidFundingByTxid.size()), static_cast<unsigned int>(indexes.size()));
 }
 
 bool CSMSG::HasConfirmedPaidFunding(const std::vector<uint8_t>& msgId, const uint256& txid)
@@ -676,7 +925,13 @@ void CSMSG::BlockConnected(const std::shared_ptr<const CBlock> &block, const CBl
         return;
     }
     for (const CTransactionRef& tx : block->vtx) {
-        IndexPaidFundingTransaction(*tx, pindex->GetBlockHash(), pindex->nHeight);
+        IndexPaidFundingTransaction(*tx, pindex->GetBlockHash(), pindex->nHeight, pindex->GetBlockTime());
+    }
+
+    LOCK(cs_smsgDB);
+    SecMsgDB db;
+    if (db.Open("cr+")) {
+        WritePaidFundingIndexMarker(db, pindex);
     }
 }
 
