@@ -70,7 +70,7 @@
         <item row="2" column="2">
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>Use this form to request payments. All fields are &lt;b&gt;optional&lt;/b&gt;.</string>
+           <string>Use this form to make a new receiving address. All fields are &lt;b&gt;optional&lt;/b&gt;.</string>
           </property>
          </widget>
         </item>
@@ -103,7 +103,7 @@
            <string>Enable secure messaging on this new address so it appears in your local message address list.</string>
           </property>
           <property name="text">
-           <string>Allow messaging on this address</string>
+           <string>Add chatkey to this address</string>
           </property>
          </widget>
         </item>
@@ -118,7 +118,7 @@
              </size>
             </property>
             <property name="text">
-             <string>&amp;Request payment</string>
+             <string>Make New Receiving Address</string>
             </property>
             <property name="icon">
              <iconset resource="../verge.qrc">
@@ -139,6 +139,9 @@
             </property>
             <property name="text">
              <string>Create Chatkey</string>
+            </property>
+            <property name="visible">
+             <bool>false</bool>
             </property>
             <property name="icon">
              <iconset resource="../verge.qrc">

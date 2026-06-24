@@ -20,9 +20,12 @@
 #include <qt/walletmodel.h>
 
 #include <smsg/smessage.h>
+#include <wallet/wallet.h>
 
 #include <QGraphicsDropShadowEffect>
 #include <QIcon>
+#include <QInputDialog>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
 #include <QRegularExpression>
@@ -51,6 +54,27 @@ QString GetLocalChatkey(const QString& address)
 QString FormatShareChatkey(const QString& address, const QString& chatkey)
 {
     return QStringLiteral("%1 %2").arg(address, chatkey);
+}
+
+bool ReceivingLabelExists(const AddressTableModel* model, const QString& label)
+{
+    const QString trimmedLabel = label.trimmed();
+    if (!model || trimmedLabel.isEmpty()) {
+        return false;
+    }
+
+    for (int row = 0; row < model->rowCount(QModelIndex()); ++row) {
+        const QModelIndex labelIndex = model->index(row, AddressTableModel::Label, QModelIndex());
+        if (model->data(labelIndex, AddressTableModel::TypeRole).toString() != AddressTableModel::Receive) {
+            continue;
+        }
+
+        if (model->data(labelIndex, Qt::EditRole).toString().trimmed().compare(trimmedLabel, Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
 }
 
@@ -199,7 +223,9 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     case ChatAddressesTab:
         ui->labelExplanation->setText(tr("These are your local chat-enabled addresses. Double-click a chatkey to share it."));
         ui->deleteAddress->setVisible(false);
-        ui->newAddress->setVisible(false);
+        ui->newAddress->setVisible(true);
+        ui->newAddress->setText(tr("Make New Chatkey"));
+        ui->newAddress->setToolTip(tr("Create a new receiving address and add a chatkey to it"));
         ui->copyAddress->setText(tr("Copy Chatkey"));
         break;
     }
@@ -356,6 +382,66 @@ void AddressBookPage::on_newAddress_clicked()
         return;
     }
 
+    if (tab == ChatAddressesTab) {
+        QString label = tr("MyChatkey1");
+        while (true) {
+            bool accepted = false;
+            label = QInputDialog::getText(this,
+                tr("Make New Chatkey"),
+                tr("Label:"),
+                QLineEdit::Normal,
+                label,
+                &accepted).trimmed();
+            if (!accepted) {
+                return;
+            }
+            if (!ReceivingLabelExists(model, label)) {
+                break;
+            }
+            QMessageBox::warning(this,
+                tr("Make New Chatkey"),
+                tr("The label \"%1\" already exists. Choose a different label.").arg(label),
+                QMessageBox::Ok,
+                QMessageBox::Ok);
+        }
+
+        const QString address = model->addRow(
+            AddressTableModel::Receive,
+            label,
+            QString(),
+            OutputType::LEGACY);
+        if (address.isEmpty()) {
+            QMessageBox::warning(this,
+                tr("Make New Chatkey"),
+                tr("Could not create a new receiving address."),
+                QMessageBox::Ok,
+                QMessageBox::Ok);
+            return;
+        }
+
+        const int rv = smsgModule.AddLocalAddress(address.toStdString());
+        if (rv != smsg::SMSG_NO_ERROR) {
+            QMessageBox::warning(this,
+                tr("Make New Chatkey"),
+                tr("The address was created, but secure messaging could not be enabled for it: %1")
+                    .arg(QString::fromLatin1(smsg::GetString(rv))),
+                QMessageBox::Ok,
+                QMessageBox::Ok);
+            return;
+        }
+
+        newAddressToSelect = address;
+        if (proxyModel) {
+            proxyModel->invalidate();
+        }
+        const int row = model->lookupAddress(address);
+        if (row >= 0) {
+            selectNewAddress(QModelIndex(), row, row);
+        }
+        showSelectedChatkey();
+        return;
+    }
+
     EditAddressDialog dlg(EditAddressDialog::NewSendingAddress, this);
     dlg.setModel(model);
     if(dlg.exec())
@@ -469,7 +555,8 @@ void AddressBookPage::contextualMenu(const QPoint &point)
 void AddressBookPage::selectNewAddress(const QModelIndex &parent, int begin, int /*end*/)
 {
     QModelIndex idx = proxyModel->mapFromSource(model->index(begin, AddressTableModel::Address, parent));
-    if(idx.isValid() && (idx.data(Qt::EditRole).toString() == newAddressToSelect))
+    const QString sourceAddress = model->data(model->index(begin, AddressTableModel::Address, parent), Qt::EditRole).toString();
+    if(idx.isValid() && (sourceAddress == newAddressToSelect))
     {
         // Select row of newly created address, once
         ui->tableView->setFocus();

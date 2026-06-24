@@ -287,6 +287,11 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
         ui->removeRequestButton->setIcon(_platformStyle->SingleColorIcon(":/icons/remove"));
     }
 
+    ui->allowMessaging->setText(tr("Add chatkey to this address"));
+    ui->receiveButton->setText(tr("Make New Receiving Address"));
+    ui->label_5->setText(tr("Use this form to make a new receiving address. All fields are <b>optional</b>."));
+    ui->createChatkeyButton->hide();
+
     // context menu actions
     QAction *copyURIAction = new QAction(tr("Copy URI"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
