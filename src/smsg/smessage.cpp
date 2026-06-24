@@ -101,6 +101,10 @@ constexpr int DEFAULT_SMSG_PEER_TARGET = 3;
 constexpr int MAX_SMSG_PEER_TARGET = 50;
 constexpr int64_t SMSG_PEER_DISCOVERY_INTERVAL = 2 * 60;
 constexpr int64_t SMSG_STORAGE_USAGE_CACHE_TTL = 60;
+constexpr size_t SMSG_MAX_TRACKED_REQUEST_BUCKETS = 512;
+constexpr size_t SMSG_MAX_TRACKED_WANTED_BUCKETS = 128;
+constexpr size_t SMSG_MAX_TRACKED_WANTED_TOKENS = 8192;
+constexpr uint32_t SMSG_MAX_INVENTORY_MISMATCHES = 8;
 CCriticalSection cs_smsgStorageUsage;
 uint64_t nCachedSmsgStorageUsage = 0;
 int64_t nLastSmsgStorageUsageScan = 0;
@@ -321,6 +325,8 @@ void MarkSmsgRelayValidated(CNode* pfrom)
     if (!pfrom->smsgData.fValidatedRelay) {
         pfrom->smsgData.fValidatedRelay = true;
         pfrom->smsgData.lastMatched = 0;
+        pfrom->smsgData.requestedBuckets.clear();
+        pfrom->smsgData.wantedTokens.clear();
         LogPrint(BCLog::SMSG, "SMSG: validated relay peer=%d addr=%s\n",
             pfrom->GetId(), pfrom->addr.ToString());
     }
@@ -329,6 +335,101 @@ void MarkSmsgRelayValidated(CNode* pfrom)
 bool IsSmsgBucketTimeAligned(int64_t time)
 {
     return time >= 0 && time % smsg::SMSG_BUCKET_LEN == 0;
+}
+
+uint64_t SmsgSampleKey(const uint8_t* sample)
+{
+    uint64_t key = 0;
+    std::memcpy(&key, sample, sizeof(key));
+    return key;
+}
+
+void TrimTrackedSmsgRequests(SecMsgNode& smsgData)
+{
+    while (smsgData.requestedBuckets.size() > SMSG_MAX_TRACKED_REQUEST_BUCKETS) {
+        smsgData.requestedBuckets.erase(smsgData.requestedBuckets.begin());
+    }
+
+    size_t nTokens = 0;
+    for (const auto& entry : smsgData.wantedTokens) {
+        nTokens += entry.second.size();
+    }
+
+    while ((!smsgData.wantedTokens.empty() && smsgData.wantedTokens.size() > SMSG_MAX_TRACKED_WANTED_BUCKETS)
+        || nTokens > SMSG_MAX_TRACKED_WANTED_TOKENS) {
+        auto it = smsgData.wantedTokens.begin();
+        nTokens -= it->second.size();
+        smsgData.wantedTokens.erase(it);
+    }
+}
+
+void TrackSmsgRequestedBuckets(CNode* pnode, const std::vector<int64_t>& bucketTimes)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+    for (int64_t bucketTime : bucketTimes) {
+        pnode->smsgData.requestedBuckets.insert(bucketTime);
+    }
+    TrimTrackedSmsgRequests(pnode->smsgData);
+}
+
+bool ConsumeSmsgRequestedBucket(CNode* pnode, int64_t bucketTime)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+    const auto it = pnode->smsgData.requestedBuckets.find(bucketTime);
+    if (it == pnode->smsgData.requestedBuckets.end()) {
+        return false;
+    }
+    pnode->smsgData.requestedBuckets.erase(it);
+    return true;
+}
+
+void TrackSmsgWantedTokens(CNode* pnode, int64_t bucketTime, const std::vector<uint64_t>& samples)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+    std::set<uint64_t>& wanted = pnode->smsgData.wantedTokens[bucketTime];
+    wanted.insert(samples.begin(), samples.end());
+    TrimTrackedSmsgRequests(pnode->smsgData);
+}
+
+bool HasSmsgWantedBucket(CNode* pnode, int64_t bucketTime)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+    const auto it = pnode->smsgData.wantedTokens.find(bucketTime);
+    return it != pnode->smsgData.wantedTokens.end() && !it->second.empty();
+}
+
+bool HasSmsgWantedToken(CNode* pnode, int64_t bucketTime, uint64_t sample)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+    const auto it = pnode->smsgData.wantedTokens.find(bucketTime);
+    return it != pnode->smsgData.wantedTokens.end() && it->second.count(sample) > 0;
+}
+
+void ConsumeSmsgWantedTokens(CNode* pnode, int64_t bucketTime, const std::vector<uint64_t>& samples)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+    auto it = pnode->smsgData.wantedTokens.find(bucketTime);
+    if (it == pnode->smsgData.wantedTokens.end()) {
+        return;
+    }
+    for (uint64_t sample : samples) {
+        it->second.erase(sample);
+    }
+    if (it->second.empty()) {
+        pnode->smsgData.wantedTokens.erase(it);
+    }
+}
+
+void RecordSmsgInventoryMismatch(CNode* pnode, const std::string& reason)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+    ++pnode->smsgData.nInventoryMismatches;
+    LogPrint(BCLog::SMSG, "SMSG inventory mismatch peer=%d count=%u reason=%s\n",
+        pnode->GetId(), pnode->smsgData.nInventoryMismatches, reason);
+    if (pnode->smsgData.nInventoryMismatches >= SMSG_MAX_INVENTORY_MISMATCHES) {
+        pnode->smsgData.ignoreUntil = GetAdjustedTime() + smsg::SMSG_TIME_IGNORE;
+        pnode->smsgData.nInventoryMismatches = 0;
+    }
 }
 
 size_t MaxSmsgVectorPayloadBytes(const std::string& command)
@@ -2287,6 +2388,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         vchDataOut.reserve(4 + 8 * nInvBuckets); // Reserve max possible size
         vchDataOut.resize(4);
         uint32_t nShowBuckets = 0;
+        std::vector<int64_t> requestedBuckets;
 
         uint8_t *p = &vchData[4];
         for (uint32_t i = 0; i < nInvBuckets; ++i) {
@@ -2359,6 +2461,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     memcpy(&vchDataOut[sz], &time, 8);
 
                     nShowBuckets++;
+                    requestedBuckets.push_back(time);
                 }
             } // cs_smsg
         }
@@ -2368,6 +2471,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         if (vchDataOut.size() > 4) {
             LogPrintf("SMSG: sending smsgShow to peer=%d addr=%s buckets=%u\n",
                 pfrom->GetId(), pfrom->addr.ToString(), nShowBuckets);
+            TrackSmsgRequestedBuckets(pfrom, requestedBuckets);
             g_connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgShow", vchDataOut));
         } else
@@ -2517,9 +2621,14 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
+        if (!ConsumeSmsgRequestedBucket(pfrom, time)) {
+            RecordSmsgInventoryMismatch(pfrom, "unsolicited smsgHave");
+            return SMSG_GENERAL_ERROR;
+        }
         MarkSmsgRelayValidated(pfrom);
 
         std::vector<uint8_t> vchDataOut;
+        std::vector<uint64_t> wantedSamples;
 
         {
             LOCK(cs_smsg);
@@ -2563,6 +2672,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     }
 
                     memcpy(&vchDataOut[nd], p, 16);
+                    wantedSamples.push_back(SmsgSampleKey(p + 8));
                 }
             }
         } // cs_smsg
@@ -2578,6 +2688,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 bucket.nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
                 bucket.nLockPeerId  = pfrom->GetId();
             }
+            TrackSmsgWantedTokens(pfrom, time, wantedSamples);
             LogPrintf("SMSG: sending smsgWant to peer=%d addr=%s bucket=%d messages=%u\n",
                 pfrom->GetId(), pfrom->addr.ToString(), time, (unsigned int)((vchDataOut.size() - 8) / 16));
             g_connman->PushMessage(pfrom,
@@ -2716,6 +2827,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             if (pfrom->smsgData.fSentValidationProbe && !pfrom->smsgData.fValidatedRelay) {
                 pfrom->smsgData.fValidatedRelay = true;
                 pfrom->smsgData.lastMatched = 0;
+                pfrom->smsgData.requestedBuckets.clear();
+                pfrom->smsgData.wantedTokens.clear();
                 LogPrint(BCLog::SMSG,
                     "SMSG: validated relay peer=%d addr=%s with validation probe match.\n",
                     pfrom->GetId(), pfrom->addr.ToString());
@@ -2763,6 +2876,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             pfrom->smsgData.fEnabled = false;
             pfrom->smsgData.fValidatedRelay = false;
             pfrom->smsgData.fSentValidationProbe = false;
+            pfrom->smsgData.requestedBuckets.clear();
+            pfrom->smsgData.wantedTokens.clear();
         }
     } else
     if (strCommand == "smsgIgnore") {
@@ -4041,6 +4156,11 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         return SMSG_GENERAL_ERROR;
     }
 
+    if (!HasSmsgWantedBucket(pfrom, bktTime)) {
+        RecordSmsgInventoryMismatch(pfrom, "unsolicited smsgMsg");
+        return SMSG_GENERAL_ERROR;
+    }
+
     std::map<int64_t, SecMsgBucket>::iterator itb;
 
     if (nBunch == 0 || nBunch > 500) {
@@ -4059,6 +4179,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
 
     uint32_t n = 12;
     bool fMalformedBunch = false;
+    std::vector<uint64_t> receivedSamples;
 
     for (uint32_t i = 0; i < nBunch; ++i) {
         if (n > vchData.size() || vchData.size() - n < SMSG_HDR_LEN) {
@@ -4076,8 +4197,21 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
             fMalformedBunch = true;
             break;
         }
+        if (psmsg->nPayload < 8) {
+            LogPrintf("Error: message payload too short for smsg token sample, payload = %u.\n", psmsg->nPayload);
+            Misbehaving(pfrom->GetId(), 1);
+            fMalformedBunch = true;
+            break;
+        }
 
         SecMsgToken token(psmsg->timestamp, &vchData[n + SMSG_HDR_LEN], psmsg->nPayload, 0, 0);
+        const uint64_t sampleKey = SmsgSampleKey(&vchData[n + SMSG_HDR_LEN]);
+        if (!HasSmsgWantedToken(pfrom, bktTime, sampleKey)) {
+            RecordSmsgInventoryMismatch(pfrom, "unrequested token in smsgMsg");
+            fMalformedBunch = true;
+            break;
+        }
+        receivedSamples.push_back(sampleKey);
         const int64_t msgBucketTime = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
         if (msgBucketTime != bktTime) {
             LogPrintf("Error: message timestamp bucket %d does not match smsgMsg bucket %d.\n", msgBucketTime, bktTime);
@@ -4150,6 +4284,8 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         n += SMSG_HDR_LEN + psmsg->nPayload;
     }
 
+    bool fWrongPeerForLock = false;
+    NodeId nLockPeerId = 0;
     {
         LOCK(cs_smsg);
         // If messages have been added, bucket must exist now
@@ -4159,10 +4295,28 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
             return SMSG_GENERAL_ERROR;
         }
 
-        itb->second.nLockCount  = 0; // This node has received data from peer, release lock
-        itb->second.nLockPeerId = 0;
-        itb->second.hashBucket();
+        if (itb->second.nLockCount > 0 && itb->second.nLockPeerId != pfrom->GetId()) {
+            fWrongPeerForLock = true;
+            nLockPeerId = itb->second.nLockPeerId;
+        } else {
+            if (!fMalformedBunch) {
+                itb->second.nLockCount  = 0; // This node has received clean data from the requested peer, release lock
+                itb->second.nLockPeerId = 0;
+            }
+            itb->second.hashBucket();
+        }
     } // cs_smsg
+
+    if (fWrongPeerForLock) {
+        LogPrint(BCLog::SMSG, "Peer %d sent smsgMsg for bucket %d locked by peer %d.\n",
+            pfrom->GetId(), bktTime, nLockPeerId);
+        RecordSmsgInventoryMismatch(pfrom, "wrong-peer smsgMsg for locked bucket");
+        return SMSG_GENERAL_ERROR;
+    }
+
+    if (!fMalformedBunch) {
+        ConsumeSmsgWantedTokens(pfrom, bktTime, receivedSamples);
+    }
 
     return fMalformedBunch ? SMSG_GENERAL_ERROR : SMSG_NO_ERROR;
 };

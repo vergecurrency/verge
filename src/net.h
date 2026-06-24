@@ -28,6 +28,7 @@
 #include <atomic>
 #include <deque>
 #include <map>
+#include <set>
 #include <stdint.h>
 #include <thread>
 #include <memory>
@@ -108,6 +109,9 @@ struct SecMsgNode
     uint32_t nRateBytes{0};
     uint32_t nWakeCounter{0};
     int64_t nPeerId{0};
+    std::set<int64_t> requestedBuckets;
+    std::map<int64_t, std::set<uint64_t> > wantedTokens;
+    uint32_t nInventoryMismatches{0};
     bool fEnabled{false};
     bool fValidatedRelay{false};
     bool fSentValidationProbe{false};

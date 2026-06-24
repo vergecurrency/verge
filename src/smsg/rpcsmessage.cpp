@@ -615,6 +615,10 @@ static UniValue smsginfo(const JSONRPCRequest &request)
             int64_t lastMatched = 0;
             uint32_t rateMessages = 0;
             uint32_t rateBytes = 0;
+            uint32_t inventoryMismatches = 0;
+            size_t requestedBuckets = 0;
+            size_t wantedBuckets = 0;
+            size_t wantedTokens = 0;
             {
                 LOCK(pnode->smsgData.cs_smsg_net);
                 enabled = pnode->smsgData.fEnabled;
@@ -623,6 +627,12 @@ static UniValue smsginfo(const JSONRPCRequest &request)
                 lastMatched = pnode->smsgData.lastMatched;
                 rateMessages = pnode->smsgData.nRateMessages;
                 rateBytes = pnode->smsgData.nRateBytes;
+                inventoryMismatches = pnode->smsgData.nInventoryMismatches;
+                requestedBuckets = pnode->smsgData.requestedBuckets.size();
+                wantedBuckets = pnode->smsgData.wantedTokens.size();
+                for (const auto& entry : pnode->smsgData.wantedTokens) {
+                    wantedTokens += entry.second.size();
+                }
             }
             if (enabled) {
                 ++smsgEnabledPeers;
@@ -643,6 +653,10 @@ static UniValue smsginfo(const JSONRPCRequest &request)
             peer.pushKV("last_matched", lastMatched);
             peer.pushKV("rate_messages", static_cast<uint64_t>(rateMessages));
             peer.pushKV("rate_bytes", static_cast<uint64_t>(rateBytes));
+            peer.pushKV("inventory_mismatches", static_cast<uint64_t>(inventoryMismatches));
+            peer.pushKV("requested_buckets", static_cast<uint64_t>(requestedBuckets));
+            peer.pushKV("wanted_buckets", static_cast<uint64_t>(wantedBuckets));
+            peer.pushKV("wanted_tokens", static_cast<uint64_t>(wantedTokens));
             peerList.push_back(peer);
         });
     }
