@@ -320,6 +320,7 @@ void MarkSmsgRelayValidated(CNode* pfrom)
     LOCK(pfrom->smsgData.cs_smsg_net);
     if (!pfrom->smsgData.fValidatedRelay) {
         pfrom->smsgData.fValidatedRelay = true;
+        pfrom->smsgData.lastMatched = 0;
         LogPrint(BCLog::SMSG, "SMSG: validated relay peer=%d addr=%s\n",
             pfrom->GetId(), pfrom->addr.ToString());
     }
@@ -2712,6 +2713,14 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         }
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
+            if (pfrom->smsgData.fSentValidationProbe && !pfrom->smsgData.fValidatedRelay) {
+                pfrom->smsgData.fValidatedRelay = true;
+                pfrom->smsgData.lastMatched = 0;
+                LogPrint(BCLog::SMSG,
+                    "SMSG: validated relay peer=%d addr=%s with validation probe match.\n",
+                    pfrom->GetId(), pfrom->addr.ToString());
+                return SMSG_NO_ERROR;
+            }
             pfrom->smsgData.lastMatched = time;
         }
         LogPrint(BCLog::SMSG, "Peer buckets matched in smsgWant at %d.\n", time);
