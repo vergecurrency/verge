@@ -95,6 +95,7 @@ const std::vector<uint8_t> SMSG_PAID_FUNDING_MAGIC{'S', 'M', 'S', 'G', '3'};
 constexpr size_t SMSG_PAID_MSGID_LEN = 28;
 constexpr size_t SMSG_PAID_FUNDING_DATA_LEN = 5 + SMSG_PAID_MSGID_LEN;
 constexpr size_t SMSG_MAX_FUNDING_MISS_CACHE = 4096;
+constexpr size_t SMSG_MAX_PAID_FUNDING_RECORDS = 500000;
 constexpr int64_t SMSG_FUNDING_MISS_CACHE_TTL = 10 * 60;
 constexpr int DEFAULT_SMSG_PEER_TARGET = 3;
 constexpr int MAX_SMSG_PEER_TARGET = 50;
@@ -550,7 +551,7 @@ static bool HasSmsgStorageCapacity(uint64_t bytesToAdd, std::string* reason = nu
 
     if (bytesToAdd <= SMSG_LOCAL_STORAGE_CAP_BYTES
         && current <= SMSG_LOCAL_STORAGE_CAP_BYTES - bytesToAdd) {
-        nCachedSmsgStorageUsage = current + bytesToAdd;
+        nCachedSmsgStorageUsage = current;
         return true;
     }
 
@@ -558,6 +559,14 @@ static bool HasSmsgStorageCapacity(uint64_t bytesToAdd, std::string* reason = nu
         *reason = strprintf("Local secure message storage cap reached (%u MiB).", static_cast<unsigned>(SMSG_LOCAL_STORAGE_CAP_BYTES / (1024 * 1024)));
     }
     return false;
+}
+
+static void AccountSmsgStorageBytes(uint64_t bytesAdded)
+{
+    LOCK(cs_smsgStorageUsage);
+    if (nLastSmsgStorageUsageScan != 0) {
+        nCachedSmsgStorageUsage += bytesAdded;
+    }
 }
 
 secp256k1_context *secp256k1_context_smsg = nullptr;
@@ -727,6 +736,43 @@ void CSMSG::ClearStoredPaidFundingIndex(SecMsgDB& db)
     db.activeBatch->Delete(PaidFundingIndexMarkerKey());
 }
 
+size_t CSMSG::PrunePaidFundingIndex(SecMsgDB* dbBatch)
+{
+    LOCK(cs_smsg);
+    if (mapPaidFundingByMsgId.size() <= SMSG_MAX_PAID_FUNDING_RECORDS) {
+        return 0;
+    }
+
+    std::vector<std::pair<std::vector<uint8_t>, PaidFundingRecord> > records;
+    records.reserve(mapPaidFundingByMsgId.size());
+    for (const auto& entry : mapPaidFundingByMsgId) {
+        records.push_back(entry);
+    }
+
+    std::sort(records.begin(), records.end(),
+        [](const std::pair<std::vector<uint8_t>, PaidFundingRecord>& a,
+           const std::pair<std::vector<uint8_t>, PaidFundingRecord>& b) {
+            if (a.second.blockTime != b.second.blockTime) {
+                return a.second.blockTime < b.second.blockTime;
+            }
+            return a.second.height < b.second.height;
+        });
+
+    const size_t nToPrune = mapPaidFundingByMsgId.size() - SMSG_MAX_PAID_FUNDING_RECORDS;
+    for (size_t i = 0; i < nToPrune; ++i) {
+        mapPaidFundingByTxid.erase(records[i].second.txid);
+        mapPaidFundingByMsgId.erase(records[i].first);
+        if (dbBatch) {
+            ErasePaidFundingRecord(*dbBatch, records[i].first);
+        }
+    }
+
+    LogPrintf("SMSG: pruned %u paid funding index records, kept %u.\n",
+        static_cast<unsigned int>(nToPrune),
+        static_cast<unsigned int>(mapPaidFundingByMsgId.size()));
+    return nToPrune;
+}
+
 void CSMSG::RebuildPaidFundingIndex()
 {
     std::vector<const CBlockIndex*> indexes;
@@ -854,8 +900,11 @@ void CSMSG::RebuildPaidFundingIndex()
     }
 
     if (fHaveDbBatch) {
+        PrunePaidFundingIndex(&db);
         WritePaidFundingIndexMarker(db, pindexTip);
         db.TxnCommit();
+    } else {
+        PrunePaidFundingIndex();
     }
 
     LOCK(cs_smsg);
@@ -1074,6 +1123,21 @@ void ThreadSecureMsg()
 
         if (LogAcceptCategory(BCLog::SMSG) && nLoop % SMSG_THREAD_LOG_GAP == 0) { // log every SMSG_THREAD_LOG_GAP instance, is useful source of timestamps
             LogPrintf("SecureMsgThread %d \n", now);
+            const uint64_t nStorageUsed = smsgModule.GetLocalStorageUsageBytes();
+            const size_t nPaidFundingRecords = smsgModule.GetPaidFundingIndexSize();
+            LOCK(smsgModule.cs_smsg);
+            size_t nBucketMessages = 0;
+            for (const auto& entry : smsgModule.buckets) {
+                nBucketMessages += entry.second.setTokens.size();
+            }
+            LogPrintf("SMSG stats: storage=%u/%u bytes buckets=%u bucket_messages=%u purged=%u rejected=%u funding_records=%u\n",
+                static_cast<unsigned int>(nStorageUsed),
+                static_cast<unsigned int>(SMSG_LOCAL_STORAGE_CAP_BYTES),
+                static_cast<unsigned int>(smsgModule.buckets.size()),
+                static_cast<unsigned int>(nBucketMessages),
+                static_cast<unsigned int>(smsgModule.setPurged.size()),
+                static_cast<unsigned int>(smsgModule.setRecentRejected.size()),
+                static_cast<unsigned int>(nPaidFundingRecords));
         }
 
         vTimedOutLocks.resize(0);
@@ -1234,6 +1298,7 @@ void ThreadSecureMsgPow()
                         LogPrintf("%s: Funding txn timeout, dropping message %s\n", __func__, HexStr(smsgModule.GetMsgID(psmsg, pPayload)));
                         LOCK(cs_smsgDB);
                         dbOutbox.EraseSmesg(chKey);
+                        InvalidateSmsgStorageUsageCache();
                         continue;
                     }
                     if (rv == SMSG_FUND_NOT_READY) {
@@ -1244,6 +1309,7 @@ void ThreadSecureMsgPow()
                             __func__, HexStr(smsgModule.GetMsgID(psmsg, pPayload)), GetString(rv));
                         LOCK(cs_smsgDB);
                         dbOutbox.EraseSmesg(chKey);
+                        InvalidateSmsgStorageUsageCache();
                     }
                     continue;
                 }
@@ -1257,6 +1323,7 @@ void ThreadSecureMsgPow()
                     LogPrintf("SecMsgPow: Could not get proof of work hash, message removed.\n");
                     LOCK(cs_smsgDB);
                     dbOutbox.EraseSmesg(chKey);
+                    InvalidateSmsgStorageUsageCache();
                     continue;
                 }
             }
@@ -1266,6 +1333,7 @@ void ThreadSecureMsgPow()
             {
                 LOCK(cs_smsgDB);
                 dbOutbox.EraseSmesg(chKey);
+                InvalidateSmsgStorageUsageCache();
             }
 
             // Add to message store
@@ -1958,6 +2026,18 @@ uint64_t CSMSG::GetLocalStorageUsageBytes()
         nLastSmsgStorageUsageScan = GetTime();
     }
     return usage;
+}
+
+size_t CSMSG::GetPaidFundingIndexSize()
+{
+    LOCK(cs_smsg);
+    return mapPaidFundingByMsgId.size();
+}
+
+size_t CSMSG::GetRecentRejectedTokenCount()
+{
+    LOCK(cs_smsg);
+    return setRecentRejected.size();
 }
 
 bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
@@ -3541,6 +3621,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                         return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
                     }
                     dbInbox.WriteSmesg(chKey, smsgInbox);
+                    AccountSmsgStorageBytes(smsgInbox.vchMessage.size());
                     if (reportToGui) {
                         NotifySecMsgInboxChanged(smsgInbox);
                     }
@@ -4125,21 +4206,8 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
-    std::string storageReason;
-    if (!HasSmsgStorageCapacity(SMSG_HDR_LEN + nPayload, &storageReason)) {
-        return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
-    }
-
     if (SMSG_NO_ERROR != CheckPurged(psmsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
-    }
-
-    fs::path pathSmsgDir;
-    try {
-        pathSmsgDir = GetDataDir() / "smsgstore";
-        fs::create_directory(pathSmsgDir);
-    } catch (const fs::filesystem_error &ex) {
-        return errorN(SMSG_GENERAL_ERROR, "%s - Failed to create directory %s - %s.", __func__, pathSmsgDir.string(), ex.what());
     }
 
     int64_t now = GetAdjustedTime();
@@ -4151,6 +4219,19 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
     }
     if (IsSmsgExpired(*psmsg, now)) {
         return errorN(SMSG_TIME_EXPIRED, "%s: Message TTL expired.", __func__);
+    }
+
+    std::string storageReason;
+    if (!HasSmsgStorageCapacity(SMSG_HDR_LEN + nPayload, &storageReason)) {
+        return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
+    }
+
+    fs::path pathSmsgDir;
+    try {
+        pathSmsgDir = GetDataDir() / "smsgstore";
+        fs::create_directory(pathSmsgDir);
+    } catch (const fs::filesystem_error &ex) {
+        return errorN(SMSG_GENERAL_ERROR, "%s - Failed to create directory %s - %s.", __func__, pathSmsgDir.string(), ex.what());
     }
 
     int64_t bucket = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
@@ -4171,6 +4252,7 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
     }
 
     fclose(fp);
+    AccountSmsgStorageBytes(SMSG_HDR_LEN + nPayload);
     return SMSG_NO_ERROR;
 };
 
@@ -4185,22 +4267,8 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
-    std::string storageReason;
-    if (!HasSmsgStorageCapacity(SMSG_HDR_LEN + nPayload, &storageReason)) {
-        return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
-    }
-
     if (SMSG_NO_ERROR != CheckPurged(psmsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
-    }
-
-    long int ofs;
-    fs::path pathSmsgDir;
-    try {
-        pathSmsgDir = GetDataDir() / "smsgstore";
-        fs::create_directory(pathSmsgDir);
-    } catch (const fs::filesystem_error &ex) {
-        return errorN(SMSG_GENERAL_ERROR, "Failed to create directory %s - %s.", pathSmsgDir.string(), ex.what());
     }
 
     int64_t now = GetAdjustedTime();
@@ -4231,6 +4299,20 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
             LogPrintf("Message token: %s, nPayload %u\n", token.ToString(), nPayload);
         }
         return SMSG_GENERAL_ERROR;
+    }
+
+    std::string storageReason;
+    if (!HasSmsgStorageCapacity(SMSG_HDR_LEN + nPayload, &storageReason)) {
+        return errorN(SMSG_STORE_FULL, "%s: %s", __func__, storageReason);
+    }
+
+    long int ofs;
+    fs::path pathSmsgDir;
+    try {
+        pathSmsgDir = GetDataDir() / "smsgstore";
+        fs::create_directory(pathSmsgDir);
+    } catch (const fs::filesystem_error &ex) {
+        return errorN(SMSG_GENERAL_ERROR, "Failed to create directory %s - %s.", pathSmsgDir.string(), ex.what());
     }
 
     std::string fileName = std::to_string(bucketTime) + "_01.dat";
@@ -4273,6 +4355,7 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
 
     LogPrint(BCLog::SMSG, "SecureMsg added to bucket %d.\n", bucketTime);
 
+    AccountSmsgStorageBytes(SMSG_HDR_LEN + nPayload);
     return SMSG_NO_ERROR;
 };
 
@@ -4302,6 +4385,7 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
     chKey[1] = 'm';
     memcpy(chKey+2, vMsgId.data(), 28);
     db.EraseSmesg(chKey);
+    InvalidateSmsgStorageUsageCache();
 
     // Find in buckets
     int64_t bucketTime = msgtime - (msgtime % SMSG_BUCKET_LEN);
@@ -4329,6 +4413,7 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
             LogPrintf("%s: Remove failed, msgid: %s\n", __func__, HexStr(vMsgId));
             break;
         }
+        InvalidateSmsgStorageUsageCache();
         memcpy(purged.sample, vchOne.data() + SMSG_HDR_LEN, 8);
         it->ttl = 0;
         LogPrint(BCLog::SMSG, "Purged message %s in bucket %d\n", it->ToString(), bucketTime);
@@ -4831,6 +4916,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                 return SMSG_STORE_FULL;
             }
             dbSendQueue.WriteSmesg(chKey, smsgSQ);
+            AccountSmsgStorageBytes(smsgSQ.vchMessage.size());
             LogPrint(BCLog::SMSG, "SMSG send queued network message: key=%s bytes=%u\n",
                 HexStr(chKey, chKey + sizeof(chKey)), static_cast<unsigned int>(smsgSQ.vchMessage.size()));
             //NotifySecMsgSendQueueChanged(smsgOutbox);
@@ -4918,6 +5004,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                         return SMSG_STORE_FULL;
                     }
                     dbSent.WriteSmesg(chKey, smsgOutbox);
+                    AccountSmsgStorageBytes(smsgOutbox.vchMessage.size());
                     NotifySecMsgOutboxChanged(smsgOutbox);
                     LogPrint(BCLog::SMSG, "SMSG outbox saved sent copy: key=%s bytes=%u\n",
                         HexStr(chKey, chKey + sizeof(chKey)), static_cast<unsigned int>(smsgOutbox.vchMessage.size()));

@@ -530,6 +530,8 @@ public:
     int Store(const SecureMessage &smsg, bool fHashBucket);
     int FlushMessageData(std::string &sError);
     uint64_t GetLocalStorageUsageBytes();
+    size_t GetPaidFundingIndexSize();
+    size_t GetRecentRejectedTokenCount();
 
     int Purge(std::vector<uint8_t> &vMsgId, std::string &sError);
 
@@ -606,6 +608,7 @@ private:
     void RemovePaidFundingTransaction(const CTransaction& tx);
     void RebuildPaidFundingIndex();
     void ClearStoredPaidFundingIndex(SecMsgDB& db);
+    size_t PrunePaidFundingIndex(SecMsgDB* dbBatch=nullptr);
     bool HasConfirmedPaidFunding(const std::vector<uint8_t>& msgId, const uint256& txid);
     bool IsRecentFundingMiss(const uint256& txid, int64_t now);
     void RecordFundingMiss(const uint256& txid, int64_t now);

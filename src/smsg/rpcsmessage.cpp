@@ -667,6 +667,8 @@ static UniValue smsginfo(const JSONRPCRequest &request)
     }
     counts.pushKV("buckets", bucketCount);
     counts.pushKV("bucket_messages", bucketMessages);
+    counts.pushKV("paid_funding_index", static_cast<uint64_t>(smsgModule.GetPaidFundingIndexSize()));
+    counts.pushKV("recent_rejected_tokens", static_cast<uint64_t>(smsgModule.GetRecentRejectedTokenCount()));
 
     {
         LOCK(smsg::cs_smsgDB);
@@ -676,6 +678,7 @@ static UniValue smsginfo(const JSONRPCRequest &request)
             counts.pushKV("outbox", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "sm")));
             counts.pushKV("send_queue", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "qm")));
             counts.pushKV("purged", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "pm")));
+            counts.pushKV("paid_funding_records", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "fm")));
             counts.pushKV("known_pubkeys", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "pk")));
             counts.pushKV("stored_private_keys", static_cast<uint64_t>(CountSmsgEntries(db.pdb, "sk")));
         }
