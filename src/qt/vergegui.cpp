@@ -708,7 +708,7 @@ void VERGEGUI::createActions()
     sendCoinsMenuAction->setToolTip(sendCoinsMenuAction->statusTip());
 
     receiveCoinsAction = new QAction(platformStyle->SingleColorIcon(":/icons/receiving_addresses"), tr("&Addresses"), this);
-    receiveCoinsAction->setStatusTip(tr("Manage receiving addresses and make new receiving addresses"));
+    receiveCoinsAction->setStatusTip(tr("Manage receiving addresses, get Qr codes for receiving XVG, and make new receiving addresses"));
     receiveCoinsAction->setToolTip(receiveCoinsAction->statusTip());
     receiveCoinsAction->setCheckable(true);
     receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_3));
