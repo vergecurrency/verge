@@ -135,7 +135,7 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
     ui->scrollAreaWidgetContents->setStyleSheet(QStringLiteral("background-color: #14051f;"));
     retentionDaysSpinBox = new QSpinBox(this);
     retentionDaysSpinBox->setRange(1, 31);
-    retentionDaysSpinBox->setValue(1);
+    retentionDaysSpinBox->setValue(31);
     retentionDaysSpinBox->setSuffix(tr(" days"));
     retentionDaysSpinBox->setEnabled(true);
     retentionDaysSpinBox->setToolTip(tr("Secure message retention."));
@@ -177,9 +177,9 @@ void SendMessagesDialog::setModel(MessageModel* model)
 void SendMessagesDialog::loadRow(int row)
 {
     if (model->data(model->index(row, model->Type, QModelIndex()), Qt::DisplayRole).toString() == MessageModel::Received)
-        setSelectedAddressFrom(model->data(model->index(row, model->ToAddress, QModelIndex()), Qt::DisplayRole).toString());
+        setSelectedAddressFrom(model->data(model->index(row, model->ToAddress, QModelIndex()), MessageModel::ToAddressRole).toString());
     else
-        setSelectedAddressFrom(model->data(model->index(row, model->FromAddress, QModelIndex()), Qt::DisplayRole).toString());
+        setSelectedAddressFrom(model->data(model->index(row, model->FromAddress, QModelIndex()), MessageModel::FromAddressRole).toString());
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
         if (entry)
@@ -258,7 +258,7 @@ void SendMessagesDialog::on_sendButton_clicked()
         return;
     }
     MessageModel::StatusCode sendstatus;
-    const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 1;
+    const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 31;
     if (mode == SendMessagesDialog::Anonymous)
         sendstatus = model->sendMessages(recipients, true, retentionDays);
     else

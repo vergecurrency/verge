@@ -170,7 +170,7 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
 
     retentionDaysSpinBox = new QSpinBox(this);
     retentionDaysSpinBox->setRange(1, 31);
-    retentionDaysSpinBox->setValue(1);
+    retentionDaysSpinBox->setValue(31);
     retentionDaysSpinBox->setSuffix(tr(" days"));
     retentionDaysSpinBox->setEnabled(true);
     retentionDaysSpinBox->setToolTip(tr("Secure message retention."));
@@ -269,7 +269,7 @@ void MessagePage::on_sendButton_clicked()
     recipients.append(recipient);
 
     const QString fromAddress = replyFromAddress.isEmpty() ? QStringLiteral("anon") : replyFromAddress;
-    const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 1;
+    const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 31;
     const MessageModel::StatusCode status = fromAddress == QLatin1String("anon")
         ? model->sendMessages(recipients, true, retentionDays)
         : model->sendMessages(recipients, fromAddress, true, retentionDays);
@@ -352,13 +352,13 @@ void MessagePage::refreshStorageUsage()
         .arg(FormatStorageUsage(usage),
              FormatStorageUsage(smsg::SMSG_LOCAL_STORAGE_CAP_BYTES)));
 }
- void MessagePage::on_copyFromAddressButton_clicked()
+void MessagePage::on_copyFromAddressButton_clicked()
 {
-    GUIUtil::copyEntryData(ui->tableView, MessageModel::FromAddress, Qt::DisplayRole);
+    GUIUtil::copyEntryData(ui->tableView, MessageModel::FromAddress, MessageModel::FromAddressRole);
 }
  void MessagePage::on_copyToAddressButton_clicked()
 {
-    GUIUtil::copyEntryData(ui->tableView, MessageModel::ToAddress, Qt::DisplayRole);
+    GUIUtil::copyEntryData(ui->tableView, MessageModel::ToAddress, MessageModel::ToAddressRole);
 }
  void MessagePage::on_deleteButton_clicked()
 {
@@ -434,14 +434,14 @@ void MessagePage::refreshStorageUsage()
             ui->contactLabel->setText(table->model()->data(index).toString());
          for (const QModelIndex& index : addressFromColumn)
             if(type == MessageTableEntry::Sent)
-                replyFromAddress = table->model()->data(index).toString();
+                replyFromAddress = table->model()->data(index, MessageModel::FromAddressRole).toString();
             else
-                replyToAddress = table->model()->data(index).toString();
+                replyToAddress = table->model()->data(index, MessageModel::FromAddressRole).toString();
          for (const QModelIndex& index : addressToColumn)
             if(type == MessageTableEntry::Sent)
-                replyToAddress = table->model()->data(index).toString();
+                replyToAddress = table->model()->data(index, MessageModel::ToAddressRole).toString();
             else
-                replyFromAddress = table->model()->data(index).toString();
+                replyFromAddress = table->model()->data(index, MessageModel::ToAddressRole).toString();
          QString filter = (type == MessageTableEntry::Sent ? replyToAddress + replyFromAddress : replyToAddress + replyFromAddress);
         LogPrintf("GUI: MessagePage::selectionChanged open thread type=%d from=%s to=%s filter=%s\n",
             type,

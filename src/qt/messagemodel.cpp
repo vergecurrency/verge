@@ -122,6 +122,32 @@ static bool IsLaterConversationEntry(const MessageTableEntry& candidate, const M
     return candidate.chKey > current.chKey;
 }
 
+static QString LabelOrChatkeyForAddress(WalletModel* walletModel, const QString& address)
+{
+    if (walletModel && walletModel->getAddressTableModel()) {
+        const QString label = walletModel->getAddressTableModel()->labelForAddress(address).trimmed();
+        if (!label.isEmpty()) {
+            return label;
+        }
+    }
+
+    QString resolvedAddress = address;
+    QString pubkey;
+    CBitcoinAddress addressParsed(address.toStdString());
+    if (addressParsed.IsValid()) {
+        CKeyID destinationAddress;
+        CPubKey destinationKey;
+        addressParsed.GetKeyID(destinationAddress);
+        if (smsgModule.GetStoredKey(destinationAddress, destinationKey) == 0
+            || smsgModule.GetLocalKey(destinationAddress, destinationKey) == 0) {
+            resolvedAddress = QString::fromStdString(CBitcoinAddress(destinationAddress).ToString());
+            pubkey = QString::fromStdString(EncodeBase58(destinationKey.Raw()));
+        }
+    }
+
+    return pubkey.isEmpty() ? resolvedAddress : resolvedAddress + QStringLiteral(" ") + pubkey;
+}
+
  // Private implementation
 class MessageTablePriv
 {
@@ -345,7 +371,7 @@ public:
 MessageModel::MessageModel(WalletModel *walletModel, QObject *parent) :
     QAbstractTableModel(parent), walletModel(walletModel), optionsModel(0), priv(0)
 {
-    columns << tr("Type") << tr("Status") << tr("Sent Date Time") << tr("Received Date Time") << tr("Label") << tr("To Address") << tr("From Address") << tr("Message");
+    columns << tr("Type") << tr("Status") << tr("Sent Date Time") << tr("Received Date Time") << tr("Label") << tr("To") << tr("From") << tr("Message");
     
     proxyModel = NULL;
     
@@ -509,8 +535,8 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
         {
             case Status:           return rec->status;
             case Label:	           return (rec->label.isEmpty() ? tr("(no label)") : rec->label);
-            case ToAddress:	       return rec->to_address;
-            case FromAddress:      return rec->from_address;
+            case ToAddress:	       return LabelOrChatkeyForAddress(walletModel, rec->to_address);
+            case FromAddress:      return LabelOrChatkeyForAddress(walletModel, rec->from_address);
             case SentDateTime:     return rec->sent_datetime;
             case ReceivedDateTime: return rec->received_datetime;
             case Message:          return rec->message;

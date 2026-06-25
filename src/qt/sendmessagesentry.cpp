@@ -157,7 +157,8 @@ void SendMessagesEntry::loadRow(int row)
 
     const QModelIndex typeIndex = model->index(row, MessageModel::Type, QModelIndex());
     const bool received = model->data(typeIndex, Qt::DisplayRole).toString() == MessageModel::Received;
-    const QString sendTo = model->data(model->index(row, received ? MessageModel::FromAddress : MessageModel::ToAddress, QModelIndex()), Qt::DisplayRole).toString();
+    const QModelIndex addressIndex = model->index(row, received ? MessageModel::FromAddress : MessageModel::ToAddress, QModelIndex());
+    const QString sendTo = model->data(addressIndex, received ? MessageModel::FromAddressRole : MessageModel::ToAddressRole).toString();
     const QString label = model->data(model->index(row, MessageModel::Label, QModelIndex()), Qt::DisplayRole).toString();
 
     ui->sendTo->setText(sendTo);

@@ -152,8 +152,8 @@ public:
      void resetFilter();
      bool getAddressOrPubkey( QString &Address,  QString &Pubkey) const;
      // Send messages to a list of recipients
-    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, bool paidMessage = true, int retentionDays = 1);
-    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom, bool paidMessage = true, int retentionDays = 1);
+    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, bool paidMessage = true, int retentionDays = 31);
+    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom, bool paidMessage = true, int retentionDays = 31);
     
     QSortFilterProxyModel *proxyModel;
     
