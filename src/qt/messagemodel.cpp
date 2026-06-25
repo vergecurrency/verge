@@ -145,7 +145,7 @@ static QString LabelOrChatkeyForAddress(WalletModel* walletModel, const QString&
         }
     }
 
-    return pubkey.isEmpty() ? resolvedAddress : resolvedAddress + QStringLiteral(" ") + pubkey;
+    return pubkey.isEmpty() ? resolvedAddress : resolvedAddress + QStringLiteral("-") + pubkey;
 }
 
  // Private implementation

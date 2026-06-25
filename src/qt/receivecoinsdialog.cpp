@@ -101,7 +101,7 @@ QString FormatChatkeyURI(const QString& address, const QString& chatkey, const Q
 
 QString FormatShareChatkey(const QString& address, const QString& chatkey)
 {
-    return QStringLiteral("%1 %2").arg(address, chatkey);
+    return QStringLiteral("%1-%2").arg(address, chatkey);
 }
 
 QToolButton* CreateCopyButton(const PlatformStyle* platformStyle, const QString& text, const QString& clipboardText, QWidget* parent)

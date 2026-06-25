@@ -60,7 +60,7 @@ QString GetLocalChatkey(const QString& address)
 
 QString FormatShareChatkey(const QString& address, const QString& chatkey)
 {
-    return QStringLiteral("%1 %2").arg(address, chatkey);
+    return QStringLiteral("%1-%2").arg(address, chatkey);
 }
 
 QString FormatChatkeyURI(const QString& address, const QString& chatkey, const QString& label)

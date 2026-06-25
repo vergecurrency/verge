@@ -16,7 +16,6 @@
 #include <QClipboard>
 #include <QLabel>
 #include <QPlainTextEdit>
-#include <QRegularExpression>
 #include <QSignalBlocker>
 
 #include <vector>
@@ -65,8 +64,8 @@ SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
 #endif
 
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
-    ui->sendTo->setPlaceholderText(tr("Recipient address or shared chatkey"));
-    ui->sendTo->setToolTip(tr("Paste a recipient address, or paste a shared chatkey line to fill the address and chatkey."));
+    ui->sendTo->setPlaceholderText(tr("Recipient address or address-chatkey"));
+    ui->sendTo->setToolTip(tr("Paste a recipient address, or paste a shared address-chatkey line to fill the address and chatkey."));
     ui->publicKey->setPlaceholderText(tr("Auto-fills if known, otherwise paste recipient chatkey"));
     ui->publicKey->setToolTip(tr("Recipient chatkey. If this address is already known locally, the field fills automatically. Shared chatkey lines are also accepted."));
     ui->messageText->setPlaceholderText(tr("Type an encrypted message"));
@@ -260,32 +259,17 @@ bool SendMessagesEntry::splitCombinedChatkey(const QString& text, QString& addre
         return false;
     }
 
-    QString separated = value;
-    if (!separated.startsWith(QStringLiteral("verge:"), Qt::CaseInsensitive)) {
-        separated.replace(QLatin1Char(':'), QLatin1Char(' '));
-    }
-    const QStringList parts = separated.split(QRegularExpression(QStringLiteral("[\\s,;|]+")), Qt::SkipEmptyParts);
-    if (parts.size() >= 2) {
-        for (int i = 0; i + 1 < parts.size(); ++i) {
-            const QString candidateAddress = parts.at(i).trimmed();
-            const QString candidatePubkey = parts.at(i + 1).trimmed();
-            if (model->getWalletModel()->validateAddress(candidateAddress) && LooksLikeCompressedChatkey(candidatePubkey)) {
-                addressOut = candidateAddress;
-                pubkeyOut = candidatePubkey;
-                return true;
-            }
-        }
+    const int dashIndex = value.indexOf(QLatin1Char('-'));
+    if (dashIndex <= 0 || dashIndex != value.lastIndexOf(QLatin1Char('-'))) {
+        return false;
     }
 
-    for (int i = 1; i < value.size(); ++i) {
-        const QString candidateAddress = value.left(i).trimmed();
-        const QString candidatePubkey = value.mid(i).trimmed();
-        if (model->getWalletModel()->validateAddress(candidateAddress) &&
-            LooksLikeCompressedChatkey(candidatePubkey)) {
-            addressOut = candidateAddress;
-            pubkeyOut = candidatePubkey;
-            return true;
-        }
+    const QString candidateAddress = value.left(dashIndex).trimmed();
+    const QString candidatePubkey = value.mid(dashIndex + 1).trimmed();
+    if (model->getWalletModel()->validateAddress(candidateAddress) && LooksLikeCompressedChatkey(candidatePubkey)) {
+        addressOut = candidateAddress;
+        pubkeyOut = candidatePubkey;
+        return true;
     }
 
     return false;

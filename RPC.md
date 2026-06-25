@@ -7,7 +7,7 @@ Use `verge-cli help <command>` for the exact JSON result schema exposed by the r
 
 ## Notes
 
-- Secure messaging is paid-only. `smsgsend` defaults to 31 days retention and accepts either a recipient address or a shared chatkey line in the form `address publickey`.
+- Secure messaging is paid-only. `smsgsend` defaults to 31 days retention and accepts either a recipient address or a shared chatkey line in the form `address-publickey`.
 - Verge does not use SegWit/witness data. Some raw transaction and wallet RPC arguments retain old Bitcoin-compatible names such as `iswitness` or `address_type`; use non-witness transaction data.
 - Hidden and deprecated commands are listed because they are registered RPC commands, but they are mainly for compatibility, testing, or advanced operator workflows.
 
@@ -190,7 +190,7 @@ Use `verge-cli help <command>` for the exact JSON result schema exposed by the r
 | `smsgaddlocaladdress` | `smsgaddlocaladdress "address"` | `verge-cli smsgaddlocaladdress <address>` |
 | `smsgimportprivkey` | `smsgimportprivkey "privkey" ( "label" )` | `verge-cli smsgimportprivkey <privkey> "chat"` |
 | `smsggetpubkey` | `smsggetpubkey "address"` | `verge-cli smsggetpubkey <address>` |
-| `smsgsend` | `smsgsend "address_from" "address_to|shared_chatkey" "message" ( paid_msg days_retention testfee fromfile decodehex )` | `verge-cli smsgsend <fromaddress> "<toaddress> <publickey>" "hello" true 31` |
+| `smsgsend` | `smsgsend "address_from" "address_to|shared_chatkey" "message" ( paid_msg days_retention testfee fromfile decodehex )` | `verge-cli smsgsend <fromaddress> "<toaddress>-<publickey>" "hello" true 31` |
 | `smsginbox` | `smsginbox ( "all|unread|clear" "filter" )` | `verge-cli smsginbox unread` |
 | `smsgoutbox` | `smsgoutbox ( "all|clear" "filter" )` | `verge-cli smsgoutbox all` |
 | `smsgbuckets` | `smsgbuckets ( stats\|dump )` | `verge-cli smsgbuckets stats` |
@@ -222,7 +222,7 @@ These commands are registered for compatibility, but should not be used for new 
 | Command | Usage | Example |
 | --- | --- | --- |
 | `sendfrom` | `sendfrom "fromaccount" "toaddress" amount ( minconf "comment" "comment_to" )` | `verge-cli sendfrom "" <address> 1.0` |
-| `smsgsendanon` | `smsgsendanon "address_to|shared_chatkey" "message" ( days_retention )` | `verge-cli smsgsendanon "<toaddress> <publickey>" "hello" 31` |
+| `smsgsendanon` | `smsgsendanon "address_to|shared_chatkey" "message" ( days_retention )` | `verge-cli smsgsendanon "<toaddress>-<publickey>" "hello" 31` |
 | `addwitnessaddress` | `addwitnessaddress "address" ( p2sh )` | `verge-cli addwitnessaddress <address>` |
 | `getaccountaddress` | `getaccountaddress "account"` | `verge-cli getaccountaddress ""` |
 | `getaccount` | `getaccount "address"` | `verge-cli getaccount <address>` |

@@ -244,7 +244,7 @@ void SendMessagesDialog::on_sendButton_clicked()
     }
     if (!valid || recipients.isEmpty()) {
         QMessageBox::warning(this, tr("Send Secure Message"),
-            tr("A recipient address, an encrypted message, and a known recipient chatkey are required. If the chatkey is already known, it will auto-fill when you enter the address."),
+            tr("A recipient address, an encrypted message, and a known recipient chatkey are required. Shared chatkeys must use the address-chatkey format."),
             QMessageBox::Ok, QMessageBox::Ok);
         return;
     }

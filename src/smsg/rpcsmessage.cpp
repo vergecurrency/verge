@@ -163,36 +163,18 @@ static bool SplitSharedChatkey(const std::string& valueIn, std::string& addressO
         return false;
     }
 
-    std::string separated = value;
-    std::replace_if(separated.begin(), separated.end(), [](char c) {
-        return std::isspace(static_cast<unsigned char>(c)) || c == ',' || c == ';' || c == '|';
-    }, ' ');
-
-    std::istringstream stream(separated);
-    std::vector<std::string> parts;
-    std::string part;
-    while (stream >> part) {
-        parts.push_back(part);
+    const size_t dash = value.find('-');
+    if (dash == std::string::npos || dash == 0 || dash != value.rfind('-')) {
+        return false;
     }
 
-    for (size_t i = 0; i + 1 < parts.size(); ++i) {
-        CBitcoinAddress address(parts[i]);
-        if (address.IsValid() && address.GetKeyID(keyID) && IsSmsgPubKeyString(parts[i + 1])) {
-            addressOut = address.ToString();
-            publicKeyOut = parts[i + 1];
-            return true;
-        }
-    }
-
-    for (size_t i = 1; i < value.size(); ++i) {
-        const std::string candidateAddress = value.substr(0, i);
-        const std::string candidatePublicKey = value.substr(i);
-        CBitcoinAddress address(candidateAddress);
-        if (address.IsValid() && address.GetKeyID(keyID) && IsSmsgPubKeyString(candidatePublicKey)) {
-            addressOut = address.ToString();
-            publicKeyOut = candidatePublicKey;
-            return true;
-        }
+    const std::string candidateAddress = value.substr(0, dash);
+    const std::string candidatePublicKey = value.substr(dash + 1);
+    CBitcoinAddress address(candidateAddress);
+    if (address.IsValid() && address.GetKeyID(keyID) && IsSmsgPubKeyString(candidatePublicKey)) {
+        addressOut = address.ToString();
+        publicKeyOut = candidatePublicKey;
+        return true;
     }
 
     return false;
@@ -450,7 +432,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
                 const std::string address = CBitcoinAddress(keyID).ToString();
                 objM.pushKV("address", address);
                 objM.pushKV("public_key", sPublicKey);
-                objM.pushKV("chatkey", address + " " + sPublicKey);
+                objM.pushKV("chatkey", address + "-" + sPublicKey);
                 objM.pushKV("receive", (it->fReceiveEnabled ? "1" : "0"));
                 objM.pushKV("anon", (it->fReceiveAnon ? "1" : "0"));
                 objM.pushKV("label", sLabel);
@@ -472,7 +454,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             const std::string publicKey = EncodeBase58(pk.begin(), pk.end());
             objM.pushKV("address", address);
             objM.pushKV("public_key", publicKey);
-            objM.pushKV("chatkey", address + " " + publicKey);
+            objM.pushKV("chatkey", address + "-" + publicKey);
             objM.pushKV("receive", (key.nFlags & smsg::SMK_RECEIVE_ON ? "1" : "0"));
             objM.pushKV("anon", (key.nFlags & smsg::SMK_RECEIVE_ANON ? "1" : "0"));
             objM.pushKV("label", key.sLabel);
@@ -912,7 +894,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
             "{\n"
             "  \"address\": \"...\"             (string) address of public key\n"
             "  \"publickey\": \"...\"           (string) public key of address\n"
-            "  \"chatkey\": \"...\"             (string) shareable address + public key line\n"
+            "  \"chatkey\": \"...\"             (string) shareable address-public key line\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("smsggetpubkey", "\"myaddress\"") +
@@ -931,7 +913,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
         case smsg::SMSG_NO_ERROR:
             result.pushKV("address", address);
             result.pushKV("publickey", publicKey);
-            result.pushKV("chatkey", address + " " + publicKey);
+            result.pushKV("chatkey", address + "-" + publicKey);
             return result; // success, don't check db
         case smsg::SMSG_WALLET_NO_PUBKEY:
             break; // check db
@@ -961,7 +943,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
 
                 result.pushKV("address", address);
                 result.pushKV("publickey", publicKey);
-                result.pushKV("chatkey", address + " " + publicKey);
+                result.pushKV("chatkey", address + "-" + publicKey);
             };
             break;
         case smsg::SMSG_PUBKEY_NOT_EXISTS:
@@ -981,7 +963,7 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             "Send a paid secure message from \"address_from\" to \"address_to\".\n"
             "\nArguments:\n"
             "1. \"address_from\"       (string, required) The address of the sender.\n"
-            "2. \"address_to\"         (string, required) The recipient address or shared \"address publickey\" chatkey line.\n"
+            "2. \"address_to\"         (string, required) The recipient address or shared \"address-publickey\" chatkey line.\n"
             "3. \"message\"            (string, required) The message.\n"
             "4. paid_msg             (bool, optional, default=true) Must be true; unpaid SMSG is disabled.\n"
             "5. days_retention       (int, optional, default=31) Days the message will be retained by network.\n"
@@ -1080,7 +1062,7 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
             "smsgsendanon \"address_to|shared_chatkey\" \"message\" ( days_retention )\n"
             "DEPRECATED. Send a paid anonymous encrypted message to addrTo.\n"
             "\nArguments:\n"
-            "1. \"address_to\"         (string, required) The recipient address or shared \"address publickey\" chatkey line.\n"
+            "1. \"address_to\"         (string, required) The recipient address or shared \"address-publickey\" chatkey line.\n"
             "2. \"message\"            (string, required) The message.\n"
             "3. days_retention       (int, optional, default=31) Days the message will be retained by network.\n");
 
