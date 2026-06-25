@@ -455,12 +455,12 @@ size_t MaxSmsgVectorPayloadBytes(const std::string& command)
     return std::numeric_limits<size_t>::max();
 }
 
-void DeriveSmsgKeys(const uint256& ecdhSecret,
-                    const uint8_t* ephemeralPubkey,
-                    const CKeyID& destination,
-                    const uint8_t* iv,
-                    std::vector<uint8_t>& key_e,
-                    std::vector<uint8_t>& key_m)
+void DeriveSmsgKeysInternal(const uint256& ecdhSecret,
+                            const uint8_t* ephemeralPubkey,
+                            const CKeyID& destination,
+                            const uint8_t* iv,
+                            std::vector<uint8_t>& key_e,
+                            std::vector<uint8_t>& key_m)
 {
     uint8_t salt[CSHA256::OUTPUT_SIZE];
     CSHA256()
@@ -568,6 +568,16 @@ boost::thread_group threadGroupSmsg;
 boost::signals2::signal<void (SecMsgStored &inboxHdr)> NotifySecMsgInboxChanged;
 boost::signals2::signal<void (SecMsgStored &outboxHdr)> NotifySecMsgOutboxChanged;
 boost::signals2::signal<void ()> NotifySecMsgWalletUnlocked;
+
+void DeriveSmsgKeys(const uint256& ecdhSecret,
+                    const uint8_t* ephemeralPubkey,
+                    const CKeyID& destination,
+                    const uint8_t* iv,
+                    std::vector<uint8_t>& key_e,
+                    std::vector<uint8_t>& key_m)
+{
+    DeriveSmsgKeysInternal(ecdhSecret, ephemeralPubkey, destination, iv, key_e, key_m);
+}
 
 template <typename... Args>
 static int errorN(int code, const char* fmt, const Args&... args)

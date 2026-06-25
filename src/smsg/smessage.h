@@ -181,6 +181,13 @@ const unsigned int SMSG_MAX_MSG_WORST_PAID_ENCRYPTED = SMSG_MAX_MSG_WORST_PAID +
 
 static const int MIN_SMSG_PROTO_VERSION = 90007;
 
+void DeriveSmsgKeys(const uint256& ecdhSecret,
+                    const uint8_t* ephemeralPubkey,
+                    const CKeyID& destination,
+                    const uint8_t* iv,
+                    std::vector<uint8_t>& key_e,
+                    std::vector<uint8_t>& key_m);
+
 int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut = nullptr, uint32_t* lenDataOut = nullptr, uint32_t* lenPlainOut = nullptr, uint32_t maxPlainBytes = 0);
 
 const CAmount SMSG_PAID_MSG_FEE = 1;                       // 0.000001 XVG marker
