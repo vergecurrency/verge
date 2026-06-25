@@ -9,6 +9,7 @@
 #include <qt/addresstablemodel.h>
 #include <qt/messagemodel.h>
 #include <qt/walletmodel.h>
+#include <base58.h>
 #include <smsg/smessage.h>
 
 #include <QApplication>
@@ -18,19 +19,33 @@
 #include <QRegularExpression>
 #include <QSignalBlocker>
 
+#include <vector>
+
 namespace {
+static constexpr int MAX_SHARED_CHATKEY_LEN = 256;
+
 bool LooksLikeCompressedChatkey(const QString& value)
 {
     const QString key = value.trimmed();
-    if (key.size() != 66 || (!key.startsWith(QStringLiteral("02")) && !key.startsWith(QStringLiteral("03")))) {
-        return false;
-    }
-    for (const QChar ch : key) {
-        if (!ch.isDigit() && (ch.toLower() < QLatin1Char('a') || ch.toLower() > QLatin1Char('f'))) {
-            return false;
+    if (key.size() == 66 && (key.startsWith(QStringLiteral("02")) || key.startsWith(QStringLiteral("03")))) {
+        bool hex = true;
+        for (const QChar ch : key) {
+            if (!ch.isDigit() && (ch.toLower() < QLatin1Char('a') || ch.toLower() > QLatin1Char('f'))) {
+                hex = false;
+                break;
+            }
+        }
+        if (hex) {
+            return true;
         }
     }
-    return true;
+
+    std::vector<uint8_t> decoded;
+    if (!DecodeBase58(key.toStdString(), decoded)) {
+        return false;
+    }
+    const CPubKey pubkey(decoded);
+    return pubkey.IsValid() && pubkey.IsCompressed();
 }
 } // namespace
 
@@ -241,6 +256,9 @@ bool SendMessagesEntry::splitCombinedChatkey(const QString& text, QString& addre
     if (value.isEmpty()) {
         return false;
     }
+    if (value.size() > MAX_SHARED_CHATKEY_LEN) {
+        return false;
+    }
 
     QString separated = value;
     if (!separated.startsWith(QStringLiteral("verge:"), Qt::CaseInsensitive)) {
@@ -259,12 +277,10 @@ bool SendMessagesEntry::splitCombinedChatkey(const QString& text, QString& addre
         }
     }
 
-    for (int i = 1; i + 66 <= value.size(); ++i) {
+    for (int i = 1; i < value.size(); ++i) {
         const QString candidateAddress = value.left(i).trimmed();
-        const QString candidatePubkey = value.mid(i, 66).trimmed();
-        const QString remainder = value.mid(i + 66).trimmed();
-        if (remainder.isEmpty() &&
-            model->getWalletModel()->validateAddress(candidateAddress) &&
+        const QString candidatePubkey = value.mid(i).trimmed();
+        if (model->getWalletModel()->validateAddress(candidateAddress) &&
             LooksLikeCompressedChatkey(candidatePubkey)) {
             addressOut = candidateAddress;
             pubkeyOut = candidatePubkey;

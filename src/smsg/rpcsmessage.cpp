@@ -11,6 +11,7 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include <smsg/smessage.h>
 #include <smsg/db.h>
@@ -27,6 +28,8 @@
 #endif
 
 #include <univalue.h>
+
+#include <boost/algorithm/string.hpp>
 
 static bool GetBool(const UniValue& value)
 {
@@ -118,6 +121,95 @@ static size_t CountSmsgEntries(leveldb::DB* pdb, const std::string& prefix)
         ++count;
     }
     return count;
+}
+
+static constexpr int SMSG_DEFAULT_RETENTION_DAYS = 31;
+static constexpr size_t SMSG_MAX_SHARED_CHATKEY_LEN = 256;
+
+static int SmsgMaxRetentionDays()
+{
+    return smsg::SMSG_MAX_PAID_TTL / smsg::SMSG_SECONDS_IN_DAY;
+}
+
+static bool IsSmsgPubKeyString(const std::string& publicKey)
+{
+    std::vector<uint8_t> keyData;
+    if (IsHex(publicKey)) {
+        keyData = ParseHex(publicKey);
+    } else if (!DecodeBase58(publicKey, keyData)) {
+        return false;
+    }
+
+    const CPubKey pubKey(keyData);
+    return pubKey.IsValid() && pubKey.IsCompressed();
+}
+
+static bool SplitSharedChatkey(const std::string& valueIn, std::string& addressOut, std::string& publicKeyOut)
+{
+    std::string value = valueIn;
+    boost::trim(value);
+    if (value.empty()) {
+        return false;
+    }
+
+    CBitcoinAddress plainAddress(value);
+    CKeyID keyID;
+    if (plainAddress.IsValid() && plainAddress.GetKeyID(keyID)) {
+        addressOut = plainAddress.ToString();
+        publicKeyOut.clear();
+        return true;
+    }
+    if (value.size() > SMSG_MAX_SHARED_CHATKEY_LEN) {
+        return false;
+    }
+
+    std::string separated = value;
+    std::replace_if(separated.begin(), separated.end(), [](char c) {
+        return std::isspace(static_cast<unsigned char>(c)) || c == ',' || c == ';' || c == '|';
+    }, ' ');
+
+    std::istringstream stream(separated);
+    std::vector<std::string> parts;
+    std::string part;
+    while (stream >> part) {
+        parts.push_back(part);
+    }
+
+    for (size_t i = 0; i + 1 < parts.size(); ++i) {
+        CBitcoinAddress address(parts[i]);
+        if (address.IsValid() && address.GetKeyID(keyID) && IsSmsgPubKeyString(parts[i + 1])) {
+            addressOut = address.ToString();
+            publicKeyOut = parts[i + 1];
+            return true;
+        }
+    }
+
+    for (size_t i = 1; i < value.size(); ++i) {
+        const std::string candidateAddress = value.substr(0, i);
+        const std::string candidatePublicKey = value.substr(i);
+        CBitcoinAddress address(candidateAddress);
+        if (address.IsValid() && address.GetKeyID(keyID) && IsSmsgPubKeyString(candidatePublicKey)) {
+            addressOut = address.ToString();
+            publicKeyOut = candidatePublicKey;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static void StoreSharedChatkeyIfPresent(const std::string& address, const std::string& publicKey)
+{
+    if (publicKey.empty()) {
+        return;
+    }
+
+    std::string mutableAddress = address;
+    std::string mutablePublicKey = publicKey;
+    const int rv = smsgModule.AddAddress(mutableAddress, mutablePublicKey);
+    if (rv != smsg::SMSG_NO_ERROR && rv != smsg::SMSG_PUBKEY_EXISTS) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid shared chatkey: " + smsg::GetString(rv));
+    }
 }
 
 static UniValue smsgenable(const JSONRPCRequest &request)
@@ -355,8 +447,10 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
                     sInfo = std::string("Receive ") + (it->fReceiveEnabled ? "on,  " : "off, ");
                 sInfo += std::string("Anon ") + (it->fReceiveAnon ? "on" : "off");
                 //result.pushKV("key", it->sAddress + " - " + sPublicKey + " " + sInfo + " - " + sLabel);
-                objM.pushKV("address", CBitcoinAddress(keyID).ToString());
+                const std::string address = CBitcoinAddress(keyID).ToString();
+                objM.pushKV("address", address);
                 objM.pushKV("public_key", sPublicKey);
+                objM.pushKV("chatkey", address + " " + sPublicKey);
                 objM.pushKV("receive", (it->fReceiveEnabled ? "1" : "0"));
                 objM.pushKV("anon", (it->fReceiveAnon ? "1" : "0"));
                 objM.pushKV("label", sLabel);
@@ -374,8 +468,11 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             auto &key = p.second;
             UniValue objM(UniValue::VOBJ);
             CPubKey pk = key.key.GetPubKey();
-            objM.pushKV("address", CBitcoinAddress(p.first).ToString());
-            objM.pushKV("public_key", EncodeBase58(pk.begin(), pk.end()));
+            const std::string address = CBitcoinAddress(p.first).ToString();
+            const std::string publicKey = EncodeBase58(pk.begin(), pk.end());
+            objM.pushKV("address", address);
+            objM.pushKV("public_key", publicKey);
+            objM.pushKV("chatkey", address + " " + publicKey);
             objM.pushKV("receive", (key.nFlags & smsg::SMK_RECEIVE_ON ? "1" : "0"));
             objM.pushKV("anon", (key.nFlags & smsg::SMK_RECEIVE_ANON ? "1" : "0"));
             objM.pushKV("label", key.sLabel);
@@ -586,6 +683,15 @@ static UniValue smsginfo(const JSONRPCRequest &request)
     result.pushKV("storage_used", part::BytesReadable(storageUsed));
     result.pushKV("storage_cap_bytes", static_cast<uint64_t>(smsg::SMSG_LOCAL_STORAGE_CAP_BYTES));
     result.pushKV("storage_cap", part::BytesReadable(smsg::SMSG_LOCAL_STORAGE_CAP_BYTES));
+
+    UniValue policy(UniValue::VOBJ);
+    policy.pushKV("paid_required", true);
+    policy.pushKV("default_retention_days", SMSG_DEFAULT_RETENTION_DAYS);
+    policy.pushKV("max_retention_days", SmsgMaxRetentionDays());
+    policy.pushKV("max_message_bytes", static_cast<uint64_t>(smsg::SMSG_MAX_MSG_BYTES_PAID));
+    policy.pushKV("marker_fee", ValueFromAmount(smsg::SMSG_PAID_MSG_FEE));
+    policy.pushKV("marker_fee_atoms", static_cast<int64_t>(smsg::SMSG_PAID_MSG_FEE));
+    result.pushKV("policy", policy);
 
     UniValue options(UniValue::VOBJ);
     options.pushKV("newAddressRecv", smsgModule.options.fNewAddressRecv);
@@ -806,6 +912,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
             "{\n"
             "  \"address\": \"...\"             (string) address of public key\n"
             "  \"publickey\": \"...\"           (string) public key of address\n"
+            "  \"chatkey\": \"...\"             (string) shareable address + public key line\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("smsggetpubkey", "\"myaddress\"") +
@@ -824,6 +931,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
         case smsg::SMSG_NO_ERROR:
             result.pushKV("address", address);
             result.pushKV("publickey", publicKey);
+            result.pushKV("chatkey", address + " " + publicKey);
             return result; // success, don't check db
         case smsg::SMSG_WALLET_NO_PUBKEY:
             break; // check db
@@ -853,6 +961,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
 
                 result.pushKV("address", address);
                 result.pushKV("publickey", publicKey);
+                result.pushKV("chatkey", address + " " + publicKey);
             };
             break;
         case smsg::SMSG_PUBKEY_NOT_EXISTS:
@@ -868,14 +977,14 @@ static UniValue smsgsend(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 8)
         throw std::runtime_error(
-            "smsgsend \"address_from\" \"address_to\" \"message\" ( paid_msg days_retention testfee )\n"
+            "smsgsend \"address_from\" \"address_to|shared_chatkey\" \"message\" ( paid_msg days_retention testfee )\n"
             "Send a paid secure message from \"address_from\" to \"address_to\".\n"
             "\nArguments:\n"
             "1. \"address_from\"       (string, required) The address of the sender.\n"
-            "2. \"address_to\"         (string, required) The address of the recipient.\n"
+            "2. \"address_to\"         (string, required) The recipient address or shared \"address publickey\" chatkey line.\n"
             "3. \"message\"            (string, required) The message.\n"
             "4. paid_msg             (bool, optional, default=true) Must be true; unpaid SMSG is disabled.\n"
-            "5. days_retention       (int, optional, default=1) Days the message will be retained by network.\n"
+            "5. days_retention       (int, optional, default=31) Days the message will be retained by network.\n"
             "6. testfee              (bool, optional, default=false) Don't send the message, only estimate the fee.\n"
             "7. fromfile             (bool, optional, default=false) Send file as message, path specified in \"message\".\n"
             "8. decodehex            (bool, optional, default=false) Decode \"message\" from hex before sending.\n"
@@ -905,7 +1014,7 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     if (!request.params[3].isNull() && !request.params[3].get_bool()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Unpaid SMSG is disabled; paid SMSG is required.");
     }
-    int nRetention = request.params[4].isNull() ? 1 : request.params[4].get_int();
+    int nRetention = request.params[4].isNull() ? SMSG_DEFAULT_RETENTION_DAYS : request.params[4].get_int();
     bool fTestFee = request.params[5].isNull() ? false : request.params[5].get_bool();
     bool fFromFile = request.params[6].isNull() ? false : request.params[6].get_bool();
     bool fDecodeHex = request.params[7].isNull() ? false : request.params[7].get_bool();
@@ -927,6 +1036,12 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     CBitcoinAddress coinAddress(addrFrom);
     if (!coinAddress.IsValid() || !coinAddress.GetKeyID(kiFrom))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid from address.");
+    std::string publicKeyTo;
+    if (!SplitSharedChatkey(addrTo, addrTo, publicKeyTo)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid to address or shared chatkey.");
+    }
+    StoreSharedChatkeyIfPresent(addrTo, publicKeyTo);
+
     coinAddress.SetString(addrTo);
     if (!coinAddress.IsValid() || !coinAddress.GetKeyID(kiTo))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid to address.");
@@ -960,17 +1075,30 @@ static UniValue smsgsend(const JSONRPCRequest &request)
 
 static UniValue smsgsendanon(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 2)
+    if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
         throw std::runtime_error(
-            "smsgsendanon \"address_to\" \"message\"\n"
-            "DEPRECATED. Send a paid anonymous encrypted message to addrTo.");
+            "smsgsendanon \"address_to|shared_chatkey\" \"message\" ( days_retention )\n"
+            "DEPRECATED. Send a paid anonymous encrypted message to addrTo.\n"
+            "\nArguments:\n"
+            "1. \"address_to\"         (string, required) The recipient address or shared \"address publickey\" chatkey line.\n"
+            "2. \"message\"            (string, required) The message.\n"
+            "3. days_retention       (int, optional, default=31) Days the message will be retained by network.\n");
 
     EnsureSMSGIsEnabled();
 
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR, UniValue::VNUM}, true);
+
     std::string addrTo    = request.params[0].get_str();
     std::string msg       = request.params[1].get_str();
+    int nRetention = request.params[2].isNull() ? SMSG_DEFAULT_RETENTION_DAYS : request.params[2].get_int();
 
     CKeyID kiFrom, kiTo;
+    std::string publicKeyTo;
+    if (!SplitSharedChatkey(addrTo, addrTo, publicKeyTo)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid to address or shared chatkey.");
+    }
+    StoreSharedChatkeyIfPresent(addrTo, publicKeyTo);
+
     CBitcoinAddress coinAddress(addrTo);
     if (!coinAddress.IsValid() || !coinAddress.GetKeyID(kiTo))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid to address.");
@@ -979,7 +1107,7 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
     std::string sError;
     smsg::SecureMessage smsgOut;
     CAmount nFee = 0;
-    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, true, 1, false, &nFee) != 0)
+    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, true, nRetention, false, &nFee) != 0)
     {
         result.pushKV("result", "Send failed.");
         result.pushKV("error", sError);
@@ -1903,7 +2031,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
     { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","fromfile","decodehex"} },
-    { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message"} },
+    { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message","days_retention"} },
     { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter"} },
     { "smsg",               "smsgoutbox",             &smsgoutbox,             {"mode","filter"} },
     { "smsg",               "smsgbuckets",            &smsgbuckets,            {"mode"} },

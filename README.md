@@ -82,6 +82,10 @@ P2P port | 21102 (testnet: 21104)
 pre-mine | Not Applicable
 ICO | Not Applicable
 
+## RPC Reference
+
+See [RPC.md](RPC.md) for the complete `verged`/`verge-qt` RPC command reference, including wallet, network, raw transaction, mining, and secure messaging commands.
+
 ## Blockrewards
 Block Number Range | Reward
 --- | ---
