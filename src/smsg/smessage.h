@@ -548,7 +548,7 @@ public:
 
 
     int HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash);
-    int FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee);
+    int FundMsg(SecureMessage &smsg, const CKeyID& addressTo, std::string &sError, bool fTestFee, CAmount *nFee);
 
     std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);

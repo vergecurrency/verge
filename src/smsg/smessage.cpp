@@ -5038,7 +5038,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
     if (fPaid) {
         SetPaidSmsgChecksum(smsg);
-        if (0 != FundMsg(smsg, sError, fTestFee, nFee)) {
+        if (0 != FundMsg(smsg, addressTo, sError, fTestFee, nFee)) {
             return errorN(SMSG_FUND_FAILED, "%s: SecureMsgFund failed %s.", __func__, sError);
         }
 
@@ -5210,7 +5210,7 @@ int CSMSG::HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t 
     return SMSG_NO_ERROR;
 };
 
-int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee)
+int CSMSG::FundMsg(SecureMessage &smsg, const CKeyID& addressTo, std::string &sError, bool fTestFee, CAmount *nFee)
 {
     if (nFee) {
         *nFee = SMSG_PAID_MSG_FEE;
@@ -5250,8 +5250,24 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         return errorN(SMSG_FUND_FAILED, "%s: CreateTransaction failed: %s", __func__, sError);
     }
 
+    mapValue_t mapValue;
+    const auto addressBookIt = pwallet->mapAddressBook.find(addressTo);
+    if (addressBookIt != pwallet->mapAddressBook.end() && !addressBookIt->second.name.empty()) {
+        mapValue["to"] = addressBookIt->second.name;
+    } else {
+        const std::string address = CBitcoinAddress(addressTo).ToString();
+        CPubKey pubKey;
+        if ((GetStoredKey(addressTo, pubKey) == SMSG_NO_ERROR || GetLocalKey(addressTo, pubKey) == SMSG_NO_ERROR)
+            && pubKey.IsValid()
+            && pubKey.IsCompressed()) {
+            mapValue["to"] = address + "-" + EncodeBase58(pubKey.begin(), pubKey.end());
+        } else {
+            mapValue["to"] = address;
+        }
+    }
+
     CValidationState state;
-    if (!pwallet->CommitTransaction(tx, mapValue_t(), {}, {}, reservekey, g_connman.get(), state)) {
+    if (!pwallet->CommitTransaction(tx, mapValue, {}, {}, reservekey, g_connman.get(), state)) {
         sError = FormatStateMessage(state);
         return errorN(SMSG_FUND_FAILED, "%s: CommitTransaction failed: %s", __func__, sError);
     }
