@@ -190,7 +190,7 @@ static void StoreSharedChatkeyIfPresent(const std::string& address, const std::s
     std::string mutablePublicKey = publicKey;
     const int rv = smsgModule.AddAddress(mutableAddress, mutablePublicKey);
     if (rv != smsg::SMSG_NO_ERROR && rv != smsg::SMSG_PUBKEY_EXISTS) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid shared chatkey: " + smsg::GetString(rv));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid shared chatkey: ") + smsg::GetString(rv));
     }
 }
 
