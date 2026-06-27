@@ -101,6 +101,9 @@ static bool AppInit(int argc, char* argv[])
             fprintf(stderr, "Error reading configuration file: %s\n", error.c_str());
             return false;
         }
+        // Infrastructure nodes should not relay/store secure messages unless
+        // explicitly configured to do so. The GUI sets the opposite default.
+        gArgs.SoftSetBoolArg("-smsg", false);
         // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
         try {
             SelectParams(gArgs.GetChainName());

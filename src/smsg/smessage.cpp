@@ -1473,7 +1473,7 @@ void ThreadSecureMsgPow()
 
 void AddOptions()
 {
-    gArgs.AddArg("-smsg", _("Enable secure messaging. (default: true)"), false, OptionsCategory::WALLET);
+    gArgs.AddArg("-smsg", _("Enable secure messaging. (default: true for verge-qt, false for verged)"), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgscanchain", _("Scan the block chain for public key addresses on startup. (default: false)"), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgscanincoming", _("Scan incoming blocks for public key addresses. (default: false)"), false, OptionsCategory::WALLET);
     gArgs.AddArg("-smsgnotify=<cmd>", _("Execute command when a message is received. (%s in cmd is replaced by receiving address)"), false, OptionsCategory::WALLET);
@@ -4959,7 +4959,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
     fPaid = true;
     if (nDaysRetention == 0) {
-        nDaysRetention = 1;
+        nDaysRetention = 31;
     }
 
     bool fSendAnonymous = (addressFrom.IsNull());

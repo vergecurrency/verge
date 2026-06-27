@@ -3053,6 +3053,9 @@ int main(int argc, char *argv[])
             QObject::tr("Error: Cannot parse configuration file: %1.").arg(QString::fromStdString(error)));
         return EXIT_FAILURE;
     }
+    // User wallets should participate in secure messaging by default. The
+    // daemon sets the opposite default for infrastructure deployments.
+    gArgs.SoftSetBoolArg("-smsg", true);
 
     /// 7. Determine network (and switch to network specific options)
     // - Do not call Params() before this step
