@@ -687,6 +687,4 @@ void MessageModel::unsubscribeFromCoreSignals()
     smsg::NotifySecMsgInboxChanged.disconnect(boost::bind(NotifySecMsgInbox, this, _1));
     smsg::NotifySecMsgOutboxChanged.disconnect(boost::bind(NotifySecMsgOutbox, this, _1));
     smsg::NotifySecMsgWalletUnlocked.disconnect(boost::bind(NotifySecMsgWallet, this));
-
-    disconnect(walletModel, SIGNAL(encryptionStatusChanged()), this, SLOT(setEncryptionStatus()));
 }

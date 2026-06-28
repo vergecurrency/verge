@@ -95,15 +95,19 @@ bool WalletFrame::removeWallet(const QString &name)
 
     WalletView *walletView = mapWalletViews.take(name);
     walletStack->removeWidget(walletView);
+    delete walletView;
     return true;
 }
 
 void WalletFrame::removeAllWallets()
 {
-    QMap<QString, WalletView*>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        walletStack->removeWidget(i.value());
+    QMap<QString, WalletView*> walletViews = mapWalletViews;
     mapWalletViews.clear();
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = walletViews.constBegin(); i != walletViews.constEnd(); ++i) {
+        walletStack->removeWidget(i.value());
+        delete i.value();
+    }
 }
 
 bool WalletFrame::handlePaymentRequest(const SendCoinsRecipient &recipient)
