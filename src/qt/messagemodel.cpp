@@ -382,11 +382,14 @@ MessageModel::MessageModel(WalletModel *walletModel, QObject *parent) :
 }
  MessageModel::~MessageModel()
 {
+    unsubscribeFromCoreSignals();
+
     if (proxyModel)
         delete proxyModel;
-    
+
+    proxyModel = 0;
     delete priv;
-    unsubscribeFromCoreSignals();
+    priv = 0;
 }
 bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
 {
@@ -621,25 +624,35 @@ void MessageModel::resetFilter()
 }
  void MessageModel::newMessage(const SecMsgStored &smsg)
 {
+    if (!priv)
+        return;
     priv->newMessage(smsg);
 }
- void MessageModel::newOutboxMessage(const SecMsgStored &smsgOutbox)
+void MessageModel::newOutboxMessage(const SecMsgStored &smsgOutbox)
 {
+    if (!priv)
+        return;
     priv->newOutboxMessage(smsgOutbox);
 }
 void MessageModel::walletUnlocked()
 {
+    if (!priv)
+        return;
     priv->walletUnlocked();
 }
-
 void MessageModel::reloadMessages()
 {
+    if (!priv)
+        return;
+
     beginResetModel();
     priv->refreshMessageTable();
     endResetModel();
 }
- void MessageModel::setEncryptionStatus()
+void MessageModel::setEncryptionStatus()
 {
+    if (!priv)
+        return;
     priv->setEncryptionStatus();
 }
 static void NotifySecMsgInbox(MessageModel *messageModel, SecMsgStored inboxHdr)
@@ -668,12 +681,12 @@ static void NotifySecMsgInbox(MessageModel *messageModel, SecMsgStored inboxHdr)
     
     connect(walletModel, SIGNAL(encryptionStatusChanged()), this, SLOT(setEncryptionStatus()));
 }
- void MessageModel::unsubscribeFromCoreSignals()
+void MessageModel::unsubscribeFromCoreSignals()
 {
     // Disconnect signals
     smsg::NotifySecMsgInboxChanged.disconnect(boost::bind(NotifySecMsgInbox, this, _1));
     smsg::NotifySecMsgOutboxChanged.disconnect(boost::bind(NotifySecMsgOutbox, this, _1));
     smsg::NotifySecMsgWalletUnlocked.disconnect(boost::bind(NotifySecMsgWallet, this));
-    
+
     disconnect(walletModel, SIGNAL(encryptionStatusChanged()), this, SLOT(setEncryptionStatus()));
 }

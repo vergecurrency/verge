@@ -2586,18 +2586,11 @@ void VERGEApplication::requestShutdown()
     qDebug() << __func__ << ": Requesting shutdown";
     startThread();
     window->hide();
-    window->setClientModel(0);
     pollShutdownTimer->stop();
 
 #ifdef ENABLE_WALLET
-    window->removeAllWallets();
-    for (WalletModel *walletModel : m_wallet_models) {
-        delete walletModel;
-    }
-    m_wallet_models.clear();
+    m_handler_load_wallet.reset();
 #endif
-    delete clientModel;
-    clientModel = 0;
 
     m_node.startShutdown();
 
@@ -2688,6 +2681,22 @@ void VERGEApplication::initializeResult(bool success)
 
 void VERGEApplication::shutdownResult()
 {
+    if (window) {
+        window->setClientModel(0);
+#ifdef ENABLE_WALLET
+        window->removeAllWallets();
+#endif
+    }
+
+#ifdef ENABLE_WALLET
+    for (WalletModel *walletModel : m_wallet_models) {
+        delete walletModel;
+    }
+    m_wallet_models.clear();
+#endif
+
+    delete clientModel;
+    clientModel = 0;
     shutdownWindow.reset();
     quit(); // Exit second main loop invocation after shutdown finished
 }
