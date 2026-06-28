@@ -1,6 +1,8 @@
 #ifndef VERGE_QT_MESSAGEMODEL_H
 #define VERGE_QT_MESSAGEMODEL_H
 
+#include <boost/signals2/connection.hpp>
+
 #include <uint256.h>
 #include <vector>
 #include <smsg/smessage.h>
@@ -162,6 +164,9 @@ private:
     OptionsModel *optionsModel;
     MessageTablePriv *priv;
     QStringList columns;
+    boost::signals2::connection notifySecMsgInboxChanged;
+    boost::signals2::connection notifySecMsgOutboxChanged;
+    boost::signals2::connection notifySecMsgWalletUnlocked;
      void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 public Q_SLOTS:

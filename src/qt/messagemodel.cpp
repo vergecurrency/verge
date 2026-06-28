@@ -675,16 +675,16 @@ static void NotifySecMsgInbox(MessageModel *messageModel, SecMsgStored inboxHdr)
     qRegisterMetaType<smsg::SecMsgStored>("smsg::SecMsgStored");
     qRegisterMetaType<smsg::SecMsgStored>("SecMsgStored");
      // Connect signals
-    smsg::NotifySecMsgInboxChanged.connect(boost::bind(NotifySecMsgInbox, this, _1));
-    smsg::NotifySecMsgOutboxChanged.connect(boost::bind(NotifySecMsgOutbox, this, _1));
-    smsg::NotifySecMsgWalletUnlocked.connect(boost::bind(NotifySecMsgWallet, this));
+    notifySecMsgInboxChanged = smsg::NotifySecMsgInboxChanged.connect(boost::bind(NotifySecMsgInbox, this, _1));
+    notifySecMsgOutboxChanged = smsg::NotifySecMsgOutboxChanged.connect(boost::bind(NotifySecMsgOutbox, this, _1));
+    notifySecMsgWalletUnlocked = smsg::NotifySecMsgWalletUnlocked.connect(boost::bind(NotifySecMsgWallet, this));
     
     connect(walletModel, SIGNAL(encryptionStatusChanged()), this, SLOT(setEncryptionStatus()));
 }
 void MessageModel::unsubscribeFromCoreSignals()
 {
     // Disconnect signals
-    smsg::NotifySecMsgInboxChanged.disconnect(boost::bind(NotifySecMsgInbox, this, _1));
-    smsg::NotifySecMsgOutboxChanged.disconnect(boost::bind(NotifySecMsgOutbox, this, _1));
-    smsg::NotifySecMsgWalletUnlocked.disconnect(boost::bind(NotifySecMsgWallet, this));
+    notifySecMsgInboxChanged.disconnect();
+    notifySecMsgOutboxChanged.disconnect();
+    notifySecMsgWalletUnlocked.disconnect();
 }
