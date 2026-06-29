@@ -196,19 +196,32 @@ MessagePage::MessagePage(const PlatformStyle *platformStyle, QWidget *parent) :
     updateMessageCountdown();
     LogPrintf("GUI: MessagePage ctor end\n");
 }
- MessagePage::~MessagePage()
+MessagePage::~MessagePage()
 {
+    setModel(nullptr);
     delete ui;
 }
 void MessagePage::setModel(MessageModel *model)
 {
     LogPrintf("GUI: MessagePage::setModel begin model=%p\n", model);
+    if (this->model && this->model->proxyModel)
+    {
+        ui->tableView->setModel(nullptr);
+        ui->listConversation->setModel(nullptr);
+        if (this->model->proxyModel->parent() == this)
+            delete this->model->proxyModel;
+        this->model->proxyModel = nullptr;
+    }
+
+    if (this->model)
+        disconnect(this->model, nullptr, this, nullptr);
+
     this->model = model;
     if(!model)
         return;
     
-    //if (model->proxyModel)
-    //    delete model->proxyModel;
+    if (model->proxyModel && model->proxyModel->parent() == this)
+        delete model->proxyModel;
     model->proxyModel = new QSortFilterProxyModel(this);
     model->proxyModel->setSourceModel(model);
     model->proxyModel->setDynamicSortFilter(true);
@@ -360,10 +373,10 @@ void MessagePage::on_copyFromAddressButton_clicked()
 {
     GUIUtil::copyEntryData(ui->tableView, MessageModel::ToAddress, MessageModel::ToAddressRole);
 }
- void MessagePage::on_deleteButton_clicked()
+void MessagePage::on_deleteButton_clicked()
 {
     QListView *list = ui->listConversation;
-     if(!list->selectionModel())
+     if(!model || !model->proxyModel || !list->selectionModel())
         return;
      QModelIndexList indexes = list->selectionModel()->selectedIndexes();
      if(!indexes.isEmpty())
@@ -374,9 +387,12 @@ void MessagePage::on_copyFromAddressButton_clicked()
             on_backButton_clicked();
     }
 }
- void MessagePage::on_backButton_clicked()
+void MessagePage::on_backButton_clicked()
 {
     LogPrintf("GUI: MessagePage::on_backButton_clicked begin\n");
+    if (!model || !model->proxyModel)
+        return;
+
     model->proxyModel->setFilterRole(false);
     model->proxyModel->setFilterFixedString("");
     model->resetFilter();
@@ -397,11 +413,11 @@ void MessagePage::on_copyFromAddressButton_clicked()
     if (messageCountLabel) messageCountLabel->setVisible(false);
     LogPrintf("GUI: MessagePage::on_backButton_clicked end\n");
 }
- void MessagePage::selectionChanged()
+void MessagePage::selectionChanged()
 {
     // Set button states based on selected tab and selection
     QTableView *table = ui->tableView;
-    if(!table->selectionModel())
+    if(!model || !model->proxyModel || !table->selectionModel())
         return;
     LogPrintf("GUI: MessagePage::selectionChanged hasSelection=%d tableVisible=%d\n",
         table->selectionModel()->hasSelection(),
@@ -630,8 +646,11 @@ void MessagePage::showReceipt()
     box.setStandardButtons(QMessageBox::Ok);
     box.exec();
 }
- void MessagePage::exportClicked()
+void MessagePage::exportClicked()
 {
+    if (!model || !model->proxyModel)
+        return;
+
     // CSV is currently the only supported format
     QString filename = GUIUtil::getSaveFileName(
             this,

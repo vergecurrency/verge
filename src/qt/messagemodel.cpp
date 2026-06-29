@@ -380,12 +380,9 @@ MessageModel::MessageModel(WalletModel *walletModel, QObject *parent) :
     priv->refreshMessageTable();
      subscribeToCoreSignals();
 }
- MessageModel::~MessageModel()
+MessageModel::~MessageModel()
 {
     unsubscribeFromCoreSignals();
-
-    if (proxyModel)
-        delete proxyModel;
 
     proxyModel = 0;
     delete priv;

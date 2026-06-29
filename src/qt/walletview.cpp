@@ -103,6 +103,11 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 
 WalletView::~WalletView()
 {
+    if (messagesPage)
+        messagesPage->setModel(nullptr);
+
+    delete messageModel;
+    messageModel = nullptr;
 }
 
 void WalletView::setVERGEGUI(VERGEGUI *gui)
@@ -147,6 +152,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     receiveCoinsPage->setModel(_walletModel);
     sendCoinsPage->setModel(_walletModel);
     if (messageModel) {
+        messagesPage->setModel(nullptr);
         delete messageModel;
         messageModel = nullptr;
     }
