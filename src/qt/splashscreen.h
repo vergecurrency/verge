@@ -45,6 +45,7 @@ public Q_SLOTS:
 
     /** Show message and progress */
     void showMessage(const QString &message, int alignment, const QColor &color);
+    void showProgressMessage(const QString& message, int progress, int alignment, const QColor& color);
 
 protected:
     bool eventFilter(QObject * obj, QEvent * ev);
@@ -68,6 +69,7 @@ private:
     QTimer m_textGradientTimer;
     int m_backgroundPhase;
     int m_textGradientOffset;
+    int m_progressPercent;
     bool m_isFinishing;
     bool m_coreSignalsConnected;
 

@@ -17,6 +17,8 @@ class PlatformStyle;
 class ReceiveCoinsDialog;
 class SendCoinsDialog;
 class SendCoinsRecipient;
+class MessagePage;
+class MessageModel;
 class TradePage;
 class GamesPage;
 class TransactionView;
@@ -66,10 +68,13 @@ private:
     QWidget *transactionsPage;
     ReceiveCoinsDialog *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
+    MessagePage *messagesPage;
+    MessageModel *messageModel;
     TradePage *tradePage;
     GamesPage *gamesPage;
     AddressBookPage *usedSendingAddressesPage;
     AddressBookPage *usedReceivingAddressesPage;
+    AddressBookPage *usedChatAddressesPage;
 
     TransactionView *transactionView;
 
@@ -85,6 +90,8 @@ public Q_SLOTS:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
+    /** Switch to messages page */
+    void gotoMessagesPage();
     /** Switch to trade page */
     void gotoTradePage();
     /** Switch to games page */
@@ -113,6 +120,8 @@ public Q_SLOTS:
     void usedSendingAddresses();
     /** Show used receiving addresses */
     void usedReceivingAddresses();
+    /** Show local chat-enabled receiving addresses */
+    void usedChatAddresses();
 
     /** Re-emit encryption status signal */
     void updateEncryptionStatus();

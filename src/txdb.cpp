@@ -15,6 +15,7 @@
 #include <util/system.h>
 #include <ui_interface.h>
 
+#include <algorithm>
 #include <stdint.h>
 
 #include <boost/thread.hpp>
@@ -254,7 +255,26 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
 
     pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
 
+    uiInterface.ShowProgress(_("Loading block index..."), 0, false);
+
+    int64_t nTotalBlockIndexEntries = 0;
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        std::pair<char, uint256> key;
+        if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
+            ++nTotalBlockIndexEntries;
+            pcursor->Next();
+        } else {
+            break;
+        }
+    }
+
+    pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
+    uiInterface.ShowProgress(_("Loading block index..."), nTotalBlockIndexEntries > 0 ? 1 : 100, false);
+
     // Load mapBlockIndex
+    int64_t nLoadedBlockIndexEntries = 0;
+    int64_t nLastBlockIndexProgressTime = 0;
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         std::pair<char, uint256> key;
@@ -279,6 +299,16 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 if (!CheckProofOfWork(diskindex.hashPOWShared, pindexNew->nBits, consensusParams))
                     return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
 
+                ++nLoadedBlockIndexEntries;
+                const int64_t nNow = GetTimeMillis();
+                if (nLoadedBlockIndexEntries == 1 || nNow - nLastBlockIndexProgressTime >= 250) {
+                    const int nProgress = nTotalBlockIndexEntries > 0
+                        ? std::max(1, std::min(99, static_cast<int>((nLoadedBlockIndexEntries * 100) / nTotalBlockIndexEntries)))
+                        : 100;
+                    uiInterface.ShowProgress(_("Loading block index..."), nProgress, false);
+                    nLastBlockIndexProgressTime = nNow;
+                }
+
                 pcursor->Next();
             } else {
                 return error("%s: failed to read value", __func__);
@@ -288,6 +318,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
         }
     }
 
+    uiInterface.ShowProgress(_("Loading block index..."), 100, false);
     return true;
 }
 

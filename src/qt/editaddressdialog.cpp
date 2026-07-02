@@ -14,6 +14,33 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+namespace {
+bool ReceivingLabelExists(const AddressTableModel* model, const QString& label, const QString& exceptAddress)
+{
+    const QString trimmedLabel = label.trimmed();
+    if (!model || trimmedLabel.isEmpty()) {
+        return false;
+    }
+
+    for (int row = 0; row < model->rowCount(QModelIndex()); ++row) {
+        const QModelIndex labelIndex = model->index(row, AddressTableModel::Label, QModelIndex());
+        if (model->data(labelIndex, AddressTableModel::TypeRole).toString() != AddressTableModel::Receive) {
+            continue;
+        }
+
+        const QString address = model->data(model->index(row, AddressTableModel::Address, QModelIndex()), Qt::DisplayRole).toString();
+        if (address == exceptAddress) {
+            continue;
+        }
+
+        if (model->data(labelIndex, Qt::EditRole).toString().trimmed().compare(trimmedLabel, Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+}
 
 EditAddressDialog::EditAddressDialog(Mode _mode, QWidget *parent) :
     QDialog(parent),
@@ -105,6 +132,13 @@ void EditAddressDialog::accept()
 {
     if(!model)
         return;
+
+    if (mode == EditReceivingAddress && ReceivingLabelExists(model, ui->labelEdit->text(), ui->addressEdit->text())) {
+        QMessageBox::warning(this, windowTitle(),
+            tr("The label \"%1\" already exists. Choose a different label.").arg(ui->labelEdit->text().trimmed()),
+            QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
 
     if(!saveCurrentRow())
     {

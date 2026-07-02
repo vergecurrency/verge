@@ -13,16 +13,40 @@
 #include <qt/vergeunits.h>
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
+#include <qt/guiconstants.h>
 #include <qt/receiverequestdialog.h>
 #include <qt/recentrequeststablemodel.h>
 #include <qt/walletmodel.h>
 
+#include <smsg/smessage.h>
+
 #include <QAction>
+#include <QCheckBox>
 #include <QCursor>
+#include <QDialogButtonBox>
+#include <QGridLayout>
 #include <QGraphicsDropShadowEffect>
+#include <QHBoxLayout>
+#include <QInputDialog>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QPainter>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QTextDocument>
+#include <QTextEdit>
+#include <QToolButton>
+#include <QUrl>
+#include <QVBoxLayout>
+
+#if defined(HAVE_CONFIG_H)
+#include <config/verge-config.h>
+#endif
+
+#ifdef USE_QRCODE
+#include <qrencode.h>
+#endif
 
 namespace {
 void ApplyCardShadow(QWidget* widget)
@@ -34,6 +58,192 @@ void ApplyCardShadow(QWidget* widget)
     effect->setColor(QColor(88, 28, 140, 92));
     widget->setGraphicsEffect(effect);
 }
+
+bool ReceivingLabelExists(const AddressTableModel* model, const QString& label, const QString& exceptAddress = QString())
+{
+    const QString trimmedLabel = label.trimmed();
+    if (!model || trimmedLabel.isEmpty()) {
+        return false;
+    }
+
+    for (int row = 0; row < model->rowCount(QModelIndex()); ++row) {
+        const QModelIndex labelIndex = model->index(row, AddressTableModel::Label, QModelIndex());
+        if (model->data(labelIndex, AddressTableModel::TypeRole).toString() != AddressTableModel::Receive) {
+            continue;
+        }
+
+        const QString address = model->data(model->index(row, AddressTableModel::Address, QModelIndex()), Qt::DisplayRole).toString();
+        if (!exceptAddress.isEmpty() && address == exceptAddress) {
+            continue;
+        }
+
+        if (model->data(labelIndex, Qt::EditRole).toString().trimmed().compare(trimmedLabel, Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+QString EncodeUriValue(const QString& value)
+{
+    return QString::fromLatin1(QUrl::toPercentEncoding(value));
+}
+
+QString FormatChatkeyURI(const QString& address, const QString& chatkey, const QString& label)
+{
+    QString uri = QStringLiteral("verge:%1?chatkey=%2").arg(address, EncodeUriValue(chatkey));
+    if (!label.isEmpty()) {
+        uri += QStringLiteral("&label=%1").arg(EncodeUriValue(label));
+    }
+    return uri;
+}
+
+QString FormatShareChatkey(const QString& address, const QString& chatkey)
+{
+    return QStringLiteral("%1-%2").arg(address, chatkey);
+}
+
+QToolButton* CreateCopyButton(const PlatformStyle* platformStyle, const QString& text, const QString& clipboardText, QWidget* parent)
+{
+    QToolButton* button = new QToolButton(parent);
+    button->setToolTip(text);
+    button->setAutoRaise(true);
+    button->setIcon(platformStyle->SingleColorIcon(":/icons/editcopy"));
+    QObject::connect(button, &QToolButton::clicked, button, [clipboardText]() {
+        GUIUtil::setClipboard(clipboardText);
+    });
+    return button;
+}
+
+QString BuildChatkeyQRCode(const QString& payload, const QString& caption, QPixmap& pixmap)
+{
+#ifdef USE_QRCODE
+    if (payload.length() > MAX_URI_LENGTH) {
+        return QObject::tr("QR payload is too long. Shorten the label and try again.");
+    }
+
+    QRcode* code = QRcode_encodeString(payload.toUtf8().constData(), 0, QR_ECLEVEL_L, QR_MODE_8, 1);
+    if (!code) {
+        return QObject::tr("Error encoding chatkey payload into QR code.");
+    }
+
+    QImage qrImage(code->width + 8, code->width + 8, QImage::Format_RGB32);
+    qrImage.fill(0xffffff);
+    unsigned char* p = code->data;
+    for (int y = 0; y < code->width; y++) {
+        for (int x = 0; x < code->width; x++) {
+            qrImage.setPixel(x + 4, y + 4, ((*p & 1) ? 0x0 : 0xffffff));
+            p++;
+        }
+    }
+    QRcode_free(code);
+
+    QImage qrAddrImage(QR_IMAGE_SIZE, QR_IMAGE_SIZE + 44, QImage::Format_RGB32);
+    qrAddrImage.fill(0xffffff);
+    QPainter painter(&qrAddrImage);
+    painter.drawImage(0, 0, qrImage.scaled(QR_IMAGE_SIZE, QR_IMAGE_SIZE));
+    QFont font = GUIUtil::fixedPitchFont();
+    QRect paddedRect = qrAddrImage.rect();
+    qreal fontSize = GUIUtil::calculateIdealFontSize(paddedRect.width() - 20, caption, font);
+    font.setPointSizeF(fontSize);
+    painter.setFont(font);
+    paddedRect.setHeight(QR_IMAGE_SIZE + 36);
+    painter.drawText(paddedRect, Qt::AlignBottom | Qt::AlignCenter, caption);
+    painter.end();
+
+    pixmap = QPixmap::fromImage(qrAddrImage);
+    return QString();
+#else
+    Q_UNUSED(payload);
+    Q_UNUSED(caption);
+    Q_UNUSED(pixmap);
+    return QObject::tr("QR code support is not available in this build.");
+#endif
+}
+
+void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, const QString& address, const QString& chatkey, const QString& label)
+{
+    const QString payload = FormatChatkeyURI(address, chatkey, label);
+    const QString sharedChatkey = FormatShareChatkey(address, chatkey);
+
+    QDialog dialog(parent);
+    dialog.setObjectName("ReceiveRequestDialog");
+    dialog.setWindowTitle(QObject::tr("Created chatkey"));
+    dialog.setMinimumSize(640, 680);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(&dialog);
+
+    QRImageWidget* qrCode = new QRImageWidget(&dialog);
+    qrCode->setObjectName("ReceiveRequestQRCode");
+    qrCode->setMinimumSize(300, 340);
+    qrCode->setAlignment(Qt::AlignCenter);
+    qrCode->setWordWrap(true);
+
+    QPixmap qrPixmap;
+    const QString qrError = BuildChatkeyQRCode(payload, address, qrPixmap);
+    if (!qrError.isEmpty()) {
+        qrCode->setText(qrError);
+    } else {
+        qrCode->setPixmap(qrPixmap);
+    }
+    mainLayout->addWidget(qrCode);
+
+    QTextEdit* details = new QTextEdit(&dialog);
+    details->setObjectName("ReceiveRequestDetails");
+    details->setReadOnly(true);
+    details->setMinimumHeight(120);
+    details->setTextInteractionFlags(Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse);
+    QString html;
+    html += QStringLiteral("<b>%1</b><br>").arg(QObject::tr("Chatkey information"));
+    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Label"), GUIUtil::HtmlEscape(label));
+    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Address"), GUIUtil::HtmlEscape(address));
+    html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Chatkey"), GUIUtil::HtmlEscape(sharedChatkey));
+    html += QStringLiteral("<b>%1</b>: <a href=\"%2\">%3</a>")
+        .arg(QObject::tr("QR payload"), GUIUtil::HtmlEscape(payload), GUIUtil::HtmlEscape(payload));
+    details->setHtml(html);
+    mainLayout->addWidget(details);
+
+    QGridLayout* copyLayout = new QGridLayout();
+    auto addCopyRow = [&](int row, const QString& title, const QString& value) {
+        QLabel* labelWidget = new QLabel(title, &dialog);
+        QLineEdit* valueWidget = new QLineEdit(value, &dialog);
+        valueWidget->setReadOnly(true);
+        valueWidget->setMinimumWidth(420);
+        copyLayout->addWidget(labelWidget, row, 0);
+        copyLayout->addWidget(valueWidget, row, 1);
+        copyLayout->addWidget(CreateCopyButton(platformStyle, QObject::tr("Copy %1").arg(title.toLower()), value, &dialog), row, 2);
+    };
+    addCopyRow(0, QObject::tr("Address"), address);
+    addCopyRow(1, QObject::tr("Chatkey"), sharedChatkey);
+    addCopyRow(2, QObject::tr("QR payload"), payload);
+    mainLayout->addLayout(copyLayout);
+
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    QPushButton* copyQrPayloadButton = new QPushButton(QObject::tr("Copy QR payload"), &dialog);
+    copyQrPayloadButton->setObjectName("ReceiveRequestActionButton");
+    QObject::connect(copyQrPayloadButton, &QPushButton::clicked, copyQrPayloadButton, [payload]() {
+        GUIUtil::setClipboard(payload);
+    });
+    buttonLayout->addWidget(copyQrPayloadButton);
+
+    QPushButton* saveQrButton = new QPushButton(QObject::tr("Save Image..."), &dialog);
+    saveQrButton->setObjectName("ReceiveRequestActionButton");
+    saveQrButton->setEnabled(!qrPixmap.isNull());
+    QObject::connect(saveQrButton, SIGNAL(clicked()), qrCode, SLOT(saveImage()));
+    buttonLayout->addWidget(saveQrButton);
+
+    buttonLayout->addStretch();
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    if (QPushButton* closeButton = buttonBox->button(QDialogButtonBox::Close)) {
+        closeButton->setObjectName("DialogSecondaryButton");
+    }
+    QObject::connect(buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+    buttonLayout->addWidget(buttonBox);
+    mainLayout->addLayout(buttonLayout);
+
+    dialog.exec();
+}
 }
 
 ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWidget *parent) :
@@ -41,6 +251,7 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     ui(new Ui::ReceiveCoinsDialog),
     columnResizingFixer(0),
     model(0),
+    editLabelButton(nullptr),
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
@@ -54,6 +265,7 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     ui->reqMessage->setObjectName("ReceiveTextField");
     ui->useStealth->setObjectName("ReceiveStealthToggle");
     ui->receiveButton->setObjectName("ReceivePrimaryButton");
+    ui->createChatkeyButton->setObjectName("ReceivePrimaryButton");
     ui->clearButton->setObjectName("ReceiveSecondaryButton");
     ui->showRequestButton->setObjectName("ReceiveSecondaryButton");
     ui->removeRequestButton->setObjectName("ReceiveSecondaryButton");
@@ -64,20 +276,28 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     if (!_platformStyle->getImagesOnButtons()) {
         ui->clearButton->setIcon(QIcon());
         ui->receiveButton->setIcon(QIcon());
+        ui->createChatkeyButton->setIcon(QIcon());
         ui->showRequestButton->setIcon(QIcon());
         ui->removeRequestButton->setIcon(QIcon());
     } else {
         ui->clearButton->setIcon(_platformStyle->SingleColorIcon(":/icons/remove"));
         ui->receiveButton->setIcon(_platformStyle->SingleColorIcon(":/icons/receiving_addresses"));
+        ui->createChatkeyButton->setIcon(_platformStyle->SingleColorIcon(":/icons/editcopy"));
         ui->showRequestButton->setIcon(_platformStyle->SingleColorIcon(":/icons/edit"));
         ui->removeRequestButton->setIcon(_platformStyle->SingleColorIcon(":/icons/remove"));
     }
+
+    ui->allowMessaging->setText(tr("Add chatkey to this address"));
+    ui->receiveButton->setText(tr("Make New Receiving Address"));
+    ui->label_5->setText(tr("Use this form to make a new receiving address. All fields are <b>optional</b>."));
+    ui->createChatkeyButton->hide();
 
     // context menu actions
     QAction *copyURIAction = new QAction(tr("Copy URI"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
     QAction *copyMessageAction = new QAction(tr("Copy message"), this);
     QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
+    QAction *editLabelAction = new QAction(tr("Edit label"), this);
 
     // context menu
     contextMenu = new QMenu(this);
@@ -85,6 +305,8 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyMessageAction);
     contextMenu->addAction(copyAmountAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(editLabelAction);
 
     // context menu signals
     connect(ui->recentRequestsView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showMenu(QPoint)));
@@ -92,8 +314,21 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
     connect(copyMessageAction, SIGNAL(triggered()), this, SLOT(copyMessage()));
     connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
+    connect(editLabelAction, SIGNAL(triggered()), this, SLOT(editSelectedLabel()));
 
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
+    editLabelButton = new QPushButton(tr("Edit label"), this);
+    editLabelButton->setObjectName("ReceiveSecondaryButton");
+    editLabelButton->setEnabled(false);
+    ui->horizontalLayout_2->insertWidget(0, editLabelButton);
+    connect(editLabelButton, SIGNAL(clicked()), this, SLOT(editSelectedLabel()));
+    connect(ui->useStealth, &QCheckBox::toggled, this, [this](bool checked) {
+        ui->allowMessaging->setEnabled(!checked);
+        if (checked) {
+            ui->allowMessaging->setChecked(false);
+        }
+    });
+    ui->allowMessaging->setEnabled(!ui->useStealth->isChecked());
 }
 
 void ReceiveCoinsDialog::setModel(WalletModel *_model)
@@ -149,6 +384,7 @@ void ReceiveCoinsDialog::clear()
     ui->reqAmount->clear();
     ui->reqLabel->setText("");
     ui->reqMessage->setText("");
+    ui->allowMessaging->setChecked(false);
     updateDisplayUnit();
 }
 
@@ -185,6 +421,15 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
         address_type = OutputType::LEGACY;
     }
     address = model->getAddressTableModel()->addRow(AddressTableModel::Receive, label, "", address_type);
+    if (ui->allowMessaging->isChecked()) {
+        const int rv = smsgModule.AddLocalAddress(address.toStdString());
+        if (rv != smsg::SMSG_NO_ERROR) {
+            QMessageBox::warning(this, tr("Enable Messaging"),
+                tr("The address was created, but secure messaging could not be enabled for it: %1")
+                    .arg(QString::fromLatin1(smsg::GetString(rv))),
+                QMessageBox::Ok, QMessageBox::Ok);
+        }
+    }
     SendCoinsRecipient info(address, label,
         ui->reqAmount->value(), ui->reqMessage->text());
     ReceiveRequestDialog *dialog = new ReceiveRequestDialog(this);
@@ -196,6 +441,75 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
 
     /* Store request for later reference */
     model->getRecentRequestsTableModel()->addNewRequest(info);
+}
+
+void ReceiveCoinsDialog::on_createChatkeyButton_clicked()
+{
+    if (!model || !model->getAddressTableModel()) {
+        return;
+    }
+
+    QString label = tr("MyChatkey1");
+    while (true) {
+        bool accepted = false;
+        label = QInputDialog::getText(this,
+            tr("Create Chatkey"),
+            tr("Label:"),
+            QLineEdit::Normal,
+            label,
+            &accepted).trimmed();
+        if (!accepted) {
+            return;
+        }
+        if (!ReceivingLabelExists(model->getAddressTableModel(), label)) {
+            break;
+        }
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("The label \"%1\" already exists. Choose a different label.").arg(label),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+    }
+
+    const QString address = model->getAddressTableModel()->addRow(
+        AddressTableModel::Receive,
+        label,
+        QString(),
+        OutputType::LEGACY);
+    if (address.isEmpty()) {
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("Could not create a new address."),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+        return;
+    }
+
+    int rv = smsgModule.AddLocalAddress(address.toStdString());
+    if (rv != smsg::SMSG_NO_ERROR) {
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("The address was created, but secure messaging could not be enabled for it: %1")
+                .arg(QString::fromLatin1(smsg::GetString(rv))),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+        return;
+    }
+
+    std::string publicKey;
+    std::string addressString = address.toStdString();
+    rv = smsgModule.GetLocalPublicKey(addressString, publicKey);
+    if (rv != smsg::SMSG_NO_ERROR) {
+        QMessageBox::warning(this,
+            tr("Create Chatkey"),
+            tr("The address was created, but its chatkey could not be loaded: %1")
+                .arg(QString::fromLatin1(smsg::GetString(rv))),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+        return;
+    }
+
+    ShowChatkeyDialog(this, platformStyle, address, QString::fromStdString(publicKey), label);
 }
 
 void ReceiveCoinsDialog::on_recentRequestsView_doubleClicked(const QModelIndex &index)
@@ -214,6 +528,9 @@ void ReceiveCoinsDialog::recentRequestsView_selectionChanged(const QItemSelectio
     bool enable = !ui->recentRequestsView->selectionModel()->selectedRows().isEmpty();
     ui->showRequestButton->setEnabled(enable);
     ui->removeRequestButton->setEnabled(enable);
+    if (editLabelButton) {
+        editLabelButton->setEnabled(enable);
+    }
 }
 
 void ReceiveCoinsDialog::on_showRequestButton_clicked()
@@ -323,4 +640,44 @@ void ReceiveCoinsDialog::copyMessage()
 void ReceiveCoinsDialog::copyAmount()
 {
     copyColumnToClipboard(RecentRequestsTableModel::Amount);
+}
+
+void ReceiveCoinsDialog::editSelectedLabel()
+{
+    QModelIndex sel = selectedRow();
+    if (!sel.isValid() || !model || !model->getRecentRequestsTableModel() || !model->getAddressTableModel()) {
+        return;
+    }
+
+    RecentRequestsTableModel* requestsModel = model->getRecentRequestsTableModel();
+    const RecentRequestEntry& request = requestsModel->entry(sel.row());
+    const QString currentLabel = request.recipient.label;
+
+    bool accepted = false;
+    const QString newLabel = QInputDialog::getText(this,
+        tr("Edit label"),
+        tr("Label:"),
+        QLineEdit::Normal,
+        currentLabel,
+        &accepted).trimmed();
+
+    if (!accepted) {
+        return;
+    }
+
+    const int addressRow = model->getAddressTableModel()->lookupAddress(request.recipient.address);
+    if (addressRow >= 0) {
+        model->getAddressTableModel()->setData(
+            model->getAddressTableModel()->index(addressRow, AddressTableModel::Label, QModelIndex()),
+            newLabel,
+            Qt::EditRole);
+    }
+
+    if (!requestsModel->updateLabel(sel.row(), newLabel)) {
+        QMessageBox::warning(this,
+            tr("Edit label"),
+            tr("Could not update the receive request label."),
+            QMessageBox::Ok,
+            QMessageBox::Ok);
+    }
 }

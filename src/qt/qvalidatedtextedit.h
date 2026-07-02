@@ -15,10 +15,10 @@ public:
  private:
     bool valid;
     QString errorText;
- public slots:
+ public Q_SLOTS:
     void setValid(bool valid);
     void setErrorText(QString errorText);
- private slots:
+ private Q_SLOTS:
     void markValid();
 };
 

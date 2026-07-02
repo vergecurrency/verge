@@ -8,6 +8,8 @@
 class MessageModel;
 class SendMessagesEntry;
 class SendMessagesRecipient;
+class QSpinBox;
+class QLabel;
  //QT_BEGIN_NAMESPACE
 //class QUrl;
 //QT_END_NAMESPACE
@@ -34,7 +36,9 @@ class SendMessagesDialog : public QDialog
      */
     QWidget *setupTabChain(QWidget *prev);
      void pasteEntry(const SendMessagesRecipient &rv);
- public slots:
+    void refreshAddressFromChoices();
+    void setSelectedAddressFrom(const QString& address);
+ public Q_SLOTS:
     void done(int retval);
     void clear();
     void reject();
@@ -47,7 +51,9 @@ class SendMessagesDialog : public QDialog
     bool fNewRecipientAllowed;
     Mode mode;
     Type type;
- private slots:
+    QSpinBox *retentionDaysSpinBox;
+    QLabel *paidFeeLabel;
+ private Q_SLOTS:
     void on_sendButton_clicked();
     void removeEntry(SendMessagesEntry* entry);
     void on_addressBookButton_clicked();

@@ -106,6 +106,7 @@ private:
     QLabel *labelWalletEncryptionIcon;
     QLabel *labelWalletHDStatusIcon;
     QLabel *labelProxyIcon;
+    QLabel *labelSmsgIcon;
     QLabel *connectionsControl;
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
@@ -117,10 +118,17 @@ private:
     QLabel *proxyStatusLabel;
     QLabel *networkStatusLabel;
     QLabel *chainStatusLabel;
+    QWidget *windowControls;
+    QToolButton *minimizeWindowButton;
+    QToolButton *maximizeWindowButton;
+    QToolButton *closeWindowButton;
     QProgressDialog *progressDialog;
     QTimer* m_syncProgressBarTimer;
+    QTimer* m_smsgStatusTimer;
     int m_syncProgressBarOffset;
     bool m_hasAnimatedShell;
+    bool m_titleBarDragging;
+    QPoint m_titleBarDragOffset;
 
     QMenuBar *appMenuBar;
     QToolBar *appToolBar;
@@ -128,11 +136,13 @@ private:
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
+    QAction *messagesAction;
     QAction *tradeAction;
     QAction *gamesAction;
     QAction *sendCoinsMenuAction;
     QAction *usedSendingAddressesAction;
     QAction *usedReceivingAddressesAction;
+    QAction *usedChatAddressesAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -166,6 +176,9 @@ private:
     void createActions();
     /** Create the menu bar and sub-menus. */
     void createMenuBar();
+    /** Add main-window chrome controls to the in-window menu bar. */
+    void createMainWindowChrome();
+    void updateMainWindowChromeButtons();
     /** Create the toolbars */
     void createToolBars();
     /** Create system tray icon and notification */
@@ -183,6 +196,7 @@ private:
 
     /** Update UI with latest network info from model. */
     void updateNetworkState();
+    void updateSmsgStatusIcon();
 
     void updateHeadersSyncProgressLabel();
     void updateSyncProgressBarStyle();
@@ -252,6 +266,8 @@ private Q_SLOTS:
     /** Switch to send coins page */
     void gotoSendCoinsPage();
     void gotoSendCoinsPage(QString addr);
+    /** Switch to messages page */
+    void gotoMessagesPage();
     /** Switch to trade page */
     void gotoTradePage();
     /** Switch to games page */

@@ -334,6 +334,8 @@ endif
 libverge_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES)
 libverge_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libverge_wallet_a_SOURCES = \
+  crypto/lz4/lz4.c \
+  crypto/xxhash/xxhash.c \
   interfaces/wallet.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
@@ -346,6 +348,11 @@ libverge_wallet_a_SOURCES = \
   wallet/walletdb.cpp \
   wallet/walletutil.cpp \
   wallet/coinselection.cpp \
+  smsg/crypter.cpp \
+  smsg/db.cpp \
+  smsg/keystore.cpp \
+  smsg/rpcsmessage.cpp \
+  smsg/smessage.cpp \
   stealth.cpp \
   $(VERGE_CORE_H)
 

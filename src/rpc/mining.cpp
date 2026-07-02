@@ -462,7 +462,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     // a segwit-block to a non-segwit caller.
     // static bool fLastTemplateSupportsSegwit = true;
     CBlock* pblockCache = nullptr;
-    if (!pblocktemplate) {
+    if (pblocktemplate) {
         pblockCache = &pblocktemplate->block;
     }
     int32_t templateAlgorithm = algorithm.isStr() ? GetAlgoByName(algorithm.get_str()) : ALGO;

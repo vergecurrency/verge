@@ -1,35 +1,156 @@
-#include <sendmessagesdialog.h>
-#include <ui_sendmessagesdialog.h>
-//#include <init.h>
-#include <addressbookpage.h>
-#include <messagemodel.h>
-#include <optionsmodel.h>
-#include <sendmessagesentry.h>
-#include <walletmodel.h>
-//#include <guiutil.h>
+// Copyright (c) 2026 The Verge Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <qt/sendmessagesdialog.h>
+#include <qt/forms/ui_sendmessagesdialog.h>
+#include <qt/addressbookpage.h>
+#include <qt/addresstablemodel.h>
+#include <qt/messagemodel.h>
+#include <qt/optionsmodel.h>
+#include <qt/sendcoinsdialog.h>
+#include <qt/sendmessagesentry.h>
+#include <qt/vergeunits.h>
+#include <qt/walletmodel.h>
+#include <smsg/smessage.h>
+
+#include <QApplication>
 #include <QClipboard>
+#include <QComboBox>
+#include <QCoreApplication>
 #include <QDataWidgetMapper>
+#include <QHBoxLayout>
 #include <QLocale>
 #include <QMessageBox>
+#include <QListView>
 #include <QScrollBar>
+#include <QSignalBlocker>
+#include <QSpinBox>
 #include <QTextDocument>
+
+namespace {
+const CAmount SMSG_CONFIRM_NORMAL_TX_FEE = 10 * CENT;
+
+QString FormatPaidMessageCostText(int recipientCount)
+{
+    const CAmount perMessageCost = SMSG_CONFIRM_NORMAL_TX_FEE + smsg::SMSG_PAID_MSG_FEE;
+    const QString perMessageCostText = VERGEUnits::formatWithUnit(VERGEUnits::XVG, perMessageCost);
+    if (recipientCount <= 1) {
+        return QCoreApplication::translate("SendMessagesDialog", "This message will cost %1, are you sure you want to send it?")
+            .arg(perMessageCostText);
+    }
+
+    const QString totalCostText = VERGEUnits::formatWithUnit(VERGEUnits::XVG, perMessageCost * recipientCount);
+    return QCoreApplication::translate("SendMessagesDialog", "Each paid message will cost %1. Sending %2 messages will cost about %3 total. Are you sure you want to send them?")
+        .arg(perMessageCostText)
+        .arg(recipientCount)
+        .arg(totalCostText);
+}
+} // namespace
 
 SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : QDialog(parent),
                                                                                 ui(new Ui::SendMessagesDialog),
                                                                                 model(0),
                                                                                 mode(mode),
-                                                                                type(type)
+                                                                                type(type),
+                                                                                retentionDaysSpinBox(nullptr),
+                                                                                paidFeeLabel(nullptr)
 {
     ui->setupUi(this);
+    setObjectName(QStringLiteral("SendMessagesDialog"));
+    setAttribute(Qt::WA_StyledBackground, true);
+    setStyleSheet(QStringLiteral(
+        "#SendMessagesDialog {"
+        " background-color: #14051f;"
+        " color: #f3e9ff;"
+        "}"
+        "QFrame#frameAddressFrom {"
+        " background-color: #1c082b;"
+        " border: 1px solid #7d2cff;"
+        " border-radius: 6px;"
+        "}"
+        "QScrollArea {"
+        " background-color: #14051f;"
+        " border: 1px solid #54207f;"
+        " border-radius: 6px;"
+        "}"
+        "QScrollArea > QWidget > QWidget {"
+        " background-color: #14051f;"
+        "}"
+        "QLabel {"
+        " color: #f3e9ff;"
+        " background: transparent;"
+        "}"
+        "QComboBox, QPushButton, QToolButton {"
+        " background-color: #2a0b44;"
+        " color: #f3e9ff;"
+        " border: 1px solid #8c39ff;"
+        " border-radius: 5px;"
+        " padding: 5px 8px;"
+        "}"
+        "QComboBox::drop-down {"
+        " border: 0px;"
+        "}"
+        "QComboBox QAbstractItemView {"
+        " background-color: #1a0829;"
+        " color: #f3e9ff;"
+        " selection-background-color: #7d2cff;"
+        " selection-color: #ffffff;"
+        " border: 1px solid #8c39ff;"
+        "}"
+        "QPushButton:hover, QToolButton:hover, QComboBox:hover {"
+        " background-color: #3a1260;"
+        " border-color: #b06cff;"
+        "}"
+        "QPushButton:pressed, QToolButton:pressed {"
+        " background-color: #4b1780;"
+        "}"
+        "QPushButton#sendButton {"
+        " background-color: #7d2cff;"
+        " border-color: #c08dff;"
+        " font-weight: 600;"
+        "}"
+        "QPushButton#sendButton:hover {"
+        " background-color: #9247ff;"
+        "}"
+        "QPushButton#closeButton, QPushButton#clearButton {"
+        " background-color: #220934;"
+        "}"
+    ));
+    ui->frameAddressFrom->setAttribute(Qt::WA_StyledBackground, true);
+    ui->scrollArea->setAttribute(Qt::WA_StyledBackground, true);
+    ui->scrollAreaWidgetContents->setAttribute(Qt::WA_StyledBackground, true);
+    resize(width(), 460);
+    ui->addressFrom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    ui->addressFrom->setMinimumWidth(420);
+    ui->addressFrom->setInsertPolicy(QComboBox::NoInsert);
+    ui->addressFrom->setView(new QListView(ui->addressFrom));
+    ui->addressFrom->view()->setTextElideMode(Qt::ElideMiddle);
+    ui->addressFrom->setStyleSheet(ui->addressFrom->styleSheet() + QStringLiteral("QComboBox { padding-left: 8px; text-align: left; }"));
+    if (ui->scrollArea->viewport()) {
+        ui->scrollArea->viewport()->setAttribute(Qt::WA_StyledBackground, true);
+        ui->scrollArea->viewport()->setStyleSheet(QStringLiteral("background-color: #14051f;"));
+    }
+    ui->scrollArea->setStyleSheet(QStringLiteral("background-color: #14051f; border: 1px solid #54207f; border-radius: 6px;"));
+    ui->scrollAreaWidgetContents->setStyleSheet(QStringLiteral("background-color: #14051f;"));
+    retentionDaysSpinBox = new QSpinBox(this);
+    retentionDaysSpinBox->setRange(1, 31);
+    retentionDaysSpinBox->setValue(31);
+    retentionDaysSpinBox->setSuffix(tr(" days"));
+    retentionDaysSpinBox->setEnabled(true);
+    retentionDaysSpinBox->setToolTip(tr("Secure message retention."));
+    paidFeeLabel = new QLabel(tr("Marker: 0.000001 XVG"), this);
+    paidFeeLabel->setVisible(true);
+    ui->horizontalLayout_3->addWidget(retentionDaysSpinBox);
+    ui->horizontalLayout_3->addWidget(paidFeeLabel);
 #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     ui->addButton->setIcon(QIcon());
     ui->clearButton->setIcon(QIcon());
     ui->sendButton->setIcon(QIcon());
 #endif
 #if QT_VERSION >= 0x040700
-    /* Do not move this to the XML file, Qt before 4.7 will choke on it */
     if (mode == SendMessagesDialog::Encrypted)
-        ui->addressFrom->setPlaceholderText(tr("Enter a Verge address (e.g. DHe3mTNQztY1wWokdtMprdeCKNoMxyThoV)"));
+        ui->addressFrom->setToolTip(tr("Choose one of your local message-enabled addresses."));
 #endif
     addEntry();
     connect(ui->addButton, SIGNAL(clicked()), this, SLOT(addEntry()));
@@ -44,18 +165,21 @@ SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget* parent) : 
 void SendMessagesDialog::setModel(MessageModel* model)
 {
     this->model = model;
+    refreshAddressFromChoices();
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
-        if (entry)
+        if (entry) {
             entry->setModel(model);
+            entry->setPaidMessageEnabled(true);
+        }
     }
 }
 void SendMessagesDialog::loadRow(int row)
 {
     if (model->data(model->index(row, model->Type, QModelIndex()), Qt::DisplayRole).toString() == MessageModel::Received)
-        ui->addressFrom->setText(model->data(model->index(row, model->ToAddress, QModelIndex()), Qt::DisplayRole).toString());
+        setSelectedAddressFrom(model->data(model->index(row, model->ToAddress, QModelIndex()), MessageModel::ToAddressRole).toString());
     else
-        ui->addressFrom->setText(model->data(model->index(row, model->FromAddress, QModelIndex()), Qt::DisplayRole).toString());
+        setSelectedAddressFrom(model->data(model->index(row, model->FromAddress, QModelIndex()), MessageModel::FromAddressRole).toString());
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
         if (entry)
@@ -68,8 +192,7 @@ bool SendMessagesDialog::checkMode(Mode mode)
 }
 bool SendMessagesDialog::validate()
 {
-    if (mode == SendMessagesDialog::Encrypted && ui->addressFrom->text() == "") {
-        ui->addressFrom->setValid(false);
+    if (mode == SendMessagesDialog::Encrypted && ui->addressFrom->currentData().toString().isEmpty()) {
         return false;
     }
     return true;
@@ -80,17 +203,16 @@ SendMessagesDialog::~SendMessagesDialog()
 }
 void SendMessagesDialog::on_pasteButton_clicked()
 {
-    // Paste text from clipboard into recipient field
-    ui->addressFrom->setText(QApplication::clipboard()->text());
+    setSelectedAddressFrom(QApplication::clipboard()->text().trimmed());
 }
 void SendMessagesDialog::on_addressBookButton_clicked()
 {
     if (!model)
         return;
-    AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::ReceivingTab, this);
+    AddressBookPage dlg(model->getWalletModel()->getPlatformStyle(), AddressBookPage::ForSelection, AddressBookPage::ChatAddressesTab, this);
     dlg.setModel(model->getWalletModel()->getAddressTableModel());
     if (dlg.exec()) {
-        ui->addressFrom->setText(dlg.getReturnValue());
+        setSelectedAddressFrom(dlg.getReturnValue());
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(0)->widget());
         entry->setFocus();
         // findChild( const QString "sentTo")->setFocus();
@@ -102,6 +224,14 @@ void SendMessagesDialog::on_sendButton_clicked()
     bool valid = true;
     if (!model)
         return;
+    if (mode == SendMessagesDialog::Encrypted
+        && model->getWalletModel()
+        && model->getWalletModel()->getEncryptionStatus() == WalletModel::Locked) {
+        QMessageBox::warning(this, tr("Send Secure Message"),
+            tr("Wallet is locked. Unlock the wallet before sending encrypted messages."),
+            QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
     valid = validate();
     for (int i = 0; i < ui->entries->count(); ++i) {
         SendMessagesEntry* entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
@@ -112,27 +242,27 @@ void SendMessagesDialog::on_sendButton_clicked()
                 valid = false;
         }
     }
-    if (!valid || recipients.isEmpty())
+    if (!valid || recipients.isEmpty()) {
+        QMessageBox::warning(this, tr("Send Secure Message"),
+            tr("A recipient address, an encrypted message, and a known recipient chatkey are required. Shared chatkeys must use the address-chatkey format."),
+            QMessageBox::Ok, QMessageBox::Ok);
         return;
-    // Format confirmation message
-    QStringList formatted;
-    foreach (const SendMessagesRecipient& rcp, recipients) {
-        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(rcp.message, Qt::escape(rcp.label), rcp.address));
     }
     fNewRecipientAllowed = false;
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send messages"),
-        tr("Are you sure you want to send %1?").arg(formatted.join(tr(" and "))),
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+    SendConfirmationDialog confirmationDialog(tr("Confirm paid message"),
+        FormatPaidMessageCostText(recipients.size()), 0, this);
+    confirmationDialog.exec();
+    QMessageBox::StandardButton retval = static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
     if (retval != QMessageBox::Yes) {
         fNewRecipientAllowed = true;
         return;
     }
     MessageModel::StatusCode sendstatus;
+    const int retentionDays = retentionDaysSpinBox ? retentionDaysSpinBox->value() : 31;
     if (mode == SendMessagesDialog::Anonymous)
-        sendstatus = model->sendMessages(recipients);
+        sendstatus = model->sendMessages(recipients, true, retentionDays);
     else
-        sendstatus = model->sendMessages(recipients, ui->addressFrom->text());
+        sendstatus = model->sendMessages(recipients, ui->addressFrom->currentData().toString(), true, retentionDays);
     switch (sendstatus) {
     case MessageModel::InvalidAddress:
         QMessageBox::warning(this, tr("Send Message"),
@@ -203,6 +333,7 @@ SendMessagesEntry* SendMessagesDialog::addEntry()
 {
     SendMessagesEntry* entry = new SendMessagesEntry(this);
     entry->setModel(model);
+    entry->setPaidMessageEnabled(true);
     ui->entries->addWidget(entry);
     connect(entry, SIGNAL(removeEntry(SendMessagesEntry*)), this, SLOT(removeEntry(SendMessagesEntry*)));
     updateRemoveEnabled();
@@ -210,11 +341,63 @@ SendMessagesEntry* SendMessagesDialog::addEntry()
     entry->clear();
     entry->setFocus();
     ui->scrollAreaWidgetContents->resize(ui->scrollAreaWidgetContents->sizeHint());
-    QCoreApplication::instance()->processEvents();
     QScrollBar* bar = ui->scrollArea->verticalScrollBar();
-    if (bar)
+    if (bar && isVisible())
         bar->setSliderPosition(bar->maximum());
     return entry;
+}
+void SendMessagesDialog::refreshAddressFromChoices()
+{
+    const QString selectedAddress = ui->addressFrom->currentData().toString();
+    const QSignalBlocker blocker(ui->addressFrom);
+    ui->addressFrom->clear();
+
+#ifdef ENABLE_WALLET
+    if (!model || !smsg::fSecMsgEnabled || !smsgModule.pwallet) {
+        return;
+    }
+
+    LOCK(smsgModule.cs_smsg);
+    for (const auto& smsgAddress : smsgModule.addresses) {
+        if (!smsgAddress.fReceiveEnabled) {
+            continue;
+        }
+
+        const QString address = QString::fromStdString(CBitcoinAddress(smsgAddress.address).ToString());
+        if (address.isEmpty()) {
+            continue;
+        }
+
+        QString label;
+        if (model && model->getWalletModel() && model->getWalletModel()->getAddressTableModel()) {
+            label = model->getWalletModel()->getAddressTableModel()->labelForAddress(address).trimmed();
+        }
+
+        const QString display = label.isEmpty()
+            ? address
+            : tr("%1 (%2)").arg(address, label);
+        ui->addressFrom->addItem(display, address);
+    }
+#endif
+
+    setSelectedAddressFrom(selectedAddress);
+}
+
+void SendMessagesDialog::setSelectedAddressFrom(const QString& address)
+{
+    if (address.isEmpty()) {
+        if (ui->addressFrom->count() > 0) {
+            ui->addressFrom->setCurrentIndex(0);
+        }
+        return;
+    }
+
+    const int index = ui->addressFrom->findData(address);
+    if (index >= 0) {
+        ui->addressFrom->setCurrentIndex(index);
+    } else if (ui->addressFrom->count() > 0) {
+        ui->addressFrom->setCurrentIndex(0);
+    }
 }
 void SendMessagesDialog::updateRemoveEnabled()
 {
@@ -232,6 +415,7 @@ void SendMessagesDialog::removeEntry(SendMessagesEntry* entry)
     delete entry;
     updateRemoveEnabled();
 }
+
 QWidget* SendMessagesDialog::setupTabChain(QWidget* prev)
 {
     for (int i = 0; i < ui->entries->count(); ++i) {

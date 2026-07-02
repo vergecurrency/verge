@@ -28,6 +28,7 @@
 #include <QPainter>
 #include <QScreen>
 
+#include <algorithm>
 #include <cmath>
 
 namespace {
@@ -43,6 +44,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     curAlignment(Qt::AlignCenter | Qt::AlignHCenter),
     m_backgroundPhase(0),
     m_textGradientOffset(0),
+    m_progressPercent(-1),
     m_isFinishing(false),
     m_coreSignalsConnected(false),
     m_node(node)
@@ -276,10 +278,14 @@ static void InitMessage(SplashScreen *splash, const std::string &message)
 
 static void ShowProgress(SplashScreen *splash, const std::string &title, int nProgress, bool resume_possible)
 {
-    InitMessage(splash, title + std::string("\n") +
-            (resume_possible ? _("(press q to shutdown and continue later)")
-                                : _("press q to shutdown")) +
-            strprintf("\n%d", nProgress) + "%");
+    const std::string message = title + std::string("\n") +
+            (resume_possible ? _("(press q to shutdown and continue later)") : _("press q to shutdown"));
+    QMetaObject::invokeMethod(splash, "showProgressMessage",
+        Qt::QueuedConnection,
+        Q_ARG(QString, QString::fromStdString(message)),
+        Q_ARG(int, nProgress),
+        Q_ARG(int, Qt::AlignCenter|Qt::AlignHCenter),
+        Q_ARG(QColor, QColor(255,255,255)));
 }
 #ifdef ENABLE_WALLET
 void SplashScreen::ConnectWallet(std::unique_ptr<interfaces::Wallet> wallet)
@@ -347,6 +353,20 @@ void SplashScreen::showMessage(const QString &message, int alignment, const QCol
     curMessage = message;
     curAlignment = alignment;
     curColor = color;
+    m_progressPercent = -1;
+    update();
+}
+
+void SplashScreen::showProgressMessage(const QString& message, int progress, int alignment, const QColor& color)
+{
+    if (m_isFinishing) {
+        return;
+    }
+
+    curMessage = message;
+    curAlignment = alignment;
+    curColor = color;
+    m_progressPercent = std::max(0, std::min(100, progress));
     update();
 }
 
@@ -361,8 +381,11 @@ void SplashScreen::paintEvent(QPaintEvent *event)
     const int panelHorizontalMargin = 22;
     const int textHorizontalPadding = 16;
     const int textVerticalPadding = 6;
+    const int progressBarHeight = 12;
+    const int progressBarSpacing = 10;
     const int panelBottom = 430;
     const int panelWidth = width() - (panelHorizontalMargin * 2);
+    const bool showProgressBar = m_progressPercent >= 0;
 
     QFont statusFont(QStringLiteral("Inter"), 15);
     painter.setFont(statusFont);
@@ -375,10 +398,14 @@ void SplashScreen::paintEvent(QPaintEvent *event)
         measuredTextRect.setHeight(statusMetrics.lineSpacing());
     }
 
-    const int panelHeight = measuredTextRect.height() + (textVerticalPadding * 2);
+    const int panelHeight = measuredTextRect.height() + (textVerticalPadding * 2)
+        + (showProgressBar ? progressBarSpacing + progressBarHeight + 18 : 0);
     const QRect textPanelRect(panelHorizontalMargin, panelBottom - panelHeight, panelWidth, panelHeight);
-    const QRect textRect = textPanelRect.adjusted(textHorizontalPadding, textVerticalPadding,
+    QRect textRect = textPanelRect.adjusted(textHorizontalPadding, textVerticalPadding,
         -textHorizontalPadding, -textVerticalPadding);
+    if (showProgressBar) {
+        textRect.setBottom(textRect.bottom() - progressBarSpacing - progressBarHeight - 18);
+    }
     QLinearGradient textPanelGradient(textPanelRect.topLeft(), textPanelRect.bottomLeft());
     textPanelGradient.setColorAt(0.0, QColor(14, 8, 30, 150));
     textPanelGradient.setColorAt(1.0, QColor(7, 6, 18, 110));
@@ -397,6 +424,50 @@ void SplashScreen::paintEvent(QPaintEvent *event)
 
     painter.setPen(QPen(QBrush(gradient), 0));
     painter.drawText(textRect, textFlags, curMessage);
+
+    if (showProgressBar) {
+        const QRect progressTrack(textPanelRect.left() + textHorizontalPadding,
+            textRect.bottom() + progressBarSpacing,
+            textPanelRect.width() - (textHorizontalPadding * 2),
+            progressBarHeight);
+        const int progressWidth = std::max(0, (progressTrack.width() * m_progressPercent) / 100);
+        const QRect progressFill(progressTrack.left(), progressTrack.top(), progressWidth, progressTrack.height());
+
+        painter.setPen(QPen(QColor(109, 236, 255, 110), 1.0));
+        painter.setBrush(QColor(5, 4, 18, 190));
+        painter.drawRoundedRect(progressTrack, 6, 6);
+
+        if (progressWidth > 0) {
+            QLinearGradient progressGradient(progressTrack.left() - progressTrack.width() + m_textGradientOffset,
+                progressTrack.center().y(),
+                progressTrack.right() + m_textGradientOffset,
+                progressTrack.center().y());
+            progressGradient.setSpread(QGradient::RepeatSpread);
+            progressGradient.setColorAt(0.00, QColor(255, 84, 211));
+            progressGradient.setColorAt(0.35, QColor(125, 238, 255));
+            progressGradient.setColorAt(0.70, QColor(189, 119, 255));
+            progressGradient.setColorAt(1.00, QColor(255, 84, 211));
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(progressGradient);
+            painter.drawRoundedRect(progressFill, 6, 6);
+
+            QLinearGradient glowGradient(progressTrack.left(), progressTrack.top(), progressTrack.right(), progressTrack.bottom());
+            glowGradient.setColorAt(0.0, QColor(255, 84, 211, 50));
+            glowGradient.setColorAt(0.5, QColor(125, 238, 255, 95));
+            glowGradient.setColorAt(1.0, QColor(189, 119, 255, 50));
+            painter.setPen(QPen(QBrush(glowGradient), 2.0));
+            painter.setBrush(Qt::NoBrush);
+            painter.drawRoundedRect(progressFill.adjusted(1, 1, -1, -1), 5, 5);
+        }
+
+        QFont percentFont(QStringLiteral("Inter"), 9);
+        percentFont.setBold(true);
+        painter.setFont(percentFont);
+        painter.setPen(QColor(248, 244, 255, 218));
+        painter.drawText(QRect(progressTrack.left(), progressTrack.bottom() + 3, progressTrack.width(), 14),
+            Qt::AlignRight | Qt::AlignVCenter,
+            QString::number(m_progressPercent) + QStringLiteral("%"));
+    }
 }
 
 void SplashScreen::closeEvent(QCloseEvent *event)

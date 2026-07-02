@@ -25,7 +25,7 @@ prefixes
 
 // Modern C++ Migration: Database operations are typically non-recursive
 // TODO: Consider verge::sync::SharedMutex for read-heavy database operations
-VergeStdMutex cs_smsgDB;
+CCriticalSection cs_smsgDB;
 leveldb::DB *smsgDB = nullptr;
 
 bool SecMsgDB::Open(const char *pszMode)

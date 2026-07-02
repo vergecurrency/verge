@@ -11,6 +11,7 @@
 class AddressBookSortFilterProxyModel;
 class AddressTableModel;
 class PlatformStyle;
+class WalletModel;
 
 namespace Ui {
     class AddressBookPage;
@@ -31,7 +32,8 @@ class AddressBookPage : public QDialog
 public:
     enum Tabs {
         SendingTab = 0,
-        ReceivingTab = 1
+        ReceivingTab = 1,
+        ChatAddressesTab = 2
     };
 
     enum Mode {
@@ -43,6 +45,7 @@ public:
     ~AddressBookPage();
 
     void setModel(AddressTableModel *model);
+    void setWalletModel(WalletModel *walletModel);
     const QString &getReturnValue() const { return returnValue; }
 
 public Q_SLOTS:
@@ -51,6 +54,7 @@ public Q_SLOTS:
 private:
     Ui::AddressBookPage *ui;
     AddressTableModel *model;
+    WalletModel *walletModel;
     Mode mode;
     Tabs tab;
     QString returnValue;
@@ -70,6 +74,8 @@ private Q_SLOTS:
     void onCopyLabelAction();
     /** Edit currently selected address entry (no button) */
     void onEditAction();
+    /** Show QR payload for a local chat-enabled address */
+    void showSelectedChatkey();
     /** Export button clicked */
     void on_exportButton_clicked();
 

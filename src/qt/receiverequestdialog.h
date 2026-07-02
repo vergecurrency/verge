@@ -49,11 +49,17 @@ class ReceiveRequestDialog : public QDialog
     Q_OBJECT
 
 public:
+    enum RequestMode {
+        PaymentRequest,
+        ChatkeyRequest
+    };
+
     explicit ReceiveRequestDialog(QWidget *parent = 0);
     ~ReceiveRequestDialog();
 
     void setModel(WalletModel *model);
     void setInfo(const SendCoinsRecipient &info);
+    void setInfo(const SendCoinsRecipient &info, RequestMode mode);
 
 private Q_SLOTS:
     void on_btnCopyURI_clicked();
@@ -65,6 +71,7 @@ private:
     Ui::ReceiveRequestDialog *ui;
     WalletModel *model;
     SendCoinsRecipient info;
+    RequestMode requestMode;
 };
 
 #endif // VERGE_QT_RECEIVEREQUESTDIALOG_H

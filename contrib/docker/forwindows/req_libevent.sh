@@ -6,13 +6,15 @@ echo "=== Building libevent now..."
 
 cd /tmp/
 
-wget https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz
+LIBEVENT_VERSION=2.1.12-stable
 
-tar xf libevent-2.1.8-stable.tar.gz
-cd libevent-2.1.8-stable
+wget https://github.com/libevent/libevent/releases/download/release-${LIBEVENT_VERSION}/libevent-${LIBEVENT_VERSION}.tar.gz
+
+tar xf libevent-${LIBEVENT_VERSION}.tar.gz
+cd libevent-${LIBEVENT_VERSION}
 ./configure --host=${CROSS} --enable-static --disable-shared --disable-openssl
 make
 make install
-rm -rf /tmp/libevent-2.1.8-stable*
+rm -rf /tmp/libevent-${LIBEVENT_VERSION}*
 
 echo "=== Done building libevent ..."

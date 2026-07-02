@@ -23,10 +23,12 @@ static const unsigned int DEFAULT_BLOCK_MAX_WEIGHT = MAX_BLOCK_WEIGHT - 4000;
 static const unsigned int DEFAULT_BLOCK_MIN_TX_FEE = 1000;
 /** The maximum weight for transactions we're willing to relay/mine */
 static const unsigned int MAX_STANDARD_TX_WEIGHT = 400000;
-/** The minimum non-witness size for transactions we're willing to relay/mine (1 segwit input + 1 P2WPKH output = 82 bytes) */
-static const unsigned int MIN_STANDARD_TX_NONWITNESS_SIZE = 82;
+/** The minimum serialized transaction size we're willing to relay/mine. */
+static const unsigned int MIN_STANDARD_TX_NONWITNESS_SIZE = 65;
 /** Maximum number of signature check operations in an IsStandard() P2SH script */
 static const unsigned int MAX_P2SH_SIGOPS = 15;
+/** Maximum size of a standard scriptSig */
+static const unsigned int MAX_STANDARD_SCRIPTSIG_SIZE = 1650;
 /** The maximum number of sigops we're willing to relay/mine in a single tx */
 static const unsigned int MAX_STANDARD_TX_SIGOPS_COST = MAX_BLOCK_SIGOPS_COST/5;
 /** Default for -maxmempool, maximum megabytes of mempool memory usage */
@@ -58,16 +60,11 @@ static constexpr unsigned int STANDARD_SCRIPT_VERIFY_FLAGS = MANDATORY_SCRIPT_VE
                                                              SCRIPT_VERIFY_MINIMALDATA |
                                                              SCRIPT_VERIFY_NULLDUMMY |
                                                              SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS |
-                                                             SCRIPT_VERIFY_CLEANSTACK |
                                                              SCRIPT_VERIFY_MINIMALIF |
                                                              SCRIPT_VERIFY_NULLFAIL |
                                                              SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
                                                              SCRIPT_VERIFY_CHECKSEQUENCEVERIFY |
-                                                             SCRIPT_VERIFY_LOW_S |
-                                                             SCRIPT_VERIFY_WITNESS |
-                                                             SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM |
-                                                             SCRIPT_VERIFY_WITNESS_PUBKEYTYPE |
-                                                             SCRIPT_VERIFY_CONST_SCRIPTCODE;
+                                                             SCRIPT_VERIFY_LOW_S;
 
 /** For convenience, standard but not mandatory verify flags. */
 static constexpr unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS = STANDARD_SCRIPT_VERIFY_FLAGS & ~MANDATORY_SCRIPT_VERIFY_FLAGS;

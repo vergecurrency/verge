@@ -95,15 +95,19 @@ bool WalletFrame::removeWallet(const QString &name)
 
     WalletView *walletView = mapWalletViews.take(name);
     walletStack->removeWidget(walletView);
+    delete walletView;
     return true;
 }
 
 void WalletFrame::removeAllWallets()
 {
-    QMap<QString, WalletView*>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        walletStack->removeWidget(i.value());
+    QMap<QString, WalletView*> walletViews = mapWalletViews;
     mapWalletViews.clear();
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = walletViews.constBegin(); i != walletViews.constEnd(); ++i) {
+        walletStack->removeWidget(i.value());
+        delete i.value();
+    }
 }
 
 bool WalletFrame::handlePaymentRequest(const SendCoinsRecipient &recipient)
@@ -149,6 +153,13 @@ void WalletFrame::gotoSendCoinsPage(QString addr)
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoSendCoinsPage(addr);
+}
+
+void WalletFrame::gotoMessagesPage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoMessagesPage();
 }
 
 void WalletFrame::gotoTradePage()
@@ -219,6 +230,13 @@ void WalletFrame::usedReceivingAddresses()
     WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->usedReceivingAddresses();
+}
+
+void WalletFrame::usedChatAddresses()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->usedChatAddresses();
 }
 
 WalletView *WalletFrame::currentWalletView()

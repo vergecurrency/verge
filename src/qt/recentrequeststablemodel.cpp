@@ -100,7 +100,15 @@ QVariant RecentRequestsTableModel::data(const QModelIndex &index, int role) cons
 
 bool RecentRequestsTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    return true;
+    if (!index.isValid() || role != Qt::EditRole) {
+        return false;
+    }
+
+    if (index.column() == Label) {
+        return updateLabel(index.row(), value.toString());
+    }
+
+    return false;
 }
 
 QVariant RecentRequestsTableModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -207,6 +215,32 @@ void RecentRequestsTableModel::addNewRequest(RecentRequestEntry &recipient)
     beginInsertRows(QModelIndex(), 0, 0);
     list.prepend(recipient);
     endInsertRows();
+}
+
+bool RecentRequestsTableModel::updateLabel(int row, const QString& label)
+{
+    if (row < 0 || row >= list.size()) {
+        return false;
+    }
+
+    RecentRequestEntry& rec = list[row];
+    if (rec.recipient.label == label) {
+        return true;
+    }
+
+    const QString oldLabel = rec.recipient.label;
+    rec.recipient.label = label;
+
+    CDataStream ss(SER_DISK, CLIENT_VERSION);
+    ss << rec;
+
+    if (!walletModel->saveReceiveRequest(rec.recipient.address.toStdString(), rec.id, ss.str())) {
+        rec.recipient.label = oldLabel;
+        return false;
+    }
+
+    Q_EMIT dataChanged(index(row, Label, QModelIndex()), index(row, Label, QModelIndex()));
+    return true;
 }
 
 void RecentRequestsTableModel::sort(int column, Qt::SortOrder order)

@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
 // Copyright (c) 2017-2018 The Particl Core developers
-// Copyright (c) 2017-2018 The Verge Core developers
+// Copyright (c) 2017-2026 The Verge Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,15 +11,98 @@
 #include <net.h>
 #include <serialize.h>
 #include <ui_interface.h>
-#include <lz4/lz4.h>
+#include <crypto/lz4/lz4.h>
 #include <smsg/keystore.h>
 #include <interfaces/handler.h>
+#include <validationinterface.h>
 
 #include <boost/signals2/signal.hpp>
 
+#include <deque>
+#include <map>
+#include <memory>
+#include <set>
+
 class CWallet;
 
+class CBitcoinAddress
+{
+public:
+    CBitcoinAddress() = default;
+    explicit CBitcoinAddress(const std::string& strAddress) { SetString(strAddress); }
+    explicit CBitcoinAddress(const CKeyID& keyID) : m_destination(keyID) {}
+    explicit CBitcoinAddress(const CTxDestination& dest) : m_destination(dest) {}
+
+    bool SetString(const std::string& strAddress)
+    {
+        m_destination = DecodeDestination(strAddress);
+        return IsValid();
+    }
+
+    bool Set(const CKeyID& keyID)
+    {
+        m_destination = keyID;
+        return IsValid();
+    }
+
+    bool Set(const CTxDestination& dest)
+    {
+        m_destination = dest;
+        return IsValid();
+    }
+
+    bool IsValid() const
+    {
+        return IsValidDestination(m_destination);
+    }
+
+    bool IsValid(int) const
+    {
+        return IsValid();
+    }
+
+    bool GetKeyID(CKeyID& keyID) const
+    {
+        if (const auto* key = boost::get<CKeyID>(&m_destination)) {
+            keyID = *key;
+            return true;
+        }
+        return false;
+    }
+
+    std::string ToString() const
+    {
+        return IsValid() ? EncodeDestination(m_destination) : std::string();
+    }
+
+    bool operator==(const CBitcoinAddress& other) const
+    {
+        return m_destination == other.m_destination;
+    }
+
+    bool operator!=(const CBitcoinAddress& other) const
+    {
+        return !(*this == other);
+    }
+
+    CTxDestination Get() const
+    {
+        return m_destination;
+    }
+
+    unsigned char getVersion() const
+    {
+        const auto& prefix = Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS);
+        return prefix.empty() ? 0 : prefix[0];
+    }
+
+private:
+    CTxDestination m_destination = CNoDestination();
+};
+
 namespace smsg {
+
+class SecMsgDB;
 
 enum SecureMessageCodes {
     SMSG_NO_ERROR = 0,
@@ -54,7 +137,9 @@ enum SecureMessageCodes {
     SMSG_COMPRESS_FAILED,
     SMSG_ENCRYPT_FAILED,
     SMSG_FUND_FAILED,
+    SMSG_FUND_NOT_READY,
     SMSG_PURGED_MSG,
+    SMSG_STORE_FULL,
 };
 
 const unsigned int SMSG_HDR_LEN        = 104;               // length of unencrypted header, 4 + 2 + 1 + 8 + 16 + 33 + 32 + 4 + 4
@@ -72,21 +157,40 @@ const unsigned int SMSG_THREAD_LOG_GAP = 6;
 
 const unsigned int SMSG_TIME_LEEWAY    = 24;
 const unsigned int SMSG_TIME_IGNORE    = 90;                // seconds a peer is ignored for if they fail to deliver messages for a smsgWant
+const unsigned int SMSG_RATE_WINDOW    = 60;                // seconds
+const unsigned int SMSG_MAX_MSGS_PER_WINDOW = 240;
+const unsigned int SMSG_MAX_BYTES_PER_WINDOW = 1024 * 1024;
+const unsigned int SMSG_MAX_INV_BUCKETS = (SMSG_RETENTION / SMSG_BUCKET_LEN) + 1;
+const unsigned int SMSG_MAX_SHOW_BUCKETS = SMSG_MAX_INV_BUCKETS;
+const unsigned int SMSG_MAX_HAVE_TOKENS = 4096;
+const unsigned int SMSG_MAX_WANT_TOKENS = 500;
+const unsigned int SMSG_MAX_MSG_PAYLOAD_BYTES = 128 * 1024;
+const unsigned int SMSG_MAX_RECENT_REJECTED_TOKENS = 8192;
 
 
-const unsigned int SMSG_MAX_MSG_BYTES  = 24000;             // the user input part
+const unsigned int SMSG_MAX_MSG_BYTES  = 512;               // the user input part
 const unsigned int SMSG_MAX_AMSG_BYTES = 512;               // the user input part (ANON)
-const unsigned int SMSG_MAX_MSG_BYTES_PAID = 512 * 1024;    // the user input part (Paid)
+const unsigned int SMSG_MAX_MSG_BYTES_PAID = 5 * 1024;      // the user input part (Paid)
+const uint64_t SMSG_LOCAL_STORAGE_CAP_BYTES = 1024ULL * 1024ULL * 1024ULL;
 
 // Max size of payload worst case compression
 const unsigned int SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMSG_PL_HDR_LEN);
 const unsigned int SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES_PAID+SMSG_PL_HDR_LEN);
+// AES-CBC padding can add one full block; paid messages append a funding txid.
+const unsigned int SMSG_MAX_MSG_WORST_PAID_ENCRYPTED = SMSG_MAX_MSG_WORST_PAID + 16 + 32;
 
 static const int MIN_SMSG_PROTO_VERSION = 90007;
 
+void DeriveSmsgKeys(const uint256& ecdhSecret,
+                    const uint8_t* ephemeralPubkey,
+                    const CKeyID& destination,
+                    const uint8_t* iv,
+                    std::vector<uint8_t>& key_e,
+                    std::vector<uint8_t>& key_m);
 
-const CAmount nFundingTxnFeePerK = 200000;
-const CAmount nMsgFeePerKPerDay =   50000;
+int ValidateDecryptedPayloadShape(const std::vector<uint8_t>& vchPayload, bool* fFromAnonymousOut = nullptr, uint32_t* lenDataOut = nullptr, uint32_t* lenPlainOut = nullptr, uint32_t maxPlainBytes = 0);
+
+const CAmount SMSG_PAID_MSG_FEE = 1;                       // 0.000001 XVG marker
 
 #define SMSG_MASK_UNREAD (1 << 0)
 
@@ -166,7 +270,7 @@ public:
     };
 
     uint8_t hash[4] = {0, 0, 0, 0};
-    uint8_t version[2] = {2, 1};
+    uint8_t version[2] = {2, 2};
     uint8_t flags = 0;
     int64_t timestamp = 0;
     uint8_t iv[16];
@@ -377,7 +481,7 @@ void AddOptions();
 const char *GetString(size_t errorCode);
 
 extern bool fSecMsgEnabled;
-class CSMSG
+class CSMSG : public CValidationInterface
 {
 public:
     int BuildBucketSet();
@@ -414,7 +518,7 @@ public:
 
     int AddAddress(std::string &address, std::string &publicKey);
     int AddLocalAddress(const std::string &sAddress);
-    int ImportPrivkey(const CBitcoinSecret &vchSecret, const std::string &sLabel);
+    int ImportPrivkey(const CKey &keyIn, const std::string &sLabel);
 
     bool SetWalletAddressOption(const CKeyID &idk, std::string sOption, bool fValue);
     bool SetSmsgAddressOption(const CKeyID &idk, std::string sOption, bool fValue);
@@ -431,21 +535,26 @@ public:
     int StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
     int Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool fHashBucket);
     int Store(const SecureMessage &smsg, bool fHashBucket);
+    int FlushMessageData(std::string &sError);
+    uint64_t GetLocalStorageUsageBytes();
+    size_t GetPaidFundingIndexSize();
+    size_t GetRecentRejectedTokenCount();
 
     int Purge(std::vector<uint8_t> &vMsgId, std::string &sError);
 
     int Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
-        SecureMessage &smsg, std::string &sError, bool fPaid=false,
-        size_t nDaysRetention=0, bool fTestFee=false, CAmount *nFee=NULL, bool fFromFile=false);
+        SecureMessage &smsg, std::string &sError, bool fPaid=true,
+        size_t nDaysRetention=31, bool fTestFee=false, CAmount *nFee=NULL, bool fFromFile=false);
 
 
     int HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash);
-    int FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee);
+    int FundMsg(SecureMessage &smsg, const CKeyID& addressTo, std::string &sError, bool fTestFee, CAmount *nFee);
 
     std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);
 
     int Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
+    bool IsPaidFundingTxConfirmed(const uint256& txid);
     int SetHash (uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);
 
     int Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID &addressTo, const std::string &message);
@@ -463,11 +572,60 @@ public:
     std::vector<SecMsgAddress> addresses;
     std::set<SecMsgPurged> setPurged;
     std::set<int64_t> setPurgedTimestamps;
+    std::set<SecMsgToken> setRecentRejected;
+    std::deque<SecMsgToken> vRecentRejected;
     SecMsgOptions options;
     std::shared_ptr<CWallet> pwallet;
     std::unique_ptr<interfaces::Handler> m_handler_unload;
 
     int64_t nLastProcessedPurged = 0;
+
+protected:
+    void BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex, const std::vector<CTransactionRef> &txnConflicted) override;
+    void BlockDisconnected(const std::shared_ptr<const CBlock> &block) override;
+
+public:
+    struct PaidFundingRecord {
+        uint256 txid;
+        uint256 blockHash;
+        int height = 0;
+        int64_t blockTime = 0;
+
+        template <typename Stream>
+        void Serialize(Stream &s) const
+        {
+            s << txid;
+            s << blockHash;
+            s << height;
+            s << blockTime;
+        }
+
+        template <typename Stream>
+        void Unserialize(Stream &s)
+        {
+            s >> txid;
+            s >> blockHash;
+            s >> height;
+            s >> blockTime;
+        }
+    };
+
+private:
+    void IndexPaidFundingTransaction(const CTransaction& tx, const uint256& blockHash, int height, int64_t blockTime, SecMsgDB* dbBatch=nullptr);
+    void RemovePaidFundingTransaction(const CTransaction& tx);
+    void RebuildPaidFundingIndex();
+    void ClearStoredPaidFundingIndex(SecMsgDB& db);
+    size_t PrunePaidFundingIndex(SecMsgDB* dbBatch=nullptr);
+    bool HasConfirmedPaidFunding(const std::vector<uint8_t>& msgId, const uint256& txid);
+    bool IsRecentFundingMiss(const uint256& txid, int64_t now);
+    void RecordFundingMiss(const uint256& txid, int64_t now);
+    void ClearFundingMiss(const uint256& txid);
+
+    std::map<std::vector<uint8_t>, PaidFundingRecord> mapPaidFundingByMsgId;
+    std::map<uint256, PaidFundingRecord> mapPaidFundingByTxid;
+    std::map<uint256, int64_t> mapPaidFundingMisses;
+    std::deque<uint256> vPaidFundingMisses;
+    bool fRegisteredValidationInterface = false;
 };
 
 } // namespace smsg

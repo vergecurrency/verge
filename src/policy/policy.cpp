@@ -74,11 +74,19 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
                (!fAcceptDatacarrier || scriptPubKey.size() > nMaxDatacarrierBytes))
           return false;
 
-    return whichType != TX_NONSTANDARD && whichType != TX_WITNESS_UNKNOWN;
+    return whichType != TX_NONSTANDARD &&
+           whichType != TX_WITNESS_V0_KEYHASH &&
+           whichType != TX_WITNESS_V0_SCRIPTHASH &&
+           whichType != TX_WITNESS_UNKNOWN;
 }
 
 bool IsStandardTx(const CTransaction& tx, std::string& reason)
 {
+    if (tx.HasWitness()) {
+        reason = "no-witness";
+        return false;
+    }
+
     if (tx.nVersion > CTransaction::MAX_STANDARD_VERSION || tx.nVersion < 1) {
         reason = "version";
         return false;
@@ -103,7 +111,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         // future-proofing. That's also enough to spend a 20-of-20
         // CHECKMULTISIG scriptPubKey, though such a scriptPubKey is not
         // considered standard.
-        if (txin.scriptSig.size() > 1650) {
+        if (txin.scriptSig.size() > MAX_STANDARD_SCRIPTSIG_SIZE) {
             reason = "scriptsig-size";
             return false;
         }

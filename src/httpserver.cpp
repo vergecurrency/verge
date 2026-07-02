@@ -16,6 +16,7 @@
 #include <ui_interface.h>
 
 #include <memory>
+#include <exception>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,7 +54,13 @@ public:
     }
     void operator()() override
     {
-        func(req.get(), path);
+        try {
+            func(req.get(), path);
+        } catch (const std::exception& e) {
+            LogPrintf("HTTP handler exception: %s\n", e.what());
+        } catch (...) {
+            LogPrintf("HTTP handler unknown exception\n");
+        }
     }
 
     std::unique_ptr<HTTPRequest> req;
@@ -148,6 +155,7 @@ static std::vector<CSubNet> rpc_allow_subnets;
 static WorkQueue<HTTPClosure>* workQueue = nullptr;
 //! Handlers for (sub)paths
 std::vector<HTTPPathHandler> pathHandlers;
+static Mutex g_httppathhandlers_mutex;
 //! Bound listening sockets
 std::vector<evhttp_bound_socket *> boundSockets;
 
@@ -248,29 +256,32 @@ static void http_request_cb(struct evhttp_request* req, void* arg)
     // Find registered handler for prefix
     std::string strURI = hreq->GetURI();
     std::string path;
-    std::vector<HTTPPathHandler>::const_iterator i = pathHandlers.begin();
-    std::vector<HTTPPathHandler>::const_iterator iend = pathHandlers.end();
-    for (; i != iend; ++i) {
-        bool match = false;
-        if (i->exactMatch)
-            match = (strURI == i->prefix);
-        else
-            match = (strURI.substr(0, i->prefix.size()) == i->prefix);
-        if (match) {
-            path = strURI.substr(i->prefix.size());
-            break;
+    HTTPRequestHandler handler;
+    {
+        LOCK(g_httppathhandlers_mutex);
+        for (const HTTPPathHandler& i : pathHandlers) {
+            bool match = false;
+            if (i.exactMatch)
+                match = (strURI == i.prefix);
+            else
+                match = (strURI.substr(0, i.prefix.size()) == i.prefix);
+            if (match) {
+                path = strURI.substr(i.prefix.size());
+                handler = i.handler;
+                break;
+            }
         }
     }
 
     // Dispatch to worker thread
-    if (i != iend) {
-        std::unique_ptr<HTTPWorkItem> item(new HTTPWorkItem(std::move(hreq), path, i->handler));
+    if (handler) {
+        std::unique_ptr<HTTPWorkItem> item(new HTTPWorkItem(std::move(hreq), path, handler));
         assert(workQueue);
         if (workQueue->Enqueue(item.get()))
             item.release(); /* if true, queue took ownership */
         else {
             LogPrintf("WARNING: request rejected because http work queue depth exceeded, it can be increased with the -rpcworkqueue= setting\n");
-            item->req->WriteReply(HTTP_INTERNAL, "Work queue depth exceeded");
+            item->req->WriteReply(HTTP_SERVICE_UNAVAILABLE, "Work queue depth exceeded");
         }
     } else {
         hreq->WriteReply(HTTP_NOTFOUND);
@@ -517,7 +528,7 @@ HTTPRequest::~HTTPRequest()
     if (!replySent) {
         // Keep track of whether reply was sent to avoid request leaks
         LogPrintf("%s: Unhandled request\n", __func__);
-        WriteReply(HTTP_INTERNAL, "Unhandled request");
+        WriteReply(HTTP_INTERNAL_SERVER_ERROR, "Unhandled request");
     }
     // evhttpd cleans up the request, as long as a reply was sent.
 }
@@ -601,10 +612,16 @@ CService HTTPRequest::GetPeer() const
     CService peer;
     if (con) {
         // evhttp retains ownership over returned address string
-        const char* address = "";
+#ifdef WIN32
+        const char* address = nullptr;
+#else
+        char* address = nullptr;
+#endif
         uint16_t port = 0;
-        evhttp_connection_get_peer(con, (char**)&address, &port);
-        peer = LookupNumeric(address, port);
+        evhttp_connection_get_peer(con, &address, &port);
+        if (address) {
+            peer = LookupNumeric(address, port);
+        }
     }
     return peer;
 }
@@ -638,11 +655,13 @@ HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod() const
 void RegisterHTTPHandler(const std::string &prefix, bool exactMatch, const HTTPRequestHandler &handler)
 {
     LogPrint(BCLog::HTTP, "Registering HTTP handler for %s (exactmatch %d)\n", prefix, exactMatch);
+    LOCK(g_httppathhandlers_mutex);
     pathHandlers.push_back(HTTPPathHandler(prefix, exactMatch, handler));
 }
 
 void UnregisterHTTPHandler(const std::string &prefix, bool exactMatch)
 {
+    LOCK(g_httppathhandlers_mutex);
     std::vector<HTTPPathHandler>::iterator i = pathHandlers.begin();
     std::vector<HTTPPathHandler>::iterator iend = pathHandlers.end();
     for (; i != iend; ++i)

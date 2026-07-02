@@ -556,7 +556,7 @@ color: rgb(255, 255, 255);</string>
       </widget>
      </item>
      <item>
-      <widget class="MRichTextEdit" name="messageEdit" native="true">
+      <widget class="QPlainTextEdit" name="messageEdit">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -676,14 +676,6 @@ color: rgb(255, 255, 255);</string>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>MRichTextEdit</class>
-   <extends>QWidget</extends>
-   <header>mrichtextedit.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../verge.qrc"/>
  </resources>

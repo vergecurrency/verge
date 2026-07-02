@@ -2162,6 +2162,7 @@ jobs:
           libxcb-shape0-dev libxcb-xkb-dev \
           libboost-all-dev \
           libevent-dev libssl-dev zlib1g-dev libseccomp-dev libcap-dev libprotobuf-dev protobuf-compiler \
+          libqrencode-dev \
           qt6-base-dev qt6-base-private-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools \
           qt6-webengine-dev qt6-webengine-dev-tools
 
@@ -2295,6 +2296,7 @@ jobs:
           ./configure --enable-scrypt-sse2 --disable-bench --disable-tests \
           --disable-dependency-tracking --disable-werror \
           --with-gui=qt6 \
+          --with-qrencode \
           --with-qt-bindir="$PWD/.qt-tool-aliases" \
           --prefix="$(pwd)/depends/x86_64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
@@ -2653,6 +2655,7 @@ jobs:
           --disable-tests \
           --disable-dependency-tracking \
           --disable-werror \
+          --with-qrencode \
           --prefix="$(pwd)/depends/aarch64-linux-gnu" \
           --bindir="$(pwd)/release/bin" \
           --libdir="$(pwd)/release/lib"

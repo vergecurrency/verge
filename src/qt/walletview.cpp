@@ -11,6 +11,8 @@
 #include <qt/clientmodel.h>
 #include <qt/guiutil.h>
 #include <qt/gamespage.h>
+#include <qt/messagepage.h>
+#include <qt/messagemodel.h>
 #include <qt/optionsmodel.h>
 #include <qt/overviewpage.h>
 #include <qt/platformstyle.h>
@@ -24,7 +26,6 @@
 
 #include <interfaces/node.h>
 #include <ui_interface.h>
-
 #include <QAction>
 #include <QActionGroup>
 #include <QFileDialog>
@@ -64,16 +65,20 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
+    messagesPage = new MessagePage(platformStyle, this);
+    messageModel = nullptr;
     tradePage = new TradePage(this);
     gamesPage = new GamesPage(this);
 
     usedSendingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::SendingTab, this);
     usedReceivingAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ReceivingTab, this);
+    usedChatAddressesPage = new AddressBookPage(platformStyle, AddressBookPage::ForEditing, AddressBookPage::ChatAddressesTab, this);
 
     addWidget(overviewPage);
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
+    addWidget(messagesPage);
     addWidget(tradePage);
     addWidget(gamesPage);
 
@@ -98,6 +103,11 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 
 WalletView::~WalletView()
 {
+    if (messagesPage)
+        messagesPage->setModel(nullptr);
+
+    delete messageModel;
+    messageModel = nullptr;
 }
 
 void WalletView::setVERGEGUI(VERGEGUI *gui)
@@ -141,8 +151,20 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     overviewPage->setWalletModel(_walletModel);
     receiveCoinsPage->setModel(_walletModel);
     sendCoinsPage->setModel(_walletModel);
+    if (messageModel) {
+        messagesPage->setModel(nullptr);
+        delete messageModel;
+        messageModel = nullptr;
+    }
+    if (_walletModel) {
+        messageModel = new MessageModel(_walletModel, this);
+        messagesPage->setModel(messageModel);
+    } else {
+        messagesPage->setModel(nullptr);
+    }
     usedReceivingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
     usedSendingAddressesPage->setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
+    usedChatAddressesPage->setWalletModel(_walletModel);
 
     if (_walletModel)
     {
@@ -209,6 +231,11 @@ void WalletView::gotoSendCoinsPage(QString addr)
 
     if (!addr.isEmpty())
         sendCoinsPage->setAddress(addr);
+}
+
+void WalletView::gotoMessagesPage()
+{
+    setCurrentWidget(messagesPage);
 }
 
 void WalletView::gotoTradePage()
@@ -328,6 +355,16 @@ void WalletView::usedReceivingAddresses()
     usedReceivingAddressesPage->show();
     usedReceivingAddressesPage->raise();
     usedReceivingAddressesPage->activateWindow();
+}
+
+void WalletView::usedChatAddresses()
+{
+    if(!walletModel)
+        return;
+
+    usedChatAddressesPage->show();
+    usedChatAddressesPage->raise();
+    usedChatAddressesPage->activateWindow();
 }
 
 void WalletView::showProgress(const QString &title, int nProgress)

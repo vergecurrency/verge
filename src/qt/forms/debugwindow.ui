@@ -1162,14 +1162,14 @@
            </widget>
           </item>
           <item row="5" column="0">
-           <widget class="QLabel" name="label_29">
+           <widget class="QLabel" name="labelPeerSmsgSupported">
             <property name="text">
-             <string>Starting Block</string>
+             <string>SMSG Supported</string>
             </property>
            </widget>
           </item>
           <item row="5" column="2">
-           <widget class="QLabel" name="peerHeight">
+           <widget class="QLabel" name="peerSmsgSupported">
             <property name="cursor">
              <cursorShape>IBeamCursor</cursorShape>
             </property>
@@ -1185,14 +1185,14 @@
            </widget>
           </item>
           <item row="6" column="0">
-           <widget class="QLabel" name="label_27">
+           <widget class="QLabel" name="label_29">
             <property name="text">
-             <string>Synced Headers</string>
+             <string>Starting Block</string>
             </property>
            </widget>
           </item>
           <item row="6" column="2">
-           <widget class="QLabel" name="peerSyncHeight">
+           <widget class="QLabel" name="peerHeight">
             <property name="cursor">
              <cursorShape>IBeamCursor</cursorShape>
             </property>
@@ -1208,14 +1208,14 @@
            </widget>
           </item>
           <item row="7" column="0">
-           <widget class="QLabel" name="label_25">
+           <widget class="QLabel" name="label_27">
             <property name="text">
-             <string>Synced Blocks</string>
+             <string>Synced Headers</string>
             </property>
            </widget>
           </item>
           <item row="7" column="2">
-           <widget class="QLabel" name="peerCommonHeight">
+           <widget class="QLabel" name="peerSyncHeight">
             <property name="cursor">
              <cursorShape>IBeamCursor</cursorShape>
             </property>
@@ -1231,14 +1231,14 @@
            </widget>
           </item>
           <item row="8" column="0">
-           <widget class="QLabel" name="label_24">
+           <widget class="QLabel" name="label_25">
             <property name="text">
-             <string>Ban Score</string>
+             <string>Synced Blocks</string>
             </property>
            </widget>
           </item>
           <item row="8" column="2">
-           <widget class="QLabel" name="peerBanScore">
+           <widget class="QLabel" name="peerCommonHeight">
             <property name="cursor">
              <cursorShape>IBeamCursor</cursorShape>
             </property>
@@ -1254,14 +1254,14 @@
            </widget>
           </item>
           <item row="9" column="0">
-           <widget class="QLabel" name="label_22">
+           <widget class="QLabel" name="label_24">
             <property name="text">
-             <string>Connection Time</string>
+             <string>Ban Score</string>
             </property>
            </widget>
           </item>
           <item row="9" column="2">
-           <widget class="QLabel" name="peerConnTime">
+           <widget class="QLabel" name="peerBanScore">
             <property name="cursor">
              <cursorShape>IBeamCursor</cursorShape>
             </property>
@@ -1277,6 +1277,29 @@
            </widget>
           </item>
           <item row="10" column="0">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Connection Time</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="2">
+           <widget class="QLabel" name="peerConnTime">
+            <property name="cursor">
+             <cursorShape>IBeamCursor</cursorShape>
+            </property>
+            <property name="text">
+             <string>N/A</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::PlainText</enum>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
            <widget class="QLabel" name="label_15">
             <property name="text">
              <string>Last Send</string>

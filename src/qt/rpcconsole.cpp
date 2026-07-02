@@ -1235,7 +1235,13 @@ void RPCConsole::peerLayoutChanged()
 void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats)
 {
     // update the detail ui with latest node information
-    QString peerAddrDetails(QString::fromStdString(stats->nodeStats.addrName) + " ");
+    QString displayAddress;
+    if (stats->nodeStats.addr.IsLocal()) {
+        displayAddress = stats->nodeStats.fInbound ? tr("Tor inbound (local handoff)") : tr("Local peer");
+    } else {
+        displayAddress = QString::fromStdString(stats->nodeStats.addrName);
+    }
+    QString peerAddrDetails(displayAddress + " ");
     peerAddrDetails += tr("(node id: %1)").arg(QString::number(stats->nodeStats.nodeid));
     if (!stats->nodeStats.addrLocal.empty())
         peerAddrDetails += "<br />" + tr("via %1").arg(QString::fromStdString(stats->nodeStats.addrLocal));
@@ -1253,6 +1259,7 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats)
     ui->peerVersion->setText(QString("%1").arg(QString::number(stats->nodeStats.nVersion)));
     ui->peerSubversion->setText(QString::fromStdString(stats->nodeStats.cleanSubVer));
     ui->peerDirection->setText(stats->nodeStats.fInbound ? tr("Inbound") : tr("Outbound"));
+    ui->peerSmsgSupported->setText((stats->nodeStats.nServices & NODE_SMSG) ? tr("Yes") : tr("No"));
     ui->peerHeight->setText(QString("%1").arg(QString::number(stats->nodeStats.nStartingHeight)));
     ui->peerWhitelisted->setText(stats->nodeStats.fWhitelisted ? tr("Yes") : tr("No"));
 

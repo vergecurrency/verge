@@ -479,6 +479,7 @@ void SetupServerArgs()
     gArgs.AddArg("-limitdescendantsize=<n>", strprintf("Do not accept transactions if any ancestor would have more than <n> kilobytes of in-mempool descendants (default: %u).", DEFAULT_DESCENDANT_SIZE_LIMIT), true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-vbparams=deployment:start:end", "Use given start/end times for specified version bits deployment (regtest-only)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-addrmantest", "Allows to test address relay on localhost", true, OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg("-checkaddrman", "Run expensive addrman consistency checks after addrman updates (default: 0)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-debug=<category>", strprintf("Output debugging information (default: %u, supplying <category> is optional)", 0) + ". " +
         "If <category> is not supplied or if <category> = 1, output all debugging information. <category> can be: " + ListLogCategories() + ".", false, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-debugexclude=<category>", strprintf("Exclude debugging information for a category. Can be used in conjunction with -debug=1 to output debug logs for all categories except one or more specified categories."), false, OptionsCategory::DEBUG_TEST);
@@ -1398,6 +1399,7 @@ bool AppInitMain()
         if(!gArgs.GetBoolArg("-dynamic-network", false)) {
             SetProxy(NET_IPV4, addrOnion);
             SetProxy(NET_IPV6, addrOnion);
+            SetNameProxy(addrOnion);
         }
 
         SetLimited(NET_TOR, false);
@@ -1642,16 +1644,8 @@ bool AppInitMain()
                     assert(chainActive.Tip() != nullptr);
                 }
 
-                if (!fReset) {
-                    // Note that RewindBlockIndex MUST run even if we're about to -reindex-chainstate.
-                    // It both disconnects blocks based on chainActive, and drops block data in
-                    // mapBlockIndex based on lack of available witness data.
-                    uiInterface.InitMessage(_("Rewinding blocks..."));
-                    if (!RewindBlockIndex(chainparams, fReindexChainState)) {
-                        strLoadError = _("Unable to rewind the database to a pre-fork state. You will need to redownload the blockchain");
-                        break;
-                    }
-                }
+                // Verge does not use witness/SegWit block data, so the inherited
+                // Bitcoin startup witness rewind is unnecessary.
 
                 if (!is_coinsview_empty) {
                     uiInterface.InitMessage(_("Verifying blocks..."));
@@ -1744,13 +1738,9 @@ bool AppInitMain()
         }
     }
 
-    if (chainparams.GetConsensus().vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout != 0) {
-        // Only advertise witness capabilities if they have a reasonable start time.
-        // This allows us to have the code merged without a defined softfork, by setting its
-        // end time to 0.
-        // Note that setting NODE_WITNESS is never required: the only downside from not
-        // doing so is that after activation, no upgraded nodes will fetch from you.
-        nLocalServices = ServiceFlags(nLocalServices | NODE_WITNESS);
+    if (!gArgs.GetBoolArg("-disablewallet", false) &&
+        gArgs.GetBoolArg("-smsg", true)) {
+        nLocalServices = ServiceFlags(nLocalServices | NODE_SMSG);
     }
 
     // ********************************************************* Step 11: import blocks
@@ -1880,11 +1870,13 @@ bool AppInitMain()
     // ********************************************************* Step 13: finished
 
     SetRPCWarmupFinished();
-    uiInterface.InitMessage(_("Done loading"));
 
+    uiInterface.InitMessage(_("Starting wallet services..."));
     g_wallet_init_interface.Start(scheduler);
 	
 	scheduler.scheduleFromNow(FlushAfterSync, SYNC_CHECK_INTERVAL * 1000);
+
+    uiInterface.InitMessage(_("Done loading"));
 
     return true;
 }

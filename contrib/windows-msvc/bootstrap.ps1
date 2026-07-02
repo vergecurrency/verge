@@ -2,8 +2,8 @@ param(
     [string]$Prefix = "",
     [string]$QtVersion = "6.10.2",
     [string]$QtArch = "win64_msvc2022_64",
-    [string]$BoostVersion = "1.90.0",
-    [string]$OpenSSLVersion = "4.0.0",
+    [string]$BoostVersion = "1.91.0",
+    [string]$OpenSSLVersion = "4.0.1",
     [string]$BdbVersion = "4.8.30.NC",
     [string]$VcpkgRoot = "",
     [switch]$SkipQt,
@@ -245,11 +245,11 @@ function Install-Boost {
     }
 
     Push-Location $sourceRoot
-    cmd.exe /c "bootstrap.bat"
+    cmd.exe /c "bootstrap.bat msvc"
     if ($LASTEXITCODE -ne 0) {
         throw "Boost bootstrap failed"
     }
-    cmd.exe /c "b2.exe --prefix=`"$InstallRoot`" toolset=msvc address-model=64 variant=release link=static runtime-link=shared threading=multi --with-chrono --with-filesystem --with-program_options --with-system --with-thread install"
+    cmd.exe /c "b2.exe --prefix=`"$InstallRoot`" toolset=msvc address-model=64 variant=release link=static runtime-link=shared threading=multi --with-chrono --with-filesystem --with-program_options --with-thread install"
     if ($LASTEXITCODE -ne 0) {
         throw "Boost build failed"
     }
@@ -567,8 +567,8 @@ $pcDir = Convert-ToForwardPath $pkgConfigRoot
 Write-Section "Writing pkg-config metadata"
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libssl" -Prefix $pcPrefixOpenSSL -Description "OpenSSL SSL" -Version $OpenSSLVersion -Libs '-L${libdir} -llibssl -lcrypt32 -lws2_32' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libcrypto" -Prefix $pcPrefixOpenSSL -Description "OpenSSL Crypto" -Version $OpenSSLVersion -Libs '-L${libdir} -llibcrypto -ladvapi32 -lcrypt32 -lws2_32 -luser32' -Cflags '-I${includedir}'
-Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent" -Prefix $pcPrefixVcpkg -Description "libevent" -Version "2" -Libs '-L${libdir} -levent' -Cflags '-I${includedir}'
-Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent_pthreads" -Prefix $pcPrefixVcpkg -Description "libevent pthreads" -Version "2" -Libs '-L${libdir} -levent_pthreads' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent" -Prefix $pcPrefixVcpkg -Description "libevent" -Version "2.1.12-stable" -Libs '-L${libdir} -levent' -Cflags '-I${includedir}'
+Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libevent_pthreads" -Prefix $pcPrefixVcpkg -Description "libevent pthreads" -Version "2.1.12-stable" -Libs '-L${libdir} -levent_pthreads' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libqrencode" -Prefix $pcPrefixVcpkg -Description "QRencode" -Version "4" -Libs '-L${libdir} -lqrencode' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "protobuf" -Prefix $pcPrefixVcpkg -Description "Protocol Buffers" -Version "5" -Libs '-L${libdir} -llibprotobuf' -Cflags '-I${includedir}'
 Write-PkgConfigFile -Directory $pkgConfigRoot -Name "libzmq" -Prefix $pcPrefixVcpkg -Description "ZeroMQ" -Version "4" -Libs '-L${libdir} -llibzmq' -Cflags '-I${includedir}'

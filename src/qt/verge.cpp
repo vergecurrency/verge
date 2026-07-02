@@ -1244,6 +1244,33 @@ QDialog[customChrome="true"] {
     border: 1px solid #2a3347;
 }
 
+QMainWindow[customChrome="true"] {
+    background-color: #121722;
+    border: 1px solid #2a3347;
+}
+
+QWidget#ShellWindowControls {
+    background: transparent;
+}
+
+QToolButton#ShellWindowControlButton,
+QToolButton#ShellWindowCloseButton {
+    background: #1a2231;
+    border: 1px solid #313c52;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+QToolButton#ShellWindowControlButton:hover {
+    background: #26324a;
+    border-color: #6fa6ff;
+}
+
+QToolButton#ShellWindowCloseButton:hover {
+    background: #5a1d2a;
+    border-color: #ff6b86;
+}
+
 QDialog[customChrome="true"] QWidget#CustomDialogContent {
     background-color: #121722;
 }
@@ -2147,15 +2174,24 @@ QTabWidget#SignVerifyTabs QTabBar::tab:selected {
 }
 
 QToolButton#CustomTitleButton,
-QToolButton#CustomTitleCloseButton {
+QToolButton#CustomTitleCloseButton,
+QToolButton#ShellWindowControlButton,
+QToolButton#ShellWindowCloseButton {
     background: #190b2b;
     border: 1px solid #5b347d;
+    border-radius: 6px;
     color: #faf7ff;
 }
 
-QToolButton#CustomTitleButton:hover {
+QToolButton#CustomTitleButton:hover,
+QToolButton#ShellWindowControlButton:hover {
     background: #27103f;
     border-color: #d966ff;
+}
+
+QToolButton#ShellWindowCloseButton:hover {
+    background: #66122a;
+    border-color: #ff6b9d;
 }
 
 QToolButton#CustomTitleCloseButton:hover {
@@ -2550,18 +2586,11 @@ void VERGEApplication::requestShutdown()
     qDebug() << __func__ << ": Requesting shutdown";
     startThread();
     window->hide();
-    window->setClientModel(0);
     pollShutdownTimer->stop();
 
 #ifdef ENABLE_WALLET
-    window->removeAllWallets();
-    for (WalletModel *walletModel : m_wallet_models) {
-        delete walletModel;
-    }
-    m_wallet_models.clear();
+    m_handler_load_wallet.reset();
 #endif
-    delete clientModel;
-    clientModel = 0;
 
     m_node.startShutdown();
 
@@ -2652,6 +2681,22 @@ void VERGEApplication::initializeResult(bool success)
 
 void VERGEApplication::shutdownResult()
 {
+    if (window) {
+        window->setClientModel(0);
+#ifdef ENABLE_WALLET
+        window->removeAllWallets();
+#endif
+    }
+
+#ifdef ENABLE_WALLET
+    for (WalletModel *walletModel : m_wallet_models) {
+        delete walletModel;
+    }
+    m_wallet_models.clear();
+#endif
+
+    delete clientModel;
+    clientModel = 0;
     shutdownWindow.reset();
     quit(); // Exit second main loop invocation after shutdown finished
 }
@@ -3017,6 +3062,9 @@ int main(int argc, char *argv[])
             QObject::tr("Error: Cannot parse configuration file: %1.").arg(QString::fromStdString(error)));
         return EXIT_FAILURE;
     }
+    // User wallets should participate in secure messaging by default. The
+    // daemon sets the opposite default for infrastructure deployments.
+    gArgs.SoftSetBoolArg("-smsg", true);
 
     /// 7. Determine network (and switch to network specific options)
     // - Do not call Params() before this step
@@ -3093,7 +3141,9 @@ int main(int argc, char *argv[])
         // This is acceptable because this function only contains steps that are quick to execute,
         // so the GUI thread won't be held up.
         if (node->baseInitialize()) {
-            app.requestInitialize();
+            QTimer::singleShot(0, &app, [&app]() {
+                app.requestInitialize();
+            });
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
             WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("%1 didn't yet exit safely...").arg(QObject::tr(PACKAGE_NAME)), (HWND)app.getMainWinId());
 #endif

@@ -82,6 +82,69 @@ P2P port | 21102 (testnet: 21104)
 pre-mine | Not Applicable
 ICO | Not Applicable
 
+## RPC Reference
+
+See [RPC.md](RPC.md) for the complete `verged`/`verge-qt` RPC command reference, including wallet, network, raw transaction, mining, and secure messaging commands.
+
+## Secure Messaging (SMSG)
+
+Verge Secure Messaging (SMSG) is paid, encrypted wallet-to-wallet messaging. Messages use a shared chatkey in the form:
+
+```text
+vergeaddress-publickey
+```
+
+`verge-qt` starts with SMSG enabled by default because it is normally used by wallet users. `verged` starts with SMSG disabled by default as a security measure for infrastructure deployments such as pools, exchanges, explorers, and public RPC nodes. This keeps infrastructure nodes from relaying, storing, and indexing SMSG data unless the operator explicitly opts in.
+
+To enable SMSG on `verged`, add this to `verge.conf` or pass it on the command line:
+
+```ini
+smsg=1
+```
+
+Optional SMSG daemon settings:
+
+```ini
+# Scan the chain for chatkey funding/public-key data on startup.
+smsgscanchain=1
+
+# Scan incoming blocks for new SMSG public-key data.
+smsgscanincoming=1
+
+# Target number of validated SMSG relay peers to maintain.
+smsgpeers=3
+```
+
+Basic `verged` SMSG workflow:
+
+```shell
+# Start verged with SMSG enabled for this run.
+verged -smsg=1
+
+# Create or choose a normal wallet address, then publish a local chatkey for it.
+verge-cli getnewaddress "chat"
+verge-cli smsgaddlocaladdress <youraddress>
+
+# Show your shareable chatkey.
+verge-cli smsggetpubkey <youraddress>
+
+# Save another user's dashed chatkey and send a paid message.
+verge-cli smsgaddaddress <theiraddress> <theirpublickey>
+verge-cli smsgsend <youraddress> "<theiraddress>-<theirpublickey>" "hello" true 31
+
+# Read messages.
+verge-cli smsginbox all
+verge-cli smsgoutbox all
+```
+
+If the wallet is encrypted, unlock it before creating chatkeys or sending messages:
+
+```shell
+verge-cli walletpassphrase "your passphrase" 300
+```
+
+SMSG paid messages default to 31 days of retention, and the sender can choose a lower retention period from 1 to 31 days. See [RPC.md](RPC.md#secure-messaging) for the full secure messaging RPC reference.
+
 ## Blockrewards
 Block Number Range | Reward
 --- | ---

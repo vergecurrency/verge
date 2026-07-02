@@ -11,6 +11,8 @@
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
 
+#include <smsg/smessage.h>
+
 #include <QClipboard>
 #include <QDrag>
 #include <QDialogButtonBox>
@@ -20,9 +22,7 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QTextDocument>
-#if QT_VERSION < 0x050000
 #include <QUrl>
-#endif
 
 #if defined(HAVE_CONFIG_H)
 #include <config/verge-config.h> /* for USE_QRCODE */
@@ -42,6 +42,42 @@ QPixmap GetLabelPixmap(const QLabel* label)
     const QPixmap* pixmap = label->pixmap();
     return pixmap ? *pixmap : QPixmap();
 #endif
+}
+
+QString EncodeUriValue(const QString& value)
+{
+    return QString::fromLatin1(QUrl::toPercentEncoding(value));
+}
+
+QString GetLocalChatkey(const QString& address)
+{
+    std::string publicKey;
+    if (smsgModule.GetLocalPublicKey(address.toStdString(), publicKey) != smsg::SMSG_NO_ERROR) {
+        return QString();
+    }
+    return QString::fromStdString(publicKey);
+}
+
+QString FormatShareChatkey(const QString& address, const QString& chatkey)
+{
+    return QStringLiteral("%1-%2").arg(address, chatkey);
+}
+
+QString FormatChatkeyURI(const QString& address, const QString& chatkey, const QString& label)
+{
+    QString uri = QStringLiteral("verge:%1?chatkey=%2").arg(address, EncodeUriValue(chatkey));
+    if (!label.isEmpty()) {
+        uri += QStringLiteral("&label=%1").arg(EncodeUriValue(label));
+    }
+    return uri;
+}
+
+QString DialogURIForRecipient(const SendCoinsRecipient& info, const QString& chatkey)
+{
+    if (!chatkey.isEmpty()) {
+        return FormatChatkeyURI(info.address, chatkey, info.label);
+    }
+    return GUIUtil::formatVERGEURI(info);
 }
 } // namespace
 
@@ -109,7 +145,8 @@ void QRImageWidget::contextMenuEvent(QContextMenuEvent *event)
 ReceiveRequestDialog::ReceiveRequestDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ReceiveRequestDialog),
-    model(0)
+    model(0),
+    requestMode(PaymentRequest)
 {
     ui->setupUi(this);
     setMinimumSize(560, 660);
@@ -150,7 +187,13 @@ void ReceiveRequestDialog::setModel(WalletModel *_model)
 
 void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info)
 {
+    setInfo(_info, PaymentRequest);
+}
+
+void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info, RequestMode mode)
+{
     this->info = _info;
+    this->requestMode = mode;
     update();
 }
 
@@ -161,21 +204,28 @@ void ReceiveRequestDialog::update()
     QString target = info.label;
     if(target.isEmpty())
         target = info.address;
-    setWindowTitle(tr("Request payment to %1").arg(target));
+    const QString chatkey = GetLocalChatkey(info.address);
+    const bool isChatkey = requestMode == ChatkeyRequest && !chatkey.isEmpty();
+    setWindowTitle(isChatkey ? tr("Share chatkey for %1").arg(target) : tr("Request payment to %1").arg(target));
 
-    QString uri = GUIUtil::formatVERGEURI(info);
+    QString uri = DialogURIForRecipient(info, isChatkey ? chatkey : QString());
     ui->btnSaveAs->setEnabled(false);
+    ui->btnCopyAddress->setText(isChatkey ? tr("Copy Chatkey") : tr("Copy Address"));
     QString html;
     html += "<html><font face='verdana, arial, helvetica, sans-serif'>";
-    html += "<b>"+tr("Payment information")+"</b><br>";
+    html += "<b>" + (isChatkey ? tr("Chatkey information") : tr("Payment information")) + "</b><br>";
     html += "<b>"+tr("URI")+"</b>: ";
     html += "<a href=\""+uri+"\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
-    html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
-    if(info.amount)
+    if (isChatkey) {
+        html += "<b>"+tr("Chatkey")+"</b>: " + GUIUtil::HtmlEscape(FormatShareChatkey(info.address, chatkey)) + "<br>";
+    } else {
+        html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
+    }
+    if(info.amount && !isChatkey)
         html += "<b>"+tr("Amount")+"</b>: " + VERGEUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), info.amount) + "<br>";
     if(!info.label.isEmpty())
         html += "<b>"+tr("Label")+"</b>: " + GUIUtil::HtmlEscape(info.label) + "<br>";
-    if(!info.message.isEmpty())
+    if(!info.message.isEmpty() && !isChatkey)
         html += "<b>"+tr("Message")+"</b>: " + GUIUtil::HtmlEscape(info.message) + "<br>";
     if(model->isMultiwallet()) {
         html += "<b>"+tr("Wallet")+"</b>: " + GUIUtil::HtmlEscape(model->getWalletName()) + "<br>";
@@ -218,12 +268,13 @@ void ReceiveRequestDialog::update()
             QRect paddedRect = qrAddrImage.rect();
 
             // calculate ideal font size
-            qreal font_size = GUIUtil::calculateIdealFontSize(paddedRect.width() - 20, info.address, font);
+            const QString qrCaption = isChatkey ? chatkey : info.address;
+            qreal font_size = GUIUtil::calculateIdealFontSize(paddedRect.width() - 20, qrCaption, font);
             font.setPointSizeF(font_size);
 
             painter.setFont(font);
             paddedRect.setHeight(QR_IMAGE_SIZE+12);
-            painter.drawText(paddedRect, Qt::AlignBottom|Qt::AlignCenter, info.address);
+            painter.drawText(paddedRect, Qt::AlignBottom|Qt::AlignCenter, qrCaption);
             painter.end();
 
             ui->lblQRCode->setPixmap(QPixmap::fromImage(qrAddrImage));
@@ -235,10 +286,11 @@ void ReceiveRequestDialog::update()
 
 void ReceiveRequestDialog::on_btnCopyURI_clicked()
 {
-    GUIUtil::setClipboard(GUIUtil::formatVERGEURI(info));
+    GUIUtil::setClipboard(DialogURIForRecipient(info, requestMode == ChatkeyRequest ? GetLocalChatkey(info.address) : QString()));
 }
 
 void ReceiveRequestDialog::on_btnCopyAddress_clicked()
 {
-    GUIUtil::setClipboard(info.address);
+    const QString chatkey = requestMode == ChatkeyRequest ? GetLocalChatkey(info.address) : QString();
+    GUIUtil::setClipboard(chatkey.isEmpty() ? info.address : FormatShareChatkey(info.address, chatkey));
 }

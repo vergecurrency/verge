@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2025 The Verge Core developers
+// Copyright (c) 2018-2026 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -57,7 +57,10 @@ const std::string CLIENT_NAME("verge");
  *    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-g" commit
  */
 
-#if CLIENT_VERSION_BUILD == 0
+#if CLIENT_VERSION_BUILD == 0 && CLIENT_VERSION_REVISION == 0
+#define BUILD_DESC_FROM_UNKNOWN(maj, min, rev, build) \
+    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min)
+#elif CLIENT_VERSION_BUILD == 0
 #define BUILD_DESC_FROM_UNKNOWN(maj, min, rev, build) \
     "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev)
 #else

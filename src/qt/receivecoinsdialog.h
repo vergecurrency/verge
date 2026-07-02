@@ -25,6 +25,7 @@ namespace Ui {
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
+class QPushButton;
 QT_END_NAMESPACE
 
 /** Dialog for requesting payment of verge */
@@ -58,6 +59,7 @@ private:
     GUIUtil::TableViewLastColumnResizingFixer *columnResizingFixer;
     WalletModel *model;
     QMenu *contextMenu;
+    QPushButton *editLabelButton;
     const PlatformStyle *platformStyle;
 
     QModelIndex selectedRow();
@@ -66,6 +68,7 @@ private:
 
 private Q_SLOTS:
     void on_receiveButton_clicked();
+    void on_createChatkeyButton_clicked();
     void on_showRequestButton_clicked();
     void on_removeRequestButton_clicked();
     void on_recentRequestsView_doubleClicked(const QModelIndex &index);
@@ -76,6 +79,7 @@ private Q_SLOTS:
     void copyLabel();
     void copyMessage();
     void copyAmount();
+    void editSelectedLabel();
 };
 
 #endif // VERGE_QT_RECEIVECOINSDIALOG_H

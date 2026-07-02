@@ -394,7 +394,22 @@ CAddrInfo CAddrMan::Select_(bool newOnly)
     }
 }
 
-#ifdef DEBUG_ADDRMAN
+CAddrInfo CAddrMan::SelectByService_(ServiceFlags requiredServices, int maxTries)
+{
+    for (int i = 0; i < maxTries; ++i) {
+        CAddrInfo addr = Select_(false);
+        if (!addr.IsValid()) {
+            return CAddrInfo();
+        }
+        if (HasAllDesirableServiceFlags(addr.nServices)
+            && (addr.nServices & requiredServices) == requiredServices) {
+            return addr;
+        }
+    }
+
+    return CAddrInfo();
+}
+
 int CAddrMan::Check_()
 {
     std::set<int> setTried;
@@ -470,7 +485,6 @@ int CAddrMan::Check_()
 
     return 0;
 }
-#endif
 
 void CAddrMan::GetAddr_(std::vector<CAddress>& vAddr)
 {

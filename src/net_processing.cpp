@@ -24,6 +24,7 @@
 #include <primitives/transaction.h>
 #include <random.h>
 #include <reverse_iterator.h>
+#include <smsg/smessage.h>
 #include <scheduler.h>
 #include <tinyformat.h>
 #include <txmempool.h>
@@ -32,6 +33,7 @@
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 
+#include <algorithm>
 #include <array>
 #include <memory>
 
@@ -66,6 +68,8 @@ static size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
 static std::vector<std::pair<uint256, CTransactionRef>> vExtraTxnForCompact GUARDED_BY(g_cs_orphans);
 
 static const uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL; // SHA256("main address relay")[0:8]
+static const int64_t MAX_ADDR_PROCESSING_TOKENS = 5000;
+static const int64_t ADDR_PROCESSING_TOKENS_PER_SECOND = 100;
 
 /// Age after which a stale block will no longer be served if requested as
 /// protection against fingerprinting. Set to one month, denominated in seconds.
@@ -164,7 +168,7 @@ struct CNodeState {
     bool fCurrentlyConnected;
     //! Accumulated misbehaviour score for this peer.
     int nMisbehavior;
-    //! Whether this peer should be disconnected and banned (unless whitelisted).
+    //! Whether this peer should be disconnected and discouraged (unless whitelisted).
     bool fShouldBan;
     //! String name of this peer (debugging/logging purposes).
     const std::string name;
@@ -242,6 +246,9 @@ struct CNodeState {
 
     //! Time of last new block announcement
     int64_t m_last_block_announcement;
+    //! Token bucket for inbound addr processing.
+    int64_t m_addr_process_tokens;
+    int64_t m_addr_process_time;
 
     CNodeState(CAddress addrIn, std::string addrNameIn) : address(addrIn), name(addrNameIn) {
         fCurrentlyConnected = false;
@@ -267,6 +274,8 @@ struct CNodeState {
         fSupportsDesiredCmpctVersion = false;
         m_chain_sync = { 0, nullptr, false, false };
         m_last_block_announcement = 0;
+        m_addr_process_tokens = MAX_ADDR_PROCESSING_TOKENS;
+        m_addr_process_time = GetTime();
     }
 };
 
@@ -769,7 +778,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 }
 
 /**
- * Mark a misbehaving peer to be banned depending upon the value of `-banscore`.
+ * Mark a misbehaving peer to be disconnected and discouraged depending upon the value of `-banscore`.
  *
  * Requires cs_main.
  */
@@ -787,7 +796,7 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string& message)
     std::string message_prefixed = message.empty() ? "" : (": " + message);
     if (state->nMisbehavior >= banscore && state->nMisbehavior - howmuch < banscore)
     {
-        LogPrint(BCLog::NET, "%s: %s peer=%d (%d -> %d) BAN THRESHOLD EXCEEDED%s\n", __func__, state->name, pnode, state->nMisbehavior-howmuch, state->nMisbehavior, message_prefixed);
+        LogPrint(BCLog::NET, "%s: %s peer=%d (%d -> %d) discouragement threshold exceeded%s\n", __func__, state->name, pnode, state->nMisbehavior-howmuch, state->nMisbehavior, message_prefixed);
         state->fShouldBan = true;
     } else
         LogPrint(BCLog::NET, "%s: %s peer=%d (%d -> %d)%s\n", __func__, state->name, pnode, state->nMisbehavior-howmuch, state->nMisbehavior, message_prefixed);
@@ -879,7 +888,7 @@ static bool fWitnessesPresentInMostRecentCompactBlock;
  * to compatible peers.
  */
 void PeerLogicValidation::NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr<const CBlock>& pblock) {
-    std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock = std::make_shared<const CBlockHeaderAndShortTxIDs> (*pblock, true);
+    std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock = std::make_shared<const CBlockHeaderAndShortTxIDs> (*pblock, false);
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
 
     LOCK(cs_main);
@@ -1152,15 +1161,6 @@ void static ProcessGetBlockData(CNode* pfrom, const CChainParams& chainparams, c
         std::shared_ptr<const CBlock> pblock;
         if (a_recent_block && a_recent_block->GetHash() == pindex->GetBlockHash()) {
             pblock = a_recent_block;
-        } else if (inv.type == MSG_WITNESS_BLOCK) {
-            // Fast-path: in this case it is possible to serve the block directly from disk,
-            // as the network format matches the format on disk
-            std::vector<uint8_t> block_data;
-            if (!ReadRawBlockFromDisk(block_data, pindex, chainparams.MessageStart())) {
-                assert(!"cannot load block from disk");
-            }
-            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::BLOCK, MakeSpan(block_data)));
-            // Don't set pblock as we've sent the block
         } else {
             // Send block from disk
             std::shared_ptr<CBlock> pblockRead = std::make_shared<CBlock>();
@@ -1169,10 +1169,8 @@ void static ProcessGetBlockData(CNode* pfrom, const CChainParams& chainparams, c
             pblock = pblockRead;
         }
         if (pblock) {
-            if (inv.type == MSG_BLOCK)
+            if (inv.type == MSG_BLOCK || inv.type == MSG_WITNESS_BLOCK)
                 connman->PushMessage(pfrom, msgMaker.Make(SERIALIZE_TRANSACTION_NO_WITNESS, NetMsgType::BLOCK, *pblock));
-            else if (inv.type == MSG_WITNESS_BLOCK)
-                connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::BLOCK, *pblock));
             else if (inv.type == MSG_FILTERED_BLOCK)
             {
                 bool sendMerkleBlock = false;
@@ -1205,8 +1203,8 @@ void static ProcessGetBlockData(CNode* pfrom, const CChainParams& chainparams, c
                 // they won't have a useful mempool to match against a compact block,
                 // and we don't feel like constructing the object for them, so
                 // instead we respond with the full, non-compact block.
-                bool fPeerWantsWitness = State(pfrom->GetId())->fWantsCmpctWitness;
-                int nSendFlags = fPeerWantsWitness ? 0 : SERIALIZE_TRANSACTION_NO_WITNESS;
+                bool fPeerWantsWitness = false;
+                int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
                 if (CanDirectFetch(consensusParams) && pindex->nHeight >= chainActive.Height() - MAX_CMPCTBLOCK_DEPTH) {
                     if ((fPeerWantsWitness || !fWitnessesPresentInARecentCompactBlock) && a_recent_compact_block && a_recent_compact_block->header.GetHash() == pindex->GetBlockHash()) {
                         connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, *a_recent_compact_block));
@@ -1257,7 +1255,7 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
             // Send stream from relay memory
             bool push = false;
             auto mi = mapRelay.find(inv.hash);
-            int nSendFlags = (inv.type == MSG_TX ? SERIALIZE_TRANSACTION_NO_WITNESS : 0);
+            int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
             if (mi != mapRelay.end()) {
                 connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                 push = true;
@@ -1321,7 +1319,7 @@ inline void static SendBlockTransactions(const CBlock& block, const BlockTransac
     }
     LOCK(cs_main);
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
-    int nSendFlags = State(pfrom->GetId())->fWantsCmpctWitness ? 0 : SERIALIZE_TRANSACTION_NO_WITNESS;
+    int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
     connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
@@ -1904,6 +1902,27 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return false;
         }
 
+        {
+            LOCK(cs_main);
+            CNodeState* state = State(pfrom->GetId());
+            if (state == nullptr)
+                return true;
+            const int64_t now = GetTime();
+            const int64_t elapsed = std::max<int64_t>(0, now - state->m_addr_process_time);
+            state->m_addr_process_time = now;
+            state->m_addr_process_tokens += elapsed * ADDR_PROCESSING_TOKENS_PER_SECOND;
+            if (state->m_addr_process_tokens > MAX_ADDR_PROCESSING_TOKENS)
+                state->m_addr_process_tokens = MAX_ADDR_PROCESSING_TOKENS;
+
+            if (state->m_addr_process_tokens < static_cast<int64_t>(vAddr.size())) {
+                LogPrint(BCLog::NET, "addr rate limit from peer=%d: message size=%u tokens=%d\n",
+                         pfrom->GetId(), vAddr.size(), state->m_addr_process_tokens);
+                Misbehaving(pfrom->GetId(), 1, "addr rate limit");
+                return true;
+            }
+            state->m_addr_process_tokens -= vAddr.size();
+        }
+
         // Store the new addresses
         std::vector<CAddress> vAddrOk;
         int64_t nNow = GetAdjustedTime();
@@ -2378,8 +2397,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 if (RecursiveDynamicUsage(*ptx) < 100000) {
                     AddToCompactExtraTransactions(ptx);
                 }
-            } else if (tx.HasWitness() && RecursiveDynamicUsage(*ptx) < 100000) {
-                AddToCompactExtraTransactions(ptx);
             }
 
             if (pfrom->fWhitelisted && gArgs.GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) {
@@ -2774,6 +2791,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             LOCK(cs_main);
             mapBlockSource.erase(pblock->GetHash());
         }
+
+        if (smsg::fSecMsgEnabled) {
+            smsgModule.ScanBlock(*pblock);
+        }
     }
 
 
@@ -2978,6 +2999,27 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     }
 
     else {
+        if (smsg::fSecMsgEnabled && strCommand.rfind("smsg", 0) == 0) {
+            if (!(pfrom->nServices.load() & NODE_SMSG)) {
+                LogPrint(BCLog::SMSG,
+                    "Ignoring secure message command \"%s\" from peer=%d without NODE_SMSG.\n",
+                    SanitizeString(strCommand),
+                    pfrom->GetId());
+                return true;
+            }
+
+            const int rv = smsgModule.ReceiveData(pfrom, strCommand, vRecv);
+            if (rv == smsg::SMSG_NO_ERROR) {
+                return true;
+            }
+            if (rv != smsg::SMSG_UNKNOWN_MESSAGE) {
+                LogPrint(BCLog::NET, "Secure message command \"%s\" from peer=%d failed: %s\n",
+                    SanitizeString(strCommand),
+                    pfrom->GetId(),
+                    smsg::GetString(rv));
+            }
+        }
+
         // Ignore unknown commands for extensibility
         LogPrint(BCLog::NET, "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->GetId());
     }
@@ -3008,10 +3050,10 @@ static bool SendRejectsAndCheckIfBanned(CNode* pnode, CConnman* connman)
         else {
             pnode->fDisconnect = true;
             if (pnode->addr.IsLocal())
-                LogPrintf("Warning: not banning local peer %s!\n", pnode->addr.ToString());
+                LogPrintf("Warning: not discouraging local peer %s!\n", pnode->addr.ToString());
             else
             {
-                connman->Ban(pnode->addr, BanReasonNodeMisbehaving);
+                connman->Discourage(pnode->addr);
             }
         }
         return true;
@@ -3478,16 +3520,17 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                     LogPrint(BCLog::NET, "%s sending header-and-ids %s to peer=%d\n", __func__,
                             vHeaders.front().GetHash().ToString(), pto->GetId());
 
-                    int nSendFlags = state.fWantsCmpctWitness ? 0 : SERIALIZE_TRANSACTION_NO_WITNESS;
+                    int nSendFlags = SERIALIZE_TRANSACTION_NO_WITNESS;
+                    const bool fSendWitness = false;
 
                     bool fGotBlockFromCache = false;
                     {
                         LOCK(cs_most_recent_block);
                         if (most_recent_block_hash == pBestIndex->GetBlockHash()) {
-                            if (state.fWantsCmpctWitness || !fWitnessesPresentInMostRecentCompactBlock)
+                            if (!fWitnessesPresentInMostRecentCompactBlock)
                                 connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, *most_recent_compact_block));
                             else {
-                                CBlockHeaderAndShortTxIDs cmpctblock(*most_recent_block, state.fWantsCmpctWitness);
+                                CBlockHeaderAndShortTxIDs cmpctblock(*most_recent_block, fSendWitness);
                                 connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, cmpctblock));
                             }
                             fGotBlockFromCache = true;
@@ -3497,7 +3540,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                         CBlock block;
                         bool ret = ReadBlockFromDisk(block, pBestIndex, consensusParams);
                         assert(ret);
-                        CBlockHeaderAndShortTxIDs cmpctblock(block, state.fWantsCmpctWitness);
+                        CBlockHeaderAndShortTxIDs cmpctblock(block, fSendWitness);
                         connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, cmpctblock));
                     }
                     state.pindexBestHeaderSent = pBestIndex;
@@ -3812,6 +3855,10 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                      (currentFilter < 3 * pto->lastSentFeeFilter / 4 || currentFilter > 4 * pto->lastSentFeeFilter / 3)) {
                 pto->nextSendTimeFeeFilter = timeNow + GetRandInt(MAX_FEEFILTER_CHANGE_DELAY) * 1000000;
             }
+        }
+
+        if (smsg::fSecMsgEnabled && (pto->nServices.load() & NODE_SMSG)) {
+            smsgModule.SendData(pto, true);
         }
     }
     return true;

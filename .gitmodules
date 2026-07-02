@@ -1,5 +1,8 @@
 [submodule "src/tor"]
 	path = src/tor
 	url = https://gitlab.torproject.org/tpo/core/tor
-	branch = release-0.4.8
+	branch = release-0.4.9
 
+[submodule "src/secp256k1"]
+	path = src/secp256k1
+	url = https://github.com/bitcoin-core/secp256k1

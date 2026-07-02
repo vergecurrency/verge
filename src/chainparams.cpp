@@ -163,6 +163,7 @@ vSeeds.emplace_back("accu36f6dg5e54axjcytitblk4r736uenuvs6fzbp77m3akfxztpeqqd.on
 vSeeds.emplace_back("dzp3twhnyccmyv2mchkhcihgvobgbhwj23bum7esdtg3ajyaheaxswyd.onion"); //v7
 vSeeds.emplace_back("b33anagkcywi5ahfdufcvymoaioone5syhrt74bhse46hzbkcziqmfqd.onion");
 vSeeds.emplace_back("rje6q245yhiyn4setn5abjlcqwapxzgwbfksrscexyhv7ffjdasmvaqd.onion");
+vSeeds.emplace_back("4it7xbnb4lavdh5tnxkwp5sf4r4nzsepy3jci5aub4wevtwiuzihwjad.onion"); // smsg yes flag node
 vSeeds.emplace_back("fs6zqnig2st24grcjdeqdvgjisohdj6itwxwqyymv7m6lku2itotczid.onion");
 vSeeds.emplace_back("2vrz2akwqkmbvpxa2fhxp2mdccba5253n5jqjox5zthakxrci25wnoqd.onion");
 vSeeds.emplace_back("p5lmvvppkxi3jbisxaq3zojsvvnnhfowfngo6aeh63uqt66xfjjg7cyd.onion");

@@ -1,9 +1,11 @@
 #ifndef VERGE_QT_MESSAGEMODEL_H
 #define VERGE_QT_MESSAGEMODEL_H
+
+#include <boost/signals2/connection.hpp>
+
 #include <uint256.h>
 #include <vector>
-#include <allocators.h> /* for SecureString */
-#include <smessage.h>
+#include <smsg/smessage.h>
 #include <map>
 #include <QSortFilterProxyModel>
 #include <QAbstractTableModel>
@@ -13,7 +15,6 @@
 class InvoiceTableModel;
 class InvoiceItemTableModel;
 class ReceiptTableModel;
-class CWallet;
 class WalletModel;
 class OptionsModel;
  class SendMessagesRecipient
@@ -38,7 +39,9 @@ public:
     QString from_address;
     QDateTime sent_datetime;
     QDateTime received_datetime;
+    QString status;
     QString message;
+    QString funding_txid;
      MessageTableEntry() {}
     MessageTableEntry(std::vector<unsigned char> &chKey,
                       Type type,
@@ -47,7 +50,9 @@ public:
                       const QString &from_address,
                       const QDateTime &sent_datetime,
                       const QDateTime &received_datetime,
-                      const QString &message):
+                      const QString &status,
+                      const QString &message,
+                      const QString &funding_txid = QString()):
         chKey(chKey),
         type(type),
         label(label),
@@ -55,7 +60,9 @@ public:
         from_address(from_address),
         sent_datetime(sent_datetime),
         received_datetime(received_datetime),
-        message(message)
+        status(status),
+        message(message),
+        funding_txid(funding_txid)
     {
     }
 };
@@ -63,8 +70,8 @@ public:
 class MessageModel : public QAbstractTableModel
 {
     Q_OBJECT
- public:
-    explicit MessageModel(CWallet *wallet, WalletModel *walletModel, QObject *parent = 0);
+public:
+    explicit MessageModel(WalletModel *walletModel, QObject *parent = 0);
     ~MessageModel();
      enum StatusCode // Returned by sendMessages
     {
@@ -77,17 +84,18 @@ class MessageModel : public QAbstractTableModel
         Aborted,
         FailedErrorShown
     };
-     enum ColumnIndex {
+    enum ColumnIndex {
         Type = 0,   /**< Sent/Received */
-        SentDateTime = 1, /**< Time Sent */
-        ReceivedDateTime = 2, /**< Time Received */
-        Label = 3,   /**< User specified label */
-        ToAddress = 4, /**< To Verge address */
-        FromAddress = 5, /**< From Verge address */
-        Message = 6, /**< Plaintext */
-        TypeInt = 7, /**< Plaintext */
-        Key = 8, /**< chKey */
-        HTML = 9, /**< HTML Formatted Data */
+        Status = 1, /**< Delivery / receive status */
+        SentDateTime = 2, /**< Time Sent */
+        ReceivedDateTime = 3, /**< Time Received */
+        Label = 4,   /**< User specified label */
+        ToAddress = 5, /**< To Verge address */
+        FromAddress = 6, /**< From Verge address */
+        Message = 7, /**< Plaintext */
+        TypeInt = 8, /**< Plaintext */
+        Key = 9, /**< chKey */
+        HTML = 10, /**< HTML Formatted Data */
     };
      /** Roles to get specific information from a message row.
         These are independent of column.
@@ -109,6 +117,8 @@ class MessageModel : public QAbstractTableModel
         FilterAddressRole,
         /** Label of address related to message */
         LabelRole,
+        /** Delivery / receive status */
+        StatusRole,
         /** Full Message */
         MessageRole,
         /** Short Message */
@@ -116,7 +126,11 @@ class MessageModel : public QAbstractTableModel
         /** HTML Formatted */
         HTMLRole,
         /** Ambiguous bool */
-        Ambiguous
+        Ambiguous,
+        /** Paid SMSG funding receipt data */
+        ReceiptAvailableRole,
+        ReceiptTxHashRole,
+        ReceiptConfirmedRole
     };
      static const QString Sent; /**< Specifies sent message */
     static const QString Received; /**< Specifies sent message */
@@ -140,29 +154,32 @@ class MessageModel : public QAbstractTableModel
      void resetFilter();
      bool getAddressOrPubkey( QString &Address,  QString &Pubkey) const;
      // Send messages to a list of recipients
-    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients);
-    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom);
+    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, bool paidMessage = true, int retentionDays = 31);
+    StatusCode sendMessages(const QList<SendMessagesRecipient> &recipients, const QString &addressFrom, bool paidMessage = true, int retentionDays = 31);
     
     QSortFilterProxyModel *proxyModel;
     
 private:
-    CWallet *wallet;
     WalletModel *walletModel;
     OptionsModel *optionsModel;
     MessageTablePriv *priv;
     QStringList columns;
+    boost::signals2::connection notifySecMsgInboxChanged;
+    boost::signals2::connection notifySecMsgOutboxChanged;
+    boost::signals2::connection notifySecMsgWalletUnlocked;
      void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
- public slots:
-     /* Check for new messages */
-    void newMessage(const SecMsgStored& smsg);
-    void newOutboxMessage(const SecMsgStored& smsg);
+public Q_SLOTS:
+    /* Check for new messages */
+    void newMessage(const smsg::SecMsgStored& smsg);
+    void newOutboxMessage(const smsg::SecMsgStored& smsg);
     
     void walletUnlocked();
+    void reloadMessages();
     
-    void setEncryptionStatus(int status);
+    void setEncryptionStatus();
      friend class MessageTablePriv;
- signals:
+Q_SIGNALS:
     // Asynchronous error notification
     void error(const QString &title, const QString &message, bool modal);
 };

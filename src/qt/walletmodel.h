@@ -201,6 +201,7 @@ public:
 
     interfaces::Node& node() const { return m_node; }
     interfaces::Wallet& wallet() const { return *m_wallet; }
+    const PlatformStyle* getPlatformStyle() const { return m_platform_style; }
 
     QString getWalletName() const;
 
@@ -215,6 +216,7 @@ private:
     std::unique_ptr<interfaces::Handler> m_handler_show_progress;
     std::unique_ptr<interfaces::Handler> m_handler_watch_only_changed;
     interfaces::Node& m_node;
+    const PlatformStyle* m_platform_style;
 
     bool fHaveWatchOnly;
     bool fForceCheckBalanceChanged;

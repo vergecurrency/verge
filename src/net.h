@@ -27,6 +27,8 @@
 
 #include <atomic>
 #include <deque>
+#include <map>
+#include <set>
 #include <stdint.h>
 #include <thread>
 #include <memory>
@@ -94,6 +96,25 @@ struct AddedNodeInfo
     CService resolvedAddress;
     bool fConnected;
     bool fInbound;
+};
+
+struct SecMsgNode
+{
+    CCriticalSection cs_smsg_net;
+    int64_t lastSeen{-1};
+    int64_t lastMatched{0};
+    int64_t ignoreUntil{0};
+    int64_t rateWindowStart{0};
+    uint32_t nRateMessages{0};
+    uint32_t nRateBytes{0};
+    uint32_t nWakeCounter{0};
+    int64_t nPeerId{0};
+    std::set<int64_t> requestedBuckets;
+    std::map<int64_t, std::set<uint64_t> > wantedTokens;
+    uint32_t nInventoryMismatches{0};
+    bool fEnabled{false};
+    bool fValidatedRelay{false};
+    bool fSentValidationProbe{false};
 };
 
 class CNodeStats;
@@ -177,6 +198,7 @@ public:
     bool GetNetworkActive() const { return fNetworkActive; };
     void SetNetworkActive(bool active);
     void OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound = nullptr, const char *strDest = nullptr, bool fOneShot = false, bool fFeeler = false, bool manual_connection = false);
+    bool OpenNetworkConnectionByService(ServiceFlags requiredServices);
     bool CheckIncomingNonce(uint64_t nonce);
 
     bool ForNode(NodeId id, std::function<bool(CNode* pnode)> func);
@@ -227,6 +249,7 @@ public:
 
     // Addrman functions
     size_t GetAddressCount() const;
+    std::map<Network, size_t> GetAddressCountsByNetwork() const;
     void SetServices(const CService &addr, ServiceFlags nServices);
     void MarkAddressGood(const CAddress& addr);
     void AddNewAddresses(const std::vector<CAddress>& vAddr, const CAddress& addrFrom, int64_t nTimePenalty = 0);
@@ -248,9 +271,11 @@ public:
     // new code.
     void Ban(const CNetAddr& netAddr, const BanReason& reason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
     void Ban(const CSubNet& subNet, const BanReason& reason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
+    void Discourage(const CNetAddr& netAddr);
     void ClearBanned(); // needed for unit testing
     bool IsBanned(CNetAddr ip);
     bool IsBanned(CSubNet subnet);
+    bool IsDiscouraged(CNetAddr ip);
     bool Unban(const CNetAddr &ip);
     bool Unban(const CSubNet &ip);
     void GetBanned(banmap_t &banmap);
@@ -399,6 +424,7 @@ private:
     banmap_t setBanned;
     CCriticalSection cs_setBanned;
     bool setBannedIsDirty;
+    std::map<CNetAddr, int64_t> mapDiscouraged GUARDED_BY(cs_setBanned);
     bool fAddressesInitialized;
     CAddrMan addrman;
     std::deque<std::string> vOneShots;
@@ -550,6 +576,9 @@ public:
     std::string cleanSubVer;
     bool fInbound;
     bool m_manual_connection;
+    bool fSmsgEnabled;
+    bool fSmsgValidatedRelay;
+    bool fDisconnect;
     int nStartingHeight;
     uint64_t nSendBytes;
     mapMsgCmdSize mapSendBytesPerMsgCmd;
@@ -737,6 +766,7 @@ public:
     CCriticalSection cs_feeFilter;
     CAmount lastSentFeeFilter;
     int64_t nextSendTimeFeeFilter;
+    SecMsgNode smsgData;
 
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn, const CAddress &addrBindIn, const std::string &addrNameIn = "", bool fInboundIn = false);
     ~CNode();

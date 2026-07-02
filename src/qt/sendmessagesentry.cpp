@@ -1,0 +1,370 @@
+// Copyright (c) 2026 The Verge Developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <qt/sendmessagesentry.h>
+#include <qt/forms/ui_sendmessagesentry.h>
+
+#include <qt/addressbookpage.h>
+#include <qt/addresstablemodel.h>
+#include <qt/messagemodel.h>
+#include <qt/walletmodel.h>
+#include <base58.h>
+#include <smsg/smessage.h>
+
+#include <QApplication>
+#include <QClipboard>
+#include <QLabel>
+#include <QPlainTextEdit>
+#include <QSignalBlocker>
+
+#include <vector>
+
+namespace {
+static constexpr int MAX_SHARED_CHATKEY_LEN = 256;
+
+bool LooksLikeCompressedChatkey(const QString& value)
+{
+    const QString key = value.trimmed();
+    if (key.size() == 66 && (key.startsWith(QStringLiteral("02")) || key.startsWith(QStringLiteral("03")))) {
+        bool hex = true;
+        for (const QChar ch : key) {
+            if (!ch.isDigit() && (ch.toLower() < QLatin1Char('a') || ch.toLower() > QLatin1Char('f'))) {
+                hex = false;
+                break;
+            }
+        }
+        if (hex) {
+            return true;
+        }
+    }
+
+    std::vector<uint8_t> decoded;
+    if (!DecodeBase58(key.toStdString(), decoded)) {
+        return false;
+    }
+    const CPubKey pubkey(decoded);
+    return pubkey.IsValid() && pubkey.IsCompressed();
+}
+} // namespace
+
+SendMessagesEntry::SendMessagesEntry(QWidget* parent) :
+    QFrame(parent),
+    ui(new Ui::SendMessagesEntry),
+    model(nullptr),
+    messageCountLabel(nullptr),
+    paidMessageEnabled(true)
+{
+    ui->setupUi(this);
+
+#ifdef Q_OS_MAC
+    ui->addressBookButton->setIcon(QIcon());
+    ui->pasteButton->setIcon(QIcon());
+    ui->deleteButton->setIcon(QIcon());
+#endif
+
+    connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
+    ui->sendTo->setPlaceholderText(tr("Recipient address or address-chatkey"));
+    ui->sendTo->setToolTip(tr("Paste a recipient address, or paste a shared address-chatkey line to fill the address and chatkey."));
+    ui->publicKey->setPlaceholderText(tr("Auto-fills if known, otherwise paste recipient chatkey"));
+    ui->publicKey->setToolTip(tr("Recipient chatkey. If this address is already known locally, the field fills automatically. Shared chatkey lines are also accepted."));
+    ui->messageText->setPlaceholderText(tr("Type an encrypted message"));
+    ui->addressBookButton->setFixedSize(28, 28);
+    ui->pasteButton->setFixedSize(28, 28);
+    ui->deleteButton->setFixedSize(28, 28);
+
+    messageCountLabel = new QLabel(this);
+    messageCountLabel->setStyleSheet(QStringLiteral("background-color: rgb(0, 0, 0); color: rgb(92, 255, 122);"));
+    ui->gridLayout->addWidget(messageCountLabel, 7, 2, 1, 1, Qt::AlignRight);
+
+    connect(ui->messageText, SIGNAL(textChanged()), this, SLOT(updateMessageCountdown()));
+    updateMessageCountdown();
+}
+
+SendMessagesEntry::~SendMessagesEntry()
+{
+    delete ui;
+}
+
+void SendMessagesEntry::setModel(MessageModel* modelIn)
+{
+    model = modelIn;
+    clear();
+}
+
+void SendMessagesEntry::clear()
+{
+    ui->sendTo->clear();
+    ui->addAsLabel->clear();
+    ui->publicKey->clear();
+    ui->messageText->clear();
+    ui->messageText->setErrorText(tr("The message cannot be empty."));
+    updateMessageCountdown();
+}
+
+bool SendMessagesEntry::validate()
+{
+    if (!model) {
+        return false;
+    }
+
+    bool valid = true;
+    QString sendTo = ui->sendTo->text().trimmed();
+    QString publicKey = ui->publicKey->text().trimmed();
+
+    if (applyCombinedChatkey(sendTo) || applyCombinedChatkey(publicKey)) {
+        sendTo = ui->sendTo->text().trimmed();
+        publicKey = ui->publicKey->text().trimmed();
+    }
+
+    if (!model->getWalletModel()->validateAddress(sendTo)) {
+        ui->sendTo->setValid(false);
+        valid = false;
+    }
+
+    if (ui->messageText->toPlainText().trimmed().isEmpty()) {
+        ui->messageText->setValid(false);
+        valid = false;
+    }
+
+    if (valid && publicKey.isEmpty()) {
+        if (!resolveKnownPublicKey(sendTo, true)) {
+            ui->publicKey->setValid(false);
+            valid = false;
+        }
+    }
+
+    return valid;
+}
+
+SendMessagesRecipient SendMessagesEntry::getValue()
+{
+    SendMessagesRecipient recipient;
+    recipient.address = ui->sendTo->text().trimmed();
+    recipient.label = ui->addAsLabel->text().trimmed();
+    recipient.pubkey = ui->publicKey->text().trimmed();
+    recipient.message = ui->messageText->toPlainText().trimmed();
+    return recipient;
+}
+
+bool SendMessagesEntry::isClear()
+{
+    return ui->sendTo->text().trimmed().isEmpty()
+        && ui->publicKey->text().trimmed().isEmpty()
+        && ui->messageText->toPlainText().trimmed().isEmpty();
+}
+
+void SendMessagesEntry::setValue(const SendMessagesRecipient& value)
+{
+    ui->sendTo->setText(value.address);
+    ui->addAsLabel->setText(value.label);
+    ui->publicKey->setText(value.pubkey);
+    static_cast<QPlainTextEdit*>(ui->messageText)->setPlainText(value.message);
+    updateMessageCountdown();
+}
+
+void SendMessagesEntry::loadRow(int row)
+{
+    if (!model) {
+        return;
+    }
+
+    const QModelIndex typeIndex = model->index(row, MessageModel::Type, QModelIndex());
+    const bool received = model->data(typeIndex, Qt::DisplayRole).toString() == MessageModel::Received;
+    const QModelIndex addressIndex = model->index(row, received ? MessageModel::FromAddress : MessageModel::ToAddress, QModelIndex());
+    const QString sendTo = model->data(addressIndex, received ? MessageModel::FromAddressRole : MessageModel::ToAddressRole).toString();
+    const QString label = model->data(model->index(row, MessageModel::Label, QModelIndex()), Qt::DisplayRole).toString();
+
+    ui->sendTo->setText(sendTo);
+    if (!label.isEmpty() && label != tr("(no label)")) {
+        ui->addAsLabel->setText(label);
+    }
+}
+
+void SendMessagesEntry::setRemoveEnabled(bool enabled)
+{
+    ui->deleteButton->setEnabled(enabled);
+}
+
+void SendMessagesEntry::setPaidMessageEnabled(bool enabled)
+{
+    paidMessageEnabled = enabled;
+    updateMessageCountdown();
+}
+
+QWidget* SendMessagesEntry::setupTabChain(QWidget* prev)
+{
+    QWidget::setTabOrder(prev, ui->sendTo);
+    QWidget::setTabOrder(ui->sendTo, ui->addAsLabel);
+    QWidget::setTabOrder(ui->addAsLabel, ui->publicKey);
+    QWidget::setTabOrder(ui->publicKey, ui->messageText);
+    QWidget::setTabOrder(ui->messageText, ui->addressBookButton);
+    QWidget::setTabOrder(ui->addressBookButton, ui->pasteButton);
+    QWidget::setTabOrder(ui->pasteButton, ui->deleteButton);
+    return ui->deleteButton;
+}
+
+void SendMessagesEntry::setFocus()
+{
+    ui->sendTo->setFocus();
+}
+
+void SendMessagesEntry::deleteClicked()
+{
+    Q_EMIT removeEntry(this);
+}
+
+void SendMessagesEntry::on_pasteButton_clicked()
+{
+    const QString text = QApplication::clipboard()->text().trimmed();
+    if (!applyCombinedChatkey(text)) {
+        ui->sendTo->setText(text);
+    }
+}
+
+void SendMessagesEntry::on_addressBookButton_clicked()
+{
+    if (!model) {
+        return;
+    }
+
+    AddressBookPage dlg(model->getWalletModel()->getPlatformStyle(), AddressBookPage::ForSelection, AddressBookPage::SendingTab, this);
+    dlg.setModel(model->getWalletModel()->getAddressTableModel());
+    if (dlg.exec()) {
+        ui->sendTo->setText(dlg.getReturnValue());
+        ui->messageText->setFocus();
+    }
+}
+
+void SendMessagesEntry::on_sendTo_textChanged(const QString& address)
+{
+    if (applyCombinedChatkey(address)) {
+        return;
+    }
+    updateLabel(address);
+    resolveKnownPublicKey(address.trimmed(), true);
+}
+
+bool SendMessagesEntry::splitCombinedChatkey(const QString& text, QString& addressOut, QString& pubkeyOut) const
+{
+    if (!model || !model->getWalletModel()) {
+        return false;
+    }
+
+    const QString value = text.trimmed();
+    if (value.isEmpty()) {
+        return false;
+    }
+    if (value.size() > MAX_SHARED_CHATKEY_LEN) {
+        return false;
+    }
+
+    const int dashIndex = value.indexOf(QLatin1Char('-'));
+    if (dashIndex <= 0 || dashIndex != value.lastIndexOf(QLatin1Char('-'))) {
+        return false;
+    }
+
+    const QString candidateAddress = value.left(dashIndex).trimmed();
+    const QString candidatePubkey = value.mid(dashIndex + 1).trimmed();
+    if (model->getWalletModel()->validateAddress(candidateAddress) && LooksLikeCompressedChatkey(candidatePubkey)) {
+        addressOut = candidateAddress;
+        pubkeyOut = candidatePubkey;
+        return true;
+    }
+
+    return false;
+}
+
+bool SendMessagesEntry::applyCombinedChatkey(const QString& text)
+{
+    QString address;
+    QString pubkey;
+    if (!splitCombinedChatkey(text, address, pubkey)) {
+        return false;
+    }
+
+    if (ui->sendTo->text().trimmed() != address) {
+        const QSignalBlocker blocker(ui->sendTo);
+        ui->sendTo->setText(address);
+    }
+    if (ui->publicKey->text().trimmed() != pubkey) {
+        const QSignalBlocker blocker(ui->publicKey);
+        ui->publicKey->setText(pubkey);
+    }
+    updateLabel(address);
+    return true;
+}
+
+bool SendMessagesEntry::updateLabel(const QString& address)
+{
+    if (!model) {
+        return false;
+    }
+
+    const QString associatedLabel = model->getWalletModel()->getAddressTableModel()->labelForAddress(address);
+    if (!associatedLabel.isEmpty()) {
+        ui->addAsLabel->setText(associatedLabel);
+        return true;
+    }
+
+    return false;
+}
+
+bool SendMessagesEntry::resolveKnownPublicKey(const QString& address, bool updateField)
+{
+    if (!model || address.isEmpty()) {
+        return false;
+    }
+
+    QString resolvedAddress = address;
+    QString resolvedPubKey;
+    if (!model->getAddressOrPubkey(resolvedAddress, resolvedPubKey) || resolvedPubKey.isEmpty()) {
+        return false;
+    }
+
+    if (updateField && ui->publicKey->text().trimmed() != resolvedPubKey) {
+        const QSignalBlocker blocker(ui->publicKey);
+        ui->publicKey->setText(resolvedPubKey);
+    }
+
+    return true;
+}
+
+void SendMessagesEntry::enforceMessageLimit()
+{
+    QString text = ui->messageText->toPlainText();
+    QByteArray utf8 = text.toUtf8();
+    const int maxBytes = paidMessageEnabled
+        ? static_cast<int>(smsg::SMSG_MAX_MSG_BYTES_PAID)
+        : static_cast<int>(smsg::SMSG_MAX_MSG_BYTES);
+    if (utf8.size() <= maxBytes) {
+        return;
+    }
+
+    utf8.truncate(maxBytes);
+    const QString truncated = QString::fromUtf8(utf8);
+    if (truncated == text) {
+        return;
+    }
+
+    ui->messageText->blockSignals(true);
+    ui->messageText->setPlainText(truncated);
+    QTextCursor cursor = ui->messageText->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    ui->messageText->setTextCursor(cursor);
+    ui->messageText->blockSignals(false);
+}
+
+void SendMessagesEntry::updateMessageCountdown()
+{
+    enforceMessageLimit();
+    if (!messageCountLabel) {
+        return;
+    }
+
+    const int maxBytes = paidMessageEnabled
+        ? static_cast<int>(smsg::SMSG_MAX_MSG_BYTES_PAID)
+        : static_cast<int>(smsg::SMSG_MAX_MSG_BYTES);
+    const int remaining = maxBytes - ui->messageText->toPlainText().toUtf8().size();
+    messageCountLabel->setText(tr("Characters left: %1").arg(remaining));
+}

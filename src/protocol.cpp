@@ -131,10 +131,10 @@ bool CMessageHeader::IsValid(const MessageStartChars& pchMessageStartIn) const
 
 ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
     if ((services & NODE_NETWORK_LIMITED) && g_initial_block_download_completed) {
-        return ServiceFlags(NODE_NETWORK_LIMITED | NODE_WITNESS);
+        return NODE_NETWORK_LIMITED;
     }
 
-    return ServiceFlags(NODE_NETWORK | NODE_WITNESS);
+    return NODE_NETWORK;
 }
 
 void SetServiceFlagsIBDCache(bool state) {

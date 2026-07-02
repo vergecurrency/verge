@@ -16,9 +16,16 @@
 #include <qt/editaddressdialog.h>
 #include <qt/guiutil.h>
 #include <qt/platformstyle.h>
+#include <qt/receiverequestdialog.h>
+#include <qt/walletmodel.h>
+
+#include <smsg/smessage.h>
+#include <wallet/wallet.h>
 
 #include <QGraphicsDropShadowEffect>
 #include <QIcon>
+#include <QInputDialog>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
 #include <QRegularExpression>
@@ -34,20 +41,80 @@ void ApplyCardShadow(QWidget* widget)
     effect->setColor(QColor(88, 28, 140, 92));
     widget->setGraphicsEffect(effect);
 }
+
+QString GetLocalChatkey(const QString& address)
+{
+    std::string publicKey;
+    if (smsgModule.GetLocalPublicKey(address.toStdString(), publicKey) != smsg::SMSG_NO_ERROR) {
+        return QString();
+    }
+    return QString::fromStdString(publicKey);
+}
+
+QString FormatShareChatkey(const QString& address, const QString& chatkey)
+{
+    return QStringLiteral("%1-%2").arg(address, chatkey);
+}
+
+bool ReceivingLabelExists(const AddressTableModel* model, const QString& label)
+{
+    const QString trimmedLabel = label.trimmed();
+    if (!model || trimmedLabel.isEmpty()) {
+        return false;
+    }
+
+    for (int row = 0; row < model->rowCount(QModelIndex()); ++row) {
+        const QModelIndex labelIndex = model->index(row, AddressTableModel::Label, QModelIndex());
+        if (model->data(labelIndex, AddressTableModel::TypeRole).toString() != AddressTableModel::Receive) {
+            continue;
+        }
+
+        if (model->data(labelIndex, Qt::EditRole).toString().trimmed().compare(trimmedLabel, Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 }
 
 class AddressBookSortFilterProxyModel final : public QSortFilterProxyModel
 {
     const QString m_type;
+    const bool m_chatOnly;
 
 public:
-    AddressBookSortFilterProxyModel(const QString& type, QObject* parent)
+    AddressBookSortFilterProxyModel(const QString& type, bool chatOnly, QObject* parent)
         : QSortFilterProxyModel(parent)
         , m_type(type)
+        , m_chatOnly(chatOnly)
     {
         setDynamicSortFilter(true);
         setFilterCaseSensitivity(Qt::CaseInsensitive);
         setSortCaseSensitivity(Qt::CaseInsensitive);
+    }
+
+    QVariant data(const QModelIndex& index, int role) const
+    {
+        if (m_chatOnly && index.column() == AddressTableModel::Address &&
+            (role == Qt::DisplayRole || role == Qt::EditRole)) {
+            const QModelIndex sourceIndex = mapToSource(index);
+            const QString address = sourceModel()->data(sourceIndex, Qt::EditRole).toString();
+            const QString chatkey = GetLocalChatkey(address);
+            if (!chatkey.isEmpty()) {
+                return FormatShareChatkey(address, chatkey);
+            }
+        }
+        return QSortFilterProxyModel::data(index, role);
+    }
+
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const
+    {
+        if (m_chatOnly && orientation == Qt::Horizontal && role == Qt::DisplayRole &&
+            section == AddressTableModel::Address) {
+            return tr("Chatkeys");
+        }
+        return QSortFilterProxyModel::headerData(section, orientation, role);
     }
 
 protected:
@@ -61,9 +128,19 @@ protected:
         }
 
         auto address = model->index(row, AddressTableModel::Address, parent);
+        const QString addressString = model->data(address).toString();
+        QString chatkeyString;
+        if (m_chatOnly) {
+            chatkeyString = GetLocalChatkey(addressString);
+            if (chatkeyString.isEmpty()) {
+                return false;
+            }
+        }
 
         const QRegularExpression re = filterRegularExpression();
-        if (!re.match(model->data(address).toString()).hasMatch() &&
+        const QString combinedChatkey = chatkeyString.isEmpty() ? QString() : FormatShareChatkey(addressString, chatkeyString);
+        if (!re.match(addressString).hasMatch() &&
+            !re.match(combinedChatkey).hasMatch() &&
             !re.match(model->data(label).toString()).hasMatch()) {
             return false;
         }
@@ -76,6 +153,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     QDialog(parent),
     ui(new Ui::AddressBookPage),
     model(0),
+    walletModel(0),
     mode(_mode),
     tab(_tab)
 {
@@ -113,6 +191,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
         {
         case SendingTab: setWindowTitle(tr("Choose the address to send coins to")); break;
         case ReceivingTab: setWindowTitle(tr("Choose the address to receive coins with")); break;
+        case ChatAddressesTab: setWindowTitle(tr("Choose the address to send messages from")); break;
         }
         connect(ui->tableView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(accept()));
         ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -125,6 +204,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
         {
         case SendingTab: setWindowTitle(tr("Sending addresses")); break;
         case ReceivingTab: setWindowTitle(tr("Receiving addresses")); break;
+        case ChatAddressesTab: setWindowTitle(tr("Chat addresses")); break;
         }
         break;
     }
@@ -140,19 +220,34 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
         ui->deleteAddress->setVisible(false);
         ui->newAddress->setVisible(false);
         break;
+    case ChatAddressesTab:
+        ui->labelExplanation->setText(tr("These are your local chat-enabled addresses. Double-click a chatkey to share it."));
+        ui->deleteAddress->setVisible(false);
+        ui->newAddress->setVisible(true);
+        ui->newAddress->setText(tr("Make New Chatkey"));
+        ui->newAddress->setToolTip(tr("Create a new receiving address and add a chatkey to it"));
+        ui->copyAddress->setText(tr("Copy Chatkey"));
+        break;
     }
 
     // Context menu actions
     QAction *copyAddressAction = new QAction(tr("&Copy Address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy &Label"), this);
     QAction *editAction = new QAction(tr("&Edit"), this);
+    QAction *showChatkeyAction = new QAction(tr("Show Chatkey QR"), this);
     deleteAction = new QAction(ui->deleteAddress->text(), this);
+    if (tab == ChatAddressesTab) {
+        copyAddressAction->setText(tr("&Copy Chatkey"));
+    }
 
     // Build context menu
     contextMenu = new QMenu(this);
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(editAction);
+    if (tab == ChatAddressesTab) {
+        contextMenu->addAction(showChatkeyAction);
+    }
     if(tab == SendingTab)
         contextMenu->addAction(deleteAction);
     contextMenu->addSeparator();
@@ -161,9 +256,13 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(on_copyAddress_clicked()));
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(onCopyLabelAction()));
     connect(editAction, SIGNAL(triggered()), this, SLOT(onEditAction()));
+    connect(showChatkeyAction, SIGNAL(triggered()), this, SLOT(showSelectedChatkey()));
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(on_deleteAddress_clicked()));
 
     connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
+    if (mode == ForEditing && tab == ChatAddressesTab) {
+        connect(ui->tableView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(showSelectedChatkey()));
+    }
 
     connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(accept()));
 }
@@ -179,8 +278,8 @@ void AddressBookPage::setModel(AddressTableModel *_model)
     if(!_model)
         return;
 
-    auto type = tab == ReceivingTab ? AddressTableModel::Receive : AddressTableModel::Send;
-    proxyModel = new AddressBookSortFilterProxyModel(type, this);
+    auto type = tab == SendingTab ? AddressTableModel::Send : AddressTableModel::Receive;
+    proxyModel = new AddressBookSortFilterProxyModel(type, tab == ChatAddressesTab, this);
     proxyModel->setSourceModel(_model);
 
     connect(ui->searchLineEdit, SIGNAL(textChanged(QString)), proxyModel, SLOT(setFilterWildcard(QString)));
@@ -214,6 +313,12 @@ void AddressBookPage::setModel(AddressTableModel *_model)
     selectionChanged();
 }
 
+void AddressBookPage::setWalletModel(WalletModel *_walletModel)
+{
+    walletModel = _walletModel;
+    setModel(_walletModel ? _walletModel->getAddressTableModel() : nullptr);
+}
+
 void AddressBookPage::on_copyAddress_clicked()
 {
     GUIUtil::copyEntryData(ui->tableView, AddressTableModel::Address);
@@ -245,12 +350,95 @@ void AddressBookPage::onEditAction()
     dlg.exec();
 }
 
+void AddressBookPage::showSelectedChatkey()
+{
+    if (tab != ChatAddressesTab || !walletModel || !ui->tableView->selectionModel()) {
+        return;
+    }
+
+    const QModelIndexList indexes = ui->tableView->selectionModel()->selectedRows();
+    if (indexes.isEmpty()) {
+        return;
+    }
+
+    const QModelIndex sourceIndex = proxyModel->mapToSource(indexes.at(0));
+    const QString label = model->data(model->index(sourceIndex.row(), AddressTableModel::Label, QModelIndex()), Qt::EditRole).toString();
+    const QString address = model->data(model->index(sourceIndex.row(), AddressTableModel::Address, QModelIndex()), Qt::EditRole).toString();
+    SendCoinsRecipient info(address, label, 0, QString());
+
+    ReceiveRequestDialog* dialog = new ReceiveRequestDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setModel(walletModel);
+    dialog->setInfo(info, ReceiveRequestDialog::ChatkeyRequest);
+    dialog->show();
+}
+
 void AddressBookPage::on_newAddress_clicked()
 {
     if(!model)
         return;
 
     if (tab == ReceivingTab) {
+        return;
+    }
+
+    if (tab == ChatAddressesTab) {
+        QString label = tr("MyChatkey1");
+        while (true) {
+            bool accepted = false;
+            label = QInputDialog::getText(this,
+                tr("Make New Chatkey"),
+                tr("Label:"),
+                QLineEdit::Normal,
+                label,
+                &accepted).trimmed();
+            if (!accepted) {
+                return;
+            }
+            if (!ReceivingLabelExists(model, label)) {
+                break;
+            }
+            QMessageBox::warning(this,
+                tr("Make New Chatkey"),
+                tr("The label \"%1\" already exists. Choose a different label.").arg(label),
+                QMessageBox::Ok,
+                QMessageBox::Ok);
+        }
+
+        const QString address = model->addRow(
+            AddressTableModel::Receive,
+            label,
+            QString(),
+            OutputType::LEGACY);
+        if (address.isEmpty()) {
+            QMessageBox::warning(this,
+                tr("Make New Chatkey"),
+                tr("Could not create a new receiving address."),
+                QMessageBox::Ok,
+                QMessageBox::Ok);
+            return;
+        }
+
+        const int rv = smsgModule.AddLocalAddress(address.toStdString());
+        if (rv != smsg::SMSG_NO_ERROR) {
+            QMessageBox::warning(this,
+                tr("Make New Chatkey"),
+                tr("The address was created, but secure messaging could not be enabled for it: %1")
+                    .arg(QString::fromLatin1(smsg::GetString(rv))),
+                QMessageBox::Ok,
+                QMessageBox::Ok);
+            return;
+        }
+
+        newAddressToSelect = address;
+        if (proxyModel) {
+            proxyModel->invalidate();
+        }
+        const int row = model->lookupAddress(address);
+        if (row >= 0) {
+            selectNewAddress(QModelIndex(), row, row);
+        }
+        showSelectedChatkey();
         return;
     }
 
@@ -293,6 +481,7 @@ void AddressBookPage::selectionChanged()
             deleteAction->setEnabled(true);
             break;
         case ReceivingTab:
+        case ChatAddressesTab:
             // Deleting receiving addresses, however, is not allowed
             ui->deleteAddress->setEnabled(false);
             ui->deleteAddress->setVisible(false);
@@ -318,8 +507,8 @@ void AddressBookPage::done(int retval)
     QModelIndexList indexes = table->selectionModel()->selectedRows(AddressTableModel::Address);
 
     for (const QModelIndex& index : indexes) {
-        QVariant address = table->model()->data(index);
-        returnValue = address.toString();
+        const QModelIndex sourceIndex = proxyModel->mapToSource(index);
+        returnValue = model->data(model->index(sourceIndex.row(), AddressTableModel::Address, QModelIndex()), Qt::EditRole).toString();
     }
 
     if(returnValue.isEmpty())
@@ -346,7 +535,7 @@ void AddressBookPage::on_exportButton_clicked()
     // name, column, role
     writer.setModel(proxyModel);
     writer.addColumn("Label", AddressTableModel::Label, Qt::EditRole);
-    writer.addColumn("Address", AddressTableModel::Address, Qt::EditRole);
+    writer.addColumn(tab == ChatAddressesTab ? "Chatkeys" : "Address", AddressTableModel::Address, Qt::EditRole);
 
     if(!writer.write()) {
         QMessageBox::critical(this, tr("Exporting Failed"),
@@ -366,7 +555,8 @@ void AddressBookPage::contextualMenu(const QPoint &point)
 void AddressBookPage::selectNewAddress(const QModelIndex &parent, int begin, int /*end*/)
 {
     QModelIndex idx = proxyModel->mapFromSource(model->index(begin, AddressTableModel::Address, parent));
-    if(idx.isValid() && (idx.data(Qt::EditRole).toString() == newAddressToSelect))
+    const QString sourceAddress = model->data(model->index(begin, AddressTableModel::Address, parent), Qt::EditRole).toString();
+    if(idx.isValid() && (sourceAddress == newAddressToSelect))
     {
         // Select row of newly created address, once
         ui->tableView->setFocus();

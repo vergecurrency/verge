@@ -209,6 +209,8 @@ private:
     //! Holds addrs inserted into tried table that collide with existing entries. Test-before-evict discipline used to resolve these collisions.
     std::set<int> m_tried_collisions;
 
+    bool fCheckAddrman GUARDED_BY(cs);
+
 protected:
     //! secret key to randomize bucket select with
     uint256 nKey;
@@ -247,16 +249,17 @@ protected:
     //! Select an address to connect to, if newOnly is set to true, only the new table is selected from.
     CAddrInfo Select_(bool newOnly) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
+    //! Select an address that advertises all requested service flags.
+    CAddrInfo SelectByService_(ServiceFlags requiredServices, int maxTries = 250) EXCLUSIVE_LOCKS_REQUIRED(cs);
+
     //! See if any to-be-evicted tried table entries have been tested and if so resolve the collisions.
     void ResolveCollisions_() EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Return a random to-be-evicted tried table address.
     CAddrInfo SelectTriedCollision_() EXCLUSIVE_LOCKS_REQUIRED(cs);
 
-#ifdef DEBUG_ADDRMAN
     //! Perform consistency check. Returns an error code or zero.
     int Check_() EXCLUSIVE_LOCKS_REQUIRED(cs);
-#endif
 
     //! Select several addresses at once.
     void GetAddr_(std::vector<CAddress> &vAddr) EXCLUSIVE_LOCKS_REQUIRED(cs);
@@ -477,7 +480,7 @@ public:
         mapAddr.clear();
     }
 
-    CAddrMan()
+    CAddrMan() : fCheckAddrman(false)
     {
         Clear();
     }
@@ -487,6 +490,12 @@ public:
         nKey.SetNull();
     }
 
+    void SetCheckAddrman(bool check_addrman)
+    {
+        LOCK(cs);
+        fCheckAddrman = check_addrman;
+    }
+
     //! Return the number of (unique) addresses in all tables.
     size_t size() const
     {
@@ -494,17 +503,27 @@ public:
         return vRandom.size();
     }
 
+    std::map<Network, size_t> GetNetworkStats() const
+    {
+        LOCK(cs);
+        std::map<Network, size_t> stats;
+        for (const auto& entry : mapInfo) {
+            stats[entry.second.GetNetwork()]++;
+        }
+        return stats;
+    }
+
     //! Consistency check
     void Check()
     {
-#ifdef DEBUG_ADDRMAN
-        {
-            LOCK(cs);
-            int err;
-            if ((err=Check_()))
-                LogPrintf("ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
-        }
+        LOCK(cs);
+#ifndef DEBUG_ADDRMAN
+        if (!fCheckAddrman)
+            return;
 #endif
+        int err;
+        if ((err=Check_()))
+            LogPrintf("ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
     }
 
     //! Add a single address.
@@ -586,6 +605,21 @@ public:
             LOCK(cs);
             Check();
             addrRet = Select_(newOnly);
+            Check();
+        }
+        return addrRet;
+    }
+
+    /**
+     * Choose an address advertising all requested service flags.
+     */
+    CAddrInfo SelectByService(ServiceFlags requiredServices, int maxTries = 250)
+    {
+        CAddrInfo addrRet;
+        {
+            LOCK(cs);
+            Check();
+            addrRet = SelectByService_(requiredServices, maxTries);
             Check();
         }
         return addrRet;
