@@ -91,7 +91,6 @@ leveldb_libleveldb_a_SOURCES += leveldb/util/testutil.h
 leveldb_libleveldb_a_SOURCES += leveldb/util/mutexlock.h
 leveldb_libleveldb_a_SOURCES += leveldb/util/logging.h
 leveldb_libleveldb_a_SOURCES += leveldb/util/no_destructor.h
-leveldb_libleveldb_a_SOURCES += leveldb/util/testharness.h
 leveldb_libleveldb_a_SOURCES += leveldb/util/windows_logger.h
 
 leveldb_libleveldb_a_SOURCES += leveldb/db/builder.cc
