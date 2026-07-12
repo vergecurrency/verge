@@ -70,6 +70,12 @@ class MiningTest(VergeTestFramework):
         self.log.info("submitblock: Test block decode failure")
         assert_raises_rpc_error(-22, "Block decode failed", node.submitblock, b2x(block.serialize()[:-15]))
 
+        self.log.info("mining RPCs: Test empty block rejection")
+        empty_block = CBlock()
+        empty_block_hex = b2x(empty_block.serialize())
+        assert_raises_rpc_error(-22, "Block does not start with a coinbase", node.decodeblock, empty_block_hex)
+        assert_raises_rpc_error(-22, "Block does not start with a coinbase", node.submitblock, empty_block_hex)
+
         self.log.info("getblocktemplate: Test bad input hash for coinbase transaction")
         bad_block = copy.deepcopy(block)
         bad_block.vtx[0].vin[0].prevout.hash += 1

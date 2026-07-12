@@ -3218,14 +3218,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false, "out-of-bounds SigOpCount");
 
-    if (fCheckPOW && fCheckMerkleRoot)
-        block.fChecked = true;
-
     if (fCheckBlockSignature) {
         if(!CheckBlockSignature(block)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
         }
     }
+
+    if (fCheckPOW && fCheckMerkleRoot && fCheckBlockSignature)
+        block.fChecked = true;
 
     return true;
 }
@@ -3340,17 +3340,22 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
             return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
                                  strprintf("rejected nVersion=0x%08x block", block.nVersion));
 
+    if (nHeight > consensusParams.FlexibleMiningAlgorithms && !hasUsedValidMiningAlgorithm(block, pindexPrev)) {
+        return state.DoS(25, false, REJECT_INVALID, "bad-blk-algorithm", false,
+                         strprintf("%s : reused a mining algorithm too often", __func__));
+    }
+
     return true;
 }
 
-bool hasUsedValidMiningAlgorithm(const CBlock& block, const CBlockIndex* pindexPrev)
+bool hasUsedValidMiningAlgorithm(const CBlockHeader& block, const CBlockIndex* pindexPrev)
 {
     unsigned checkedBlocks = 0;
     unsigned sameAlgoBlocks = 0;
 
     while (pindexPrev && checkedBlocks != 2 * SAME_ALGO_MAX_COUNT)
     {
-        if (pindexPrev->GetBlockHeader().GetAlgo() == block.GetAlgo())
+        if (pindexPrev->GetAlgo() == block.GetAlgo())
             ++sameAlgoBlocks;
 
         ++checkedBlocks;
@@ -3457,10 +3462,6 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     if (nHeight > 0 && (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() || block.GetBlockTime() + GetMaxClockDrift(nHeight) < pindexPrev->GetBlockTime()))
     {	        
         state.DoS(100, false, REJECT_INVALID, "bad-blk-time", false, strprintf("%s : blocks timestamp is too early", __func__));
-    }
-
-    if(checkBlockSignature && nHeight > consensusParams.FlexibleMiningAlgorithms && !hasUsedValidMiningAlgorithm(block, pindexPrev)) {
-        return state.DoS(25, false, REJECT_INVALID, "bad-blk-algorithm", false, strprintf("%s : reused a mining algorithm too often", __func__));
     }
 
     return true;
@@ -5037,6 +5038,11 @@ double GuessVerificationProgress(const ChainTxData& data, const CBlockIndex *pin
 typedef std::vector<unsigned char> valtype;
 bool SignBlock(CBlock& block, const CKeyStore& keystore)
 {
+    if (block.vtx.empty() || !block.vtx[0] || !block.vtx[0]->IsCoinBase()) {
+        LogPrintf("[SignBlock] Block does not start with a coinbase transaction\n");
+        return false;
+    }
+
     std::vector<valtype> vSolutions;
     txnouttype whichType;
 

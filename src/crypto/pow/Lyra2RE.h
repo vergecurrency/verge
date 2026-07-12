@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-void lyra2re_hash(const char* input, char* output);
-void lyra2re2_hash(const char* input, char* output);
+int lyra2re_hash(const char* input, char* output);
+int lyra2re2_hash(const char* input, char* output);
 
 #ifdef __cplusplus
 }

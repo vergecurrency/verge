@@ -43,7 +43,8 @@ uint256 CBlockHeader::GetPoWHash(int algo) const
         case ALGO_X17:
             return HashX17(BEGIN(nVersion), END(nNonce));
         case ALGO_LYRA2RE:
-            lyra2re2_hash(BEGIN(nVersion), BEGIN(thash));
+			if (lyra2re2_hash(BEGIN(nVersion), BEGIN(thash)) != 0)
+				memset(BEGIN(thash), 0xff, sizeof(thash));
 	    break;
         case ALGO_SCRYPT:
         default:

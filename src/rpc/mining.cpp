@@ -678,6 +678,10 @@ UniValue decodeblock(const JSONRPCRequest& request){
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
+    if (block.vtx.empty() || !block.vtx[0] || !block.vtx[0]->IsCoinBase()) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
+    }
+
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("data", block.ToString());
     TxToUniv(*blockptr.get()->vtx[0].get(), uint256(), obj, false, true);

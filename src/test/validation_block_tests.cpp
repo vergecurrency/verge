@@ -201,4 +201,32 @@ BOOST_AUTO_TEST_CASE(reject_blocks_with_too_new_timestamps)
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "transaction-time-too-new");
 }
 
+BOOST_AUTO_TEST_CASE(block_validation_hardening)
+{
+    CBlock empty_block;
+    CBasicKeyStore keystore;
+    BOOST_CHECK(!SignBlock(empty_block, keystore));
+
+    std::shared_ptr<CBlock> unsigned_block = FinalizeBlock(Block(Params().GenesisBlock().GetHash()));
+    CValidationState state;
+    BOOST_CHECK(!CheckBlock(*unsigned_block, state, Params().GetConsensus(), true, true, true));
+    BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-blk-signature");
+    BOOST_CHECK(!unsigned_block->fChecked);
+
+    CBlockHeader candidate;
+    candidate.nVersion = BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT;
+
+    CBlockIndex history[2 * SAME_ALGO_MAX_COUNT];
+    for (int i = 0; i < 2 * SAME_ALGO_MAX_COUNT; ++i) {
+        history[i].nVersion = i < SAME_ALGO_MAX_COUNT
+            ? BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT
+            : BLOCK_VERSION_STEALTH | BLOCK_VERSION_GROESTL;
+        history[i].pprev = i == 0 ? nullptr : &history[i - 1];
+    }
+    BOOST_CHECK(hasUsedValidMiningAlgorithm(candidate, &history[2 * SAME_ALGO_MAX_COUNT - 1]));
+
+    history[SAME_ALGO_MAX_COUNT].nVersion = BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT;
+    BOOST_CHECK(!hasUsedValidMiningAlgorithm(candidate, &history[2 * SAME_ALGO_MAX_COUNT - 1]));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
