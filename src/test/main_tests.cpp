@@ -97,6 +97,28 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
     BOOST_CHECK_MESSAGE(MoneyRange(nSum), "Subsidy is exceeding the total supply");
 }
 
+BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
+{
+    const auto mainParams = CreateChainParams(CBaseChainParams::MAIN);
+    const auto testParams = CreateChainParams(CBaseChainParams::TESTNET);
+    const auto regtestParams = CreateChainParams(CBaseChainParams::REGTEST);
+
+    BOOST_CHECK_EQUAL(mainParams->GetConsensus().nPoSActivationHeight, 15000000);
+    BOOST_CHECK_EQUAL(testParams->GetConsensus().nPoSActivationHeight, 15000000);
+    BOOST_CHECK_EQUAL(regtestParams->GetConsensus().nPoSActivationHeight, std::numeric_limits<int>::max());
+
+    const Consensus::Params& pos = mainParams->GetConsensus();
+    BOOST_CHECK_EQUAL(pos.nPoSMinStake, 1000 * COIN);
+    BOOST_CHECK_EQUAL(pos.nPoSStakeMaturity, 720U);
+    BOOST_CHECK_EQUAL(pos.nPoSSlotSeconds, 30U);
+    BOOST_CHECK_EQUAL(pos.nPoSEpochSlots, 120U);
+    BOOST_CHECK_EQUAL(pos.nPoSSnapshotDelayEpochs, 2U);
+    BOOST_CHECK_EQUAL(pos.nPoSUnbondingBlocks, 20160U);
+    BOOST_CHECK_EQUAL(pos.nPoSMaxVotesPerBlock, 1024U);
+    BOOST_CHECK_EQUAL(pos.nPoSMaxEvidencePerBlock, 16U);
+    BOOST_CHECK(!pos.IsPoSActive(14999999));
+    BOOST_CHECK(pos.IsPoSActive(15000000));
+}
 static bool ReturnFalse() { return false; }
 static bool ReturnTrue() { return true; }
 

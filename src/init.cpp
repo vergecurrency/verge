@@ -478,6 +478,7 @@ void SetupServerArgs()
     gArgs.AddArg("-limitdescendantcount=<n>", strprintf("Do not accept transactions if any ancestor would have <n> or more in-mempool descendants (default: %u)", DEFAULT_DESCENDANT_LIMIT), true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-limitdescendantsize=<n>", strprintf("Do not accept transactions if any ancestor would have more than <n> kilobytes of in-mempool descendants (default: %u).", DEFAULT_DESCENDANT_SIZE_LIMIT), true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-vbparams=deployment:start:end", "Use given start/end times for specified version bits deployment (regtest-only)", true, OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg("-posactivationheight=<n>", "Activate proof of stake at height <n> (regtest-only, minimum: 721)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-addrmantest", "Allows to test address relay on localhost", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-checkaddrman", "Run expensive addrman consistency checks after addrman updates (default: 0)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-debug=<category>", strprintf("Output debugging information (default: %u, supplying <category> is optional)", 0) + ". " +
@@ -1183,6 +1184,18 @@ bool AppInitParameterInteraction()
         fEnableReplacement = (std::find(vstrReplacementModes.begin(), vstrReplacementModes.end(), "fee") != vstrReplacementModes.end());
     }
 
+    if (gArgs.IsArgSet("-posactivationheight")) {
+        if (!chainparams.MineBlocksOnDemand()) {
+            return InitError("PoS activation height may only be overridden on regtest.");
+        }
+        int32_t activationHeight;
+        const std::string value = gArgs.GetArg("-posactivationheight", "");
+        if (!ParseInt32(value, &activationHeight) || activationHeight < 721) {
+            return InitError(strprintf("Invalid PoS activation height (%s), minimum is 721", value));
+        }
+        UpdatePoSActivationHeight(activationHeight);
+        LogPrintf("Setting regtest PoS activation height to %d\n", activationHeight);
+    }
     if (gArgs.IsArgSet("-vbparams")) {
         // Allow overriding version bits parameters for testing
         if (!chainparams.MineBlocksOnDemand()) {

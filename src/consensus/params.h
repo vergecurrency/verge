@@ -66,6 +66,19 @@ struct Params {
     int ForkHeight;
     int CLOCK_DRIFT_FORK;
 
+    /** Proof-of-stake activation and consensus parameters. */
+    int nPoSActivationHeight;
+    int64_t nPoSMinStake;
+    uint32_t nPoSStakeMaturity;
+    uint32_t nPoSSlotSeconds;
+    uint32_t nPoSEpochSlots;
+    uint32_t nPoSSnapshotDelayEpochs;
+    uint32_t nPoSUnbondingBlocks;
+    uint32_t nPoSMaxVotesPerBlock;
+    uint32_t nPoSMaxEvidencePerBlock;
+
+    bool IsPoSActive(int height) const { return height >= nPoSActivationHeight; }
+
 
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks in a retargeting period,

@@ -1,0 +1,413 @@
+<!-- Copyright (c) 2026 The Verge Core developers -->
+
+# Verge PoS-Only Consensus Draft
+
+Status: Phase 1 research draft for the `regtest` branch. This document is not a production activation proposal.
+
+## Scope
+
+Verge remains proof of work before a network-specific activation height. Beginning with the block at `nPoSActivationHeight`, proof-of-work blocks are invalid and every new block must satisfy the proof-of-stake rules below. Initial implementation and activation are restricted to regtest.
+
+This transition does not mint new XVG. A valid PoS block may claim at most the transaction fees in that block. An empty block therefore pays zero.
+
+## Confirmed Parameters
+
+| Parameter | Initial value |
+| --- | ---: |
+| Target slot duration | 30 seconds |
+| Minimum staking output | 1,000 XVG |
+| Stake maturity | 720 confirmations |
+| PoS subsidy | 0 XVG |
+| Producer reward | Current block transaction fees only |
+| Future-time tolerance | One 30-second slot |
+| Staking authorization | Delegated staking keys |
+| Principal maturity after staking | Preserved |
+| Fee reward staking eligibility | 720 confirmations |
+| Expected eligible producers | 1 per slot |
+| Bonding | Explicit on-chain transaction |
+| Delegation granularity | Entire bonded UTXO |
+| Unbonding lock | 20,160 accepted blocks |
+| Initial seed window | 120 pre-activation PoW blocks |
+| Post-activation PoW fallback | None |
+| Mainnet activation height | 15,000,000 |
+| Testnet activation height | 15,000,000 |
+| Regtest activation | Disabled unless -posactivationheight=<height> is set |
+
+All amounts are evaluated in base units. A staking output exactly equal to 1,000 XVG is eligible.
+
+## Activation
+
+Each network has an explicit `nPoSActivationHeight`. Mainnet and testnet use height 15,000,000 in this development branch so the parameters are visible together and easy to review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
+
+Regtest activation is disabled by default and requires `-posactivationheight=<height>`. The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
+
+## Deployment Portability
+
+The same PoS consensus code path must be used on regtest, public testnet, and mainnet. Network classes provide parameters such as activation height, slot duration, maturity, minimum stake, target limits, checkpoint intervals, and deployment state; they do not select separate consensus algorithms.
+
+Regtest may expose deterministic test controls and an activation-height override, but those controls must be unavailable on public networks. Promotion follows regtest to public testnet to mainnet by changing reviewed network parameters, not by copying or rewriting the implementation. Mainnet activation remains disabled by default until Phase 6.
+
+Database records, block serialization, wallet staking records, RPC schemas, and P2P messages must be forward-compatible across those environments so testnet exercises the actual production format. A node must log the configured activation height and reject ambiguous or conflicting activation settings at startup.
+At activation:
+
+1. The block at height `nPoSActivationHeight - 1` is the final PoW block.
+2. The block at `nPoSActivationHeight` must be PoS.
+3. Bond and unbond transactions are valid before activation, allowing delegated stake to mature and enter the delayed snapshots while PoW still secures the chain.
+4. A bond must satisfy the 720-confirmation maturity rule and appear in the stake snapshot selected two epochs before its first eligible PoS epoch. Merely bonding immediately before activation does not bypass either delay.
+5. The initial epoch seed is the domain-separated SHA-256 hash of the network identifier, activation height, and ordered block IDs of the 120 PoW blocks immediately preceding activation. Networks without 120 predecessor blocks cannot activate.
+6. Existing unbonded UTXOs remain spendable but are not eligible stake until explicitly bonded.
+7. PoW difficulty and algorithm-frequency rules no longer determine validity after activation.
+8. No emergency PoW fallback exists after activation. If no valid PoS producer is available, the chain pauses until an eligible producer returns.
+9. Old nodes remain on incompatible PoW consensus. This is intentionally a hard fork.
+
+## Block Representation
+
+A PoS block retains the existing block header for compatibility with storage and relay infrastructure. A dedicated version bit identifies PoS. After activation, the five PoW algorithm version encodings are invalid for new blocks.
+
+The first transaction remains structurally coinbase-like so existing block indexing can be adapted incrementally. It creates no subsidy and may pay at most the block's transaction fees to the owner-controlled reward destination committed by the selected bond.
+
+A consensus-defined stake proof references exactly one bonded UTXO without spending or recreating it. The proof commits to the selected outpoint, slot, stake snapshot, VRF output and proof, delegated staking public key, block authorization signature, and applicable checkpoint vote. Principal therefore remains locked in its original bonded output while producing blocks.
+
+The exact serialization must be domain-separated and covered by fixed test vectors before Phase 2 is considered complete. Witness serialization is not used.
+
+### PoS Block Extension Limits
+
+PoS uses version bit `1 << 15`, which is distinct from the five PoW algorithm bits. The conditional PoS block extension follows the existing transaction vector and block-signature field and contains canonical stake-proof, checkpoint-vote, and equivocation-evidence objects.
+
+| Field | Consensus limit |
+| --- | ---: |
+| RFC 9381 P-256 VRF proof | exactly 81 bytes |
+| VRF output | exactly 32 bytes |
+| BIP340 block or vote signature | exactly 64 bytes |
+| Checkpoint votes per block | 1,024 maximum |
+| Equivocation evidence records per block | 16 maximum |
+
+All extension bytes count toward the existing serialized block-size and weight limits. Counts are decoded with existing canonical compact-size rules but are rejected against their PoS-specific maxima before allocation. Vote entries and evidence records are sorted canonically and unique.
+
+The coinbase-like transaction commits to tagged roots for the stake proof, vote vector, evidence vector, stake snapshot, and epoch seed. The extension is invalid if any recomputed root differs.
+
+## Stake Eligibility
+
+An outpoint is eligible for a candidate block when all of the following are true at the parent block:
+
+- it exists and is unspent;
+- its value is at least 1,000 XVG;
+- its creating transaction is at least 720 blocks deep;
+- its script type is supported by the staking verifier;
+- it is not subject to an active staking lock or reward-maturity rule; and
+- its ownership proof is valid for the candidate block and slot.
+
+Selection weight is linear in value. Each eligible base unit has equal probability. Splitting or combining outputs therefore does not change expected aggregate selection weight, apart from integer rounding and the minimum-output rule. Coin age beyond 720 confirmations adds no weight.
+
+Bonding is an explicit on-chain action. A bonded output delegates its entire value to one staking key; users who want separate delegations must split funds before bonding. Block production never spends the bonded principal. Beginning unbonding disables new eligibility and locks withdrawal for 20,160 blocks.
+
+## Slots And Timestamps
+
+Time is divided into 30-second slots. A block commits to one slot derived from its timestamp. Nodes calculate slots using consensus arithmetic, not local scheduling state.
+
+A valid block must:
+
+- use a slot strictly later than its parent slot;
+- use the canonical timestamp for that slot;
+- not exceed the permitted future-slot tolerance; and
+- satisfy transaction timestamp rules.
+
+Empty slots are allowed. The next eligible producer may build on the latest valid block using a later slot; no empty placeholder blocks are inserted. This prevents a single offline winner from halting the chain.
+
+A node accepts a candidate no more than one 30-second slot ahead of network-adjusted time. A farther-future block is not accepted early or retained as valid pending work.
+
+## Slot And Epoch Numbering
+
+For the final PoW block, define:
+
+```text
+activation_slot = floor(final_pow_block.nTime / 30) + 1
+```
+
+A post-activation candidate timestamp must be divisible by 30 and defines:
+
+```text
+global_slot   = candidate.nTime / 30
+relative_slot = global_slot - activation_slot
+epoch         = relative_slot / 120
+slot_in_epoch = relative_slot % 120
+```
+
+`relative_slot` must be non-negative and strictly greater than the parent PoS block's relative slot. The activation block may use `activation_slot` or any later permissible slot. Empty slots advance time and epoch numbering but do not create blocks.
+
+The initial stake snapshot is taken from chain state at height `nPoSActivationHeight - 240`. A bond in that snapshot is initially eligible only if it also has 720 confirmations at activation. Subsequent epoch `e` uses the canonical bonded-stake snapshot from the end of epoch `e - 2`. Epochs 0 and 1 use the initial snapshot. Snapshot membership, values, credentials, and total eligible bonded value are committed by a canonical Merkle root.
+## Randomness And Fork Choice
+
+The consensus design uses:
+
+1. Use the RFC 9381 `ECVRF-P256-SHA256-SSWU` ciphersuite for private slot eligibility and publicly verifiable proofs. P-256 support is already available through the required OpenSSL dependency, but the ECVRF protocol wrapper remains new consensus code and must pass RFC vectors and independent audit.
+2. Give each bonded delegation a separate VRF public key. The online delegated credential produces VRF proofs; the unrestricted XVG spending key is not used for slot evaluation.
+3. Snapshot bonded stake two epochs before it is used for leader selection and voting, and commit the canonical snapshot root in every applicable PoS block. This prevents a producer from moving stake after seeing the randomness for the target epoch.
+4. Derive each epoch seed from the previous seed and canonical VRF outputs committed during the prior epoch, with a cutoff before the end of that epoch. Late outputs cannot influence the next seed. The contribution cutoff is the first 80 slots of each 120-slot epoch. If no eligible contribution is included before the cutoff, the next seed is the domain-separated hash of the previous seed and epoch number. Both paths require deterministic vectors.
+5. Use latest-message-driven, stake-weighted GHOST from the latest finalized checkpoint for temporary fork choice. Each bonded delegation has one latest vote, weighted by its snapshotted bonded value. Finalized history is never reconsidered by ordinary fork choice.
+
+This design does not treat a Schnorr or ECDSA signature as random output. Signatures authorize blocks and votes; VRF proofs determine private slot eligibility. Users do not manually operate either mechanism.
+
+Primary references:
+
+- RFC 9381, Verifiable Random Functions: https://www.rfc-editor.org/rfc/rfc9381.html
+## Stake Lottery
+
+Each eligible bonded delegation evaluates one independently testable kernel per slot:
+
+```text
+vrf_input = H("verge-pos-slot-v1" || network_id || epoch_seed || slot || stake_outpoint)
+(vrf_output, vrf_proof) = ECVRF_prove(delegated_vrf_key, vrf_input)
+threshold = floor(MAX_UINT256 * bonded_value / total_eligible_bonded_value)
+winner if uint256(vrf_output) <= threshold
+```
+
+The threshold calculation uses overflow-safe wide arithmetic and the two-epoch-delayed stake snapshot. The sum of all eligibility probabilities is approximately one, so the expected number of eligible producers is one per slot. Empty and multiply-won slots are normal; temporary competing branches are resolved by the approved fork-choice rule. No PoS difficulty retarget is required.
+
+The kernel must not include mutable transaction ordering, reward destination, signature bytes, or arbitrary nonce fields. This limits grinding by a candidate producer. `parent_randomness` is the epoch seed committed by the finalized epoch transition. It is derived from the previous seed and canonical accepted VRF outputs before the contribution cutoff, never from signature bytes.
+
+Slot eligibility uses RFC 9381 `ECVRF-P256-SHA256-SSWU`. The VRF proof and output are consensus data. The pseudocode hash denotes the verified VRF output mapped to an unsigned 256-bit integer.
+
+## Authorization And Key Separation
+
+A block must contain a signature from the delegated block/vote signing key committed by the selected bond. The signed message is domain-separated and commits to:
+
+- network identifier;
+- parent block hash;
+- candidate header hash;
+- slot;
+- staking outpoint;
+- canonical stake-proof hash;
+- fee-reward transaction hash; and
+- parent randomness.
+
+The design requires a restricted staking key delegated by the spending key. A staking key may authorize block production and checkpoint voting but must not authorize principal withdrawal or arbitrary payments. The bonded output is consensus-locked until a valid unbonding transition completes.
+
+Delegated staking authorization is mandatory. Each bond commits to three distinct credentials:
+
+- an owner withdrawal credential that controls principal after unbonding;
+- a delegated secp256k1 signing public key restricted to block authorization and checkpoint voting; and
+- a delegated P-256 VRF public key restricted to slot eligibility proofs.
+
+The bond also commits to an owner-controlled reward destination. Fee rewards may only be paid to that destination; neither delegated online key can redirect principal or rewards. Direct use of the unrestricted withdrawal key for online staking is not supported.
+
+Changing the delegated signing key, VRF key, or reward destination requires completing unbonding and creating a new bond. In-place rotation is forbidden so stake snapshots identify one immutable credential set. The bond format, authorization domains, and revocation behavior are consensus-critical and require fixed vectors.
+
+## Unbonding Transaction
+
+A valid unbond transaction spends one `TX_STAKE_BOND_V1` output into one `TX_STAKE_UNBOND_V1` output carrying exactly the same principal and withdrawal credential. It sets the consensus unlock height to the containing block height plus 20,160 accepted blocks. The transaction may use separate ordinary inputs to pay its fee; the bonded principal may not be reduced to pay fees.
+
+The bond stops contributing eligibility and vote weight according to the approved delayed snapshot rules. Before the unlock height, spending the unbond output is invalid. At or after the unlock height, the withdrawal credential may spend it normally or create a new bond. New bonding resets maturity and enters future snapshots normally.
+
+An actively locked bond cannot evade equivocation consequences by unbonding. Consensus rejects an unbond transition that conflicts with an applicable on-chain eligibility lockout.
+## Rewards And Value Conservation
+
+Let `fees` equal total ordinary transaction inputs minus total ordinary transaction outputs. The bonded principal is not an input or output of the block reward transaction. Consensus enforces:
+
+```text
+stake_reward >= 0
+stake_reward <= fees
+new_subsidy = 0
+```
+
+The producer may deliberately claim less than the available fees. Unclaimed fees are destroyed for that block; they are not carried forward. A zero-transaction block has zero fees and may still be valid.
+
+Stake principal and rewards are accounted for separately. Block production does not spend or recreate the bonded principal, so its original maturity remains intact. Newly earned fee outputs retain the existing 120-block coinbase spend maturity and require 720 confirmations before they can be bonded. After unbonding completes, spending or rebonding creates ordinary new maturity state.
+
+## Fork Choice
+
+PoW chainwork is not meaningful after activation. The PoS fork-choice rule must be deterministic and must not reward production of private empty histories.
+
+The fork-choice rule is:
+
+1. Never reorganize below a finalized checkpoint.
+2. Starting at the latest finalized checkpoint, apply latest-message-driven, stake-weighted GHOST using the bonded-stake snapshot for the voting epoch.
+3. Count at most one latest valid vote per bonded delegation, weighted by its snapshotted bonded value.
+4. Ignore votes that conflict with finalized history, are from an ineligible delegation, or target an unknown or invalid block.
+5. Resolve equal-weight child branches by the lowest block hash.
+
+PoW chainwork and raw block count do not participate in post-activation fork choice. Vote updates, snapshot selection, tie-breaking, and restart reconstruction require deterministic tests before Phase 2 is complete.
+
+## Vote And Checkpoint State Transitions
+
+A checkpoint for epoch `e` is the first valid block in epoch `e`. If an epoch has no block, it creates no distinct checkpoint. Each signed vote contains:
+
+```text
+version
+bond_outpoint
+snapshot_epoch
+source_epoch
+source_checkpoint_root
+target_epoch
+target_checkpoint_root
+head_slot
+head_block_root
+signature
+```
+
+The source is the voter's latest justified checkpoint. The target is a checkpoint descended from the source. The head is the voter's current fork-choice head descended from the target. A bond may update `head_slot` and `head_block_root` while retaining the same source and target link; only its latest valid message contributes to LMD-GHOST.
+
+A supermajority link exists when votes for one exact source-target checkpoint pair represent at least two-thirds of eligible bonded value in the applicable delayed snapshot. A target becomes justified when its source is justified and the supermajority link is valid. A justified source becomes finalized when the checkpoint in the next non-empty epoch is justified by a supermajority link from that source. Empty epochs do not create checkpoints and do not permanently prevent later finalization.
+
+A bond violates finality safety if it signs two different target checkpoint roots for one target epoch or signs surround votes as defined in the mandatory evidence rules. Merely updating the head on the same source-target link is not equivocation. Nodes retain only the latest valid head message per bond for fork choice while retaining sufficient signed history to prove finality violations.
+
+Votes are relayed independently and may be included by any later block until stale. Inclusion order is canonical by bond outpoint and vote hash. Vote signatures are verified against the signing key and weight from the vote's declared snapshot epoch; peer-supplied weight is ignored.
+## Finality And Long-Range Protection
+
+PoS-only consensus requires protection against old keys constructing alternate history. The production design must include:
+
+- justified and finalized checkpoints;
+- conflicting-vote detection;
+- an unbonding or eligibility-lock period;
+- weak-subjectivity checkpoints for new or long-offline nodes; and
+- explicit bootstrap behavior for assume-valid and snapshots.
+Official releases embed a recent finalized checkpoint for public networks. A node that has been offline longer than the 20,160-block unbonding period must obtain a newer release or explicitly configure a trusted finalized checkpoint. Peer majority alone cannot establish a weak-subjectivity root. Regtest permits deterministic local checkpoint configuration for testing.
+
+After activation, the legacy fixed-depth reorganization limit does not select the chain. Reorganizations may affect any unfinalized block according to stake-weighted fork choice, but no ordinary fork may replace or precede the latest finalized checkpoint.
+
+Checkpoint epochs contain 120 slots, approximately one hour. Empty slots remain part of the epoch and do not shift epoch boundaries. A checkpoint is finalized after valid votes represent at least two-thirds of all currently bonded, mature delegated stake. If that threshold is unavailable, valid block production continues but finality pauses.
+
+Voting is automatic whenever staking is enabled and the delegated staking key is available. The wallet signs and relays checkpoint votes without user prompts. A vote does not spend XVG, change reward ownership, or grant general spending authority. Users make only the explicit lifecycle decisions to bond, enable or disable staking, and begin unbonding.
+
+Unbonding takes 20,160 accepted blocks. Its wall-clock duration varies with occupied slots and is expected to exceed seven days under the one-eligible-producer-per-slot target. Stake remains slashable or lockable for protocol violations during that period and cannot evade an already-observed equivocation by beginning withdrawal.
+
+Regtest must exercise finalization, but Phase 2 must not pretend that a single-node checkpoint implementation is production-ready.
+
+## Equivocation
+
+Signing two different blocks for the same parent and slot is objectively detectable. Equivocation evidence consists of both conflicting, validly signed block authorization messages and is bounded to a canonical fixed format.
+
+Evidence affects consensus only after inclusion in a valid block. The offending bond becomes ineligible at the first block of the next epoch and remains locked against withdrawal and staking for 20,160 blocks. Evidence already applied for a bond and offense is idempotent. Conflicting or malformed evidence is rejected before expensive signature checks where possible.
+
+The initial implementation uses an eligibility lockout rather than destruction of principal. Monetary slashing remains out of scope until it has been independently designed and audited.
+
+## Mandatory Security Modernization
+
+The PoS implementation adopts the following requirements as consensus and release gates.
+
+### Schnorr Authorization
+
+Delegated block signatures and checkpoint votes use canonical 64-byte BIP340 Schnorr signatures with 32-byte x-only secp256k1 public keys. Legacy DER ECDSA is not valid for new PoS authorization. The secp256k1 `extrakeys` and `schnorrsig` modules must be explicitly enabled and tested in every supported build workflow. P-256 remains isolated to RFC 9381 VRF operations.
+
+### Tagged Consensus Hashes
+
+All PoS hashes use tagged SHA-256 with distinct, versioned domains. Initial domains include:
+
+```text
+VergePoS/Bond/v1
+VergePoS/Block/v1
+VergePoS/Vote/v1
+VergePoS/EpochSeed/v1
+VergePoS/StakeRoot/v1
+VergePoS/VoteRoot/v1
+VergePoS/StakeProof/v1
+VergePoS/Unbond/v1
+VergePoS/Equivocation/v1
+```
+
+A hash from one domain is never accepted in another domain. Exact tagged-hash construction and byte vectors are part of the consensus test suite.
+
+### Canonical Serialization
+
+Every PoS object has an explicit version, fixed field order, fixed-width integer encoding, canonical public-key encoding, and strict maximum serialized size. Parsers reject trailing bytes, duplicate fields, unknown versions, non-canonical signatures, non-minimal encodings, and unsorted or duplicate vote entries. Consensus objects do not use permissive extension parsing.
+
+### Finality Safety Evidence
+
+Consensus detects and applies lockouts for all objectively provable violations:
+
+- two valid block authorizations by one bond for the same parent and slot;
+- two checkpoint votes by one bond for different targets in the same target epoch;
+- a later vote whose source and target epochs surround an earlier vote; and
+- a later vote surrounded by an earlier vote.
+
+Evidence contains both conflicting signed messages, is canonically ordered, and is applied only after inclusion in a valid block. Malformed evidence cannot trigger a lockout.
+
+### Committed State
+
+Each PoS block commits through its coinbase-like transaction and header Merkle root to:
+
+- the bonded-stake snapshot root used for eligibility and vote weight;
+- the checkpoint-vote root;
+- the epoch seed;
+- the canonical stake-proof hash; and
+- any applied equivocation-evidence root.
+
+Nodes independently derive and verify every root. Peer-provided totals, weights, and roots are never authoritative.
+
+### Crash-Safe State
+
+Bonding, unbonding, eligibility lockouts, latest votes, justified and finalized checkpoints, epoch seeds, and stake snapshots are updated atomically with block connection. Every state transition has deterministic disconnect undo data. Reindex and replay from blocks must reproduce byte-identical consensus state and roots. Database caches are never a source of consensus truth.
+
+### Layered Verification
+
+Validation orders inexpensive checks before cryptographic work: activation and version, canonical lengths, count limits, parent availability, slot bounds, sorted uniqueness, known bond, maturity, and snapshot membership precede VRF and signature verification. Per-peer accounting limits repeated invalid proofs, votes, evidence, and duplicate announcements. Batch verification may optimize valid traffic but must fall back to individual verification and must never change acceptance results.
+
+### Security Test Gate
+
+Phase 3 includes fixed cross-platform vectors, round-trip and differential serialization tests, fuzz targets for every PoS parser, malformed cryptographic proof tests, restart/reindex/disconnect tests, simulated partitions, concurrent slot winners, delayed and conflicting votes, finality stalls, long-range forks, and resource-exhaustion tests. A public testnet release is blocked while any consensus vector differs across supported platforms.
+## Networking And Denial-of-Service Limits
+
+Before expensive signature or kernel checks, nodes must enforce:
+
+- bounded proof and signature serialization;
+- one canonical stake proof format;
+- cheap activation-height and version checks;
+- known-parent checks;
+- slot and timestamp bounds;
+- minimum encoded stake value checks; and
+- per-peer limits for invalid or duplicate PoS announcements.
+
+Nodes must validate the referenced UTXO against the parent state and never trust stake value, age, target, score, or finality weight supplied by a peer.
+
+## Operational Participation Targets
+
+Wallet count is not a consensus identity and cannot be enforced because one operator may control many keys. Release readiness is evaluated using observed independent operators and bonded-stake concentration.
+
+- regtest development targets at least 3 to 5 staking wallets;
+- private integration testing targets 10 to 20 wallets;
+- public testnet targets at least 50 independently operated staking nodes; and
+- mainnet readiness targets at least 100 independent operators, preferably several hundred, with more than 70 percent of bonded value reliably online.
+
+Mainnet readiness must report the largest observed bond/operator concentration, the largest ten concentration, occupied-slot rate, competing-winner rate, vote participation, finality delay, and recovery from partitions. These are release gates, not claims that on-chain keys prove human identity.
+## Wallet Behavior
+
+Staking is opt-in. Merely owning XVG or opening a wallet does not automatically expose keys or begin staking. The wallet must show:
+
+- eligible and currently locked balances;
+- staking enabled/disabled state;
+- staking-key status;
+- estimated selection probability without promising rewards;
+- last attempted and accepted slots; and
+- earned fee rewards and their maturity.
+
+Wallet locking, backup, encryption, hardware-wallet behavior, and delegated staking require explicit tests.
+
+## Required Test Coverage
+
+Phase 3 requires fixed vectors and adversarial tests for:
+
+- activation boundary and rejection of post-activation PoW;
+- pre-activation compatibility;
+- exact 1,000 XVG and 720-confirmation boundaries;
+- kernel and target arithmetic;
+- stake-weight linearity and split/merge equivalence;
+- signature domain separation and malformed encodings;
+- principal and fee conservation, including empty blocks;
+- spent, immature, missing, and competing stake outpoints;
+- duplicate slots, missed slots, clock drift, and timestamp grinding;
+- short and long reorganizations;
+- finality and conflicting votes;
+- restart, reindex, pruning, and wallet recovery; and
+- cross-platform deterministic vectors.
+
+## Phase Gates
+
+1. Phase 1 ends only after all open consensus decisions in this document are resolved and reviewed.
+2. Phase 2 implements regtest-only activation and staking; mainnet behavior remains byte-for-byte unchanged.
+3. Phase 3 adds deterministic and adversarial tests before public testing.
+4. Phase 4 operates a public PoS testnet for months and records participation, forks, missed slots, and recovery events.
+5. Phase 5 requires independent consensus and cryptographic review with findings addressed publicly.
+6. Phase 6 begins only after readiness review; production activation height is selected last.
+## Documentation Discipline
+
+This document is updated with each approved consensus decision. Implementation commits must reference the relevant section and must not introduce undocumented consensus behavior. Before public testnet, the draft must include exact byte serialization, domain-separation strings, arithmetic bounds, state-transition pseudocode, RPC behavior, and fixed vectors. Before Phase 6 it will be promoted from a research draft to a versioned consensus specification linked from the root README and release documentation.

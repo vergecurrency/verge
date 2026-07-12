@@ -53,6 +53,12 @@ consensus.vDeployments[d].nStartTime = nStartTime;
 consensus.vDeployments[d].nTimeout = nTimeout;
 }
 
+void CChainParams::UpdatePoSActivationHeight(int height)
+{
+consensus.nPoSActivationHeight = height;
+}
+
+
 /**
 * Main network
 */
@@ -73,6 +79,15 @@ consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
 consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;
 consensus.CLOCK_DRIFT_FORK = 2218500;
+consensus.nPoSActivationHeight = 15000000;
+consensus.nPoSMinStake = 1000 * COIN;
+consensus.nPoSStakeMaturity = 720;
+consensus.nPoSSlotSeconds = 30;
+consensus.nPoSEpochSlots = 120;
+consensus.nPoSSnapshotDelayEpochs = 2;
+consensus.nPoSUnbondingBlocks = 20160;
+consensus.nPoSMaxVotesPerBlock = 1024;
+consensus.nPoSMaxEvidencePerBlock = 16;
 consensus.nSubsidyHalvingInterval = 500000;
 
 consensus.BIP34Height = consensus.ForkHeight;
@@ -368,6 +383,15 @@ consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
 consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;
 consensus.CLOCK_DRIFT_FORK = 2218500;
+consensus.nPoSActivationHeight = 15000000;
+consensus.nPoSMinStake = 1000 * COIN;
+consensus.nPoSStakeMaturity = 720;
+consensus.nPoSSlotSeconds = 30;
+consensus.nPoSEpochSlots = 120;
+consensus.nPoSSnapshotDelayEpochs = 2;
+consensus.nPoSUnbondingBlocks = 20160;
+consensus.nPoSMaxVotesPerBlock = 1024;
+consensus.nPoSMaxEvidencePerBlock = 16;
 
 consensus.BIP34Height = 0;
 consensus.BIP65Height = 0; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
@@ -475,6 +499,15 @@ consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
 consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;
 consensus.CLOCK_DRIFT_FORK = 2218500;
+consensus.nPoSActivationHeight = std::numeric_limits<int>::max();
+consensus.nPoSMinStake = 1000 * COIN;
+consensus.nPoSStakeMaturity = 720;
+consensus.nPoSSlotSeconds = 30;
+consensus.nPoSEpochSlots = 120;
+consensus.nPoSSnapshotDelayEpochs = 2;
+consensus.nPoSUnbondingBlocks = 20160;
+consensus.nPoSMaxVotesPerBlock = 1024;
+consensus.nPoSMaxEvidencePerBlock = 16;
 consensus.nSubsidyHalvingInterval = 500000;
 consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
@@ -575,4 +608,9 @@ globalChainParams = CreateChainParams(network);
 void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
 {
 globalChainParams->UpdateVersionBitsParameters(d, nStartTime, nTimeout);
+}
+
+void UpdatePoSActivationHeight(int height)
+{
+globalChainParams->UpdatePoSActivationHeight(height);
 }

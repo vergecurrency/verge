@@ -82,6 +82,7 @@ public:
     const CCheckpointData& BlockIndexCheckpoints() const { return checkpointIndexData; }
     const ChainTxData& TxData() const { return chainTxData; }
     void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
+    void UpdatePoSActivationHeight(int height);
 protected:
     CChainParams() {}
 
@@ -127,5 +128,8 @@ void SelectParams(const std::string& chain);
  * Allows modifying the Version Bits regtest parameters.
  */
 void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
+
+/** Allows overriding the PoS activation height on regtest only. */
+void UpdatePoSActivationHeight(int height);
 
 #endif // VERGE_CHAINPARAMS_H
