@@ -4522,17 +4522,6 @@ static UniValue submitblock(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
     }
 
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet* const pwallet = wallet.get();
-
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Wallet has to be available for block signature creation.");
-    }
-
-    if (!SignBlock(block, *pwallet)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
-    }
-    
     uint256 hash = block.GetHash();
     bool fBlockPresent = false;
     {
@@ -4548,6 +4537,22 @@ static UniValue submitblock(const JSONRPCRequest& request)
             // Otherwise, we might only have the header - process the block before returning
             fBlockPresent = true;
         }
+    }
+
+    CValidationState preliminaryState;
+    if (!CheckBlock(block, preliminaryState, Params().GetConsensus(), true, true, false)) {
+        return BIP22ValidationResult(preliminaryState);
+    }
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Wallet has to be available for block signature creation.");
+    }
+
+    if (!SignBlock(block, *pwallet)) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block signatures couldn't be created");
     }
 
     {

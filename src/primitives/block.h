@@ -55,8 +55,7 @@ static inline int GetAlgoByName(std::string strAlgo){
 	    return ALGO_LYRA2RE;
     if (strAlgo == "blake" || strAlgo == "blake2s")
 	    return ALGO_BLAKE;
-    //printf("GetAlgoByName(): Can't Parse Algo, %s\n", strAlgo.c_str());
-    return ALGO_SCRYPT;
+    return -1;
 }
 
 static inline std::string GetAlgoName(int algo)

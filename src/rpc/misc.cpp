@@ -487,13 +487,17 @@ UniValue setalgo(const JSONRPCRequest& request)
         "setalgo \"algo\"\n"
         "\nSets algo and returns current and previous algo\n"
         "Uses the same input as commandline parameters or verge.conf\n"
-        "If it's invalid the ALGO will be set to scrypt"
+        "Invalid algorithm names are rejected."
     );
     UniValue obj(UniValue::VOBJ);
     std::string strAlgo = request.params[0].get_str();
     transform(strAlgo.begin(),strAlgo.end(),strAlgo.begin(),::tolower);
+    const int newAlgo = GetAlgoByName(strAlgo);
+    if (newAlgo < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown mining algorithm: %s", strAlgo));
+    }
     obj.pushKV("old_algo", GetAlgoName(ALGO));
-    ALGO = GetAlgoByName(strAlgo);
+    ALGO = newAlgo;
     obj.pushKV("new_algo", GetAlgoName(ALGO));
     return obj;
 }

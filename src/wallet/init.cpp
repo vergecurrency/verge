@@ -109,6 +109,9 @@ bool WalletInit::ParameterInteraction() const
     std::string strAlgo = gArgs.GetArg("-algo", "scrypt");
     transform(strAlgo.begin(),strAlgo.end(),strAlgo.begin(),::tolower);
     ALGO = GetAlgoByName(strAlgo);
+    if (ALGO < 0) {
+        return InitError(strprintf("Invalid mining algorithm '%s'", strAlgo));
+    }
 
     gArgs.SoftSetArg("-fallbackfee", "0.01");
     

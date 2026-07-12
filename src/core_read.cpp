@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <core_io.h>
+#include <consensus/consensus.h>
 
 #include <primitives/block.h>
 #include <primitives/transaction.h>
@@ -146,7 +147,7 @@ bool DecodeHexTx(CMutableTransaction& tx, const std::string& hex_tx, bool try_no
 
 bool DecodeHexBlk(CBlock& block, const std::string& strHexBlk)
 {
-    if (!IsHex(strHexBlk))
+    if (strHexBlk.empty() || strHexBlk.size() > 2 * MAX_BLOCK_SERIALIZED_SIZE || !IsHex(strHexBlk))
         return false;
 
     std::vector<unsigned char> blockData(ParseHex(strHexBlk));
@@ -158,7 +159,7 @@ bool DecodeHexBlk(CBlock& block, const std::string& strHexBlk)
         return false;
     }
 
-    return true;
+    return ssBlock.empty();
 }
 
 uint256 ParseHashStr(const std::string& strHex, const std::string& strName)

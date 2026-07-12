@@ -84,4 +84,23 @@ BOOST_AUTO_TEST_CASE(GetBlockProofEquivalentTime_test)
     }
 }
 
+BOOST_AUTO_TEST_CASE(multialgo_consensus_regression)
+{
+    const auto chainParams = CreateChainParams(CBaseChainParams::MAIN);
+    std::vector<CBlockIndex> blocks(12);
+    for (int i = 0; i < 12; ++i) {
+        blocks[i].pprev = i ? &blocks[i - 1] : nullptr;
+        blocks[i].nHeight = 4000000 + i;
+        blocks[i].nTime = 1600000000 + i * 150;
+        blocks[i].nBits = 0x1e0fffff;
+        blocks[i].nVersion = BLOCK_VERSION_STEALTH | BLOCK_VERSION_SCRYPT;
+    }
+
+    BOOST_CHECK_EQUAL(DarkGravityWave3(&blocks.back(), ALGO_SCRYPT, chainParams->GetConsensus()), 0x1e0eaaa9U);
+    BOOST_CHECK_EQUAL(GetAlgoWeight(ALGO_GROESTL), 500U);
+    BOOST_CHECK_EQUAL(GetAlgoWeight(ALGO_BLAKE), 15U);
+    BOOST_CHECK_EQUAL(GetAlgoWeight(ALGO_X17), 600000U);
+    BOOST_CHECK_EQUAL(GetAlgoWeight(ALGO_LYRA2RE), 600000U);
+    BOOST_CHECK_EQUAL(GetAlgoWeight(ALGO_SCRYPT), 140000U);
+}
 BOOST_AUTO_TEST_SUITE_END()

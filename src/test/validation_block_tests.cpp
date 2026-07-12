@@ -6,14 +6,17 @@
 #include <boost/test/unit_test.hpp>
 
 #include <chainparams.h>
+#include <consensus/consensus.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
+#include <core_io.h>
 #include <miner.h>
 #include <pow.h>
 #include <random.h>
 #include <test/setup_common.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include <util/strencodings.h>
 
 BOOST_FIXTURE_TEST_SUITE(validation_block_tests, RegTestingSetup)
 
@@ -229,4 +232,27 @@ BOOST_AUTO_TEST_CASE(block_validation_hardening)
     BOOST_CHECK(!hasUsedValidMiningAlgorithm(candidate, &history[2 * SAME_ALGO_MAX_COUNT - 1]));
 }
 
+BOOST_AUTO_TEST_CASE(block_rpc_decode_is_bounded_and_canonical)
+{
+    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    stream << Params().GenesisBlock();
+    const std::string encoded = HexStr(stream.begin(), stream.end());
+
+    CBlock decoded;
+    BOOST_CHECK(DecodeHexBlk(decoded, encoded));
+    BOOST_CHECK_EQUAL(decoded.GetHash(), Params().GenesisBlock().GetHash());
+    BOOST_CHECK(!DecodeHexBlk(decoded, encoded + "00"));
+    BOOST_CHECK(!DecodeHexBlk(decoded, ""));
+    BOOST_CHECK(!DecodeHexBlk(decoded, std::string(2 * MAX_BLOCK_SERIALIZED_SIZE + 2, '0')));
+}
+
+BOOST_AUTO_TEST_CASE(mining_algorithm_names_are_strict)
+{
+    BOOST_CHECK_EQUAL(GetAlgoByName("scrypt"), ALGO_SCRYPT);
+    BOOST_CHECK_EQUAL(GetAlgoByName("groestl"), ALGO_GROESTL);
+    BOOST_CHECK_EQUAL(GetAlgoByName("x17"), ALGO_X17);
+    BOOST_CHECK_EQUAL(GetAlgoByName("lyra2re"), ALGO_LYRA2RE);
+    BOOST_CHECK_EQUAL(GetAlgoByName("blake"), ALGO_BLAKE);
+    BOOST_CHECK_EQUAL(GetAlgoByName("not-an-algorithm"), -1);
+}
 BOOST_AUTO_TEST_SUITE_END()

@@ -466,6 +466,9 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         pblockCache = &pblocktemplate->block;
     }
     int32_t templateAlgorithm = algorithm.isStr() ? GetAlgoByName(algorithm.get_str()) : ALGO;
+    if (templateAlgorithm < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown mining algorithm: %s", algorithm.get_str()));
+    }
 
     /**
      * Update the blocktemplate if ...
