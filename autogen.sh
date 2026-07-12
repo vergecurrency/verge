@@ -7,7 +7,7 @@
 export LC_ALL=C
 
 set -e
-git submodule update --init --recursive
+git -c submodule.recurse=false submodule update --init -- src/tor src/secp256k1 src/leveldb
 
 srcdir="$(dirname $0)"
 cd "$srcdir"
