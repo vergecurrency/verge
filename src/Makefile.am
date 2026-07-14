@@ -203,6 +203,7 @@ VERGE_CORE_H = \
   policy/policy.h \
   policy/rbf.h \
   pos/consensus.h \
+  pos/primitives.h \
   protocol.h \
   pow.h \
   random.h \
@@ -299,6 +300,7 @@ libverge_server_a_SOURCES = \
   policy/policy.cpp \
   policy/rbf.cpp \
   pos/consensus.cpp \
+  pos/primitives.cpp \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \

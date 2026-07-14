@@ -306,10 +306,55 @@ VergePoS/Equivocation/v1
 ```
 
 A hash from one domain is never accepted in another domain. Exact tagged-hash construction and byte vectors are part of the consensus test suite.
+The version 1 tagged hash is a single SHA-256 operation constructed as:
+
+~~~text
+tag_hash = SHA256(ascii(domain))
+result   = SHA256(tag_hash || tag_hash || canonical_serialization(object))
+~~~
+
+It does not use the legacy double-SHA-256 object writer. As an initial cross-platform vector, hashing the one-byte payload 00 in the VergePoS/Bond/v1 domain produces digest bytes d6a4f440647636141f9427e8cdcd6a9bf53d222c5f8eead2743de31851eaddfc, represented by the node's uint256 hexadecimal display as fcddea5118e33d74d2ea8e5f2c223df59b6acdcde827941f1436766440f4a4d6.
 
 ### Canonical Serialization
 
 Every PoS object has an explicit version, fixed field order, fixed-width integer encoding, canonical public-key encoding, and strict maximum serialized size. Parsers reject trailing bytes, duplicate fields, unknown versions, non-canonical signatures, non-minimal encodings, and unsorted or duplicate vote entries. Consensus objects do not use permissive extension parsing.
+#### Version 1 Primitive Layouts
+
+Phase 2 uses the existing network serializer's little-endian fixed-width integers and canonical 36-byte outpoints. Cryptographic byte strings have fixed sizes and are serialized without compact-size prefixes. The first byte of every primitive is version 1; every other version is rejected.
+
+The version 1 stake proof is exactly 359 bytes in this order:
+
+| Field | Size |
+| --- | ---: |
+| version | 1 byte |
+| bond outpoint | 36 bytes |
+| slot | 8 bytes |
+| snapshot epoch | 8 bytes |
+| snapshot root | 32 bytes |
+| epoch seed | 32 bytes |
+| compressed P-256 VRF public key | 33 bytes |
+| VRF output | 32 bytes |
+| VRF proof | 81 bytes |
+| x-only secp256k1 signing public key | 32 bytes |
+| block authorization signature | 64 bytes |
+
+The version 1 checkpoint vote is exactly 229 bytes in this order:
+
+| Field | Size |
+| --- | ---: |
+| version | 1 byte |
+| bond outpoint | 36 bytes |
+| snapshot epoch | 8 bytes |
+| source epoch | 8 bytes |
+| source checkpoint root | 32 bytes |
+| target epoch | 8 bytes |
+| target checkpoint root | 32 bytes |
+| head slot | 8 bytes |
+| head block root | 32 bytes |
+| vote signature | 64 bytes |
+
+These primitives are initially implemented independently of block acceptance. A node must not accept a PoS block merely because these objects deserialize; semantic checks, cryptographic verification, canonical collection ordering, committed roots, and activation rules remain mandatory later in Phase 2.
+Cheap structural validation rejects unsupported versions, null bond outpoints, slot zero, null snapshot or seed commitments, non-compressed VRF key prefixes, all-zero cryptographic values, reversed source/target epochs, and incomplete vote heads before cryptographic verification. Vote vectors are bounded before iteration, sorted by bond outpoint and then tagged vote hash, and reject duplicates. Passing these checks does not establish key validity, signature validity, VRF validity, eligibility, snapshot membership, or finality correctness.
 
 ### Finality Safety Evidence
 
