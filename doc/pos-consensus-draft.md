@@ -66,7 +66,7 @@ A PoS block retains the existing block header for compatibility with storage and
 
 The first transaction remains structurally coinbase-like so existing block indexing can be adapted incrementally. It creates no subsidy and may pay at most the block's transaction fees to the owner-controlled reward destination committed by the selected bond.
 
-A consensus-defined stake proof references exactly one bonded UTXO without spending or recreating it. The proof commits to the selected outpoint, slot, stake snapshot, VRF output and proof, delegated staking public key, block authorization signature, and applicable checkpoint vote. Principal therefore remains locked in its original bonded output while producing blocks.
+A consensus-defined stake proof references exactly one bonded UTXO without spending or recreating it. The proof commits to the selected outpoint, slot, stake snapshot, VRF output and proof, delegated staking public key; block authorization and checkpoint votes are serialized separately. Principal therefore remains locked in its original bonded output while producing blocks.
 
 The exact serialization must be domain-separated and covered by fixed test vectors before Phase 2 is considered complete. Witness serialization is not used.
 
@@ -322,7 +322,7 @@ Every PoS object has an explicit version, fixed field order, fixed-width integer
 
 Phase 2 uses the existing network serializer's little-endian fixed-width integers and canonical 36-byte outpoints. Cryptographic byte strings have fixed sizes and are serialized without compact-size prefixes. The first byte of every primitive is version 1; every other version is rejected.
 
-The version 1 stake proof is exactly 359 bytes in this order:
+The version 1 stake proof is exactly 295 bytes in this order:
 
 | Field | Size |
 | --- | ---: |
@@ -336,8 +336,23 @@ The version 1 stake proof is exactly 359 bytes in this order:
 | VRF output | 32 bytes |
 | VRF proof | 81 bytes |
 | x-only secp256k1 signing public key | 32 bytes |
-| block authorization signature | 64 bytes |
 
+The block signature is deliberately excluded from the stake proof. Including it would make the signed block message commit to a stake-proof hash that contains the signature itself. Block authorization is therefore a separate, fixed 273-byte object:
+
+| Field | Size |
+| --- | ---: |
+| version | 1 byte |
+| network identifier | 4 bytes |
+| parent block root | 32 bytes |
+| candidate header hash | 32 bytes |
+| slot | 8 bytes |
+| bond outpoint | 36 bytes |
+| unsigned stake-proof hash | 32 bytes |
+| fee-reward transaction hash | 32 bytes |
+| parent randomness | 32 bytes |
+| block signature | 64 bytes |
+
+The block signing hash uses the VergePoS/Block/v1 domain over the first 209 bytes and excludes the signature. The candidate header hash covers the existing header, which does not serialize the PoS extension, so it does not create a cycle. A complete signed authorization may separately be hashed in the VergePoS/Equivocation/v1 domain for canonical evidence ordering.
 The version 1 checkpoint vote is exactly 229 bytes in this order:
 
 | Field | Size |
@@ -366,6 +381,7 @@ Consensus detects and applies lockouts for all objectively provable violations:
 - a later vote surrounded by an earlier vote.
 
 Evidence contains both conflicting signed messages, is canonically ordered, and is applied only after inclusion in a valid block. Malformed evidence cannot trigger a lockout.
+Version 1 block equivocation evidence is exactly 547 bytes: one version byte followed by two 273-byte block authorizations. Both authorizations must have the same nonzero network identifier, bond outpoint, parent block root, and slot, but different candidate header hashes. Version 1 vote equivocation evidence is exactly 459 bytes: one version byte followed by two 229-byte checkpoint votes from the same bond. It proves either different target roots for one target epoch or a strict surround relation. Each pair is sorted by its full signed-object hash and duplicates are rejected before signature verification.
 
 ### Committed State
 

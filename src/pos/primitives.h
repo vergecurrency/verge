@@ -34,7 +34,6 @@ struct StakeProof {
     unsigned char vrf_output[VRF_OUTPUT_SIZE]{};
     unsigned char vrf_proof[VRF_PROOF_SIZE]{};
     unsigned char signing_public_key[SCHNORR_PUBLIC_KEY_SIZE]{};
-    unsigned char block_signature[SCHNORR_SIGNATURE_SIZE]{};
 
     ADD_SERIALIZE_METHODS;
 
@@ -43,10 +42,32 @@ struct StakeProof {
     {
         READWRITE(version, bond_outpoint, slot, snapshot_epoch, snapshot_root,
                   epoch_seed, vrf_public_key, vrf_output, vrf_proof,
-                  signing_public_key, block_signature);
+                  signing_public_key);
     }
 };
 
+struct BlockAuthorization {
+    uint8_t version{POS_OBJECT_VERSION};
+    uint32_t network_id{0};
+    uint256 parent_block_root;
+    uint256 candidate_header_hash;
+    uint64_t slot{0};
+    COutPoint bond_outpoint;
+    uint256 stake_proof_hash;
+    uint256 fee_reward_transaction_hash;
+    uint256 parent_randomness;
+    unsigned char signature[SCHNORR_SIGNATURE_SIZE]{};
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
+        READWRITE(version, network_id, parent_block_root, candidate_header_hash,
+                  slot, bond_outpoint, stake_proof_hash,
+                  fee_reward_transaction_hash, parent_randomness, signature);
+    }
+};
 struct CheckpointVote {
     uint8_t version{POS_OBJECT_VERSION};
     COutPoint bond_outpoint;
@@ -70,6 +91,33 @@ struct CheckpointVote {
     }
 };
 
+struct BlockEquivocationEvidence {
+    uint8_t version{POS_OBJECT_VERSION};
+    BlockAuthorization first;
+    BlockAuthorization second;
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
+        READWRITE(version, first, second);
+    }
+};
+
+struct VoteEquivocationEvidence {
+    uint8_t version{POS_OBJECT_VERSION};
+    CheckpointVote first;
+    CheckpointVote second;
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
+        READWRITE(version, first, second);
+    }
+};
 enum class HashDomain {
     BOND,
     BLOCK,
@@ -95,6 +143,10 @@ enum class StructureError {
     ZERO_SIGNATURE,
     INVALID_EPOCH_ORDER,
     INVALID_HEAD,
+    INVALID_NETWORK,
+    INVALID_AUTHORIZATION,
+    NON_CANONICAL_EVIDENCE,
+    NOT_EQUIVOCATION,
 };
 
 class TaggedHashWriter {
@@ -124,11 +176,17 @@ uint256 GetTaggedHash(HashDomain domain, const T& object)
     writer << object;
     return writer.GetHash();
 }
+uint256 GetBlockSigningHash(const BlockAuthorization& authorization);
+uint256 GetVoteSigningHash(const CheckpointVote& vote);
 bool HasSupportedVersion(const StakeProof& proof);
 bool HasSupportedVersion(const CheckpointVote& vote);
+bool HasSupportedVersion(const BlockAuthorization& authorization);
 bool IsPoSVersion(int32_t version);
 StructureError CheckStructure(const StakeProof& proof);
 StructureError CheckStructure(const CheckpointVote& vote);
+StructureError CheckStructure(const BlockAuthorization& authorization);
+StructureError CheckStructure(const BlockEquivocationEvidence& evidence);
+StructureError CheckStructure(const VoteEquivocationEvidence& evidence);
 bool HasCanonicalVoteOrder(const std::vector<CheckpointVote>& votes, uint32_t maximum_votes);
 
 } // namespace pos

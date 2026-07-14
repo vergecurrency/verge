@@ -57,6 +57,35 @@ uint256 TaggedHashWriter::GetHash()
     return result;
 }
 
+uint256 GetBlockSigningHash(const BlockAuthorization& authorization)
+{
+    TaggedHashWriter writer(HashDomain::BLOCK);
+    writer << authorization.version
+           << authorization.network_id
+           << authorization.parent_block_root
+           << authorization.candidate_header_hash
+           << authorization.slot
+           << authorization.bond_outpoint
+           << authorization.stake_proof_hash
+           << authorization.fee_reward_transaction_hash
+           << authorization.parent_randomness;
+    return writer.GetHash();
+}
+
+uint256 GetVoteSigningHash(const CheckpointVote& vote)
+{
+    TaggedHashWriter writer(HashDomain::VOTE);
+    writer << vote.version
+           << vote.bond_outpoint
+           << vote.snapshot_epoch
+           << vote.source_epoch
+           << vote.source_checkpoint_root
+           << vote.target_epoch
+           << vote.target_checkpoint_root
+           << vote.head_slot
+           << vote.head_block_root;
+    return writer.GetHash();
+}
 bool HasSupportedVersion(const StakeProof& proof)
 {
     return proof.version == POS_OBJECT_VERSION;
@@ -65,6 +94,11 @@ bool HasSupportedVersion(const StakeProof& proof)
 bool HasSupportedVersion(const CheckpointVote& vote)
 {
     return vote.version == POS_OBJECT_VERSION;
+}
+
+bool HasSupportedVersion(const BlockAuthorization& authorization)
+{
+    return authorization.version == POS_OBJECT_VERSION;
 }
 
 bool IsPoSVersion(int32_t version)
@@ -82,7 +116,6 @@ StructureError CheckStructure(const StakeProof& proof)
     if (IsAllZero(proof.vrf_output)) return StructureError::ZERO_VRF_OUTPUT;
     if (IsAllZero(proof.vrf_proof)) return StructureError::ZERO_VRF_PROOF;
     if (IsAllZero(proof.signing_public_key)) return StructureError::ZERO_SIGNING_PUBLIC_KEY;
-    if (IsAllZero(proof.block_signature)) return StructureError::ZERO_SIGNATURE;
     return StructureError::NONE;
 }
 
@@ -97,6 +130,71 @@ StructureError CheckStructure(const CheckpointVote& vote)
     return StructureError::NONE;
 }
 
+StructureError CheckStructure(const BlockAuthorization& authorization)
+{
+    if (!HasSupportedVersion(authorization)) return StructureError::UNSUPPORTED_VERSION;
+    if (authorization.network_id == 0) return StructureError::INVALID_NETWORK;
+    if (authorization.bond_outpoint.IsNull()) return StructureError::NULL_BOND_OUTPOINT;
+    if (authorization.slot == 0) return StructureError::INVALID_SLOT;
+    if (authorization.parent_block_root.IsNull() ||
+        authorization.candidate_header_hash.IsNull() ||
+        authorization.stake_proof_hash.IsNull() ||
+        authorization.fee_reward_transaction_hash.IsNull() ||
+        authorization.parent_randomness.IsNull()) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
+    if (IsAllZero(authorization.signature)) return StructureError::ZERO_SIGNATURE;
+    return StructureError::NONE;
+}
+
+StructureError CheckStructure(const BlockEquivocationEvidence& evidence)
+{
+    if (evidence.version != POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (CheckStructure(evidence.first) != StructureError::NONE ||
+        CheckStructure(evidence.second) != StructureError::NONE) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
+    const uint256 first_hash = GetTaggedHash(HashDomain::EQUIVOCATION, evidence.first);
+    const uint256 second_hash = GetTaggedHash(HashDomain::EQUIVOCATION, evidence.second);
+    if (!(first_hash < second_hash)) return StructureError::NON_CANONICAL_EVIDENCE;
+    if (evidence.first.network_id != evidence.second.network_id ||
+        evidence.first.bond_outpoint != evidence.second.bond_outpoint ||
+        evidence.first.parent_block_root != evidence.second.parent_block_root ||
+        evidence.first.slot != evidence.second.slot ||
+        evidence.first.candidate_header_hash == evidence.second.candidate_header_hash) {
+        return StructureError::NOT_EQUIVOCATION;
+    }
+    return StructureError::NONE;
+}
+
+StructureError CheckStructure(const VoteEquivocationEvidence& evidence)
+{
+    if (evidence.version != POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (CheckStructure(evidence.first) != StructureError::NONE ||
+        CheckStructure(evidence.second) != StructureError::NONE) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
+    const uint256 first_hash = GetTaggedHash(HashDomain::VOTE, evidence.first);
+    const uint256 second_hash = GetTaggedHash(HashDomain::VOTE, evidence.second);
+    if (!(first_hash < second_hash)) return StructureError::NON_CANONICAL_EVIDENCE;
+    if (evidence.first.bond_outpoint != evidence.second.bond_outpoint) {
+        return StructureError::NOT_EQUIVOCATION;
+    }
+
+    const bool double_target =
+        evidence.first.target_epoch == evidence.second.target_epoch &&
+        evidence.first.target_checkpoint_root != evidence.second.target_checkpoint_root;
+    const bool first_surrounds_second =
+        evidence.first.source_epoch < evidence.second.source_epoch &&
+        evidence.second.target_epoch < evidence.first.target_epoch;
+    const bool second_surrounds_first =
+        evidence.second.source_epoch < evidence.first.source_epoch &&
+        evidence.first.target_epoch < evidence.second.target_epoch;
+    if (!double_target && !first_surrounds_second && !second_surrounds_first) {
+        return StructureError::NOT_EQUIVOCATION;
+    }
+    return StructureError::NONE;
+}
 bool HasCanonicalVoteOrder(const std::vector<CheckpointVote>& votes, uint32_t maximum_votes)
 {
     if (votes.size() > maximum_votes) return false;

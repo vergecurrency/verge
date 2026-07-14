@@ -17,9 +17,15 @@ BOOST_AUTO_TEST_CASE(fixed_sizes_and_versions)
 {
     pos::StakeProof proof;
     pos::CheckpointVote vote;
+    pos::BlockAuthorization authorization;
+    pos::BlockEquivocationEvidence block_evidence;
+    pos::VoteEquivocationEvidence vote_evidence;
 
-    BOOST_CHECK_EQUAL(GetSerializeSize(proof, SER_NETWORK, 0), 359U);
+    BOOST_CHECK_EQUAL(GetSerializeSize(proof, SER_NETWORK, 0), 295U);
     BOOST_CHECK_EQUAL(GetSerializeSize(vote, SER_NETWORK, 0), 229U);
+    BOOST_CHECK_EQUAL(GetSerializeSize(authorization, SER_NETWORK, 0), 273U);
+    BOOST_CHECK_EQUAL(GetSerializeSize(block_evidence, SER_NETWORK, 0), 547U);
+    BOOST_CHECK_EQUAL(GetSerializeSize(vote_evidence, SER_NETWORK, 0), 459U);
     BOOST_CHECK(pos::HasSupportedVersion(proof));
     BOOST_CHECK(pos::HasSupportedVersion(vote));
     BOOST_CHECK(pos::IsPoSVersion(pos::BLOCK_VERSION_POS));
@@ -43,7 +49,6 @@ BOOST_AUTO_TEST_CASE(round_trip)
     std::memset(expected.vrf_output, 0x05, sizeof(expected.vrf_output));
     std::memset(expected.vrf_proof, 0x06, sizeof(expected.vrf_proof));
     std::memset(expected.signing_public_key, 0x07, sizeof(expected.signing_public_key));
-    std::memset(expected.block_signature, 0x08, sizeof(expected.block_signature));
 
     CDataStream stream(SER_NETWORK, 0);
     stream << expected;
@@ -60,7 +65,6 @@ BOOST_AUTO_TEST_CASE(round_trip)
     BOOST_CHECK_EQUAL_COLLECTIONS(decoded.vrf_output, decoded.vrf_output + sizeof(decoded.vrf_output), expected.vrf_output, expected.vrf_output + sizeof(expected.vrf_output));
     BOOST_CHECK_EQUAL_COLLECTIONS(decoded.vrf_proof, decoded.vrf_proof + sizeof(decoded.vrf_proof), expected.vrf_proof, expected.vrf_proof + sizeof(expected.vrf_proof));
     BOOST_CHECK_EQUAL_COLLECTIONS(decoded.signing_public_key, decoded.signing_public_key + sizeof(decoded.signing_public_key), expected.signing_public_key, expected.signing_public_key + sizeof(expected.signing_public_key));
-    BOOST_CHECK_EQUAL_COLLECTIONS(decoded.block_signature, decoded.block_signature + sizeof(decoded.block_signature), expected.block_signature, expected.block_signature + sizeof(expected.block_signature));
     BOOST_CHECK(stream.empty());
 }
 
@@ -90,7 +94,6 @@ BOOST_AUTO_TEST_CASE(structural_checks)
     std::memset(proof.vrf_output, 1, sizeof(proof.vrf_output));
     std::memset(proof.vrf_proof, 2, sizeof(proof.vrf_proof));
     std::memset(proof.signing_public_key, 3, sizeof(proof.signing_public_key));
-    std::memset(proof.block_signature, 4, sizeof(proof.block_signature));
     BOOST_CHECK(pos::CheckStructure(proof) == pos::StructureError::NONE);
 
     pos::CheckpointVote vote;
@@ -107,6 +110,80 @@ BOOST_AUTO_TEST_CASE(structural_checks)
     BOOST_CHECK(pos::CheckStructure(vote) == pos::StructureError::NONE);
 }
 
+BOOST_AUTO_TEST_CASE(signing_hash_excludes_signature)
+{
+    pos::BlockAuthorization authorization;
+    authorization.network_id = 1;
+    authorization.parent_block_root = uint256S("01");
+    authorization.candidate_header_hash = uint256S("02");
+    authorization.slot = 3;
+    authorization.bond_outpoint = COutPoint(uint256S("04"), 0);
+    authorization.stake_proof_hash = uint256S("05");
+    authorization.fee_reward_transaction_hash = uint256S("06");
+    authorization.parent_randomness = uint256S("07");
+
+    const uint256 unsigned_hash = pos::GetBlockSigningHash(authorization);
+    std::memset(authorization.signature, 1, sizeof(authorization.signature));
+    BOOST_CHECK(pos::GetBlockSigningHash(authorization) == unsigned_hash);
+    BOOST_CHECK(pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, authorization) != unsigned_hash);
+    BOOST_CHECK(pos::CheckStructure(authorization) == pos::StructureError::NONE);
+}
+
+BOOST_AUTO_TEST_CASE(equivocation_structure)
+{
+    pos::BlockAuthorization first;
+    first.network_id = 1;
+    first.parent_block_root = uint256S("01");
+    first.candidate_header_hash = uint256S("02");
+    first.slot = 3;
+    first.bond_outpoint = COutPoint(uint256S("04"), 0);
+    first.stake_proof_hash = uint256S("05");
+    first.fee_reward_transaction_hash = uint256S("06");
+    first.parent_randomness = uint256S("07");
+    std::memset(first.signature, 1, sizeof(first.signature));
+
+    pos::BlockAuthorization second = first;
+    second.candidate_header_hash = uint256S("08");
+    std::memset(second.signature, 2, sizeof(second.signature));
+
+    pos::BlockEquivocationEvidence block_evidence;
+    block_evidence.first = first;
+    block_evidence.second = second;
+    if (pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.second) <
+        pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.first)) {
+        std::swap(block_evidence.first, block_evidence.second);
+    }
+    BOOST_CHECK(pos::CheckStructure(block_evidence) == pos::StructureError::NONE);
+
+    block_evidence.second.parent_block_root = uint256S("09");
+if (pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.second) <
+        pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.first)) {
+        std::swap(block_evidence.first, block_evidence.second);
+    }
+    BOOST_CHECK(pos::CheckStructure(block_evidence) == pos::StructureError::NOT_EQUIVOCATION);
+
+    pos::CheckpointVote vote_first;
+    vote_first.bond_outpoint = COutPoint(uint256S("0a"), 0);
+    vote_first.source_checkpoint_root = uint256S("0b");
+    vote_first.target_epoch = 2;
+    vote_first.target_checkpoint_root = uint256S("0c");
+    vote_first.head_slot = 3;
+    vote_first.head_block_root = uint256S("0d");
+    std::memset(vote_first.signature, 3, sizeof(vote_first.signature));
+
+    pos::CheckpointVote vote_second = vote_first;
+    vote_second.target_checkpoint_root = uint256S("0e");
+    std::memset(vote_second.signature, 4, sizeof(vote_second.signature));
+
+    pos::VoteEquivocationEvidence vote_evidence;
+    vote_evidence.first = vote_first;
+    vote_evidence.second = vote_second;
+    if (pos::GetTaggedHash(pos::HashDomain::VOTE, vote_evidence.second) <
+        pos::GetTaggedHash(pos::HashDomain::VOTE, vote_evidence.first)) {
+        std::swap(vote_evidence.first, vote_evidence.second);
+    }
+    BOOST_CHECK(pos::CheckStructure(vote_evidence) == pos::StructureError::NONE);
+}
 BOOST_AUTO_TEST_CASE(canonical_vote_order)
 {
     pos::CheckpointVote first;
