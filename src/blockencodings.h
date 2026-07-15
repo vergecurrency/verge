@@ -146,6 +146,7 @@ protected:
 public:
     CBlockHeader header;
     std::vector<unsigned char> vchBlockSig;
+    pos::BlockExtension posExtension;
 
     // Dummy for deserialization
     CBlockHeaderAndShortTxIDs() {}
@@ -163,6 +164,11 @@ public:
         READWRITE(header);
         READWRITE(nonce);
         READWRITE(vchBlockSig);
+        if (pos::IsPoSVersion(header.nVersion)) {
+            READWRITE(posExtension);
+        } else if (ser_action.ForRead()) {
+            posExtension = pos::BlockExtension();
+        }
         uint64_t shorttxids_size = (uint64_t)shorttxids.size();
         READWRITE(COMPACTSIZE(shorttxids_size));
         if (ser_action.ForRead()) {
@@ -201,6 +207,7 @@ protected:
 public:
     CBlockHeader header;
     std::vector<unsigned char> vchBlockSig;
+    pos::BlockExtension posExtension;
     explicit PartiallyDownloadedBlock(CTxMemPool* poolIn) : pool(poolIn) {}
 
     // extra_txn is a list of extra transactions to look at, in <witness hash, reference> form

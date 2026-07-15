@@ -8,6 +8,7 @@
 #define VERGE_MINER_H
 
 #include <primitives/block.h>
+#include <pos/state.h>
 #include <txmempool.h>
 #include <validation.h>
 
@@ -159,6 +160,12 @@ public:
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate> CreateNewBlock(const CScript& scriptPubKeyIn, int algo = ALGO, bool fMineWitnessTx=true);
+    std::unique_ptr<CBlockTemplate> CreateNewPoSBlock(
+        const pos::StakeProof& proof, const pos::BondRecord& bond,
+        const unsigned char signing_secret[32], uint32_t block_time,
+        const std::vector<pos::CheckpointVote>& votes = {},
+        const std::vector<pos::BlockEquivocationEvidence>& block_evidence = {},
+        const std::vector<pos::VoteEquivocationEvidence>& vote_evidence = {});
 
 private:
     // utility functions

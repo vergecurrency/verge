@@ -31,6 +31,8 @@ public:
     boost::optional<CFeeRate> m_feerate;
     //! Override the default confirmation target if set
     boost::optional<unsigned int> m_confirm_target;
+    //! Require automatically selected inputs to have this confirmation depth.
+    int m_min_depth;
     //! Override the wallet's m_signal_rbf if set
     boost::optional<bool> m_signal_bip125_rbf;
     //! Fee estimation mode to control arguments to estimateSmartFee
@@ -51,6 +53,7 @@ public:
         m_feerate.reset();
         fOverrideFeeRate = false;
         m_confirm_target.reset();
+        m_min_depth = 0;
         m_signal_bip125_rbf.reset();
         m_fee_mode = FeeEstimateMode::UNSET;
     }

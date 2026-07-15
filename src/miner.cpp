@@ -19,8 +19,12 @@
 #include <policy/feerate.h>
 #include <policy/policy.h>
 #include <pow.h>
+#include <pos/block.h>
+#include <pos/crypto.h>
 #include <primitives/transaction.h>
+#include <random.h>
 #include <script/standard.h>
+#include <support/cleanse.h>
 #include <timedata.h>
 #include <util/system.h>
 #include <util/moneystr.h>
@@ -216,6 +220,97 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
 
     LogPrint(BCLog::BENCH, "CreateNewBlock() packages: %.2fms (%d packages, %d updated descendants), validity: %.2fms (total %.2fms)\n", 0.001 * (nTime1 - nTimeStart), nPackagesSelected, nDescendantsUpdated, 0.001 * (nTime2 - nTime1), 0.001 * (nTime2 - nTimeStart));
 
+    return std::move(pblocktemplate);
+}
+
+std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
+    const pos::StakeProof& proof, const pos::BondRecord& bond,
+    const unsigned char signing_secret[32], uint32_t block_time,
+    const std::vector<pos::CheckpointVote>& votes,
+    const std::vector<pos::BlockEquivocationEvidence>& block_evidence,
+    const std::vector<pos::VoteEquivocationEvidence>& vote_evidence)
+{
+    resetBlock();
+    pblocktemplate.reset(new CBlockTemplate());
+    pblock = &pblocktemplate->block;
+    pblock->vtx.emplace_back();
+    pblocktemplate->vTxFees.push_back(-1);
+    pblocktemplate->vTxSigOpsCost.push_back(-1);
+
+    LOCK2(cs_main, mempool.cs);
+    CBlockIndex* pindexPrev = chainActive.Tip();
+    if (pindexPrev == nullptr) return nullptr;
+    nHeight = pindexPrev->nHeight + 1;
+    const Consensus::Params& consensus = chainparams.GetConsensus();
+    if (!consensus.IsPoSActive(nHeight)) return nullptr;
+
+    pblock->nVersion = BLOCK_VERSION_DEFAULT | pos::BLOCK_VERSION_POS;
+    pblock->hashPrevBlock = pindexPrev->GetBlockHash();
+    pblock->nTime = block_time;
+    pblock->nBits = 0;
+    pblock->nNonce = 0;
+    nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS &
+                       LOCKTIME_MEDIAN_TIME_PAST)
+        ? pindexPrev->GetMedianTimePast() : pblock->GetBlockTime();
+
+    int packages_selected = 0;
+    int descendants_updated = 0;
+    addPackageTxs(packages_selected, descendants_updated);
+    nLastBlockTx = nBlockTx;
+    nLastBlockWeight = nBlockWeight;
+
+    pblock->posExtension.stake_proof = proof;
+    pblock->posExtension.votes = votes;
+    pblock->posExtension.block_evidence = block_evidence;
+    pblock->posExtension.vote_evidence = vote_evidence;
+
+    CMutableTransaction reward;
+    reward.vin.resize(1);
+    reward.vin[0].prevout.SetNull();
+    reward.vin[0].scriptSig = CScript() << nHeight << OP_0;
+    reward.vout.emplace_back(
+        nFees, GetScriptForDestination(CKeyID(bond.data.reward_key_id)));
+    reward.vout.emplace_back(
+        0, pos::GetBlockCommitmentScript(
+               pos::GetBlockCommitment(pblock->posExtension)));
+    pblock->vtx[0] = MakeTransactionRef(std::move(reward));
+    pblocktemplate->vTxFees[0] = -nFees;
+    pblocktemplate->vTxSigOpsCost[0] =
+        GetLegacySigOpCount(*pblock->vtx[0]);
+    pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+
+    pos::BlockAuthorization& authorization =
+        pblock->posExtension.authorization;
+    authorization.network_id = consensus.nPoSNetworkId;
+    authorization.parent_block_root = pblock->hashPrevBlock;
+    authorization.candidate_header_hash = pblock->GetHash();
+    authorization.slot = proof.slot;
+    authorization.bond_outpoint = proof.bond_outpoint;
+    authorization.stake_proof_hash =
+        pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, proof);
+    authorization.fee_reward_transaction_hash = pblock->vtx[0]->GetHash();
+    authorization.parent_randomness = proof.epoch_seed;
+    unsigned char auxiliary[32];
+    GetRandBytes(auxiliary, sizeof(auxiliary));
+    unsigned char signing_public_key[pos::SCHNORR_PUBLIC_KEY_SIZE];
+    const bool signed_block = pos::SignSchnorr(
+        signing_secret, pos::GetBlockSigningHash(authorization), auxiliary,
+        authorization.signature, signing_public_key);
+    memory_cleanse(auxiliary, sizeof(auxiliary));
+    if (!signed_block ||
+        !std::equal(signing_public_key,
+                    signing_public_key + pos::SCHNORR_PUBLIC_KEY_SIZE,
+                    proof.signing_public_key)) {
+        return nullptr;
+    }
+
+    CValidationState state;
+    if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev,
+                           false, false, false)) {
+        throw std::runtime_error(strprintf(
+            "%s: TestBlockValidity failed: %s", __func__,
+            FormatStateMessage(state)));
+    }
     return std::move(pblocktemplate);
 }
 

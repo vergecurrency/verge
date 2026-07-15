@@ -16,6 +16,7 @@
 #include <index/txindex.h>
 #include <policy/feerate.h>
 #include <policy/policy.h>
+#include <pos/primitives.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>
 #include <streams.h>
@@ -70,6 +71,10 @@ double GetDifficulty(const CBlockIndex* blockindex)
     {
         return 1.0;
     }
+    if (pos::IsPoSVersion(blockindex->nVersion) ||
+        (blockindex->nBits & 0x00ffffff) == 0) {
+        return 0.0;
+    }
 
     int nShift = (blockindex->nBits >> 24) & 0xff;
     double dDiff =
@@ -109,6 +114,7 @@ UniValue blockheaderToJSON(const CBlockIndex* tip, const CBlockIndex* blockindex
     result.pushKV("height", blockindex->nHeight);
     result.pushKV("version", blockindex->nVersion);
     result.pushKV("versionHex", strprintf("%08x", blockindex->nVersion));
+    result.pushKV("proof", pos::IsPoSVersion(blockindex->nVersion) ? "pos" : "pow");
     result.pushKV("merkleroot", blockindex->hashMerkleRoot.GetHex());
     result.pushKV("time", (int64_t)blockindex->nTime);
     result.pushKV("mediantime", (int64_t)blockindex->GetMedianTimePast());
@@ -140,6 +146,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
     result.pushKV("height", blockindex->nHeight);
     result.pushKV("version", block.nVersion);
     result.pushKV("versionHex", strprintf("%08x", block.nVersion));
+    result.pushKV("proof", pos::IsPoSVersion(block.nVersion) ? "pos" : "pow");
     result.pushKV("merkleroot", block.hashMerkleRoot.GetHex());
     UniValue txs(UniValue::VARR);
     for(const auto& tx : block.vtx)

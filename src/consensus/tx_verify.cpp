@@ -4,6 +4,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <consensus/tx_verify.h>
+#include <consensus/params.h>
+#include <pos/stake.h>
+#include <pos/state.h>
 
 #include <consensus/consensus.h>
 #include <primitives/transaction.h>
@@ -210,7 +213,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     return true;
 }
 
-bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
+bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee, const Consensus::Params& params, const pos::State* pos_state)
 {
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
@@ -218,12 +221,61 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                          strprintf("%s: inputs missing/spent", __func__));
     }
 
+    size_t bond_output_count = 0;
+    size_t unbond_output_count = 0;
+    size_t unbond_output_index = 0;
+    for (size_t i = 0; i < tx.vout.size(); ++i) {
+        pos::BondData bond;
+        if (pos::ParseBondScript(tx.vout[i].scriptPubKey, bond)) {
+            ++bond_output_count;
+            if (tx.vout[i].nValue < params.nPoSMinStake) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-pos-bond-value",
+                                 false, "bond value below minimum stake");
+            }
+        }
+
+        pos::UnbondData unbond;
+        if (pos::ParseUnbondScript(tx.vout[i].scriptPubKey, unbond)) {
+            ++unbond_output_count;
+            unbond_output_index = i;
+        }
+    }
+
+    size_t bond_input_count = 0;
+    CAmount bonded_principal = 0;
+    pos::BondData spent_bond;
     CAmount nValueIn = 0;
     for (unsigned int i = 0; i < tx.vin.size(); ++i) {
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin& coin = inputs.AccessCoin(prevout);
         assert(!coin.IsSpent());
 
+        pos::BondData input_bond;
+        if (pos::ParseBondScript(coin.out.scriptPubKey, input_bond)) {
+            if (pos_state != nullptr &&
+                pos_state->IsWithdrawalLocked(prevout, nSpendHeight)) {
+                return state.Invalid(false, REJECT_INVALID,
+                                     "bad-pos-locked-bond-withdrawal");
+            }
+            ++bond_input_count;
+            bonded_principal = coin.out.nValue;
+            spent_bond = input_bond;
+        }
+
+        pos::UnbondData input_unbond;
+        if (pos::ParseUnbondScript(coin.out.scriptPubKey, input_unbond) &&
+            static_cast<uint64_t>(nSpendHeight) < input_unbond.unlock_height) {
+            return state.Invalid(false, REJECT_INVALID, "bad-pos-premature-unbond-spend",
+                                 strprintf("unbond output locked until height %u",
+                                           input_unbond.unlock_height));
+        }
+
+        if (bond_output_count != 0 && coin.IsCoinBase() &&
+            nSpendHeight - coin.nHeight < static_cast<int>(params.nPoSStakeMaturity)) {
+            return state.Invalid(false, REJECT_INVALID, "bad-pos-premature-coinbase-bond",
+                                 strprintf("coinbase funding bond has depth %d",
+                                           nSpendHeight - coin.nHeight));
+        }
         // If prev is coinbase, check that it's matured
         if (coin.IsCoinBase() && nSpendHeight - coin.nHeight < COINBASE_MATURITY) {
             return state.Invalid(false,
@@ -245,6 +297,28 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         }
     }
 
+    if (bond_input_count == 0 && unbond_output_count != 0) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-pos-unbond-without-bond");
+    }
+    if (bond_input_count != 0) {
+        if (bond_input_count != 1 || unbond_output_count != 1) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-unbond-shape");
+        }
+
+        pos::UnbondData unbond;
+        if (!pos::ParseUnbondScript(tx.vout[unbond_output_index].scriptPubKey, unbond) ||
+            unbond.withdrawal_key_id != spent_bond.withdrawal_key_id ||
+            tx.vout[unbond_output_index].nValue != bonded_principal) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-unbond-principal");
+        }
+
+        const uint64_t required_unlock =
+            static_cast<uint64_t>(nSpendHeight) + params.nPoSUnbondingBlocks;
+        if (required_unlock > std::numeric_limits<uint32_t>::max() ||
+            unbond.unlock_height != required_unlock) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-unbond-height");
+        }
+    }
     const CAmount value_out = tx.GetValueOut();
     if (nValueIn < value_out) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout", false,

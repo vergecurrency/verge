@@ -79,6 +79,7 @@ BASE_SCRIPTS = [
     'mining_getblocktemplate_longpoll.py',
     'feature_maxuploadtarget.py',
     'feature_block.py',
+    'feature_pos_activation.py',
     'rpc_fundrawtransaction.py',
     'p2p_compactblocks.py',
     'feature_segwit.py',

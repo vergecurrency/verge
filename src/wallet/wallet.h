@@ -697,6 +697,7 @@ private:
     int64_t nNextResend = 0;
     int64_t nLastResend = 0;
     bool fBroadcastTransactions = false;
+    bool m_staking_enabled{false};
 
     /**
      * Used to keep track of spent outpoints, and
@@ -1047,6 +1048,15 @@ public:
      */
     void MarkReserveKeysAsUsed(int64_t keypool_id) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     const std::map<CKeyID, int64_t>& GetAllReserveKeys() const { return m_pool_key_to_index; }
+    bool IsStakingEnabled() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
+    {
+        return m_staking_enabled;
+    }
+    bool SetStakingEnabled(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LoadStakingEnabled(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
+    {
+        m_staking_enabled = enabled;
+    }
 
     std::set<std::set<CTxDestination>> GetAddressGroupings() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     std::map<CTxDestination, CAmount> GetAddressBalances();

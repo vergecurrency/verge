@@ -24,6 +24,9 @@ const char* GetDomainTag(HashDomain domain)
     case HashDomain::STAKE_PROOF: return "VergePoS/StakeProof/v1";
     case HashDomain::UNBOND: return "VergePoS/Unbond/v1";
     case HashDomain::EQUIVOCATION: return "VergePoS/Equivocation/v1";
+    case HashDomain::EVIDENCE_ROOT: return "VergePoS/EvidenceRoot/v1";
+    case HashDomain::SLOT: return "VergePoS/Slot/v1";
+    case HashDomain::VRF_KEY: return "VergePoS/VRFKey/v1";
     }
     throw std::invalid_argument("unknown Verge PoS hash domain");
 }
@@ -101,11 +104,6 @@ bool HasSupportedVersion(const BlockAuthorization& authorization)
     return authorization.version == POS_OBJECT_VERSION;
 }
 
-bool IsPoSVersion(int32_t version)
-{
-    return (version & BLOCK_VERSION_POS) != 0;
-}
-
 StructureError CheckStructure(const StakeProof& proof)
 {
     if (!HasSupportedVersion(proof)) return StructureError::UNSUPPORTED_VERSION;
@@ -123,7 +121,10 @@ StructureError CheckStructure(const CheckpointVote& vote)
 {
     if (!HasSupportedVersion(vote)) return StructureError::UNSUPPORTED_VERSION;
     if (vote.bond_outpoint.IsNull()) return StructureError::NULL_BOND_OUTPOINT;
-    if (vote.source_epoch > vote.target_epoch) return StructureError::INVALID_EPOCH_ORDER;
+    if (vote.source_epoch != FINAL_POW_CHECKPOINT_EPOCH &&
+        vote.source_epoch > vote.target_epoch) {
+        return StructureError::INVALID_EPOCH_ORDER;
+    }
     if (vote.source_checkpoint_root.IsNull() || vote.target_checkpoint_root.IsNull()) return StructureError::NULL_COMMITMENT;
     if (vote.head_slot == 0 || vote.head_block_root.IsNull()) return StructureError::INVALID_HEAD;
     if (IsAllZero(vote.signature)) return StructureError::ZERO_SIGNATURE;

@@ -65,7 +65,14 @@ VERGE_TESTS =\
   test/pmt_tests.cpp \
   test/policyestimator_tests.cpp \
   test/pos_consensus_tests.cpp \
+  test/pos_crypto_tests.cpp \
+  test/pos_block_tests.cpp \
   test/pos_primitives_tests.cpp \
+  test/pos_stake_tests.cpp \
+  test/pos_state_tests.cpp \
+  test/pos_tx_tests.cpp \
+  test/pos_validation_tests.cpp \
+  test/pos_vrf_tests.cpp \
   test/pow_tests.cpp \
   test/prevector_tests.cpp \
   test/raii_event_tests.cpp \

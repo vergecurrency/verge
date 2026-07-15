@@ -224,6 +224,7 @@ public:
     bool ReadBestBlock(CBlockLocator& locator);
 
     bool WriteOrderPosNext(int64_t nOrderPosNext);
+    bool WriteStakingEnabled(bool enabled);
 
     bool ReadPool(int64_t nPool, CKeyPool& keypool);
     bool WritePool(int64_t nPool, const CKeyPool& keypool);

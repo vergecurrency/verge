@@ -108,6 +108,10 @@ BOOST_AUTO_TEST_CASE(structural_checks)
     vote.head_block_root = uint256S("07");
     std::memset(vote.signature, 5, sizeof(vote.signature));
     BOOST_CHECK(pos::CheckStructure(vote) == pos::StructureError::NONE);
+
+    vote.source_epoch = pos::FINAL_POW_CHECKPOINT_EPOCH;
+    vote.target_epoch = 0;
+    BOOST_CHECK(pos::CheckStructure(vote) == pos::StructureError::NONE);
 }
 
 BOOST_AUTO_TEST_CASE(signing_hash_excludes_signature)

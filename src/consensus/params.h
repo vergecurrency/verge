@@ -67,6 +67,7 @@ struct Params {
     int CLOCK_DRIFT_FORK;
 
     /** Proof-of-stake activation and consensus parameters. */
+    uint32_t nPoSNetworkId;
     int nPoSActivationHeight;
     int64_t nPoSMinStake;
     uint32_t nPoSStakeMaturity;

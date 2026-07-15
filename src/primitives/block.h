@@ -7,6 +7,7 @@
 #ifndef VERGE_PRIMITIVES_BLOCK_H
 #define VERGE_PRIMITIVES_BLOCK_H
 
+#include <pos/block.h>
 #include <primitives/transaction.h>
 #include <script/standard.h>
 #include <key.h>
@@ -135,7 +136,7 @@ public:
 
     bool IsNull() const
     {
-        return (nBits == 0);
+        return (nVersion == 0);
     }
 
     uint256 GetHash() const;
@@ -183,6 +184,9 @@ public:
     // ppcoin: block signature - signed by one of the coin base txout[N]'s owner
     std::vector<unsigned char> vchBlockSig;
 
+    // Present only when the dedicated PoS version bit is set.
+    pos::BlockExtension posExtension;
+
     // memory only
     mutable bool fChecked;
 
@@ -203,13 +207,19 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
-        if (!(s.GetType() & (SER_GETHASH|SER_BLOCKHEADERONLY)))
+if (!(s.GetType() & (SER_GETHASH|SER_BLOCKHEADERONLY)))
         {
             READWRITE(vchBlockSig);
+            if (pos::IsPoSVersion(nVersion)) {
+                READWRITE(posExtension);
+            } else if (ser_action.ForRead()) {
+                const_cast<CBlock*>(this)->posExtension = pos::BlockExtension();
+            }
         }
         else if (ser_action.ForRead())
         {
             const_cast<CBlock*>(this)->vchBlockSig.clear();
+            const_cast<CBlock*>(this)->posExtension = pos::BlockExtension();
         }
     }
 
@@ -218,6 +228,7 @@ public:
         CBlockHeader::SetNull();
         vtx.clear();
         vchBlockSig.clear();
+        posExtension = pos::BlockExtension();
         fChecked = false;
     }
 

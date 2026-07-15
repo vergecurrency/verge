@@ -39,6 +39,9 @@
 #include <boost/signals2/signal.hpp>
 
 class CBlockIndex;
+namespace pos {
+class State;
+}
 
 /** Fake height value used in Coin to signify they are only in the memory pool (since 0.8) */
 static const uint32_t MEMPOOL_HEIGHT = 0x7FFFFFFF;
@@ -557,6 +560,7 @@ public:
     void removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight, int flags);
     void removeConflicts(const CTransaction &tx);
     void removeForBlock(const std::vector<CTransactionRef>& vtx, unsigned int nBlockHeight);
+    void removeForPoSLockouts(const pos::State& state, int nSpendHeight);
 
     void clear();
     void _clear() EXCLUSIVE_LOCKS_REQUIRED(cs); //lock free

@@ -92,6 +92,10 @@ libverge_UTIL=libverge_util.a
 libverge_CRYPTO_BASE=crypto/libverge_crypto_base.a
 libvergeQT=qt/libvergeqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
+if TARGET_WINDOWS
+# MSVC libtool does not fold secp256k1's convenience archive into the static library.
+LIBSECP256K1 += secp256k1/libsecp256k1_precomputed.la
+endif
 
 if ENABLE_ZMQ
 libverge_ZMQ=libverge_zmq.a
@@ -203,7 +207,13 @@ VERGE_CORE_H = \
   policy/policy.h \
   policy/rbf.h \
   pos/consensus.h \
+  pos/crypto.h \
+  pos/block.h \
   pos/primitives.h \
+  pos/stake.h \
+  pos/state.h \
+  pos/validation.h \
+  pos/vrf.h \
   protocol.h \
   pow.h \
   random.h \
@@ -300,7 +310,13 @@ libverge_server_a_SOURCES = \
   policy/policy.cpp \
   policy/rbf.cpp \
   pos/consensus.cpp \
+  pos/crypto.cpp \
+  pos/block.cpp \
   pos/primitives.cpp \
+  pos/stake.cpp \
+  pos/state.cpp \
+  pos/validation.cpp \
+  pos/vrf.cpp \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \
@@ -348,6 +364,7 @@ libverge_wallet_a_SOURCES = \
   wallet/init.cpp \
   wallet/rpcdump.cpp \
   wallet/rpcwallet.cpp \
+  wallet/staker.cpp \
   wallet/wallet.cpp \
   wallet/walletdb.cpp \
   wallet/walletutil.cpp \

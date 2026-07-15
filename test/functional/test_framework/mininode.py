@@ -434,6 +434,12 @@ class NetworkThread(threading.Thread):
             asyncore.loop(0.1, use_poll=True, map=mininode_socket_map, count=1)
         logger.debug("Network thread closing")
 
+    def close(self):
+        with mininode_lock:
+            for obj in list(mininode_socket_map.values()):
+                obj.handle_close()
+        self.join(timeout=10)
+
 def network_thread_start():
     """Start the network thread."""
     # Only one network thread may run at a time

@@ -47,4 +47,16 @@ BOOST_AUTO_TEST_CASE(initial_snapshot_height)
     BOOST_CHECK_EQUAL(pos::GetInitialStakeSnapshotHeight(params), -1);
 }
 
+BOOST_AUTO_TEST_CASE(fork_weight_and_tie_breaking)
+{
+    const uint256 lower = uint256S("01");
+    const uint256 higher = uint256S("02");
+
+    BOOST_CHECK(pos::PreferFork(2, higher, 1, lower));
+    BOOST_CHECK(!pos::PreferFork(1, lower, 2, higher));
+    BOOST_CHECK(pos::PreferFork(1, lower, 1, higher));
+    BOOST_CHECK(!pos::PreferFork(1, higher, 1, lower));
+    BOOST_CHECK(!pos::PreferFork(1, lower, 1, lower));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

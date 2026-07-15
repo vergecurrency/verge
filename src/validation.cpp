@@ -22,6 +22,9 @@
 #include <index/txindex.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
+#include <pos/consensus.h>
+#include <pos/state.h>
+#include <pos/validation.h>
 #include <policy/rbf.h>
 #include <pow.h>
 #include <primitives/block.h>
@@ -177,7 +180,9 @@ public:
     // Block (dis)connection on a given view:
     DisconnectResult DisconnectBlock(const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view);
     bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex,
-                    CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck = false);
+                    CCoinsViewCache& view, const CChainParams& chainparams,
+                    bool fJustCheck = false, pos::State* pos_state = nullptr,
+                    pos::StateUndo* pos_undo = nullptr);
 
     // Block disconnection on our pcoinsTip:
     bool DisconnectTip(CValidationState& state, const CChainParams& chainparams, DisconnectedBlockTransactions *disconnectpool);
@@ -196,7 +201,12 @@ public:
 
     void UnloadBlockIndex();
 
+    const pos::State& GetPoSState() const { return m_pos_state; }
+    bool LoadPoSState(CBlockTreeDB& blocktree, const CBlockIndex* tip,
+                      const Consensus::Params& params);
+
 private:
+    pos::State m_pos_state;
     bool ActivateBestChainStep(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexMostWork, const std::shared_ptr<const CBlock>& pblock, bool& fInvalidFound, ConnectTrace& connectTrace);
     bool ConnectTip(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexNew, const std::shared_ptr<const CBlock>& pblock, ConnectTrace& connectTrace, DisconnectedBlockTransactions &disconnectpool);
 
@@ -211,6 +221,8 @@ private:
     void CheckBlockIndex(const Consensus::Params& consensusParams);
     void SetNewPreciousBlockWork(const arith_uint256& newWork);
     void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state);
+    bool IsPreferredPoSCandidate(const CBlockIndex* candidate,
+                                 const CBlockIndex* current) const;
     CBlockIndex* FindMostWorkChain();
     void ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pindexNew, const FlatFilePos& pos, const Consensus::Params& consensusParams);
 
@@ -735,7 +747,9 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
             return state.DoS(0, false, REJECT_NONSTANDARD, "non-BIP68-final");
 
         CAmount nFees = 0;
-        if (!Consensus::CheckTxInputs(tx, state, view, GetSpendHeight(view), nFees)) {
+        if (!Consensus::CheckTxInputs(tx, state, view, GetSpendHeight(view),
+                                      nFees, chainparams.GetConsensus(),
+                                      &g_chainstate.GetPoSState())) {
             return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), FormatStateMessage(state));
         }
 
@@ -1148,8 +1162,13 @@ bool ReadBlockFromDisk(CBlock& block, const FlatFilePos& pos, const Consensus::P
         return error("%s: Deserialize or I/O error - %s at %s", __func__, e.what(), pos.ToString());
     }
 
-    // Check the header
-    if (!CheckProofOfWork(block.GetPoWHash(block.GetAlgo()), block.nBits, consensusParams))
+    // Check the proof fields. Contextual activation checks are performed by
+    // block validation, while disk reads still reject malformed headers.
+    const bool valid_proof = pos::IsPoSVersion(block.nVersion)
+        ? block.nBits == 0 && block.nNonce == 0
+        : CheckProofOfWork(block.GetPoWHash(block.GetAlgo()), block.nBits,
+                           consensusParams);
+    if (!valid_proof)
         return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
 
     return true;
@@ -1852,7 +1871,9 @@ static int64_t nBlocksTotal = 0;
  *  Validity checks that depend on the UTXO set are also done; ConnectBlock()
  *  can fail if those validity checks fail (among other reasons). */
 bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex,
-                  CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck)
+                  CCoinsViewCache& view, const CChainParams& chainparams,
+                  bool fJustCheck, pos::State* pos_state,
+                  pos::StateUndo* pos_undo)
 {
     AssertLockHeld(cs_main);
     assert(pindex);
@@ -1889,9 +1910,135 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     // Special case for the genesis block, skipping connection of its transactions
     // (its coinbase is unspendable)
     if (block.GetHash() == chainparams.GetConsensus().hashGenesisBlock) {
+        if (pos_state != nullptr) {
+            pos::State next = *pos_state;
+            pos::StateUndo undo;
+            if (!next.ApplyBlock(block, 0, false, 0, 0,
+                                 chainparams.GetConsensus(), undo)) {
+                return state.Error("Failed to initialize PoS state at genesis");
+            }
+            *pos_state = std::move(next);
+            if (pos_undo != nullptr) *pos_undo = std::move(undo);
+        }
         if (!fJustCheck)
             view.SetBestBlock(pindex->GetBlockHash());
         return true;
+    }
+
+    const Consensus::Params& consensus = chainparams.GetConsensus();
+    const bool is_pos = consensus.IsPoSActive(pindex->nHeight);
+    pos::State next_pos_state;
+    pos::StateUndo next_pos_undo;
+    pos::SlotInfo pos_slot;
+    const CBlockIndex* final_pow = nullptr;
+    if (pos_state != nullptr) {
+        next_pos_state = *pos_state;
+        if (is_pos) {
+            final_pow = pindex->pprev->GetAncestor(
+                consensus.nPoSActivationHeight - 1);
+            if (final_pow == nullptr ||
+                !pos::GetSlotInfo(final_pow->nTime, block.nTime, consensus,
+                                  pos_slot)) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-pos-slot");
+            }
+            if (next_pos_state.FindEpochSeed(0) == nullptr) {
+                if (consensus.nPoSActivationHeight < 120) {
+                    return state.DoS(100, false, REJECT_INVALID,
+                                     "bad-pos-seed-history");
+                }
+                std::vector<uint256> predecessor_hashes;
+                predecessor_hashes.reserve(120);
+                for (int height = consensus.nPoSActivationHeight - 120;
+                     height < consensus.nPoSActivationHeight; ++height) {
+                    const CBlockIndex* ancestor = pindex->pprev->GetAncestor(height);
+                    if (ancestor == nullptr) {
+                        return state.DoS(100, false, REJECT_INVALID,
+                                         "bad-pos-seed-history");
+                    }
+                    predecessor_hashes.push_back(ancestor->GetBlockHash());
+                }
+                uint256 initial_seed;
+                if (!pos::ComputeInitialEpochSeed(
+                        consensus.nPoSNetworkId,
+                        consensus.nPoSActivationHeight, predecessor_hashes,
+                        initial_seed) ||
+                    !next_pos_state.SetEpochSeed(0, initial_seed,
+                                                 next_pos_undo)) {
+                    return state.DoS(100, false, REJECT_INVALID,
+                                     "bad-pos-initial-seed");
+                }
+            }
+        }
+        if (!next_pos_state.ApplyBlock(block, pindex->nHeight, is_pos,
+                                       pos_slot.epoch, pos_slot.slot_in_epoch,
+                                       consensus, next_pos_undo)) {
+            return state.DoS(100, false, REJECT_INVALID,
+                             "bad-pos-state-transition");
+        }
+        if (is_pos) {
+            const uint256* expected_seed =
+                next_pos_state.FindEpochSeed(pos_slot.epoch);
+            const uint64_t snapshot_epoch = pos::GetRequiredSnapshotEpoch(
+                pos_slot.epoch, consensus.nPoSSnapshotDelayEpochs);
+            const pos::StakeSnapshot* snapshot =
+                next_pos_state.FindSnapshot(snapshot_epoch);
+            if (expected_seed == nullptr ||
+                *expected_seed != block.posExtension.stake_proof.epoch_seed) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-epoch-seed");
+            }
+            if (snapshot == nullptr) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-snapshot-missing");
+            }
+            if (next_pos_state.IsEligibilityLocked(
+                    block.posExtension.stake_proof.bond_outpoint,
+                    pos_slot.epoch, pindex->nHeight) ||
+                pos::CheckStakeAuthorization(block, *snapshot,
+                                             snapshot_epoch) !=
+                    pos::ValidationError::NONE ||
+                pos::CheckVrfEligibility(block, *snapshot,
+                                         consensus.nPoSNetworkId) !=
+                    pos::ValidationError::NONE ||
+                pos::CheckVotesAndEvidence(
+                    block, next_pos_state,
+                    consensus.nPoSSnapshotDelayEpochs,
+                    consensus.nPoSNetworkId, pos_slot.epoch,
+                    pindex->nHeight) != pos::ValidationError::NONE) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-authorization");
+            }
+            for (const pos::CheckpointVote& vote : block.posExtension.votes) {
+                const CBlockIndex* source = LookupBlockIndex(
+                    vote.source_checkpoint_root);
+                const CBlockIndex* target = LookupBlockIndex(
+                    vote.target_checkpoint_root);
+                const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
+                if (source == nullptr || target == nullptr || head == nullptr ||
+                    target->nHeight < source->nHeight ||
+                    head->nHeight < target->nHeight ||
+                    target->GetAncestor(source->nHeight) != source ||
+                    head->GetAncestor(target->nHeight) != target) {
+                    return state.DoS(100, false, REJECT_INVALID,
+                                     "bad-pos-vote-ancestry");
+                }
+                pos::SlotInfo head_slot;
+                if (!pos::GetSlotInfo(final_pow->nTime, head->nTime,
+                                      consensus, head_slot) ||
+                    head_slot.global_slot != vote.head_slot ||
+                    vote.head_slot > pos_slot.global_slot) {
+                    return state.DoS(100, false, REJECT_INVALID,
+                                     "bad-pos-vote-head");
+                }
+            }
+            if (!next_pos_state.ApplyVotes(block.posExtension.votes,
+                                           next_pos_undo)) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-finality-transition");
+            }
+        }
+    } else if (is_pos) {
+        return state.Error("PoS validation requires an explicit state view");
     }
 
     nBlocksTotal++;
@@ -2050,7 +2197,10 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         if (!tx.IsCoinBase())
         {
             CAmount txfee = 0;
-            if (!Consensus::CheckTxInputs(tx, state, view, pindex->nHeight, txfee)) {
+            if (!Consensus::CheckTxInputs(
+                    tx, state, view, pindex->nHeight, txfee,
+                    chainparams.GetConsensus(),
+                    pos_state != nullptr ? &next_pos_state : nullptr)) {
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), FormatStateMessage(state));
             }
             nFees += txfee;
@@ -2102,12 +2252,41 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint(BCLog::BENCH, "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs (%.2fms/blk)]\n", (unsigned)block.vtx.size(), MILLI * (nTime3 - nTime2), MILLI * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
-    CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
+    CAmount blockReward = is_pos
+        ? nFees
+        : nFees + GetBlockSubsidy(pindex->nHeight, consensus);
     if (block.vtx[0]->GetValueOut() > blockReward)
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0]->GetValueOut(), blockReward),
                                REJECT_INVALID, "bad-cb-amount");
+
+    if (is_pos) {
+        const uint64_t snapshot_epoch = pos::GetRequiredSnapshotEpoch(
+            pos_slot.epoch, consensus.nPoSSnapshotDelayEpochs);
+        const pos::StakeSnapshot* snapshot =
+            next_pos_state.FindSnapshot(snapshot_epoch);
+        const pos::SnapshotEntry* bond = nullptr;
+        if (snapshot != nullptr) {
+            const auto it = std::lower_bound(
+                snapshot->entries.begin(), snapshot->entries.end(),
+                block.posExtension.stake_proof.bond_outpoint,
+                [](const pos::SnapshotEntry& entry,
+                   const COutPoint& outpoint) {
+                    return entry.outpoint < outpoint;
+                });
+            if (it != snapshot->entries.end() &&
+                it->outpoint == block.posExtension.stake_proof.bond_outpoint) {
+                bond = &*it;
+            }
+        }
+        if (bond == nullptr ||
+            pos::CheckReward(block, bond->bond, nFees) !=
+                pos::ValidationError::NONE) {
+            return state.DoS(100, false, REJECT_INVALID,
+                             "bad-pos-fee-reward");
+        }
+    }
 
     if (!control.Wait())
         return state.DoS(100, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");
@@ -2128,6 +2307,11 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     assert(pindex->phashBlock);
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
+
+    if (pos_state != nullptr) {
+        *pos_state = std::move(next_pos_state);
+        if (pos_undo != nullptr) *pos_undo = std::move(next_pos_undo);
+    }
 
     int64_t nTime5 = GetTimeMicros(); nTimeIndex += nTime5 - nTime4;
     LogPrint(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime5 - nTime4), nTimeIndex * MICRO, nTimeIndex * MILLI / nBlocksTotal);
@@ -2349,14 +2533,44 @@ bool CChainState::DisconnectTip(CValidationState& state, const CChainParams& cha
         return AbortNode(state, "Failed to read block");
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
+    pos::State next_pos_state = m_pos_state;
+    pos::StateUndo pos_undo;
+    const bool have_pos_undo =
+        pblocktree->ReadPoSUndo(pindexDelete->GetBlockHash(), pos_undo);
+    const int initial_snapshot_height =
+        pos::GetInitialStakeSnapshotHeight(chainparams.GetConsensus());
+    if (have_pos_undo && !next_pos_state.UndoBlock(pos_undo)) {
+        return AbortNode(state, "Failed to read or apply PoS undo state");
+    }
+    if (!have_pos_undo &&
+        (initial_snapshot_height < 0 ||
+         pindexDelete->nHeight > initial_snapshot_height)) {
+        return AbortNode(state,
+                         "Missing PoS undo state after initial snapshot");
+    }
     {
         CCoinsViewCache view(pcoinsTip.get());
         assert(view.GetBestBlock() == pindexDelete->GetBlockHash());
         if (DisconnectBlock(block, pindexDelete, view) != DISCONNECT_OK)
             return error("DisconnectTip(): DisconnectBlock %s failed", pindexDelete->GetBlockHash().ToString());
+        if (!have_pos_undo) {
+            pos::State rebuilt;
+            const uint256 parent_hash = pindexDelete->pprev == nullptr
+                ? uint256() : pindexDelete->pprev->GetBlockHash();
+            if (!rebuilt.InitializeFromCoins(view, parent_hash)) {
+                return AbortNode(state,
+                                 "Failed to rebuild pre-snapshot PoS state");
+            }
+            next_pos_state = std::move(rebuilt);
+        }
         bool flushed = view.Flush();
         assert(flushed);
     }
+    if (!pblocktree->WritePoSStateRollback(
+            next_pos_state, pindexDelete->GetBlockHash())) {
+        return AbortNode(state, "Failed to persist rolled-back PoS state");
+    }
+    m_pos_state = std::move(next_pos_state);
     LogPrint(BCLog::BENCH, "- Disconnect block: %.2fms\n", (GetTimeMicros() - nStart) * MILLI);
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED))
@@ -2476,13 +2690,16 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
         pthisBlock = pblock;
     }
     const CBlock& blockConnecting = *pthisBlock;
+    pos::State next_pos_state = m_pos_state;
+    pos::StateUndo pos_undo;
     // Apply the block atomically to the chain state.
     int64_t nTime2 = GetTimeMicros(); nTimeReadFromDisk += nTime2 - nTime1;
     int64_t nTime3;
     LogPrint(BCLog::BENCH, "  - Load block from disk: %.2fms [%.2fs]\n", (nTime2 - nTime1) * MILLI, nTimeReadFromDisk * MICRO);
     {
         CCoinsViewCache view(pcoinsTip.get());
-        bool rv = ConnectBlock(blockConnecting, state, pindexNew, view, chainparams);
+        bool rv = ConnectBlock(blockConnecting, state, pindexNew, view,
+                               chainparams, false, &next_pos_state, &pos_undo);
         GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
             if (state.IsInvalid())
@@ -2494,6 +2711,11 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
         bool flushed = view.Flush();
         assert(flushed);
     }
+    if (!pblocktree->WritePoSStateTransition(
+            next_pos_state, pindexNew->GetBlockHash(), pos_undo)) {
+        return AbortNode(state, "Failed to persist connected PoS state");
+    }
+    m_pos_state = std::move(next_pos_state);
     int64_t nTime4 = GetTimeMicros(); nTimeFlush += nTime4 - nTime3;
     LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime4 - nTime3) * MILLI, nTimeFlush * MICRO, nTimeFlush * MILLI / nBlocksTotal);
     // Write the chain state to disk, if necessary.
@@ -2503,6 +2725,7 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     LogPrint(BCLog::BENCH, "  - Writing chainstate: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime5 - nTime4) * MILLI, nTimeChainState * MICRO, nTimeChainState * MILLI / nBlocksTotal);
     // Remove conflicting transactions from the mempool.;
     mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
+    mempool.removeForPoSLockouts(m_pos_state, pindexNew->nHeight + 1);
     disconnectpool.removeForBlock(blockConnecting.vtx);
     // Update chainActive & related variables.
     chainActive.SetTip(pindexNew);
@@ -2520,16 +2743,94 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
  * Return the tip of the chain with the most work in it, that isn't
  * known to be invalid (it's however far from certain to be valid).
  */
+bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
+                                          const CBlockIndex* current) const
+{
+    if (current == nullptr) return candidate != nullptr;
+    if (candidate == nullptr || candidate == current) return false;
+
+    const pos::Checkpoint& finalized = m_pos_state.Finalized();
+    const CBlockIndex* finalized_index = finalized.root.IsNull()
+        ? nullptr : LookupBlockIndex(finalized.root);
+    if (finalized_index != nullptr &&
+        (candidate->nHeight < finalized_index->nHeight ||
+         candidate->GetAncestor(finalized_index->nHeight) != finalized_index)) {
+        return false;
+    }
+
+    const CBlockIndex* fork = candidate;
+    const CBlockIndex* other = current;
+    if (fork->nHeight > other->nHeight) fork = fork->GetAncestor(other->nHeight);
+    if (other->nHeight > fork->nHeight) other = other->GetAncestor(fork->nHeight);
+    while (fork != other) {
+        fork = fork->pprev;
+        other = other->pprev;
+    }
+    if (fork == current) return true;
+    if (fork == candidate) return false;
+
+    const CBlockIndex* candidate_child = candidate->GetAncestor(fork->nHeight + 1);
+    const CBlockIndex* current_child = current->GetAncestor(fork->nHeight + 1);
+    CAmount candidate_weight = 0;
+    CAmount current_weight = 0;
+    for (const auto& item : m_pos_state.LatestVotes()) {
+        const pos::CheckpointVote& vote = item.second;
+        const CAmount weight = m_pos_state.GetVoteWeight(vote);
+        const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
+        if (weight <= 0 || head == nullptr) continue;
+        if (head->nHeight >= candidate_child->nHeight &&
+            head->GetAncestor(candidate_child->nHeight) == candidate_child &&
+            MoneyRange(candidate_weight + weight)) {
+            candidate_weight += weight;
+        } else if (head->nHeight >= current_child->nHeight &&
+                   head->GetAncestor(current_child->nHeight) == current_child &&
+                   MoneyRange(current_weight + weight)) {
+            current_weight += weight;
+        }
+    }
+    return pos::PreferFork(candidate_weight, candidate_child->GetBlockHash(),
+                           current_weight, current_child->GetBlockHash());
+}
+
 CBlockIndex* CChainState::FindMostWorkChain() {
     do {
         CBlockIndex *pindexNew = nullptr;
 
         // Find the best candidate header.
-        {
+        if (Params().GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
+            const int activation_height =
+                Params().GetConsensus().nPoSActivationHeight;
+            const CBlockIndex* activation_parent =
+                chainActive[activation_height - 1];
+            for (CBlockIndex* candidate : setBlockIndexCandidates) {
+                if (candidate->nHeight < activation_height ||
+                    activation_parent == nullptr ||
+                    candidate->GetAncestor(activation_parent->nHeight) !=
+                        activation_parent) {
+                    continue;
+                }
+                if (IsPreferredPoSCandidate(candidate, pindexNew)) {
+                    pindexNew = candidate;
+                }
+            }
+            if (pindexNew == nullptr) return nullptr;
+        } else {
             std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexCandidates.rbegin();
             if (it == setBlockIndexCandidates.rend())
                 return nullptr;
             pindexNew = *it;
+        }
+
+        const pos::Checkpoint& finalized = m_pos_state.Finalized();
+        if (!finalized.root.IsNull()) {
+            const CBlockIndex* finalized_index = LookupBlockIndex(finalized.root);
+            if (finalized_index == nullptr ||
+                pindexNew->nHeight < finalized_index->nHeight ||
+                pindexNew->GetAncestor(finalized_index->nHeight) !=
+                    finalized_index) {
+                setBlockIndexCandidates.erase(pindexNew);
+                continue;
+            }
         }
 
         // Check whether all blocks on the path between the currently active chain and the candidate are valid.
@@ -2576,6 +2877,28 @@ CBlockIndex* CChainState::FindMostWorkChain() {
 
 /** Delete all entries in setBlockIndexCandidates that are worse than the current tip. */
 void CChainState::PruneBlockIndexCandidates() {
+    if (Params().GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
+        const pos::Checkpoint& finalized = m_pos_state.Finalized();
+        const CBlockIndex* finalized_index = finalized.root.IsNull()
+            ? nullptr : LookupBlockIndex(finalized.root);
+        for (auto it = setBlockIndexCandidates.begin();
+             it != setBlockIndexCandidates.end();) {
+            CBlockIndex* candidate = *it;
+            const bool conflicts_finality = finalized_index != nullptr &&
+                (candidate->nHeight < finalized_index->nHeight ||
+                 candidate->GetAncestor(finalized_index->nHeight) != finalized_index);
+            const bool stale_active_ancestor =
+                chainActive.Contains(candidate) && candidate != chainActive.Tip();
+            if ((candidate->nStatus & BLOCK_FAILED_MASK) ||
+                conflicts_finality || stale_active_ancestor) {
+                it = setBlockIndexCandidates.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        assert(!setBlockIndexCandidates.empty());
+        return;
+    }
     // Note that we can't delete the current block itself, as we may need to return to it later in case a
     // reorganization to a better block fails.
     std::set<CBlockIndex*, CBlockIndexWorkComparator>::iterator it = setBlockIndexCandidates.begin();
@@ -2596,6 +2919,16 @@ bool CChainState::ActivateBestChainStep(CValidationState& state, const CChainPar
 
     const CBlockIndex *pindexOldTip = chainActive.Tip();
     const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
+
+    const pos::Checkpoint& finalized = m_pos_state.Finalized();
+    if (!finalized.root.IsNull()) {
+        const CBlockIndex* finalized_index = LookupBlockIndex(finalized.root);
+        if (finalized_index == nullptr || pindexFork == nullptr ||
+            pindexFork->nHeight < finalized_index->nHeight) {
+            return state.DoS(100, false, REJECT_INVALID,
+                             "bad-pos-finalized-reorg");
+        }
+    }
 
     // Disconnect active blocks which are no longer in the best chain.
     bool fBlocksDisconnected = false;
@@ -3129,6 +3462,14 @@ static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, un
 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
+    if (pos::IsPoSVersion(block.nVersion)) {
+        if (block.nBits != 0 || block.nNonce != 0) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-pow-fields", false,
+                             "PoS block has nonzero proof-of-work fields");
+        }
+        return true;
+    }
+
     if (block.nVersion > 4) {
         switch (block.nVersion & BLOCK_VERSION_ALGO)
         {
@@ -3142,14 +3483,12 @@ static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state,
                 return state.DoS(50, false, REJECT_INVALID, "unknown-algo", false, "unknown proof of work algorithm");
         }
     }
-    
-    // Check proof of work matches claimed amount
+
     if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(block.GetAlgo()), block.nBits, consensusParams))
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
 
     return true;
 }
-
 bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckBlockSignature)
 {
     // These are checks that are independent of context.
@@ -3218,7 +3557,16 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false, "out-of-bounds SigOpCount");
 
-    if (fCheckBlockSignature) {
+    if (pos::IsPoSVersion(block.nVersion)) {
+        if (!block.vchBlockSig.empty()) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-legacy-signature", false,
+                             "PoS block contains a legacy block signature");
+        }
+        if (pos::CheckStructure(block.posExtension) != pos::StructureError::NONE) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-extension", false,
+                             "PoS block extension failed structural validation");
+        }
+    } else if (fCheckBlockSignature) {
         if(!CheckBlockSignature(block)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-signature", false, "Could not check the validity of the block signature");
         }
@@ -3311,10 +3659,42 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
 
-    // Check proof of work
     const Consensus::Params& consensusParams = params.GetConsensus();
-    if (block.nBits != GetNextWorkRequired(pindexPrev, &block, block.GetAlgo(), consensusParams))
-        return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
+    const bool pos_active = consensusParams.IsPoSActive(nHeight);
+    const bool is_pos = pos::IsPoSVersion(block.nVersion);
+    if (pos_active != is_pos) {
+        return state.DoS(100, false, REJECT_INVALID,
+                         pos_active ? "bad-pow-after-pos" : "bad-pos-before-activation",
+                         false, pos_active ? "proof of work block after PoS activation"
+                                           : "PoS block before activation");
+    }
+
+    if (is_pos) {
+        const CBlockIndex* final_pow =
+            pindexPrev->GetAncestor(consensusParams.nPoSActivationHeight - 1);
+        if (final_pow == nullptr) {
+            return state.Error("missing final proof-of-work ancestor");
+        }
+
+        pos::SlotInfo candidate_slot;
+        if (!pos::GetSlotInfo(final_pow->nTime, block.nTime, consensusParams, candidate_slot)) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-slot", false,
+                             "non-canonical PoS slot timestamp");
+        }
+        if (consensusParams.IsPoSActive(pindexPrev->nHeight)) {
+            pos::SlotInfo parent_slot;
+            if (!pos::GetSlotInfo(final_pow->nTime, pindexPrev->nTime,
+                                  consensusParams, parent_slot) ||
+                candidate_slot.global_slot <= parent_slot.global_slot) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-pos-slot-order", false,
+                                 "PoS slot does not advance its parent");
+            }
+        }
+    } else if (block.nBits !=
+               GetNextWorkRequired(pindexPrev, &block, block.GetAlgo(), consensusParams)) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false,
+                         "incorrect proof of work");
+    }
 
     // Check against checkpoints
     if (fCheckpointsEnabled) {
@@ -3340,7 +3720,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
             return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
                                  strprintf("rejected nVersion=0x%08x block", block.nVersion));
 
-    if (nHeight > consensusParams.FlexibleMiningAlgorithms && !hasUsedValidMiningAlgorithm(block, pindexPrev)) {
+    if (!is_pos && nHeight > consensusParams.FlexibleMiningAlgorithms && !hasUsedValidMiningAlgorithm(block, pindexPrev)) {
         return state.DoS(25, false, REJECT_INVALID, "bad-blk-algorithm", false,
                          strprintf("%s : reused a mining algorithm too often", __func__));
     }
@@ -3384,6 +3764,23 @@ static int64_t GetMaxClockDrift(int nHeight, const Consensus::Params& consensusP
 static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, bool checkBlockSignature = true)
 {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
+    if (consensusParams.IsPoSActive(nHeight)) {
+        if (pindexPrev == nullptr) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-missing-parent");
+        }
+        const CBlockIndex* final_pow =
+            pindexPrev->GetAncestor(consensusParams.nPoSActivationHeight - 1);
+        pos::SlotInfo slot;
+        if (final_pow == nullptr ||
+            !pos::GetSlotInfo(final_pow->nTime, block.nTime, consensusParams, slot)) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-slot");
+        }
+        if (pos::CheckLinkage(block.posExtension, block, slot.global_slot,
+                              consensusParams.nPoSNetworkId) !=
+            pos::StructureError::NONE) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-linkage");
+        }
+    }
 
     // Start enforcing BIP113 (Median Time Past) using versionbits logic.
     int nLockTimeFlags = 0;
@@ -3686,6 +4083,12 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     return true;
 }
 
+pos::State GetPoSStateSnapshot()
+{
+    AssertLockHeld(cs_main);
+    return g_chainstate.GetPoSState();
+}
+
 bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckBlockSignature)
 {
     AssertLockHeld(cs_main);
@@ -3704,7 +4107,13 @@ bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams,
         return error("%s: Consensus::CheckBlock: %s", __func__, FormatStateMessage(state));
     if (!ContextualCheckBlock(block, state, chainparams.GetConsensus(), pindexPrev, false))
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__, FormatStateMessage(state));
-    if (!g_chainstate.ConnectBlock(block, state, &indexDummy, viewNew, chainparams, true))
+    pos::State test_pos_state = g_chainstate.GetPoSState();
+    pos::StateUndo test_pos_undo;
+    pos::State* test_state = chainparams.GetConsensus().IsPoSActive(
+        indexDummy.nHeight) ? &test_pos_state : nullptr;
+    if (!g_chainstate.ConnectBlock(block, state, &indexDummy, viewNew,
+                                   chainparams, true, test_state,
+                                   &test_pos_undo))
         return false;
     assert(state.IsValid());
 
@@ -4080,12 +4489,54 @@ bool LoadChainTip(const CChainParams& chainparams)
     }
     chainActive.SetTip(pindex);
 
+    if (!g_chainstate.LoadPoSState(*pblocktree, pindex,
+                                   chainparams.GetConsensus())) {
+        return false;
+    }
+
     g_chainstate.PruneBlockIndexCandidates();
 
     LogPrintf("Loaded best chain: hashBestChain=%s height=%d date=%s progress=%f\n",
         chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
         FormatISO8601DateTime(chainActive.Tip()->GetBlockTime()),
         GuessVerificationProgress(chainparams.TxData(), chainActive.Tip()));
+    return true;
+}
+
+bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
+                               const CBlockIndex* tip,
+                               const Consensus::Params& params)
+{
+    pos::State loaded;
+    if (!blocktree.ReadPoSState(loaded)) {
+        const int snapshot_height = pos::GetInitialStakeSnapshotHeight(params);
+        if (snapshot_height >= 0 && tip->nHeight >= snapshot_height) {
+            return error("LoadPoSState: missing state at or after initial snapshot height; reindex-chainstate is required");
+        }
+        if (!loaded.InitializeFromCoins(*pcoinsTip, tip->GetBlockHash()) ||
+            !blocktree.WritePoSState(loaded)) {
+            return error("LoadPoSState: failed to initialize state from UTXO set");
+        }
+    }
+    while (loaded.BestBlock() != tip->GetBlockHash()) {
+        const auto it = mapBlockIndex.find(loaded.BestBlock());
+        if (it == mapBlockIndex.end() || it->second->nHeight <= tip->nHeight ||
+            it->second->GetAncestor(tip->nHeight) != tip) {
+            break;
+        }
+        pos::StateUndo undo;
+        if (!blocktree.ReadPoSUndo(loaded.BestBlock(), undo) ||
+            !loaded.UndoBlock(undo) ||
+            !blocktree.WritePoSStateRollback(loaded, it->first)) {
+            return error("LoadPoSState: failed to roll state back from %s",
+                         it->first.ToString());
+        }
+    }
+    if (loaded.BestBlock() != tip->GetBlockHash()) {
+        return error("LoadPoSState: state tip %s does not match chainstate tip %s; reindex-chainstate is required",
+                     loaded.BestBlock().ToString(), tip->GetBlockHash().ToString());
+    }
+    m_pos_state = std::move(loaded);
     return true;
 }
 
@@ -4111,6 +4562,7 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
     nCheckLevel = std::max(0, std::min(4, nCheckLevel));
     LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
     CCoinsViewCache coins(coinsview);
+    pos::State verify_pos_state = g_chainstate.GetPoSState();
     CBlockIndex* pindexState = chainActive.Tip();
     CBlockIndex* pindexFailure = nullptr;
     int nGoodTransactions = 0;
@@ -4159,6 +4611,15 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
                 return error("VerifyDB(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
             }
             pindexState = pindex->pprev;
+            if (chainparams.GetConsensus().IsPoSActive(pindex->nHeight)) {
+                pos::StateUndo pos_undo;
+                if (!pblocktree->ReadPoSUndo(pindex->GetBlockHash(), pos_undo) ||
+                    !verify_pos_state.UndoBlock(pos_undo)) {
+                    return error("VerifyDB(): *** invalid PoS undo state at %d, hash=%s",
+                                 pindex->nHeight,
+                                 pindex->GetBlockHash().ToString());
+                }
+            }
             if (res == DISCONNECT_UNCLEAN) {
                 nGoodTransactions = 0;
                 pindexFailure = pindex;
@@ -4182,7 +4643,13 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
                 return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-            if (!g_chainstate.ConnectBlock(block, state, pindex, coins, chainparams))
+            pos::StateUndo pos_undo;
+            pos::State* verify_state =
+                chainparams.GetConsensus().IsPoSActive(pindex->nHeight)
+                    ? &verify_pos_state : nullptr;
+            if (!g_chainstate.ConnectBlock(block, state, pindex, coins,
+                                           chainparams, false, verify_state,
+                                           &pos_undo))
                 return error("VerifyDB(): *** found unconnectable block at %d, hash=%s (%s)", pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
         }
     }
@@ -4757,7 +5224,20 @@ void CChainState::CheckBlockIndex(const Consensus::Params& consensusParams)
             // Checks for not-invalid blocks.
             assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0); // The failed mask cannot be set for blocks without invalid parents.
         }
-        if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) && pindexFirstNeverProcessed == nullptr) {
+        const bool pos_candidate_selection =
+            consensusParams.IsPoSActive(chainActive.Height() + 1);
+        if (pos_candidate_selection) {
+            const bool is_candidate = setBlockIndexCandidates.count(pindex) != 0;
+            if (pindex == chainActive.Tip()) assert(is_candidate);
+            if (chainActive.Contains(pindex) && pindex != chainActive.Tip()) {
+                assert(!is_candidate);
+            }
+            if (is_candidate) {
+                assert(pindexFirstInvalid == nullptr);
+                assert(pindexFirstNeverProcessed == nullptr);
+                assert(pindexFirstMissing == nullptr);
+            }
+        } else if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) && pindexFirstNeverProcessed == nullptr) {
             if (pindexFirstInvalid == nullptr) {
                 // If this block sorts at least as good as the current tip and
                 // is valid and we have all data for its parents, it must be in

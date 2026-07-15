@@ -8,6 +8,7 @@
 
 #include <chainparams.h>
 #include <hash.h>
+#include <pos/primitives.h>
 #include <random.h>
 #include <pow.h>
 #include <shutdown.h>
@@ -30,6 +31,8 @@ static const char DB_HEAD_BLOCKS = 'H';
 static const char DB_FLAG = 'F';
 static const char DB_REINDEX_FLAG = 'R';
 static const char DB_LAST_BLOCK = 'l';
+static const char DB_POS_STATE = 'P';
+static const char DB_POS_UNDO = 'U';
 
 namespace {
 
@@ -241,6 +244,52 @@ bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
     return Write(std::make_pair(DB_FLAG, name), fValue ? '1' : '0');
 }
 
+bool CBlockTreeDB::WritePoSState(const pos::State& state)
+{
+    return Write(DB_POS_STATE, state);
+}
+
+bool CBlockTreeDB::ReadPoSState(pos::State& state)
+{
+    return Read(DB_POS_STATE, state);
+}
+
+bool CBlockTreeDB::WritePoSUndo(const uint256& block_hash,
+                                const pos::StateUndo& undo)
+{
+    return Write(std::make_pair(DB_POS_UNDO, block_hash), undo);
+}
+
+bool CBlockTreeDB::ReadPoSUndo(const uint256& block_hash,
+                               pos::StateUndo& undo)
+{
+    return Read(std::make_pair(DB_POS_UNDO, block_hash), undo);
+}
+
+bool CBlockTreeDB::ErasePoSUndo(const uint256& block_hash)
+{
+    return Erase(std::make_pair(DB_POS_UNDO, block_hash));
+}
+
+bool CBlockTreeDB::WritePoSStateTransition(const pos::State& state,
+                                           const uint256& block_hash,
+                                           const pos::StateUndo& undo)
+{
+    CDBBatch batch(*this);
+    batch.Write(DB_POS_STATE, state);
+    batch.Write(std::make_pair(DB_POS_UNDO, block_hash), undo);
+    return WriteBatch(batch, true);
+}
+
+bool CBlockTreeDB::WritePoSStateRollback(const pos::State& state,
+                                         const uint256& block_hash)
+{
+    CDBBatch batch(*this);
+    batch.Write(DB_POS_STATE, state);
+    batch.Erase(std::make_pair(DB_POS_UNDO, block_hash));
+    return WriteBatch(batch, true);
+}
+
 bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
     char ch;
     if (!Read(std::make_pair(DB_FLAG, name), ch))
@@ -296,8 +345,22 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
 
-                if (!CheckProofOfWork(diskindex.hashPOWShared, pindexNew->nBits, consensusParams))
-                    return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
+                const bool is_pos = pos::IsPoSVersion(pindexNew->nVersion);
+                if (is_pos) {
+                    if (!consensusParams.IsPoSActive(pindexNew->nHeight) ||
+                        pindexNew->nBits != 0 || pindexNew->nNonce != 0) {
+                        return error("%s: invalid PoS block index entry: %s",
+                                     __func__, pindexNew->ToString());
+                    }
+                } else {
+                    if (consensusParams.IsPoSActive(pindexNew->nHeight) ||
+                        !CheckProofOfWork(diskindex.hashPOWShared,
+                                          pindexNew->nBits,
+                                          consensusParams)) {
+                        return error("%s: CheckProofOfWork failed: %s",
+                                     __func__, pindexNew->ToString());
+                    }
+                }
 
                 ++nLoadedBlockIndexEntries;
                 const int64_t nNow = GetTimeMillis();

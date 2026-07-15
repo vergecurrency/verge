@@ -103,6 +103,9 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
     const auto testParams = CreateChainParams(CBaseChainParams::TESTNET);
     const auto regtestParams = CreateChainParams(CBaseChainParams::REGTEST);
 
+    BOOST_CHECK_EQUAL(mainParams->GetConsensus().nPoSNetworkId, 1U);
+    BOOST_CHECK_EQUAL(testParams->GetConsensus().nPoSNetworkId, 2U);
+    BOOST_CHECK_EQUAL(regtestParams->GetConsensus().nPoSNetworkId, 3U);
     BOOST_CHECK_EQUAL(mainParams->GetConsensus().nPoSActivationHeight, 15000000);
     BOOST_CHECK_EQUAL(testParams->GetConsensus().nPoSActivationHeight, 15000000);
     BOOST_CHECK_EQUAL(regtestParams->GetConsensus().nPoSActivationHeight, std::numeric_limits<int>::max());

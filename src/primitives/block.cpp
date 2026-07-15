@@ -18,6 +18,11 @@
 
 int ALGO = ALGO_SCRYPT;
 
+bool pos::IsPoSVersion(int32_t version)
+{
+    return (version & BLOCK_VERSION_POS) != 0;
+}
+
 uint256 CBlockHeader::GetHash() const
 {
     if(!this->hash.IsNull()){

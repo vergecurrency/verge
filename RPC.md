@@ -164,6 +164,20 @@ Use `verge-cli help <command>` for the exact JSON result schema exposed by the r
 | `generatetoaddress` | `generatetoaddress nblocks "address" ( maxtries )` | `verge-cli generatetoaddress 1 <address>` |
 | `generate` | `generate nblocks ( maxtries )` | `verge-cli generate 1` |
 
+## Proof Of Stake
+
+Staking is disabled per wallet until explicitly enabled. Encrypted wallets pause
+production while locked without changing their saved preference. Bond creation
+and unbonding are always explicit transactions.
+
+| Command | Usage | Example |
+| --- | --- | --- |
+| `setstaking` | `setstaking enabled` | `verge-cli setstaking true` |
+| `getstakinginfo` | `getstakinginfo` | `verge-cli getstakinginfo` |
+| `createbond` | `createbond amount ( "reward_address" "withdrawal_address" )` | `verge-cli createbond 1000` |
+| `unbond` | `unbond "txid" vout` | `verge-cli unbond <txid> 0` |
+| `generatestake` | `generatestake` | `verge-cli generatestake` |
+
 ## Label Wallet Commands
 
 | Command | Usage | Example |

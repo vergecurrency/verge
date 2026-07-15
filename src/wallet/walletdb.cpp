@@ -152,6 +152,11 @@ bool WalletBatch::WriteOrderPosNext(int64_t nOrderPosNext)
     return WriteIC(std::string("orderposnext"), nOrderPosNext);
 }
 
+bool WalletBatch::WriteStakingEnabled(bool enabled)
+{
+    return WriteIC(std::string("staking_enabled"), enabled);
+}
+
 bool WalletBatch::ReadPool(int64_t nPool, CKeyPool& keypool)
 {
     return m_batch.Read(std::make_pair(std::string("pool"), nPool), keypool);
@@ -528,6 +533,12 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         else if (strType == "orderposnext")
         {
             ssValue >> pwallet->nOrderPosNext;
+        }
+        else if (strType == "staking_enabled")
+        {
+            bool enabled = false;
+            ssValue >> enabled;
+            pwallet->LoadStakingEnabled(enabled);
         }
         else if (strType == "destdata")
         {

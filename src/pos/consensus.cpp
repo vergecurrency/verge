@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <pos/consensus.h>
+#include <pos/primitives.h>
 
 #include <limits>
 
@@ -42,6 +43,45 @@ int GetInitialStakeSnapshotHeight(const Consensus::Params& params)
         return -1;
     }
     return params.nPoSActivationHeight - static_cast<int>(delay);
+}
+
+bool ComputeInitialEpochSeed(uint32_t network_id, int32_t activation_height,
+                             const std::vector<uint256>& predecessor_hashes,
+                             uint256& seed)
+{
+    static constexpr size_t REQUIRED_PREDECESSORS = 120;
+    if (network_id == 0 || activation_height < 0 ||
+        predecessor_hashes.size() != REQUIRED_PREDECESSORS) {
+        return false;
+    }
+    TaggedHashWriter writer(HashDomain::EPOCH_SEED);
+    writer << network_id << activation_height
+           << static_cast<uint64_t>(predecessor_hashes.size());
+    for (const uint256& hash : predecessor_hashes) writer << hash;
+    seed = writer.GetHash();
+    return !seed.IsNull();
+}
+
+uint256 ComputeNextEpochSeed(
+    const uint256& previous_seed, uint64_t next_epoch,
+    const std::vector<std::array<unsigned char, 32>>& vrf_outputs)
+{
+    TaggedHashWriter writer(HashDomain::EPOCH_SEED);
+    writer << previous_seed << next_epoch
+           << static_cast<uint64_t>(vrf_outputs.size());
+    for (const auto& output : vrf_outputs) {
+        writer.write(reinterpret_cast<const char*>(output.data()), output.size());
+    }
+    return writer.GetHash();
+}
+
+bool PreferFork(CAmount candidate_weight, const uint256& candidate_child,
+                CAmount current_weight, const uint256& current_child)
+{
+    if (candidate_weight != current_weight) {
+        return candidate_weight > current_weight;
+    }
+    return candidate_child < current_child;
 }
 
 } // namespace pos

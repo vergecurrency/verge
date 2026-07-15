@@ -16,6 +16,7 @@
 #include <fs.h>
 #include <protocol.h> // For CMessageHeader::MessageStartChars
 #include <policy/feerate.h>
+#include <pos/state.h>
 #include <script/script_error.h>
 #include <sync.h>
 #include <versionbits.h>
@@ -244,6 +245,7 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
  * @return True if state.IsValid()
  */
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool* fNewBlock);
+pos::State GetPoSStateSnapshot();
 
 /**
  * Process incoming block headers.

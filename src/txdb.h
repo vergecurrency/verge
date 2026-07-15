@@ -11,6 +11,7 @@
 #include <dbwrapper.h>
 #include <chain.h>
 #include <primitives/block.h>
+#include <pos/state.h>
 
 #include <map>
 #include <memory>
@@ -96,6 +97,16 @@ public:
     bool ReadReindexing(bool &fReindexing);
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
+    bool WritePoSState(const pos::State& state);
+    bool ReadPoSState(pos::State& state);
+    bool WritePoSUndo(const uint256& block_hash, const pos::StateUndo& undo);
+    bool ReadPoSUndo(const uint256& block_hash, pos::StateUndo& undo);
+    bool ErasePoSUndo(const uint256& block_hash);
+    bool WritePoSStateTransition(const pos::State& state,
+                                 const uint256& block_hash,
+                                 const pos::StateUndo& undo);
+    bool WritePoSStateRollback(const pos::State& state,
+                               const uint256& block_hash);
     bool LoadBlockIndexGuts(const Consensus::Params& consensusParams, std::function<CBlockIndex*(const uint256&)> insertBlockIndex);
 };
 

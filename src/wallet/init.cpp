@@ -16,6 +16,7 @@
 #include <validation.h>
 #include <walletinitinterface.h>
 #include <wallet/rpcwallet.h>
+#include <wallet/staker.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
 
@@ -272,6 +273,7 @@ void WalletInit::Start(CScheduler& scheduler) const
     // Run a thread to flush wallet periodically
     uiInterface.InitMessage(_("Starting wallet database maintenance..."));
     scheduler.scheduleEvery(MaybeCompactWalletDB, 500);
+    scheduler.scheduleEvery(StakeWallets, 1000);
 }
 
 void WalletInit::Flush() const

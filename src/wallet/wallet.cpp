@@ -304,6 +304,14 @@ bool CWallet::LoadKeyMetadata(const CKeyID& keyID, const CKeyMetadata &meta)
     return true;
 }
 
+bool CWallet::SetStakingEnabled(bool enabled)
+{
+    AssertLockHeld(cs_wallet);
+    if (!WalletBatch(*database).WriteStakingEnabled(enabled)) return false;
+    m_staking_enabled = enabled;
+    return true;
+}
+
 bool CWallet::LoadScriptMetadata(const CScriptID& script_id, const CKeyMetadata &meta)
 {
     AssertLockHeld(cs_wallet); // m_script_metadata
@@ -2366,7 +2374,9 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const
             continue;
         }
 
-        if (nDepth < nMinDepth || nDepth > nMaxDepth)
+        const int minimum_depth = coinControl == nullptr
+            ? nMinDepth : std::max(nMinDepth, coinControl->m_min_depth);
+        if (nDepth < minimum_depth || nDepth > nMaxDepth)
             continue;
 
         for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {

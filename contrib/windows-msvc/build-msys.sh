@@ -831,7 +831,6 @@ patch_generated_makefiles_for_windows() {
     done
   fi
 
-  perl -0pi -e 's/^LIBSECP256K1 = secp256k1\/libsecp256k1\.la$/LIBSECP256K1 = secp256k1\/libsecp256k1.la secp256k1\/libsecp256k1_precomputed.la/m' "$top_makefile"
   protobuf_memswap_alias_flags=' -Wl,--verge-protobuf-memswap16-alias'
   protobuf_makefile_libs="${protobuf_link_libs}${protobuf_static_libs}${protobuf_memswap_alias_flags}"
   if [ -n "$protobuf_link_libs" ] || [ -n "$protobuf_static_libs" ]; then
@@ -842,7 +841,8 @@ patch_generated_makefiles_for_windows() {
   perl -0pi -e 's/-lQt6Widgets/-lQt6EntryPoint -lQt6Widgets/' "$top_makefile"
   perl -0pi -e 's/-lQt6WebEngineWidgets/-lQt6WebEngineWidgets -lQt6WebEngineCore/' "$top_makefile"
 
-  grep -n '^LIBSECP256K1 = secp256k1/libsecp256k1.la secp256k1/libsecp256k1_precomputed.la$' "$top_makefile" >/dev/null
+  grep -n '^LIBSECP256K1 = secp256k1/libsecp256k1.la \$(am__append_1)$' "$top_makefile" >/dev/null
+  grep -n '^am__append_1 = secp256k1/libsecp256k1_precomputed.la$' "$top_makefile" >/dev/null
   grep -n '^PROTOBUF_LIBS = .*repeated_ptr_field\.cc\.obj .*--verge-protobuf-memswap16-alias' "$top_makefile" >/dev/null
   grep -n '^qt_verge_qt_LDFLAGS = .* -Wl,/subsystem:windows$' "$top_makefile" >/dev/null
   grep -n 'Qt6EntryPoint -lQt6Widgets' "$top_makefile" >/dev/null

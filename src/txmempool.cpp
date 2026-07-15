@@ -5,6 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <txmempool.h>
+#include <chainparams.h>
 
 #include <consensus/consensus.h>
 #include <consensus/tx_verify.h>
@@ -12,6 +13,7 @@
 #include <validation.h>
 #include <policy/policy.h>
 #include <policy/fees.h>
+#include <pos/state.h>
 #include <reverse_iterator.h>
 #include <streams.h>
 #include <timedata.h>
@@ -594,6 +596,21 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef>& vtx, unsigne
     blockSinceLastRollingFeeBump = true;
 }
 
+void CTxMemPool::removeForPoSLockouts(const pos::State& state, int nSpendHeight)
+{
+    LOCK(cs);
+    setEntries stage;
+    for (auto it = mapTx.begin(); it != mapTx.end(); ++it) {
+        for (const CTxIn& input : it->GetTx().vin) {
+            if (state.IsWithdrawalLocked(input.prevout, nSpendHeight)) {
+                CalculateDescendants(it, stage);
+                break;
+            }
+        }
+    }
+    RemoveStaged(stage, false, MemPoolRemovalReason::REORG);
+}
+
 void CTxMemPool::_clear()
 {
     mapLinks.clear();
@@ -617,7 +634,7 @@ static void CheckInputsAndUpdateCoins(const CTransaction& tx, CCoinsViewCache& m
 {
     CValidationState state;
     CAmount txfee = 0;
-    bool fCheckResult = tx.IsCoinBase() || Consensus::CheckTxInputs(tx, state, mempoolDuplicate, spendheight, txfee);
+    bool fCheckResult = tx.IsCoinBase() || Consensus::CheckTxInputs(tx, state, mempoolDuplicate, spendheight, txfee, Params().GetConsensus());
     assert(fCheckResult);
     UpdateCoins(tx, mempoolDuplicate, 1000000);
 }
