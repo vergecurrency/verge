@@ -27,7 +27,7 @@ from test_framework.siphash import siphash256
 from test_framework.util import hex_str_to_bytes, bytes_to_hex_str
 
 MIN_VERSION_SUPPORTED = 60001
-MY_VERSION = 70014  # past bip-31 for ping/pong
+MY_VERSION = 90009
 MY_SUBVERSION = b"/python-mininode-tester:0.0.3/"
 MY_RELAY = 1 # from version 70001 onwards, fRelay should be appended to version messages (BIP37)
 
@@ -40,14 +40,16 @@ BIP125_SEQUENCE_NUMBER = 0xfffffffd  # Sequence number that is BIP 125 opt-in an
 
 NODE_NETWORK = (1 << 0)
 # NODE_GETUTXO = (1 << 1)
-NODE_BLOOM = (1 << 2)
-NODE_WITNESS = (1 << 3)
+NODE_BLOOM = (1 << 1)
+NODE_WITNESS = (1 << 2)
 NODE_UNSUPPORTED_SERVICE_BIT_5 = (1 << 5)
 NODE_UNSUPPORTED_SERVICE_BIT_7 = (1 << 7)
 NODE_NETWORK_LIMITED = (1 << 10)
 
 MSG_TX = 1
 MSG_BLOCK = 2
+MSG_POS_VOTE = 5
+MSG_POS_VOTE_EVIDENCE = 6
 MSG_WITNESS_FLAG = 1 << 30
 MSG_TYPE_MASK = 0xffffffff >> 2
 
@@ -194,21 +196,25 @@ class CAddress():
         self.ip = "0.0.0.0"
         self.port = 0
 
-    def deserialize(self, f, with_time=True):
+    def deserialize(self, f, with_time=True, modern=False):
         if with_time:
             self.time = struct.unpack("<i", f.read(4))[0]
         self.nServices = struct.unpack("<Q", f.read(8))[0]
         self.pchReserved = f.read(12)
         self.ip = socket.inet_ntoa(f.read(4))
+        if modern:
+            f.read(25)
         self.port = struct.unpack(">H", f.read(2))[0]
 
-    def serialize(self, with_time=True):
+    def serialize(self, with_time=True, modern=False):
         r = b""
         if with_time:
             r += struct.pack("<i", self.time)
         r += struct.pack("<Q", self.nServices)
         r += self.pchReserved
         r += socket.inet_aton(self.ip)
+        if modern:
+            r += b"\x00" * 25
         r += struct.pack(">H", self.port)
         return r
 
@@ -223,7 +229,9 @@ class CInv():
         2: "Block",
         1|MSG_WITNESS_FLAG: "WitnessTx",
         2|MSG_WITNESS_FLAG : "WitnessBlock",
-        4: "CompactBlock"
+        4: "CompactBlock",
+        5: "PoSVote",
+        6: "PoSVoteEvidence"
     }
 
     def __init__(self, t=0, h=0):
@@ -243,6 +251,62 @@ class CInv():
     def __repr__(self):
         return "CInv(type=%s hash=%064x)" \
             % (self.typemap[self.type], self.hash)
+
+
+class CCheckpointVote():
+    def __init__(self):
+        self.version = 1
+        self.bond_outpoint = COutPoint()
+        self.snapshot_epoch = 0
+        self.source_epoch = 0
+        self.source_checkpoint_root = 0
+        self.target_epoch = 0
+        self.target_checkpoint_root = 0
+        self.head_slot = 0
+        self.head_block_root = 0
+        self.signature = b"\x00" * 64
+
+    def deserialize(self, f):
+        self.version = struct.unpack("<B", f.read(1))[0]
+        self.bond_outpoint.deserialize(f)
+        self.snapshot_epoch = struct.unpack("<Q", f.read(8))[0]
+        self.source_epoch = struct.unpack("<Q", f.read(8))[0]
+        self.source_checkpoint_root = deser_uint256(f)
+        self.target_epoch = struct.unpack("<Q", f.read(8))[0]
+        self.target_checkpoint_root = deser_uint256(f)
+        self.head_slot = struct.unpack("<Q", f.read(8))[0]
+        self.head_block_root = deser_uint256(f)
+        self.signature = f.read(64)
+
+    def serialize(self):
+        return b"".join([
+            struct.pack("<B", self.version),
+            self.bond_outpoint.serialize(),
+            struct.pack("<Q", self.snapshot_epoch),
+            struct.pack("<Q", self.source_epoch),
+            ser_uint256(self.source_checkpoint_root),
+            struct.pack("<Q", self.target_epoch),
+            ser_uint256(self.target_checkpoint_root),
+            struct.pack("<Q", self.head_slot),
+            ser_uint256(self.head_block_root),
+            self.signature,
+        ])
+
+
+class CVoteEquivocationEvidence():
+    def __init__(self):
+        self.version = 1
+        self.first = CCheckpointVote()
+        self.second = CCheckpointVote()
+
+    def deserialize(self, f):
+        self.version = struct.unpack("<B", f.read(1))[0]
+        self.first.deserialize(f)
+        self.second.deserialize(f)
+
+    def serialize(self):
+        return (struct.pack("<B", self.version) + self.first.serialize() +
+                self.second.serialize())
 
 
 class CBlockLocator():
@@ -848,7 +912,7 @@ class msg_version():
 
     def __init__(self):
         self.nVersion = MY_VERSION
-        self.nServices = NODE_NETWORK | NODE_WITNESS
+        self.nServices = NODE_NETWORK
         self.nTime = int(time.time())
         self.addrTo = CAddress()
         self.addrFrom = CAddress()
@@ -864,11 +928,11 @@ class msg_version():
         self.nServices = struct.unpack("<Q", f.read(8))[0]
         self.nTime = struct.unpack("<q", f.read(8))[0]
         self.addrTo = CAddress()
-        self.addrTo.deserialize(f, False)
+        self.addrTo.deserialize(f, modern=self.nVersion >= MY_VERSION)
 
         if self.nVersion >= 106:
             self.addrFrom = CAddress()
-            self.addrFrom.deserialize(f, False)
+            self.addrFrom.deserialize(f, modern=self.nVersion >= MY_VERSION)
             self.nNonce = struct.unpack("<Q", f.read(8))[0]
             self.strSubVer = deser_string(f)
         else:
@@ -896,8 +960,9 @@ class msg_version():
         r += struct.pack("<i", self.nVersion)
         r += struct.pack("<Q", self.nServices)
         r += struct.pack("<q", self.nTime)
-        r += self.addrTo.serialize(False)
-        r += self.addrFrom.serialize(False)
+        modern_addresses = self.nVersion >= MY_VERSION
+        r += self.addrTo.serialize(modern=modern_addresses)
+        r += self.addrFrom.serialize(modern=modern_addresses)
         r += struct.pack("<Q", self.nNonce)
         r += ser_string(self.strSubVer)
         r += struct.pack("<i", self.nStartingHeight)
@@ -999,6 +1064,33 @@ class msg_getblocks():
     def __repr__(self):
         return "msg_getblocks(locator=%s hashstop=%064x)" \
             % (repr(self.locator), self.hashstop)
+
+
+class msg_posvote():
+    command = b"posvote"
+
+    def __init__(self, vote=None):
+        self.vote = vote if vote is not None else CCheckpointVote()
+
+    def deserialize(self, f):
+        self.vote.deserialize(f)
+
+    def serialize(self):
+        return self.vote.serialize()
+
+
+class msg_posvoteevidence():
+    command = b"posvevid"
+
+    def __init__(self, evidence=None):
+        self.evidence = (evidence if evidence is not None else
+                         CVoteEquivocationEvidence())
+
+    def deserialize(self, f):
+        self.evidence.deserialize(f)
+
+    def serialize(self):
+        return self.evidence.serialize()
 
 
 class msg_tx():

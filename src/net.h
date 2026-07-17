@@ -733,6 +733,8 @@ public:
     // There is no final sorting before sending, as they are always sent immediately
     // and in the order requested.
     std::vector<uint256> vInventoryBlockToSend;
+    // Bounded, immediate relay queue for independently validated PoS objects.
+    std::vector<CInv> vInventoryPoSToSend;
     CCriticalSection cs_inventory;
     std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
@@ -875,6 +877,12 @@ public:
             }
         } else if (inv.type == MSG_BLOCK) {
             vInventoryBlockToSend.push_back(inv.hash);
+        } else if (inv.type == MSG_POS_VOTE ||
+                   inv.type == MSG_POS_VOTE_EVIDENCE) {
+            if (!filterInventoryKnown.contains(inv.hash) &&
+                vInventoryPoSToSend.size() < MAX_INV_SZ) {
+                vInventoryPoSToSend.push_back(inv);
+            }
         }
     }
 

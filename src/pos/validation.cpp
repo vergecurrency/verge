@@ -115,6 +115,86 @@ ValidationError CheckVrfEligibility(const CBlock& block,
     return ValidationError::NONE;
 }
 
+ValidationError CheckCheckpointVote(const CheckpointVote& vote,
+                                    const State& state,
+                                    uint32_t snapshot_delay_epochs,
+                                    uint64_t current_epoch,
+                                    int32_t current_height)
+{
+    if (CheckStructure(vote) != StructureError::NONE) {
+        return ValidationError::VOTE_STRUCTURE;
+    }
+    if (state.IsEligibilityLocked(vote.bond_outpoint, current_epoch,
+                                  current_height)) {
+        return ValidationError::VOTE_BOND;
+    }
+    if (vote.snapshot_epoch != GetRequiredSnapshotEpoch(
+            vote.target_epoch, snapshot_delay_epochs)) {
+        return ValidationError::VOTE_SNAPSHOT;
+    }
+    const StakeSnapshot* snapshot = state.FindSnapshot(vote.snapshot_epoch);
+    if (snapshot == nullptr) return ValidationError::VOTE_SNAPSHOT;
+    const auto it = std::lower_bound(
+        snapshot->entries.begin(), snapshot->entries.end(),
+        vote.bond_outpoint,
+        [](const SnapshotEntry& entry, const COutPoint& outpoint) {
+            return entry.outpoint < outpoint;
+        });
+    if (it == snapshot->entries.end() ||
+        it->outpoint != vote.bond_outpoint) {
+        return ValidationError::VOTE_BOND;
+    }
+    const Checkpoint* source = state.FindJustified(vote.source_epoch);
+    const Checkpoint* target = state.FindCheckpoint(vote.target_epoch);
+    if (source == nullptr || target == nullptr ||
+        source->root != vote.source_checkpoint_root ||
+        target->root != vote.target_checkpoint_root) {
+        return ValidationError::VOTE_CHECKPOINT;
+    }
+    if (!VerifySchnorr(it->bond.data.signing_public_key,
+                       GetVoteSigningHash(vote), vote.signature)) {
+        return ValidationError::VOTE_SIGNATURE;
+    }
+    return ValidationError::NONE;
+}
+
+ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
+                                  const State& state)
+{
+    if (CheckStructure(evidence) != StructureError::NONE) {
+        return ValidationError::VOTE_STRUCTURE;
+    }
+    const auto snapshot_contains = [&state](uint64_t epoch,
+                                            const COutPoint& outpoint) {
+        const StakeSnapshot* snapshot = state.FindSnapshot(epoch);
+        if (snapshot == nullptr) return false;
+        const auto it = std::lower_bound(
+            snapshot->entries.begin(), snapshot->entries.end(), outpoint,
+            [](const SnapshotEntry& entry, const COutPoint& value) {
+                return entry.outpoint < value;
+            });
+        return it != snapshot->entries.end() && it->outpoint == outpoint;
+    };
+    if (!snapshot_contains(evidence.first.snapshot_epoch,
+                           evidence.first.bond_outpoint) ||
+        !snapshot_contains(evidence.second.snapshot_epoch,
+                           evidence.second.bond_outpoint)) {
+        return ValidationError::VOTE_SNAPSHOT;
+    }
+    const BondRecord* bond =
+        state.FindHistoricalBond(evidence.first.bond_outpoint);
+    if (bond == nullptr) return ValidationError::EVIDENCE_BOND;
+    if (!VerifySchnorr(bond->data.signing_public_key,
+                       GetVoteSigningHash(evidence.first),
+                       evidence.first.signature) ||
+        !VerifySchnorr(bond->data.signing_public_key,
+                       GetVoteSigningHash(evidence.second),
+                       evidence.second.signature)) {
+        return ValidationError::EVIDENCE_SIGNATURE;
+    }
+    return ValidationError::NONE;
+}
+
 ValidationError CheckVotesAndEvidence(const CBlock& block,
                                       const State& state,
                                       uint32_t snapshot_delay_epochs,
@@ -122,36 +202,11 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
                                       uint64_t current_epoch,
                                       int32_t current_height)
 {
-    const auto find_bond = [](const StakeSnapshot& snapshot,
-                              const COutPoint& outpoint) -> const BondRecord* {
-        const auto it = std::lower_bound(
-            snapshot.entries.begin(), snapshot.entries.end(), outpoint,
-            [](const SnapshotEntry& entry, const COutPoint& value) {
-                return entry.outpoint < value;
-            });
-        return it != snapshot.entries.end() && it->outpoint == outpoint
-            ? &it->bond : nullptr;
-    };
-
     for (const CheckpointVote& vote : block.posExtension.votes) {
-        if (state.IsEligibilityLocked(vote.bond_outpoint, current_epoch,
-                                      current_height)) {
-            return ValidationError::VOTE_BOND;
-        }
-        if (vote.snapshot_epoch != GetRequiredSnapshotEpoch(
-                vote.target_epoch, snapshot_delay_epochs)) {
-            return ValidationError::VOTE_SNAPSHOT;
-        }
-        const StakeSnapshot* vote_snapshot =
-            state.FindSnapshot(vote.snapshot_epoch);
-        if (vote_snapshot == nullptr) return ValidationError::VOTE_SNAPSHOT;
-        const BondRecord* bond = find_bond(*vote_snapshot,
-                                           vote.bond_outpoint);
-        if (bond == nullptr) return ValidationError::VOTE_BOND;
-        if (!VerifySchnorr(bond->data.signing_public_key,
-                           GetVoteSigningHash(vote), vote.signature)) {
-            return ValidationError::VOTE_SIGNATURE;
-        }
+        const ValidationError error = CheckCheckpointVote(
+            vote, state, snapshot_delay_epochs, current_epoch,
+            current_height);
+        if (error != ValidationError::NONE) return error;
     }
 
     for (const BlockEquivocationEvidence& evidence :
@@ -175,34 +230,8 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
 
     for (const VoteEquivocationEvidence& evidence :
          block.posExtension.vote_evidence) {
-        const auto snapshot_contains = [&state](uint64_t epoch,
-                                                const COutPoint& outpoint) {
-            const StakeSnapshot* item = state.FindSnapshot(epoch);
-            if (item == nullptr) return false;
-            const auto it = std::lower_bound(
-                item->entries.begin(), item->entries.end(), outpoint,
-                [](const SnapshotEntry& entry, const COutPoint& value) {
-                    return entry.outpoint < value;
-                });
-            return it != item->entries.end() && it->outpoint == outpoint;
-        };
-        if (!snapshot_contains(evidence.first.snapshot_epoch,
-                               evidence.first.bond_outpoint) ||
-            !snapshot_contains(evidence.second.snapshot_epoch,
-                               evidence.second.bond_outpoint)) {
-            return ValidationError::VOTE_SNAPSHOT;
-        }
-        const BondRecord* bond =
-            state.FindHistoricalBond(evidence.first.bond_outpoint);
-        if (bond == nullptr) return ValidationError::EVIDENCE_BOND;
-        if (!VerifySchnorr(bond->data.signing_public_key,
-                           GetVoteSigningHash(evidence.first),
-                           evidence.first.signature) ||
-            !VerifySchnorr(bond->data.signing_public_key,
-                           GetVoteSigningHash(evidence.second),
-                           evidence.second.signature)) {
-            return ValidationError::EVIDENCE_SIGNATURE;
-        }
+        const ValidationError error = CheckVoteEvidence(evidence, state);
+        if (error != ValidationError::NONE) return error;
     }
     return ValidationError::NONE;
 }

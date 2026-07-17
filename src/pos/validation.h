@@ -23,8 +23,10 @@ enum class ValidationError {
     VRF_INVALID,
     VRF_OUTPUT_MISMATCH,
     STAKE_INELIGIBLE,
+    VOTE_STRUCTURE,
     VOTE_SNAPSHOT,
     VOTE_BOND,
+    VOTE_CHECKPOINT,
     VOTE_SIGNATURE,
     EVIDENCE_BOND,
     EVIDENCE_SIGNATURE,
@@ -45,6 +47,15 @@ ValidationError CheckStakeAuthorization(const CBlock& block,
 ValidationError CheckVrfEligibility(const CBlock& block,
                                     const StakeSnapshot& snapshot,
                                     uint32_t network_id);
+
+ValidationError CheckCheckpointVote(const CheckpointVote& vote,
+                                    const State& state,
+                                    uint32_t snapshot_delay_epochs,
+                                    uint64_t current_epoch,
+                                    int32_t current_height);
+
+ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
+                                  const State& state);
 
 ValidationError CheckVotesAndEvidence(const CBlock& block,
                                       const State& state,

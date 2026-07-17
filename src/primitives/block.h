@@ -207,10 +207,12 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
-if (!(s.GetType() & (SER_GETHASH|SER_BLOCKHEADERONLY)))
-        {
+        const bool header_only =
+            ((s.GetType() | s.GetVersion()) & SER_BLOCKHEADERONLY) != 0;
+        if (!(s.GetType() & SER_GETHASH) &&
+            (!header_only || !ser_action.ForRead())) {
             READWRITE(vchBlockSig);
-            if (pos::IsPoSVersion(nVersion)) {
+            if (!header_only && pos::IsPoSVersion(nVersion)) {
                 READWRITE(posExtension);
             } else if (ser_action.ForRead()) {
                 const_cast<CBlock*>(this)->posExtension = pos::BlockExtension();

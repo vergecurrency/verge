@@ -43,6 +43,8 @@ MESSAGEMAP = {
     b"mempool": msg_mempool,
     b"ping": msg_ping,
     b"pong": msg_pong,
+    b"posvote": msg_posvote,
+    b"posvevid": msg_posvoteevidence,
     b"reject": msg_reject,
     b"sendcmpct": msg_sendcmpct,
     b"sendheaders": msg_sendheaders,
@@ -71,10 +73,8 @@ class P2PConnection(asyncore.dispatcher):
     sub-classed and the on_message() callback overridden."""
 
     def __init__(self):
-        # All P2PConnections must be created before starting the NetworkThread.
-        # assert that the network thread is not running.
-        assert not network_thread_running()
-
+        # Connections may be registered while the persistent network thread is
+        # idle; asyncore receives the shared socket map explicitly.
         super().__init__(map=mininode_socket_map)
 
     def peer_connect(self, dstaddr, dstport, net="regtest"):
@@ -170,7 +170,7 @@ class P2PConnection(asyncore.dispatcher):
                 self._log_message("receive", t)
                 self.on_message(t)
         except Exception as e:
-            logger.exception('Error reading message:', repr(e))
+            logger.exception('Error reading message: %r', e)
             raise
 
     def on_message(self, message):
@@ -269,7 +269,7 @@ class P2PInterface(P2PConnection):
         # The network services received from the peer
         self.nServices = 0
 
-    def peer_connect(self, *args, services=NODE_NETWORK|NODE_WITNESS, send_version=True, **kwargs):
+    def peer_connect(self, *args, services=NODE_NETWORK, send_version=True, **kwargs):
         super().peer_connect(*args, **kwargs)
 
         if send_version:
@@ -321,6 +321,8 @@ class P2PInterface(P2PConnection):
     def on_headers(self, message): pass
     def on_mempool(self, message): pass
     def on_pong(self, message): pass
+    def on_posvote(self, message): pass
+    def on_posvevid(self, message): pass
     def on_reject(self, message): pass
     def on_sendcmpct(self, message): pass
     def on_sendheaders(self, message): pass
@@ -420,9 +422,10 @@ mininode_lock = threading.RLock()
 class NetworkThread(threading.Thread):
     def __init__(self):
         super().__init__(name="NetworkThread")
+        self._close_event = threading.Event()
 
     def run(self):
-        while mininode_socket_map:
+        while not self._close_event.is_set():
             # We check for whether to disconnect outside of the asyncore
             # loop to work around the behavior of asyncore when using
             # select
@@ -431,10 +434,15 @@ class NetworkThread(threading.Thread):
                 if obj.disconnect:
                     disconnected.append(obj)
             [obj.handle_close() for obj in disconnected]
-            asyncore.loop(0.1, use_poll=True, map=mininode_socket_map, count=1)
+            if mininode_socket_map:
+                asyncore.loop(0.1, use_poll=True, map=mininode_socket_map,
+                              count=1)
+            else:
+                self._close_event.wait(0.05)
         logger.debug("Network thread closing")
 
     def close(self):
+        self._close_event.set()
         with mininode_lock:
             for obj in list(mininode_socket_map.values()):
                 obj.handle_close()

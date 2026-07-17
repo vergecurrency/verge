@@ -7,9 +7,12 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <miner.h>
+#include <net.h>
+#include <protocol.h>
 #include <pos/consensus.h>
 #include <pos/crypto.h>
 #include <pos/validation.h>
+#include <pos/votepool.h>
 #include <pos/vrf.h>
 #include <random.h>
 #include <support/cleanse.h>
@@ -87,6 +90,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     CKey selected_key;
     uint32_t block_time = 0;
     std::vector<pos::CheckpointVote> votes;
+    std::vector<pos::VoteEquivocationEvidence> vote_evidence;
 
     {
         LOCK2(cs_main, wallet.cs_wallet);
@@ -193,6 +197,49 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
                 wallet_keys.emplace(public_key, key);
             }
         }
+
+        for (const pos::SnapshotEntry& entry : snapshot->entries) {
+            if (state.IsEligibilityLocked(entry.outpoint, slot.epoch,
+                                          tip->nHeight + 1)) continue;
+            PublicKeyBytes signing_public_key{};
+            std::copy(entry.bond.data.signing_public_key,
+                      entry.bond.data.signing_public_key +
+                          pos::SCHNORR_PUBLIC_KEY_SIZE,
+                      signing_public_key.begin());
+            const auto owned = wallet_keys.find(signing_public_key);
+            if (owned == wallet_keys.end()) continue;
+            pos::CheckpointVote vote;
+            if (!BuildVote(state, entry.outpoint, owned->second, tip,
+                           final_pow, slot, params, vote)) continue;
+            const pos::VotePoolResult result = pos::GetVotePool().Add(vote);
+            if (g_connman &&
+                (result == pos::VotePoolResult::ADDED ||
+                 result == pos::VotePoolResult::REPLACED)) {
+                const CInv inv(MSG_POS_VOTE, pos::GetVoteSigningHash(vote));
+                g_connman->ForEachNode([&inv](CNode* node) {
+                    node->PushInventory(inv);
+                });
+            }
+        }
+
+        pos::GetVotePool().Prune(slot.epoch);
+        for (const pos::CheckpointVote& vote :
+             pos::GetVotePool().GetVotes(params.nPoSMaxVotesPerBlock)) {
+            if (pos::CheckCheckpointVote(
+                    vote, state, params.nPoSSnapshotDelayEpochs, slot.epoch,
+                    tip->nHeight + 1) == pos::ValidationError::NONE) {
+                votes.push_back(vote);
+            }
+        }
+        for (const pos::VoteEquivocationEvidence& evidence :
+             pos::GetVoteEvidencePool().GetEvidence(
+                 pos::MAX_EVIDENCE_PER_BLOCK)) {
+            if (pos::CheckVoteEvidence(evidence, state) ==
+                pos::ValidationError::NONE) {
+                vote_evidence.push_back(evidence);
+            }
+        }
+
         for (const pos::SnapshotEntry& entry : snapshot->entries) {
             if (state.IsEligibilityLocked(entry.outpoint, slot.epoch,
                                           tip->nHeight + 1)) continue;
@@ -239,11 +286,6 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
                 pos::ValidationError::NONE) continue;
             selected_bond = entry.bond;
             selected_key = owned->second;
-            pos::CheckpointVote vote;
-            if (BuildVote(state, entry.outpoint, selected_key, tip, final_pow,
-                          slot, params, vote)) {
-                votes.push_back(vote);
-            }
             break;
         }
     }
@@ -254,7 +296,8 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     }
     std::unique_ptr<CBlockTemplate> block_template =
         BlockAssembler(Params()).CreateNewPoSBlock(
-            proof, selected_bond, selected_key.begin(), block_time, votes);
+            proof, selected_bond, selected_key.begin(), block_time, votes, {},
+            vote_evidence);
     if (!block_template) {
         error = "failed to construct proof-of-stake block template";
         return false;
@@ -266,6 +309,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         return false;
     }
     block_hash = block->GetHash();
+    for (const pos::VoteEquivocationEvidence& evidence : vote_evidence) {
+        pos::GetVoteEvidencePool().Remove(
+            pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, evidence));
+    }
     return true;
 }
 

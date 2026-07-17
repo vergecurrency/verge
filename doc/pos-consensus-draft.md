@@ -477,6 +477,41 @@ Validation orders inexpensive checks before cryptographic work: activation and v
 Phase 3 includes fixed cross-platform vectors, round-trip and differential serialization tests, fuzz targets for every PoS parser, malformed cryptographic proof tests, restart/reindex/disconnect tests, simulated partitions, concurrent slot winners, delayed and conflicting votes, finality stalls, long-range forks, and resource-exhaustion tests. A public testnet release is blocked while any consensus vector differs across supported platforms.
 ## Networking And Denial-of-Service Limits
 
+### Independent Checkpoint Vote Relay
+
+Checkpoint votes use inventory type `MSG_POS_VOTE` and the `posvote` payload
+command. The payload is exactly the canonical 229-byte version 1 checkpoint
+vote; nodes reject any other payload length or trailing bytes before signature
+verification. Unknown inventory types remain harmless to pre-PoS peers, so this
+relay extension does not alter pre-activation consensus or require old nodes to
+understand votes.
+
+Nodes admit independently relayed votes only after structural validation,
+required-snapshot selection, bond membership and eligibility-lock checks,
+known source and target checkpoint checks, a fully validated known head, and
+Schnorr signature verification. A per-peer token bucket allows a burst of 256
+votes and refills 64 votes per minute. Invalid structure, signatures, or wire
+sizes increase peer misbehavior; stale or temporarily unknown chain-context
+votes are ignored without punishment.
+
+The non-consensus vote pool stores at most 4,096 votes and 2 MiB of serialized
+vote data, retains one latest vote per bond, and expires votes more than three
+epochs behind. Duplicate and regressing votes are ignored. Conflicting votes
+for one target epoch are not allowed to replace the pool entry. Block producers select
+at most `nPoSMaxVotesPerBlock` votes in canonical order and revalidate every
+pooled vote against their current chain state before including it. Pool policy
+does not change block validity.
+
+Vote-equivocation evidence uses inventory type `MSG_POS_VOTE_EVIDENCE` and the
+`posvevid` command with an exact 459-byte payload. Nodes stage at most 256
+records and 256 KiB, admit only canonical conflicts with known snapshot bonds
+and two valid signatures, and apply a separate burst/refill budget of 32 and 8
+records per minute per peer. Existing valid evidence is not evicted to admit
+new traffic. When two independently admitted votes form canonical double-target
+or surround evidence, the node constructs and relays the evidence automatically.
+Producers revalidate and include at most 16 records, removing them from the
+local pool only after the containing block is accepted.
+
 Before expensive signature or kernel checks, nodes must enforce:
 
 - bounded proof and signature serialization;
@@ -590,10 +625,14 @@ root and candidate header hash, and signs only after all committed fields are
 final. Automatic voting targets the latest already-known checkpoint and uses
 the current parent as the LMD-GHOST head, avoiding a self-referential vote-root
 and header-hash cycle.
-Votes are currently transported through validated PoS blocks. Independent vote
-relay and a bounded vote pool remain Phase 3 networking work; the implementation
-must not be described as production-ready until that path and its adversarial
-tests are complete.
+Votes are transported both through validated PoS blocks and independently by
+inventory-based relay. The bounded vote pool, per-peer admission budget,
+standalone chain-context validator, wallet vote announcements, and block-template
+revalidation are implemented. Conflict detection constructs canonical vote
+evidence, while unit coverage verifies conflict identity, ordering, admission,
+and removal. The two-node functional path verifies vote delivery, malformed
+vote/evidence penalties, partition convergence, restart, chainstate reindex,
+and disconnect/reconsider recovery.
 The final PoW bootstrap checkpoint, latest-vote aggregation, reversible
 justification/finalization, and finalized-reorganization barrier are consensus
 state. Deserializing a PoS extension or passing structural checks alone never
@@ -602,9 +641,11 @@ establishes validity.
 Phase 2 is complete for regtest. Fixed cryptographic and serialization vectors,
 state transition and undo tests, deterministic fork weight and hash tie-break
 tests, evidence-lock transaction tests, and the end-to-end functional path are
-present. Phase 3 remains mandatory before public testing and covers independent
-vote relay, bounded vote pools, multi-node adversarial forks, malformed network
-traffic, and extended recovery testing.
+present. Phase 3 now includes independent vote and vote-evidence relay, bounded
+pools, exact-size malformed-message checks, a two-node partition/convergence
+scenario, and restart plus chainstate-reindex coverage. Broader multi-producer
+partitions, sustained resource-exhaustion tests, and full reindex-from-block-file
+recovery remain mandatory before public testing.
 
 1. Phase 1 ends only after all open consensus decisions in this document are resolved and reviewed.
 2. Phase 2 implements regtest-only activation and staking; mainnet behavior remains byte-for-byte unchanged.

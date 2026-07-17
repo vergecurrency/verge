@@ -20,6 +20,8 @@
 #include <netbase.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
+#include <pos/validation.h>
+#include <pos/votepool.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <random.h>
@@ -70,6 +72,10 @@ static std::vector<std::pair<uint256, CTransactionRef>> vExtraTxnForCompact GUAR
 static const uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL; // SHA256("main address relay")[0:8]
 static const int64_t MAX_ADDR_PROCESSING_TOKENS = 5000;
 static const int64_t ADDR_PROCESSING_TOKENS_PER_SECOND = 100;
+static const int64_t MAX_POS_VOTE_PROCESSING_TOKENS = 256;
+static const int64_t POS_VOTE_PROCESSING_TOKENS_PER_MINUTE = 64;
+static const int64_t MAX_POS_EVIDENCE_PROCESSING_TOKENS = 32;
+static const int64_t POS_EVIDENCE_PROCESSING_TOKENS_PER_MINUTE = 8;
 
 /// Age after which a stale block will no longer be served if requested as
 /// protection against fingerprinting. Set to one month, denominated in seconds.
@@ -249,6 +255,10 @@ struct CNodeState {
     //! Token bucket for inbound addr processing.
     int64_t m_addr_process_tokens;
     int64_t m_addr_process_time;
+    int64_t m_pos_vote_process_tokens;
+    int64_t m_pos_vote_process_time;
+    int64_t m_pos_evidence_process_tokens;
+    int64_t m_pos_evidence_process_time;
 
     CNodeState(CAddress addrIn, std::string addrNameIn) : address(addrIn), name(addrNameIn) {
         fCurrentlyConnected = false;
@@ -276,6 +286,10 @@ struct CNodeState {
         m_last_block_announcement = 0;
         m_addr_process_tokens = MAX_ADDR_PROCESSING_TOKENS;
         m_addr_process_time = GetTime();
+        m_pos_vote_process_tokens = MAX_POS_VOTE_PROCESSING_TOKENS;
+        m_pos_vote_process_time = GetTime();
+        m_pos_evidence_process_tokens = MAX_POS_EVIDENCE_PROCESSING_TOKENS;
+        m_pos_evidence_process_time = GetTime();
     }
 };
 
@@ -1038,6 +1052,10 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     case MSG_BLOCK:
     case MSG_WITNESS_BLOCK:
         return LookupBlockIndex(inv.hash) != nullptr;
+    case MSG_POS_VOTE:
+        return pos::GetVotePool().Exists(inv.hash);
+    case MSG_POS_VOTE_EVIDENCE:
+        return pos::GetVoteEvidencePool().Exists(inv.hash);
     }
     // Don't know what it is, just say we already got one
     return true;
@@ -1242,7 +1260,10 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
     {
         LOCK(cs_main);
 
-        while (it != pfrom->vRecvGetData.end() && (it->type == MSG_TX || it->type == MSG_WITNESS_TX)) {
+        while (it != pfrom->vRecvGetData.end() &&
+               (it->type == MSG_TX || it->type == MSG_WITNESS_TX ||
+                it->type == MSG_POS_VOTE ||
+                it->type == MSG_POS_VOTE_EVIDENCE)) {
             if (interruptMsgProc)
                 return;
             // Don't bother if send buffer is too full to respond anyway
@@ -1251,6 +1272,29 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
 
             const CInv &inv = *it;
             it++;
+
+            if (inv.type == MSG_POS_VOTE) {
+                pos::CheckpointVote vote;
+                if (pos::GetVotePool().Get(inv.hash, vote)) {
+                    connman->PushMessage(pfrom, msgMaker.Make(
+                        NetMsgType::POSVOTE, vote));
+                } else {
+                    vNotFound.push_back(inv);
+                }
+                GetMainSignals().Inventory(inv.hash);
+                continue;
+            }
+            if (inv.type == MSG_POS_VOTE_EVIDENCE) {
+                pos::VoteEquivocationEvidence evidence;
+                if (pos::GetVoteEvidencePool().Get(inv.hash, evidence)) {
+                    connman->PushMessage(pfrom, msgMaker.Make(
+                        NetMsgType::POSVOTEEVIDENCE, evidence));
+                } else {
+                    vNotFound.push_back(inv);
+                }
+                GetMainSignals().Inventory(inv.hash);
+                continue;
+            }
 
             // Send stream from relay memory
             bool push = false;
@@ -2042,9 +2086,13 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             else
             {
                 pfrom->AddInventoryKnown(inv);
-                if (fBlocksOnly) {
+                if (fBlocksOnly && inv.type != MSG_POS_VOTE &&
+                    inv.type != MSG_POS_VOTE_EVIDENCE) {
                     LogPrint(BCLog::NET, "transaction (%s) inv sent in violation of protocol peer=%d\n", inv.hash.ToString(), pfrom->GetId());
-                } else if (!fAlreadyHave && !fImporting && !fReindex && !IsInitialBlockDownload()) {
+                } else if ((inv.type == MSG_TX || inv.type == MSG_POS_VOTE ||
+                            inv.type == MSG_POS_VOTE_EVIDENCE) &&
+                           !fAlreadyHave && !fImporting && !fReindex &&
+                           !IsInitialBlockDownload()) {
                     pfrom->AskFor(inv);
                 }
             }
@@ -2248,9 +2296,154 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         // will re-announce the new block via headers (or compact blocks again)
         // in the SendMessages logic.
         nodestate->pindexBestHeaderSent = pindex ? pindex : chainActive.Tip();
-        connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::HEADERS, vHeaders));
+        connman->PushMessage(pfrom, msgMaker.Make(
+            SER_BLOCKHEADERONLY, NetMsgType::HEADERS, vHeaders));
     }
 
+
+    else if (strCommand == NetMsgType::POSVOTEEVIDENCE)
+    {
+        if (IsInitialBlockDownload() || fImporting || fReindex) return true;
+        if (vRecv.size() != pos::SERIALIZED_VOTE_EVIDENCE_SIZE) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 20, "invalid posvevid size");
+            return false;
+        }
+
+        pos::VoteEquivocationEvidence evidence;
+        vRecv >> evidence;
+        if (!vRecv.empty()) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 20, "posvevid trailing data");
+            return false;
+        }
+
+        LOCK(cs_main);
+        CNodeState* peer_state = State(pfrom->GetId());
+        if (peer_state == nullptr) return false;
+        const int64_t now = GetTime();
+        if (now > peer_state->m_pos_evidence_process_time) {
+            const int64_t elapsed_minutes =
+                (now - peer_state->m_pos_evidence_process_time) / 60;
+            if (elapsed_minutes > 0) {
+                peer_state->m_pos_evidence_process_tokens = std::min(
+                    MAX_POS_EVIDENCE_PROCESSING_TOKENS,
+                    peer_state->m_pos_evidence_process_tokens +
+                        elapsed_minutes *
+                            POS_EVIDENCE_PROCESSING_TOKENS_PER_MINUTE);
+                peer_state->m_pos_evidence_process_time +=
+                    elapsed_minutes * 60;
+            }
+        }
+        if (peer_state->m_pos_evidence_process_tokens <= 0) {
+            Misbehaving(pfrom->GetId(), 2, "posvevid rate limit");
+            return true;
+        }
+        --peer_state->m_pos_evidence_process_tokens;
+
+        const Consensus::Params& params = chainparams.GetConsensus();
+        if (!params.IsPoSActive(chainActive.Height())) return true;
+        const pos::State state = GetPoSStateSnapshot();
+        const pos::ValidationError error =
+            pos::CheckVoteEvidence(evidence, state);
+        if (error != pos::ValidationError::NONE) {
+            if (error == pos::ValidationError::VOTE_STRUCTURE ||
+                error == pos::ValidationError::EVIDENCE_SIGNATURE) {
+                Misbehaving(pfrom->GetId(), 20, "invalid posvevid");
+            }
+            return true;
+        }
+
+        if (pos::GetVoteEvidencePool().Add(evidence) ==
+            pos::VotePoolResult::ADDED) {
+            const CInv inv(MSG_POS_VOTE_EVIDENCE,
+                pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, evidence));
+            connman->ForEachNode([&inv, pfrom](CNode* node) {
+                if (node->GetId() != pfrom->GetId()) node->PushInventory(inv);
+            });
+        }
+    }
+
+    else if (strCommand == NetMsgType::POSVOTE)
+    {
+        if (IsInitialBlockDownload() || fImporting || fReindex) return true;
+
+        if (vRecv.size() != pos::SERIALIZED_CHECKPOINT_VOTE_SIZE) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 20, "invalid posvote size");
+            return false;
+        }
+
+        pos::CheckpointVote vote;
+        vRecv >> vote;
+        if (!vRecv.empty()) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 20, "posvote trailing data");
+            return false;
+        }
+
+        LOCK(cs_main);
+        CNodeState* peer_state = State(pfrom->GetId());
+        if (peer_state == nullptr) return false;
+        const int64_t now = GetTime();
+        if (now > peer_state->m_pos_vote_process_time) {
+            const int64_t elapsed_minutes =
+                (now - peer_state->m_pos_vote_process_time) / 60;
+            if (elapsed_minutes > 0) {
+                peer_state->m_pos_vote_process_tokens = std::min(
+                    MAX_POS_VOTE_PROCESSING_TOKENS,
+                    peer_state->m_pos_vote_process_tokens +
+                        elapsed_minutes * POS_VOTE_PROCESSING_TOKENS_PER_MINUTE);
+                peer_state->m_pos_vote_process_time += elapsed_minutes * 60;
+            }
+        }
+        if (peer_state->m_pos_vote_process_tokens <= 0) {
+            Misbehaving(pfrom->GetId(), 1, "posvote rate limit");
+            return true;
+        }
+        --peer_state->m_pos_vote_process_tokens;
+
+        const Consensus::Params& params = chainparams.GetConsensus();
+        const int32_t height = chainActive.Height();
+        if (!params.IsPoSActive(height)) return true;
+        const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
+        if (head == nullptr || !head->IsValid(BLOCK_VALID_SCRIPTS)) {
+            return true;
+        }
+        const pos::State state = GetPoSStateSnapshot();
+        const pos::Checkpoint* latest = state.LatestCheckpoint();
+        if (latest == nullptr) return true;
+        const pos::ValidationError error = pos::CheckCheckpointVote(
+            vote, state, params.nPoSSnapshotDelayEpochs, latest->epoch,
+            height);
+        if (error != pos::ValidationError::NONE) {
+            if (error == pos::ValidationError::VOTE_STRUCTURE ||
+                error == pos::ValidationError::VOTE_SIGNATURE) {
+                Misbehaving(pfrom->GetId(), 20, "invalid posvote");
+            }
+            return true;
+        }
+
+        pos::VotePool& pool = pos::GetVotePool();
+        pool.Prune(latest->epoch);
+        pos::VoteEquivocationEvidence detected;
+        const pos::VotePoolResult result = pool.Add(vote, &detected);
+        if (result == pos::VotePoolResult::ADDED ||
+            result == pos::VotePoolResult::REPLACED) {
+            const CInv inv(MSG_POS_VOTE, pos::GetVoteSigningHash(vote));
+            connman->ForEachNode([&inv, pfrom](CNode* node) {
+                if (node->GetId() != pfrom->GetId()) node->PushInventory(inv);
+            });
+        } else if (result == pos::VotePoolResult::CONFLICT &&
+                   pos::GetVoteEvidencePool().Add(detected) ==
+                       pos::VotePoolResult::ADDED) {
+            const CInv inv(MSG_POS_VOTE_EVIDENCE,
+                pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, detected));
+            connman->ForEachNode([&inv](CNode* node) {
+                node->PushInventory(inv);
+            });
+        }
+    }
 
     else if (strCommand == NetMsgType::TX)
     {
@@ -3554,7 +3747,8 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                         LogPrint(BCLog::NET, "%s: sending header %s to peer=%d\n", __func__,
                                 vHeaders.front().GetHash().ToString(), pto->GetId());
                     }
-                    connman->PushMessage(pto, msgMaker.Make(NetMsgType::HEADERS, vHeaders));
+                    connman->PushMessage(pto, msgMaker.Make(
+                        SER_BLOCKHEADERONLY, NetMsgType::HEADERS, vHeaders));
                     state.pindexBestHeaderSent = pBestIndex;
                 } else
                     fRevertToInv = true;
@@ -3604,6 +3798,17 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                 }
             }
             pto->vInventoryBlockToSend.clear();
+
+            for (const CInv& inv : pto->vInventoryPoSToSend) {
+                if (pto->filterInventoryKnown.contains(inv.hash)) continue;
+                pto->filterInventoryKnown.insert(inv.hash);
+                vInv.push_back(inv);
+                if (vInv.size() == MAX_INV_SZ) {
+                    connman->PushMessage(pto, msgMaker.Make(NetMsgType::INV, vInv));
+                    vInv.clear();
+                }
+            }
+            pto->vInventoryPoSToSend.clear();
 
             // Check whether periodic sends should happen
             bool fSendTrickle = pto->fWhitelisted;
