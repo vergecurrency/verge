@@ -227,11 +227,9 @@ Binary (pre-compiled) wallets are available on all platforms here in [Releases](
 2. Install
 3. In windows file explorer, open `c:\Users\XXX\AppData\Roaming\VERGE` (be sure to change XXX to your windows user)
 4. Right click and create a new file `verge.txt`
-5. Edit the file to have the following contents (be sure to change the password)
+5. Edit the file to have the following contents. Local RPC clients use the automatically generated authentication cookie, so no static RPC password is required.
 
     ```
-    rpcuser=vergerpcusername
-    rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
     rpcport=20102
     port=21102
     daemon=1
@@ -275,11 +273,9 @@ Binary (pre-compiled) wallets are available on all platforms here in [Releases](
     nano ~/.VERGE/verge.conf
     ```
 
-6. Paste the output from the `verged` command into `verge.conf` like this: (It is recommended to change the password to something unique.)
+6. Add the desired node settings to `verge.conf`. Local RPC clients use the automatically generated authentication cookie. For remote RPC access, generate a unique `rpcauth` entry with [`share/rpcauth/rpcauth.py`](share/rpcauth/README.md) and restrict `rpcbind` and `rpcallowip` to trusted networks.
 
     ```
-    rpcuser=vergerpcusername
-    rpcpassword=85CpSuCNvDcYsdQU8w621mkQqJAimSQwCSJL5dPT9wQX
     rpcport=20102
     port=21102
     daemon=1

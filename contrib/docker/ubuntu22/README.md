@@ -8,17 +8,17 @@ To build:
 
 Before running:
 ---
-Place VERGE.conf in /tmp/verge/.VERGE/VERGE.conf on the HOST system. You probably want something a directory other than /tmp, I am just using it to test that everything works. It will need to have at least these two values (like this):
+Place VERGE.conf in /tmp/verge/.VERGE/VERGE.conf on the HOST system. You probably want something a directory other than /tmp; this path is only used for the example. Local RPC clients can use cookie authentication without static credentials. For remote RPC access, generate a unique `rpcauth` value with `share/rpcauth/rpcauth.py` and restrict `rpcbind` and `rpcallowip` to trusted networks.
 
-    rpcuser=bitcoinrpc
-    rpcpassword=Bnec4eGig52MTEAkzk4uMjsJechM7rA9EQ4NzkDHLwpG
+    rpcport=20102
+    port=21102
 
 
 Test that the docker runs:
 ---
     mkdir -p tmpverge/.VERGE
-    echo "rpcuser=bitcoinrpc" > tmpverge/.VERGE/VERGE.conf
-    echo "rpcpassword=Bnec4eGig52MTEAkzk4uMjsJechM7rA9EQ4NzkDHLwpG" >> tmpverge/.VERGE/VERGE.conf
+    echo "rpcport=20102" > tmpverge/.VERGE/VERGE.conf
+    echo "port=21102" >> tmpverge/.VERGE/VERGE.conf
 
 
 To run:
