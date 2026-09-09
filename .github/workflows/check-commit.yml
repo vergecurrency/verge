@@ -17,12 +17,18 @@ jobs:
       - name: Install dependencies
         run: |
           brew install automake autoconf pkg-config libtool \
-            berkeley-db@4 zeromq miniupnpc boost \
+            zeromq miniupnpc boost \
             gperf qrencode librsvg \
             openssl@4 libevent protobuf
 
       - name: Link brew deps
-        run: brew link berkeley-db@4 boost
+        run: brew link boost
+
+      - name: Build Berkeley DB 4.8
+        run: |
+          set -euo pipefail
+          CFLAGS="-Wno-error=implicit-function-declaration" ./contrib/install_db4.sh "$RUNNER_TEMP"
+          echo "BDB_PREFIX=$RUNNER_TEMP/db4" >> "$GITHUB_ENV"
 
       - name: Install Qt 6.10.2 for macOS
         run: |
@@ -142,7 +148,6 @@ jobs:
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
           BOOST_PREFIX="$(brew --prefix boost)"
-          BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@4)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
           PROTOBUF_PREFIX="$(brew --prefix protobuf)"
@@ -157,6 +162,8 @@ jobs:
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
+          export BDB_CFLAGS="-I$BDB_PREFIX/include"
+          export BDB_LIBS="-L$BDB_PREFIX/lib -ldb_cxx-4.8"
           ./configure \
             --disable-tests \
             --disable-bench \
@@ -908,10 +915,16 @@ jobs:
         run: |
           # A workaround for "The `brew link` step did not complete successfully" error.
           brew install --quiet python@3 || brew link --overwrite python@3
-          brew install --quiet automake autoconf berkeley-db@4 pkg-config miniupnpc zeromq libtool boost gperf qrencode librsvg openssl@4 libevent protobuf
+          brew install --quiet automake autoconf pkg-config miniupnpc zeromq libtool boost gperf qrencode librsvg openssl@4 libevent protobuf
         
       - name: Brew link dependencies
-        run: brew link berkeley-db@4 boost
+        run: brew link boost
+
+      - name: Build Berkeley DB 4.8
+        run: |
+          set -euo pipefail
+          CFLAGS="-Wno-error=implicit-function-declaration" ./contrib/install_db4.sh "$RUNNER_TEMP"
+          echo "BDB_PREFIX=$RUNNER_TEMP/db4" >> "$GITHUB_ENV"
 
       - name: Install Qt 6.10.2 for macOS
         run: |
@@ -1037,7 +1050,6 @@ jobs:
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
           BOOST_PREFIX="$(brew --prefix boost)"
-          BDB_PREFIX="$(brew --prefix berkeley-db@4)"
           OPENSSL_PREFIX="$(brew --prefix openssl@4)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
           PROTOBUF_PREFIX="$(brew --prefix protobuf)"
@@ -1051,6 +1063,8 @@ jobs:
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
+          export BDB_CFLAGS="-I$BDB_PREFIX/include"
+          export BDB_LIBS="-L$BDB_PREFIX/lib -ldb_cxx-4.8"
           ./configure \
             --disable-bench \
             --disable-tests \
