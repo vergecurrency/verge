@@ -31,7 +31,9 @@ check_exists() {
 
 sha256_check() {
   # Args: <sha256_hash> <filename>
-  if check_exists sha256sum; then
+  if [ "$(uname)" = "Darwin" ]; then
+    echo "${1}  ${2}" | /usr/bin/shasum -a 256 -c
+  elif check_exists sha256sum; then
     echo "${1}  ${2}" | sha256sum -c
   elif check_exists sha256; then
     if [ "$(uname)" = "FreeBSD" ]; then
