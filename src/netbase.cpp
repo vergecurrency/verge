@@ -361,7 +361,7 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
         if (ret != (ssize_t)vAuth.size()) {
             return error("Error sending authentication to proxy");
         }
-        LogPrint(BCLog::PROXY, "SOCKS5 sending proxy authentication %s:%s\n", auth->username, auth->password);
+        LogPrint(BCLog::PROXY, "SOCKS5 sending proxy authentication credentials\n");
         uint8_t pchRetA[2];
         if ((recvr = InterruptibleRecv(pchRetA, 2, SOCKS5_RECV_TIMEOUT, hSocket)) != IntrRecvError::OK) {
             return error("Error reading proxy authentication response");

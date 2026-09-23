@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
-// Copyright (c) 2018-2025 The Verge Core developers
+// Copyright (c) 2018-2026 The Verge Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,6 +12,7 @@
 
 #include <util/system.h>
 
+#include <memory>
 #include <stdexcept>
 
 #include <openssl/x509_vfy.h>
@@ -27,6 +28,28 @@ public:
 };
 
 namespace {
+struct X509Deleter {
+    void operator()(X509* cert) const { X509_free(cert); }
+};
+
+struct X509StackDeleter {
+    void operator()(STACK_OF(X509)* chain) const { sk_X509_free(chain); }
+};
+
+struct X509StoreCtxDeleter {
+    void operator()(X509_STORE_CTX* ctx) const { X509_STORE_CTX_free(ctx); }
+};
+
+struct EVPKeyDeleter {
+    void operator()(EVP_PKEY* key) const { EVP_PKEY_free(key); }
+};
+
+#if HAVE_DECL_EVP_MD_CTX_NEW
+struct EVPMdCtxDeleter {
+    void operator()(EVP_MD_CTX* ctx) const { EVP_MD_CTX_free(ctx); }
+};
+#endif
+
 QString GetCommonNameFromCert(const X509* cert)
 {
     if (!cert) {
@@ -129,7 +152,7 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         return false;
     }
 
-    std::vector<X509*> certs;
+    std::vector<std::unique_ptr<X509, X509Deleter>> certs;
     const QDateTime currentTime = QDateTime::currentDateTime();
     for (int i = 0; i < certChain.certificate_size(); i++) {
         QByteArray certData(certChain.certificate(i).data(), certChain.certificate(i).size());
@@ -145,9 +168,9 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         }
 #endif
         const unsigned char *data = (const unsigned char *)certChain.certificate(i).data();
-        X509 *cert = d2i_X509(nullptr, &data, certChain.certificate(i).size());
+        std::unique_ptr<X509, X509Deleter> cert(d2i_X509(nullptr, &data, certChain.certificate(i).size()));
         if (cert)
-            certs.push_back(cert);
+            certs.push_back(std::move(cert));
     }
     if (certs.empty()) {
         qWarning() << "PaymentRequestPlus::getMerchant: Payment request: empty certificate chain";
@@ -156,15 +179,22 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
 
     // The first cert is the signing cert, the rest are untrusted certs that chain
     // to a valid root authority. OpenSSL needs them separately.
-    STACK_OF(X509) *chain = sk_X509_new_null();
-    for (int i = certs.size() - 1; i > 0; i--) {
-        sk_X509_push(chain, certs[i]);
+    std::unique_ptr<STACK_OF(X509), X509StackDeleter> chain(sk_X509_new_null());
+    if (!chain) {
+        qWarning() << "PaymentRequestPlus::getMerchant: error allocating certificate chain";
+        return false;
     }
-    X509 *signing_cert = certs[0];
+    for (int i = certs.size() - 1; i > 0; i--) {
+        if (!sk_X509_push(chain.get(), certs[i].get())) {
+            qWarning() << "PaymentRequestPlus::getMerchant: error building certificate chain";
+            return false;
+        }
+    }
+    X509 *signing_cert = certs[0].get();
 
     // Now create a "store context", which is a single use object for checking,
     // load the signing cert into it and verify.
-    X509_STORE_CTX *store_ctx = X509_STORE_CTX_new();
+    std::unique_ptr<X509_STORE_CTX, X509StoreCtxDeleter> store_ctx(X509_STORE_CTX_new());
     if (!store_ctx) {
         qWarning() << "PaymentRequestPlus::getMerchant: Payment request: error creating X509_STORE_CTX";
         return false;
@@ -173,16 +203,16 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
     bool fResult = true;
     try
     {
-        if (!X509_STORE_CTX_init(store_ctx, certStore, signing_cert, chain))
+        if (!X509_STORE_CTX_init(store_ctx.get(), certStore, signing_cert, chain.get()))
         {
-            int error = X509_STORE_CTX_get_error(store_ctx);
+            int error = X509_STORE_CTX_get_error(store_ctx.get());
             throw SSLVerifyError(X509_verify_cert_error_string(error));
         }
 
         // Now do the verification!
-        int result = X509_verify_cert(store_ctx);
+        int result = X509_verify_cert(store_ctx.get());
         if (result != 1) {
-            int error = X509_STORE_CTX_get_error(store_ctx);
+            int error = X509_STORE_CTX_get_error(store_ctx.get());
             // For testing payment requests, we allow self signed root certs!
             // This option is just shown in the UI options, if -help-debug is enabled.
             if (!(error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT && gArgs.GetBoolArg("-allowselfsignedrootcertificates", DEFAULT_SELFSIGNED_ROOTCERTS))) {
@@ -198,23 +228,22 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         rcopy.SerializeToString(&data_to_verify);
 
 #if HAVE_DECL_EVP_MD_CTX_NEW
-        EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+        std::unique_ptr<EVP_MD_CTX, EVPMdCtxDeleter> ctx_holder(EVP_MD_CTX_new());
+        EVP_MD_CTX *ctx = ctx_holder.get();
         if (!ctx) throw SSLVerifyError("Error allocating OpenSSL context.");
 #else
         EVP_MD_CTX _ctx;
         EVP_MD_CTX *ctx;
         ctx = &_ctx;
 #endif
-        EVP_PKEY *pubkey = X509_get_pubkey(signing_cert);
+        std::unique_ptr<EVP_PKEY, EVPKeyDeleter> pubkey(X509_get_pubkey(signing_cert));
+        if (!pubkey) throw SSLVerifyError("Error extracting certificate public key.");
         EVP_MD_CTX_init(ctx);
         if (!EVP_VerifyInit_ex(ctx, digestAlgorithm, nullptr) ||
             !EVP_VerifyUpdate(ctx, data_to_verify.data(), data_to_verify.size()) ||
-            !EVP_VerifyFinal(ctx, (const unsigned char*)paymentRequest.signature().data(), (unsigned int)paymentRequest.signature().size(), pubkey)) {
+            !EVP_VerifyFinal(ctx, (const unsigned char*)paymentRequest.signature().data(), (unsigned int)paymentRequest.signature().size(), pubkey.get())) {
             throw SSLVerifyError("Bad signature, invalid payment request.");
         }
-#if HAVE_DECL_EVP_MD_CTX_NEW
-        EVP_MD_CTX_free(ctx);
-#endif
 
         merchant = GetCommonNameFromCert(signing_cert);
         if (merchant.isEmpty()) {
@@ -226,10 +255,6 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         fResult = false;
         qWarning() << "PaymentRequestPlus::getMerchant: SSL error: " << err.what();
     }
-
-    X509_STORE_CTX_free(store_ctx);
-    for (unsigned int i = 0; i < certs.size(); i++)
-        X509_free(certs[i]);
 
     return fResult;
 }
