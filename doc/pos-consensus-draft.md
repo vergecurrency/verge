@@ -30,14 +30,14 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Initial seed window | 120 pre-activation PoW blocks |
 | Post-activation PoW fallback | None |
 | Mainnet activation height | 15,000,000 |
-| Testnet activation height | 15,000,000 |
+| Testnet activation height | 140,500 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
 
 All amounts are evaluated in base units. A staking output exactly equal to 1,000 XVG is eligible.
 
 ## Activation
 
-Each network has an explicit `nPoSActivationHeight`. Mainnet and testnet use height 15,000,000 in this development branch so the parameters are visible together and easy to review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
+Each network has an explicit `nPoSActivationHeight`. Public testnet activates at height 140,500 for network testing, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
 
 Regtest activation is disabled by default and requires `-posactivationheight=<height>`. The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
 
