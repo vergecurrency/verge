@@ -8,6 +8,9 @@
 export LC_ALL=C
 set -e
 
+SCRIPT_DIR="$(CDPATH= cd "$(dirname "$0")" && pwd -P)"
+TOP_DIR="$(CDPATH= cd "${SCRIPT_DIR}/.." && pwd -P)"
+
 if [ -z "${1}" ]; then
   echo "Usage: $0 <base-dir> [<extra-bdb-configure-flag> ...]"
   echo
@@ -60,20 +63,9 @@ http_get() {
   sha256_check "${3}" "${2}"
 }
 
-# Helper to download without hash check (for volatile config files)
-http_get_no_hash() {
-  # Args: <url> <filename>
-  echo "Downloading ${2}..."
-  if check_exists curl; then
-    curl -L --insecure --retry 5 "${1}" -o "${2}"
-  else
-    wget --no-check-certificate "${1}" -O "${2}"
-  fi
-}
-
 mkdir -p "${BDB_PREFIX}"
 http_get "${BDB_URL}" "${BDB_VERSION}.tar.gz" "${BDB_HASH}"
-tar -xzvf ${BDB_VERSION}.tar.gz -C "$BDB_PREFIX"
+tar -xzf "${BDB_VERSION}.tar.gz" -C "$BDB_PREFIX"
 cd "${BDB_PREFIX}/${BDB_VERSION}/"
 
 # Apply a patch necessary when building with clang and c++11
@@ -82,17 +74,10 @@ CLANG_CXX11_PATCH_HASH='7a9a47b03fd5fb93a16ef42235fa9512db9b0829cfc3bdf90edd3ec1
 http_get "${CLANG_CXX11_PATCH_URL}" clang.patch "${CLANG_CXX11_PATCH_HASH}"
 patch -p2 < clang.patch
 
-# The packaged config.guess and config.sub are ancient (2009) and can cause build issues.
-# Replace them with modern versions from GNU Savannah (HEAD).
-# FIXED: Removed hash check because these files change frequently.
-CONFIG_GUESS_URL='https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
-CONFIG_SUB_URL='https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
-
-rm -f "dist/config.guess"
-rm -f "dist/config.sub"
-
-http_get_no_hash "${CONFIG_GUESS_URL}" dist/config.guess
-http_get_no_hash "${CONFIG_SUB_URL}" dist/config.sub
+# The packaged config.guess and config.sub are too old for modern hosts.
+# Use the versions tracked by this repository instead of mutable network files.
+cp -f "${TOP_DIR}/build-aux/config.guess" dist/config.guess
+cp -f "${TOP_DIR}/build-aux/config.sub" dist/config.sub
 
 cd build_unix/
 
