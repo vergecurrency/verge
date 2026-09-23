@@ -2345,10 +2345,12 @@ jobs:
 
           mkdir -p "$PWD/release"
 
-          curl -L -o "$PWD/linuxdeploy-x86_64.AppImage" \
-            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          curl -L -o "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage" \
-            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          curl --fail --location --retry 5 -o "$PWD/linuxdeploy-x86_64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20251107-1/linuxdeploy-x86_64.AppImage
+          curl --fail --location --retry 5 -o "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/1-alpha-20250213-1/linuxdeploy-plugin-qt-x86_64.AppImage
+          echo "c20cd71e3a4e3b80c3483cef793cda3f4e990aca14014d23c544ca3ce1270b4d  $PWD/linuxdeploy-x86_64.AppImage" | sha256sum -c
+          echo "15106be885c1c48a021198e7e1e9a48ce9d02a86dd0a1848f00bdbf3c1c92724  $PWD/linuxdeploy-plugin-qt-x86_64.AppImage" | sha256sum -c
           chmod +x "$PWD/linuxdeploy-x86_64.AppImage" "$PWD/linuxdeploy-plugin-qt-x86_64.AppImage"
 
           rm -rf "$PWD/linuxdeploy-root" "$PWD/linuxdeploy-plugin-qt-root" "$PWD/AppDir-verge-qt"
@@ -2688,8 +2690,9 @@ jobs:
 
           mkdir -p "$PWD/release"
 
-          curl -L -o "$PWD/linuxdeploy-aarch64.AppImage" \
-            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
+          curl --fail --location --retry 5 -o "$PWD/linuxdeploy-aarch64.AppImage" \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20251107-1/linuxdeploy-aarch64.AppImage
+          echo "620095110d693282b8ebeb244a95b5e911cf8f65f76c88b4b47d16ae6346fcff  $PWD/linuxdeploy-aarch64.AppImage" | sha256sum -c
           chmod +x "$PWD/linuxdeploy-aarch64.AppImage"
 
           rm -rf "$PWD/linuxdeploy-root" "$PWD/AppDir-verge-qt"
