@@ -441,8 +441,9 @@ assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e2
 vFixedSeeds.clear();
 vSeeds.clear();
 // nodes with support for servicebits filtering should be at the top
+vSeeds.emplace_back("zzjebetoqy5jovyuzpwz4ppvkuyp3vymqbwbvi4qzq7h6a62cjgmopyd.onion");
 vSeeds.emplace_back("uacxdw34wnfybshfjs6hxdfzwkqxs765peu4iyyakqnz2mqyvspubeqd.onion"); // dedicated testnet server
-vSeeds.emplace_back("ankgfybzzxzvu3ogo4fkopz6nfk4qv3j7gbxllawx6or5oxxjtujeyqd.onion"); // testnet blockchain explorer
+vSeeds.emplace_back("ankgfybzzxzvu3ogo4fkopz6nfk4qv3j7gbxllawx6or5oxxjtujeyqd.onion:21104"); // testnet blockchain explorer
 vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");
 vSeeds.emplace_back("qwwqi7h6bkkcw6clp34ttg5mxmcwerkot2hepfhi6g4yclvlhsv2kxid.onion");
 vSeeds.emplace_back("2l7hxpeyhmy4c2tnlmgf7rgcn6epsaaspv7473f3r5uncqzs6pnltqqd.onion");
