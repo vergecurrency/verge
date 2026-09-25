@@ -18,7 +18,7 @@ const std::string CLIENT_NAME("verge");
 /**
  * Client version number
  */
-#define CLIENT_VERSION_SUFFIX ""
+#define CLIENT_VERSION_SUFFIX ".beta2"
 
 
 /**

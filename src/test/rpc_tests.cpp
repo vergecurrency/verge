@@ -338,4 +338,17 @@ BOOST_AUTO_TEST_CASE(rpc_convert_values_generatetoaddress)
     BOOST_CHECK_EQUAL(result[2].get_int(), 9);
 }
 
+BOOST_AUTO_TEST_CASE(rpc_convert_values_setstaking)
+{
+    UniValue result = RPCConvertValues("setstaking", {"true"});
+    BOOST_REQUIRE_EQUAL(result.size(), 1U);
+    BOOST_CHECK(result[0].isBool());
+    BOOST_CHECK(result[0].get_bool());
+
+    result = RPCConvertNamedValues("setstaking", {"enabled=false"});
+    BOOST_REQUIRE(result.exists("enabled"));
+    BOOST_CHECK(result["enabled"].isBool());
+    BOOST_CHECK(!result["enabled"].get_bool());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
