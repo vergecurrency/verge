@@ -60,17 +60,6 @@ http_get() {
   sha256_check "${3}" "${2}"
 }
 
-# Helper to download without hash check (for volatile config files)
-http_get_no_hash() {
-  # Args: <url> <filename>
-  echo "Downloading ${2}..."
-  if check_exists curl; then
-    curl -L --insecure --retry 5 "${1}" -o "${2}"
-  else
-    wget --no-check-certificate "${1}" -O "${2}"
-  fi
-}
-
 mkdir -p "${BDB_PREFIX}"
 http_get "${BDB_URL}" "${BDB_VERSION}.tar.gz" "${BDB_HASH}"
 tar -xzvf ${BDB_VERSION}.tar.gz -C "$BDB_PREFIX"
@@ -83,16 +72,16 @@ http_get "${CLANG_CXX11_PATCH_URL}" clang.patch "${CLANG_CXX11_PATCH_HASH}"
 patch -p2 < clang.patch
 
 # The packaged config.guess and config.sub are ancient (2009) and can cause build issues.
-# Replace them with modern versions from GNU Savannah (HEAD).
-# FIXED: Removed hash check because these files change frequently.
-CONFIG_GUESS_URL='https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
-CONFIG_SUB_URL='https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
+# Fetch pinned modern copies from Bitcoin Core's v30.0 release and verify them.
+CONFIG_GUESS_URL='https://raw.githubusercontent.com/bitcoin/bitcoin/v30.0/depends/config.guess'
+CONFIG_GUESS_HASH='e3d148130e9151735f8b9a8e69a70d06890ece51468a9762eb7ac0feddddcc2f'
+CONFIG_SUB_URL='https://raw.githubusercontent.com/bitcoin/bitcoin/v30.0/depends/config.sub'
+CONFIG_SUB_HASH='11c54f55c3ac99e5d2c3dc2bb0bcccbf69f8223cc68f6b2438daa806cf0d16d8'
 
-rm -f "dist/config.guess"
-rm -f "dist/config.sub"
-
-http_get_no_hash "${CONFIG_GUESS_URL}" dist/config.guess
-http_get_no_hash "${CONFIG_SUB_URL}" dist/config.sub
+rm -f dist/config.guess dist/config.sub
+http_get "${CONFIG_GUESS_URL}" dist/config.guess "${CONFIG_GUESS_HASH}"
+http_get "${CONFIG_SUB_URL}" dist/config.sub "${CONFIG_SUB_HASH}"
+chmod +x dist/config.guess dist/config.sub
 
 cd build_unix/
 
