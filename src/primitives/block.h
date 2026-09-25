@@ -208,7 +208,7 @@ public:
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
         const bool header_only =
-            ((s.GetType() | s.GetVersion()) & SER_BLOCKHEADERONLY) != 0;
+            (s.GetType() & SER_BLOCKHEADERONLY) != 0;
         if (!(s.GetType() & SER_GETHASH) &&
             (!header_only || !ser_action.ForRead())) {
             READWRITE(vchBlockSig);
