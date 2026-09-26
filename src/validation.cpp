@@ -3799,8 +3799,9 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
         }
     }
 
-    // Enforce rule that the coinbase starts with serialized block height
-    if (nHeight >= consensusParams.BIP34Height)
+    // Genesis coinbases predate height commitments and are validated against
+    // the network's hard-coded genesis hash.
+    if (pindexPrev != nullptr && nHeight >= consensusParams.BIP34Height)
     {
         CScript expect = CScript() << nHeight;
         if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
@@ -5082,6 +5083,10 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, FlatFi
                       CValidationState state;
                       if (g_chainstate.AcceptBlock(pblock, state, chainparams, nullptr, true, dbp, nullptr)) {
                           nLoaded++;
+                      } else if (state.IsInvalid()) {
+                          LogPrintf("Block Import: rejected block %s at file=%d pos=%u: %s\n",
+                                    hash.ToString(), dbp ? dbp->nFile : -1,
+                                    dbp ? dbp->nPos : 0, FormatStateMessage(state));
                       }
                       if (state.IsError()) {
                           break;
