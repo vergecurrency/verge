@@ -24,20 +24,20 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Principal maturity after staking | Preserved |
 | Fee reward staking eligibility | 720 confirmations |
 | Expected eligible producers | 1 per slot |
-| Bonding | Explicit on-chain transaction |
+| Bonding | Automatically created after staking opt-in |
 | Delegation granularity | Entire bonded UTXO |
 | Unbonding lock | 20,160 accepted blocks |
 | Initial seed window | 120 pre-activation PoW blocks |
 | Post-activation PoW fallback | None |
 | Mainnet activation height | 15,000,000 |
-| Testnet activation height | 140,500 |
+| Testnet activation height | 141,500 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
 
 All amounts are evaluated in base units. A staking output exactly equal to 1,000 XVG is eligible.
 
 ## Activation
 
-Each network has an explicit `nPoSActivationHeight`. Public testnet activates at height 140,500 for network testing, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
+Each network has an explicit `nPoSActivationHeight`. Public testnet activates at height 141,500 for network testing, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
 
 Regtest activation is disabled by default and requires `-posactivationheight=<height>`. The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
 
@@ -50,13 +50,17 @@ Regtest may expose deterministic test controls and an activation-height override
 Database records, block serialization, wallet staking records, RPC schemas, and P2P messages must be forward-compatible across those environments so testnet exercises the actual production format. A node must log the configured activation height and reject ambiguous or conflicting activation settings at startup.
 
 Wallet staking is explicitly opt-in and disabled by default. `setstaking true`
-persists the preference in that wallet, while locking an encrypted wallet pauses
-signing without changing the preference. `createbond` generates a
-wallet-encrypted delegated secp256k1 key, deterministically derives the separate
-P-256 VRF key under `VergePoS/VRFKey/v1`, and requires wallet-controlled reward
-and withdrawal destinations. `unbond` preserves the complete principal in the
-consensus unbond script and funds its transaction fee from separate wallet
-inputs.
+persists the preference and automatically bonds all mature spendable funds above
+the wallet's saved reserve balance. `setstaking true 10000` keeps 10,000 XVG
+liquid; omitting the reserve uses the saved value, which defaults to zero. The
+daemon equivalents are `staking=1` and `stakingreservebalance=10000`. Locking an
+encrypted wallet pauses bonding and signing without changing the preference.
+Automatic bonding generates a wallet-encrypted delegated secp256k1 key,
+deterministically derives the separate P-256 VRF key under
+`VergePoS/VRFKey/v1`, and creates wallet-controlled reward and withdrawal
+destinations. The lower-level `createbond` RPC remains available for explicit
+delegation. `unbond` preserves the complete principal in the consensus unbond
+script and funds its transaction fee from separate wallet inputs.
 At activation:
 
 1. The block at height `nPoSActivationHeight - 1` is the final PoW block.
@@ -121,7 +125,7 @@ An outpoint is eligible for a candidate block when all of the following are true
 
 Selection weight is linear in value. Each eligible base unit has equal probability. Splitting or combining outputs therefore does not change expected aggregate selection weight, apart from integer rounding and the minimum-output rule. Coin age beyond 720 confirmations adds no weight.
 
-Bonding is an explicit on-chain action. A bonded output delegates its entire value to one staking key; users who want separate delegations must split funds before bonding. Block production never spends the bonded principal. Beginning unbonding disables new eligibility and locks withdrawal for 20,160 blocks.
+Bonding is an explicit on-chain transaction that the wallet creates automatically after staking is enabled. A bonded output delegates its entire value to one staking key; users who want separate delegations may use `createbond` to split funds before bonding. Block production never spends the bonded principal. Beginning unbonding disables new eligibility and locks withdrawal for 20,160 blocks.
 ### Bond Output Encoding
 
 A version 1 bond output uses a 117-byte script. It pushes an exact 89-byte metadata payload, drops that payload, and then executes an ordinary key-hash signature check for the withdrawal credential:

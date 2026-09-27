@@ -698,6 +698,7 @@ private:
     int64_t nLastResend = 0;
     bool fBroadcastTransactions = false;
     bool m_staking_enabled{false};
+    CAmount m_staking_reserve_balance{0};
 
     /**
      * Used to keep track of spent outpoints, and
@@ -1053,9 +1054,18 @@ public:
         return m_staking_enabled;
     }
     bool SetStakingEnabled(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool SetStakingReserveBalance(CAmount reserve) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void LoadStakingEnabled(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
     {
         m_staking_enabled = enabled;
+    }
+    CAmount GetStakingReserveBalance() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
+    {
+        return m_staking_reserve_balance;
+    }
+    void LoadStakingReserveBalance(CAmount reserve) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
+    {
+        m_staking_reserve_balance = reserve;
     }
 
     std::set<std::set<CTxDestination>> GetAddressGroupings() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

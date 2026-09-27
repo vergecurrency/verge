@@ -104,6 +104,22 @@ BOOST_AUTO_TEST_CASE(track_bonds_snapshots_and_undo)
     BOOST_CHECK(state.FindBond(bond_outpoint) == nullptr);
 }
 
+BOOST_AUTO_TEST_CASE(stale_pre_activation_snapshot_can_be_replaced)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSEpochSlots = 120;
+    params.nPoSSnapshotDelayEpochs = 2;
+
+    pos::State state;
+    pos::StateUndo undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 760, false,
+                                   0, 0, params, undo));
+    BOOST_REQUIRE(state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) != nullptr);
+    BOOST_CHECK(state.RemovePreActivationSnapshot(800));
+    BOOST_CHECK(state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) == nullptr);
+}
+
 BOOST_AUTO_TEST_CASE(skipped_epochs_advance_and_undo)
 {
     Consensus::Params params = Params().GetConsensus();

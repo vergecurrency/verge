@@ -167,12 +167,13 @@ Use `verge-cli help <command>` for the exact JSON result schema exposed by the r
 ## Proof Of Stake
 
 Staking is disabled per wallet until explicitly enabled. Encrypted wallets pause
-production while locked without changing their saved preference. Bond creation
-and unbonding are always explicit transactions.
+production while locked without changing their saved preference. Enabling
+staking automatically creates an on-chain bond from mature funds above the
+saved reserve; unbonding remains an explicit transaction.
 
 | Command | Usage | Example |
 | --- | --- | --- |
-| `setstaking` | `setstaking enabled` | `verge-cli setstaking true` |
+| `setstaking` | `setstaking enabled ( reserve )` | `verge-cli setstaking true 10000` |
 | `getstakinginfo` | `getstakinginfo` | `verge-cli getstakinginfo` |
 | `createbond` | `createbond amount ( "reward_address" "withdrawal_address" )` | `verge-cli createbond 1000` |
 | `unbond` | `unbond "txid" vout` | `verge-cli unbond <txid> 0` |

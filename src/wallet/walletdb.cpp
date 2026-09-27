@@ -157,6 +157,11 @@ bool WalletBatch::WriteStakingEnabled(bool enabled)
     return WriteIC(std::string("staking_enabled"), enabled);
 }
 
+bool WalletBatch::WriteStakingReserveBalance(CAmount reserve)
+{
+    return WriteIC(std::string("staking_reserve_balance"), reserve);
+}
+
 bool WalletBatch::ReadPool(int64_t nPool, CKeyPool& keypool)
 {
     return m_batch.Read(std::make_pair(std::string("pool"), nPool), keypool);
@@ -539,6 +544,13 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             bool enabled = false;
             ssValue >> enabled;
             pwallet->LoadStakingEnabled(enabled);
+        }
+        else if (strType == "staking_reserve_balance")
+        {
+            CAmount reserve = 0;
+            ssValue >> reserve;
+            if (!MoneyRange(reserve)) return false;
+            pwallet->LoadStakingReserveBalance(reserve);
         }
         else if (strType == "destdata")
         {

@@ -225,6 +225,7 @@ public:
 
     bool WriteOrderPosNext(int64_t nOrderPosNext);
     bool WriteStakingEnabled(bool enabled);
+    bool WriteStakingReserveBalance(CAmount reserve);
 
     bool ReadPool(int64_t nPool, CKeyPool& keypool);
     bool WritePool(int64_t nPool, const CKeyPool& keypool);

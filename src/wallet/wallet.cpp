@@ -312,6 +312,15 @@ bool CWallet::SetStakingEnabled(bool enabled)
     return true;
 }
 
+bool CWallet::SetStakingReserveBalance(CAmount reserve)
+{
+    AssertLockHeld(cs_wallet);
+    if (!MoneyRange(reserve) ||
+        !WalletBatch(*database).WriteStakingReserveBalance(reserve)) return false;
+    m_staking_reserve_balance = reserve;
+    return true;
+}
+
 bool CWallet::LoadScriptMetadata(const CScriptID& script_id, const CKeyMetadata &meta)
 {
     AssertLockHeld(cs_wallet); // m_script_metadata

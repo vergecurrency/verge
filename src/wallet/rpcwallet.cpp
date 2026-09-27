@@ -48,6 +48,7 @@
 
 #include <univalue.h>
 
+#include <algorithm>
 #include <functional>
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
@@ -5160,24 +5161,52 @@ static UniValue setstaking(const JSONRPCRequest& request)
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet* const pwallet = wallet.get();
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) return NullUniValue;
-    if (request.fHelp || request.params.size() != 1) {
+    if (request.fHelp || request.params.empty() || request.params.size() > 2) {
         throw std::runtime_error(
-            "setstaking enabled\n"
+            "setstaking enabled ( reserve )\n"
             "\nPersistently enables or disables automatic proof-of-stake "
-            "production for this wallet. Staking remains paused while an "
-            "encrypted wallet is locked.\n"
+            "production for this wallet. Enabling automatically bonds mature "
+            "funds above the reserve. Staking remains paused while an encrypted "
+            "wallet is locked.\n"
             "\nArguments:\n"
             "1. enabled    (boolean, required) true to enable staking\n"
+            "2. reserve    (numeric, optional) liquid balance to keep unbonded; defaults to the saved value or zero\n"
             "\nResult:\n"
-            "true|false    (boolean) saved staking preference\n");
+            "{...}         (object) saved policy and automatic bond result\n");
     }
     const bool enabled = request.params[0].get_bool();
-    LOCK(pwallet->cs_wallet);
-    if (!pwallet->SetStakingEnabled(enabled)) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "Failed to save staking preference");
+    CAmount reserve = 0;
+    {
+        LOCK(pwallet->cs_wallet);
+        reserve = request.params.size() > 1
+            ? AmountFromValue(request.params[1])
+            : pwallet->GetStakingReserveBalance();
+        if (!pwallet->SetStakingReserveBalance(reserve) ||
+            !pwallet->SetStakingEnabled(enabled)) {
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "Failed to save staking policy");
+        }
     }
-    return enabled;
+    uint256 bond_txid;
+    CAmount bond_amount = 0;
+    std::string status = enabled ? "waiting" : "disabled";
+    if (enabled) {
+        std::string error;
+        if (EnsureAutomaticStakeBond(*pwallet, bond_txid, bond_amount, error)) {
+            status = bond_txid.IsNull() ? "bond_exists" : "bond_created";
+        } else {
+            status = error;
+        }
+    }
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("enabled", enabled);
+    result.pushKV("reserve_balance", ValueFromAmount(reserve));
+    result.pushKV("status", status);
+    if (!bond_txid.IsNull()) {
+        result.pushKV("bond_txid", bond_txid.GetHex());
+        result.pushKV("bond_amount", ValueFromAmount(bond_amount));
+    }
+    return result;
 }
 
 static UniValue generatestake(const JSONRPCRequest& request)
@@ -5214,9 +5243,51 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
     const pos::StakeSnapshot* initial_snapshot =
         state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
     UniValue result(UniValue::VOBJ);
+    uint64_t owned_bonds = 0;
+    uint64_t eligible_owned_bonds = 0;
+    CAmount owned_bond_value = 0;
+    CAmount eligible_owned_value = 0;
+    for (const auto& item : state.Bonds()) {
+        if (!pwallet->HaveKey(CKeyID(item.second.data.withdrawal_key_id))) continue;
+        ++owned_bonds;
+        owned_bond_value += item.second.value;
+        if (initial_snapshot != nullptr) {
+            const auto eligible = std::find_if(
+                initial_snapshot->entries.begin(), initial_snapshot->entries.end(),
+                [&item](const pos::SnapshotEntry& entry) {
+                    return entry.outpoint == item.first;
+                });
+            if (eligible != initial_snapshot->entries.end()) {
+                ++eligible_owned_bonds;
+                eligible_owned_value += item.second.value;
+            }
+        }
+    }
+    const int current_height = chainActive.Height();
+    const int activation_height = Params().GetConsensus().nPoSActivationHeight;
+    const bool worker_active = pwallet->IsStakingEnabled() && !pwallet->IsLocked();
+    std::string status;
+    if (!pwallet->IsStakingEnabled()) status = "disabled";
+    else if (pwallet->IsLocked()) status = "wallet_locked";
+    else if (IsInitialBlockDownload()) status = "synchronizing";
+    else if (owned_bonds == 0) status = "bonding";
+    else if (eligible_owned_bonds == 0) status = "bond_maturing";
+    else if (current_height + 1 < activation_height) status = "waiting_for_activation";
+    else status = "staking";
     result.pushKV("enabled", pwallet->IsStakingEnabled());
     result.pushKV("wallet_locked", pwallet->IsLocked());
-    result.pushKV("active", pwallet->IsStakingEnabled() && !pwallet->IsLocked());
+    result.pushKV("worker_active", worker_active);
+    result.pushKV("active", status == "staking");
+    result.pushKV("status", status);
+    result.pushKV("reserve_balance", ValueFromAmount(pwallet->GetStakingReserveBalance()));
+    result.pushKV("owned_bonds", owned_bonds);
+    result.pushKV("owned_bond_value", ValueFromAmount(owned_bond_value));
+    result.pushKV("eligible_owned_bonds", eligible_owned_bonds);
+    result.pushKV("eligible_owned_value", ValueFromAmount(eligible_owned_value));
+    result.pushKV("current_height", current_height);
+    result.pushKV("activation_height", activation_height);
+    result.pushKV("blocks_until_activation",
+                  std::max(0, activation_height - current_height));
     result.pushKV("tracked_bonds", static_cast<uint64_t>(state.Bonds().size()));
     result.pushKV("initial_snapshot_bonds",
                   initial_snapshot == nullptr
@@ -5280,7 +5351,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "sendtoaddress",                    &sendtoaddress,                 {"address","amount","comment","comment_to","subtractfeefromamount","replaceable","conf_target","estimate_mode"} },
     { "wallet",             "sendtostealthaddress",             &sendtostealthaddress,          {"address","amount","narration","comment","comment_to"} },
     { "wallet",             "settxfee",                         &settxfee,                      {"amount"} },
-    { "staking",            "setstaking",                       &setstaking,                    {"enabled"} },
+    { "staking",            "setstaking",                       &setstaking,                    {"enabled","reserve"} },
     { "staking",            "unbond",                           &unbond,                        {"txid","vout"} },
     { "wallet",             "signmessage",                      &signmessage,                   {"address","message"} },
     { "wallet",             "signrawtransactionwithwallet",     &signrawtransactionwithwallet,  {"hexstring","prevtxs","sighashtype"} },

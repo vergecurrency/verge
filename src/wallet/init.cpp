@@ -72,6 +72,8 @@ void WalletInit::AddWalletOptions() const
                                                             CURRENCY_UNIT, FormatMoney(CFeeRate{DEFAULT_PAY_TX_FEE}.GetFeePerK())), false, OptionsCategory::WALLET);
     gArgs.AddArg("-rescan", "Rescan the block chain for missing wallet transactions on startup", false, OptionsCategory::WALLET);
     gArgs.AddArg("-salvagewallet", "Attempt to recover private keys from a corrupt wallet on startup", false, OptionsCategory::WALLET);
+    gArgs.AddArg("-staking", "Enable automatic proof-of-stake production and bonding", false, OptionsCategory::WALLET);
+    gArgs.AddArg("-stakingreservebalance=<amt>", strprintf("Keep this amount of %s liquid when automatically bonding (default: 0)", CURRENCY_UNIT), false, OptionsCategory::WALLET);
     gArgs.AddArg("-spendzeroconfchange", strprintf("Spend unconfirmed change when sending transactions (default: %u)", DEFAULT_SPEND_ZEROCONF_CHANGE), false, OptionsCategory::WALLET);
     gArgs.AddArg("-txconfirmtarget=<n>", strprintf("If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)", DEFAULT_TX_CONFIRM_TARGET), false, OptionsCategory::WALLET);
     gArgs.AddArg("-upgradewallet", "Upgrade wallet to latest format on startup", false, OptionsCategory::WALLET);
@@ -158,6 +160,15 @@ bool WalletInit::ParameterInteraction() const
     if (::minRelayTxFee.GetFeePerK() > HIGH_TX_FEE_PER_KB)
         InitWarning(AmountHighWarn("-minrelaytxfee") + " " +
                     _("The wallet will avoid paying less than the minimum relay fee."));
+
+    if (gArgs.IsArgSet("-stakingreservebalance")) {
+        CAmount reserve = 0;
+        if (!ParseMoney(gArgs.GetArg("-stakingreservebalance", ""), reserve) ||
+            !MoneyRange(reserve)) {
+            return InitError(AmountErrMsg("stakingreservebalance",
+                                          gArgs.GetArg("-stakingreservebalance", "")));
+        }
+    }
 
     if (gArgs.IsArgSet("-maxtxfee"))
     {
@@ -258,6 +269,17 @@ void WalletInit::Start(CScheduler& scheduler) const
 {
     uiInterface.InitMessage(_("Reaccepting wallet transactions..."));
     for (const std::shared_ptr<CWallet>& pwallet : GetWallets()) {
+        {
+            LOCK(pwallet->cs_wallet);
+            if (gArgs.IsArgSet("-stakingreservebalance")) {
+                CAmount reserve = 0;
+                ParseMoney(gArgs.GetArg("-stakingreservebalance", ""), reserve);
+                pwallet->SetStakingReserveBalance(reserve);
+            }
+            if (gArgs.IsArgSet("-staking")) {
+                pwallet->SetStakingEnabled(gArgs.GetBoolArg("-staking", false));
+            }
+        }
         pwallet->postInitProcess();
     }
 

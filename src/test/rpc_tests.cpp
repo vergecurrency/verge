@@ -345,10 +345,16 @@ BOOST_AUTO_TEST_CASE(rpc_convert_values_setstaking)
     BOOST_CHECK(result[0].isBool());
     BOOST_CHECK(result[0].get_bool());
 
-    result = RPCConvertNamedValues("setstaking", {"enabled=false"});
+    result = RPCConvertValues("setstaking", {"true", "10000"});
+    BOOST_REQUIRE_EQUAL(result.size(), 2U);
+    BOOST_CHECK(result[1].isNum());
+
+    result = RPCConvertNamedValues("setstaking", {"enabled=false", "reserve=2500"});
     BOOST_REQUIRE(result.exists("enabled"));
     BOOST_CHECK(result["enabled"].isBool());
     BOOST_CHECK(!result["enabled"].get_bool());
+    BOOST_REQUIRE(result.exists("reserve"));
+    BOOST_CHECK(result["reserve"].isNum());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -4537,6 +4537,19 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
         return error("LoadPoSState: state tip %s does not match chainstate tip %s; reindex-chainstate is required",
                      loaded.BestBlock().ToString(), tip->GetBlockHash().ToString());
     }
+    const int snapshot_height = pos::GetInitialStakeSnapshotHeight(params);
+    const pos::StakeSnapshot* initial =
+        loaded.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+    if (initial != nullptr && initial->source_height != snapshot_height) {
+        const int old_snapshot_height = initial->source_height;
+        if (snapshot_height < 0 || tip->nHeight >= snapshot_height ||
+            !loaded.RemovePreActivationSnapshot(snapshot_height) ||
+            !blocktree.WritePoSState(loaded)) {
+            return error("LoadPoSState: activation parameters changed after the stake snapshot; reindex-chainstate is required");
+        }
+        LogPrintf("LoadPoSState: removed stale pre-activation stake snapshot at height %d; replacement height is %d\n",
+                  old_snapshot_height, snapshot_height);
+    }
     m_pos_state = std::move(loaded);
     return true;
 }

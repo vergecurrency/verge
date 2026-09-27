@@ -6,6 +6,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <consensus/validation.h>
 #include <miner.h>
 #include <net.h>
 #include <protocol.h>
@@ -17,7 +18,9 @@
 #include <random.h>
 #include <support/cleanse.h>
 #include <timedata.h>
+#include <util/moneystr.h>
 #include <validation.h>
+#include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
 
 #include <algorithm>
@@ -32,6 +35,17 @@ namespace {
 using PublicKeyBytes = std::array<unsigned char, pos::SCHNORR_PUBLIC_KEY_SIZE>;
 std::mutex g_attempt_mutex;
 std::map<const CWallet*, uint64_t> g_last_attempted_slot;
+std::map<const CWallet*, int64_t> g_last_bond_attempt;
+
+bool ShouldAttemptAutomaticBond(const CWallet* wallet)
+{
+    const int64_t now = GetTime();
+    std::lock_guard<std::mutex> lock(g_attempt_mutex);
+    int64_t& last_attempt = g_last_bond_attempt[wallet];
+    if (last_attempt != 0 && now - last_attempt < 60) return false;
+    last_attempt = now;
+    return true;
+}
 
 bool BuildVote(const pos::State& state, const COutPoint& bond_outpoint,
                const CKey& key, const CBlockIndex* head,
@@ -316,9 +330,142 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     return true;
 }
 
+bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
+                              CAmount& amount, std::string& error)
+{
+    txid.SetNull();
+    amount = 0;
+    LOCK2(cs_main, wallet.cs_wallet);
+    if (!wallet.IsStakingEnabled()) {
+        error = "staking is disabled";
+        return false;
+    }
+    if (wallet.IsLocked()) {
+        error = "wallet is locked";
+        return false;
+    }
+    if (IsInitialBlockDownload()) {
+        error = "chain is still synchronizing";
+        return false;
+    }
+
+    for (const auto& item : wallet.mapWallet) {
+        const CWalletTx& wallet_tx = item.second;
+        if (wallet_tx.GetDepthInMainChain() < 0) continue;
+        for (uint32_t i = 0; i < wallet_tx.tx->vout.size(); ++i) {
+            pos::BondData bond;
+            if (wallet_tx.GetDepthInMainChain() == 0 &&
+                pos::ParseBondScript(wallet_tx.tx->vout[i].scriptPubKey, bond) &&
+                !wallet.IsSpent(item.first, i)) {
+                return true;
+            }
+        }
+    }
+
+    const Consensus::Params& params = Params().GetConsensus();
+    std::vector<COutput> coins;
+    wallet.AvailableCoins(coins, true, nullptr, 1, MAX_MONEY, MAX_MONEY, 0,
+                          params.nPoSStakeMaturity);
+    CAmount mature_balance = 0;
+    CCoinControl coin_control;
+    coin_control.m_min_depth = params.nPoSStakeMaturity;
+    for (const COutput& coin : coins) {
+        pos::BondData bond;
+        const CTxOut& output = coin.tx->tx->vout[coin.i];
+        if (coin.fSpendable &&
+            !pos::ParseBondScript(output.scriptPubKey, bond)) {
+            mature_balance += output.nValue;
+            coin_control.Select(COutPoint(coin.tx->GetHash(), coin.i));
+        }
+    }
+    const CAmount reserve = wallet.GetStakingReserveBalance();
+    if (mature_balance <= reserve ||
+        mature_balance - reserve < params.nPoSMinStake) {
+        error = "mature balance above the staking reserve is below the minimum bond";
+        return false;
+    }
+
+    WalletBatch batch(wallet.GetDBHandle());
+    const CPubKey staking_pubkey = wallet.GenerateNewKey(batch);
+    CKey staking_key;
+    if (!wallet.GetKey(staking_pubkey.GetID(), staking_key)) {
+        error = "failed to retrieve delegated staking key";
+        return false;
+    }
+    const CPubKey reward_pubkey = wallet.GenerateNewKey(batch);
+    const CPubKey withdrawal_pubkey = wallet.GenerateNewKey(batch);
+    pos::BondData bond;
+    unsigned char vrf_secret[32]{};
+    const bool keys_ok =
+        pos::GetSchnorrPublicKey(staking_key.begin(),
+                                 bond.signing_public_key) &&
+        pos::DeriveVrfKey(staking_key.begin(), vrf_secret,
+                          bond.vrf_public_key);
+    memory_cleanse(vrf_secret, sizeof(vrf_secret));
+    if (!keys_ok) {
+        error = "failed to derive delegated staking credentials";
+        return false;
+    }
+    bond.reward_key_id = reward_pubkey.GetID();
+    bond.withdrawal_key_id = withdrawal_pubkey.GetID();
+    wallet.SetAddressBook(GetDestinationForKey(reward_pubkey, OutputType::LEGACY),
+                          "staking rewards", "receive");
+    wallet.SetAddressBook(GetDestinationForKey(withdrawal_pubkey, OutputType::LEGACY),
+                          "staking withdrawal", "receive");
+
+    amount = mature_balance - reserve;
+    std::vector<CRecipient> recipients{
+        CRecipient{pos::GetBondScript(bond), amount, true}};
+    CReserveKey change_key(&wallet);
+    CAmount fee = 0;
+    int change_position = -1;
+    CTransactionRef tx;
+    if (!wallet.CreateTransaction(recipients, tx, change_key, fee,
+                                  change_position, error, coin_control)) {
+        amount = 0;
+        return false;
+    }
+    for (const CTxOut& output : tx->vout) {
+        pos::BondData parsed;
+        if (pos::ParseBondScript(output.scriptPubKey, parsed)) {
+            amount = output.nValue;
+            break;
+        }
+    }
+    if (amount < params.nPoSMinStake) {
+        error = "automatic bond amount after fees is below the minimum stake";
+        amount = 0;
+        return false;
+    }
+    CValidationState validation_state;
+    mapValue_t metadata;
+    metadata["pos_staking_key"] = HexStr(staking_pubkey);
+    metadata["pos_automatic_bond"] = "1";
+    if (!wallet.CommitTransaction(tx, std::move(metadata), {}, "", change_key,
+                                  g_connman.get(), validation_state) ||
+        !validation_state.IsValid()) {
+        error = strprintf("automatic bond transaction rejected: %s",
+                          FormatStateMessage(validation_state));
+        amount = 0;
+        return false;
+    }
+    txid = tx->GetHash();
+    return true;
+}
+
 void StakeWallets()
 {
     for (const std::shared_ptr<CWallet>& wallet : GetWallets()) {
+        uint256 bond_txid;
+        CAmount bond_amount = 0;
+        std::string bond_error;
+        if (ShouldAttemptAutomaticBond(wallet.get()) &&
+            EnsureAutomaticStakeBond(*wallet, bond_txid, bond_amount,
+                                     bond_error) && !bond_txid.IsNull()) {
+            LogPrintf("Created automatic stake bond %s for %s with wallet %s\n",
+                      bond_txid.ToString(), FormatMoney(bond_amount),
+                      wallet->GetName());
+        }
         uint256 block_hash;
         std::string error;
         if (TryStakeBlock(*wallet, block_hash, error)) {

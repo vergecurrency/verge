@@ -74,6 +74,18 @@ const StakeSnapshot* State::FindSnapshot(uint64_t source_epoch) const
     return it == m_snapshots.end() ? nullptr : &it->second;
 }
 
+bool State::RemovePreActivationSnapshot(int32_t expected_source_height)
+{
+    if (m_has_pos) return false;
+    const auto snapshot = m_snapshots.find(INITIAL_SNAPSHOT_EPOCH);
+    if (snapshot == m_snapshots.end() ||
+        snapshot->second.source_height == expected_source_height) {
+        return true;
+    }
+    m_snapshots.erase(snapshot);
+    return true;
+}
+
 const Checkpoint* State::FindCheckpoint(uint64_t epoch) const
 {
     const auto it = m_checkpoints.find(epoch);

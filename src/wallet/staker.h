@@ -6,6 +6,7 @@
 #define VERGE_WALLET_STAKER_H
 
 #include <uint256.h>
+#include <amount.h>
 
 #include <string>
 
@@ -13,6 +14,8 @@ class CWallet;
 
 bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
                    bool force = false);
+bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
+                              CAmount& amount, std::string& error);
 void StakeWallets();
 
 #endif // VERGE_WALLET_STAKER_H

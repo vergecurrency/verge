@@ -171,6 +171,7 @@ public:
     const BondRecord* FindBond(const COutPoint& outpoint) const;
     const BondRecord* FindHistoricalBond(const COutPoint& outpoint) const;
     const StakeSnapshot* FindSnapshot(uint64_t source_epoch) const;
+    bool RemovePreActivationSnapshot(int32_t expected_source_height);
     const std::map<COutPoint, BondRecord>& Bonds() const { return m_bonds; }
     const uint256& BestBlock() const { return m_best_block; }
     const uint256* FindEpochSeed(uint64_t epoch) const;
