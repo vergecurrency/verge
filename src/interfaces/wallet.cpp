@@ -137,6 +137,22 @@ public:
     void abortRescan() override { m_wallet.AbortRescan(); }
     bool backupWallet(const std::string& filename) override { return m_wallet.BackupWallet(filename); }
     std::string getWalletName() override { return m_wallet.GetName(); }
+    bool isStakingEnabled() override
+    {
+        LOCK(m_wallet.cs_wallet);
+        return m_wallet.IsStakingEnabled();
+    }
+    CAmount getStakingReserveBalance() override
+    {
+        LOCK(m_wallet.cs_wallet);
+        return m_wallet.GetStakingReserveBalance();
+    }
+    bool setStakingPolicy(bool enabled, CAmount reserve) override
+    {
+        LOCK(m_wallet.cs_wallet);
+        return m_wallet.SetStakingReserveBalance(reserve) &&
+               m_wallet.SetStakingEnabled(enabled);
+    }
     bool getKeyFromPool(bool internal, CPubKey& pub_key) override
     {
         return m_wallet.GetKeyFromPool(pub_key, internal);

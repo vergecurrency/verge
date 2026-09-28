@@ -1282,6 +1282,12 @@ void VERGEGUI::optionsClicked()
 
     OptionsDialog dlg(this, enableWallet);
     dlg.setModel(clientModel->getOptionsModel());
+#ifdef ENABLE_WALLET
+    if (walletFrame) {
+        WalletView* const walletView = walletFrame->currentWalletView();
+        if (walletView) dlg.setWalletModel(walletView->getWalletModel());
+    }
+#endif
     dlg.exec();
 }
 

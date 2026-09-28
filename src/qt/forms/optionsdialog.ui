@@ -201,6 +201,49 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_Wallet">
        <item>
+        <widget class="QGroupBox" name="stakingGroup">
+         <property name="title">
+          <string>Staking</string>
+         </property>
+         <layout class="QVBoxLayout" name="stakingLayout">
+          <item>
+           <widget class="QCheckBox" name="enableStaking">
+            <property name="toolTip">
+             <string>Automatically create a bond from mature spendable funds and produce proof-of-stake blocks when eligible.</string>
+            </property>
+            <property name="text">
+             <string>Enable automatic staking</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="stakingReserveLayout">
+            <item>
+             <widget class="QLabel" name="stakingReserveLabel">
+              <property name="toolTip">
+               <string>This amount remains available when a new automatic bond is created. Existing bonds are unchanged.</string>
+              </property>
+              <property name="text">
+               <string>Keep available:</string>
+              </property>
+              <property name="buddy">
+               <cstring>stakingReserveBalance</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="VERGEAmountField" name="stakingReserveBalance">
+              <property name="toolTip">
+               <string>This amount remains available when a new automatic bond is created. Existing bonds are unchanged.</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>Expert</string>
@@ -907,6 +950,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>VERGEAmountField</class>
+   <extends>QWidget</extends>
+   <header>qt/vergeamountfield.h</header>
+  </customwidget>
   <customwidget>
    <class>QValidatedLineEdit</class>
    <extends>QLineEdit</extends>

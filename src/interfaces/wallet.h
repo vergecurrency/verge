@@ -77,6 +77,11 @@ public:
     //! Get wallet name.
     virtual std::string getWalletName() = 0;
 
+    //! Get and update the wallet's automatic staking policy.
+    virtual bool isStakingEnabled() = 0;
+    virtual CAmount getStakingReserveBalance() = 0;
+    virtual bool setStakingPolicy(bool enabled, CAmount reserve) = 0;
+
     // Get key from pool.
     virtual bool getKeyFromPool(bool internal, CPubKey& pub_key) = 0;
 

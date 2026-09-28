@@ -13,6 +13,7 @@
 #include <qt/vergeunits.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
+#include <qt/walletmodel.h>
 
 #include <interfaces/node.h>
 #include <validation.h> // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
@@ -30,10 +31,16 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     QDialog(parent),
     ui(new Ui::OptionsDialog),
     model(0),
+    walletModel(0),
+    initialStakingEnabled(false),
+    initialStakingReserve(0),
     mapper(0)
 {
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
+    ui->stakingGroup->setEnabled(false);
+    connect(ui->enableStaking, SIGNAL(toggled(bool)),
+            ui->stakingReserveBalance, SLOT(setEnabled(bool)));
 
     /* Main elements init */
     ui->databaseCache->setMinimum(nMinDbCache);
@@ -141,6 +148,20 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
 OptionsDialog::~OptionsDialog()
 {
     delete ui;
+}
+
+void OptionsDialog::setWalletModel(WalletModel *_walletModel)
+{
+    walletModel = _walletModel;
+    const bool available = walletModel != nullptr;
+    ui->stakingGroup->setEnabled(available);
+    if (!available) return;
+
+    interfaces::Wallet& wallet = walletModel->wallet();
+    initialStakingEnabled = wallet.isStakingEnabled();
+    initialStakingReserve = wallet.getStakingReserveBalance();
+    ui->enableStaking->setChecked(initialStakingEnabled);
+    ui->stakingReserveBalance->setValue(initialStakingReserve);
 }
 
 void OptionsDialog::setModel(OptionsModel *_model)
@@ -259,6 +280,31 @@ void OptionsDialog::on_openVERGEConfButton_clicked()
 
 void OptionsDialog::on_okButton_clicked()
 {
+    if (walletModel) {
+        if (!ui->stakingReserveBalance->validate()) return;
+        const CAmount reserve = ui->stakingReserveBalance->value();
+        const bool enabled = ui->enableStaking->isChecked();
+        if (enabled && (!initialStakingEnabled ||
+                        reserve < initialStakingReserve)) {
+            const QString amount = VERGEUnits::formatWithUnit(
+                VERGEUnits::XVG, reserve, false,
+                VERGEUnits::separatorAlways);
+            const QMessageBox::StandardButton choice = QMessageBox::question(
+                this, tr("Enable automatic staking"),
+                tr("The wallet may create an on-chain bond from mature "
+                   "spendable funds above the amount kept available (%1). "
+                   "Existing bonds will not be resized. Continue?").arg(amount),
+                QMessageBox::Yes | QMessageBox::Cancel,
+                QMessageBox::Cancel);
+            if (choice != QMessageBox::Yes) return;
+        }
+        if (!walletModel->wallet().setStakingPolicy(
+                enabled, reserve)) {
+            QMessageBox::critical(this, tr("Staking settings"),
+                                  tr("The staking settings could not be saved."));
+            return;
+        }
+    }
     mapper->submit();
     accept();
     updateDefaultProxyNets();

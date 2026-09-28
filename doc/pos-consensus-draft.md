@@ -55,6 +55,8 @@ the wallet's saved reserve balance. `setstaking true 10000` keeps 10,000 XVG
 liquid; omitting the reserve uses the saved value, which defaults to zero. The
 daemon equivalents are `staking=1` and `stakingreservebalance=10000`. Locking an
 encrypted wallet pauses bonding and signing without changing the preference.
+The Qt wallet exposes the same per-wallet policy under Wallet options as
+automatic staking and the amount to keep available.
 Automatic bonding generates a wallet-encrypted delegated secp256k1 key,
 deterministically derives the separate P-256 VRF key under
 `VergePoS/VRFKey/v1`, and creates wallet-controlled reward and withdrawal

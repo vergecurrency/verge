@@ -6,11 +6,14 @@
 #ifndef VERGE_QT_OPTIONSDIALOG_H
 #define VERGE_QT_OPTIONSDIALOG_H
 
+#include <amount.h>
+
 #include <QDialog>
 #include <QValidator>
 
 class OptionsModel;
 class QValidatedLineEdit;
+class WalletModel;
 
 QT_BEGIN_NAMESPACE
 class QDataWidgetMapper;
@@ -42,6 +45,7 @@ public:
     ~OptionsDialog();
 
     void setModel(OptionsModel *model);
+    void setWalletModel(WalletModel *walletModel);
     void setMapper();
 
 private Q_SLOTS:
@@ -67,6 +71,9 @@ Q_SIGNALS:
 private:
     Ui::OptionsDialog *ui;
     OptionsModel *model;
+    WalletModel *walletModel;
+    bool initialStakingEnabled;
+    CAmount initialStakingReserve;
     QDataWidgetMapper *mapper;
 };
 
