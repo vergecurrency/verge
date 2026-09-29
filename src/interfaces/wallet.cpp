@@ -13,6 +13,7 @@
 #include <policy/feerate.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
+#include <pos/state.h>
 #include <primitives/transaction.h>
 #include <script/ismine.h>
 #include <script/standard.h>
@@ -353,10 +354,18 @@ public:
     }
     WalletBalances getBalances() override
     {
+        LOCK2(::cs_main, m_wallet.cs_wallet);
         WalletBalances result;
         result.balance = m_wallet.GetBalance();
         result.unconfirmed_balance = m_wallet.GetUnconfirmedBalance();
         result.immature_balance = m_wallet.GetImmatureBalance();
+        const pos::State state = GetPoSStateSnapshot();
+        for (const auto& item : state.Bonds()) {
+            if (m_wallet.HaveKey(
+                    CKeyID(item.second.data.withdrawal_key_id))) {
+                result.staked_balance += item.second.value;
+            }
+        }
         result.have_watch_only = m_wallet.HaveWatchOnly();
         if (result.have_watch_only) {
             result.watch_only_balance = m_wallet.GetBalance(ISMINE_WATCH_ONLY);

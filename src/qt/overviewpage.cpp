@@ -187,6 +187,7 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     ui->labelTotal->setObjectName("OverviewPrimaryBalance");
     ui->labelUnconfirmed->setObjectName("OverviewSecondaryBalance");
     ui->labelImmature->setObjectName("OverviewSecondaryBalance");
+    ui->labelStaked->setObjectName("OverviewSecondaryBalance");
     ui->labelWatchAvailable->setObjectName("OverviewSecondaryBalance");
     ui->labelWatchPending->setObjectName("OverviewSecondaryBalance");
     ui->labelWatchImmature->setObjectName("OverviewSecondaryBalance");
@@ -196,6 +197,7 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
         ui->labelBalanceText,
         ui->labelPendingText,
         ui->labelImmatureText,
+        ui->labelStakedText,
         ui->labelTotalText,
         ui->labelSpendable,
         ui->labelWatchonly
@@ -257,7 +259,8 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
     ui->labelBalance->setText(VERGEUnits::formatWithUnit(unit, balances.balance, false, VERGEUnits::separatorAlways));
     ui->labelUnconfirmed->setText(VERGEUnits::formatWithUnit(unit, balances.unconfirmed_balance, false, VERGEUnits::separatorAlways));
     ui->labelImmature->setText(VERGEUnits::formatWithUnit(unit, balances.immature_balance, false, VERGEUnits::separatorAlways));
-    ui->labelTotal->setText(VERGEUnits::formatWithUnit(unit, balances.balance + balances.unconfirmed_balance + balances.immature_balance, false, VERGEUnits::separatorAlways));
+    ui->labelStaked->setText(VERGEUnits::formatWithUnit(unit, balances.staked_balance, false, VERGEUnits::separatorAlways));
+    ui->labelTotal->setText(VERGEUnits::formatWithUnit(unit, balances.balance + balances.unconfirmed_balance + balances.immature_balance + balances.staked_balance, false, VERGEUnits::separatorAlways));
     ui->labelWatchAvailable->setText(VERGEUnits::formatWithUnit(unit, balances.watch_only_balance, false, VERGEUnits::separatorAlways));
     ui->labelWatchPending->setText(VERGEUnits::formatWithUnit(unit, balances.unconfirmed_watch_only_balance, false, VERGEUnits::separatorAlways));
     ui->labelWatchImmature->setText(VERGEUnits::formatWithUnit(unit, balances.immature_watch_only_balance, false, VERGEUnits::separatorAlways));
