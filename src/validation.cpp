@@ -1799,9 +1799,12 @@ public:
 
     bool Condition(const CBlockIndex* pindex, const Consensus::Params& params) const override
     {
+        const int32_t known_version =
+            ComputeBlockVersion(pindex->pprev, params) |
+            pos::BLOCK_VERSION_POS;
         return ((pindex->nVersion & VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS) &&
                ((pindex->nVersion >> bit) & 1) != 0 &&
-               ((ComputeBlockVersion(pindex->pprev, params) >> bit) & 1) == 0;
+               ((known_version >> bit) & 1) == 0;
     }
 };
 
@@ -2488,7 +2491,10 @@ void static UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainPar
         for (int i = 0; i < 100 && pindex != nullptr; i++)
         {
             int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus()); // FIXME: check for other cases
-            int32_t nCorrectedVersion = pindex->nVersion & (~BLOCK_VERSION_ALGO); // Remove the Algo versions
+            // PoW algorithm selectors and the PoS marker are known local
+            // version fields, not unknown versionbits deployments.
+            int32_t nCorrectedVersion = pindex->nVersion &
+                ~(BLOCK_VERSION_ALGO | pos::BLOCK_VERSION_POS);
             if (nCorrectedVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (nCorrectedVersion & ~nExpectedVersion) != 0)
                 ++nUpgraded;
             pindex = pindex->pprev;
