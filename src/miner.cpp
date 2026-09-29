@@ -350,7 +350,10 @@ bool BlockAssembler::TestPackageTransactions(const CTxMemPool::setEntries& packa
             return false;
         if (!fIncludeWitness && it->GetTx().HasWitness())
             return false;
-        if(it->GetTx().nTime > GetAdjustedTime())
+        // PoS block times are fixed to canonical slots and can be behind the
+        // current adjusted time. Leave newer transactions in the mempool for
+        // a later slot instead of constructing an invalid block template.
+        if (it->GetTx().nTime > pblock->GetBlockTime())
             return false;
     }
     return true;

@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <exception>
 #include <limits>
 #include <map>
 #include <mutex>
@@ -456,21 +457,29 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
 void StakeWallets()
 {
     for (const std::shared_ptr<CWallet>& wallet : GetWallets()) {
-        uint256 bond_txid;
-        CAmount bond_amount = 0;
-        std::string bond_error;
-        if (ShouldAttemptAutomaticBond(wallet.get()) &&
-            EnsureAutomaticStakeBond(*wallet, bond_txid, bond_amount,
-                                     bond_error) && !bond_txid.IsNull()) {
-            LogPrintf("Created automatic stake bond %s for %s with wallet %s\n",
-                      bond_txid.ToString(), FormatMoney(bond_amount),
+        try {
+            uint256 bond_txid;
+            CAmount bond_amount = 0;
+            std::string bond_error;
+            if (ShouldAttemptAutomaticBond(wallet.get()) &&
+                EnsureAutomaticStakeBond(*wallet, bond_txid, bond_amount,
+                                         bond_error) && !bond_txid.IsNull()) {
+                LogPrintf("Created automatic stake bond %s for %s with wallet %s\n",
+                          bond_txid.ToString(), FormatMoney(bond_amount),
+                          wallet->GetName());
+            }
+            uint256 block_hash;
+            std::string error;
+            if (TryStakeBlock(*wallet, block_hash, error)) {
+                LogPrintf("Produced proof-of-stake block %s with wallet %s\n",
+                          block_hash.ToString(), wallet->GetName());
+            }
+        } catch (const std::exception& exception) {
+            LogPrintf("Staking worker error for wallet %s: %s\n",
+                      wallet->GetName(), exception.what());
+        } catch (...) {
+            LogPrintf("Unknown staking worker error for wallet %s\n",
                       wallet->GetName());
-        }
-        uint256 block_hash;
-        std::string error;
-        if (TryStakeBlock(*wallet, block_hash, error)) {
-            LogPrintf("Produced proof-of-stake block %s with wallet %s\n",
-                      block_hash.ToString(), wallet->GetName());
         }
     }
 }

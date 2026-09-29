@@ -290,6 +290,17 @@ bool CBlockTreeDB::WritePoSStateRollback(const pos::State& state,
     return WriteBatch(batch, true);
 }
 
+bool CBlockTreeDB::WritePoSStateRecovery(
+    const pos::State& state, const std::vector<uint256>& block_hashes)
+{
+    CDBBatch batch(*this);
+    batch.Write(DB_POS_STATE, state);
+    for (const uint256& block_hash : block_hashes) {
+        batch.Erase(std::make_pair(DB_POS_UNDO, block_hash));
+    }
+    return WriteBatch(batch, true);
+}
+
 bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
     char ch;
     if (!Read(std::make_pair(DB_FLAG, name), ch))

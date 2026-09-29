@@ -107,6 +107,8 @@ public:
                                  const pos::StateUndo& undo);
     bool WritePoSStateRollback(const pos::State& state,
                                const uint256& block_hash);
+    bool WritePoSStateRecovery(const pos::State& state,
+                               const std::vector<uint256>& block_hashes);
     bool LoadBlockIndexGuts(const Consensus::Params& consensusParams, std::function<CBlockIndex*(const uint256&)> insertBlockIndex);
 };
 

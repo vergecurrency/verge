@@ -48,6 +48,7 @@
 #include <warnings.h>
 
 #include <future>
+#include <set>
 #include <sstream>
 
 #include <boost/algorithm/string/replace.hpp>
@@ -4519,18 +4520,29 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
             return error("LoadPoSState: failed to initialize state from UTXO set");
         }
     }
-    while (loaded.BestBlock() != tip->GetBlockHash()) {
-        const auto it = mapBlockIndex.find(loaded.BestBlock());
-        if (it == mapBlockIndex.end() || it->second->nHeight <= tip->nHeight ||
-            it->second->GetAncestor(tip->nHeight) != tip) {
-            break;
+    if (loaded.BestBlock() != tip->GetBlockHash()) {
+        pos::State recovered = loaded;
+        std::vector<uint256> rolled_back;
+        std::set<uint256> visited;
+        while (recovered.BestBlock() != tip->GetBlockHash()) {
+            const uint256 current = recovered.BestBlock();
+            pos::StateUndo undo;
+            if (!visited.insert(current).second ||
+                !blocktree.ReadPoSUndo(current, undo) ||
+                undo.previous_best_block == current ||
+                !recovered.UndoBlock(undo)) {
+                break;
+            }
+            rolled_back.push_back(current);
         }
-        pos::StateUndo undo;
-        if (!blocktree.ReadPoSUndo(loaded.BestBlock(), undo) ||
-            !loaded.UndoBlock(undo) ||
-            !blocktree.WritePoSStateRollback(loaded, it->first)) {
-            return error("LoadPoSState: failed to roll state back from %s",
-                         it->first.ToString());
+        if (recovered.BestBlock() == tip->GetBlockHash()) {
+            if (!blocktree.WritePoSStateRecovery(recovered, rolled_back)) {
+                return error("LoadPoSState: failed to persist recovered state at %s",
+                             tip->GetBlockHash().ToString());
+            }
+            LogPrintf("LoadPoSState: recovered state to chainstate tip %s by rolling back %u transition(s)\n",
+                      tip->GetBlockHash().ToString(), rolled_back.size());
+            loaded = std::move(recovered);
         }
     }
     if (loaded.BestBlock() != tip->GetBlockHash()) {
