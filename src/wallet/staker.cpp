@@ -389,6 +389,7 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         for (uint32_t i = 0; i < wallet_tx.tx->vout.size(); ++i) {
             pos::BondData bond;
             if (wallet_tx.GetDepthInMainChain() == 0 &&
+                wallet_tx.InMempool() &&
                 pos::ParseBondScript(wallet_tx.tx->vout[i].scriptPubKey, bond) &&
                 !wallet.IsSpent(item.first, i)) {
                 return true;

@@ -48,6 +48,10 @@ first four bytes of `SHA256("Verge PoS Testnet Reset 2026 height 3500")`.
 This separates it from the previous testnet magic `cd f2 c0 ef`, so an old
 testnet node cannot exchange P2P messages with the reset network. Every seed and
 participant still must upgrade because old binaries cannot join the new network.
+Operators should use a fresh testnet wallet or, after making a verified backup,
+start once with `-zapwallettxes=2` so transactions from the discarded chain are
+removed before rescanning the reset chain. Automatic bonding treats an
+unconfirmed bond as pending only while that transaction is in the mempool.
 
 Regtest activation is disabled by default and requires `-posactivationheight=<height>`. The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
 
