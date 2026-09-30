@@ -168,7 +168,9 @@ enum
 
     // modifiers
     SER_SKIPSIG         = (1 << 16),
-    SER_BLOCKHEADERONLY = (1 << 17),
+    // Serialization flags share the version field in CNetMsgMaker. Keep this
+    // above the client-version range so release versions cannot enable it.
+    SER_BLOCKHEADERONLY = (1 << 29),
 };
 
 //! Convert the reference base type to X, without changing constness or reference type.

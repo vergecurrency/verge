@@ -2928,27 +2928,49 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
     else if (strCommand == NetMsgType::HEADERS && !fImporting && !fReindex) // Ignore headers received while importing
     {
-        std::vector<CBlock> blocks;
         std::vector<CBlockHeader> headers;
-        // Bypass the normal CBlock deserialization, as we don't want to risk deserializing 2000 full blocks.
-        unsigned int nCount = ReadCompactSize(vRecv);
-        if (nCount > MAX_HEADERS_RESULTS) {
+        const CDataStream original = vRecv;
+        CDataStream count_stream = original;
+        const uint64_t header_count = ReadCompactSize(count_stream);
+        if (header_count > MAX_HEADERS_RESULTS) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20, strprintf("headers message size = %u", nCount));
+            Misbehaving(pfrom->GetId(), 20,
+                        strprintf("headers message size = %u", header_count));
             return false;
         }
-        
-        // new clients are sending clean headers
-        // but the older version are sending also some addtional stuff with them
-        // make sure only HEADERS are being parsed and nothing more!
-        vRecv.SetType(vRecv.GetType() | SER_BLOCKHEADERONLY);
-        blocks.resize(nCount);
-        for (unsigned int n = 0; n < nCount; n++) {
-            vRecv >> blocks[n];
-            ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
-        }
+        auto parse_headers = [&headers](CDataStream stream, bool legacy_pos) {
+            const uint64_t count = ReadCompactSize(stream);
+            headers.clear();
+            headers.reserve(static_cast<size_t>(count));
+            for (uint64_t i = 0; i < count; ++i) {
+                CBlockHeader header;
+                stream >> header;
+                if (ReadCompactSize(stream) != 0 ||
+                    ReadCompactSize(stream) != 0) {
+                    throw std::ios_base::failure(
+                        "headers message contains block data");
+                }
+                if (legacy_pos && pos::IsPoSVersion(header.nVersion)) {
+                    pos::BlockExtension extension;
+                    stream >> extension;
+                }
+                headers.push_back(header);
+            }
+            if (!stream.empty()) {
+                throw std::ios_base::failure("headers message has trailing data");
+            }
+        };
 
-        std::copy(blocks.begin(), blocks.end(), std::back_inserter(headers));
+        try {
+            parse_headers(original, false);
+        } catch (const std::ios_base::failure&) {
+            // Beta PoS nodes accidentally serialized the full PoS extension in
+            // HEADERS. Accept that bounded legacy form during the transition.
+            headers.clear();
+            parse_headers(original, true);
+            LogPrint(BCLog::NET, "peer=%d sent legacy PoS headers encoding\n",
+                     pfrom->GetId());
+        }
 
         // Headers received via a HEADERS message should be valid, and reflect
         // the chain the peer is on. If we receive a known-invalid header,

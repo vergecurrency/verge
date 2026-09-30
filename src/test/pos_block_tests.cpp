@@ -4,6 +4,8 @@
 
 #include <pos/block.h>
 #include <primitives/block.h>
+#include <netmessagemaker.h>
+#include <protocol.h>
 #include <streams.h>
 #include <test/setup_common.h>
 
@@ -112,7 +114,9 @@ BOOST_AUTO_TEST_CASE(full_block_serialization_is_version_gated)
 BOOST_AUTO_TEST_CASE(full_block_serialization_ignores_client_version_flag_bits)
 {
     static const int CLIENT_VERSION_27 = 27000000;
-    BOOST_REQUIRE((CLIENT_VERSION_27 & SER_BLOCKHEADERONLY) != 0);
+    static const int OLD_BLOCKHEADERONLY_FLAG = (1 << 17);
+    BOOST_REQUIRE((CLIENT_VERSION_27 & OLD_BLOCKHEADERONLY_FLAG) != 0);
+    BOOST_REQUIRE((CLIENT_VERSION_27 & SER_BLOCKHEADERONLY) == 0);
 
     CBlock block;
     block.nVersion = 2 | pos::BLOCK_VERSION_POS;
@@ -129,6 +133,32 @@ BOOST_AUTO_TEST_CASE(full_block_serialization_ignores_client_version_flag_bits)
     BOOST_CHECK(decoded.vchBlockSig == block.vchBlockSig);
     BOOST_CHECK(decoded.posExtension.authorization.stake_proof_hash ==
                 block.posExtension.authorization.stake_proof_hash);
+}
+
+BOOST_AUTO_TEST_CASE(pos_header_serialization_omits_extension)
+{
+    CBlock block;
+    block.nVersion = 2 | pos::BLOCK_VERSION_POS;
+    block.nBits = 0;
+    block.nNonce = 0;
+    block.posExtension = MakeExtension();
+
+    std::vector<CBlock> headers{block};
+    CSerializedNetMsg message = CNetMsgMaker(PROTOCOL_VERSION).Make(
+        SER_BLOCKHEADERONLY, NetMsgType::HEADERS, headers);
+    BOOST_CHECK_EQUAL(message.data.size(), 83U);
+    CDataStream stream(message.data, SER_NETWORK, PROTOCOL_VERSION);
+
+    BOOST_CHECK_EQUAL(ReadCompactSize(stream), 1U);
+    CBlock decoded;
+    stream.SetVersion(stream.GetVersion() | SER_BLOCKHEADERONLY);
+    stream >> decoded;
+    BOOST_CHECK_EQUAL(ReadCompactSize(stream), 0U);
+    BOOST_CHECK(stream.empty());
+    BOOST_CHECK(pos::IsPoSVersion(decoded.nVersion));
+    BOOST_CHECK(decoded.vchBlockSig.empty());
+    BOOST_CHECK(decoded.posExtension.votes.empty());
+    BOOST_CHECK(decoded.posExtension.authorization.stake_proof_hash.IsNull());
 }
 
 BOOST_AUTO_TEST_CASE(full_block_linkage)

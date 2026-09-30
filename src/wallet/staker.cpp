@@ -16,6 +16,7 @@
 #include <pos/votepool.h>
 #include <pos/vrf.h>
 #include <random.h>
+#include <shutdown.h>
 #include <support/cleanse.h>
 #include <timedata.h>
 #include <util/moneystr.h>
@@ -100,6 +101,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
                    bool force)
 {
     block_hash.SetNull();
+    if (ShutdownRequested()) {
+        error = "shutdown requested";
+        return false;
+    }
     pos::StakeProof proof;
     pos::BondRecord selected_bond;
     CKey selected_key;
@@ -205,6 +210,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
 
         std::map<PublicKeyBytes, CKey> wallet_keys;
         for (const CKeyID& key_id : wallet.GetKeys()) {
+            if (ShutdownRequested()) {
+                error = "shutdown requested";
+                return false;
+            }
             CKey key;
             PublicKeyBytes public_key{};
             if (wallet.GetKey(key_id, key) &&
@@ -214,6 +223,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         }
 
         for (const pos::SnapshotEntry& entry : snapshot->entries) {
+            if (ShutdownRequested()) {
+                error = "shutdown requested";
+                return false;
+            }
             if (state.IsEligibilityLocked(entry.outpoint, slot.epoch,
                                           tip->nHeight + 1)) continue;
             PublicKeyBytes signing_public_key{};
@@ -256,6 +269,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         }
 
         for (const pos::SnapshotEntry& entry : snapshot->entries) {
+            if (ShutdownRequested()) {
+                error = "shutdown requested";
+                return false;
+            }
             if (state.IsEligibilityLocked(entry.outpoint, slot.epoch,
                                           tip->nHeight + 1)) continue;
             PublicKeyBytes signing_public_key{};
@@ -309,6 +326,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         error = "wallet has no eligible bond in the current slot";
         return false;
     }
+    if (ShutdownRequested()) {
+        error = "shutdown requested";
+        return false;
+    }
     std::unique_ptr<CBlockTemplate> block_template =
         BlockAssembler(Params()).CreateNewPoSBlock(
             proof, selected_bond, selected_key.begin(), block_time, votes, {},
@@ -319,6 +340,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     }
     const std::shared_ptr<const CBlock> block =
         std::make_shared<const CBlock>(block_template->block);
+    if (ShutdownRequested()) {
+        error = "shutdown requested";
+        return false;
+    }
     if (!ProcessNewBlock(Params(), block, true, nullptr)) {
         error = "proof-of-stake block was not accepted";
         return false;
@@ -336,6 +361,10 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
 {
     txid.SetNull();
     amount = 0;
+    if (ShutdownRequested()) {
+        error = "shutdown requested";
+        return false;
+    }
     LOCK2(cs_main, wallet.cs_wallet);
     if (!wallet.IsStakingEnabled()) {
         error = "staking is disabled";
@@ -351,6 +380,10 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     }
 
     for (const auto& item : wallet.mapWallet) {
+        if (ShutdownRequested()) {
+            error = "shutdown requested";
+            return false;
+        }
         const CWalletTx& wallet_tx = item.second;
         if (wallet_tx.GetDepthInMainChain() < 0) continue;
         for (uint32_t i = 0; i < wallet_tx.tx->vout.size(); ++i) {
@@ -371,6 +404,10 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     CCoinControl coin_control;
     coin_control.m_min_depth = params.nPoSStakeMaturity;
     for (const COutput& coin : coins) {
+        if (ShutdownRequested()) {
+            error = "shutdown requested";
+            return false;
+        }
         pos::BondData bond;
         const CTxOut& output = coin.tx->tx->vout[coin.i];
         if (coin.fSpendable &&
@@ -442,6 +479,11 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     mapValue_t metadata;
     metadata["pos_staking_key"] = HexStr(staking_pubkey);
     metadata["pos_automatic_bond"] = "1";
+    if (ShutdownRequested()) {
+        error = "shutdown requested";
+        amount = 0;
+        return false;
+    }
     if (!wallet.CommitTransaction(tx, std::move(metadata), {}, "", change_key,
                                   g_connman.get(), validation_state) ||
         !validation_state.IsValid()) {
@@ -456,7 +498,9 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
 
 void StakeWallets()
 {
+    if (ShutdownRequested()) return;
     for (const std::shared_ptr<CWallet>& wallet : GetWallets()) {
+        if (ShutdownRequested()) return;
         try {
             uint256 bond_txid;
             CAmount bond_amount = 0;

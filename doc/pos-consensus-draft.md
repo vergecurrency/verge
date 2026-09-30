@@ -86,6 +86,24 @@ A consensus-defined stake proof references exactly one bonded UTXO without spend
 
 The exact serialization must be domain-separated and covered by fixed test vectors before Phase 2 is considered complete. Witness serialization is not used.
 
+### Header Relay Encoding
+
+PoS `headers` messages retain the pre-PoS header relay shape: the canonical
+block header, an empty transaction vector, and an empty legacy block-signature
+vector. They never include the PoS block extension. The header-only serializer
+uses a serialization-version flag outside the client-version range; sender and
+receiver apply that flag to the same stream field so a release version cannot
+accidentally enable or disable extension parsing.
+
+Early public-testnet beta builds serialized the complete 572-byte-or-larger PoS
+extension in `headers` messages. Updated nodes first require the canonical
+header-only encoding and, if that bounded decode fails, accept the beta full
+encoding for transition compatibility. Both paths enforce the existing
+`MAX_HEADERS_RESULTS` limit and require the message to be consumed exactly.
+The compatibility decoder does not make a header consensus-valid: stake proof,
+authorization, commitments, votes, evidence, and state transitions are still
+accepted only from the complete block-validation path.
+
 ### PoS Block Extension Limits
 
 PoS uses version bit `1 << 15`, which is distinct from the five PoW algorithm bits. The conditional PoS block extension follows the existing transaction vector and block-signature field and contains canonical stake-proof, checkpoint-vote, and equivocation-evidence objects.
