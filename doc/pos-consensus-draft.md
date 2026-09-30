@@ -30,14 +30,24 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Initial seed window | 120 pre-activation PoW blocks |
 | Post-activation PoW fallback | None |
 | Mainnet activation height | 15,000,000 |
-| Testnet activation height | 141,500 |
+| Testnet activation height | 3,500 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
 
 All amounts are evaluated in base units. A staking output exactly equal to 1,000 XVG is eligible.
 
 ## Activation
 
-Each network has an explicit `nPoSActivationHeight`. Public testnet activates at height 141,500 for network testing, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
+Each network has an explicit `nPoSActivationHeight`. The clean-chain public testnet trial activates at height 3,500, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
+
+For this clean testnet trial, the initial stake snapshot is recorded at height
+3,260. A bond must be created by height 2,780 to have 720 confirmations at
+activation and must remain unspent through the snapshot. Block 3,499 is the
+last valid PoW block; block 3,500 must be produced by an eligible PoS bond.
+The reset testnet uses P2P message-start bytes `df d9 dd fb`, derived from the
+first four bytes of `SHA256("Verge PoS Testnet Reset 2026 height 3500")`.
+This separates it from the previous testnet magic `cd f2 c0 ef`, so an old
+testnet node cannot exchange P2P messages with the reset network. Every seed and
+participant still must upgrade because old binaries cannot join the new network.
 
 Regtest activation is disabled by default and requires `-posactivationheight=<height>`. The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
 
@@ -308,6 +318,12 @@ The fork-choice rule is:
 5. Resolve equal-weight child branches by the lowest block hash.
 
 PoW chainwork and raw block count do not participate in post-activation fork choice. Vote updates, snapshot selection, tie-breaking, and restart reconstruction require deterministic tests before Phase 2 is complete. Because the compatibility header does not contain the PoS extension, receiving a structurally valid PoS header is not enough to add stake score or make it an active-chain candidate. Header-only descendants remain staged. A PoS branch becomes eligible for fork choice only after every required full block and its stake proof, authorization, commitments, and state transition have been validated. Legacy GetBlockProof returns zero for nBits zero and must not be replaced with header count or synthetic work.
+
+The legacy fixed-depth reorganization limiter applies only before PoS
+activation. After activation, LMD-GHOST chooses among fully validated branches
+and the finalized-checkpoint barrier rejects reorganizations below finality.
+Retaining the fixed-depth limiter after activation would prevent convergence
+after a legitimate partition before those blocks become finalized.
 
 ## Vote And Checkpoint State Transitions
 

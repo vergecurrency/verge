@@ -107,8 +107,12 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
     BOOST_CHECK_EQUAL(testParams->GetConsensus().nPoSNetworkId, 2U);
     BOOST_CHECK_EQUAL(regtestParams->GetConsensus().nPoSNetworkId, 3U);
     BOOST_CHECK_EQUAL(mainParams->GetConsensus().nPoSActivationHeight, 15000000);
-    BOOST_CHECK_EQUAL(testParams->GetConsensus().nPoSActivationHeight, 141500);
+    BOOST_CHECK_EQUAL(testParams->GetConsensus().nPoSActivationHeight, 3500);
     BOOST_CHECK_EQUAL(regtestParams->GetConsensus().nPoSActivationHeight, std::numeric_limits<int>::max());
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[0], 0xdf);
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[1], 0xd9);
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[2], 0xdd);
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[3], 0xfb);
 
     const Consensus::Params& pos = mainParams->GetConsensus();
     BOOST_CHECK_EQUAL(pos.nPoSMinStake, 1000 * COIN);
@@ -122,8 +126,8 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
     BOOST_CHECK(!pos.IsPoSActive(14999999));
     BOOST_CHECK(pos.IsPoSActive(15000000));
     const Consensus::Params& test_pos = testParams->GetConsensus();
-    BOOST_CHECK(!test_pos.IsPoSActive(141499));
-    BOOST_CHECK(test_pos.IsPoSActive(141500));
+    BOOST_CHECK(!test_pos.IsPoSActive(3499));
+    BOOST_CHECK(test_pos.IsPoSActive(3500));
 }
 static bool ReturnFalse() { return false; }
 static bool ReturnTrue() { return true; }

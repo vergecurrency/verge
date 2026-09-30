@@ -3084,13 +3084,24 @@ bool CChainState::ActivateBestChain(CValidationState &state, const CChainParams&
                 if (pindexMostWork == nullptr) {
                     pindexMostWork = FindMostWorkChain();
 
-                    // Check for reorg depth limit.
-                    if (pindexMostWork != nullptr && pindexMostWork != chainActive.Tip() && chainActive.Height() >= chainparams.GetConsensus().nMaxReorgDepthEnforcementBlock && !gArgs.GetBoolArg("-allowdeepreorg", false)) {
+                    // PoS fork choice and finalized checkpoints replace the
+                    // legacy fixed-depth reorg policy after activation.
+                    const Consensus::Params& consensus =
+                        chainparams.GetConsensus();
+                    if (pindexMostWork != nullptr &&
+                        pindexMostWork != chainActive.Tip() &&
+                        !consensus.IsPoSActive(chainActive.Height() + 1) &&
+                        !consensus.IsPoSActive(pindexMostWork->nHeight) &&
+                        chainActive.Height() >=
+                            consensus.nMaxReorgDepthEnforcementBlock &&
+                        !gArgs.GetBoolArg("-allowdeepreorg", false)) {
                         const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
                         assert(pindexFork != nullptr);
 
                         // Check if reorg exceeds max reorg depth.
-                        if (chainActive.Tip() != pindexFork && pindexFork->nHeight < chainActive.Height() - chainparams.GetConsensus().nMaxReorgDepth) {
+                        if (chainActive.Tip() != pindexFork &&
+                            pindexFork->nHeight <
+                                chainActive.Height() - consensus.nMaxReorgDepth) {
                             LogPrintf("Deep reorg of %d blocks blocked (most work block = %s, fork block = %s)\n", pindexMostWork->nHeight - pindexFork->nHeight, pindexMostWork->GetBlockHash().ToString(), pindexFork->GetBlockHash().ToString());
 
                             // Mark block on wrong chain as invalid.
