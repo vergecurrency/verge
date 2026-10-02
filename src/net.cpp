@@ -2169,6 +2169,39 @@ void CConnman::ThreadOpenAddedConnections()
     }
 }
 
+static std::string NormalizePeerDestination(const std::string& destination)
+{
+    int port = Params().GetDefaultPort();
+    std::string host;
+    SplitHostPort(destination, port, host);
+    std::transform(host.begin(), host.end(), host.begin(), [](unsigned char c) { return ToLower(c); });
+    return strprintf("%s:%d", host, port);
+}
+
+bool CConnman::RegisterOutboundNode(CNode* pnode)
+{
+    assert(pnode != nullptr);
+    assert(!pnode->fInbound);
+
+    const std::string destination = NormalizePeerDestination(pnode->GetAddrName());
+    LOCK(cs_vNodes);
+    for (const CNode* existing : vNodes) {
+        if (existing->fInbound || existing->fDisconnect) {
+            continue;
+        }
+
+        const bool same_service = pnode->addr.IsValid() && existing->addr.IsValid() &&
+            static_cast<const CService&>(pnode->addr) == static_cast<const CService&>(existing->addr);
+        const bool same_destination = destination == NormalizePeerDestination(existing->GetAddrName());
+        if (same_service || same_destination) {
+            return false;
+        }
+    }
+
+    vNodes.push_back(pnode);
+    return true;
+}
+
 // if successful, this moves the passed grant to the constructed node
 void CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound, const char *pszDest, bool fOneShot, bool fFeeler, bool manual_connection)
 {
@@ -2209,9 +2242,13 @@ void CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFai
         pnode->m_manual_connection = true;
 
     m_msgproc->InitializeNode(pnode);
-    {
-        LOCK(cs_vNodes);
-        vNodes.push_back(pnode);
+    if (!RegisterOutboundNode(pnode)) {
+        LogPrint(BCLog::NET, "Dropping duplicate outbound connection to %s peer=%d\n", pnode->GetAddrName(), pnode->GetId());
+        bool update_connection_time = false;
+        m_msgproc->FinalizeNode(pnode->GetId(), update_connection_time);
+        pnode->CloseSocketDisconnect();
+        pnode->Release();
+        delete pnode;
     }
 }
 

@@ -59,7 +59,10 @@ private:
 class CConnman;
 class CNode;
 struct CConnmanTest {
+    static void AddNode(CConnman& connman, CNode& node);
     static void AddNode(CNode& node);
+    static bool RegisterOutboundNode(CConnman& connman, CNode& node);
+    static void ClearNodes(CConnman& connman);
     static void ClearNodes();
 };
 

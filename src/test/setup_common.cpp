@@ -19,19 +19,34 @@
 #include <rpc/register.h>
 #include <script/sigcache.h>
 
+void CConnmanTest::AddNode(CConnman& connman, CNode& node)
+{
+    LOCK(connman.cs_vNodes);
+    connman.vNodes.push_back(&node);
+}
+
 void CConnmanTest::AddNode(CNode& node)
 {
-    LOCK(g_connman->cs_vNodes);
-    g_connman->vNodes.push_back(&node);
+    AddNode(*g_connman, node);
+}
+
+bool CConnmanTest::RegisterOutboundNode(CConnman& connman, CNode& node)
+{
+    return connman.RegisterOutboundNode(&node);
+}
+
+void CConnmanTest::ClearNodes(CConnman& connman)
+{
+    LOCK(connman.cs_vNodes);
+    for (CNode* node : connman.vNodes) {
+        delete node;
+    }
+    connman.vNodes.clear();
 }
 
 void CConnmanTest::ClearNodes()
 {
-    LOCK(g_connman->cs_vNodes);
-    for (CNode* node : g_connman->vNodes) {
-        delete node;
-    }
-    g_connman->vNodes.clear();
+    ClearNodes(*g_connman);
 }
 
 uint256 insecure_rand_seed = GetRandHash();

@@ -188,4 +188,31 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test)
     BOOST_CHECK(pnode2->fFeeler == false);
 }
 
+BOOST_AUTO_TEST_CASE(outbound_peer_deduplication)
+{
+    CConnman connman(0x1234, 0x5678);
+    CAddress invalid_address;
+
+    CNode* first = new CNode(1, NODE_NETWORK, 0, INVALID_SOCKET, invalid_address, 0, 0, CAddress(),
+        "qu4lblwlawk7a2rf3a3sl7n3fnyiwzwkqgeywdc5oxprpgybcn6dzxad.onion", false);
+    BOOST_REQUIRE(CConnmanTest::RegisterOutboundNode(connman, *first));
+
+    std::unique_ptr<CNode> duplicate(new CNode(2, NODE_NETWORK, 0, INVALID_SOCKET, invalid_address, 0, 0, CAddress(),
+        "QU4LBLWLAWK7A2RF3A3SL7N3FNYIWZWKQGEYWDC5OXPRPGYBCN6DZXAD.ONION:21102", false));
+    BOOST_CHECK(!CConnmanTest::RegisterOutboundNode(connman, *duplicate));
+
+    CNode* distinct = new CNode(3, NODE_NETWORK, 0, INVALID_SOCKET, invalid_address, 0, 0, CAddress(),
+        "lad6h4uwuexampledifferentpeer.onion", false);
+    BOOST_CHECK(CConnmanTest::RegisterOutboundNode(connman, *distinct));
+
+    CNode* inbound = new CNode(4, NODE_NETWORK, 0, INVALID_SOCKET, invalid_address, 0, 0, CAddress(),
+        "inbound-only-peer.onion", true);
+    CConnmanTest::AddNode(connman, *inbound);
+    CNode* outbound_to_inbound = new CNode(5, NODE_NETWORK, 0, INVALID_SOCKET, invalid_address, 0, 0, CAddress(),
+        "inbound-only-peer.onion", false);
+    BOOST_CHECK(CConnmanTest::RegisterOutboundNode(connman, *outbound_to_inbound));
+
+    CConnmanTest::ClearNodes(connman);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
