@@ -17,6 +17,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/rbf.h>
+#include <pos/consensus.h>
 #include <pos/crypto.h>
 #include <pos/stake.h>
 #include <pos/vrf.h>
