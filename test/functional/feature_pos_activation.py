@@ -97,7 +97,7 @@ class PoSActivationTest(VergeTestFramework):
         self.sync_all()
         assert_equal(observer.getbestblockhash(), epoch_two)
 
-        assert_equal(node.setstaking(True), True)
+        assert_equal(node.setstaking(True)["enabled"], True)
         staking_info = node.getstakinginfo()
         assert_equal(staking_info["enabled"], True)
         assert_equal(staking_info["active"], True)

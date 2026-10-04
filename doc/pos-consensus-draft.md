@@ -66,8 +66,13 @@ Database records, block serialization, wallet staking records, RPC schemas, and 
 Wallet staking is explicitly opt-in and disabled by default. `setstaking true`
 persists the preference and automatically bonds all mature spendable funds above
 the wallet's saved reserve balance. `setstaking true 10000` keeps 10,000 XVG
-liquid; omitting the reserve uses the saved value, which defaults to zero. The
-daemon equivalents are `staking=1` and `stakingreservebalance=10000`. Locking an
+liquid; omitting the reserve uses the saved value, which defaults to zero.
+Automatic bonding splits fragmented balances into size-limited transactions,
+selecting at most 100 inputs per batch and budgeting their maximum signed size.
+The saved reserve applies to the total mature unbonded balance across batches.
+A pending bond pauses additional batches until it confirms. Newly created bonds
+still require stake maturity and the delayed snapshot before production.
+The daemon equivalents are `staking=1` and `stakingreservebalance=10000`. Locking an
 encrypted wallet pauses bonding and signing without changing the preference.
 The Qt wallet exposes the same per-wallet policy under Wallet options as
 automatic staking and the amount to keep available.
