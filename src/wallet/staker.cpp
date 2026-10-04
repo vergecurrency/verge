@@ -9,6 +9,7 @@
 #include <consensus/validation.h>
 #include <miner.h>
 #include <net.h>
+#include <policy/policy.h>
 #include <protocol.h>
 #include <pos/consensus.h>
 #include <pos/crypto.h>
@@ -401,7 +402,16 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     std::vector<COutput> coins;
     wallet.AvailableCoins(coins, true, nullptr, 1, MAX_MONEY, MAX_MONEY, 0,
                           params.nPoSStakeMaturity);
+    std::sort(coins.begin(), coins.end(), [](const COutput& a, const COutput& b) {
+        return a.tx->tx->vout[a.i].nValue > b.tx->tx->vout[b.i].nValue;
+    });
     CAmount mature_balance = 0;
+    CAmount selected_balance = 0;
+    // Bound legacy inputs well below the standard transaction weight limit.
+    static constexpr size_t MAX_AUTOMATIC_BOND_INPUTS = 100;
+    size_t selected_inputs = 0;
+    size_t selected_size = 0;
+    const size_t input_size_budget = MAX_STANDARD_TX_WEIGHT / 4 - 1000;
     CCoinControl coin_control;
     coin_control.m_min_depth = params.nPoSStakeMaturity;
     for (const COutput& coin : coins) {
@@ -414,13 +424,24 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         if (coin.fSpendable &&
             !pos::ParseBondScript(output.scriptPubKey, bond)) {
             mature_balance += output.nValue;
-            coin_control.Select(COutPoint(coin.tx->GetHash(), coin.i));
+            const int input_size = CalculateMaximumSignedInputSize(output, &wallet);
+            if (input_size > 0 && selected_inputs < MAX_AUTOMATIC_BOND_INPUTS &&
+                static_cast<size_t>(input_size) <= input_size_budget - selected_size) {
+                selected_balance += output.nValue;
+                selected_size += input_size;
+                coin_control.Select(COutPoint(coin.tx->GetHash(), coin.i));
+                ++selected_inputs;
+            }
         }
     }
     const CAmount reserve = wallet.GetStakingReserveBalance();
     if (mature_balance <= reserve ||
         mature_balance - reserve < params.nPoSMinStake) {
         error = "mature balance above the staking reserve is below the minimum bond";
+        return false;
+    }
+    if (std::min(selected_balance, mature_balance - reserve) < params.nPoSMinStake) {
+        error = "size-limited automatic bond is below the minimum stake";
         return false;
     }
 
@@ -452,7 +473,8 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     wallet.SetAddressBook(GetDestinationForKey(withdrawal_pubkey, OutputType::LEGACY),
                           "staking withdrawal", "receive");
 
-    amount = mature_balance - reserve;
+    // Keep the reserve across all batches, rather than subtracting it per batch.
+    amount = std::min(selected_balance, mature_balance - reserve);
     std::vector<CRecipient> recipients{
         CRecipient{pos::GetBondScript(bond), amount, true}};
     CReserveKey change_key(&wallet);

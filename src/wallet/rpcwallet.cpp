@@ -20,6 +20,7 @@
 #include <pos/crypto.h>
 #include <pos/stake.h>
 #include <pos/vrf.h>
+#include <pos/validation.h>
 #include <primitives/block.h>
 #include <rpc/mining.h>
 #include <miner.h>
@@ -5239,9 +5240,35 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
             "\nReturns this wallet's proof-of-stake operating state.\n");
     }
     LOCK2(cs_main, pwallet->cs_wallet);
-    const pos::State state = GetPoSStateSnapshot();
+    pos::State state = GetPoSStateSnapshot();
     const pos::StakeSnapshot* initial_snapshot =
         state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+    const Consensus::Params& params = Params().GetConsensus();
+    const pos::StakeSnapshot* eligible_snapshot = initial_snapshot;
+    uint64_t eligibility_epoch = 0;
+    const CBlockIndex* tip = chainActive.Tip();
+    const CBlockIndex* final_pow = params.nPoSActivationHeight > 0
+        ? chainActive[params.nPoSActivationHeight - 1] : nullptr;
+    if (tip != nullptr && final_pow != nullptr &&
+        params.IsPoSActive(tip->nHeight + 1) && params.nPoSSlotSeconds > 0) {
+        const int64_t now = GetAdjustedTime();
+        const uint64_t candidate = std::max(
+            static_cast<uint64_t>(std::max<int64_t>(0, now)) / params.nPoSSlotSeconds,
+            static_cast<uint64_t>(tip->nTime) / params.nPoSSlotSeconds + 1)
+            * params.nPoSSlotSeconds;
+        pos::SlotInfo slot;
+        pos::StateUndo undo;
+        eligible_snapshot = nullptr;
+        if (candidate <= std::numeric_limits<uint32_t>::max() &&
+            pos::GetSlotInfo(final_pow->nTime, static_cast<uint32_t>(candidate), params, slot) &&
+            state.PrepareEpoch(slot.epoch, tip->nHeight + 1, params, undo)) {
+            eligibility_epoch = slot.epoch;
+            eligible_snapshot = state.FindSnapshot(pos::GetRequiredSnapshotEpoch(
+                slot.epoch, params.nPoSSnapshotDelayEpochs));
+        }
+        // PrepareEpoch may modify the snapshot map; refresh the original pointer.
+        initial_snapshot = state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+    }
     UniValue result(UniValue::VOBJ);
     uint64_t owned_bonds = 0;
     uint64_t eligible_owned_bonds = 0;
@@ -5251,13 +5278,15 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
         if (!pwallet->HaveKey(CKeyID(item.second.data.withdrawal_key_id))) continue;
         ++owned_bonds;
         owned_bond_value += item.second.value;
-        if (initial_snapshot != nullptr) {
+        if (eligible_snapshot != nullptr) {
             const auto eligible = std::find_if(
-                initial_snapshot->entries.begin(), initial_snapshot->entries.end(),
+                eligible_snapshot->entries.begin(), eligible_snapshot->entries.end(),
                 [&item](const pos::SnapshotEntry& entry) {
                     return entry.outpoint == item.first;
                 });
-            if (eligible != initial_snapshot->entries.end()) {
+            if (eligible != eligible_snapshot->entries.end() &&
+                !state.IsEligibilityLocked(item.first, eligibility_epoch,
+                                           chainActive.Height() + 1)) {
                 ++eligible_owned_bonds;
                 eligible_owned_value += item.second.value;
             }
