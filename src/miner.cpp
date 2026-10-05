@@ -265,6 +265,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     pblock->posExtension.vote_evidence = vote_evidence;
 
     CMutableTransaction reward;
+    reward.nTime = block_time;
     reward.vin.resize(1);
     reward.vin[0].prevout.SetNull();
     reward.vin[0].scriptSig = CScript() << nHeight << OP_0;
