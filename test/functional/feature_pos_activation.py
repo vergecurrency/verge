@@ -60,6 +60,20 @@ class PoSActivationTest(VergeTestFramework):
         self.log.info("Pre-activation staking state: %s", staking_info)
         assert_equal(staking_info["tracked_bonds"], 1)
         assert_equal(staking_info["initial_snapshot_bonds"], 1)
+        pos_info = node.getposinfo()
+        assert_equal(pos_info["active"], False)
+        assert_equal(pos_info["next_block_proof"], "pos")
+        assert_equal(pos_info["tracked_bonds"], 1)
+        assert_equal(pos_info["eligible_snapshot"]["bonds"], 1)
+        assert_equal(pos_info["network"]["connections"], 1)
+        bond_info = node.getbondinfo(bond["txid"], bond["vout"])
+        assert_equal(bond_info["active"], True)
+        assert_equal(bond_info["amount"], 1000)
+        assert_equal(bond_info["eligible"], True)
+        wallet_bonds = node.listbonds()
+        assert_equal(len(wallet_bonds), 1)
+        assert_equal(wallet_bonds[0]["txid"], bond["txid"])
+        assert_equal(node.listunbondings(), [])
 
         final_pow_time = node.getblockheader(node.getbestblockhash())["time"]
         epoch_zero_time = self.next_slot(final_pow_time)
@@ -67,6 +81,11 @@ class PoSActivationTest(VergeTestFramework):
         epoch_zero = node.generatestake()
         assert_equal(node.getblockcount(), 1500)
         self.sync_all()
+        pos_info = observer.getposinfo()
+        assert_equal(pos_info["active"], True)
+        assert_equal(pos_info["current_epoch"], 0)
+        assert_equal(pos_info["latest_checkpoint"]["height"], 1500)
+        assert "peers_at_tip" in pos_info["network"]
 
         MESSAGEMAP[b"block"] = IgnoredBlockMessage
         vote_peer = node.add_p2p_connection(P2PInterface())

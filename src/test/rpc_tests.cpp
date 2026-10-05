@@ -357,4 +357,15 @@ BOOST_AUTO_TEST_CASE(rpc_convert_values_setstaking)
     BOOST_CHECK(result["reserve"].isNum());
 }
 
+BOOST_AUTO_TEST_CASE(rpc_convert_values_getbondinfo)
+{
+    const std::string txid(64, '1');
+    UniValue result = RPCConvertValues("getbondinfo", {txid, "2"});
+    BOOST_REQUIRE_EQUAL(result.size(), 2U);
+    BOOST_CHECK(result[0].isStr());
+    BOOST_CHECK_EQUAL(result[0].get_str(), txid);
+    BOOST_CHECK(result[1].isNum());
+    BOOST_CHECK_EQUAL(result[1].get_int(), 2);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

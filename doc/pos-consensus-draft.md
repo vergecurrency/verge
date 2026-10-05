@@ -579,6 +579,18 @@ Wallet count is not a consensus identity and cannot be enforced because one oper
 - mainnet readiness targets at least 100 independent operators, preferably several hundred, with more than 70 percent of bonded value reliably online.
 
 Mainnet readiness must report the largest observed bond/operator concentration, the largest ten concentration, occupied-slot rate, competing-winner rate, vote participation, finality delay, and recovery from partitions. These are release gates, not claims that on-chain keys prove human identity.
+
+The chain-level `getposinfo` RPC exposes activation and synchronization state,
+slot and epoch parameters, tracked and eligible bond totals, concentration
+indicators, snapshot roots, vote participation, justified and finalized
+checkpoints, trusted-checkpoint configuration, local clock state, and aggregate
+plus per-peer synchronization diagnostics. `getbondinfo` reports the public
+consensus status of one bond outpoint. The wallet-scoped `listbonds` RPC reports
+only bonds controlled by the selected wallet, including maturity, eligibility,
+lockout, owner destinations, and latest-vote state. `listunbondings` reports
+wallet-controlled unbond outputs and their remaining consensus lock duration.
+These reporting RPCs do not alter consensus or wallet policy.
+
 ## Wallet Behavior
 
 Staking is opt-in. Merely owning XVG or opening a wallet does not automatically expose keys or begin staking. The wallet must show:

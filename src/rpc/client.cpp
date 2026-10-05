@@ -36,6 +36,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "setstaking", 1, "reserve" },
     { "getnetworkhashps", 0, "nblocks" },
     { "getnetworkhashps", 1, "height" },
+    { "getbondinfo", 1, "vout" },
     { "getallnetworkhashps", 0, "nblocks" },
     { "getallnetworkhashps", 1, "height" },
     { "sendtoaddress", 1, "amount" },

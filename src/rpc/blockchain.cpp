@@ -14,17 +14,26 @@
 #include <validation.h>
 #include <core_io.h>
 #include <index/txindex.h>
+#include <key_io.h>
+#include <net.h>
+#include <net_processing.h>
+#include <netbase.h>
 #include <policy/feerate.h>
 #include <policy/policy.h>
+#include <pos/consensus.h>
 #include <pos/primitives.h>
+#include <pos/state.h>
+#include <pos/validation.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>
 #include <streams.h>
 #include <sync.h>
+#include <timedata.h>
 #include <txdb.h>
 #include <txmempool.h>
 #include <util/system.h>
 #include <util/strencodings.h>
+#include <version.h>
 #include <hash.h>
 #include <validationinterface.h>
 #include <warnings.h>
@@ -36,6 +45,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <condition_variable>
@@ -49,6 +59,108 @@ struct CUpdatedBlock
 static Mutex cs_blockchange;
 static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock;
+
+static UniValue PoSCheckpointToJSON(const pos::Checkpoint* checkpoint)
+{
+    UniValue result(UniValue::VOBJ);
+    if (checkpoint == nullptr || checkpoint->root.IsNull()) return result;
+
+    result.pushKV("epoch", checkpoint->epoch == pos::FINAL_POW_CHECKPOINT_EPOCH
+        ? -1 : static_cast<int64_t>(checkpoint->epoch));
+    result.pushKV("final_pow", checkpoint->epoch == pos::FINAL_POW_CHECKPOINT_EPOCH);
+    result.pushKV("slot", checkpoint->slot);
+    result.pushKV("hash", checkpoint->root.GetHex());
+    const CBlockIndex* index = LookupBlockIndex(checkpoint->root);
+    result.pushKV("height", index == nullptr ? -1 : index->nHeight);
+    return result;
+}
+
+static const pos::StakeSnapshot* GetReportingSnapshot(
+    const pos::State& state, const Consensus::Params& params,
+    uint64_t& eligibility_epoch)
+{
+    eligibility_epoch = 0;
+    if (!state.HasPoS()) {
+        return state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+    }
+    eligibility_epoch = state.LastPoSEpoch();
+    return state.FindSnapshot(pos::GetRequiredSnapshotEpoch(
+        eligibility_epoch, params.nPoSSnapshotDelayEpochs));
+}
+
+static bool SnapshotContains(const pos::StakeSnapshot* snapshot,
+                             const COutPoint& outpoint)
+{
+    return snapshot != nullptr && std::any_of(
+        snapshot->entries.begin(), snapshot->entries.end(),
+        [&outpoint](const pos::SnapshotEntry& entry) {
+            return entry.outpoint == outpoint;
+        });
+}
+
+static UniValue BondToJSON(const COutPoint& outpoint,
+                           const pos::BondRecord& bond,
+                           const pos::State& state,
+                           const Consensus::Params& params,
+                           int current_height,
+                           const pos::StakeSnapshot* eligible_snapshot,
+                           uint64_t eligibility_epoch,
+                           bool active)
+{
+    UniValue result(UniValue::VOBJ);
+    const int64_t maturity_height = static_cast<int64_t>(bond.creation_height) +
+        params.nPoSStakeMaturity;
+    const int confirmations = current_height >= bond.creation_height
+        ? current_height - bond.creation_height + 1 : 0;
+    const bool in_snapshot = active &&
+        SnapshotContains(eligible_snapshot, outpoint);
+    const bool eligibility_locked = active &&
+        state.IsEligibilityLocked(outpoint, eligibility_epoch,
+                                  current_height + 1);
+
+    result.pushKV("txid", outpoint.hash.GetHex());
+    result.pushKV("vout", static_cast<uint64_t>(outpoint.n));
+    result.pushKV("active", active);
+    result.pushKV("amount", ValueFromAmount(bond.value));
+    result.pushKV("creation_height", bond.creation_height);
+    result.pushKV("confirmations", confirmations);
+    result.pushKV("maturity_height", maturity_height);
+    result.pushKV("blocks_to_maturity",
+                  std::max<int64_t>(0, maturity_height - current_height));
+    result.pushKV("mature", current_height >= maturity_height);
+    result.pushKV("in_eligible_snapshot", in_snapshot);
+    result.pushKV("eligibility_locked", eligibility_locked);
+    result.pushKV("withdrawal_locked",
+                  active && state.IsWithdrawalLocked(outpoint,
+                                                       current_height + 1));
+    result.pushKV("eligible", in_snapshot && !eligibility_locked);
+    result.pushKV("signing_public_key",
+                  HexStr(bond.data.signing_public_key,
+                         bond.data.signing_public_key +
+                             pos::SCHNORR_PUBLIC_KEY_SIZE));
+    result.pushKV("vrf_public_key",
+                  HexStr(bond.data.vrf_public_key,
+                         bond.data.vrf_public_key + pos::VRF_PUBLIC_KEY_SIZE));
+    result.pushKV("reward_address",
+                  EncodeDestination(CKeyID(bond.data.reward_key_id)));
+    result.pushKV("withdrawal_address",
+                  EncodeDestination(CKeyID(bond.data.withdrawal_key_id)));
+
+    const auto vote = state.LatestVotes().find(outpoint);
+    if (vote != state.LatestVotes().end()) {
+        UniValue latest_vote(UniValue::VOBJ);
+        latest_vote.pushKV("source_epoch",
+                           vote->second.source_epoch == pos::FINAL_POW_CHECKPOINT_EPOCH
+                               ? -1 : static_cast<int64_t>(vote->second.source_epoch));
+        latest_vote.pushKV("target_epoch",
+                           static_cast<uint64_t>(vote->second.target_epoch));
+        latest_vote.pushKV("head_slot", vote->second.head_slot);
+        latest_vote.pushKV("head_block_hash",
+                           vote->second.head_block_root.GetHex());
+        result.pushKV("latest_vote", latest_vote);
+    }
+    return result;
+}
 
 
 CBlockIndex* GetLastBlockIndex4Algo(CBlockIndex* pindex, int algo)
@@ -1325,6 +1437,408 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     return obj;
 }
 
+static UniValue getposinfo(const JSONRPCRequest& request)
+{
+    if (request.fHelp || !request.params.empty()) {
+        throw std::runtime_error(
+            "getposinfo\n"
+            "Returns network-wide proof-of-stake activation, bond, snapshot, "
+            "voting, and finality state.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getposinfo", "")
+            + HelpExampleRpc("getposinfo", ""));
+    }
+
+    std::vector<CNodeStats> peer_stats;
+    std::map<NodeId, CNodeStateStats> peer_state_stats;
+    if (g_connman) {
+        g_connman->GetNodeStats(peer_stats);
+        for (const CNodeStats& peer : peer_stats) {
+            CNodeStateStats stats;
+            if (GetNodeStateStats(peer.nodeid, stats)) {
+                peer_state_stats.emplace(peer.nodeid, std::move(stats));
+            }
+        }
+    }
+
+    LOCK(cs_main);
+    const CBlockIndex* tip = chainActive.Tip();
+    if (tip == nullptr) {
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
+                           "Block chain is not initialized");
+    }
+
+    const Consensus::Params& params = Params().GetConsensus();
+    const pos::State state = GetPoSStateSnapshot();
+    uint64_t eligibility_epoch = 0;
+    const pos::StakeSnapshot* eligible_snapshot = GetReportingSnapshot(
+        state, params, eligibility_epoch);
+    const pos::StakeSnapshot* initial_snapshot =
+        state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+
+    CAmount total_bond_value = 0;
+    CAmount largest_bond_value = 0;
+    std::set<uint160> reward_keys;
+    std::set<uint160> withdrawal_keys;
+    for (const auto& item : state.Bonds()) {
+        if (MoneyRange(total_bond_value + item.second.value)) {
+            total_bond_value += item.second.value;
+        }
+        largest_bond_value = std::max(largest_bond_value, item.second.value);
+        reward_keys.insert(item.second.data.reward_key_id);
+        withdrawal_keys.insert(item.second.data.withdrawal_key_id);
+    }
+    CAmount latest_vote_weight = 0;
+    CAmount eligible_vote_weight = 0;
+    uint64_t eligible_latest_votes = 0;
+    for (const auto& item : state.LatestVotes()) {
+        const CAmount weight = state.GetVoteWeight(item.second);
+        if (weight > 0 && MoneyRange(latest_vote_weight + weight)) {
+            latest_vote_weight += weight;
+        }
+        if (eligible_snapshot != nullptr && weight > 0 &&
+            item.second.snapshot_epoch == eligible_snapshot->source_epoch &&
+            SnapshotContains(eligible_snapshot, item.first) &&
+            MoneyRange(eligible_vote_weight + weight)) {
+            eligible_vote_weight += weight;
+            ++eligible_latest_votes;
+        }
+    }
+
+    UniValue result(UniValue::VOBJ);
+    const int current_height = tip->nHeight;
+    const bool active = params.IsPoSActive(current_height);
+    result.pushKV("active", active);
+    result.pushKV("status", active ? "active" : "waiting_for_activation");
+    result.pushKV("current_height", current_height);
+    result.pushKV("best_block_hash", tip->GetBlockHash().GetHex());
+    result.pushKV("best_block_time", static_cast<int64_t>(tip->nTime));
+    result.pushKV("best_block_age", std::max<int64_t>(
+        0, GetAdjustedTime() - static_cast<int64_t>(tip->nTime)));
+    result.pushKV("initial_block_download", IsInitialBlockDownload());
+    result.pushKV("adjusted_time", GetAdjustedTime());
+    result.pushKV("local_time_offset", GetTimeOffset());
+    result.pushKV("activation_height", params.nPoSActivationHeight);
+    result.pushKV("blocks_until_activation", std::max<int64_t>(
+        0, static_cast<int64_t>(params.nPoSActivationHeight) - current_height));
+    result.pushKV("next_block_proof",
+                  params.IsPoSActive(current_height + 1) ? "pos" : "pow");
+    result.pushKV("minimum_bond", ValueFromAmount(params.nPoSMinStake));
+    result.pushKV("bond_maturity", static_cast<uint64_t>(params.nPoSStakeMaturity));
+    result.pushKV("unbonding_blocks", static_cast<uint64_t>(params.nPoSUnbondingBlocks));
+    result.pushKV("slot_seconds", static_cast<uint64_t>(params.nPoSSlotSeconds));
+    result.pushKV("epoch_slots", static_cast<uint64_t>(params.nPoSEpochSlots));
+    result.pushKV("snapshot_delay_epochs",
+                  static_cast<uint64_t>(params.nPoSSnapshotDelayEpochs));
+    result.pushKV("state_block_hash", state.BestBlock().GetHex());
+    result.pushKV("tracked_bonds", static_cast<uint64_t>(state.Bonds().size()));
+    result.pushKV("tracked_bond_value", ValueFromAmount(total_bond_value));
+    result.pushKV("largest_bond_value", ValueFromAmount(largest_bond_value));
+    result.pushKV("largest_bond_percent", total_bond_value > 0
+        ? 100.0 * static_cast<double>(largest_bond_value) /
+              static_cast<double>(total_bond_value)
+        : 0.0);
+    result.pushKV("unique_reward_keys",
+                  static_cast<uint64_t>(reward_keys.size()));
+    result.pushKV("unique_withdrawal_keys",
+                  static_cast<uint64_t>(withdrawal_keys.size()));
+    result.pushKV("latest_votes",
+                  static_cast<uint64_t>(state.LatestVotes().size()));
+    result.pushKV("latest_vote_weight", ValueFromAmount(latest_vote_weight));
+    result.pushKV("eligible_latest_votes", eligible_latest_votes);
+    result.pushKV("eligible_latest_vote_weight",
+                  ValueFromAmount(eligible_vote_weight));
+
+    if (state.HasPoS()) {
+        result.pushKV("current_epoch", state.LastPoSEpoch());
+        const CBlockIndex* final_pow = params.nPoSActivationHeight > 0
+            ? chainActive[params.nPoSActivationHeight - 1] : nullptr;
+        pos::SlotInfo slot;
+        if (final_pow != nullptr &&
+            pos::GetSlotInfo(final_pow->nTime, tip->nTime, params, slot)) {
+            result.pushKV("current_slot",
+                          static_cast<uint64_t>(slot.slot_in_epoch));
+            result.pushKV("global_slot", slot.global_slot);
+            const uint64_t elapsed_slots =
+                static_cast<uint64_t>(slot.slot_in_epoch) + 1;
+            uint64_t epoch_blocks = 0;
+            for (const CBlockIndex* index = tip;
+                 index != nullptr && pos::IsPoSVersion(index->nVersion);
+                 index = index->pprev) {
+                pos::SlotInfo index_slot;
+                if (!pos::GetSlotInfo(final_pow->nTime, index->nTime, params,
+                                      index_slot) ||
+                    index_slot.epoch != slot.epoch) {
+                    break;
+                }
+                ++epoch_blocks;
+            }
+            result.pushKV("current_epoch_blocks", epoch_blocks);
+            result.pushKV("current_epoch_elapsed_slots", elapsed_slots);
+            result.pushKV("current_epoch_missed_slots",
+                          elapsed_slots > epoch_blocks
+                              ? elapsed_slots - epoch_blocks : 0);
+            result.pushKV("current_epoch_occupied_percent",
+                          elapsed_slots > 0
+                              ? 100.0 * static_cast<double>(epoch_blocks) /
+                                    static_cast<double>(elapsed_slots)
+                              : 0.0);
+            const int64_t adjusted_time = std::max<int64_t>(0, GetAdjustedTime());
+            const uint64_t adjusted_slot =
+                static_cast<uint64_t>(adjusted_time) / params.nPoSSlotSeconds;
+            result.pushKV("tip_slot_lag",
+                          adjusted_slot > slot.global_slot
+                              ? adjusted_slot - slot.global_slot : 0);
+            result.pushKV("seconds_until_next_slot",
+                          params.nPoSSlotSeconds -
+                              static_cast<uint64_t>(adjusted_time) %
+                                  params.nPoSSlotSeconds);
+        }
+    }
+
+    UniValue initial(UniValue::VOBJ);
+    initial.pushKV("available", initial_snapshot != nullptr);
+    if (initial_snapshot != nullptr) {
+        initial.pushKV("source_height", initial_snapshot->source_height);
+        initial.pushKV("bonds",
+                       static_cast<uint64_t>(initial_snapshot->entries.size()));
+        initial.pushKV("value", ValueFromAmount(initial_snapshot->total_value));
+        initial.pushKV("root", initial_snapshot->root.GetHex());
+    }
+    result.pushKV("initial_snapshot", initial);
+
+    UniValue eligible(UniValue::VOBJ);
+    eligible.pushKV("available", eligible_snapshot != nullptr);
+    eligible.pushKV("eligibility_epoch", eligibility_epoch);
+    if (eligible_snapshot != nullptr) {
+        eligible.pushKV("source_epoch",
+                        eligible_snapshot->source_epoch == pos::INITIAL_SNAPSHOT_EPOCH
+                            ? -1 : static_cast<int64_t>(eligible_snapshot->source_epoch));
+        eligible.pushKV("source_height", eligible_snapshot->source_height);
+        eligible.pushKV("bonds",
+                        static_cast<uint64_t>(eligible_snapshot->entries.size()));
+        eligible.pushKV("value", ValueFromAmount(eligible_snapshot->total_value));
+        eligible.pushKV("root", eligible_snapshot->root.GetHex());
+        eligible.pushKV("vote_participation_percent",
+                        eligible_snapshot->total_value > 0
+                            ? 100.0 * static_cast<double>(eligible_vote_weight) /
+                                  static_cast<double>(eligible_snapshot->total_value)
+                            : 0.0);
+        std::vector<pos::SnapshotEntry> concentration =
+            eligible_snapshot->entries;
+        std::sort(concentration.begin(), concentration.end(),
+                  [](const pos::SnapshotEntry& a,
+                     const pos::SnapshotEntry& b) {
+                      if (a.bond.value != b.bond.value) {
+                          return a.bond.value > b.bond.value;
+                      }
+                      return a.outpoint < b.outpoint;
+                  });
+        UniValue largest(UniValue::VARR);
+        CAmount largest_ten_value = 0;
+        const size_t limit = std::min<size_t>(10, concentration.size());
+        for (size_t i = 0; i < limit; ++i) {
+            const pos::SnapshotEntry& snapshot_entry = concentration[i];
+            if (MoneyRange(largest_ten_value + snapshot_entry.bond.value)) {
+                largest_ten_value += snapshot_entry.bond.value;
+            }
+            UniValue bond(UniValue::VOBJ);
+            bond.pushKV("txid", snapshot_entry.outpoint.hash.GetHex());
+            bond.pushKV("vout",
+                        static_cast<uint64_t>(snapshot_entry.outpoint.n));
+            bond.pushKV("amount",
+                        ValueFromAmount(snapshot_entry.bond.value));
+            bond.pushKV("percent", eligible_snapshot->total_value > 0
+                ? 100.0 * static_cast<double>(snapshot_entry.bond.value) /
+                      static_cast<double>(eligible_snapshot->total_value)
+                : 0.0);
+            largest.push_back(bond);
+        }
+        eligible.pushKV("largest_ten_value",
+                        ValueFromAmount(largest_ten_value));
+        eligible.pushKV("largest_ten_percent",
+                        eligible_snapshot->total_value > 0
+                            ? 100.0 * static_cast<double>(largest_ten_value) /
+                                  static_cast<double>(eligible_snapshot->total_value)
+                            : 0.0);
+        eligible.pushKV("largest_bonds", largest);
+        eligible.pushKV("concentration_basis", "individual bond outpoints; operator identity cannot be inferred on-chain");
+    }
+    result.pushKV("eligible_snapshot", eligible);
+    result.pushKV("latest_checkpoint",
+                  PoSCheckpointToJSON(state.LatestCheckpoint()));
+    result.pushKV("latest_justified",
+                  PoSCheckpointToJSON(state.LatestJustified()));
+    result.pushKV("finalized", PoSCheckpointToJSON(&state.Finalized()));
+
+    const pos::Checkpoint* latest_checkpoint = state.LatestCheckpoint();
+    const pos::Checkpoint& finalized_checkpoint = state.Finalized();
+    if (latest_checkpoint != nullptr &&
+        latest_checkpoint->epoch != pos::FINAL_POW_CHECKPOINT_EPOCH) {
+        const uint64_t lag =
+            finalized_checkpoint.epoch == pos::FINAL_POW_CHECKPOINT_EPOCH
+                ? latest_checkpoint->epoch + 1
+                : (latest_checkpoint->epoch >= finalized_checkpoint.epoch
+                       ? latest_checkpoint->epoch - finalized_checkpoint.epoch
+                       : 0);
+        result.pushKV("finality_lag_epochs", lag);
+    }
+
+    UniValue trusted(UniValue::VOBJ);
+    trusted.pushKV("configured", params.nPoSTrustedCheckpointHeight >= 0 &&
+                                     !params.hashPoSTrustedCheckpoint.IsNull());
+    if (params.nPoSTrustedCheckpointHeight >= 0 &&
+        !params.hashPoSTrustedCheckpoint.IsNull()) {
+        trusted.pushKV("height", params.nPoSTrustedCheckpointHeight);
+        trusted.pushKV("hash", params.hashPoSTrustedCheckpoint.GetHex());
+    }
+    result.pushKV("trusted_checkpoint", trusted);
+
+    UniValue network(UniValue::VOBJ);
+    network.pushKV("p2p_enabled", g_connman != nullptr);
+    network.pushKV("network_active",
+                   g_connman != nullptr && g_connman->GetNetworkActive());
+    network.pushKV("connections", static_cast<uint64_t>(peer_stats.size()));
+    network.pushKV("local_protocol_version", PROTOCOL_VERSION);
+    uint64_t inbound = 0;
+    uint64_t outbound = 0;
+    uint64_t peers_at_tip = 0;
+    uint64_t matching_protocol = 0;
+    uint64_t lower_protocol = 0;
+    uint64_t higher_protocol = 0;
+    uint64_t whitelisted = 0;
+    uint64_t manual = 0;
+    uint64_t bytes_sent = 0;
+    uint64_t bytes_received = 0;
+    double total_ping = 0.0;
+    uint64_t ping_samples = 0;
+    std::map<Network, uint64_t> peers_by_network;
+    int minimum_starting_height = peer_stats.empty()
+        ? -1 : std::numeric_limits<int>::max();
+    int maximum_starting_height = -1;
+    std::vector<int64_t> offsets;
+    UniValue peers(UniValue::VARR);
+    for (const CNodeStats& peer : peer_stats) {
+        peer.fInbound ? ++inbound : ++outbound;
+        if (peer.nVersion == PROTOCOL_VERSION) ++matching_protocol;
+        else if (peer.nVersion < PROTOCOL_VERSION) ++lower_protocol;
+        else ++higher_protocol;
+        if (peer.fWhitelisted) ++whitelisted;
+        if (peer.m_manual_connection) ++manual;
+        bytes_sent += peer.nSendBytes;
+        bytes_received += peer.nRecvBytes;
+        ++peers_by_network[peer.addr.GetNetwork()];
+        if (peer.dPingTime > 0.0) {
+            total_ping += peer.dPingTime;
+            ++ping_samples;
+        }
+        minimum_starting_height = std::min(minimum_starting_height,
+                                           peer.nStartingHeight);
+        maximum_starting_height = std::max(maximum_starting_height,
+                                           peer.nStartingHeight);
+        offsets.push_back(peer.nTimeOffset);
+
+        UniValue item(UniValue::VOBJ);
+        item.pushKV("id", peer.nodeid);
+        item.pushKV("inbound", peer.fInbound);
+        item.pushKV("manual", peer.m_manual_connection);
+        item.pushKV("version", peer.nVersion);
+        item.pushKV("subversion", peer.cleanSubVer);
+        item.pushKV("services", strprintf("%016x", peer.nServices));
+        item.pushKV("starting_height", peer.nStartingHeight);
+        item.pushKV("time_offset", peer.nTimeOffset);
+        item.pushKV("connected_since", peer.nTimeConnected);
+        item.pushKV("last_send", peer.nLastSend);
+        item.pushKV("last_receive", peer.nLastRecv);
+        if (peer.dPingTime > 0.0) item.pushKV("ping_time", peer.dPingTime);
+        const auto state_stats = peer_state_stats.find(peer.nodeid);
+        if (state_stats != peer_state_stats.end()) {
+            item.pushKV("synced_headers", state_stats->second.nSyncHeight);
+            item.pushKV("synced_blocks", state_stats->second.nCommonHeight);
+            item.pushKV("blocks_in_flight",
+                        static_cast<uint64_t>(state_stats->second.vHeightInFlight.size()));
+            item.pushKV("misbehavior_score", state_stats->second.nMisbehavior);
+            if (state_stats->second.nCommonHeight >= current_height) {
+                ++peers_at_tip;
+            }
+        }
+        peers.push_back(item);
+    }
+    network.pushKV("inbound", inbound);
+    network.pushKV("outbound", outbound);
+    network.pushKV("peers_at_tip", peers_at_tip);
+    network.pushKV("matching_protocol", matching_protocol);
+    network.pushKV("lower_protocol", lower_protocol);
+    network.pushKV("higher_protocol", higher_protocol);
+    network.pushKV("manual", manual);
+    network.pushKV("whitelisted", whitelisted);
+    network.pushKV("bytes_sent", bytes_sent);
+    network.pushKV("bytes_received", bytes_received);
+    if (ping_samples > 0) {
+        network.pushKV("average_ping_time",
+                       total_ping / static_cast<double>(ping_samples));
+    }
+    UniValue network_counts(UniValue::VOBJ);
+    for (const auto& count : peers_by_network) {
+        network_counts.pushKV(GetNetworkName(count.first), count.second);
+    }
+    network.pushKV("connections_by_network", network_counts);
+    network.pushKV("minimum_starting_height", minimum_starting_height);
+    network.pushKV("maximum_starting_height", maximum_starting_height);
+    if (!offsets.empty()) {
+        std::sort(offsets.begin(), offsets.end());
+        network.pushKV("median_peer_time_offset",
+                       offsets[offsets.size() / 2]);
+        network.pushKV("minimum_peer_time_offset", offsets.front());
+        network.pushKV("maximum_peer_time_offset", offsets.back());
+    }
+    network.pushKV("peers", peers);
+    result.pushKV("network", network);
+    return result;
+}
+
+static UniValue getbondinfo(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 2) {
+        throw std::runtime_error(
+            "getbondinfo \"txid\" vout\n"
+            "Returns the public proof-of-stake consensus record for a bond.\n"
+            "\nArguments:\n"
+            "1. \"txid\"  (string, required) bond transaction id\n"
+            "2. vout      (numeric, required) bond output index\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getbondinfo", "\"txid\" 0")
+            + HelpExampleRpc("getbondinfo", "\"txid\", 0"));
+    }
+    const uint256 txid = ParseHashV(request.params[0], "txid");
+    const int output_index = request.params[1].get_int();
+    if (output_index < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "vout must be non-negative");
+    }
+
+    LOCK(cs_main);
+    const CBlockIndex* tip = chainActive.Tip();
+    if (tip == nullptr) {
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
+                           "Block chain is not initialized");
+    }
+    const COutPoint outpoint(txid, static_cast<uint32_t>(output_index));
+    const Consensus::Params& params = Params().GetConsensus();
+    const pos::State state = GetPoSStateSnapshot();
+    const pos::BondRecord* bond = state.FindBond(outpoint);
+    const bool active = bond != nullptr;
+    if (bond == nullptr) bond = state.FindHistoricalBond(outpoint);
+    if (bond == nullptr) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           "Bond record not found");
+    }
+    uint64_t eligibility_epoch = 0;
+    const pos::StakeSnapshot* eligible_snapshot = GetReportingSnapshot(
+        state, params, eligibility_epoch);
+    return BondToJSON(outpoint, *bond, state, params, tip->nHeight,
+                      eligible_snapshot, eligibility_epoch, active);
+}
+
 /** Comparison function for sorting the getchaintips heads.  */
 struct CompareBlocksByHeight
 {
@@ -1974,6 +2488,8 @@ static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
     { "blockchain",         "getblockchaininfo",      &getblockchaininfo,      {} },
+    { "blockchain",         "getposinfo",             &getposinfo,             {} },
+    { "blockchain",         "getbondinfo",            &getbondinfo,            {"txid", "vout"} },
     { "blockchain",         "getchaintxstats",        &getchaintxstats,        {"nblocks", "blockhash"} },
     { "blockchain",         "getblockstats",          &getblockstats,          {"hash_or_height", "stats"} },
     { "blockchain",         "getbestblockhash",       &getbestblockhash,       {} },

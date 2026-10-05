@@ -5330,6 +5330,171 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
     return result;
 }
 
+static UniValue listbonds(const JSONRPCRequest& request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) return NullUniValue;
+    if (request.fHelp || !request.params.empty()) {
+        throw std::runtime_error(
+            "listbonds\n"
+            "Returns active proof-of-stake bonds controlled by this wallet, "
+            "including maturity, snapshot, lockout, and latest-vote state.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listbonds", "")
+            + HelpExampleRpc("listbonds", ""));
+    }
+
+    pwallet->BlockUntilSyncedToCurrentChain();
+    LOCK2(cs_main, pwallet->cs_wallet);
+    pos::State state = GetPoSStateSnapshot();
+    const Consensus::Params& params = Params().GetConsensus();
+    const CBlockIndex* tip = chainActive.Tip();
+    if (tip == nullptr) return UniValue(UniValue::VARR);
+
+    uint64_t eligibility_epoch = 0;
+    const pos::StakeSnapshot* eligible_snapshot =
+        state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+    const CBlockIndex* final_pow = params.nPoSActivationHeight > 0
+        ? chainActive[params.nPoSActivationHeight - 1] : nullptr;
+    if (final_pow != nullptr && params.IsPoSActive(tip->nHeight + 1) &&
+        params.nPoSSlotSeconds > 0) {
+        const int64_t now = GetAdjustedTime();
+        const uint64_t candidate = std::max(
+            static_cast<uint64_t>(std::max<int64_t>(0, now)) /
+                params.nPoSSlotSeconds,
+            static_cast<uint64_t>(tip->nTime) / params.nPoSSlotSeconds + 1) *
+            params.nPoSSlotSeconds;
+        pos::SlotInfo slot;
+        pos::StateUndo undo;
+        eligible_snapshot = nullptr;
+        if (candidate <= std::numeric_limits<uint32_t>::max() &&
+            pos::GetSlotInfo(final_pow->nTime,
+                             static_cast<uint32_t>(candidate), params, slot) &&
+            state.PrepareEpoch(slot.epoch, tip->nHeight + 1, params, undo)) {
+            eligibility_epoch = slot.epoch;
+            eligible_snapshot = state.FindSnapshot(
+                pos::GetRequiredSnapshotEpoch(
+                    slot.epoch, params.nPoSSnapshotDelayEpochs));
+        }
+    }
+
+    UniValue result(UniValue::VARR);
+    for (const auto& item : state.Bonds()) {
+        const COutPoint& outpoint = item.first;
+        const pos::BondRecord& bond = item.second;
+        if (!pwallet->HaveKey(CKeyID(bond.data.withdrawal_key_id))) continue;
+
+        const auto snapshot_entry = eligible_snapshot == nullptr
+            ? std::vector<pos::SnapshotEntry>::const_iterator{}
+            : std::find_if(eligible_snapshot->entries.begin(),
+                           eligible_snapshot->entries.end(),
+                           [&outpoint](const pos::SnapshotEntry& entry) {
+                               return entry.outpoint == outpoint;
+                           });
+        const bool in_snapshot = eligible_snapshot != nullptr &&
+            snapshot_entry != eligible_snapshot->entries.end();
+        const bool eligibility_locked = state.IsEligibilityLocked(
+            outpoint, eligibility_epoch, tip->nHeight + 1);
+        const int64_t maturity_height =
+            static_cast<int64_t>(bond.creation_height) +
+            params.nPoSStakeMaturity;
+
+        UniValue entry(UniValue::VOBJ);
+        entry.pushKV("txid", outpoint.hash.GetHex());
+        entry.pushKV("vout", static_cast<uint64_t>(outpoint.n));
+        entry.pushKV("amount", ValueFromAmount(bond.value));
+        entry.pushKV("creation_height", bond.creation_height);
+        entry.pushKV("confirmations", tip->nHeight >= bond.creation_height
+            ? tip->nHeight - bond.creation_height + 1 : 0);
+        entry.pushKV("maturity_height", maturity_height);
+        entry.pushKV("blocks_to_maturity", std::max<int64_t>(
+            0, maturity_height - tip->nHeight));
+        entry.pushKV("mature", tip->nHeight >= maturity_height);
+        entry.pushKV("in_eligible_snapshot", in_snapshot);
+        entry.pushKV("eligibility_locked", eligibility_locked);
+        entry.pushKV("withdrawal_locked",
+                     state.IsWithdrawalLocked(outpoint, tip->nHeight + 1));
+        entry.pushKV("eligible", in_snapshot && !eligibility_locked);
+        entry.pushKV("signing_public_key",
+                     HexStr(bond.data.signing_public_key,
+                            bond.data.signing_public_key +
+                                pos::SCHNORR_PUBLIC_KEY_SIZE));
+        entry.pushKV("vrf_public_key",
+                     HexStr(bond.data.vrf_public_key,
+                            bond.data.vrf_public_key +
+                                pos::VRF_PUBLIC_KEY_SIZE));
+        entry.pushKV("reward_address",
+                     EncodeDestination(CKeyID(bond.data.reward_key_id)));
+        entry.pushKV("withdrawal_address",
+                     EncodeDestination(CKeyID(bond.data.withdrawal_key_id)));
+        const auto vote = state.LatestVotes().find(outpoint);
+        if (vote != state.LatestVotes().end()) {
+            UniValue latest_vote(UniValue::VOBJ);
+            latest_vote.pushKV("target_epoch", vote->second.target_epoch);
+            latest_vote.pushKV("head_slot", vote->second.head_slot);
+            latest_vote.pushKV("head_block_hash",
+                               vote->second.head_block_root.GetHex());
+            entry.pushKV("latest_vote", latest_vote);
+        }
+        result.push_back(entry);
+    }
+    return result;
+}
+
+static UniValue listunbondings(const JSONRPCRequest& request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) return NullUniValue;
+    if (request.fHelp || !request.params.empty()) {
+        throw std::runtime_error(
+            "listunbondings\n"
+            "Returns unspent proof-of-stake unbond outputs controlled by this "
+            "wallet and their remaining consensus lock time.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listunbondings", "")
+            + HelpExampleRpc("listunbondings", ""));
+    }
+
+    pwallet->BlockUntilSyncedToCurrentChain();
+    LOCK2(cs_main, pwallet->cs_wallet);
+    const int current_height = chainActive.Height();
+    UniValue result(UniValue::VARR);
+    for (const auto& wallet_item : pwallet->mapWallet) {
+        const CWalletTx& wallet_tx = wallet_item.second;
+        const int depth = wallet_tx.GetDepthInMainChain();
+        if (depth < 0) continue;
+        for (uint32_t i = 0; i < wallet_tx.tx->vout.size(); ++i) {
+            pos::UnbondData unbond;
+            if (pwallet->IsSpent(wallet_item.first, i) ||
+                !pos::ParseUnbondScript(
+                    wallet_tx.tx->vout[i].scriptPubKey, unbond) ||
+                !pwallet->HaveKey(CKeyID(unbond.withdrawal_key_id))) {
+                continue;
+            }
+            UniValue entry(UniValue::VOBJ);
+            entry.pushKV("txid", wallet_item.first.GetHex());
+            entry.pushKV("vout", static_cast<uint64_t>(i));
+            entry.pushKV("amount",
+                         ValueFromAmount(wallet_tx.tx->vout[i].nValue));
+            entry.pushKV("confirmations", depth);
+            entry.pushKV("unlock_height",
+                         static_cast<uint64_t>(unbond.unlock_height));
+            entry.pushKV("blocks_until_unlock", std::max<int64_t>(
+                0, static_cast<int64_t>(unbond.unlock_height) -
+                       (static_cast<int64_t>(current_height) + 1)));
+            entry.pushKV("unlocked",
+                         current_height + 1 >=
+                             static_cast<int64_t>(unbond.unlock_height));
+            entry.pushKV("withdrawal_address",
+                         EncodeDestination(CKeyID(unbond.withdrawal_key_id)));
+            result.push_back(entry);
+        }
+    }
+    return result;
+}
+
 static const CRPCCommand commands[] =
 { //  category              name                                actor (function)                argNames
     //  --------------------- ------------------------          -----------------------         ----------
@@ -5357,6 +5522,8 @@ static const CRPCCommand commands[] =
     { "wallet",             "getunconfirmedbalance",            &getunconfirmedbalance,         {} },
     { "wallet",             "getwalletinfo",                    &getwalletinfo,                 {} },
     { "staking",            "getstakinginfo",                  &getstakinginfo,                {} },
+    { "staking",            "listbonds",                       &listbonds,                     {} },
+    { "staking",            "listunbondings",                  &listunbondings,                {} },
     { "staking",            "generatestake",                   &generatestake,                 {} },
     { "wallet",             "importmulti",                      &importmulti,                   {"requests","options"} },
     { "wallet",             "importprivkey",                    &importprivkey,                 {"privkey","label","rescan"} },

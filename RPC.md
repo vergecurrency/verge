@@ -175,9 +175,22 @@ saved reserve; unbonding remains an explicit transaction.
 | --- | --- | --- |
 | `setstaking` | `setstaking enabled ( reserve )` | `verge-cli setstaking true 10000` |
 | `getstakinginfo` | `getstakinginfo` | `verge-cli getstakinginfo` |
+| `getposinfo` | `getposinfo` | `verge-cli getposinfo` |
+| `getbondinfo` | `getbondinfo "txid" vout` | `verge-cli getbondinfo <txid> 0` |
+| `listbonds` | `listbonds` | `verge-cli listbonds` |
+| `listunbondings` | `listunbondings` | `verge-cli listunbondings` |
 | `createbond` | `createbond amount ( "reward_address" "withdrawal_address" )` | `verge-cli createbond 1000` |
 | `unbond` | `unbond "txid" vout` | `verge-cli unbond <txid> 0` |
 | `generatestake` | `generatestake` | `verge-cli generatestake` |
+
+`getposinfo` is the primary operator view. It reports activation and sync state,
+tip age and local timing, slot and epoch progress, missed-slot and occupancy
+metrics, tracked and eligible stake, largest-bond concentration, current
+snapshot vote participation, checkpoint and finality lag, trusted-checkpoint
+configuration, and aggregate plus per-peer synchronization diagnostics.
+Individual peer entries omit network addresses but include direction, protocol,
+subversion, services, starting and synchronized heights, clock offset, latency,
+activity times, blocks in flight, and misbehavior score.
 
 ## Label Wallet Commands
 

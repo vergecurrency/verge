@@ -196,6 +196,8 @@ public:
     const StakeSnapshot* FindSnapshot(uint64_t source_epoch) const;
     bool RemovePreActivationSnapshot(int32_t expected_source_height);
     const std::map<COutPoint, BondRecord>& Bonds() const { return m_bonds; }
+    bool HasPoS() const { return m_has_pos; }
+    uint64_t LastPoSEpoch() const { return m_last_pos_epoch; }
     const uint256& BestBlock() const { return m_best_block; }
     const uint256* FindEpochSeed(uint64_t epoch) const;
     bool SetEpochSeed(uint64_t epoch, const uint256& seed, StateUndo& undo);
