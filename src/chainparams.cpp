@@ -435,10 +435,10 @@ consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000
 // By default assume that the signatures in ancestors of this block are valid.
 consensus.defaultAssumeValid = uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"); //also genesis
 
-pchMessageStart[0] = 0xdf;
-pchMessageStart[1] = 0xd9;
-pchMessageStart[2] = 0xdd;
-pchMessageStart[3] = 0xfb;
+pchMessageStart[0] = 0xe6;
+pchMessageStart[1] = 0x5d;
+pchMessageStart[2] = 0x7f;
+pchMessageStart[3] = 0xad;
 nDefaultPort = 21104;
 nPruneAfterHeight = 1000;
 
