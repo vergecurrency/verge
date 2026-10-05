@@ -83,6 +83,7 @@ public:
     const ChainTxData& TxData() const { return chainTxData; }
     void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
     void UpdatePoSActivationHeight(int height);
+    void UpdatePoSTrustedCheckpoint(int height, const uint256& hash);
 protected:
     CChainParams() {}
 
@@ -131,5 +132,6 @@ void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime,
 
 /** Allows overriding the PoS activation height on regtest only. */
 void UpdatePoSActivationHeight(int height);
+void UpdatePoSTrustedCheckpoint(int height, const uint256& hash);
 
 #endif // VERGE_CHAINPARAMS_H

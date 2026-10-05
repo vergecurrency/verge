@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(pos_header_serialization_omits_extension)
     std::vector<CBlock> headers{block};
     CSerializedNetMsg message = CNetMsgMaker(PROTOCOL_VERSION).Make(
         SER_BLOCKHEADERONLY, NetMsgType::HEADERS, headers);
-    BOOST_CHECK_EQUAL(message.data.size(), 83U);
+    BOOST_CHECK_EQUAL(message.data.size(), 115U);
     CDataStream stream(message.data, SER_NETWORK, PROTOCOL_VERSION);
 
     BOOST_CHECK_EQUAL(ReadCompactSize(stream), 1U);
@@ -178,12 +178,15 @@ BOOST_AUTO_TEST_CASE(full_block_linkage)
     block.posExtension.stake_proof.slot = 10;
     block.posExtension.authorization.slot = 10;
     block.posExtension.authorization.parent_block_root = block.hashPrevBlock;
-    block.posExtension.authorization.candidate_header_hash = block.GetHash();
+    block.posExtension.authorization.candidate_header_hash =
+        pos::GetPoSHeaderSigningHash(block);
     block.posExtension.authorization.stake_proof_hash =
         pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF,
                            block.posExtension.stake_proof);
     block.posExtension.authorization.fee_reward_transaction_hash =
         block.vtx.front()->GetHash();
+    block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
+    block.hash.SetNull();
 
     BOOST_CHECK(pos::CheckLinkage(block.posExtension, block, 10, 1) ==
                 pos::StructureError::NONE);
@@ -196,6 +199,28 @@ BOOST_AUTO_TEST_CASE(full_block_linkage)
     block.posExtension.authorization.candidate_header_hash = uint256S("10");
     BOOST_CHECK(pos::CheckLinkage(block.posExtension, block, 10, 1) ==
                 pos::StructureError::INVALID_AUTHORIZATION);
+}
+
+BOOST_AUTO_TEST_CASE(pos_authorization_is_committed_to_block_id)
+{
+    CBlock block;
+    block.nVersion = 2 | pos::BLOCK_VERSION_POS;
+    block.hashPrevBlock = uint256S("05");
+    block.hashMerkleRoot = uint256S("09");
+    block.nTime = 30;
+    block.posExtension = MakeExtension();
+    block.posExtension.authorization.candidate_header_hash =
+        pos::GetPoSHeaderSigningHash(block);
+    block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
+    block.hash.SetNull();
+    const uint256 original = block.GetHash();
+    const uint256 signing_hash = pos::GetPoSHeaderSigningHash(block);
+
+    block.posExtension.authorization.signature[1] ^= 1;
+    block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
+    block.hash.SetNull();
+    BOOST_CHECK(block.GetHash() != original);
+    BOOST_CHECK(pos::GetPoSHeaderSigningHash(block) == signing_hash);
 }
 BOOST_AUTO_TEST_CASE(reject_vote_count_before_allocation)
 {

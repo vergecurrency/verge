@@ -49,6 +49,11 @@ BOOST_AUTO_TEST_CASE(admission_and_replacement)
     pos::CheckpointVote stale = MakeVote(1, 3, 110);
     BOOST_CHECK(pool.Add(stale) == pos::VotePoolResult::STALE);
 
+    pos::CheckpointVote same_slot = first;
+    same_slot.head_block_root = Number(254);
+    same_slot.signature[1] = 1;
+    BOOST_CHECK(pool.Add(same_slot) == pos::VotePoolResult::STALE);
+
     pos::CheckpointVote conflict = MakeVote(1, 4, 101);
     conflict.target_checkpoint_root = Number(255);
     pos::VoteEquivocationEvidence detected;
@@ -102,8 +107,7 @@ BOOST_AUTO_TEST_CASE(evidence_pool_bounds_and_identity)
     BOOST_CHECK(pos::CheckStructure(evidence) == pos::StructureError::NONE);
     BOOST_CHECK(pool.Add(evidence) == pos::VotePoolResult::ADDED);
     BOOST_CHECK(pool.Add(evidence) == pos::VotePoolResult::DUPLICATE);
-    const uint256 evidence_hash = pos::GetTaggedHash(
-        pos::HashDomain::EQUIVOCATION, evidence);
+    const uint256 evidence_hash = pos::GetVoteEvidenceId(evidence);
     pos::VoteEquivocationEvidence loaded;
     BOOST_CHECK(pool.Get(evidence_hash, loaded));
     BOOST_CHECK(pool.Exists(evidence_hash));

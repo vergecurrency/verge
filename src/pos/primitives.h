@@ -130,6 +130,9 @@ enum class HashDomain {
     UNBOND,
     EQUIVOCATION,
     EVIDENCE_ROOT,
+    POS_DATA,
+    BLOCK_EVIDENCE_ID,
+    VOTE_EVIDENCE_ID,
     SLOT,
     VRF_KEY,
 };
@@ -182,6 +185,8 @@ uint256 GetTaggedHash(HashDomain domain, const T& object)
 }
 uint256 GetBlockSigningHash(const BlockAuthorization& authorization);
 uint256 GetVoteSigningHash(const CheckpointVote& vote);
+uint256 GetBlockEvidenceId(const BlockEquivocationEvidence& evidence);
+uint256 GetVoteEvidenceId(const VoteEquivocationEvidence& evidence);
 bool HasSupportedVersion(const StakeProof& proof);
 bool HasSupportedVersion(const CheckpointVote& vote);
 bool HasSupportedVersion(const BlockAuthorization& authorization);

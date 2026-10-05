@@ -7,6 +7,7 @@
 #include <coins.h>
 #include <pos/consensus.h>
 #include <pos/primitives.h>
+#include <pos/validation.h>
 #include <primitives/block.h>
 
 #include <algorithm>
@@ -19,9 +20,9 @@ bool State::InitializeFromCoins(const CCoinsView& coins,
                                 const uint256& best_block)
 {
     if (!m_best_block.IsNull() || !m_bonds.empty() || !m_bond_history.empty() ||
-        !m_snapshots.empty() ||
-        !m_epoch_seeds.empty() || !m_vrf_contributions.empty() ||
+        !m_snapshots.empty() || !m_epoch_seeds.empty() ||
         !m_lockouts.empty() || !m_applied_evidence.empty() ||
+        !m_retired_bonds.empty() ||
         m_has_pos || best_block.IsNull()) {
         return false;
     }
@@ -229,22 +230,112 @@ bool State::PrepareEpoch(uint64_t block_epoch, int32_t height,
                          params, undo)) return false;
         const uint256* previous_seed = FindEpochSeed(completed_epoch);
         if (previous_seed == nullptr) return false;
-        std::vector<std::array<unsigned char, 32>> outputs;
-        const auto contributions = m_vrf_contributions.find(completed_epoch);
-        if (contributions != m_vrf_contributions.end()) {
-            outputs.reserve(contributions->second.size());
-            for (const uint256& value : contributions->second) {
-                std::array<unsigned char, 32> output{};
-                std::reverse_copy(value.begin(), value.end(), output.begin());
-                outputs.push_back(output);
-            }
-        }
+        const uint64_t seed_snapshot_epoch = GetRequiredSnapshotEpoch(
+            next_epoch, params.nPoSSnapshotDelayEpochs);
+        const StakeSnapshot* seed_snapshot = FindSnapshot(seed_snapshot_epoch);
+        if (seed_snapshot == nullptr || seed_snapshot->root.IsNull()) return false;
         if (!SetEpochSeed(next_epoch,
                           ComputeNextEpochSeed(*previous_seed, next_epoch,
-                                               outputs), undo)) return false;
+                                               seed_snapshot->root), undo)) return false;
         ++next_epoch;
     }
+    PruneState(block_epoch, height, params, undo);
     return true;
+}
+
+void State::PruneState(uint64_t block_epoch, int32_t height,
+                       const Consensus::Params& params, StateUndo& undo)
+{
+    for (auto it = m_snapshots.begin(); it != m_snapshots.end();) {
+        const uint64_t epoch = it->first;
+        const bool old = epoch == INITIAL_SNAPSHOT_EPOCH
+            ? block_epoch > POS_STATE_RETENTION_EPOCHS
+            : epoch + POS_STATE_RETENTION_EPOCHS < block_epoch;
+        if (!old) {
+            ++it;
+            continue;
+        }
+        const auto added = std::find(undo.added_snapshots.begin(),
+                                     undo.added_snapshots.end(), epoch);
+        if (added != undo.added_snapshots.end()) {
+            undo.added_snapshots.erase(added);
+        } else {
+            undo.removed_snapshots.push_back(it->second);
+        }
+        it = m_snapshots.erase(it);
+    }
+    for (auto it = m_epoch_seeds.begin(); it != m_epoch_seeds.end();) {
+        if (it->first + POS_STATE_RETENTION_EPOCHS >= block_epoch) {
+            ++it;
+            continue;
+        }
+        const auto added = std::find(undo.added_epoch_seeds.begin(),
+                                     undo.added_epoch_seeds.end(), it->first);
+        if (added != undo.added_epoch_seeds.end()) {
+            undo.added_epoch_seeds.erase(added);
+        } else {
+            undo.removed_epoch_seeds.push_back(*it);
+        }
+        it = m_epoch_seeds.erase(it);
+    }
+    const uint64_t maximum_vote_age =
+        POS_STATE_RETENTION_EPOCHS > params.nPoSSnapshotDelayEpochs
+            ? POS_STATE_RETENTION_EPOCHS - params.nPoSSnapshotDelayEpochs
+            : 0;
+    for (auto it = m_latest_votes.begin(); it != m_latest_votes.end();) {
+        const CheckpointVote& vote = it->second;
+        if (vote.target_epoch > block_epoch ||
+            block_epoch - vote.target_epoch <= maximum_vote_age) {
+            ++it;
+            continue;
+        }
+        VoteUndo change;
+        change.bond_outpoint = it->first;
+        change.had_previous = true;
+        change.previous = vote;
+        undo.vote_undo.push_back(change);
+        it = m_latest_votes.erase(it);
+    }
+    for (auto it = m_retired_bonds.begin(); it != m_retired_bonds.end();) {
+        if (static_cast<int64_t>(it->second) + params.nPoSUnbondingBlocks >= height) {
+            ++it;
+            continue;
+        }
+        const auto history = m_bond_history.find(it->first);
+        if (history != m_bond_history.end()) {
+            undo.removed_bond_history.push_back(
+                SnapshotEntry{history->first, history->second});
+            m_bond_history.erase(history);
+        }
+        undo.removed_retired_bonds.push_back(*it);
+        it = m_retired_bonds.erase(it);
+    }
+    for (auto it = m_applied_evidence.begin();
+         it != m_applied_evidence.end();) {
+        // Keep the replay marker while the signing key remains in bond
+        // history. Once that history is safely pruned, old evidence can no
+        // longer authenticate and its marker is unnecessary.
+        if (m_bond_history.count(it->second.bond_outpoint) != 0) {
+            ++it;
+            continue;
+        }
+        undo.removed_evidence.push_back(*it);
+        it = m_applied_evidence.erase(it);
+    }
+    for (auto it = m_lockouts.begin(); it != m_lockouts.end();) {
+        if (it->second.until_height == 0 ||
+            it->second.until_height >= height ||
+            m_bond_history.count(it->first) != 0) {
+            ++it;
+            continue;
+        }
+        LockoutUndo change;
+        change.bond_outpoint = it->first;
+        change.had_previous = true;
+        change.previous = it->second;
+        undo.lockout_undo.push_back(change);
+        it = m_lockouts.erase(it);
+    }
 }
 
 bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
@@ -308,7 +399,11 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
                 activation_epoch < lockout.activation_epoch) {
                 lockout.activation_epoch = activation_epoch;
             }
-            if (!m_applied_evidence.emplace(evidence_id).second) return false;
+            if (!m_applied_evidence.emplace(
+                    evidence_id,
+                    AppliedEvidenceRecord{outpoint, height}).second) {
+                return false;
+            }
             undo.added_evidence.push_back(evidence_id);
             return true;
         };
@@ -316,7 +411,7 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
              block.posExtension.block_evidence) {
             if (!apply_evidence(
                     evidence.first.bond_outpoint,
-                    GetTaggedHash(HashDomain::EQUIVOCATION, evidence))) {
+                    GetBlockEvidenceId(evidence))) {
                 UndoBlock(undo);
                 return false;
             }
@@ -325,7 +420,7 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
              block.posExtension.vote_evidence) {
             if (!apply_evidence(
                     evidence.first.bond_outpoint,
-                    GetTaggedHash(HashDomain::EQUIVOCATION, evidence))) {
+                    GetVoteEvidenceId(evidence))) {
                 UndoBlock(undo);
                 return false;
             }
@@ -352,6 +447,11 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
                             SnapshotEntry{it->first, it->second});
                     }
                     m_bonds.erase(it);
+                    if (!m_retired_bonds.emplace(input.prevout, height).second) {
+                        UndoBlock(undo);
+                        return false;
+                    }
+                    undo.added_retired_bonds.push_back(input.prevout);
                 }
             }
         }
@@ -386,15 +486,7 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
             return false;
         }
     }
-    if (is_pos && slot_in_epoch < 80) {
-        uint256 output;
-        std::reverse_copy(block.posExtension.stake_proof.vrf_output,
-                          block.posExtension.stake_proof.vrf_output + 32,
-                          output.begin());
-        m_vrf_contributions[block_epoch].push_back(output);
-        undo.added_vrf_contribution = true;
-        undo.contribution_epoch = block_epoch;
-    }
+    (void)slot_in_epoch;
     m_best_block = block.GetHash();
     return true;
 }
@@ -402,7 +494,14 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
 bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
                        StateUndo& undo)
 {
+    COutPoint previous_in_block;
+    bool have_previous_in_block = false;
     for (const CheckpointVote& vote : votes) {
+        if (have_previous_in_block && vote.bond_outpoint == previous_in_block) {
+            return false;
+        }
+        previous_in_block = vote.bond_outpoint;
+        have_previous_in_block = true;
         const Checkpoint* source = FindJustified(vote.source_epoch);
         const Checkpoint* target = FindCheckpoint(vote.target_epoch);
         if (source == nullptr || target == nullptr ||
@@ -414,6 +513,15 @@ bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
         VoteUndo item;
         item.bond_outpoint = vote.bond_outpoint;
         if (previous != m_latest_votes.end()) {
+            const CheckpointVote& old = previous->second;
+            if (vote.target_epoch < old.target_epoch ||
+                (vote.target_epoch == old.target_epoch &&
+                 (vote.source_epoch != old.source_epoch ||
+                  vote.source_checkpoint_root != old.source_checkpoint_root ||
+                  vote.target_checkpoint_root != old.target_checkpoint_root ||
+                  vote.head_slot <= old.head_slot))) {
+                return false;
+            }
             item.had_previous = true;
             item.previous = previous->second;
             previous->second = vote;
@@ -495,6 +603,10 @@ bool State::UndoBlock(const StateUndo& undo)
          it != undo.added_evidence.rend(); ++it) {
         clean = m_applied_evidence.erase(*it) == 1 && clean;
     }
+    for (auto it = undo.removed_evidence.rbegin();
+         it != undo.removed_evidence.rend(); ++it) {
+        clean = m_applied_evidence.emplace(it->first, it->second).second && clean;
+    }
     for (auto it = undo.lockout_undo.rbegin();
          it != undo.lockout_undo.rend(); ++it) {
         if (it->had_previous) {
@@ -521,15 +633,6 @@ bool State::UndoBlock(const StateUndo& undo)
     if (undo.finalized_changed) {
         m_finalized = undo.previous_finalized;
     }
-    if (undo.added_vrf_contribution) {
-        auto it = m_vrf_contributions.find(undo.contribution_epoch);
-        if (it == m_vrf_contributions.end() || it->second.empty()) {
-            clean = false;
-        } else {
-            it->second.pop_back();
-            if (it->second.empty()) m_vrf_contributions.erase(it);
-        }
-    }
     for (auto it = undo.added_epoch_seeds.rbegin();
          it != undo.added_epoch_seeds.rend(); ++it) {
         clean = m_epoch_seeds.erase(*it) == 1 && clean;
@@ -544,6 +647,26 @@ bool State::UndoBlock(const StateUndo& undo)
     for (auto it = undo.added_bond_history.rbegin();
          it != undo.added_bond_history.rend(); ++it) {
         clean = m_bond_history.erase(*it) == 1 && clean;
+    }
+    for (auto it = undo.added_retired_bonds.rbegin();
+         it != undo.added_retired_bonds.rend(); ++it) {
+        clean = m_retired_bonds.erase(*it) == 1 && clean;
+    }
+    for (auto it = undo.removed_bond_history.rbegin();
+         it != undo.removed_bond_history.rend(); ++it) {
+        clean = m_bond_history.emplace(it->outpoint, it->bond).second && clean;
+    }
+    for (auto it = undo.removed_retired_bonds.rbegin();
+         it != undo.removed_retired_bonds.rend(); ++it) {
+        clean = m_retired_bonds.emplace(it->first, it->second).second && clean;
+    }
+    for (auto it = undo.removed_epoch_seeds.rbegin();
+         it != undo.removed_epoch_seeds.rend(); ++it) {
+        clean = m_epoch_seeds.emplace(it->first, it->second).second && clean;
+    }
+    for (auto it = undo.removed_snapshots.rbegin();
+         it != undo.removed_snapshots.rend(); ++it) {
+        clean = m_snapshots.emplace(it->source_epoch, *it).second && clean;
     }
     for (auto it = undo.removed_bonds.rbegin();
          it != undo.removed_bonds.rend(); ++it) {

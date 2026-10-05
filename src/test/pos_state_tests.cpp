@@ -129,6 +129,9 @@ BOOST_AUTO_TEST_CASE(skipped_epochs_advance_and_undo)
     params.nPoSStakeMaturity = 720;
 
     pos::State state;
+    pos::StateUndo snapshot_undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 760, false,
+                                   0, 0, params, snapshot_undo));
     pos::StateUndo seed_undo;
     BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("02"), seed_undo));
 
@@ -151,6 +154,41 @@ BOOST_AUTO_TEST_CASE(skipped_epochs_advance_and_undo)
     BOOST_CHECK(state.FindSnapshot(0) == nullptr);
     BOOST_CHECK(state.FindSnapshot(1) == nullptr);
     BOOST_CHECK(state.FindSnapshot(2) == nullptr);
+    BOOST_CHECK(state.UndoBlock(snapshot_undo));
+}
+
+BOOST_AUTO_TEST_CASE(epoch_history_is_bounded_and_reversible)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSEpochSlots = 120;
+    params.nPoSSnapshotDelayEpochs = 2;
+    params.nPoSStakeMaturity = 720;
+
+    pos::State state;
+    pos::StateUndo snapshot_undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 760, false,
+                                   0, 0, params, snapshot_undo));
+    pos::StateUndo seed_undo;
+    BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("0a"), seed_undo));
+
+    CBlock block = MakeBlock({MakeCoinbase()});
+    block.hashPrevBlock = uint256S("0b");
+    pos::StateUndo transition_undo;
+    const uint64_t target_epoch = pos::POS_STATE_RETENTION_EPOCHS + 2;
+    BOOST_REQUIRE(state.ApplyBlock(block, 1001, true, target_epoch, 0,
+                                   params, transition_undo));
+    BOOST_CHECK(state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) == nullptr);
+    BOOST_CHECK(state.FindSnapshot(0) == nullptr);
+    BOOST_CHECK(state.FindSnapshot(2) != nullptr);
+    BOOST_CHECK(state.FindEpochSeed(0) == nullptr);
+    BOOST_CHECK(state.FindEpochSeed(2) != nullptr);
+
+    BOOST_CHECK(state.UndoBlock(transition_undo));
+    BOOST_CHECK(state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) != nullptr);
+    BOOST_CHECK(state.FindSnapshot(0) == nullptr);
+    BOOST_CHECK(state.FindEpochSeed(0) != nullptr);
+    BOOST_CHECK(state.FindEpochSeed(2) == nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(final_pow_anchor_bootstraps_finality)
@@ -220,6 +258,7 @@ BOOST_AUTO_TEST_CASE(final_pow_anchor_bootstraps_finality)
     BOOST_REQUIRE(state.FindJustified(1) != nullptr);
     BOOST_CHECK_EQUAL(state.Finalized().epoch, 0U);
     BOOST_CHECK(state.Finalized().root == epoch_zero.GetHash());
+    BOOST_CHECK(!state.ApplyVotes({vote_zero}, epoch_one_undo));
 
     BOOST_CHECK(state.UndoBlock(epoch_one_undo));
     BOOST_CHECK(state.FindJustified(1) == nullptr);
@@ -269,6 +308,7 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
     params.nPoSActivationHeight = 1000;
     params.nPoSStakeMaturity = 720;
     params.nPoSUnbondingBlocks = 5;
+    params.nPoSSnapshotDelayEpochs = 2;
 
     pos::State state;
     CMutableTransaction create;
@@ -281,6 +321,9 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
     BOOST_REQUIRE(state.ApplyBlock(
         MakeBlock({MakeCoinbase(), MakeTransactionRef(create)}), 1, false,
         0, 0, params, creation_undo));
+    pos::StateUndo snapshot_undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 760, false,
+                                   0, 0, params, snapshot_undo));
 
     pos::BlockEquivocationEvidence evidence;
     evidence.first.bond_outpoint = bond_outpoint;

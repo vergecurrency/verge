@@ -479,6 +479,7 @@ void SetupServerArgs()
     gArgs.AddArg("-limitdescendantsize=<n>", strprintf("Do not accept transactions if any ancestor would have more than <n> kilobytes of in-mempool descendants (default: %u).", DEFAULT_DESCENDANT_SIZE_LIMIT), true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-vbparams=deployment:start:end", "Use given start/end times for specified version bits deployment (regtest-only)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-posactivationheight=<n>", "Activate proof of stake at height <n> (regtest-only, minimum: 721)", true, OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg("-postrustedcheckpoint=<height>:<hash>", "Require this finalized PoS checkpoint and all descendants to build on it", true, OptionsCategory::OPTIONS);
     gArgs.AddArg("-addrmantest", "Allows to test address relay on localhost", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-checkaddrman", "Run expensive addrman consistency checks after addrman updates (default: 0)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-debug=<category>", strprintf("Output debugging information (default: %u, supplying <category> is optional)", 0) + ". " +
@@ -1195,6 +1196,25 @@ bool AppInitParameterInteraction()
         }
         UpdatePoSActivationHeight(activationHeight);
         LogPrintf("Setting regtest PoS activation height to %d\n", activationHeight);
+    }
+    if (gArgs.IsArgSet("-postrustedcheckpoint")) {
+        const std::string value = gArgs.GetArg("-postrustedcheckpoint", "");
+        const size_t separator = value.find(':');
+        int32_t height = -1;
+        if (separator == std::string::npos ||
+            !ParseInt32(value.substr(0, separator), &height) ||
+            height < Params().GetConsensus().nPoSActivationHeight ||
+            value.size() - separator - 1 != 64 ||
+            !IsHex(value.substr(separator + 1))) {
+            return InitError("Invalid -postrustedcheckpoint; expected <PoS height>:<64-character block hash>.");
+        }
+        const uint256 hash = uint256S(value.substr(separator + 1));
+        if (hash.IsNull()) {
+            return InitError("Invalid null -postrustedcheckpoint hash.");
+        }
+        UpdatePoSTrustedCheckpoint(height, hash);
+        LogPrintf("Requiring finalized PoS checkpoint %d:%s\n",
+                  height, hash.ToString());
     }
     if (gArgs.IsArgSet("-vbparams")) {
         // Allow overriding version bits parameters for testing

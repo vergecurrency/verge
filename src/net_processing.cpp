@@ -2280,7 +2280,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         for (; pindex; pindex = chainActive.Next(pindex))
         {
             vHeaders.push_back(pindex->GetBlockHeader());
-            if (--nLimit <= 0 || pindex->GetBlockHash() == hashStop)
+            if (--nLimit <= 0 || pindex->GetBlockHash() == hashStop ||
+                pos::IsPoSVersion(pindex->nVersion))
                 break;
         }
         // pindex can be nullptr either if we sent chainActive.Tip() OR
@@ -2357,7 +2358,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (pos::GetVoteEvidencePool().Add(evidence) ==
             pos::VotePoolResult::ADDED) {
             const CInv inv(MSG_POS_VOTE_EVIDENCE,
-                pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, evidence));
+                pos::GetVoteEvidenceId(evidence));
             connman->ForEachNode([&inv, pfrom](CNode* node) {
                 if (node->GetId() != pfrom->GetId()) node->PushInventory(inv);
             });
@@ -2438,7 +2439,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                    pos::GetVoteEvidencePool().Add(detected) ==
                        pos::VotePoolResult::ADDED) {
             const CInv inv(MSG_POS_VOTE_EVIDENCE,
-                pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, detected));
+                pos::GetVoteEvidenceId(detected));
             connman->ForEachNode([&inv](CNode* node) {
                 node->PushInventory(inv);
             });
@@ -2938,7 +2939,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                         strprintf("headers message size = %u", header_count));
             return false;
         }
-        auto parse_headers = [&headers](CDataStream stream, bool legacy_pos) {
+        auto parse_headers = [&headers](CDataStream stream) {
             const uint64_t count = ReadCompactSize(stream);
             headers.clear();
             headers.reserve(static_cast<size_t>(count));
@@ -2950,10 +2951,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     throw std::ios_base::failure(
                         "headers message contains block data");
                 }
-                if (legacy_pos && pos::IsPoSVersion(header.nVersion)) {
-                    pos::BlockExtension extension;
-                    stream >> extension;
-                }
                 headers.push_back(header);
             }
             if (!stream.empty()) {
@@ -2961,16 +2958,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
         };
 
-        try {
-            parse_headers(original, false);
-        } catch (const std::ios_base::failure&) {
-            // Beta PoS nodes accidentally serialized the full PoS extension in
-            // HEADERS. Accept that bounded legacy form during the transition.
-            headers.clear();
-            parse_headers(original, true);
-            LogPrint(BCLog::NET, "peer=%d sent legacy PoS headers encoding\n",
-                     pfrom->GetId());
-        }
+        parse_headers(original);
 
         // Headers received via a HEADERS message should be valid, and reflect
         // the chain the peer is on. If we receive a known-invalid header,

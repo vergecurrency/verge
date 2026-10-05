@@ -28,7 +28,8 @@ uint256 CBlockHeader::GetHash() const
     if(!this->hash.IsNull()){
         return this->hash;
     }
-    return GetPoWHash(ALGO_SCRYPT);
+    return pos::IsPoSVersion(nVersion) ? GetSerializedHash()
+                                       : GetPoWHash(ALGO_SCRYPT);
 }
 
 uint256 CBlockHeader::GetSerializedHash() const 

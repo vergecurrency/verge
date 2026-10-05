@@ -25,6 +25,9 @@ const char* GetDomainTag(HashDomain domain)
     case HashDomain::UNBOND: return "VergePoS/Unbond/v1";
     case HashDomain::EQUIVOCATION: return "VergePoS/Equivocation/v1";
     case HashDomain::EVIDENCE_ROOT: return "VergePoS/EvidenceRoot/v1";
+    case HashDomain::POS_DATA: return "VergePoS/Data/v1";
+    case HashDomain::BLOCK_EVIDENCE_ID: return "VergePoS/BlockEvidenceId/v1";
+    case HashDomain::VOTE_EVIDENCE_ID: return "VergePoS/VoteEvidenceId/v1";
     case HashDomain::SLOT: return "VergePoS/Slot/v1";
     case HashDomain::VRF_KEY: return "VergePoS/VRFKey/v1";
     }
@@ -87,6 +90,20 @@ uint256 GetVoteSigningHash(const CheckpointVote& vote)
            << vote.target_checkpoint_root
            << vote.head_slot
            << vote.head_block_root;
+    return writer.GetHash();
+}
+
+uint256 GetBlockEvidenceId(const BlockEquivocationEvidence& evidence)
+{
+    TaggedHashWriter writer(HashDomain::BLOCK_EVIDENCE_ID);
+    writer << evidence.version << evidence.first.bond_outpoint;
+    return writer.GetHash();
+}
+
+uint256 GetVoteEvidenceId(const VoteEquivocationEvidence& evidence)
+{
+    TaggedHashWriter writer(HashDomain::VOTE_EVIDENCE_ID);
+    writer << evidence.version << evidence.first.bond_outpoint;
     return writer.GetHash();
 }
 bool HasSupportedVersion(const StakeProof& proof)
@@ -155,8 +172,8 @@ StructureError CheckStructure(const BlockEquivocationEvidence& evidence)
         CheckStructure(evidence.second) != StructureError::NONE) {
         return StructureError::INVALID_AUTHORIZATION;
     }
-    const uint256 first_hash = GetTaggedHash(HashDomain::EQUIVOCATION, evidence.first);
-    const uint256 second_hash = GetTaggedHash(HashDomain::EQUIVOCATION, evidence.second);
+    const uint256 first_hash = GetBlockSigningHash(evidence.first);
+    const uint256 second_hash = GetBlockSigningHash(evidence.second);
     if (!(first_hash < second_hash)) return StructureError::NON_CANONICAL_EVIDENCE;
     if (evidence.first.network_id != evidence.second.network_id ||
         evidence.first.bond_outpoint != evidence.second.bond_outpoint ||
@@ -175,8 +192,8 @@ StructureError CheckStructure(const VoteEquivocationEvidence& evidence)
         CheckStructure(evidence.second) != StructureError::NONE) {
         return StructureError::INVALID_AUTHORIZATION;
     }
-    const uint256 first_hash = GetTaggedHash(HashDomain::VOTE, evidence.first);
-    const uint256 second_hash = GetTaggedHash(HashDomain::VOTE, evidence.second);
+    const uint256 first_hash = GetVoteSigningHash(evidence.first);
+    const uint256 second_hash = GetVoteSigningHash(evidence.second);
     if (!(first_hash < second_hash)) return StructureError::NON_CANONICAL_EVIDENCE;
     if (evidence.first.bond_outpoint != evidence.second.bond_outpoint) {
         return StructureError::NOT_EQUIVOCATION;
@@ -203,10 +220,7 @@ bool HasCanonicalVoteOrder(const std::vector<CheckpointVote>& votes, uint32_t ma
         const CheckpointVote& previous = votes[i - 1];
         const CheckpointVote& current = votes[i];
         if (current.bond_outpoint < previous.bond_outpoint) return false;
-        if (current.bond_outpoint == previous.bond_outpoint &&
-            !(GetTaggedHash(HashDomain::VOTE, previous) < GetTaggedHash(HashDomain::VOTE, current))) {
-            return false;
-        }
+        if (current.bond_outpoint == previous.bond_outpoint) return false;
     }
     return true;
 }

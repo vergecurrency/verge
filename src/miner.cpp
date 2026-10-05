@@ -284,7 +284,8 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
         pblock->posExtension.authorization;
     authorization.network_id = consensus.nPoSNetworkId;
     authorization.parent_block_root = pblock->hashPrevBlock;
-    authorization.candidate_header_hash = pblock->GetHash();
+    authorization.candidate_header_hash =
+        pos::GetPoSHeaderSigningHash(*pblock);
     authorization.slot = proof.slot;
     authorization.bond_outpoint = proof.bond_outpoint;
     authorization.stake_proof_hash =
@@ -304,6 +305,8 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
                     proof.signing_public_key)) {
         return nullptr;
     }
+    pblock->hashPoSData = pos::ComputePoSDataHash(pblock->posExtension);
+    pblock->hash.SetNull();
 
     CValidationState state;
     if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev,

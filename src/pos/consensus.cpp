@@ -46,32 +46,24 @@ int GetInitialStakeSnapshotHeight(const Consensus::Params& params)
 }
 
 bool ComputeInitialEpochSeed(uint32_t network_id, int32_t activation_height,
-                             const std::vector<uint256>& predecessor_hashes,
-                             uint256& seed)
+                             const uint256& genesis_hash, uint256& seed)
 {
-    static constexpr size_t REQUIRED_PREDECESSORS = 120;
     if (network_id == 0 || activation_height < 0 ||
-        predecessor_hashes.size() != REQUIRED_PREDECESSORS) {
+        genesis_hash.IsNull()) {
         return false;
     }
     TaggedHashWriter writer(HashDomain::EPOCH_SEED);
-    writer << network_id << activation_height
-           << static_cast<uint64_t>(predecessor_hashes.size());
-    for (const uint256& hash : predecessor_hashes) writer << hash;
+    writer << network_id << activation_height << genesis_hash;
     seed = writer.GetHash();
     return !seed.IsNull();
 }
 
 uint256 ComputeNextEpochSeed(
     const uint256& previous_seed, uint64_t next_epoch,
-    const std::vector<std::array<unsigned char, 32>>& vrf_outputs)
+    const uint256& snapshot_root)
 {
     TaggedHashWriter writer(HashDomain::EPOCH_SEED);
-    writer << previous_seed << next_epoch
-           << static_cast<uint64_t>(vrf_outputs.size());
-    for (const auto& output : vrf_outputs) {
-        writer.write(reinterpret_cast<const char*>(output.data()), output.size());
-    }
+    writer << previous_seed << next_epoch << snapshot_root;
     return writer.GetHash();
 }
 

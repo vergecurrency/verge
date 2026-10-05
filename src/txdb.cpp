@@ -273,11 +273,17 @@ bool CBlockTreeDB::ErasePoSUndo(const uint256& block_hash)
 
 bool CBlockTreeDB::WritePoSStateTransition(const pos::State& state,
                                            const uint256& block_hash,
-                                           const pos::StateUndo& undo)
+                                           const pos::StateUndo& undo,
+                                           const std::vector<uint256>& prune_undo)
 {
     CDBBatch batch(*this);
     batch.Write(DB_POS_STATE, state);
     batch.Write(std::make_pair(DB_POS_UNDO, block_hash), undo);
+    for (const uint256& hash : prune_undo) {
+        if (hash != block_hash) {
+            batch.Erase(std::make_pair(DB_POS_UNDO, hash));
+        }
+    }
     return WriteBatch(batch, true);
 }
 

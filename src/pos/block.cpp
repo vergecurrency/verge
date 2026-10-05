@@ -3,18 +3,28 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <pos/block.h>
+#include <hash.h>
 #include <primitives/block.h>
 
 namespace pos {
 
 namespace {
 
+uint256 EvidenceId(const BlockEquivocationEvidence& evidence)
+{
+    return GetBlockEvidenceId(evidence);
+}
+
+uint256 EvidenceId(const VoteEquivocationEvidence& evidence)
+{
+    return GetVoteEvidenceId(evidence);
+}
+
 template <typename T>
 bool HasCanonicalEvidenceOrder(const std::vector<T>& evidence)
 {
     for (size_t i = 1; i < evidence.size(); ++i) {
-        if (!(GetTaggedHash(HashDomain::EQUIVOCATION, evidence[i - 1]) <
-              GetTaggedHash(HashDomain::EQUIVOCATION, evidence[i]))) {
+        if (!(EvidenceId(evidence[i - 1]) < EvidenceId(evidence[i]))) {
             return false;
         }
     }
@@ -45,6 +55,19 @@ uint256 ComputeEvidenceRoot(
         writer << evidence;
     }
     return writer.GetHash();
+}
+
+uint256 ComputePoSDataHash(const BlockExtension& extension)
+{
+    return GetTaggedHash(HashDomain::POS_DATA, extension);
+}
+
+uint256 GetPoSHeaderSigningHash(const CBlockHeader& header)
+{
+    CBlockHeader unsigned_header = header;
+    unsigned_header.hashPoSData.SetNull();
+    unsigned_header.hash.SetNull();
+    return SerializeHash(unsigned_header);
 }
 
 BlockCommitment GetBlockCommitment(const BlockExtension& extension)
@@ -163,11 +186,12 @@ StructureError CheckLinkage(const BlockExtension& extension, const CBlock& block
         authorization.slot != expected_slot ||
         authorization.network_id != expected_network_id ||
         authorization.parent_block_root != block.hashPrevBlock ||
-        authorization.candidate_header_hash != block.GetHash() ||
+        authorization.candidate_header_hash != GetPoSHeaderSigningHash(block) ||
         authorization.bond_outpoint != proof.bond_outpoint ||
         authorization.stake_proof_hash !=
             GetTaggedHash(HashDomain::STAKE_PROOF, proof) ||
-        authorization.fee_reward_transaction_hash != block.vtx.front()->GetHash()) {
+        authorization.fee_reward_transaction_hash != block.vtx.front()->GetHash() ||
+        block.hashPoSData != ComputePoSDataHash(extension)) {
         return StructureError::INVALID_AUTHORIZATION;
     }
     return StructureError::NONE;

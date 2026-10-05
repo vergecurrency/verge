@@ -38,8 +38,8 @@ VotePoolResult VotePool::Add(const CheckpointVote& vote,
             VoteEquivocationEvidence evidence;
             evidence.first = previous;
             evidence.second = vote;
-            if (GetTaggedHash(HashDomain::VOTE, evidence.second) <
-                GetTaggedHash(HashDomain::VOTE, evidence.first)) {
+            if (GetVoteSigningHash(evidence.second) <
+                GetVoteSigningHash(evidence.first)) {
                 std::swap(evidence.first, evidence.second);
             }
             if (CheckStructure(evidence) == StructureError::NONE) {
@@ -48,7 +48,7 @@ VotePoolResult VotePool::Add(const CheckpointVote& vote,
             }
             if (vote.target_epoch < previous.target_epoch ||
                 (vote.target_epoch == previous.target_epoch &&
-                 vote.head_slot < previous.head_slot)) {
+                 vote.head_slot <= previous.head_slot)) {
                 return VotePoolResult::STALE;
             }
             if (vote.target_epoch == previous.target_epoch &&
@@ -161,7 +161,7 @@ size_t VotePool::DynamicMemoryUsage() const
 VotePoolResult VoteEvidencePool::Add(
     const VoteEquivocationEvidence& evidence)
 {
-    const uint256 hash = GetTaggedHash(HashDomain::EQUIVOCATION, evidence);
+    const uint256 hash = GetVoteEvidenceId(evidence);
     const size_t serialized_size = GetSerializeSize(evidence, SER_NETWORK, 0);
     LOCK(m_mutex);
     if (m_evidence.count(hash) != 0) return VotePoolResult::DUPLICATE;

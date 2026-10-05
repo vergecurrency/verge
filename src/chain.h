@@ -162,6 +162,7 @@ enum BlockStatus: uint32_t {
     BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
 
     BLOCK_OPT_WITNESS       =   128, //!< block data in blk*.data was received with a witness-enforcing client
+    BLOCK_VALID_POS         =   256, //!< full PoS branch state and authorization validated
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -214,6 +215,7 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    uint256 hashPoSData;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
@@ -242,6 +244,7 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+        hashPoSData.SetNull();
     }
 
     CBlockIndex()
@@ -258,6 +261,7 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
+        hashPoSData    = block.hashPoSData;
     }
 
     FlatFilePos GetBlockPos() const {
@@ -288,6 +292,7 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        block.hashPoSData    = hashPoSData;
         return block;
     }
 
@@ -461,6 +466,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        if (pos::IsPoSVersion(nVersion)) READWRITE(hashPoSData);
     }
 
     uint256 GetBlockHash() const
@@ -472,6 +478,7 @@ public:
         block.nTime           = nTime;
         block.nBits           = nBits;
         block.nNonce          = nNonce;
+        block.hashPoSData     = hashPoSData;
         return block.GetHash();
     }
 

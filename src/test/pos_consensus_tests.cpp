@@ -47,6 +47,19 @@ BOOST_AUTO_TEST_CASE(initial_snapshot_height)
     BOOST_CHECK_EQUAL(pos::GetInitialStakeSnapshotHeight(params), -1);
 }
 
+BOOST_AUTO_TEST_CASE(epoch_seeds_do_not_depend_on_producer_reveals)
+{
+    uint256 first;
+    uint256 second;
+    BOOST_REQUIRE(pos::ComputeInitialEpochSeed(2, 3500, uint256S("01"), first));
+    BOOST_REQUIRE(pos::ComputeInitialEpochSeed(2, 3500, uint256S("01"), second));
+    BOOST_CHECK(first == second);
+    BOOST_CHECK(pos::ComputeNextEpochSeed(first, 1, uint256S("02")) ==
+                pos::ComputeNextEpochSeed(second, 1, uint256S("02")));
+    BOOST_CHECK(pos::ComputeNextEpochSeed(first, 1, uint256S("02")) !=
+                pos::ComputeNextEpochSeed(first, 1, uint256S("03")));
+}
+
 BOOST_AUTO_TEST_CASE(fork_weight_and_tie_breaking)
 {
     const uint256 lower = uint256S("01");

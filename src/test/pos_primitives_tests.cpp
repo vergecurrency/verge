@@ -153,15 +153,15 @@ BOOST_AUTO_TEST_CASE(equivocation_structure)
     pos::BlockEquivocationEvidence block_evidence;
     block_evidence.first = first;
     block_evidence.second = second;
-    if (pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.second) <
-        pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.first)) {
+    if (pos::GetBlockSigningHash(block_evidence.second) <
+        pos::GetBlockSigningHash(block_evidence.first)) {
         std::swap(block_evidence.first, block_evidence.second);
     }
     BOOST_CHECK(pos::CheckStructure(block_evidence) == pos::StructureError::NONE);
 
     block_evidence.second.parent_block_root = uint256S("09");
-if (pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.second) <
-        pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.first)) {
+if (pos::GetBlockSigningHash(block_evidence.second) <
+        pos::GetBlockSigningHash(block_evidence.first)) {
         std::swap(block_evidence.first, block_evidence.second);
     }
     BOOST_CHECK(pos::CheckStructure(block_evidence) == pos::StructureError::NOT_EQUIVOCATION);
@@ -182,11 +182,18 @@ if (pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, block_evidence.second) <
     pos::VoteEquivocationEvidence vote_evidence;
     vote_evidence.first = vote_first;
     vote_evidence.second = vote_second;
-    if (pos::GetTaggedHash(pos::HashDomain::VOTE, vote_evidence.second) <
-        pos::GetTaggedHash(pos::HashDomain::VOTE, vote_evidence.first)) {
+    if (pos::GetVoteSigningHash(vote_evidence.second) <
+        pos::GetVoteSigningHash(vote_evidence.first)) {
         std::swap(vote_evidence.first, vote_evidence.second);
     }
     BOOST_CHECK(pos::CheckStructure(vote_evidence) == pos::StructureError::NONE);
+
+    const uint256 block_id = pos::GetBlockEvidenceId(block_evidence);
+    const uint256 vote_id = pos::GetVoteEvidenceId(vote_evidence);
+    block_evidence.first.signature[0] ^= 1;
+    vote_evidence.first.signature[0] ^= 1;
+    BOOST_CHECK(pos::GetBlockEvidenceId(block_evidence) == block_id);
+    BOOST_CHECK(pos::GetVoteEvidenceId(vote_evidence) == vote_id);
 }
 BOOST_AUTO_TEST_CASE(canonical_vote_order)
 {

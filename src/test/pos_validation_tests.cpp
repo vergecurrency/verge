@@ -140,4 +140,29 @@ BOOST_AUTO_TEST_CASE(snapshot_epoch_selection)
     BOOST_CHECK_EQUAL(pos::GetRequiredSnapshotEpoch(10, 2), 8U);
 }
 
+BOOST_AUTO_TEST_CASE(checkpoint_vote_freshness_precedes_crypto)
+{
+    pos::CheckpointVote vote;
+    vote.bond_outpoint = COutPoint(uint256S("11"), 0);
+    vote.snapshot_epoch = 1;
+    vote.source_epoch = 2;
+    vote.source_checkpoint_root = uint256S("12");
+    vote.target_epoch = 3;
+    vote.target_checkpoint_root = uint256S("13");
+    vote.head_slot = 100;
+    vote.head_block_root = uint256S("14");
+    vote.signature[0] = 1;
+    pos::State state;
+
+    BOOST_CHECK(pos::CheckCheckpointVote(vote, state, 2, 10, 1000) ==
+                pos::ValidationError::VOTE_CHECKPOINT);
+    vote.target_epoch = 11;
+    BOOST_CHECK(pos::CheckCheckpointVote(vote, state, 2, 10, 1000) ==
+                pos::ValidationError::VOTE_CHECKPOINT);
+    vote.target_epoch = 4;
+    vote.snapshot_epoch = 2;
+    BOOST_CHECK(pos::CheckCheckpointVote(vote, state, 2, 10, 1000) ==
+                pos::ValidationError::VOTE_SNAPSHOT);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

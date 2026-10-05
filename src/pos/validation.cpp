@@ -124,6 +124,15 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
     if (CheckStructure(vote) != StructureError::NONE) {
         return ValidationError::VOTE_STRUCTURE;
     }
+    const uint64_t maximum_vote_age =
+        POS_STATE_RETENTION_EPOCHS > snapshot_delay_epochs
+            ? POS_STATE_RETENTION_EPOCHS - snapshot_delay_epochs
+            : 0;
+    if (vote.target_epoch > current_epoch ||
+        (current_epoch > maximum_vote_age &&
+         vote.target_epoch < current_epoch - maximum_vote_age)) {
+        return ValidationError::VOTE_CHECKPOINT;
+    }
     if (state.IsEligibilityLocked(vote.bond_outpoint, current_epoch,
                                   current_height)) {
         return ValidationError::VOTE_BOND;
@@ -163,23 +172,6 @@ ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
 {
     if (CheckStructure(evidence) != StructureError::NONE) {
         return ValidationError::VOTE_STRUCTURE;
-    }
-    const auto snapshot_contains = [&state](uint64_t epoch,
-                                            const COutPoint& outpoint) {
-        const StakeSnapshot* snapshot = state.FindSnapshot(epoch);
-        if (snapshot == nullptr) return false;
-        const auto it = std::lower_bound(
-            snapshot->entries.begin(), snapshot->entries.end(), outpoint,
-            [](const SnapshotEntry& entry, const COutPoint& value) {
-                return entry.outpoint < value;
-            });
-        return it != snapshot->entries.end() && it->outpoint == outpoint;
-    };
-    if (!snapshot_contains(evidence.first.snapshot_epoch,
-                           evidence.first.bond_outpoint) ||
-        !snapshot_contains(evidence.second.snapshot_epoch,
-                           evidence.second.bond_outpoint)) {
-        return ValidationError::VOTE_SNAPSHOT;
     }
     const BondRecord* bond =
         state.FindHistoricalBond(evidence.first.bond_outpoint);

@@ -13,6 +13,7 @@
 #include <vector>
 
 class CBlock;
+class CBlockHeader;
 
 namespace pos {
 
@@ -90,6 +91,8 @@ uint256 ComputeVoteRoot(const std::vector<CheckpointVote>& votes);
 uint256 ComputeEvidenceRoot(
     const std::vector<BlockEquivocationEvidence>& block_evidence,
     const std::vector<VoteEquivocationEvidence>& vote_evidence);
+uint256 ComputePoSDataHash(const BlockExtension& extension);
+uint256 GetPoSHeaderSigningHash(const CBlockHeader& header);
 BlockCommitment GetBlockCommitment(const BlockExtension& extension);
 CScript GetBlockCommitmentScript(const BlockCommitment& commitment);
 bool ParseBlockCommitmentScript(const CScript& script,

@@ -100,6 +100,9 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
 
+    // Commits the complete signed PoS extension into the PoS block ID.
+    uint256 hashPoSData;
+
     uint256 hash;
 
     CBlockHeader()
@@ -118,8 +121,15 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        if (pos::IsPoSVersion(nVersion)) {
+            READWRITE(hashPoSData);
+        } else if (ser_action.ForRead()) {
+            hashPoSData.SetNull();
+        }
         if(ser_action.ForRead()){
-            this->hash = GetPoWHash(ALGO_SCRYPT);
+            this->hash.SetNull();
+            this->hash = pos::IsPoSVersion(nVersion)
+                ? GetSerializedHash() : GetPoWHash(ALGO_SCRYPT);
         }
     }
 
@@ -132,6 +142,7 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        hashPoSData.SetNull();
     }
 
     bool IsNull() const
@@ -243,6 +254,7 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        block.hashPoSData    = hashPoSData;
         return block;
     }
 

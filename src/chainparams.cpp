@@ -58,6 +58,12 @@ void CChainParams::UpdatePoSActivationHeight(int height)
 consensus.nPoSActivationHeight = height;
 }
 
+void CChainParams::UpdatePoSTrustedCheckpoint(int height, const uint256& hash)
+{
+consensus.nPoSTrustedCheckpointHeight = height;
+consensus.hashPoSTrustedCheckpoint = hash;
+}
+
 
 /**
 * Main network
@@ -89,6 +95,8 @@ consensus.nPoSSnapshotDelayEpochs = 2;
 consensus.nPoSUnbondingBlocks = 20160;
 consensus.nPoSMaxVotesPerBlock = 1024;
 consensus.nPoSMaxEvidencePerBlock = 16;
+consensus.nPoSTrustedCheckpointHeight = -1;
+consensus.hashPoSTrustedCheckpoint.SetNull();
 consensus.nSubsidyHalvingInterval = 500000;
 
 consensus.BIP34Height = consensus.ForkHeight;
@@ -394,6 +402,8 @@ consensus.nPoSSnapshotDelayEpochs = 2;
 consensus.nPoSUnbondingBlocks = 20160;
 consensus.nPoSMaxVotesPerBlock = 1024;
 consensus.nPoSMaxEvidencePerBlock = 16;
+consensus.nPoSTrustedCheckpointHeight = -1;
+consensus.hashPoSTrustedCheckpoint.SetNull();
 
 consensus.BIP34Height = 0;
 consensus.BIP65Height = 0; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
@@ -514,6 +524,8 @@ consensus.nPoSSnapshotDelayEpochs = 2;
 consensus.nPoSUnbondingBlocks = 20160;
 consensus.nPoSMaxVotesPerBlock = 1024;
 consensus.nPoSMaxEvidencePerBlock = 16;
+consensus.nPoSTrustedCheckpointHeight = -1;
+consensus.hashPoSTrustedCheckpoint.SetNull();
 consensus.nSubsidyHalvingInterval = 500000;
 consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
@@ -619,4 +631,9 @@ globalChainParams->UpdateVersionBitsParameters(d, nStartTime, nTimeout);
 void UpdatePoSActivationHeight(int height)
 {
 globalChainParams->UpdatePoSActivationHeight(height);
+}
+
+void UpdatePoSTrustedCheckpoint(int height, const uint256& hash)
+{
+    globalChainParams->UpdatePoSTrustedCheckpoint(height, hash);
 }

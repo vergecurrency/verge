@@ -22,6 +22,9 @@ class CCoinsView;
 namespace pos {
 
 static constexpr uint64_t INITIAL_SNAPSHOT_EPOCH = UINT64_MAX;
+// Keep enough delayed snapshots for normal voting and short reorgs without
+// retaining a full copy of the validator set for the lifetime of the chain.
+static constexpr uint64_t POS_STATE_RETENTION_EPOCHS = 8;
 
 struct BondRecord {
     CAmount value{0};
@@ -124,6 +127,19 @@ struct LockoutUndo {
     }
 };
 
+struct AppliedEvidenceRecord {
+    COutPoint bond_outpoint;
+    int32_t height{0};
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    void SerializationOp(Stream& s, Operation ser_action)
+    {
+        READWRITE(bond_outpoint, height);
+    }
+};
+
 struct StateUndo {
     uint256 previous_best_block;
     std::vector<COutPoint> added_bonds;
@@ -131,8 +147,6 @@ struct StateUndo {
     std::vector<SnapshotEntry> removed_bonds;
     std::vector<uint64_t> added_snapshots;
     std::vector<uint64_t> added_epoch_seeds;
-    bool added_vrf_contribution{false};
-    uint64_t contribution_epoch{0};
     bool previous_has_pos{false};
     uint64_t previous_pos_epoch{0};
     std::vector<uint64_t> added_checkpoints;
@@ -140,6 +154,12 @@ struct StateUndo {
     std::vector<VoteUndo> vote_undo;
     std::vector<LockoutUndo> lockout_undo;
     std::vector<uint256> added_evidence;
+    std::vector<StakeSnapshot> removed_snapshots;
+    std::vector<std::pair<uint64_t, uint256>> removed_epoch_seeds;
+    std::vector<SnapshotEntry> removed_bond_history;
+    std::vector<std::pair<COutPoint, int32_t>> removed_retired_bonds;
+    std::vector<COutPoint> added_retired_bonds;
+    std::vector<std::pair<uint256, AppliedEvidenceRecord>> removed_evidence;
     bool finalized_changed{false};
     Checkpoint previous_finalized;
 
@@ -151,9 +171,12 @@ struct StateUndo {
         READWRITE(previous_best_block, added_bonds, added_bond_history,
                   removed_bonds,
                   added_snapshots, added_epoch_seeds,
-                  added_vrf_contribution, contribution_epoch,
                   previous_has_pos, previous_pos_epoch, added_checkpoints,
                   added_justified, vote_undo, lockout_undo, added_evidence,
+                  removed_snapshots, removed_epoch_seeds,
+                  removed_bond_history,
+                  removed_retired_bonds, added_retired_bonds,
+                  removed_evidence,
                   finalized_changed,
                   previous_finalized);
     }
@@ -199,23 +222,24 @@ public:
     template <typename Stream, typename Operation>
     void SerializationOp(Stream& s, Operation ser_action)
     {
-        READWRITE(m_best_block, m_bonds, m_bond_history, m_snapshots, m_epoch_seeds,
-                  m_vrf_contributions, m_has_pos, m_last_pos_epoch);
+        READWRITE(m_best_block, m_bonds, m_bond_history, m_snapshots,
+                  m_epoch_seeds, m_has_pos, m_last_pos_epoch);
         READWRITE(m_checkpoints, m_justified, m_latest_votes, m_finalized,
-                  m_lockouts, m_applied_evidence);
+                  m_lockouts, m_applied_evidence, m_retired_bonds);
     }
 
 private:
     bool AddSnapshot(uint64_t source_epoch, int32_t source_height,
                      int32_t maturity_height, const Consensus::Params& params,
                      StateUndo& undo);
+    void PruneState(uint64_t block_epoch, int32_t height,
+                    const Consensus::Params& params, StateUndo& undo);
 
     uint256 m_best_block;
     std::map<COutPoint, BondRecord> m_bonds;
     std::map<COutPoint, BondRecord> m_bond_history;
     std::map<uint64_t, StakeSnapshot> m_snapshots;
     std::map<uint64_t, uint256> m_epoch_seeds;
-    std::map<uint64_t, std::vector<uint256>> m_vrf_contributions;
     bool m_has_pos{false};
     uint64_t m_last_pos_epoch{0};
     std::map<uint64_t, Checkpoint> m_checkpoints;
@@ -223,7 +247,8 @@ private:
     std::map<COutPoint, CheckpointVote> m_latest_votes;
     Checkpoint m_finalized;
     std::map<COutPoint, LockoutRecord> m_lockouts;
-    std::set<uint256> m_applied_evidence;
+    std::map<uint256, AppliedEvidenceRecord> m_applied_evidence;
+    std::map<COutPoint, int32_t> m_retired_bonds;
 };
 
 uint256 ComputeSnapshotRoot(const std::vector<SnapshotEntry>& entries);

@@ -9,8 +9,6 @@
 #include <amount.h>
 
 #include <cstdint>
-#include <array>
-#include <vector>
 
 class uint256;
 
@@ -32,11 +30,10 @@ bool GetSlotInfo(uint32_t final_pow_time, uint32_t candidate_time,
 int GetInitialStakeSnapshotHeight(const Consensus::Params& params);
 
 bool ComputeInitialEpochSeed(uint32_t network_id, int32_t activation_height,
-                             const std::vector<uint256>& predecessor_hashes,
-                             uint256& seed);
+                             const uint256& genesis_hash, uint256& seed);
 uint256 ComputeNextEpochSeed(
     const uint256& previous_seed, uint64_t next_epoch,
-    const std::vector<std::array<unsigned char, 32>>& vrf_outputs);
+    const uint256& snapshot_root);
 
 /** Compare two post-activation fork children by vote weight, then hash. */
 bool PreferFork(CAmount candidate_weight, const uint256& candidate_child,

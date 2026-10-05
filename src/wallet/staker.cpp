@@ -171,16 +171,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         pos::StateUndo preparation_undo;
         if (state.FindEpochSeed(0) == nullptr &&
             tip->nHeight == params.nPoSActivationHeight - 1) {
-            std::vector<uint256> predecessors;
-            predecessors.reserve(120);
-            for (int height = params.nPoSActivationHeight - 120;
-                 height < params.nPoSActivationHeight; ++height) {
-                predecessors.push_back(chainActive[height]->GetBlockHash());
-            }
             uint256 initial_seed;
             if (!pos::ComputeInitialEpochSeed(
                     params.nPoSNetworkId, params.nPoSActivationHeight,
-                    predecessors, initial_seed) ||
+                    params.hashGenesisBlock, initial_seed) ||
                 !state.SetEpochSeed(0, initial_seed, preparation_undo)) {
                 error = "failed to derive the initial epoch seed";
                 return false;
@@ -352,7 +346,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     block_hash = block->GetHash();
     for (const pos::VoteEquivocationEvidence& evidence : vote_evidence) {
         pos::GetVoteEvidencePool().Remove(
-            pos::GetTaggedHash(pos::HashDomain::EQUIVOCATION, evidence));
+            pos::GetVoteEvidenceId(evidence));
     }
     return true;
 }
