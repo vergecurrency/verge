@@ -459,6 +459,8 @@ vSeeds.emplace_back("qwwqi7h6bkkcw6clp34ttg5mxmcwerkot2hepfhi6g4yclvlhsv2kxid.on
 vSeeds.emplace_back("62kvblkuv42lujxq7dhf5y43bmqje77i4wncbdopkpoq2ga3yisadyad.onion");
 vSeeds.emplace_back("qu4lblwlawk7a2rf3a3sl7n3fnyiwzwkqgeywdc5oxprpgybcn6dzxad.onion");
 vSeeds.emplace_back("4g3lidpwqzilm4frdigszdu2whzbcv4yblf5mj45odwfybtbiny6khad.onion");
+vSeeds.emplace_back("pvjvgzkhtzcglhrhsved4noaxckk67viz5jpifqwktcbt2kuqzvadbqd.onion");
+vSeeds.emplace_back("uubzb43qj2jnb5medjettkk7ttfazovrisolcuzatzccuyzrb2ybpgyd.onion");
 
 base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,115);
 base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,198);
