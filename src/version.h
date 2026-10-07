@@ -10,7 +10,7 @@
  * network protocol versioning
  */
 
-static const int PROTOCOL_VERSION = 90009;
+static const int PROTOCOL_VERSION = 90010;
 
 static const int TORV3_SERVICES_VERSION = 90009;
 
