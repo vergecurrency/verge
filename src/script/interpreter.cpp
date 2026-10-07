@@ -191,7 +191,8 @@ bool static IsDefinedHashtypeSignature(const valtype &vchSig) {
     if (vchSig.size() == 0) {
         return false;
     }
-    unsigned char nHashType = vchSig[vchSig.size() - 1] & (~(SIGHASH_ANYONECANPAY));
+    unsigned char nHashType = vchSig[vchSig.size() - 1] &
+        (~(SIGHASH_ANYONECANPAY | SIGHASH_POS_FORKID));
     if (nHashType < SIGHASH_ALL || nHashType > SIGHASH_SINGLE)
         return false;
 
@@ -203,6 +204,10 @@ bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned i
     // compact way to provide an invalid signature for use with CHECK(MULTI)SIG
     if (vchSig.size() == 0) {
         return true;
+    }
+    if ((flags & SCRIPT_VERIFY_POS_REPLAY_PROTECTION) != 0 &&
+        (vchSig.back() & SIGHASH_POS_FORKID) == 0) {
+        return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
     }
     if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S | SCRIPT_VERIFY_STRICTENC)) != 0 && !IsValidSignatureEncoding(vchSig)) {
         return set_error(serror, SCRIPT_ERR_SIG_DER);
@@ -1253,8 +1258,26 @@ PrecomputedTransactionData::PrecomputedTransactionData(const T& txTo)
 template PrecomputedTransactionData::PrecomputedTransactionData(const CTransaction& txTo);
 template PrecomputedTransactionData::PrecomputedTransactionData(const CMutableTransaction& txTo);
 
+static uint256 ApplyReplayProtectionDomain(
+    const uint256& legacy_hash, const ReplayProtectionContext& replay_context)
+{
+    if (!replay_context.IsEnabled()) return legacy_hash;
+
+    static const char domain[] = "VergePoS/TxSignature/v1";
+    CHashWriter ss(SER_GETHASH, 0);
+    ss.write(domain, sizeof(domain) - 1);
+    ss << replay_context.network_id;
+    ss << replay_context.activation_height;
+    ss << legacy_hash;
+    return ss.GetHash();
+}
+
 template <class T>
-uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn, int nHashType, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache)
+uint256 SignatureHash(const CScript& scriptCode, const T& txTo,
+                      unsigned int nIn, int nHashType,
+                      const CAmount& amount, SigVersion sigversion,
+                      const PrecomputedTransactionData* cache,
+                      const ReplayProtectionContext& replay_context)
 {
     assert(nIn < txTo.vin.size());
 
@@ -1302,7 +1325,7 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
         // Sighash type
         ss << nHashType;
 
-        return ss.GetHash();
+        return ApplyReplayProtectionDomain(ss.GetHash(), replay_context);
     }
 
     static const uint256 one(uint256S("0000000000000000000000000000000000000000000000000000000000000001"));
@@ -1311,7 +1334,7 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
     if ((nHashType & 0x1f) == SIGHASH_SINGLE) {
         if (nIn >= txTo.vout.size()) {
             //  nOut out of range
-            return one;
+            return ApplyReplayProtectionDomain(one, replay_context);
         }
     }
 
@@ -1321,7 +1344,7 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
     // Serialize and hash
     CHashWriter ss(SER_GETHASH, 0);
     ss << txTmp << nHashType;
-    return ss.GetHash();
+    return ApplyReplayProtectionDomain(ss.GetHash(), replay_context);
 }
 
 template <class T>
@@ -1344,7 +1367,14 @@ bool GenericTransactionSignatureChecker<T>::CheckSig(const std::vector<unsigned 
     int nHashType = vchSig.back();
     vchSig.pop_back();
 
-    uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion, this->txdata);
+    if (replay_context.IsEnabled() &&
+        (nHashType & SIGHASH_POS_FORKID) == 0) {
+        return false;
+    }
+
+    uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType,
+                                    amount, sigversion, this->txdata,
+                                    replay_context);
 
     if (!VerifySignature(vchSig, pubkey, sighash))
         return false;

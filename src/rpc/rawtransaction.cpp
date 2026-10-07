@@ -399,6 +399,12 @@ static UniValue createrawtransaction(const JSONRPCRequest& request)
                            request.params[1].get_array();
 
     CMutableTransaction rawTx;
+    {
+        LOCK(cs_main);
+        if (Params().GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
+            rawTx.nVersion = CTransaction::POS_REPLAY_PROTECTED_VERSION;
+        }
+    }
 
     if (!request.params[2].isNull()) {
         int64_t nLockTime = request.params[2].get_int64();
@@ -714,9 +720,12 @@ static UniValue combinerawtransaction(const JSONRPCRequest& request)
     // Fetch previous transactions (inputs):
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
+    ReplayProtectionContext replay_context;
     {
         LOCK(cs_main);
         LOCK(mempool.cs);
+        replay_context = GetReplayProtectionContextForHeight(
+            Params().GetConsensus(), chainActive.Height() + 1);
         CCoinsViewCache &viewChain = *pcoinsTip;
         CCoinsViewMemPool viewMempool(&viewChain, mempool);
         view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
@@ -726,6 +735,10 @@ static UniValue combinerawtransaction(const JSONRPCRequest& request)
         }
 
         view.SetBackend(viewDummy); // switch back to avoid locking mempool for too long
+    }
+
+    if (replay_context.IsEnabled()) {
+        mergedTx.nVersion = CTransaction::POS_REPLAY_PROTECTED_VERSION;
     }
 
     // Use CTransaction for the constant parts of the
@@ -746,7 +759,11 @@ static UniValue combinerawtransaction(const JSONRPCRequest& request)
         // ... and merge in other signatures:
         for (const CMutableTransaction& txv : txVariants) {
             if (txv.vin.size() > i) {
-                sigdata = CombineSignatures(prevPubKey, TransactionSignatureChecker(&txConst, i, amount), sigdata, DataFromTransaction(txv, i));
+                sigdata = CombineSignatures(
+                    prevPubKey,
+                    TransactionSignatureChecker(&txConst, i, amount,
+                                                replay_context),
+                    sigdata, DataFromTransaction(txv, i));
             }
         }
 
@@ -761,8 +778,11 @@ UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxsUnival
     // Fetch previous transactions (inputs):
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
+    ReplayProtectionContext replay_context;
     {
         LOCK2(cs_main, mempool.cs);
+        replay_context = GetReplayProtectionContextForHeight(
+            Params().GetConsensus(), chainActive.Height() + 1);
         CCoinsViewCache &viewChain = *pcoinsTip;
         CCoinsViewMemPool viewMempool(&viewChain, mempool);
         view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
@@ -858,7 +878,17 @@ UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxsUnival
         }
     }
 
-    bool fHashSingle = ((nHashType & ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);
+    if (replay_context.IsEnabled()) {
+        mtx.nVersion = CTransaction::POS_REPLAY_PROTECTED_VERSION;
+        nHashType |= SIGHASH_POS_FORKID;
+    }
+
+    bool fHashSingle = ((nHashType &
+        ~(SIGHASH_ANYONECANPAY | SIGHASH_POS_FORKID)) == SIGHASH_SINGLE);
+    const unsigned int script_flags = STANDARD_SCRIPT_VERIFY_FLAGS |
+        (replay_context.IsEnabled()
+             ? SCRIPT_VERIFY_POS_REPLAY_PROTECTION
+             : SCRIPT_VERIFY_NONE);
 
     // Script verification errors
     UniValue vErrors(UniValue::VARR);
@@ -880,14 +910,26 @@ UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxsUnival
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mtx.vout.size())) {
-            ProduceSignature(*keystore, MutableTransactionSignatureCreator(&mtx, i, amount, nHashType), prevPubKey, sigdata);
+            ProduceSignature(
+                *keystore,
+                MutableTransactionSignatureCreator(
+                    &mtx, i, amount, nHashType, replay_context),
+                prevPubKey, sigdata);
         }
-        sigdata = CombineSignatures(prevPubKey, TransactionSignatureChecker(&txConst, i, amount), sigdata, DataFromTransaction(mtx, i));
+        sigdata = CombineSignatures(
+            prevPubKey,
+            TransactionSignatureChecker(&txConst, i, amount,
+                                        replay_context),
+            sigdata, DataFromTransaction(mtx, i));
 
         UpdateInput(txin, sigdata);
 
         ScriptError serror = SCRIPT_ERR_OK;
-        if (!VerifyScript(txin.scriptSig, prevPubKey, &txin.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&txConst, i, amount), &serror)) {
+        if (!VerifyScript(
+                txin.scriptSig, prevPubKey, &txin.scriptWitness, script_flags,
+                TransactionSignatureChecker(&txConst, i, amount,
+                                            replay_context),
+                &serror)) {
             if (serror == SCRIPT_ERR_INVALID_STACK_OPERATION) {
                 // Unable to sign input and verification failed (possible attempt to partially sign).
                 TxInErrorToJSON(txin, vErrors, "Unable to sign input, invalid stack size (possibly missing key)");

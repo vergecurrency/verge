@@ -7,7 +7,13 @@
 
 from test_framework.test_framework import VergeTestFramework
 from test_framework.mininode import MESSAGEMAP, P2PInterface
-from test_framework.util import assert_equal, connect_nodes_bi, disconnect_nodes, wait_until
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    connect_nodes_bi,
+    disconnect_nodes,
+    wait_until,
+)
 
 
 class MalformedPoSMessage:
@@ -54,6 +60,17 @@ class PoSActivationTest(VergeTestFramework):
         bond = node.createbond(1000)
         assert_equal(bond["amount"], 1000)
         self.mine_blocks(node, 1, mining_address)
+
+        # Hold a valid legacy transaction across activation. It must not be
+        # accepted by the PoS chain even though its inputs remain unspent.
+        legacy_input = node.listunspent(1)[0]
+        legacy_raw = node.createrawtransaction(
+            [{"txid": legacy_input["txid"], "vout": legacy_input["vout"]}],
+            {node.getnewaddress(): legacy_input["amount"] - 1})
+        legacy_signed = node.signrawtransactionwithwallet(legacy_raw)
+        assert_equal(legacy_signed["complete"], True)
+        assert_equal(node.decoderawtransaction(legacy_signed["hex"])["version"], 1)
+
         self.mine_blocks(node, 777, mining_address)
         assert_equal(node.getblockcount(), 1499)
         staking_info = node.getstakinginfo()
@@ -80,6 +97,13 @@ class PoSActivationTest(VergeTestFramework):
         node.setmocktime(epoch_zero_time)
         epoch_zero = node.generatestake()
         assert_equal(node.getblockcount(), 1500)
+        pos_block = node.getblock(epoch_zero, 2)
+        assert all(tx["version"] == 0x05475658 for tx in pos_block["tx"])
+        assert_raises_rpc_error(
+            -26, "legacy-tx-after-pos-activation",
+            node.sendrawtransaction, legacy_signed["hex"])
+        pos_raw = node.createrawtransaction([], {node.getnewaddress(): 1})
+        assert_equal(node.decoderawtransaction(pos_raw)["version"], 0x05475658)
         self.sync_all()
         pos_info = observer.getposinfo()
         assert_equal(pos_info["active"], True)

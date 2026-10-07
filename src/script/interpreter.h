@@ -25,6 +25,8 @@ enum
     SIGHASH_ALL = 1,
     SIGHASH_NONE = 2,
     SIGHASH_SINGLE = 3,
+    /** Domain-separate signatures from the legacy proof-of-work chain. */
+    SIGHASH_POS_FORKID = 0x40,
     SIGHASH_ANYONECANPAY = 0x80,
 };
 
@@ -116,6 +118,10 @@ enum
     // Making OP_CODESEPARATOR and FindAndDelete fail any non-segwit scripts
     //
     SCRIPT_VERIFY_CONST_SCRIPTCODE = (1U << 16),
+
+    // Require signatures evaluated after PoS activation to commit to the
+    // network-specific post-PoW signature-hash domain.
+    SCRIPT_VERIFY_POS_REPLAY_PROTECTION = (1U << 17),
 };
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned int flags, ScriptError* serror);
@@ -135,12 +141,28 @@ enum class SigVersion
     WITNESS_V0 = 1,
 };
 
+struct ReplayProtectionContext
+{
+    uint32_t network_id;
+    int32_t activation_height;
+
+    ReplayProtectionContext() : network_id(0), activation_height(0) {}
+    ReplayProtectionContext(uint32_t network_id_in, int32_t activation_height_in)
+        : network_id(network_id_in), activation_height(activation_height_in) {}
+
+    bool IsEnabled() const { return network_id != 0 && activation_height > 0; }
+};
+
 /** Signature hash sizes */
 static constexpr size_t WITNESS_V0_SCRIPTHASH_SIZE = 32;
 static constexpr size_t WITNESS_V0_KEYHASH_SIZE = 20;
 
 template <class T>
-uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn, int nHashType, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache = nullptr);
+uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn,
+                      int nHashType, const CAmount& amount,
+                      SigVersion sigversion,
+                      const PrecomputedTransactionData* cache = nullptr,
+                      const ReplayProtectionContext& replay_context = ReplayProtectionContext());
 
 class BaseSignatureChecker
 {
@@ -171,13 +193,23 @@ private:
     unsigned int nIn;
     const CAmount amount;
     const PrecomputedTransactionData* txdata;
+    const ReplayProtectionContext replay_context;
 
 protected:
     virtual bool VerifySignature(const std::vector<unsigned char>& vchSig, const CPubKey& vchPubKey, const uint256& sighash) const;
 
 public:
-    GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn, const CAmount& amountIn) : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(nullptr) {}
-    GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn, const CAmount& amountIn, const PrecomputedTransactionData& txdataIn) : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
+    GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn,
+                                       const CAmount& amountIn,
+                                       const ReplayProtectionContext& replay_context_in = ReplayProtectionContext())
+        : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(nullptr),
+          replay_context(replay_context_in) {}
+    GenericTransactionSignatureChecker(const T* txToIn, unsigned int nInIn,
+                                       const CAmount& amountIn,
+                                       const PrecomputedTransactionData& txdataIn,
+                                       const ReplayProtectionContext& replay_context_in = ReplayProtectionContext())
+        : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn),
+          replay_context(replay_context_in) {}
     bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const override;
     bool CheckLockTime(const CScriptNum& nLockTime) const override;
     bool CheckSequence(const CScriptNum& nSequence) const override;

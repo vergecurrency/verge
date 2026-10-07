@@ -2640,7 +2640,17 @@ bool CWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAm
 
 bool CWallet::SignTransaction(CMutableTransaction &tx)
 {
+    AssertLockHeld(cs_main);
     AssertLockHeld(cs_wallet); // mapWallet
+
+    const ReplayProtectionContext replay_context =
+        GetReplayProtectionContextForHeight(
+            Params().GetConsensus(), chainActive.Height() + 1);
+    if (replay_context.IsEnabled()) {
+        tx.nVersion = CTransaction::POS_REPLAY_PROTECTED_VERSION;
+    }
+    const int hash_type = SIGHASH_ALL |
+        (replay_context.IsEnabled() ? SIGHASH_POS_FORKID : 0);
 
     // sign the new tx
     int nIn = 0;
@@ -2652,7 +2662,11 @@ bool CWallet::SignTransaction(CMutableTransaction &tx)
         const CScript& scriptPubKey = mi->second.tx->vout[input.prevout.n].scriptPubKey;
         const CAmount& amount = mi->second.tx->vout[input.prevout.n].nValue;
         SignatureData sigdata;
-        if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&tx, nIn, amount, SIGHASH_ALL), scriptPubKey, sigdata)) {
+        if (!ProduceSignature(
+                *this,
+                MutableTransactionSignatureCreator(
+                    &tx, nIn, amount, hash_type, replay_context),
+                scriptPubKey, sigdata)) {
             return false;
         }
         UpdateInput(input, sigdata);
@@ -2686,6 +2700,10 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nC
     CTransactionRef tx_new;
     if (!CreateTransaction(vecSend, tx_new, reservekey, nFeeRet, nChangePosInOut, strFailReason, coinControl, false)) {
         return false;
+    }
+
+    if (tx_new->nVersion == CTransaction::POS_REPLAY_PROTECTED_VERSION) {
+        tx.nVersion = tx_new->nVersion;
     }
 
     if (nChangePosInOut != -1) {
@@ -2770,6 +2788,10 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
     }
 
     CMutableTransaction txNew;
+    txNew.nVersion =
+        Params().GetConsensus().IsPoSActive(chainActive.Height() + 1)
+            ? CTransaction::POS_REPLAY_PROTECTED_VERSION
+            : CTransaction::CURRENT_VERSION;
 
     // Discourage fee sniping.
     //
@@ -3076,13 +3098,23 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 
         if (sign)
         {
+            const ReplayProtectionContext replay_context =
+                GetReplayProtectionContextForHeight(
+                    Params().GetConsensus(), chainActive.Height() + 1);
+            const int hash_type = SIGHASH_ALL |
+                (replay_context.IsEnabled() ? SIGHASH_POS_FORKID : 0);
             int nIn = 0;
             for (const auto& coin : selected_coins)
             {
                 const CScript& scriptPubKey = coin.txout.scriptPubKey;
                 SignatureData sigdata;
 
-                if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&txNew, nIn, coin.txout.nValue, SIGHASH_ALL), scriptPubKey, sigdata))
+                if (!ProduceSignature(
+                        *this,
+                        MutableTransactionSignatureCreator(
+                            &txNew, nIn, coin.txout.nValue, hash_type,
+                            replay_context),
+                        scriptPubKey, sigdata))
                 {
                     strFailReason = _("Signing transaction failed");
                     return false;

@@ -82,6 +82,12 @@ Use `verge-cli help <command>` for the exact JSON result schema exposed by the r
 
 ## Raw Transactions
 
+At PoS activation, raw-transaction creation, funding, combining, and signing
+automatically use the replay-protected PoS format 5 transaction envelope and the
+selected network's PoS signature domain. A legacy transaction prepared before
+activation must be recreated and re-signed if it was not confirmed before the
+fork.
+
 | Command | Usage | Example |
 | --- | --- | --- |
 | `getrawtransaction` | `getrawtransaction "txid" ( verbose "blockhash" )` | `verge-cli getrawtransaction <txid> true` |

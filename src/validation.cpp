@@ -642,6 +642,15 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
     if (tx.IsCoinBase())
         return state.DoS(100, false, REJECT_INVALID, "coinbase");
 
+    const bool pos_active_next =
+        chainparams.GetConsensus().IsPoSActive(chainActive.Height() + 1);
+    if (pos_active_next !=
+        (tx.nVersion == CTransaction::POS_REPLAY_PROTECTED_VERSION)) {
+        return state.DoS(100, false, REJECT_INVALID,
+                         pos_active_next ? "legacy-tx-after-pos-activation"
+                                         : "pos-tx-before-pos-activation");
+    }
+
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
     if (fRequireStandard && !IsStandardTx(tx, reason))
@@ -965,6 +974,9 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         }
 
         unsigned int scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
+        if (chainparams.GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
+            scriptVerifyFlags |= SCRIPT_VERIFY_POS_REPLAY_PROTECTION;
+        }
         if (!chainparams.RequireStandard()) {
             scriptVerifyFlags = gArgs.GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
@@ -992,6 +1004,9 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         // invalid blocks (using TestBlockValidity), however allowing such
         // transactions into the mempool can be exploited as a DoS attack.
         unsigned int currentBlockScriptVerifyFlags = GetBlockScriptFlags(chainActive.Tip(), Params().GetConsensus());
+        if (chainparams.GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
+            currentBlockScriptVerifyFlags |= SCRIPT_VERIFY_POS_REPLAY_PROTECTION;
+        }
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool, currentBlockScriptVerifyFlags, true, txdata)) {
             // If we're using promiscuousmempoolflags, we may hit this normally
             // Check if current block has some flags that scriptVerifyFlags
@@ -1424,7 +1439,11 @@ void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, int nHeight)
 bool CScriptCheck::operator()() {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
     const CScriptWitness *witness = &ptxTo->vin[nIn].scriptWitness;
-    return VerifyScript(scriptSig, m_tx_out.scriptPubKey, witness, nFlags, CachingTransactionSignatureChecker(ptxTo, nIn, m_tx_out.nValue, cacheStore, *txdata), &error);
+    return VerifyScript(scriptSig, m_tx_out.scriptPubKey, witness, nFlags,
+                        CachingTransactionSignatureChecker(
+                            ptxTo, nIn, m_tx_out.nValue, cacheStore, *txdata,
+                            replay_context),
+                        &error);
 }
 
 int GetSpendHeight(const CCoinsViewCache& inputs)
@@ -1498,6 +1517,12 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                 return true;
             }
 
+            const Consensus::Params& consensus = Params().GetConsensus();
+            const ReplayProtectionContext replay_context =
+                (flags & SCRIPT_VERIFY_POS_REPLAY_PROTECTION) != 0
+                    ? ReplayProtectionContext(consensus.nPoSNetworkId,
+                                              consensus.nPoSActivationHeight)
+                    : ReplayProtectionContext();
             for (unsigned int i = 0; i < tx.vin.size(); i++) {
                 const COutPoint &prevout = tx.vin[i].prevout;
                 const Coin& coin = inputs.AccessCoin(prevout);
@@ -1510,7 +1535,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                 // spent being checked as a part of CScriptCheck.
 
                 // Verify signature
-                CScriptCheck check(coin.out, tx, i, flags, cacheSigStore, &txdata);
+                CScriptCheck check(coin.out, tx, i, flags, cacheSigStore,
+                                   &txdata, replay_context);
                 if (pvChecks) {
                     pvChecks->push_back(CScriptCheck());
                     check.swap(pvChecks->back());
@@ -1523,7 +1549,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                         // avoid splitting the network between upgraded and
                         // non-upgraded nodes.
                         CScriptCheck check2(coin.out, tx, i,
-                                flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS, cacheSigStore, &txdata);
+                                flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
+                                cacheSigStore, &txdata, replay_context);
                         if (check2())
                             return state.Invalid(false, REJECT_NONSTANDARD, strprintf("non-mandatory-script-verify-flag (%s)", ScriptErrorString(check.GetScriptError())));
                     }
@@ -1860,6 +1887,10 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
         flags |= SCRIPT_VERIFY_NULLDUMMY;
     }
 
+    if (consensusparams.IsPoSActive(pindex->nHeight)) {
+        flags |= SCRIPT_VERIFY_POS_REPLAY_PROTECTION;
+    }
+
     return flags;
 }
 
@@ -1873,6 +1904,23 @@ static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
+
+static bool CheckTransactionReplayProtection(
+    const CBlock& block, int height, const Consensus::Params& consensus,
+    CValidationState& state)
+{
+    const bool pos_active = consensus.IsPoSActive(height);
+    for (const auto& tx : block.vtx) {
+        if (pos_active !=
+            (tx->nVersion == CTransaction::POS_REPLAY_PROTECTED_VERSION)) {
+            return state.DoS(
+                100, false, REJECT_INVALID,
+                pos_active ? "bad-pos-legacy-transaction"
+                           : "bad-pow-pos-transaction");
+        }
+    }
+    return true;
+}
 
 /** Apply the effects of this block (with given index) on the UTXO set represented by coins.
  *  Validity checks that depend on the UTXO set are also done; ConnectBlock()
@@ -1933,6 +1981,10 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     }
 
     const Consensus::Params& consensus = chainparams.GetConsensus();
+    if (!CheckTransactionReplayProtection(block, pindex->nHeight, consensus,
+                                          state)) {
+        return false;
+    }
     const bool is_pos = consensus.IsPoSActive(pindex->nHeight);
     pos::State next_pos_state;
     pos::StateUndo next_pos_undo;
@@ -2761,6 +2813,15 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     chainActive.SetTip(pindexNew);
     UpdateTip(pindexNew, chainparams);
 
+    if (pindexNew->nHeight + 1 ==
+        chainparams.GetConsensus().nPoSActivationHeight) {
+        const size_t removed = mempool.size();
+        mempool.clear();
+        LogPrintf("Cleared %u pre-activation transaction(s) from the mempool "
+                  "before PoS replay protection activation\n",
+                  static_cast<unsigned int>(removed));
+    }
+
     int64_t nTime6 = GetTimeMicros(); nTimePostConnect += nTime6 - nTime5; nTimeTotal += nTime6 - nTime1;
     LogPrint(BCLog::BENCH, "  - Connect postprocess: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime6 - nTime5) * MILLI, nTimePostConnect * MICRO, nTimePostConnect * MILLI / nBlocksTotal);
     LogPrint(BCLog::BENCH, "- Connect block: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime6 - nTime1) * MILLI, nTimeTotal * MICRO, nTimeTotal * MILLI / nBlocksTotal);
@@ -2829,6 +2890,16 @@ bool CChainState::ValidatePoSBranch(CBlockIndex* target,
     }
     if (branch_state != nullptr) *branch_state = std::move(candidate_state);
     return true;
+}
+
+ReplayProtectionContext GetReplayProtectionContextForHeight(
+    const Consensus::Params& consensusParams, int height)
+{
+    if (!consensusParams.IsPoSActive(height)) {
+        return ReplayProtectionContext();
+    }
+    return ReplayProtectionContext(consensusParams.nPoSNetworkId,
+                                   consensusParams.nPoSActivationHeight);
 }
 
 bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
@@ -3933,7 +4004,13 @@ static int64_t GetMaxClockDrift(int nHeight, const Consensus::Params& consensusP
 static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, bool checkBlockSignature = true)
 {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
-    if (consensusParams.IsPoSActive(nHeight)) {
+    const bool pos_active = consensusParams.IsPoSActive(nHeight);
+    if (!CheckTransactionReplayProtection(block, nHeight, consensusParams,
+                                          state)) {
+        return false;
+    }
+
+    if (pos_active) {
         if (pindexPrev == nullptr) {
             return state.DoS(100, false, REJECT_INVALID, "bad-pos-missing-parent");
         }

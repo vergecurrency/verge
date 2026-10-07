@@ -96,6 +96,57 @@ At activation:
 8. No emergency PoW fallback exists after activation. If no valid PoS producer is available, the chain pauses until an eligible producer returns.
 9. Old nodes remain on incompatible PoW consensus. This is intentionally a hard fork.
 
+### Post-Fork Transaction Replay Protection
+
+Explicit two-way transaction replay protection is a mainnet release
+requirement. PoS block-version enforcement prevents legacy PoW blocks from
+entering the upgraded chain, but it does not by itself prevent an ordinary
+transaction spending a shared pre-fork UTXO from being confirmed independently
+on both chains.
+
+Beginning with the activation block, every transaction, including the
+coinbase-like fee reward, must use PoS transaction format 5, identified by the
+reserved `nVersion` value `0x05475658`. Its wire encoding is
+`nVersion || nTime || marker || vin || vout || nLockTime`, where the marker is
+the uint32 value `0x47565800`. The version serializes as bytes `58 56 47 05`
+(`XVG\x05`) and the marker as `00 58 56 47` (`\0XVG`). The marker's first byte
+causes a legacy parser to decode an empty input vector and reject the transaction.
+Upgraded nodes reject the reserved version before activation,
+reject every other transaction version after activation, and reject protected
+encodings whose marker is absent or non-canonical. This envelope protects
+signatureless and nonstandard scripts as well as ordinary signed spends.
+
+Every signature evaluated after activation must additionally set hash-type bit
+`0x40` and use the versioned Verge PoS signature-hash domain. The legacy
+signature hash is wrapped as
+`SHA256d("VergePoS/TxSignature/v1" || network_id || activation_height || legacy_hash)`,
+using canonical serialization for the numeric fields. Legacy transaction
+signatures are invalid in post-activation blocks, while the format 5 envelope
+makes post-activation transactions invalid under legacy PoW validation.
+Before activation, historical transaction encoding and signature semantics
+remain unchanged. Existing pre-activation UTXOs remain spendable after
+activation without first moving balances.
+
+The wallet and all signing RPCs must select the correct signature domain from
+the height of the block for which the transaction is being prepared. At the
+activation boundary, nodes must revalidate the mempool and remove transactions
+whose signatures are valid only under the pre-activation rules. User-facing
+RPC results must distinguish a transaction that needs to be recreated from an
+ordinary policy rejection. Hardware wallets, offline signing, multisig, P2SH,
+bonding, unbonding, fee funding, and every other spend path must implement the
+same rule; no legacy-authorized transaction class may bypass the domain check.
+
+The exact signature-hash marker, domain tag, serialized preimage, and network
+commitment must be specified and covered by fixed cross-platform vectors before
+mainnet parameters are selected. Tests must prove both directions: a legacy
+PoW node rejects a post-activation transaction, and an upgraded node rejects a
+legacy-signed transaction in a post-activation block. Mainnet activation is
+blocked until this protection has passed functional fork-boundary tests and an
+independent consensus review. This requirement may be waived only if the
+project and every material exchange explicitly treat the legacy PoW branch as
+valueless and unsupported; the default release assumption is that it is not
+waived.
+
 ## Block Representation
 
 A dedicated version bit identifies PoS. A PoS header appends a 32-byte `hashPoSData` commitment to the complete signed PoS extension; historical PoW headers retain their original serialization. After activation, the five PoW algorithm version encodings are invalid for new blocks.
@@ -611,6 +662,8 @@ Wallet locking, backup, encryption, hardware-wallet behavior, and delegated stak
 Phase 3 requires fixed vectors and adversarial tests for:
 
 - activation boundary and rejection of post-activation PoW;
+- two-way transaction replay protection across the PoW/PoS boundary;
+- activation-boundary mempool revalidation and transaction recreation;
 - pre-activation compatibility;
 - exact 1,000 XVG and 720-confirmation boundaries;
 - kernel and target arithmetic;
@@ -718,7 +771,9 @@ review remain mandatory before mainnet activation.
 3. Phase 3 adds deterministic and adversarial tests before public testing.
 4. Phase 4 operates a public PoS testnet for months and records participation, forks, missed slots, and recovery events.
 5. Phase 5 requires independent consensus and cryptographic review with findings addressed publicly.
-6. Phase 6 begins only after readiness review; production activation height is selected last.
+6. Phase 6 begins only after readiness review, complete post-fork transaction
+   replay protection, and independent verification of its fixed vectors;
+   production activation height is selected last.
 ## Documentation Discipline
 
 This document is updated with each approved consensus decision. Implementation commits must reference the relevant section and must not introduce undocumented consensus behavior. Before public testnet, the draft must include exact byte serialization, domain-separation strings, arithmetic bounds, state-transition pseudocode, RPC behavior, and fixed vectors. Before Phase 6 it will be promoted from a research draft to a versioned consensus specification linked from the root README and release documentation.

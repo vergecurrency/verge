@@ -8,6 +8,7 @@
 #endif
 
 #include <clientversion.h>
+#include <chainparams.h>
 #include <coins.h>
 #include <consensus/consensus.h>
 #include <core_io.h>
@@ -195,7 +196,8 @@ static CAmount ExtractAndValidateValue(const std::string& strValue)
 static void MutateTxVersion(CMutableTransaction& tx, const std::string& cmdVal)
 {
     int64_t newVersion = atoi64(cmdVal);
-    if (newVersion < 1 || newVersion > CTransaction::MAX_STANDARD_VERSION)
+    if ((newVersion < 1 || newVersion > CTransaction::MAX_STANDARD_VERSION) &&
+        newVersion != CTransaction::POS_REPLAY_PROTECTED_VERSION)
         throw std::runtime_error("Invalid TX version requested");
 
     tx.nVersion = (int) newVersion;
@@ -552,6 +554,14 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
         if (!findSighashFlags(nHashType, flagStr))
             throw std::runtime_error("unknown sighash flag/sign option");
 
+    ReplayProtectionContext replay_context;
+    if (tx.nVersion == CTransaction::POS_REPLAY_PROTECTED_VERSION) {
+        const Consensus::Params& consensus = Params().GetConsensus();
+        replay_context = ReplayProtectionContext(
+            consensus.nPoSNetworkId, consensus.nPoSActivationHeight);
+        nHashType |= SIGHASH_POS_FORKID;
+    }
+
     // mergedTx will end up with all the signatures; it
     // starts as a clone of the raw tx:
     CMutableTransaction mergedTx{tx};
@@ -634,7 +644,8 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
 
     const CKeyStore& keystore = tempKeystore;
 
-    bool fHashSingle = ((nHashType & ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);
+    bool fHashSingle = ((nHashType &
+        ~(SIGHASH_ANYONECANPAY | SIGHASH_POS_FORKID)) == SIGHASH_SINGLE);
 
     // Sign what we can:
     for (unsigned int i = 0; i < mergedTx.vin.size(); i++) {
@@ -649,10 +660,18 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mergedTx.vout.size()))
-            ProduceSignature(keystore, MutableTransactionSignatureCreator(&mergedTx, i, amount, nHashType), prevPubKey, sigdata);
+            ProduceSignature(
+                keystore,
+                MutableTransactionSignatureCreator(
+                    &mergedTx, i, amount, nHashType, replay_context),
+                prevPubKey, sigdata);
 
         // ... and merge in other signatures:
-        sigdata = CombineSignatures(prevPubKey, MutableTransactionSignatureChecker(&mergedTx, i, amount), sigdata, DataFromTransaction(txv, i));
+        sigdata = CombineSignatures(
+            prevPubKey,
+            MutableTransactionSignatureChecker(
+                &mergedTx, i, amount, replay_context),
+            sigdata, DataFromTransaction(txv, i));
         UpdateInput(txin, sigdata);
     }
 

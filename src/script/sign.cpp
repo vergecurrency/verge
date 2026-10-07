@@ -15,7 +15,12 @@
 
 typedef std::vector<unsigned char> valtype;
 
-MutableTransactionSignatureCreator::MutableTransactionSignatureCreator(const CMutableTransaction* txToIn, unsigned int nInIn, const CAmount& amountIn, int nHashTypeIn) : txTo(txToIn), nIn(nInIn), nHashType(nHashTypeIn), amount(amountIn), checker(txTo, nIn, amountIn) {}
+MutableTransactionSignatureCreator::MutableTransactionSignatureCreator(
+    const CMutableTransaction* txToIn, unsigned int nInIn,
+    const CAmount& amountIn, int nHashTypeIn,
+    const ReplayProtectionContext& replay_context)
+    : txTo(txToIn), nIn(nInIn), nHashType(nHashTypeIn), amount(amountIn),
+      replay_context(replay_context), checker(txTo, nIn, amountIn, replay_context) {}
 
 bool MutableTransactionSignatureCreator::CreateSig(const SigningProvider& provider, std::vector<unsigned char>& vchSig, const CKeyID& address, const CScript& scriptCode, SigVersion sigversion) const
 {
@@ -27,7 +32,8 @@ bool MutableTransactionSignatureCreator::CreateSig(const SigningProvider& provid
     if (sigversion == SigVersion::WITNESS_V0 && !key.IsCompressed())
         return false;
 
-    uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion);
+    uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount,
+                                 sigversion, nullptr, replay_context);
     if (!key.Sign(hash, vchSig))
         return false;
     vchSig.push_back((unsigned char)nHashType);

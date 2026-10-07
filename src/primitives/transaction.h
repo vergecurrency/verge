@@ -183,27 +183,31 @@ public:
 
 struct CMutableTransaction;
 
+/** Post-PoS transaction encoding. The low marker byte is deliberately zero,
+ * so legacy nodes decode the transaction as having no inputs and reject it. */
+static constexpr int32_t TRANSACTION_VERSION_POS_REPLAY_PROTECTED = 0x05475658;
+static constexpr uint32_t TRANSACTION_POS_REPLAY_MARKER = 0x47565800;
+
 /**
- * Basic transaction serialization format:
+ * Transaction serialization format:
  * - int32_t nVersion
+ * - uint32_t nTime
+ * - uint32_t replay marker (PoS replay-protected version only)
  * - std::vector<CTxIn> vin
  * - std::vector<CTxOut> vout
- * - uint32_t nLockTime
- *
- * Extended transaction serialization format:
- * - int32_t nVersion
- * - unsigned char dummy = 0x00
- * - unsigned char flags (!= 0)
- * - std::vector<CTxIn> vin
- * - std::vector<CTxOut> vout
- * - if (flags & 1):
- *   - CTxWitness wit;
  * - uint32_t nLockTime
  */
 template<typename Stream, typename TxType>
 inline void UnserializeTransaction(TxType& tx, Stream& s) {
     s >> tx.nVersion;
 	s >> tx.nTime;
+    if (tx.nVersion == TRANSACTION_VERSION_POS_REPLAY_PROTECTED) {
+        uint32_t marker = 0;
+        s >> marker;
+        if (marker != TRANSACTION_POS_REPLAY_MARKER) {
+            throw std::ios_base::failure("invalid PoS transaction replay marker");
+        }
+    }
     s >> tx.vin;
     s >> tx.vout;
     s >> tx.nLockTime;
@@ -213,6 +217,9 @@ template<typename Stream, typename TxType>
 inline void SerializeTransaction(const TxType& tx, Stream& s) {
     s << tx.nVersion;
 	s << tx.nTime;
+    if (tx.nVersion == TRANSACTION_VERSION_POS_REPLAY_PROTECTED) {
+        s << TRANSACTION_POS_REPLAY_MARKER;
+    }
     s << tx.vin;
     s << tx.vout;
     s << tx.nLockTime;
@@ -226,6 +233,10 @@ class CTransaction
 public:
     // Default transaction version.
     static const int32_t CURRENT_VERSION=1;
+
+    // Required for every transaction in a post-activation PoS block.
+    static const int32_t POS_REPLAY_PROTECTED_VERSION=
+        TRANSACTION_VERSION_POS_REPLAY_PROTECTED;
 
     // Changing the default transaction version requires a two step process: first
     // adapting relay policy by bumping MAX_STANDARD_VERSION, and then later date

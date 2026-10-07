@@ -17,6 +17,7 @@
 #include <protocol.h> // For CMessageHeader::MessageStartChars
 #include <policy/feerate.h>
 #include <pos/state.h>
+#include <script/interpreter.h>
 #include <script/script_error.h>
 #include <sync.h>
 #include <versionbits.h>
@@ -291,6 +292,10 @@ bool GetTransaction(const uint256& hash, CTransactionRef& tx, const Consensus::P
 bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
 
+/** Signature-hash domain required for transactions mined at height. */
+ReplayProtectionContext GetReplayProtectionContextForHeight(
+    const Consensus::Params& consensusParams, int height);
+
 /** Guess verification progress (as a fraction between 0.0=genesis and 1.0=current tip). */
 double GuessVerificationProgress(const ChainTxData& data, const CBlockIndex* pindex);
 
@@ -379,11 +384,17 @@ private:
     bool cacheStore;
     ScriptError error;
     PrecomputedTransactionData *txdata;
+    ReplayProtectionContext replay_context;
 
 public:
-    CScriptCheck(): ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false), error(SCRIPT_ERR_UNKNOWN_ERROR) {}
-    CScriptCheck(const CTxOut& outIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn, PrecomputedTransactionData* txdataIn) :
-        m_tx_out(outIn), ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn), error(SCRIPT_ERR_UNKNOWN_ERROR), txdata(txdataIn) { }
+    CScriptCheck(): ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false), error(SCRIPT_ERR_UNKNOWN_ERROR), txdata(nullptr) {}
+    CScriptCheck(const CTxOut& outIn, const CTransaction& txToIn,
+                 unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn,
+                 PrecomputedTransactionData* txdataIn,
+                 const ReplayProtectionContext& replayContextIn = ReplayProtectionContext()) :
+        m_tx_out(outIn), ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn),
+        cacheStore(cacheIn), error(SCRIPT_ERR_UNKNOWN_ERROR), txdata(txdataIn),
+        replay_context(replayContextIn) { }
 
     bool operator()();
 
@@ -395,6 +406,7 @@ public:
         std::swap(cacheStore, check.cacheStore);
         std::swap(error, check.error);
         std::swap(txdata, check.txdata);
+        std::swap(replay_context, check.replay_context);
     }
 
     ScriptError GetScriptError() const { return error; }
