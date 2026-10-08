@@ -116,6 +116,111 @@ reject every other transaction version after activation, and reject protected
 encodings whose marker is absent or non-canonical. This envelope protects
 signatureless and nonstandard scripts as well as ordinary signed spends.
 
+#### Transaction And Signer Integration Specification
+
+"Format 5" names this revision of the protected transaction format; it does
+not mean that `nVersion` is the integer 5. Implementations must use the exact
+reserved value and field order below. All fixed-width integer fields use
+little-endian encoding, and vectors use the existing canonical CompactSize
+encoding.
+
+| Field | Encoding |
+| --- | --- |
+| `nVersion` | signed 32-bit `0x05475658`; bytes `58 56 47 05` |
+| `nTime` | unsigned 32-bit little-endian |
+| replay marker | unsigned 32-bit `0x47565800`; bytes `00 58 56 47` |
+| `vin` | CompactSize count followed by unchanged transaction inputs |
+| `vout` | CompactSize count followed by unchanged transaction outputs |
+| `nLockTime` | unsigned 32-bit little-endian |
+
+The transaction ID remains the double-SHA-256 hash of this complete canonical
+wire serialization, including the replay marker. Address encodings, input and
+output structures, script execution, and ordinary transfer public keys remain
+unchanged. Ordinary `CHECKSIG` and `CHECKMULTISIG` spends continue to use
+strict-DER secp256k1 ECDSA signatures followed by a one-byte hash type.
+
+The post-fork hash type must set `SIGHASH_POS_FORKID = 0x40`. Consequently the
+standard values are `0x41` for `SIGHASH_ALL`, `0x42` for `SIGHASH_NONE`, and
+`0x43` for `SIGHASH_SINGLE`; `SIGHASH_ANYONECANPAY = 0x80` may be ORed with
+any of them. The complete hash type, including `0x40` and optionally `0x80`,
+is used by the existing signature serializer and is serialized as a signed
+32-bit little-endian value at the end of its preimage.
+
+For non-witness (`SigVersion::BASE`) inputs, calculate the digest as follows:
+
+```text
+hash_type      = base_hash_type | 0x40 [| 0x80]
+legacy_preimage = LegacySignatureSerialize(
+    nVersion, nTime, vin, vout, nLockTime,
+    scriptCode, input_index, hash_type
+) || int32_le(hash_type)
+legacy_hash    = SHA256d(legacy_preimage)
+
+domain_preimage =
+    ASCII("VergePoS/TxSignature/v1") ||
+    uint32_le(network_id) ||
+    int32_le(activation_height) ||
+    uint256_wire(legacy_hash)
+
+pos_signature_hash = SHA256d(domain_preimage)
+```
+
+`LegacySignatureSerialize` is the existing Verge BASE signature algorithm,
+including its established `SIGHASH_NONE`, `SIGHASH_SINGLE`,
+`SIGHASH_ANYONECANPAY`, script replacement, and sequence handling. It commits
+to the protected `nVersion` but does not insert the replay marker between
+`nTime` and `vin`. The marker is a fixed invariant implied by the reserved
+version and is independently required by transaction deserialization and
+consensus. `uint256_wire` means the 32 raw bytes used by Verge serialization,
+which are the reverse of the conventional big-endian hash hex displayed by
+RPCs. The ASCII domain tag has no terminating NUL byte.
+
+Network identifiers are `1` for mainnet, `2` for testnet, and `3` for regtest.
+An external signer must obtain the final activation height from the applicable
+release's chain parameters; signatures are intentionally invalid on a network
+or activation schedule other than the one to which they commit.
+
+The fixed transaction signature-hash vector in
+`src/test/pos_crypto_tests.cpp` uses these inputs:
+
+| Parameter | Value |
+| --- | --- |
+| Network ID | `1` |
+| Activation height | `15,000,000` |
+| Private key used to derive `scriptCode` | scalar `1`, compressed public key |
+| `scriptCode` | `76a914751e76e8199196d454941c45d1b3a323f1433bd688ac` |
+| Spent amount | `25,000,000` base units (`25 XVG`) |
+| Transaction version | `0x05475658` |
+| Transaction time | `1,700,000,000` |
+| Input | transaction ID `01`, output `0`, sequence `0xffffffff` |
+| Output | `24,990,000` base units to `OP_TRUE` |
+| Lock time | `0` |
+| Input index | `0` |
+| Hash type | `0x41` (`SIGHASH_ALL | SIGHASH_POS_FORKID`) |
+| Expected displayed signature hash | `f01c4c99170e98487365ecf490cdc61bd33840bed7ba6f44c2297bad31f4c289` |
+
+The corresponding unsigned transaction and intermediate hash vectors are:
+
+```text
+unsigned transaction wire serialization:
+5856470500f15365005856470101000000000000000000000000000000000000000000000000000000000000000000000000ffffffff0130517d0100000000015100000000
+
+legacy signature preimage:
+5856470500f15365010100000000000000000000000000000000000000000000000000000000000000000000001976a914751e76e8199196d454941c45d1b3a323f1433bd688acffffffff0130517d010000000001510000000041000000
+
+legacy hash (displayed big-endian):
+815bf116067f4ae405eb21049e51d4a50f055b838c4dc3101da00c50dca86fe1
+
+domain preimage (contains legacy hash in uint256 wire order):
+5665726765506f532f54785369676e61747572652f763101000000c0e1e400e16fa8dc500ca01d10c34d8c835b050fa5d4519e0421eb05e44a7f0616f15b81
+
+final signature hash (displayed big-endian):
+f01c4c99170e98487365ecf490cdc61bd33840bed7ba6f44c2297bad31f4c289
+```
+
+This vector is consensus test data and must be reproduced by hardware wallets,
+offline signers, and exchange signing systems before mainnet activation.
+
 Every signature evaluated after activation must additionally set hash-type bit
 `0x40` and use the versioned Verge PoS signature-hash domain. The legacy
 signature hash is wrapped as
@@ -137,8 +242,8 @@ bonding, unbonding, fee funding, and every other spend path must implement the
 same rule; no legacy-authorized transaction class may bypass the domain check.
 
 The exact signature-hash marker, domain tag, serialized preimage, and network
-commitment must be specified and covered by fixed cross-platform vectors before
-mainnet parameters are selected. Tests must prove both directions: a legacy
+commitment must remain covered by fixed cross-platform vectors before mainnet
+parameters are selected. Tests must prove both directions: a legacy
 PoW node rejects a post-activation transaction, and an upgraded node rejects a
 legacy-signed transaction in a post-activation block. Mainnet activation is
 blocked until this protection has passed functional fork-boundary tests and an
