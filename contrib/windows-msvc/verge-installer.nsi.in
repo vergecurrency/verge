@@ -1,3 +1,4 @@
+Target amd64-unicode
 Unicode true
 ManifestDPIAware true
 
@@ -28,7 +29,7 @@ VIAddVersionKey LegalCopyright "Copyright (C) 2026 Verge"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\verge-qt.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Launch Verge"
 
-!addplugindir /x86-unicode "@NSIS_PLUGIN_DIR@"
+!addplugindir "@NSIS_PLUGIN_DIR@"
 
 !include "LogicLib.nsh"
 !include "MUI2.nsh"
