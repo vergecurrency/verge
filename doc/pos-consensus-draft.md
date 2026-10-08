@@ -2,11 +2,11 @@
 
 # Verge PoS-Only Consensus Draft
 
-Status: Phase 3 testnet implementation on the `regtest` branch. This document is not a mainnet activation proposal.
+Status: Public testnet validation on the `regtest` branch. This document defines the PoS consensus rules intended for mainnet activation after successful testnet validation, independent review, release-readiness approval, and confirmation of the production activation height.
 
 ## Scope
 
-Verge remains proof of work before a network-specific activation height. Beginning with the block at `nPoSActivationHeight`, proof-of-work blocks are invalid and every new block must satisfy the proof-of-stake rules below. Initial implementation and activation are restricted to regtest.
+Verge remains proof of work before a network-specific activation height. Beginning with the block at `nPoSActivationHeight`, proof-of-work blocks are invalid and every new block must satisfy the proof-of-stake rules below. The implementation is enabled on regtest and testnet for validation before the same documented transition is activated on mainnet at the configured production height.
 
 This transition does not mint new XVG. A valid PoS block may claim at most the transaction fees in that block. An empty block therefore pays zero.
 
