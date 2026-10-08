@@ -82,9 +82,10 @@ CTxDestination DecodeDestination(const std::string& str, const CChainParams& par
     std::vector<unsigned char> data;
     if(IsStealthAddress(str)){
         CStealthAddress sxAddr;
-        sxAddr.SetEncoded(str);
-
-        return sxAddr;
+        if (sxAddr.SetEncoded(str)) {
+            return sxAddr;
+        }
+        return CNoDestination();
     }
 
     uint160 hash;

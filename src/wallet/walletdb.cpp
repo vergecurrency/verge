@@ -105,12 +105,29 @@ bool WalletBatch::EraseStealthKeyMeta(const CKeyID& keyId)
 
 bool WalletBatch::WriteStealthAddress(const CStealthAddress& sxAddr)
 {
-    return WriteIC(std::make_pair(std::string("sxAddr"), sxAddr.scan_pubkey), sxAddr, true);
+    const auto key = std::make_pair(std::string("sxAddr"),
+                                    std::make_pair(sxAddr.scan_pubkey, sxAddr.spend_pubkey));
+    if (!WriteIC(key, sxAddr, true)) {
+        return false;
+    }
+    // Remove a matching legacy scan-key-only record after successfully writing
+    // the collision-safe key. Preserve it if it belongs to a different spend key.
+    const auto legacy_key = std::make_pair(std::string("sxAddr"), sxAddr.scan_pubkey);
+    CStealthAddress legacy_address;
+    if (m_batch.Read(legacy_key, legacy_address) &&
+        legacy_address.spend_pubkey == sxAddr.spend_pubkey) {
+        m_batch.Erase(legacy_key);
+    }
+    return true;
 }
 
 bool WalletBatch::ReadStealthAddress(CStealthAddress& sxAddr)
 {
-    // -- set scan_pubkey before reading
+    const auto key = std::make_pair(std::string("sxAddr"),
+                                    std::make_pair(sxAddr.scan_pubkey, sxAddr.spend_pubkey));
+    if (m_batch.Read(key, sxAddr)) {
+        return true;
+    }
     return m_batch.Read(std::make_pair(std::string("sxAddr"), sxAddr.scan_pubkey), sxAddr);
 }
 

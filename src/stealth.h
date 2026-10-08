@@ -1,5 +1,5 @@
 // Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2018 Verge
+// Copyright (c) 2018-2026 Verge
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
@@ -61,6 +61,9 @@ public:
     CStealthAddress()
     {
         options = 0;
+        number_signatures = 0;
+        prefix.number_bits = 0;
+        prefix.bitfield = 0;
     }
     
     uint8_t options;
@@ -78,13 +81,16 @@ public:
     
     bool operator <(const CStealthAddress& y) const
     {
-        return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], ec_compressed_size) < 0;
+        if (scan_pubkey != y.scan_pubkey) {
+            return scan_pubkey < y.scan_pubkey;
+        }
+        return spend_pubkey < y.spend_pubkey;
     }
 
     bool operator ==(const CStealthAddress& y) const
     {
-        return &scan_pubkey == &y.scan_pubkey &&  &scan_secret == &y.scan_secret && 
-                &spend_pubkey == &y.spend_pubkey &&  &spend_secret == &y.spend_secret;
+        return options == y.options && scan_pubkey == y.scan_pubkey &&
+               spend_pubkey == y.spend_pubkey;
     }
     
     ADD_SERIALIZE_METHODS;

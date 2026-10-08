@@ -186,33 +186,24 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
                 ec_point pkSendTo;
                 ec_point ephem_pubkey;
                 
-                if (GenerateRandomSecret(ephem_secret) == 0)
-                {
-                    if (StealthSecret(ephem_secret, sxAddr.scan_pubkey, sxAddr.spend_pubkey, secretShared, pkSendTo) == 0)
-                    {
-                        CPubKey cpkTo(pkSendTo);
-                        if (cpkTo.IsValid())
-                        {
-                            CKeyID addr = cpkTo.GetID();
-
-                            if (SecretToPublicKey(ephem_secret, ephem_pubkey) == 0)
-                            {
-                                // adding address part
-                                CScript scriptAddr = GetScriptForDestination(addr);
-                                CRecipient recipient = {scriptAddr, rcp.amount, rcp.fSubtractFeeFromAmount};
-                                vecSend.push_back(recipient);
-
-                                // adding the ephem key part
-                                CPubKey ephemPubKey(ephem_pubkey);
-                                CScript scriptPubKey = GetScriptForStealthPubKey(ephemPubKey);
-                                CRecipient recipientTwo = {scriptPubKey, 0, false};
-                                vecSend.push_back(recipientTwo);
-                               
-                            }
-
-                        }
-                    }
+                if (GenerateRandomSecret(ephem_secret) != 0 ||
+                    StealthSecret(ephem_secret, sxAddr.scan_pubkey, sxAddr.spend_pubkey,
+                                  secretShared, pkSendTo) != 0 ||
+                    SecretToPublicKey(ephem_secret, ephem_pubkey) != 0) {
+                    return TransactionCreationFailed;
                 }
+
+                CPubKey cpkTo(pkSendTo);
+                CPubKey ephemPubKey(ephem_pubkey);
+                if (!cpkTo.IsValid() || !ephemPubKey.IsValid()) {
+                    return TransactionCreationFailed;
+                }
+
+                CScript scriptAddr = GetScriptForDestination(cpkTo.GetID());
+                vecSend.push_back({scriptAddr, rcp.amount, rcp.fSubtractFeeFromAmount});
+
+                CScript scriptPubKey = GetScriptForStealthPubKey(ephemPubKey);
+                vecSend.push_back({scriptPubKey, 0, false});
             } else {
                 CScript scriptPubKey = GetScriptForDestination(dest);
                 CRecipient recipient = {scriptPubKey, rcp.amount, rcp.fSubtractFeeFromAmount};

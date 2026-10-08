@@ -1,5 +1,5 @@
 // Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2018 Verge
+// Copyright (c) 2018-2026 Verge
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,8 +8,8 @@
 #include <uint256.h>
 #include <crypto/sha256.h>
 #include <arith_uint256.h>
+#include <pubkey.h>
 
-#include <openssl/rand.h>
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
@@ -36,9 +36,10 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
         return false;
     };
     
-    if (raw.size() < 1 + 1 + 33 + 1 + 33 + 1 + 1 + 4)
+    static constexpr size_t STEALTH_ADDRESS_SIZE = 1 + 1 + 33 + 1 + 33 + 1 + 1 + 4;
+    if (raw.size() != STEALTH_ADDRESS_SIZE)
     {
-        LogPrintf("CStealthAddress::SetEncoded() too few bytes provided.\n");
+        LogPrintf("CStealthAddress::SetEncoded() invalid address length.\n");
         return false;
     };
     
@@ -52,16 +53,31 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
         return false;
     };
     
-    options = *p++;
+    const uint8_t parsed_options = *p++;
+    if (parsed_options != 0)
+        return false;
     
-    scan_pubkey.resize(33);
-    memcpy(&scan_pubkey[0], p, 33);
+    ec_point parsed_scan_pubkey(p, p + ec_compressed_size);
     p += 33;
-    //uint8_t spend_pubkeys = *p++;
-    p++;
+    if (*p++ != 1)
+        return false;
     
-    spend_pubkey.resize(33);
-    memcpy(&spend_pubkey[0], p, 33);
+    ec_point parsed_spend_pubkey(p, p + ec_compressed_size);
+    p += 33;
+    const uint8_t parsed_signatures = *p++;
+    const uint8_t parsed_prefix_bits = *p++;
+    if (parsed_signatures != 0 || parsed_prefix_bits != 0 ||
+        !CPubKey(parsed_scan_pubkey).IsFullyValid() ||
+        !CPubKey(parsed_spend_pubkey).IsFullyValid()) {
+        return false;
+    }
+
+    options = parsed_options;
+    scan_pubkey = std::move(parsed_scan_pubkey);
+    spend_pubkey = std::move(parsed_spend_pubkey);
+    number_signatures = parsed_signatures;
+    prefix.number_bits = parsed_prefix_bits;
+    prefix.bitfield = 0;
     
     return true;
 };
@@ -148,7 +164,7 @@ int GenerateRandomSecret(ec_secret& out)
     // -- check max, try max 32 times
     for (i = 0; i < 32; ++i)
     {
-        RAND_bytes((unsigned char*) test.begin(), 32);
+        GetStrongRandBytes(test.begin(), 32);
         if (UintToArith256(test) > min && UintToArith256(test) < max)
         {
             memcpy(&out.e[0], test.begin(), 32);
@@ -444,6 +460,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     BIGNUM* bnc             = NULL;
     BIGNUM* bnOrder         = NULL;
     BIGNUM* bnSpend         = NULL;
+    int spend_bytes         = 0;
     
     EC_GROUP* ecgrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
     
@@ -549,10 +566,17 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         goto End;
     };
     
-    if (BN_num_bytes(bnSpend) != (int) ec_secret_size
-        || BN_bn2bin(bnSpend, &secretOut.e[0]) != (int) ec_secret_size)
+    spend_bytes = BN_num_bytes(bnSpend);
+    if (spend_bytes < 1 || spend_bytes > (int)ec_secret_size)
     {
         printf("StealthSecretSpend(): bnSpend incorrect length.\n");
+        rv = 1;
+        goto End;
+    };
+    memset(&secretOut.e[0], 0, ec_secret_size);
+    if (BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size - spend_bytes]) != spend_bytes)
+    {
+        printf("StealthSecretSpend(): bnSpend serialization failed.\n");
         rv = 1;
         goto End;
     };
@@ -582,6 +606,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     BIGNUM* bnc             = NULL;
     BIGNUM* bnOrder         = NULL;
     BIGNUM* bnSpend         = NULL;
+    int spend_bytes         = 0;
     
     EC_GROUP* ecgrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
     
@@ -636,10 +661,17 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         goto End;
     };
     
-    if (BN_num_bytes(bnSpend) != (int) ec_secret_size
-        || BN_bn2bin(bnSpend, &secretOut.e[0]) != (int) ec_secret_size)
+    spend_bytes = BN_num_bytes(bnSpend);
+    if (spend_bytes < 1 || spend_bytes > (int)ec_secret_size)
     {
         printf("StealthSecretSpend(): bnSpend incorrect length.\n");
+        rv = 1;
+        goto End;
+    };
+    memset(&secretOut.e[0], 0, ec_secret_size);
+    if (BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size - spend_bytes]) != spend_bytes)
+    {
+        printf("StealthSecretSpend(): bnSpend serialization failed.\n");
         rv = 1;
         goto End;
     };
@@ -670,7 +702,7 @@ bool IsStealthAddress(const std::string& encodedAddress)
         return false;
     };
     
-    if (raw.size() < 1 + 1 + 33 + 1 + 33 + 1 + 1 + 4)
+    if (raw.size() != 1 + 1 + 33 + 1 + 33 + 1 + 1 + 4)
     {
         //printf("IsStealthAddress too few bytes provided.\n");
         return false;
@@ -686,7 +718,8 @@ bool IsStealthAddress(const std::string& encodedAddress)
         return false;
     };
     
-    return true;
+    CStealthAddress address;
+    return address.SetEncoded(encodedAddress);
 };
 
 bool GenerateNewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr) {

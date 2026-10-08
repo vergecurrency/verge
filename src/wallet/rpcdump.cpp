@@ -561,6 +561,52 @@ UniValue importwallet(const JSONRPCRequest& request)
             boost::split(vstr, line, boost::is_any_of(" "));
             if (vstr.size() < 2)
                 continue;
+            if (boost::algorithm::starts_with(vstr[0], "stealth:")) {
+                std::vector<std::string> secrets;
+                boost::split(secrets, vstr[0].substr(8), boost::is_any_of(":"));
+                if (secrets.size() != 2 || !IsHex(secrets[0]) || !IsHex(secrets[1])) {
+                    LogPrintf("Invalid stealth address entry in wallet dump.\n");
+                    fGood = false;
+                    continue;
+                }
+
+                const std::vector<unsigned char> scan_secret_bytes = ParseHex(secrets[0]);
+                const std::vector<unsigned char> spend_secret_bytes = ParseHex(secrets[1]);
+                if (scan_secret_bytes.size() != ec_secret_size ||
+                    spend_secret_bytes.size() != ec_secret_size) {
+                    LogPrintf("Invalid stealth secret length in wallet dump.\n");
+                    fGood = false;
+                    continue;
+                }
+
+                ec_secret scan_secret{};
+                ec_secret spend_secret{};
+                memcpy(scan_secret.e, scan_secret_bytes.data(), ec_secret_size);
+                memcpy(spend_secret.e, spend_secret_bytes.data(), ec_secret_size);
+
+                CStealthAddress stealth_address;
+                if (SecretToPublicKey(scan_secret, stealth_address.scan_pubkey) != 0 ||
+                    SecretToPublicKey(spend_secret, stealth_address.spend_pubkey) != 0) {
+                    LogPrintf("Invalid stealth secrets in wallet dump.\n");
+                    fGood = false;
+                    continue;
+                }
+                stealth_address.scan_secret = scan_secret_bytes;
+                stealth_address.spend_secret = spend_secret_bytes;
+                for (unsigned int nStr = 2; nStr < vstr.size(); ++nStr) {
+                    if (boost::algorithm::starts_with(vstr[nStr], "label=")) {
+                        stealth_address.label = DecodeDumpString(vstr[nStr].substr(6));
+                    }
+                }
+
+                if (pwallet->stealthAddresses.count(stealth_address) == 0 &&
+                    !pwallet->AddStealthAddress(stealth_address)) {
+                    LogPrintf("Error importing stealth address %s.\n", stealth_address.Encoded());
+                    fGood = false;
+                }
+                nTimeBegin = 0;
+                continue;
+            }
             CKey key = DecodeSecret(vstr[0]);
             if (key.IsValid()) {
                 CPubKey pubkey = key.GetPubKey();
@@ -797,6 +843,18 @@ UniValue dumpwallet(const JSONRPCRequest& request)
             file << strprintf("%s %s script=1", HexStr(script.begin(), script.end()), create_time);
             file << strprintf(" # addr=%s\n", address);
         }
+    }
+    file << "\n";
+    for (const CStealthAddress& stealth_address : pwallet->stealthAddresses) {
+        if (stealth_address.scan_secret.size() != ec_secret_size ||
+            stealth_address.spend_secret.size() != ec_secret_size) {
+            continue;
+        }
+        file << strprintf("stealth:%s:%s 0 label=%s # addr=%s\n",
+                          HexStr(stealth_address.scan_secret),
+                          HexStr(stealth_address.spend_secret),
+                          EncodeDumpString(stealth_address.label),
+                          stealth_address.Encoded());
     }
     file << "\n";
     file << "# End of dump\n";
