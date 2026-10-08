@@ -2988,6 +2988,15 @@ jobs:
           $wizard = Join-Path $PWD "build-msvc/verge-installer.bmp"
           $header = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-header.bmp")).Path
           $license = (Resolve-Path (Join-Path $PWD "COPYING")).Path
+          $nsisRoot = Join-Path $env:RUNNER_TEMP "msys64/mingw64/share/nsis"
+          $pluginDir = Join-Path $nsisRoot "Plugins/unicode"
+          $makensis = Join-Path $env:RUNNER_TEMP "msys64/mingw64/bin/makensis.exe"
+          if (-not (Test-Path $makensis)) {
+            throw "makensis.exe not found at $makensis"
+          }
+          if (-not (Test-Path (Join-Path $pluginDir "nsDialogs.dll"))) {
+            throw "NSIS nsDialogs plugin not found under $pluginDir"
+          }
 
           Add-Type -AssemblyName System.Drawing
           $wizardImage = [System.Drawing.Image]::FromFile($wizardSource)
@@ -3008,6 +3017,7 @@ jobs:
             '@WIZARD_BITMAP@' = $wizard
             '@HEADER_BITMAP@' = $header
             '@LICENSE_FILE@' = $license
+            '@NSIS_PLUGIN_DIR@' = $pluginDir
           }
 
           foreach ($entry in $replacements.GetEnumerator()) {
@@ -3015,15 +3025,6 @@ jobs:
           }
 
           Set-Content -Path $script -Value $scriptBody -Encoding ASCII -NoNewline
-
-          $makensisCandidates = @(
-            (Join-Path $env:RUNNER_TEMP "msys64/mingw64/bin/makensis.exe"),
-            (Join-Path $env:RUNNER_TEMP "msys64/usr/bin/makensis.exe")
-          )
-          $makensis = $makensisCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $makensis) {
-            throw "makensis.exe not found under $env:RUNNER_TEMP\\msys64"
-          }
 
           & $makensis -V2 $script
 
