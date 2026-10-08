@@ -2988,15 +2988,34 @@ jobs:
           $wizard = Join-Path $PWD "build-msvc/verge-installer.bmp"
           $header = (Resolve-Path (Join-Path $PWD "share/pixmaps/nsis-header.bmp")).Path
           $license = (Resolve-Path (Join-Path $PWD "COPYING")).Path
-          $nsisRoot = Join-Path $env:RUNNER_TEMP "msys64/mingw64/share/nsis"
-          $pluginDir = Join-Path $nsisRoot "Plugins/unicode"
-          $makensis = Join-Path $env:RUNNER_TEMP "msys64/mingw64/bin/makensis.exe"
-          if (-not (Test-Path $makensis)) {
-            throw "makensis.exe not found at $makensis"
+          $makensisCandidates = @()
+          $makensisCommand = Get-Command makensis.exe -ErrorAction SilentlyContinue
+          if ($makensisCommand) {
+            $makensisCandidates += $makensisCommand.Source
           }
-          if (-not (Test-Path (Join-Path $pluginDir "nsDialogs.dll"))) {
-            throw "NSIS nsDialogs plugin not found under $pluginDir"
+          $makensisCandidates += @(
+            (Join-Path $env:RUNNER_TEMP "msys64/mingw64/bin/makensis.exe"),
+            (Join-Path $env:RUNNER_TEMP "msys64/usr/bin/makensis.exe"),
+            "C:/msys64/mingw64/bin/makensis.exe",
+            "C:/msys64/usr/bin/makensis.exe"
+          )
+          $makensis = $makensisCandidates |
+            Where-Object { $_ -and (Test-Path $_) } |
+            Select-Object -First 1
+          if (-not $makensis) {
+            throw "makensis.exe was not found in PATH or an MSYS2 installation"
           }
+
+          $nsisPrefix = Split-Path (Split-Path $makensis -Parent) -Parent
+          $nsDialogs = Get-ChildItem $nsisPrefix -Filter "nsDialogs.dll" -File -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.DirectoryName -match '[\\/]Plugins[\\/]' } |
+            Select-Object -First 1
+          if (-not $nsDialogs) {
+            throw "NSIS nsDialogs plugin not found under installed prefix $nsisPrefix"
+          }
+          $pluginDir = $nsDialogs.DirectoryName
+          Write-Host "Using NSIS compiler $makensis"
+          Write-Host "Using NSIS plugin directory $pluginDir"
 
           Add-Type -AssemblyName System.Drawing
           $wizardImage = [System.Drawing.Image]::FromFile($wizardSource)
