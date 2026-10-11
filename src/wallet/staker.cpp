@@ -6,6 +6,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <chainparamsbase.h>
 #include <consensus/validation.h>
 #include <miner.h>
 #include <net.h>
@@ -48,6 +49,13 @@ bool ShouldAttemptAutomaticBond(const CWallet* wallet)
     if (last_attempt != 0 && now - last_attempt < 60) return false;
     last_attempt = now;
     return true;
+}
+
+bool HasStakingPeer()
+{
+    return Params().NetworkIDString() == CBaseChainParams::REGTEST ||
+        (g_connman &&
+         g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) > 0);
 }
 
 bool BuildVote(const pos::State& state, const COutPoint& bond_outpoint,
@@ -106,6 +114,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         error = "shutdown requested";
         return false;
     }
+    if (!HasStakingPeer()) {
+        error = "no peers available for staking";
+        return false;
+    }
     pos::StakeProof proof;
     pos::BondRecord selected_bond;
     CKey selected_key;
@@ -123,8 +135,8 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
             error = "wallet is locked";
             return false;
         }
-        if (IsInitialBlockDownload()) {
-            error = "chain is still synchronizing";
+        if (!IsChainCurrentForServices()) {
+            error = "chain is still synchronizing with the best known block";
             return false;
         }
         const Consensus::Params& params = Params().GetConsensus();
@@ -360,6 +372,10 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         error = "shutdown requested";
         return false;
     }
+    if (!HasStakingPeer()) {
+        error = "no peers available for staking";
+        return false;
+    }
     LOCK2(cs_main, wallet.cs_wallet);
     if (!wallet.IsStakingEnabled()) {
         error = "staking is disabled";
@@ -369,8 +385,8 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         error = "wallet is locked";
         return false;
     }
-    if (IsInitialBlockDownload()) {
-        error = "chain is still synchronizing";
+    if (!IsChainCurrentForServices()) {
+        error = "chain is still synchronizing with the best known block";
         return false;
     }
 

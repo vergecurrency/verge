@@ -1313,6 +1313,19 @@ bool IsInitialBlockDownload()
     return false;
 }
 
+bool IsChainCurrentForServices()
+{
+    LOCK(cs_main);
+    if (IsInitialBlockDownload() || chainActive.Tip() == nullptr ||
+        pindexBestHeader == nullptr) {
+        return false;
+    }
+
+    // Unlike the one-way IBD latch, this becomes false again when a better
+    // validated chain is known but has not yet become active.
+    return chainActive.Contains(pindexBestHeader);
+}
+
 CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
 
 static void CheckForkWarningConditions()

@@ -766,7 +766,8 @@ int CountValidatedSmsgPeers()
 
 void MaintainSmsgPeerTarget(int64_t now, int64_t& lastAttempt)
 {
-    if (!g_connman || IsInitialBlockDownload() || now < lastAttempt + SMSG_PEER_DISCOVERY_INTERVAL) {
+    if (!g_connman || !IsChainCurrentForServices() ||
+        now < lastAttempt + SMSG_PEER_DISCOVERY_INTERVAL) {
         return;
     }
 
@@ -2325,7 +2326,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
     }
 
-    if (IsInitialBlockDownload()) { // Wait until chain synced
+    if (!IsChainCurrentForServices()) { // Wait until the active chain catches up
         if (strCommand == "smsgPing") {
             pfrom->smsgData.lastSeen = -1; // Mark node as requiring a response once chain is synced
         }
@@ -2938,7 +2939,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         Runs in ThreadMessageHandler2
     */
 
-    if (IsInitialBlockDownload()) { // Wait until chain synced
+    if (!IsChainCurrentForServices()) { // Wait until the active chain catches up
         return true;
     }
 

@@ -748,6 +748,18 @@ only bonds controlled by the selected wallet, including maturity, eligibility,
 lockout, owner destinations, and latest-vote state. `listunbondings` reports
 wallet-controlled unbond outputs and their remaining consensus lock duration.
 These reporting RPCs do not alter consensus or wallet policy.
+`getblockchaininfo`, `getposinfo`, and `getstakinginfo` expose the service
+readiness state directly; the wallet report also distinguishes missing peers
+from chain synchronization.
+
+The one-way initial-block-download latch is not sufficient to authorize
+network services after a node has synchronized once. Staking, automatic
+bonding, secure messaging, and externally served mining templates additionally
+require the active chain to contain the best known validated header. Staking
+and automatic bonding also require at least one peer outside regtest. These
+checks disable the affected service again if the node learns that its active
+chain is behind, while avoiding a tip-age rule that could prevent an otherwise
+valid stalled PoS network from recovering.
 
 ## Wallet Behavior
 

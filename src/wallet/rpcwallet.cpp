@@ -7,6 +7,8 @@
 #include <amount.h>
 #include <base58.h>
 #include <chain.h>
+#include <chainparams.h>
+#include <chainparamsbase.h>
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <httpserver.h>
@@ -5240,6 +5242,10 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
             "getstakinginfo\n"
             "\nReturns this wallet's proof-of-stake operating state.\n");
     }
+    const bool peer_available =
+        Params().NetworkIDString() == CBaseChainParams::REGTEST ||
+        (g_connman &&
+         g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) > 0);
     LOCK2(cs_main, pwallet->cs_wallet);
     pos::State state = GetPoSStateSnapshot();
     const pos::StakeSnapshot* initial_snapshot =
@@ -5296,10 +5302,12 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
     const int current_height = chainActive.Height();
     const int activation_height = Params().GetConsensus().nPoSActivationHeight;
     const bool worker_active = pwallet->IsStakingEnabled() && !pwallet->IsLocked();
+    const bool chain_current = IsChainCurrentForServices();
     std::string status;
     if (!pwallet->IsStakingEnabled()) status = "disabled";
     else if (pwallet->IsLocked()) status = "wallet_locked";
-    else if (IsInitialBlockDownload()) status = "synchronizing";
+    else if (!peer_available) status = "no_peers";
+    else if (!chain_current) status = "synchronizing";
     else if (owned_bonds == 0) status = "bonding";
     else if (eligible_owned_bonds == 0) status = "bond_maturing";
     else if (current_height + 1 < activation_height) status = "waiting_for_activation";
@@ -5307,6 +5315,8 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
     result.pushKV("enabled", pwallet->IsStakingEnabled());
     result.pushKV("wallet_locked", pwallet->IsLocked());
     result.pushKV("worker_active", worker_active);
+    result.pushKV("peer_available", peer_available);
+    result.pushKV("chain_current_for_services", chain_current);
     result.pushKV("active", status == "staking");
     result.pushKV("status", status);
     result.pushKV("reserve_balance", ValueFromAmount(pwallet->GetStakingReserveBalance()));

@@ -396,8 +396,9 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "VERGE is not connected!");
 
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "VERGE is downloading blocks...");
+    if (!IsChainCurrentForServices())
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
+                           "VERGE is downloading blocks or catching up to the best known chain...");
 
     static unsigned int nTransactionsUpdatedLast;
 

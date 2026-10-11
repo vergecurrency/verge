@@ -1351,6 +1351,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
             "  \"mediantime\": xxxxxx,         (numeric) median time for the current best block\n"
             "  \"verificationprogress\": xxxx, (numeric) estimate of verification progress [0..1]\n"
             "  \"initialblockdownload\": xxxx, (bool) (debug information) estimate of whether this node is in Initial Block Download mode.\n"
+            "  \"chaincurrentforservices\": xxxx, (bool) whether the active chain contains the best known validated header.\n"
             "  \"chainwork\": \"xxxx\"           (string) total amount of work in active chain, in hexadecimal\n"
             "  \"size_on_disk\": xxxxxx,       (numeric) the estimated size of the block and undo files on disk\n"
             "  \"pruned\": xx,                 (boolean) if the blocks are subject to pruning\n"
@@ -1400,6 +1401,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast());
     obj.pushKV("verificationprogress",  GuessVerificationProgress(Params().TxData(), chainActive.Tip()));
     obj.pushKV("initialblockdownload",  IsInitialBlockDownload());
+    obj.pushKV("chaincurrentforservices", IsChainCurrentForServices());
     obj.pushKV("chainwork",             chainActive.Tip()->nChainWork.GetHex());
     obj.pushKV("size_on_disk",          CalculateCurrentUsage());
     obj.pushKV("pruned",                fPruneMode);
@@ -1516,6 +1518,7 @@ static UniValue getposinfo(const JSONRPCRequest& request)
     result.pushKV("best_block_age", std::max<int64_t>(
         0, GetAdjustedTime() - static_cast<int64_t>(tip->nTime)));
     result.pushKV("initial_block_download", IsInitialBlockDownload());
+    result.pushKV("chain_current_for_services", IsChainCurrentForServices());
     result.pushKV("adjusted_time", GetAdjustedTime());
     result.pushKV("local_time_offset", GetTimeOffset());
     result.pushKV("activation_height", params.nPoSActivationHeight);
