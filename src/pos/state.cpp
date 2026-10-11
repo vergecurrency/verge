@@ -26,23 +26,23 @@ bool State::InitializeFromCoins(const CCoinsView& coins,
         m_has_pos || best_block.IsNull()) {
         return false;
     }
-    std::unique_ptr<CCoinsViewCursor> cursor(coins.Cursor());
-    if (!cursor) return false;
-    while (cursor->Valid()) {
-        COutPoint outpoint;
-        Coin coin;
-        if (!cursor->GetKey(outpoint) || !cursor->GetValue(coin)) return false;
-        BondData data;
-        if (!coin.IsSpent() && ParseBondScript(coin.out.scriptPubKey, data)) {
-            BondRecord record;
-            record.value = coin.out.nValue;
-            record.creation_height = coin.nHeight;
-            record.data = data;
-            if (!m_bonds.emplace(outpoint, record).second ||
-                !m_bond_history.emplace(outpoint, record).second) return false;
-        }
-        cursor->Next();
-    }
+    const bool initialized = coins.ForEachCoin(
+        [&](const COutPoint& outpoint, const Coin& coin) {
+            BondData data;
+            if (!coin.IsSpent() &&
+                ParseBondScript(coin.out.scriptPubKey, data)) {
+                BondRecord record;
+                record.value = coin.out.nValue;
+                record.creation_height = coin.nHeight;
+                record.data = data;
+                if (!m_bonds.emplace(outpoint, record).second ||
+                    !m_bond_history.emplace(outpoint, record).second) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    if (!initialized) return false;
     m_best_block = best_block;
     return true;
 }

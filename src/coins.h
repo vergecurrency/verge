@@ -16,6 +16,7 @@
 #include <uint256.h>
 
 #include <assert.h>
+#include <functional>
 #include <stdint.h>
 
 #include <unordered_map>
@@ -177,6 +178,10 @@ public:
     //! Get a cursor to iterate over the whole state
     virtual CCoinsViewCursor *Cursor() const;
 
+    //! Visit every unspent coin represented by this view.
+    virtual bool ForEachCoin(
+        const std::function<bool(const COutPoint&, const Coin&)>& callback) const;
+
     //! As we use CCoinsViews polymorphically, have a virtual destructor
     virtual ~CCoinsView() {}
 
@@ -235,6 +240,8 @@ public:
     CCoinsViewCursor* Cursor() const override {
         throw std::logic_error("CCoinsViewCache cursor iteration not supported.");
     }
+    bool ForEachCoin(
+        const std::function<bool(const COutPoint&, const Coin&)>& callback) const override;
 
     /**
      * Check if we have the given utxo already loaded in this cache.

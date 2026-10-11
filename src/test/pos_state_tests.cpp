@@ -11,6 +11,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cstring>
+#include <map>
 
 namespace {
 
@@ -42,9 +43,78 @@ CTransactionRef MakeCoinbase()
     return MakeTransactionRef(tx);
 }
 
+class IterableCoinsView : public CCoinsView
+{
+public:
+    void Add(const COutPoint& outpoint, const Coin& coin)
+    {
+        m_coins.emplace(outpoint, coin);
+    }
+
+    bool GetCoin(const COutPoint& outpoint, Coin& coin) const override
+    {
+        const auto it = m_coins.find(outpoint);
+        if (it == m_coins.end() || it->second.IsSpent()) return false;
+        coin = it->second;
+        return true;
+    }
+
+    bool ForEachCoin(
+        const std::function<bool(const COutPoint&, const Coin&)>& callback)
+        const override
+    {
+        for (const auto& entry : m_coins) {
+            if (!entry.second.IsSpent() &&
+                !callback(entry.first, entry.second)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+private:
+    std::map<COutPoint, Coin> m_coins;
+};
+
 } // namespace
 
 BOOST_FIXTURE_TEST_SUITE(pos_state_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(initialize_from_cached_coins_overlay)
+{
+    const CAmount value = Params().GetConsensus().nPoSMinStake;
+    const CScript bond_script = pos::GetBondScript(MakeBond());
+    const COutPoint keep(uint256S("01"), 0);
+    const COutPoint spend(uint256S("02"), 0);
+    const COutPoint override_coin(uint256S("03"), 0);
+    const COutPoint parent_add(uint256S("04"), 0);
+    const COutPoint tip_add(uint256S("05"), 0);
+
+    IterableCoinsView base;
+    base.Add(keep, Coin(CTxOut(value, bond_script), 1, false, 1));
+    base.Add(spend, Coin(CTxOut(value, bond_script), 2, false, 2));
+    base.Add(override_coin,
+             Coin(CTxOut(value, bond_script), 3, false, 3));
+
+    CCoinsViewCache parent(&base);
+    parent.AddCoin(parent_add,
+                   Coin(CTxOut(value, bond_script), 4, false, 4), false);
+    CCoinsViewCache tip(&parent);
+    BOOST_REQUIRE(tip.SpendCoin(spend));
+    tip.AddCoin(override_coin,
+                Coin(CTxOut(value, CScript() << OP_TRUE), 5, false, 5), true);
+    tip.AddCoin(tip_add,
+                Coin(CTxOut(value, bond_script), 6, false, 6), false);
+
+    pos::State state;
+    BOOST_REQUIRE(state.InitializeFromCoins(tip, uint256S("10")));
+    BOOST_CHECK(state.FindBond(keep) != nullptr);
+    BOOST_CHECK(state.FindBond(spend) == nullptr);
+    BOOST_CHECK(state.FindBond(override_coin) == nullptr);
+    BOOST_CHECK(state.FindBond(parent_add) != nullptr);
+    BOOST_CHECK(state.FindBond(tip_add) != nullptr);
+    BOOST_CHECK_EQUAL(state.Bonds().size(), 3U);
+}
 
 BOOST_AUTO_TEST_CASE(track_bonds_snapshots_and_undo)
 {

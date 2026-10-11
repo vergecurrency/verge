@@ -15,6 +15,21 @@ std::vector<uint256> CCoinsView::GetHeadBlocks() const { return std::vector<uint
 bool CCoinsView::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) { return false; }
 CCoinsViewCursor *CCoinsView::Cursor() const { return nullptr; }
 
+bool CCoinsView::ForEachCoin(
+    const std::function<bool(const COutPoint&, const Coin&)>& callback) const
+{
+    std::unique_ptr<CCoinsViewCursor> cursor(Cursor());
+    if (!cursor) return false;
+    while (cursor->Valid()) {
+        COutPoint outpoint;
+        Coin coin;
+        if (!cursor->GetKey(outpoint) || !cursor->GetValue(coin)) return false;
+        if (!coin.IsSpent() && !callback(outpoint, coin)) return false;
+        cursor->Next();
+    }
+    return true;
+}
+
 bool CCoinsView::HaveCoin(const COutPoint &outpoint) const
 {
     Coin coin;
@@ -139,6 +154,32 @@ uint256 CCoinsViewCache::GetBestBlock() const {
     if (hashBlock.IsNull())
         hashBlock = base->GetBestBlock();
     return hashBlock;
+}
+
+bool CCoinsViewCache::ForEachCoin(
+    const std::function<bool(const COutPoint&, const Coin&)>& callback) const
+{
+    const bool base_ok = base->ForEachCoin(
+        [&](const COutPoint& outpoint, const Coin& base_coin) {
+            const auto cached = cacheCoins.find(outpoint);
+            if (cached == cacheCoins.end()) {
+                return callback(outpoint, base_coin);
+            }
+            return cached->second.coin.IsSpent() ||
+                   callback(outpoint, cached->second.coin);
+        });
+    if (!base_ok) return false;
+
+    // FRESH entries cannot exist in the parent view, so they were not visited
+    // above. Other cache entries override an entry already supplied by it.
+    for (const auto& entry : cacheCoins) {
+        if ((entry.second.flags & CCoinsCacheEntry::FRESH) &&
+            !entry.second.coin.IsSpent() &&
+            !callback(entry.first, entry.second.coin)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void CCoinsViewCache::SetBestBlock(const uint256 &hashBlockIn) {
