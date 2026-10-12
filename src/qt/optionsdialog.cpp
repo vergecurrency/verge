@@ -53,6 +53,16 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
 {
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
+    if (enableWallet) {
+        setMinimumSize(700, 580);
+        ui->verticalLayout_Wallet->setContentsMargins(14, 14, 14, 14);
+        ui->verticalLayout_Wallet->setSpacing(16);
+        ui->stakingLayout->setContentsMargins(14, 20, 14, 14);
+        ui->stakingLayout->setSpacing(12);
+        ui->stakingReserveLayout->setSpacing(12);
+        ui->verticalLayout_2->setContentsMargins(14, 20, 14, 14);
+        ui->verticalLayout_2->setSpacing(10);
+    }
     ui->stakingGroup->setEnabled(false);
     connect(ui->enableStaking, SIGNAL(toggled(bool)),
             ui->stakingReserveBalance, SLOT(setEnabled(bool)));
@@ -71,7 +81,7 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     bondTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
     bondTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     bondTable->setAlternatingRowColors(true);
-    bondTable->setMinimumHeight(150);
+    bondTable->setMinimumHeight(180);
     bondTable->verticalHeader()->setVisible(false);
     bondTable->horizontalHeader()->setStretchLastSection(true);
     bondTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);

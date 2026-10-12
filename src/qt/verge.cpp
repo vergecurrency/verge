@@ -53,6 +53,8 @@
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
+#include <QFontDatabase>
+#include <QFontInfo>
 #include <QStringList>
 #include <QLibraryInfo>
 #include <QLocale>
@@ -115,6 +117,23 @@ static QString GetLangTerritory()
     return lang_territory;
 }
 
+static void ConfigureApplicationFont()
+{
+    const int id = QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/montserrat"));
+    const QStringList fontFamilies = QFontDatabase::applicationFontFamilies(id);
+    QFont appFont = QApplication::font();
+    if (!fontFamilies.isEmpty()) {
+        appFont.setFamily(fontFamilies.first());
+    } else {
+        LogPrintf("GUI: Failed to load bundled Montserrat font\n");
+    }
+
+    int pointSize = appFont.pointSize();
+    if (pointSize <= 0) pointSize = QFontInfo(appFont).pointSize();
+    appFont.setPointSize(qMax(8, pointSize > 0 ? pointSize - 2 : 10));
+    QApplication::setFont(appFont);
+}
+
 static QString BuildAppStyleSheet()
 {
     return QStringLiteral(R"(
@@ -129,7 +148,7 @@ QWidget#VERGEGUI, QWidget#RPCConsole {
 
 QWidget {
     color: #d7dbe5;
-    font-family: "Inter", "Noto Sans", "DejaVu Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 14px;
 }
 
@@ -159,14 +178,14 @@ QFrame#CoinControlToolbarCard:hover {
 
 QLabel#OverviewSectionTitle {
     color: #f3f6ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 17px;
     font-weight: 600;
 }
 
 QLabel#OverviewPrimaryBalance {
     color: #f3f6ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 18px;
     font-weight: 600;
 }
@@ -249,7 +268,7 @@ QPushButton#TransactionsExportButton {
     border: 1px solid #3c5279;
     border-radius: 10px;
     color: #ecf1ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-weight: 600;
     min-height: 36px;
     padding: 6px 14px;
@@ -276,7 +295,7 @@ QTableView#transactionView QHeaderView::section {
     border: 0;
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 13px;
     font-weight: 600;
     padding: 10px 12px;
@@ -309,7 +328,7 @@ QLabel#ReceiveIntroText {
 
 QLabel#ReceiveSectionTitle {
     color: #f3f6ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 17px;
     font-weight: 600;
 }
@@ -335,7 +354,7 @@ QPushButton#ReceivePrimaryButton {
     border: 1px solid #49a26f;
     border-radius: 10px;
     color: #f3fff8;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-weight: 600;
     min-height: 38px;
     padding: 6px 16px;
@@ -380,7 +399,7 @@ QTableView#ReceiveHistoryTable QHeaderView::section {
     border: 0;
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 13px;
     font-weight: 600;
     padding: 10px 12px;
@@ -406,7 +425,7 @@ QTextEdit#ReceiveRequestDetails {
     border: 1px solid #2a3347;
     border-radius: 16px;
     color: #d7dbe5;
-    font-family: "Inter", "Noto Sans", "DejaVu Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 14px;
     line-height: 1.5;
     padding: 10px 12px;
@@ -451,7 +470,7 @@ QPushButton#DialogPrimaryButton {
     border: 1px solid #5b8df0;
     border-radius: 10px;
     color: #f5f9ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-weight: 600;
     min-height: 36px;
     padding: 6px 16px;
@@ -530,7 +549,7 @@ QTableView#AddressBookTable QHeaderView::section {
     border: 0;
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 13px;
     font-weight: 600;
     padding: 10px 12px;
@@ -550,7 +569,7 @@ QPushButton#AddressBookPrimaryButton {
     border: 1px solid #49a26f;
     border-radius: 10px;
     color: #f3fff8;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-weight: 600;
     min-height: 36px;
     padding: 6px 16px;
@@ -672,7 +691,7 @@ QTreeWidget#CoinControlTree QHeaderView::section {
     border: 0;
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 13px;
     font-weight: 600;
     padding: 10px 12px;
@@ -706,7 +725,7 @@ QLabel#SignVerifyIntroText {
 
 QLabel#SignVerifySectionLabel {
     color: #f3f6ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-weight: 600;
 }
 
@@ -772,7 +791,7 @@ QScrollArea#SendEntriesScrollArea {
 
 QLabel#SendSectionTitle {
     color: #f3f6ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 16px;
     font-weight: 600;
 }
@@ -788,7 +807,7 @@ QLabel#SendWarningLabel {
 
 QLabel#SendBalanceValue {
     color: #f3f6ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 16px;
     font-weight: 600;
 }
@@ -811,7 +830,7 @@ QPushButton#SendPrimaryButton {
     border: 1px solid #5b8df0;
     border-radius: 10px;
     color: #f5f9ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-weight: 600;
     min-height: 38px;
     padding: 6px 16px;
@@ -884,7 +903,7 @@ QWidget#CustomTitleBar {
 
 QLabel#CustomTitleLabel {
     color: #f2f5ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-weight: 600;
 }
 
@@ -901,7 +920,7 @@ QToolBar#ShellToolbar QToolButton#ShellNavButton {
     border: 1px solid rgba(58, 76, 110, 0.32);
     border-radius: 14px;
     color: #dfe6f7;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 14px;
     font-weight: 600;
     icon-size: 18px;
@@ -929,7 +948,7 @@ QToolBar#ShellToolbar QToolButton#ShellNavButton:checked {
 
 QLabel#ShellWalletSelectorLabel {
     color: #94a3bd;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 13px;
     font-weight: 600;
 }
@@ -977,7 +996,7 @@ QFrame#ShellSyncStatusCard[syncState="syncing"] {
 
 QLabel#SyncStatusLabel {
     color: #f4f7ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 12px;
     font-weight: 600;
 }
@@ -1033,7 +1052,7 @@ QWidget#ChainStatusChip[syncState="synced"] {
 QLabel#StatusChipText,
 QLabel#UnitDisplayStatusText {
     color: #f0f4ff;
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 12px;
     font-weight: 600;
 }
@@ -1045,7 +1064,7 @@ QLabel#StatusChipIcon {
 }
 
 QMenuBar, QToolBar, QGroupBox::title, QTabBar::tab {
-    font-family: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
+    font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 14px;
 }
 
@@ -1072,6 +1091,23 @@ QToolButton#CustomTitleCloseButton:hover {
 
 QFrame, QGroupBox {
     border-radius: 8px;
+}
+
+QDialog#OptionsDialog QGroupBox#stakingGroup,
+QDialog#OptionsDialog QGroupBox#groupBox {
+    background-color: #171d2a;
+    border: 1px solid #2e394f;
+    margin-top: 12px;
+}
+
+QDialog#OptionsDialog QGroupBox#stakingGroup::title,
+QDialog#OptionsDialog QGroupBox#groupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 12px;
+    padding: 0 6px;
+    color: #f3f6ff;
+    font-weight: 600;
 }
 
 QMenuBar {
@@ -3027,6 +3063,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QAPP_ORG_NAME);
     QApplication::setOrganizationDomain(QAPP_ORG_DOMAIN);
     QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
+    ConfigureApplicationFont();
     app.setStyleSheet(BuildAppStyleSheet());
     GUIUtil::SubstituteFonts(GetLangTerritory());
 

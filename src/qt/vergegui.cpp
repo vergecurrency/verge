@@ -48,7 +48,6 @@
 #include <QComboBox>
 #include <QDateTime>
 #include <QDragEnterEvent>
-#include <QFontDatabase>
 #include <QGraphicsDropShadowEffect>
 #include <QGraphicsOpacityEffect>
 #include <QGuiApplication>
@@ -497,19 +496,6 @@ VERGEGUI::VERGEGUI(interfaces::Node& node, const PlatformStyle *_platformStyle, 
          */
         setCentralWidget(rpcConsole);
     }
-
-
-
-    const int id = QFontDatabase::addApplicationFont(":/fonts/montserrat");
-    const QStringList fontFamilies = QFontDatabase::applicationFontFamilies(id);
-    QFont appFont = QApplication::font();
-    if (!fontFamilies.isEmpty()) {
-        appFont.setFamily(fontFamilies.first());
-    }
-    const int defaultFontSize = qMax(8, appFont.pointSize() - 2);
-    appFont.setPointSize(defaultFontSize);
-    QApplication::setFont(appFont);
-
     // Accept D&D of URIs
     setAcceptDrops(true);
 
