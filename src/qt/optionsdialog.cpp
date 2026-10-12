@@ -54,7 +54,11 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
     if (enableWallet) {
+#ifdef Q_OS_LINUX
+        setMinimumSize(760, 700);
+#else
         setMinimumSize(700, 580);
+#endif
         ui->verticalLayout_Wallet->setContentsMargins(14, 14, 14, 14);
         ui->verticalLayout_Wallet->setSpacing(16);
         ui->stakingLayout->setContentsMargins(14, 20, 14, 14);
@@ -67,8 +71,11 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     connect(ui->enableStaking, SIGNAL(toggled(bool)),
             ui->stakingReserveBalance, SLOT(setEnabled(bool)));
     ui->stakingReserveBalance->setStyleSheet(QStringLiteral(
-        "QAbstractSpinBox, QAbstractSpinBox QLineEdit {"
-        " background-color: #ffffff; color: #111827;"
+        "QAbstractSpinBox {"
+        " background-color: #171d2a; color: #d7dbe5;"
+        " border: 1px solid #313c52; border-radius: 8px; }"
+        "QAbstractSpinBox QLineEdit {"
+        " background-color: transparent; color: #d7dbe5; border: 0;"
         " selection-background-color: #5b21b6; selection-color: #ffffff; }"));
 
     stakingSummaryLabel->setObjectName(QStringLiteral("StakingSummaryLabel"));
