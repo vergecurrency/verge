@@ -5103,60 +5103,18 @@ static UniValue unbond(const JSONRPCRequest& request)
     if (output_index < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "vout must be non-negative");
     }
-    const COutPoint outpoint(txid, static_cast<uint32_t>(output_index));
-
-    pwallet->BlockUntilSyncedToCurrentChain();
-    LOCK2(cs_main, pwallet->cs_wallet);
     EnsureWalletIsUnlocked(pwallet);
-    const Coin& coin = pcoinsTip->AccessCoin(outpoint);
-    if (coin.IsSpent()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           "Bond output does not exist or is already spent");
-    }
-    pos::BondData bond;
-    if (!pos::ParseBondScript(coin.out.scriptPubKey, bond)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           "Selected output is not a proof-of-stake bond");
-    }
-    if (!pwallet->HaveKey(CKeyID(bond.withdrawal_key_id))) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "Wallet does not control the withdrawal key");
-    }
-    const int64_t unlock_height = static_cast<int64_t>(chainActive.Height()) +
-        1 + Params().GetConsensus().nPoSUnbondingBlocks;
-    if (unlock_height > std::numeric_limits<uint32_t>::max()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Unbond height is out of range");
-    }
-    pos::UnbondData unbond_data;
-    unbond_data.unlock_height = static_cast<uint32_t>(unlock_height);
-    unbond_data.withdrawal_key_id = bond.withdrawal_key_id;
-
-    std::vector<CRecipient> recipients{
-        CRecipient{pos::GetUnbondScript(unbond_data), coin.out.nValue, false}};
-    CCoinControl coin_control;
-    coin_control.Select(outpoint);
-    coin_control.fAllowOtherInputs = true;
-    CReserveKey change_key(pwallet);
-    CAmount fee = 0;
-    int change_position = -1;
+    WalletUnbondResult unbond_result;
     std::string error;
-    CTransactionRef tx;
-    if (!pwallet->CreateTransaction(recipients, tx, change_key, fee,
-                                    change_position, error, coin_control)) {
+    if (!UnbondWalletStake(*pwallet, txid,
+                           static_cast<uint32_t>(output_index),
+                           unbond_result, error)) {
         throw JSONRPCError(RPC_WALLET_ERROR, error);
     }
-    CValidationState validation_state;
-    if (!pwallet->CommitTransaction(tx, {}, {}, "", change_key,
-                                    g_connman.get(), validation_state)) {
-        throw JSONRPCError(
-            RPC_WALLET_ERROR,
-            strprintf("Unbond transaction rejected: %s",
-                      FormatStateMessage(validation_state)));
-    }
     UniValue result(UniValue::VOBJ);
-    result.pushKV("txid", tx->GetHash().GetHex());
-    result.pushKV("unlock_height", unlock_height);
-    result.pushKV("amount", ValueFromAmount(coin.out.nValue));
+    result.pushKV("txid", unbond_result.txid.GetHex());
+    result.pushKV("unlock_height", unbond_result.unlock_height);
+    result.pushKV("amount", ValueFromAmount(unbond_result.amount));
     return result;
 }
 

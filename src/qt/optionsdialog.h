@@ -17,6 +17,10 @@ class WalletModel;
 
 QT_BEGIN_NAMESPACE
 class QDataWidgetMapper;
+class QLabel;
+class QPushButton;
+class QTableWidget;
+class QTimer;
 QT_END_NAMESPACE
 
 namespace Ui {
@@ -64,6 +68,10 @@ private Q_SLOTS:
     void updateProxyValidationState();
     /* query the networks, for which the default proxy is used */
     void updateDefaultProxyNets();
+    void refreshStakeBonds();
+    void updateBondActionState();
+    void unbondSelected();
+    void unbondAll();
 
 Q_SIGNALS:
     void proxyIpChecks(QValidatedLineEdit *pUiProxyIp, int nProxyPort);
@@ -75,6 +83,14 @@ private:
     bool initialStakingEnabled;
     CAmount initialStakingReserve;
     QDataWidgetMapper *mapper;
+    QLabel *stakingSummaryLabel;
+    QTableWidget *bondTable;
+    QPushButton *refreshBondsButton;
+    QPushButton *unbondSelectedButton;
+    QPushButton *unbondAllButton;
+    QTimer *stakingRefreshTimer;
+
+    void unbondRows(bool all);
 };
 
 #endif // VERGE_QT_OPTIONSDIALOG_H

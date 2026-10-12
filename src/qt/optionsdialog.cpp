@@ -22,10 +22,19 @@
 
 #include <QDataWidgetMapper>
 #include <QDir>
+#include <QHeaderView>
+#include <QHBoxLayout>
 #include <QIntValidator>
+#include <QItemSelectionModel>
+#include <QLabel>
 #include <QLocale>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QStyle>
+#include <QTableWidget>
 #include <QTimer>
+
+#include <algorithm>
 
 OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     QDialog(parent),
@@ -34,13 +43,71 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     walletModel(0),
     initialStakingEnabled(false),
     initialStakingReserve(0),
-    mapper(0)
+    mapper(0),
+    stakingSummaryLabel(new QLabel(this)),
+    bondTable(new QTableWidget(this)),
+    refreshBondsButton(new QPushButton(this)),
+    unbondSelectedButton(new QPushButton(this)),
+    unbondAllButton(new QPushButton(this)),
+    stakingRefreshTimer(new QTimer(this))
 {
     ui->setupUi(this);
     GUIUtil::EnableThemedDialogChrome(this);
     ui->stakingGroup->setEnabled(false);
     connect(ui->enableStaking, SIGNAL(toggled(bool)),
             ui->stakingReserveBalance, SLOT(setEnabled(bool)));
+    ui->stakingReserveBalance->setStyleSheet(QStringLiteral(
+        "QAbstractSpinBox, QAbstractSpinBox QLineEdit {"
+        " background-color: #ffffff; color: #111827;"
+        " selection-background-color: #5b21b6; selection-color: #ffffff; }"));
+
+    stakingSummaryLabel->setObjectName(QStringLiteral("StakingSummaryLabel"));
+    bondTable->setObjectName(QStringLiteral("StakingBondTable"));
+    bondTable->setColumnCount(4);
+    bondTable->setHorizontalHeaderLabels(
+        QStringList() << tr("Amount") << tr("Confirmations")
+                      << tr("Status") << tr("Outpoint"));
+    bondTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    bondTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    bondTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    bondTable->setAlternatingRowColors(true);
+    bondTable->setMinimumHeight(150);
+    bondTable->verticalHeader()->setVisible(false);
+    bondTable->horizontalHeader()->setStretchLastSection(true);
+    bondTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    bondTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    bondTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+    refreshBondsButton->setObjectName(QStringLiteral("DialogSecondaryButton"));
+    refreshBondsButton->setText(tr("Refresh"));
+    refreshBondsButton->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+    refreshBondsButton->setToolTip(tr("Refresh bond status from the active chain."));
+    unbondSelectedButton->setObjectName(QStringLiteral("AddressBookDangerButton"));
+    unbondSelectedButton->setText(tr("Unbond selected"));
+    unbondSelectedButton->setToolTip(
+        tr("Begin unbonding each selected complete bond."));
+    unbondAllButton->setObjectName(QStringLiteral("AddressBookDangerButton"));
+    unbondAllButton->setText(tr("Unbond all"));
+    unbondAllButton->setToolTip(
+        tr("Disable automatic staking and begin unbonding every bond."));
+
+    QHBoxLayout *bondActions = new QHBoxLayout();
+    bondActions->addWidget(refreshBondsButton);
+    bondActions->addStretch();
+    bondActions->addWidget(unbondSelectedButton);
+    bondActions->addWidget(unbondAllButton);
+    ui->stakingLayout->addWidget(stakingSummaryLabel);
+    ui->stakingLayout->addWidget(bondTable);
+    ui->stakingLayout->addLayout(bondActions);
+
+    connect(refreshBondsButton, SIGNAL(clicked()), this, SLOT(refreshStakeBonds()));
+    connect(unbondSelectedButton, SIGNAL(clicked()), this, SLOT(unbondSelected()));
+    connect(unbondAllButton, SIGNAL(clicked()), this, SLOT(unbondAll()));
+    connect(bondTable, SIGNAL(itemSelectionChanged()),
+            this, SLOT(updateBondActionState()));
+    connect(stakingRefreshTimer, SIGNAL(timeout()),
+            this, SLOT(refreshStakeBonds()));
+    stakingRefreshTimer->setInterval(30000);
 
     /* Main elements init */
     ui->databaseCache->setMinimum(nMinDbCache);
@@ -162,6 +229,223 @@ void OptionsDialog::setWalletModel(WalletModel *_walletModel)
     initialStakingReserve = wallet.getStakingReserveBalance();
     ui->enableStaking->setChecked(initialStakingEnabled);
     ui->stakingReserveBalance->setValue(initialStakingReserve);
+    refreshStakeBonds();
+    stakingRefreshTimer->start();
+}
+
+void OptionsDialog::refreshStakeBonds()
+{
+    QStringList selectedOutpoints;
+    if (bondTable->selectionModel()) {
+        for (const QModelIndex& index :
+             bondTable->selectionModel()->selectedRows()) {
+            QTableWidgetItem *item = bondTable->item(index.row(), 0);
+            if (item) {
+                selectedOutpoints.push_back(
+                    item->data(Qt::UserRole).toString() +
+                    QStringLiteral(":") +
+                    QString::number(item->data(Qt::UserRole + 1).toULongLong()));
+            }
+        }
+    }
+    bondTable->setRowCount(0);
+    if (!walletModel) {
+        stakingSummaryLabel->setText(tr("No wallet loaded"));
+        updateBondActionState();
+        return;
+    }
+
+    const std::vector<interfaces::WalletStakeBond> bonds =
+        walletModel->wallet().getStakeBonds();
+    CAmount total = 0;
+    CAmount eligible = 0;
+    const int displayUnit = walletModel->getOptionsModel()->getDisplayUnit();
+    for (const interfaces::WalletStakeBond& bond : bonds) {
+        const int row = bondTable->rowCount();
+        bondTable->insertRow(row);
+        total += bond.amount;
+        if (bond.eligible) eligible += bond.amount;
+
+        QTableWidgetItem *amount = new QTableWidgetItem(
+            VERGEUnits::formatWithUnit(displayUnit, bond.amount, false,
+                                       VERGEUnits::separatorAlways));
+        amount->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        amount->setData(Qt::UserRole, QString::fromStdString(bond.txid.GetHex()));
+        amount->setData(Qt::UserRole + 1, static_cast<qulonglong>(bond.vout));
+        const bool canUnbond =
+            !bond.withdrawal_locked && !bond.eligibility_locked;
+        amount->setData(Qt::UserRole + 2, canUnbond);
+        bondTable->setItem(row, 0, amount);
+
+        QTableWidgetItem *confirmations =
+            new QTableWidgetItem(QString::number(bond.confirmations));
+        confirmations->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        bondTable->setItem(row, 1, confirmations);
+
+        QString status;
+        if (bond.withdrawal_locked || bond.eligibility_locked) {
+            status = tr("Locked");
+        } else if (bond.eligible) {
+            status = tr("Eligible");
+        } else if (bond.mature) {
+            status = tr("Awaiting snapshot");
+        } else {
+            status = tr("Maturing");
+        }
+        QTableWidgetItem *statusItem = new QTableWidgetItem(status);
+        bondTable->setItem(row, 2, statusItem);
+        const QString outpoint =
+            QString::fromStdString(bond.txid.GetHex()) + QStringLiteral(":") +
+            QString::number(bond.vout);
+        bondTable->setItem(row, 3, new QTableWidgetItem(outpoint));
+        if (!canUnbond) {
+            for (int column = 0; column < bondTable->columnCount(); ++column) {
+                QTableWidgetItem *item = bondTable->item(row, column);
+                item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
+                item->setToolTip(tr("This bond is currently consensus-locked."));
+            }
+        } else if (selectedOutpoints.contains(outpoint)) {
+            bondTable->selectionModel()->select(
+                bondTable->model()->index(row, 0),
+                QItemSelectionModel::Select | QItemSelectionModel::Rows);
+        }
+    }
+
+    stakingSummaryLabel->setText(
+        tr("%1 owned bonds | %2 bonded | %3 eligible")
+            .arg(bonds.size())
+            .arg(VERGEUnits::formatWithUnit(
+                displayUnit, total, false, VERGEUnits::separatorAlways))
+            .arg(VERGEUnits::formatWithUnit(
+                displayUnit, eligible, false, VERGEUnits::separatorAlways)));
+    updateBondActionState();
+}
+
+void OptionsDialog::updateBondActionState()
+{
+    const bool available = walletModel != nullptr;
+    bool canUnbondAny = false;
+    for (int row = 0; row < bondTable->rowCount(); ++row) {
+        if (bondTable->item(row, 0)->data(Qt::UserRole + 2).toBool()) {
+            canUnbondAny = true;
+            break;
+        }
+    }
+    unbondSelectedButton->setEnabled(
+        available && !bondTable->selectionModel()->selectedRows().isEmpty());
+    unbondAllButton->setEnabled(available && canUnbondAny);
+    refreshBondsButton->setEnabled(available);
+}
+
+void OptionsDialog::unbondSelected()
+{
+    unbondRows(false);
+}
+
+void OptionsDialog::unbondAll()
+{
+    unbondRows(true);
+}
+
+void OptionsDialog::unbondRows(bool all)
+{
+    if (!walletModel) return;
+    QModelIndexList rows;
+    if (all) {
+        for (int row = 0; row < bondTable->rowCount(); ++row) {
+            if (bondTable->item(row, 0)->data(Qt::UserRole + 2).toBool()) {
+                rows.push_back(bondTable->model()->index(row, 0));
+            }
+        }
+    } else {
+        rows = bondTable->selectionModel()->selectedRows();
+    }
+    if (rows.isEmpty()) return;
+
+    struct SelectedBond {
+        uint256 txid;
+        uint32_t vout;
+    };
+    std::vector<SelectedBond> selectedBonds;
+    selectedBonds.reserve(rows.size());
+    CAmount total = 0;
+    const std::vector<interfaces::WalletStakeBond> bonds =
+        walletModel->wallet().getStakeBonds();
+    for (const QModelIndex& index : rows) {
+        const uint256 txid = uint256S(bondTable->item(index.row(), 0)
+            ->data(Qt::UserRole).toString().toStdString());
+        const QString txidText = QString::fromStdString(txid.GetHex());
+        const uint32_t vout = static_cast<uint32_t>(
+            bondTable->item(index.row(), 0)->data(Qt::UserRole + 1).toULongLong());
+        for (const interfaces::WalletStakeBond& bond : bonds) {
+            if (QString::fromStdString(bond.txid.GetHex()) == txidText &&
+                bond.vout == vout) {
+                total += bond.amount;
+                break;
+            }
+        }
+        selectedBonds.push_back(SelectedBond{txid, vout});
+    }
+    const int displayUnit = walletModel->getOptionsModel()->getDisplayUnit();
+    const QString amount = VERGEUnits::formatWithUnit(
+        displayUnit, total, false, VERGEUnits::separatorAlways);
+    const uint32_t unbondingBlocks =
+        walletModel->wallet().getStakeUnbondingBlocks();
+    const QMessageBox::StandardButton choice = QMessageBox::warning(
+        this, all ? tr("Unbond all stake") : tr("Unbond selected stake"),
+        tr("Begin unbonding %1 complete bond(s) totaling %2? The principal "
+           "will remain locked for %3 accepted blocks, and transaction "
+           "fees require separate available funds. Automatic staking will "
+           "be disabled to prevent replacement bonds.")
+            .arg(selectedBonds.size()).arg(amount)
+            .arg(QLocale().toString(static_cast<qulonglong>(unbondingBlocks))),
+        QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+    if (choice != QMessageBox::Yes) return;
+
+    WalletModel::UnlockContext unlock(walletModel->requestUnlock());
+    if (!unlock.isValid()) return;
+
+    if (!walletModel->wallet().setStakingPolicy(
+            false, walletModel->wallet().getStakingReserveBalance())) {
+        QMessageBox::critical(this, tr("Staking settings"),
+                              tr("Automatic staking could not be disabled."));
+        return;
+    }
+    ui->enableStaking->setChecked(false);
+    initialStakingEnabled = false;
+
+    int completed = 0;
+    int64_t latestUnlockHeight = 0;
+    QStringList errors;
+    for (const SelectedBond& bond : selectedBonds) {
+        interfaces::WalletUnbond result;
+        std::string error;
+        if (walletModel->wallet().unbondStake(
+                bond.txid, bond.vout, result, error)) {
+            ++completed;
+            latestUnlockHeight = std::max(latestUnlockHeight,
+                                          result.unlock_height);
+        } else {
+            errors.push_back(QStringLiteral("%1:%2 - %3")
+                .arg(QString::fromStdString(bond.txid.GetHex()))
+                .arg(bond.vout)
+                .arg(QString::fromStdString(error)));
+        }
+    }
+    refreshStakeBonds();
+
+    if (completed > 0) {
+        QMessageBox::information(
+            this, tr("Unbonding started"),
+            tr("%1 unbond transaction(s) were created. The latest unlock "
+               "height is %2.").arg(completed).arg(latestUnlockHeight));
+    }
+    if (!errors.isEmpty()) {
+        QMessageBox::critical(
+            this, tr("Unbonding error"),
+            tr("Some bonds could not be unbonded:\n%1")
+                .arg(errors.join(QStringLiteral("\n"))));
+    }
 }
 
 void OptionsDialog::setModel(OptionsModel *_model)

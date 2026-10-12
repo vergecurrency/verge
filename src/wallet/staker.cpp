@@ -529,6 +529,138 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     return true;
 }
 
+std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
+{
+    LOCK2(cs_main, wallet.cs_wallet);
+    std::vector<WalletStakeBondInfo> bonds;
+    const CBlockIndex* tip = chainActive.Tip();
+    if (tip == nullptr) return bonds;
+
+    pos::State state = GetPoSStateSnapshot();
+    const Consensus::Params& params = Params().GetConsensus();
+    uint64_t eligibility_epoch = 0;
+    const pos::StakeSnapshot* snapshot =
+        state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+    const CBlockIndex* final_pow = params.nPoSActivationHeight > 0
+        ? chainActive[params.nPoSActivationHeight - 1] : nullptr;
+    if (final_pow != nullptr && params.IsPoSActive(tip->nHeight + 1) &&
+        params.nPoSSlotSeconds > 0) {
+        const uint64_t candidate = std::max(
+            static_cast<uint64_t>(std::max<int64_t>(0, GetAdjustedTime())) /
+                params.nPoSSlotSeconds,
+            static_cast<uint64_t>(tip->nTime) / params.nPoSSlotSeconds + 1) *
+            params.nPoSSlotSeconds;
+        pos::SlotInfo slot;
+        pos::StateUndo undo;
+        snapshot = nullptr;
+        if (candidate <= std::numeric_limits<uint32_t>::max() &&
+            pos::GetSlotInfo(final_pow->nTime,
+                             static_cast<uint32_t>(candidate), params, slot) &&
+            state.PrepareEpoch(slot.epoch, tip->nHeight + 1, params, undo)) {
+            eligibility_epoch = slot.epoch;
+            snapshot = state.FindSnapshot(pos::GetRequiredSnapshotEpoch(
+                slot.epoch, params.nPoSSnapshotDelayEpochs));
+        }
+    }
+
+    for (const auto& item : state.Bonds()) {
+        const COutPoint& outpoint = item.first;
+        const pos::BondRecord& bond = item.second;
+        if (!wallet.HaveKey(CKeyID(bond.data.withdrawal_key_id))) continue;
+
+        const bool in_snapshot = snapshot != nullptr &&
+            std::any_of(snapshot->entries.begin(), snapshot->entries.end(),
+                        [&outpoint](const pos::SnapshotEntry& entry) {
+                            return entry.outpoint == outpoint;
+                        });
+        WalletStakeBondInfo info;
+        info.txid = outpoint.hash;
+        info.vout = outpoint.n;
+        info.amount = bond.value;
+        info.creation_height = bond.creation_height;
+        info.confirmations = tip->nHeight >= bond.creation_height
+            ? tip->nHeight - bond.creation_height + 1 : 0;
+        info.mature = tip->nHeight >=
+            static_cast<int64_t>(bond.creation_height) +
+                params.nPoSStakeMaturity;
+        info.eligibility_locked = state.IsEligibilityLocked(
+            outpoint, eligibility_epoch, tip->nHeight + 1);
+        info.withdrawal_locked = state.IsWithdrawalLocked(
+            outpoint, tip->nHeight + 1);
+        info.eligible = in_snapshot && !info.eligibility_locked;
+        bonds.push_back(std::move(info));
+    }
+    return bonds;
+}
+
+bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
+                       WalletUnbondResult& result, std::string& error)
+{
+    result = WalletUnbondResult{};
+    wallet.BlockUntilSyncedToCurrentChain();
+    LOCK2(cs_main, wallet.cs_wallet);
+    if (wallet.IsLocked()) {
+        error = "wallet is locked";
+        return false;
+    }
+    if (!IsChainCurrentForServices()) {
+        error = "chain is still synchronizing with the best known block";
+        return false;
+    }
+
+    const COutPoint outpoint(txid, vout);
+    const Coin& coin = pcoinsTip->AccessCoin(outpoint);
+    if (coin.IsSpent()) {
+        error = "bond output does not exist or is already spent";
+        return false;
+    }
+    pos::BondData bond;
+    if (!pos::ParseBondScript(coin.out.scriptPubKey, bond)) {
+        error = "selected output is not a proof-of-stake bond";
+        return false;
+    }
+    if (!wallet.HaveKey(CKeyID(bond.withdrawal_key_id))) {
+        error = "wallet does not control the withdrawal key";
+        return false;
+    }
+    const int64_t unlock_height = static_cast<int64_t>(chainActive.Height()) +
+        1 + Params().GetConsensus().nPoSUnbondingBlocks;
+    if (unlock_height > std::numeric_limits<uint32_t>::max()) {
+        error = "unbond height is out of range";
+        return false;
+    }
+
+    pos::UnbondData unbond_data;
+    unbond_data.unlock_height = static_cast<uint32_t>(unlock_height);
+    unbond_data.withdrawal_key_id = bond.withdrawal_key_id;
+    const CAmount principal = coin.out.nValue;
+    std::vector<CRecipient> recipients{
+        CRecipient{pos::GetUnbondScript(unbond_data), principal, false}};
+    CCoinControl coin_control;
+    coin_control.Select(outpoint);
+    coin_control.fAllowOtherInputs = true;
+    CReserveKey change_key(&wallet);
+    CAmount fee = 0;
+    int change_position = -1;
+    CTransactionRef tx;
+    if (!wallet.CreateTransaction(recipients, tx, change_key, fee,
+                                  change_position, error, coin_control)) {
+        return false;
+    }
+    CValidationState validation_state;
+    if (!wallet.CommitTransaction(tx, {}, {}, "", change_key,
+                                  g_connman.get(), validation_state) ||
+        !validation_state.IsValid()) {
+        error = strprintf("unbond transaction rejected: %s",
+                          FormatStateMessage(validation_state));
+        return false;
+    }
+    result.txid = tx->GetHash();
+    result.unlock_height = unlock_height;
+    result.amount = principal;
+    return true;
+}
+
 void StakeWallets()
 {
     if (ShutdownRequested()) return;

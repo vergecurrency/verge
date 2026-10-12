@@ -12,6 +12,7 @@
 #include <script/standard.h>           // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString
 #include <ui_interface.h>              // For ChangeType
+#include <uint256.h>
 
 #include <functional>
 #include <map>
@@ -39,6 +40,25 @@ struct WalletBalances;
 struct WalletTx;
 struct WalletTxOut;
 struct WalletTxStatus;
+
+struct WalletStakeBond
+{
+    uint256 txid;
+    uint32_t vout{0};
+    CAmount amount{0};
+    int confirmations{0};
+    bool mature{false};
+    bool eligible{false};
+    bool eligibility_locked{false};
+    bool withdrawal_locked{false};
+};
+
+struct WalletUnbond
+{
+    uint256 txid;
+    int64_t unlock_height{0};
+    CAmount amount{0};
+};
 
 using WalletOrderForm = std::vector<std::pair<std::string, std::string>>;
 using WalletValueMap = std::map<std::string, std::string>;
@@ -81,6 +101,10 @@ public:
     virtual bool isStakingEnabled() = 0;
     virtual CAmount getStakingReserveBalance() = 0;
     virtual bool setStakingPolicy(bool enabled, CAmount reserve) = 0;
+    virtual uint32_t getStakeUnbondingBlocks() = 0;
+    virtual std::vector<WalletStakeBond> getStakeBonds() = 0;
+    virtual bool unbondStake(const uint256& txid, uint32_t vout,
+                             WalletUnbond& result, std::string& error) = 0;
 
     // Get key from pool.
     virtual bool getKeyFromPool(bool internal, CPubKey& pub_key) = 0;

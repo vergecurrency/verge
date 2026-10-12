@@ -167,6 +167,18 @@ class PoSActivationTest(VergeTestFramework):
         assert_equal(node.getbestblockhash(), epoch_two)
         assert_equal(node.getblockheader(epoch_zero)["height"], 1500)
 
+        node.setstaking(False)
+        unbond = node.unbond(bond["txid"], bond["vout"])
+        assert_equal(unbond["amount"], 1000)
+        assert_equal(unbond["unlock_height"],
+                     node.getblockcount() + 1 +
+                     node.getposinfo()["unbonding_blocks"])
+        unbondings = node.listunbondings()
+        assert_equal(len(unbondings), 1)
+        assert_equal(unbondings[0]["txid"], unbond["txid"])
+        assert_equal(unbondings[0]["unlock_height"],
+                     unbond["unlock_height"])
+
 
 if __name__ == "__main__":
     PoSActivationTest().main()

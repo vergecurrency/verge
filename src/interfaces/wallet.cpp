@@ -7,6 +7,7 @@
 
 #include <amount.h>
 #include <chain.h>
+#include <chainparams.h>
 #include <consensus/validation.h>
 #include <interfaces/handler.h>
 #include <net.h>
@@ -25,6 +26,7 @@
 #include <validation.h>
 #include <wallet/feebumper.h>
 #include <wallet/fees.h>
+#include <wallet/staker.h>
 #include <wallet/wallet.h>
 
 namespace interfaces {
@@ -153,6 +155,39 @@ public:
         LOCK(m_wallet.cs_wallet);
         return m_wallet.SetStakingReserveBalance(reserve) &&
                m_wallet.SetStakingEnabled(enabled);
+    }
+    uint32_t getStakeUnbondingBlocks() override
+    {
+        return Params().GetConsensus().nPoSUnbondingBlocks;
+    }
+    std::vector<WalletStakeBond> getStakeBonds() override
+    {
+        std::vector<WalletStakeBond> result;
+        for (const WalletStakeBondInfo& bond : GetWalletStakeBonds(m_wallet)) {
+            WalletStakeBond item;
+            item.txid = bond.txid;
+            item.vout = bond.vout;
+            item.amount = bond.amount;
+            item.confirmations = bond.confirmations;
+            item.mature = bond.mature;
+            item.eligible = bond.eligible;
+            item.eligibility_locked = bond.eligibility_locked;
+            item.withdrawal_locked = bond.withdrawal_locked;
+            result.push_back(std::move(item));
+        }
+        return result;
+    }
+    bool unbondStake(const uint256& txid, uint32_t vout,
+                     WalletUnbond& result, std::string& error) override
+    {
+        WalletUnbondResult unbond;
+        if (!UnbondWalletStake(m_wallet, txid, vout, unbond, error)) {
+            return false;
+        }
+        result.txid = unbond.txid;
+        result.unlock_height = unbond.unlock_height;
+        result.amount = unbond.amount;
+        return true;
     }
     bool getKeyFromPool(bool internal, CPubKey& pub_key) override
     {

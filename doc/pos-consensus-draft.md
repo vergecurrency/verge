@@ -772,6 +772,16 @@ Staking is opt-in. Merely owning XVG or opening a wallet does not automatically 
 - last attempted and accepted slots; and
 - earned fee rewards and their maturity.
 
+The wallet options expose the automatic-staking policy, liquid reserve, owned
+bond totals, confirmations, eligibility state, and full outpoints. Users may
+begin unbonding selected complete bonds to reduce their bonded balance or
+disable automatic staking and unbond every currently withdrawable bond. A bond
+cannot be partially spent; exact stake reductions therefore depend on bond
+sizes, and released principal remains locked for the consensus unbonding
+period. GUI unbond actions disable automatic staking before creating the
+transactions so the wallet cannot immediately replace the selected bonds. The
+GUI and RPC use the same wallet transaction implementation.
+
 Wallet locking, backup, encryption, hardware-wallet behavior, and delegated staking require explicit tests.
 
 ## Required Test Coverage
