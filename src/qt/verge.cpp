@@ -815,8 +815,8 @@ QLabel#SendBalanceValue {
 QValidatedLineEdit#SendTextField,
 QValidatedLineEdit#SendEntryField,
 QLineEdit#SendEntryField,
-QAbstractSpinBox#SendAmountField,
-QAbstractSpinBox#SendEntryAmount {
+QWidget#SendAmountField QAbstractSpinBox,
+QWidget#SendEntryAmount QAbstractSpinBox {
     background-color: #171d2a;
     border: 1px solid #313c52;
     border-radius: 10px;
@@ -1770,8 +1770,8 @@ QLabel#SignVerifyStatusLabel {
 QValidatedLineEdit#SendTextField,
 QValidatedLineEdit#SendEntryField,
 QLineEdit#SendEntryField,
-QAbstractSpinBox#SendAmountField,
-QAbstractSpinBox#SendEntryAmount,
+QWidget#SendAmountField QAbstractSpinBox,
+QWidget#SendEntryAmount QAbstractSpinBox,
 QLineEdit#OpenUriField,
 QValidatedLineEdit#OpenUriField,
 QLineEdit#SignVerifyField,
@@ -1789,8 +1789,8 @@ QPlainTextEdit#SignVerifyMessageBox {
 QValidatedLineEdit#SendTextField:focus,
 QValidatedLineEdit#SendEntryField:focus,
 QLineEdit#SendEntryField:focus,
-QAbstractSpinBox#SendAmountField:focus,
-QAbstractSpinBox#SendEntryAmount:focus,
+QWidget#SendAmountField QAbstractSpinBox:focus,
+QWidget#SendEntryAmount QAbstractSpinBox:focus,
 QLineEdit#OpenUriField:focus,
 QValidatedLineEdit#OpenUriField:focus,
 QLineEdit#SignVerifyField:focus,
@@ -2124,8 +2124,8 @@ QDoubleSpinBox,
 QValidatedLineEdit#SendTextField,
 QValidatedLineEdit#SendEntryField,
 QLineEdit#SendEntryField,
-QAbstractSpinBox#SendAmountField,
-QAbstractSpinBox#SendEntryAmount,
+QWidget#SendAmountField QAbstractSpinBox,
+QWidget#SendEntryAmount QAbstractSpinBox,
 QLineEdit#OpenUriField,
 QValidatedLineEdit#OpenUriField,
 QLineEdit#SignVerifyField,
