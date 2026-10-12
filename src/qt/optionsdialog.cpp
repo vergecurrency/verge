@@ -20,6 +20,7 @@
 #include <netbase.h>
 #include <txdb.h> // for -dbcache defaults
 
+#include <QCloseEvent>
 #include <QDataWidgetMapper>
 #include <QDir>
 #include <QHeaderView>
@@ -609,6 +610,17 @@ void OptionsDialog::on_okButton_clicked()
     mapper->submit();
     accept();
     updateDefaultProxyNets();
+}
+
+void OptionsDialog::closeEvent(QCloseEvent *event)
+{
+    // The custom title-bar close button should save just like the OK button.
+    on_okButton_clicked();
+    if (result() == QDialog::Accepted) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
 }
 
 void OptionsDialog::on_cancelButton_clicked()

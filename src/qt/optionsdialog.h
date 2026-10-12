@@ -17,6 +17,7 @@ class WalletModel;
 
 QT_BEGIN_NAMESPACE
 class QDataWidgetMapper;
+class QCloseEvent;
 class QLabel;
 class QPushButton;
 class QTableWidget;
@@ -75,6 +76,9 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     void proxyIpChecks(QValidatedLineEdit *pUiProxyIp, int nProxyPort);
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     Ui::OptionsDialog *ui;
