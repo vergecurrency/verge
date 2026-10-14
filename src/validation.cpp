@@ -25,6 +25,7 @@
 #include <pos/consensus.h>
 #include <pos/state.h>
 #include <pos/validation.h>
+#include <pos/votepool.h>
 #include <policy/rbf.h>
 #include <pow.h>
 #include <primitives/block.h>
@@ -2822,6 +2823,9 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     mempool.removeForPoSLockouts(m_pos_state, pindexNew->nHeight + 1);
     disconnectpool.removeForBlock(blockConnecting.vtx);
+    for (const pos::CheckpointVote& vote : blockConnecting.posExtension.votes) {
+        pos::GetVotePool().Remove(pos::GetVoteSigningHash(vote));
+    }
     // Update chainActive & related variables.
     chainActive.SetTip(pindexNew);
     UpdateTip(pindexNew, chainparams);

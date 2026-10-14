@@ -160,6 +160,9 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
         target->root != vote.target_checkpoint_root) {
         return ValidationError::VOTE_CHECKPOINT;
     }
+    if (!state.CanApplyVote(vote)) {
+        return ValidationError::VOTE_CHECKPOINT;
+    }
     if (!VerifySchnorr(it->bond.data.signing_public_key,
                        GetVoteSigningHash(vote), vote.signature)) {
         return ValidationError::VOTE_SIGNATURE;

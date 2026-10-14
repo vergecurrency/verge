@@ -303,7 +303,16 @@ BOOST_AUTO_TEST_CASE(final_pow_anchor_bootstraps_finality)
     vote_zero.target_checkpoint_root = epoch_zero.GetHash();
     vote_zero.head_slot = 1;
     vote_zero.head_block_root = epoch_zero.GetHash();
+    BOOST_CHECK(state.CanApplyVote(vote_zero));
     BOOST_REQUIRE(state.ApplyVotes({vote_zero}, epoch_zero_undo));
+    BOOST_CHECK(!state.CanApplyVote(vote_zero));
+    pos::CheckpointVote newer_head = vote_zero;
+    newer_head.head_slot = 2;
+    newer_head.head_block_root = uint256S("bb");
+    BOOST_CHECK(state.CanApplyVote(newer_head));
+    pos::CheckpointVote conflicting_checkpoint = newer_head;
+    conflicting_checkpoint.target_checkpoint_root = uint256S("cc");
+    BOOST_CHECK(!state.CanApplyVote(conflicting_checkpoint));
     BOOST_REQUIRE(state.FindJustified(0) != nullptr);
     BOOST_CHECK_EQUAL(state.Finalized().epoch,
                       pos::FINAL_POW_CHECKPOINT_EPOCH);
@@ -324,10 +333,12 @@ BOOST_AUTO_TEST_CASE(final_pow_anchor_bootstraps_finality)
     vote_one.target_checkpoint_root = epoch_one.GetHash();
     vote_one.head_slot = 121;
     vote_one.head_block_root = epoch_one.GetHash();
+    BOOST_CHECK(state.CanApplyVote(vote_one));
     BOOST_REQUIRE(state.ApplyVotes({vote_one}, epoch_one_undo));
     BOOST_REQUIRE(state.FindJustified(1) != nullptr);
     BOOST_CHECK_EQUAL(state.Finalized().epoch, 0U);
     BOOST_CHECK(state.Finalized().root == epoch_zero.GetHash());
+    BOOST_CHECK(!state.CanApplyVote(vote_zero));
     BOOST_CHECK(!state.ApplyVotes({vote_zero}, epoch_one_undo));
 
     BOOST_CHECK(state.UndoBlock(epoch_one_undo));

@@ -491,6 +491,20 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
     return true;
 }
 
+bool State::CanApplyVote(const CheckpointVote& vote) const
+{
+    const auto previous = m_latest_votes.find(vote.bond_outpoint);
+    if (previous == m_latest_votes.end()) return true;
+
+    const CheckpointVote& old = previous->second;
+    return vote.target_epoch > old.target_epoch ||
+        (vote.target_epoch == old.target_epoch &&
+         vote.source_epoch == old.source_epoch &&
+         vote.source_checkpoint_root == old.source_checkpoint_root &&
+         vote.target_checkpoint_root == old.target_checkpoint_root &&
+         vote.head_slot > old.head_slot);
+}
+
 bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
                        StateUndo& undo)
 {
@@ -510,18 +524,10 @@ bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
             return false;
         }
         const auto previous = m_latest_votes.find(vote.bond_outpoint);
+        if (!CanApplyVote(vote)) return false;
         VoteUndo item;
         item.bond_outpoint = vote.bond_outpoint;
         if (previous != m_latest_votes.end()) {
-            const CheckpointVote& old = previous->second;
-            if (vote.target_epoch < old.target_epoch ||
-                (vote.target_epoch == old.target_epoch &&
-                 (vote.source_epoch != old.source_epoch ||
-                  vote.source_checkpoint_root != old.source_checkpoint_root ||
-                  vote.target_checkpoint_root != old.target_checkpoint_root ||
-                  vote.head_slot <= old.head_slot))) {
-                return false;
-            }
             item.had_previous = true;
             item.previous = previous->second;
             previous->second = vote;

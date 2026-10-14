@@ -205,6 +205,7 @@ public:
                       const Consensus::Params& params, StateUndo& undo);
     bool ApplyVotes(const std::vector<CheckpointVote>& votes,
                     StateUndo& undo);
+    bool CanApplyVote(const CheckpointVote& vote) const;
     const Checkpoint* FindCheckpoint(uint64_t epoch) const;
     const Checkpoint* FindJustified(uint64_t epoch) const;
     const Checkpoint* LatestCheckpoint() const;
