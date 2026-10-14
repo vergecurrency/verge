@@ -54,6 +54,9 @@ Operators should use a fresh testnet wallet or, after making a verified backup,
 start once with `-zapwallettxes=2` so transactions from the discarded chain are
 removed before rescanning the reset chain. Automatic bonding treats an
 unconfirmed bond as pending only while that transaction is in the mempool.
+Minimum-chain-work, assume-valid, and chain transaction estimates are reset to
+zero for this new chain. Stable anchors must be selected from this reset before
+those bootstrap values are populated again.
 
 Regtest activation is disabled by default and requires `-posactivationheight=<height>`. The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
 

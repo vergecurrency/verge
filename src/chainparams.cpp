@@ -430,11 +430,10 @@ consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
 consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1462060800; // May 1st 2016
 consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // May 1st 2017
 
-// The best chain should have at least this much work.
-consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000000019a2800000c0"); // block 191
-
-// By default assume that the signatures in ancestors of this block are valid.
-consensus.defaultAssumeValid = uint256S("0x00000710c4216661ad1e98cac3505ba0ee6f55618f97d22d314943ad216442aa"); // block 191
+// This is a fresh testnet chain. Add work and assume-valid anchors only after
+// stable blocks from this reset have been selected.
+consensus.nMinimumChainWork = uint256S("0x00");
+consensus.defaultAssumeValid = uint256S("0x00");
 
 pchMessageStart[0] = 0xb9;
 pchMessageStart[1] = 0x68;
@@ -485,10 +484,9 @@ checkpointData = {
 };
 
 chainTxData = ChainTxData{
-// Data as of block 00000710c4216661ad1e98cac3505ba0ee6f55618f97d22d314943ad216442aa (height 191)
-1791743963,
-192,
-0.006
+0,
+0,
+0
 };
 
 // reorg

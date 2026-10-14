@@ -113,6 +113,11 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
     BOOST_CHECK_EQUAL(testParams->MessageStart()[1], 0x68);
     BOOST_CHECK_EQUAL(testParams->MessageStart()[2], 0xe2);
     BOOST_CHECK_EQUAL(testParams->MessageStart()[3], 0x1e);
+    BOOST_CHECK(testParams->GetConsensus().nMinimumChainWork.IsNull());
+    BOOST_CHECK(testParams->GetConsensus().defaultAssumeValid.IsNull());
+    BOOST_CHECK_EQUAL(testParams->TxData().nTime, 0);
+    BOOST_CHECK_EQUAL(testParams->TxData().nTxCount, 0);
+    BOOST_CHECK_EQUAL(testParams->TxData().dTxRate, 0.0);
 
     const Consensus::Params& pos = mainParams->GetConsensus();
     BOOST_CHECK_EQUAL(pos.nPoSMinStake, 1000 * COIN);
