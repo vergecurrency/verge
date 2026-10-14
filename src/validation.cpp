@@ -2823,8 +2823,10 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     mempool.removeForPoSLockouts(m_pos_state, pindexNew->nHeight + 1);
     disconnectpool.removeForBlock(blockConnecting.vtx);
-    for (const pos::CheckpointVote& vote : blockConnecting.posExtension.votes) {
-        pos::GetVotePool().Remove(pos::GetVoteSigningHash(vote));
+    pos::GetVotePool().RemoveObsolete(m_pos_state);
+    for (const pos::VoteEquivocationEvidence& evidence :
+         blockConnecting.posExtension.vote_evidence) {
+        pos::GetVoteEvidencePool().Remove(pos::GetVoteEvidenceId(evidence));
     }
     // Update chainActive & related variables.
     chainActive.SetTip(pindexNew);

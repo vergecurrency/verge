@@ -15,6 +15,8 @@
 
 namespace pos {
 
+class State;
+
 static constexpr size_t MAX_VOTE_POOL_ENTRIES = 4096;
 static constexpr size_t MAX_VOTE_POOL_BYTES = 2 * 1024 * 1024;
 static constexpr uint64_t VOTE_POOL_EPOCH_TTL = 3;
@@ -40,6 +42,7 @@ public:
     bool Exists(const uint256& hash) const;
     std::vector<CheckpointVote> GetVotes(size_t maximum) const;
     void Remove(const uint256& hash);
+    void RemoveObsolete(const State& state);
     void Prune(uint64_t current_epoch);
     void Clear();
     size_t Size() const;

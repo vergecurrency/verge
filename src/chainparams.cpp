@@ -387,6 +387,7 @@ public:
 CTestNetParams() {
 // KeyNote: we'll leave testnet as is for now
 strNetworkID = "test";
+consensus.ForkHeight = 0;
 consensus.nSubsidyHalvingInterval = 210000;
 consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
 consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
@@ -511,7 +512,7 @@ consensus.BIP34Height = 100000000; // BIP34 has not activated on regtest (far in
 consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in rpc activation tests)
 consensus.BIP66Height = 1251; // BIP66 activated on regtest (Used in rpc activation tests)
 
-consensus.ForkHeight = 2800000;
+consensus.ForkHeight = 0;
 consensus.MULTI_ALGO_SWITCH_BLOCK = 340000;
 consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;

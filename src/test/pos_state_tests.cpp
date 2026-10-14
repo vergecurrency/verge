@@ -5,6 +5,7 @@
 #include <chainparams.h>
 #include <coins.h>
 #include <pos/state.h>
+#include <pos/votepool.h>
 #include <primitives/block.h>
 #include <test/setup_common.h>
 
@@ -303,13 +304,21 @@ BOOST_AUTO_TEST_CASE(final_pow_anchor_bootstraps_finality)
     vote_zero.target_checkpoint_root = epoch_zero.GetHash();
     vote_zero.head_slot = 1;
     vote_zero.head_block_root = epoch_zero.GetHash();
+    pos::VotePool vote_pool;
+    BOOST_REQUIRE(vote_pool.Add(vote_zero) == pos::VotePoolResult::ADDED);
     BOOST_CHECK(state.CanApplyVote(vote_zero));
     BOOST_REQUIRE(state.ApplyVotes({vote_zero}, epoch_zero_undo));
     BOOST_CHECK(!state.CanApplyVote(vote_zero));
+    vote_pool.RemoveObsolete(state);
+    BOOST_CHECK_EQUAL(vote_pool.Size(), 0U);
+    BOOST_CHECK_EQUAL(vote_pool.DynamicMemoryUsage(), 0U);
     pos::CheckpointVote newer_head = vote_zero;
     newer_head.head_slot = 2;
     newer_head.head_block_root = uint256S("bb");
     BOOST_CHECK(state.CanApplyVote(newer_head));
+    BOOST_REQUIRE(vote_pool.Add(newer_head) == pos::VotePoolResult::ADDED);
+    vote_pool.RemoveObsolete(state);
+    BOOST_CHECK_EQUAL(vote_pool.Size(), 1U);
     pos::CheckpointVote conflicting_checkpoint = newer_head;
     conflicting_checkpoint.target_checkpoint_root = uint256S("cc");
     BOOST_CHECK(!state.CanApplyVote(conflicting_checkpoint));

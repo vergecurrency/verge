@@ -4,6 +4,7 @@
 
 #include <pos/votepool.h>
 
+#include <pos/state.h>
 #include <serialize.h>
 
 #include <algorithm>
@@ -121,6 +122,20 @@ void VotePool::Remove(const uint256& hash)
     m_by_bond.erase(it->second.vote.bond_outpoint);
     m_bytes -= it->second.serialized_size;
     m_votes.erase(it);
+}
+
+void VotePool::RemoveObsolete(const State& state)
+{
+    LOCK(m_mutex);
+    for (auto it = m_votes.begin(); it != m_votes.end();) {
+        if (state.CanApplyVote(it->second.vote)) {
+            ++it;
+            continue;
+        }
+        m_by_bond.erase(it->second.vote.bond_outpoint);
+        m_bytes -= it->second.serialized_size;
+        it = m_votes.erase(it);
+    }
 }
 
 void VotePool::Prune(uint64_t current_epoch)

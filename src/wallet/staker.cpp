@@ -356,10 +356,6 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         return false;
     }
     block_hash = block->GetHash();
-    for (const pos::VoteEquivocationEvidence& evidence : vote_evidence) {
-        pos::GetVoteEvidencePool().Remove(
-            pos::GetVoteEvidenceId(evidence));
-    }
     return true;
 }
 

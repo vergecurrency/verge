@@ -149,7 +149,7 @@ QWidget#VERGEGUI, QWidget#RPCConsole {
 QWidget {
     color: #d7dbe5;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 14px;
+    font-size: 10.5pt;
 }
 
 QWidget#OverviewPage {
@@ -179,14 +179,14 @@ QFrame#CoinControlToolbarCard:hover {
 QLabel#OverviewSectionTitle {
     color: #f3f6ff;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 17px;
+    font-size: 12.75pt;
     font-weight: 600;
 }
 
 QLabel#OverviewPrimaryBalance {
     color: #f3f6ff;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 18px;
+    font-size: 13.5pt;
     font-weight: 600;
 }
 
@@ -296,7 +296,7 @@ QTableView#transactionView QHeaderView::section {
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 13px;
+    font-size: 9.75pt;
     font-weight: 600;
     padding: 10px 12px;
 }
@@ -329,7 +329,7 @@ QLabel#ReceiveIntroText {
 QLabel#ReceiveSectionTitle {
     color: #f3f6ff;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 17px;
+    font-size: 12.75pt;
     font-weight: 600;
 }
 
@@ -400,7 +400,7 @@ QTableView#ReceiveHistoryTable QHeaderView::section {
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 13px;
+    font-size: 9.75pt;
     font-weight: 600;
     padding: 10px 12px;
 }
@@ -426,7 +426,7 @@ QTextEdit#ReceiveRequestDetails {
     border-radius: 16px;
     color: #d7dbe5;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 14px;
+    font-size: 10.5pt;
     line-height: 1.5;
     padding: 10px 12px;
 }
@@ -505,7 +505,7 @@ QMessageBox#SendConfirmationDialog QLabel {
 QMessageBox QLabel#qt_msgbox_label,
 QMessageBox#SendConfirmationDialog QLabel#qt_msgbox_label {
     color: #f3f6ff;
-    font-size: 14px;
+    font-size: 10.5pt;
     line-height: 1.5;
 }
 
@@ -550,7 +550,7 @@ QTableView#AddressBookTable QHeaderView::section {
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 13px;
+    font-size: 9.75pt;
     font-weight: 600;
     padding: 10px 12px;
 }
@@ -692,7 +692,7 @@ QTreeWidget#CoinControlTree QHeaderView::section {
     border-bottom: 1px solid #2a3347;
     color: #8e9bb3;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 13px;
+    font-size: 9.75pt;
     font-weight: 600;
     padding: 10px 12px;
 }
@@ -792,7 +792,7 @@ QScrollArea#SendEntriesScrollArea {
 QLabel#SendSectionTitle {
     color: #f3f6ff;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 16px;
+    font-size: 12pt;
     font-weight: 600;
 }
 
@@ -808,7 +808,7 @@ QLabel#SendWarningLabel {
 QLabel#SendBalanceValue {
     color: #f3f6ff;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 16px;
+    font-size: 12pt;
     font-weight: 600;
 }
 
@@ -921,7 +921,7 @@ QToolBar#ShellToolbar QToolButton#ShellNavButton {
     border-radius: 14px;
     color: #dfe6f7;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 14px;
+    font-size: 10.5pt;
     font-weight: 600;
     icon-size: 18px;
     min-height: 42px;
@@ -949,7 +949,7 @@ QToolBar#ShellToolbar QToolButton#ShellNavButton:checked {
 QLabel#ShellWalletSelectorLabel {
     color: #94a3bd;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 13px;
+    font-size: 9.75pt;
     font-weight: 600;
 }
 
@@ -997,7 +997,7 @@ QFrame#ShellSyncStatusCard[syncState="syncing"] {
 QLabel#SyncStatusLabel {
     color: #f4f7ff;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 12px;
+    font-size: 9pt;
     font-weight: 600;
 }
 
@@ -1053,7 +1053,7 @@ QLabel#StatusChipText,
 QLabel#UnitDisplayStatusText {
     color: #f0f4ff;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 12px;
+    font-size: 9pt;
     font-weight: 600;
 }
 
@@ -1065,7 +1065,7 @@ QLabel#StatusChipIcon {
 
 QMenuBar, QToolBar, QGroupBox::title, QTabBar::tab {
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 14px;
+    font-size: 10.5pt;
 }
 
 QToolButton#CustomTitleButton, QToolButton#CustomTitleCloseButton {
@@ -1211,7 +1211,7 @@ QLineEdit, QPlainTextEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
 
 QPlainTextEdit, QTextEdit {
     font-family: "JetBrains Mono", "Fira Code", "DejaVu Sans Mono", monospace;
-    font-size: 13px;
+    font-size: 9.75pt;
 }
 
 QAbstractItemView, QTableView, QListView, QTreeView {
@@ -1587,7 +1587,7 @@ QPushButton#GamesLauncherButton {
     border-radius: 16px;
     color: #ecf4f7;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 17px;
+    font-size: 12.75pt;
     font-weight: 600;
     padding: 14px 18px;
 }
@@ -1606,7 +1606,7 @@ QPushButton#GamesLauncherButton:pressed {
 
 QLabel#TradeTitle,
 QLabel#GamesTitle {
-    font-size: 24px;
+    font-size: 18pt;
     font-weight: 700;
 }
 
@@ -1739,7 +1739,7 @@ QTreeWidget#CoinControlTree QHeaderView::section {
     border-bottom: 1px solid #263b46;
     color: #93acb7;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 13px;
+    font-size: 9.75pt;
     font-weight: 600;
     padding: 10px 12px;
 }
@@ -1757,7 +1757,7 @@ QLabel#SendSectionTitle,
 QLabel#SignVerifySectionLabel {
     color: #f2f8fb;
     font-family: "Montserrat", "Noto Sans", "DejaVu Sans", sans-serif;
-    font-size: 16px;
+    font-size: 12pt;
     font-weight: 700;
 }
 
@@ -2277,7 +2277,7 @@ QDialog#SendConfirmationDialog {
 QWidget#ShutdownWindow QLabel#ShutdownMessage,
 QDialog#AboutQtDialog QLabel#AboutQtMessage {
     color: #faf7ff;
-    font-size: 14px;
+    font-size: 10.5pt;
     padding: 8px 2px;
 }
 
