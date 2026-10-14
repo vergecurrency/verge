@@ -394,7 +394,7 @@ consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;
 consensus.CLOCK_DRIFT_FORK = 2218500;
 consensus.nPoSNetworkId = 2;
-consensus.nPoSActivationHeight = 3500;
+consensus.nPoSActivationHeight = 3000;
 consensus.nPoSMinStake = 1000 * COIN;
 consensus.nPoSStakeMaturity = 720;
 consensus.nPoSSlotSeconds = 30;
@@ -436,10 +436,10 @@ consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000
 // By default assume that the signatures in ancestors of this block are valid.
 consensus.defaultAssumeValid = uint256S("0x00000710c4216661ad1e98cac3505ba0ee6f55618f97d22d314943ad216442aa"); // block 191
 
-pchMessageStart[0] = 0xe6;
-pchMessageStart[1] = 0x5d;
-pchMessageStart[2] = 0x7f;
-pchMessageStart[3] = 0xad;
+pchMessageStart[0] = 0xb9;
+pchMessageStart[1] = 0x68;
+pchMessageStart[2] = 0xe2;
+pchMessageStart[3] = 0x1e;
 nDefaultPort = 21104;
 nPruneAfterHeight = 1000;
 

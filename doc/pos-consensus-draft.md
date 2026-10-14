@@ -30,23 +30,23 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Initial epoch seed | Tagged hash of network ID, activation height, and genesis hash |
 | Post-activation PoW fallback | None |
 | Mainnet activation height | 15,000,000 |
-| Testnet activation height | 3,500 |
+| Testnet activation height | 3,000 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
 
 All amounts are evaluated in base units. A staking output exactly equal to 1,000 XVG is eligible.
 
 ## Activation
 
-Each network has an explicit `nPoSActivationHeight`. The clean-chain public testnet trial activates at height 3,500, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
+Each network has an explicit `nPoSActivationHeight`. The clean-chain public testnet trial activates at height 3,000, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
 
 For this clean testnet trial, the initial stake snapshot is recorded at height
-3,260. A bond must be created by height 2,780 to have 720 confirmations at
-activation and must remain unspent through the snapshot. Block 3,499 is the
-last valid PoW block; block 3,500 must be produced by an eligible PoS bond.
-The October 6 clean-chain testnet uses P2P message-start bytes `e6 5d 7f ad`,
+2,760. A bond must be created by height 2,280 to have 720 confirmations at
+activation and must remain unspent through the snapshot. Block 2,999 is the
+last valid PoW block; block 3,000 must be produced by an eligible PoS bond.
+The October 13 clean-chain testnet uses P2P message-start bytes `b9 68 e2 1e`,
 derived from the first four bytes of
-`SHA256("Verge PoS Testnet Reset 2026-10-06 height 3500")`. This separates it
-from the prior reset magic `df d9 dd fb` and the legacy testnet magic
+`SHA256("Verge PoS Testnet Reset 2026-10-13 height 3000")`. This separates it
+from the prior reset magic `e6 5d 7f ad` and the legacy testnet magic
 `cd f2 c0 ef`, so an old testnet node cannot exchange P2P messages with the
 clean network. Every seed and
 participant still must upgrade because old binaries cannot join the new network.
