@@ -370,10 +370,6 @@ chainTxData = ChainTxData{
 0.04004504697221486
 };
 
-// reorg
-consensus.nMaxReorgDepth = 6;
-consensus.nMaxReorgDepthEnforcementBlock = 4800000;
-
 /* disable fallback fee on mainnet */
 m_fallback_fee_enabled = false;
 }
@@ -489,10 +485,6 @@ chainTxData = ChainTxData{
 0
 };
 
-// reorg
-consensus.nMaxReorgDepth = 4;
-consensus.nMaxReorgDepthEnforcementBlock = 100;
-
 /* enable fallback fee on testnet */
 m_fallback_fee_enabled = true;
 }
@@ -590,10 +582,6 @@ base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
 base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
 
 bech32_hrp = "vgrt";
-
-// reorg
-consensus.nMaxReorgDepth = 4;
-consensus.nMaxReorgDepthEnforcementBlock = 100;
 
 /* enable fallback fee on regtest */
 m_fallback_fee_enabled = true;
