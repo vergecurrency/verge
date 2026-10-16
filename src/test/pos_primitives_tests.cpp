@@ -160,11 +160,12 @@ BOOST_AUTO_TEST_CASE(equivocation_structure)
     BOOST_CHECK(pos::CheckStructure(block_evidence) == pos::StructureError::NONE);
 
     block_evidence.second.parent_block_root = uint256S("09");
-if (pos::GetBlockSigningHash(block_evidence.second) <
+    if (pos::GetBlockSigningHash(block_evidence.second) <
         pos::GetBlockSigningHash(block_evidence.first)) {
         std::swap(block_evidence.first, block_evidence.second);
     }
-    BOOST_CHECK(pos::CheckStructure(block_evidence) == pos::StructureError::NOT_EQUIVOCATION);
+    BOOST_CHECK(pos::CheckStructure(block_evidence) ==
+                pos::StructureError::NONE);
 
     pos::CheckpointVote vote_first;
     vote_first.bond_outpoint = COutPoint(uint256S("0a"), 0);

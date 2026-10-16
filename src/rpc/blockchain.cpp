@@ -1522,6 +1522,9 @@ static UniValue getposinfo(const JSONRPCRequest& request)
     result.pushKV("adjusted_time", GetAdjustedTime());
     result.pushKV("local_time_offset", GetTimeOffset());
     result.pushKV("activation_height", params.nPoSActivationHeight);
+    result.pushKV("bond_rules_height", params.nPoSBondRulesHeight);
+    result.pushKV("bond_rules_active",
+                  params.ArePoSBondRulesActive(current_height + 1));
     result.pushKV("blocks_until_activation", std::max<int64_t>(
         0, static_cast<int64_t>(params.nPoSActivationHeight) - current_height));
     result.pushKV("next_block_proof",

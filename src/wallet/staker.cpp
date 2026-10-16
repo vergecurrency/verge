@@ -123,6 +123,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     CKey selected_key;
     uint32_t block_time = 0;
     std::vector<pos::CheckpointVote> votes;
+    std::vector<pos::BlockEquivocationEvidence> block_evidence;
     std::vector<pos::VoteEquivocationEvidence> vote_evidence;
 
     {
@@ -274,6 +275,15 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
                 vote_evidence.push_back(evidence);
             }
         }
+        for (const pos::BlockEquivocationEvidence& evidence :
+             pos::GetBlockEvidencePool().GetEvidence(
+                 params.nPoSMaxEvidencePerBlock)) {
+            if (pos::CheckBlockEvidence(evidence, state,
+                                        params.nPoSNetworkId) ==
+                pos::ValidationError::NONE) {
+                block_evidence.push_back(evidence);
+            }
+        }
 
         for (const pos::SnapshotEntry& entry : snapshot->entries) {
             if (ShutdownRequested()) {
@@ -339,7 +349,8 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     }
     std::unique_ptr<CBlockTemplate> block_template =
         BlockAssembler(Params()).CreateNewPoSBlock(
-            proof, selected_bond, selected_key.begin(), block_time, votes, {},
+            proof, selected_bond, selected_key.begin(), block_time, votes,
+            block_evidence,
             vote_evidence);
     if (!block_template) {
         error = "failed to construct proof-of-stake block template";
@@ -354,6 +365,19 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     if (!ProcessNewBlock(Params(), block, true, nullptr)) {
         error = "proof-of-stake block was not accepted";
         return false;
+    }
+    pos::BlockEquivocationEvidence detected;
+    const pos::VotePoolResult authorization_result =
+        pos::GetBlockAuthorizationPool().Add(
+            block->posExtension.authorization, &detected);
+    if (authorization_result == pos::VotePoolResult::CONFLICT) {
+        if (pos::GetBlockEvidencePool().Add(detected) ==
+                pos::VotePoolResult::ADDED && g_connman) {
+            const CInv inv(MSG_POS_BLOCK_EVIDENCE,
+                           pos::GetBlockEvidenceId(detected));
+            g_connman->ForEachNode(
+                [&inv](CNode* node) { node->PushInventory(inv); });
+        }
     }
     block_hash = block->GetHash();
     return true;
@@ -386,6 +410,13 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         return false;
     }
 
+    const Consensus::Params& params = Params().GetConsensus();
+    if (!params.ArePoSBondRulesActive(chainActive.Height() + 1)) {
+        error = strprintf("bond rules activate at height %d",
+                          params.nPoSBondRulesHeight);
+        return false;
+    }
+
     for (const auto& item : wallet.mapWallet) {
         if (ShutdownRequested()) {
             error = "shutdown requested";
@@ -404,7 +435,6 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         }
     }
 
-    const Consensus::Params& params = Params().GetConsensus();
     std::vector<COutput> coins;
     wallet.AvailableCoins(coins, true, nullptr, 1, MAX_MONEY, MAX_MONEY, 0,
                           params.nPoSStakeMaturity);
@@ -604,6 +634,13 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
         return false;
     }
 
+    const Consensus::Params& params = Params().GetConsensus();
+    if (!params.ArePoSBondRulesActive(chainActive.Height() + 1)) {
+        error = strprintf("bond rules activate at height %d",
+                          params.nPoSBondRulesHeight);
+        return false;
+    }
+
     const COutPoint outpoint(txid, vout);
     const Coin& coin = pcoinsTip->AccessCoin(outpoint);
     if (coin.IsSpent()) {
@@ -620,7 +657,7 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
         return false;
     }
     const int64_t unlock_height = static_cast<int64_t>(chainActive.Height()) +
-        1 + Params().GetConsensus().nPoSUnbondingBlocks;
+        1 + params.nPoSUnbondingBlocks;
     if (unlock_height > std::numeric_limits<uint32_t>::max()) {
         error = "unbond height is out of range";
         return false;

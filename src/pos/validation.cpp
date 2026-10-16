@@ -190,6 +190,31 @@ ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
     return ValidationError::NONE;
 }
 
+ValidationError CheckBlockEvidence(const BlockEquivocationEvidence& evidence,
+                                   const State& state,
+                                   uint32_t network_id)
+{
+    if (CheckStructure(evidence) != StructureError::NONE) {
+        return ValidationError::VOTE_STRUCTURE;
+    }
+    if (evidence.first.network_id != network_id ||
+        evidence.second.network_id != network_id) {
+        return ValidationError::EVIDENCE_SIGNATURE;
+    }
+    const BondRecord* bond =
+        state.FindHistoricalBond(evidence.first.bond_outpoint);
+    if (bond == nullptr) return ValidationError::EVIDENCE_BOND;
+    if (!VerifySchnorr(bond->data.signing_public_key,
+                       GetBlockSigningHash(evidence.first),
+                       evidence.first.signature) ||
+        !VerifySchnorr(bond->data.signing_public_key,
+                       GetBlockSigningHash(evidence.second),
+                       evidence.second.signature)) {
+        return ValidationError::EVIDENCE_SIGNATURE;
+    }
+    return ValidationError::NONE;
+}
+
 ValidationError CheckVotesAndEvidence(const CBlock& block,
                                       const State& state,
                                       uint32_t snapshot_delay_epochs,
@@ -206,21 +231,9 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
 
     for (const BlockEquivocationEvidence& evidence :
          block.posExtension.block_evidence) {
-        if (evidence.first.network_id != network_id ||
-            evidence.second.network_id != network_id) {
-            return ValidationError::EVIDENCE_SIGNATURE;
-        }
-        const BondRecord* bond =
-            state.FindHistoricalBond(evidence.first.bond_outpoint);
-        if (bond == nullptr) return ValidationError::EVIDENCE_BOND;
-        if (!VerifySchnorr(bond->data.signing_public_key,
-                           GetBlockSigningHash(evidence.first),
-                           evidence.first.signature) ||
-            !VerifySchnorr(bond->data.signing_public_key,
-                           GetBlockSigningHash(evidence.second),
-                           evidence.second.signature)) {
-            return ValidationError::EVIDENCE_SIGNATURE;
-        }
+        const ValidationError error = CheckBlockEvidence(
+            evidence, state, network_id);
+        if (error != ValidationError::NONE) return error;
     }
 
     for (const VoteEquivocationEvidence& evidence :

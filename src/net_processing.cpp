@@ -74,6 +74,7 @@ static const int64_t MAX_ADDR_PROCESSING_TOKENS = 5000;
 static const int64_t ADDR_PROCESSING_TOKENS_PER_SECOND = 100;
 static const int64_t MAX_POS_VOTE_PROCESSING_TOKENS = 256;
 static const int64_t POS_VOTE_PROCESSING_TOKENS_PER_MINUTE = 64;
+static const int64_t POS_HEADER_BLOCK_TIMEOUT = 60;
 static const int64_t MAX_POS_EVIDENCE_PROCESSING_TOKENS = 32;
 static const int64_t POS_EVIDENCE_PROCESSING_TOKENS_PER_MINUTE = 8;
 
@@ -259,6 +260,8 @@ struct CNodeState {
     int64_t m_pos_vote_process_time;
     int64_t m_pos_evidence_process_tokens;
     int64_t m_pos_evidence_process_time;
+    uint256 m_pending_pos_block;
+    int64_t m_pending_pos_block_time;
 
     CNodeState(CAddress addrIn, std::string addrNameIn) : address(addrIn), name(addrNameIn) {
         fCurrentlyConnected = false;
@@ -290,6 +293,8 @@ struct CNodeState {
         m_pos_vote_process_time = GetTime();
         m_pos_evidence_process_tokens = MAX_POS_EVIDENCE_PROCESSING_TOKENS;
         m_pos_evidence_process_time = GetTime();
+        m_pending_pos_block.SetNull();
+        m_pending_pos_block_time = 0;
     }
 };
 
@@ -1056,6 +1061,8 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         return pos::GetVotePool().Exists(inv.hash);
     case MSG_POS_VOTE_EVIDENCE:
         return pos::GetVoteEvidencePool().Exists(inv.hash);
+    case MSG_POS_BLOCK_EVIDENCE:
+        return pos::GetBlockEvidencePool().Exists(inv.hash);
     }
     // Don't know what it is, just say we already got one
     return true;
@@ -1068,6 +1075,41 @@ static void RelayTransaction(const CTransaction& tx, CConnman* connman)
     {
         pnode->PushInventory(inv);
     });
+}
+
+static void RecordPoSAuthorization(const CBlock& block,
+                                   const CChainParams& chainparams,
+                                   CConnman* connman)
+{
+    if (!pos::IsPoSVersion(block.nVersion)) return;
+
+    pos::BlockEquivocationEvidence detected;
+    pos::BlockAuthorizationPool& authorizations =
+        pos::GetBlockAuthorizationPool();
+    const pos::VotePoolResult result = authorizations.Add(
+        block.posExtension.authorization, &detected);
+    const uint64_t slot = block.posExtension.authorization.slot;
+    const uint64_t retention =
+        uint64_t{chainparams.GetConsensus().nPoSEpochSlots} *
+        pos::POS_STATE_RETENTION_EPOCHS;
+    authorizations.Prune(slot > retention ? slot - retention : 0);
+    if (result != pos::VotePoolResult::CONFLICT) return;
+
+    bool accepted = false;
+    {
+        LOCK(cs_main);
+        const pos::State state = GetPoSStateSnapshot();
+        accepted = pos::CheckBlockEvidence(
+            detected, state, chainparams.GetConsensus().nPoSNetworkId) ==
+            pos::ValidationError::NONE;
+    }
+    if (!accepted || pos::GetBlockEvidencePool().Add(detected) !=
+                         pos::VotePoolResult::ADDED) {
+        return;
+    }
+    const CInv inv(MSG_POS_BLOCK_EVIDENCE,
+                   pos::GetBlockEvidenceId(detected));
+    connman->ForEachNode([&inv](CNode* node) { node->PushInventory(inv); });
 }
 
 static void RelayAddress(const CAddress& addr, bool fReachable, CConnman* connman)
@@ -1263,7 +1305,8 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
         while (it != pfrom->vRecvGetData.end() &&
                (it->type == MSG_TX || it->type == MSG_WITNESS_TX ||
                 it->type == MSG_POS_VOTE ||
-                it->type == MSG_POS_VOTE_EVIDENCE)) {
+                 it->type == MSG_POS_VOTE_EVIDENCE ||
+                 it->type == MSG_POS_BLOCK_EVIDENCE)) {
             if (interruptMsgProc)
                 return;
             // Don't bother if send buffer is too full to respond anyway
@@ -1289,6 +1332,17 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
                 if (pos::GetVoteEvidencePool().Get(inv.hash, evidence)) {
                     connman->PushMessage(pfrom, msgMaker.Make(
                         NetMsgType::POSVOTEEVIDENCE, evidence));
+                } else {
+                    vNotFound.push_back(inv);
+                }
+                GetMainSignals().Inventory(inv.hash);
+                continue;
+            }
+            if (inv.type == MSG_POS_BLOCK_EVIDENCE) {
+                pos::BlockEquivocationEvidence evidence;
+                if (pos::GetBlockEvidencePool().Get(inv.hash, evidence)) {
+                    connman->PushMessage(pfrom, msgMaker.Make(
+                        NetMsgType::POSBLOCKEVIDENCE, evidence));
                 } else {
                     vNotFound.push_back(inv);
                 }
@@ -1374,6 +1428,93 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
 
     if (nCount == 0) {
         // Nothing interesting. Stop asking this peers for more headers.
+        return true;
+    }
+
+    const auto first_pos = std::find_if(
+        headers.begin(), headers.end(), [](const CBlockHeader& header) {
+            return pos::IsPoSVersion(header.nVersion);
+        });
+    if (first_pos != headers.end()) {
+        if (first_pos + 1 != headers.end()) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 20,
+                        "multiple or non-terminal PoS headers");
+            return false;
+        }
+        if (first_pos != headers.begin()) {
+            const std::vector<CBlockHeader> pow_headers(headers.begin(), first_pos);
+            if (!ProcessHeadersMessage(pfrom, connman, pow_headers, chainparams,
+                                       punish_duplicate_invalid)) {
+                return false;
+            }
+        }
+
+        const CBlockHeader& header = *first_pos;
+        const uint256 hash = header.GetHash();
+        {
+            LOCK(cs_main);
+            CNodeState* nodestate = State(pfrom->GetId());
+            if (nodestate == nullptr) return false;
+            const CBlockIndex* known = LookupBlockIndex(hash);
+            if (known != nullptr) {
+                if (known->nStatus & BLOCK_FAILED_MASK) {
+                    Misbehaving(pfrom->GetId(), 100,
+                                "known-invalid PoS header");
+                    return false;
+                }
+                if (known->nStatus & BLOCK_VALID_POS) {
+                    if (nodestate->m_pending_pos_block == hash) {
+                        nodestate->m_pending_pos_block.SetNull();
+                        nodestate->m_pending_pos_block_time = 0;
+                    }
+                    UpdateBlockAvailability(pfrom->GetId(), hash);
+                    return true;
+                }
+            }
+
+            const CBlockIndex* parent = LookupBlockIndex(header.hashPrevBlock);
+            if (parent == nullptr ||
+                (pos::IsPoSVersion(parent->nVersion) &&
+                 !(parent->nStatus & BLOCK_VALID_POS))) {
+                ++nodestate->nUnconnectingHeaders;
+                if (nodestate->nUnconnectingHeaders %
+                        MAX_UNCONNECTING_HEADERS == 0) {
+                    Misbehaving(pfrom->GetId(), 20,
+                                "unconnecting PoS header");
+                }
+                connman->PushMessage(pfrom, msgMaker.Make(
+                    NetMsgType::GETHEADERS,
+                    chainActive.GetLocator(pindexBestHeader), uint256()));
+                return true;
+            }
+            const Consensus::Params& params = chainparams.GetConsensus();
+            const int height = parent->nHeight + 1;
+            const uint64_t current_slot_time = params.nPoSSlotSeconds == 0
+                ? 0
+                : (static_cast<uint64_t>(std::max<int64_t>(0, GetAdjustedTime())) /
+                   params.nPoSSlotSeconds) * params.nPoSSlotSeconds;
+            if (!params.IsPoSActive(height) || header.nBits != 0 ||
+                header.nNonce != 0 || params.nPoSSlotSeconds == 0 ||
+                header.nTime % params.nPoSSlotSeconds != 0 ||
+                header.nTime <= parent->nTime ||
+                header.nTime > current_slot_time) {
+                Misbehaving(pfrom->GetId(), 20, "invalid PoS header announcement");
+                return false;
+            }
+            const int64_t now = GetTime();
+            if (!nodestate->m_pending_pos_block.IsNull() &&
+                nodestate->m_pending_pos_block != hash &&
+                now - nodestate->m_pending_pos_block_time <
+                    POS_HEADER_BLOCK_TIMEOUT) {
+                return true;
+            }
+            nodestate->m_pending_pos_block = hash;
+            nodestate->m_pending_pos_block_time = now;
+            UpdateBlockAvailability(pfrom->GetId(), hash);
+        }
+        std::vector<CInv> request{CInv(MSG_BLOCK, hash)};
+        connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::GETDATA, request));
         return true;
     }
 
@@ -2090,10 +2231,12 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             {
                 pfrom->AddInventoryKnown(inv);
                 if (fBlocksOnly && inv.type != MSG_POS_VOTE &&
-                    inv.type != MSG_POS_VOTE_EVIDENCE) {
+                    inv.type != MSG_POS_VOTE_EVIDENCE &&
+                    inv.type != MSG_POS_BLOCK_EVIDENCE) {
                     LogPrint(BCLog::NET, "transaction (%s) inv sent in violation of protocol peer=%d\n", inv.hash.ToString(), pfrom->GetId());
                 } else if ((inv.type == MSG_TX || inv.type == MSG_POS_VOTE ||
-                            inv.type == MSG_POS_VOTE_EVIDENCE) &&
+                            inv.type == MSG_POS_VOTE_EVIDENCE ||
+                            inv.type == MSG_POS_BLOCK_EVIDENCE) &&
                            !fAlreadyHave && !fImporting && !fReindex &&
                            !IsInitialBlockDownload()) {
                     pfrom->AskFor(inv);
@@ -2248,11 +2391,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         vRecv >> locator >> hashStop;
 
         LOCK(cs_main);
-        if (IsInitialBlockDownload() && !pfrom->fWhitelisted) {
-            LogPrint(BCLog::NET, "Ignoring getheaders from peer=%d because node is in initial block download\n", pfrom->GetId());
-            return true;
-        }
-
         CNodeState *nodestate = State(pfrom->GetId());
         const CBlockIndex* pindex = nullptr;
         if (locator.IsNull())
@@ -2278,6 +2416,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
         // we must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
         std::vector<CBlock> vHeaders;
+        // Serving bounded headers during IBD lets newly restarted peers
+        // recover from one another. PoW uses the protocol's normal batch;
+        // the loop still stops after the first PoS locator header.
         int nLimit = MAX_HEADERS_RESULTS;
         LogPrint(BCLog::NET, "getheaders %d to %s from peer=%d\n", (pindex ? pindex->nHeight : -1), hashStop.IsNull() ? "end" : hashStop.ToString(), pfrom->GetId());
         for (; pindex; pindex = chainActive.Next(pindex))
@@ -2304,6 +2445,66 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             SER_BLOCKHEADERONLY, NetMsgType::HEADERS, vHeaders));
     }
 
+
+    else if (strCommand == NetMsgType::POSBLOCKEVIDENCE)
+    {
+        if (IsInitialBlockDownload() || fImporting || fReindex) return true;
+        if (vRecv.size() != pos::SERIALIZED_BLOCK_EVIDENCE_SIZE) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 20, "invalid posbevid size");
+            return false;
+        }
+
+        pos::BlockEquivocationEvidence evidence;
+        vRecv >> evidence;
+        if (!vRecv.empty()) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 20, "posbevid trailing data");
+            return false;
+        }
+
+        LOCK(cs_main);
+        CNodeState* peer_state = State(pfrom->GetId());
+        if (peer_state == nullptr) return false;
+        const int64_t now = GetTime();
+        if (now > peer_state->m_pos_evidence_process_time) {
+            const int64_t elapsed_minutes =
+                (now - peer_state->m_pos_evidence_process_time) / 60;
+            if (elapsed_minutes > 0) {
+                peer_state->m_pos_evidence_process_tokens = std::min(
+                    MAX_POS_EVIDENCE_PROCESSING_TOKENS,
+                    peer_state->m_pos_evidence_process_tokens +
+                        elapsed_minutes * POS_EVIDENCE_PROCESSING_TOKENS_PER_MINUTE);
+                peer_state->m_pos_evidence_process_time += elapsed_minutes * 60;
+            }
+        }
+        if (peer_state->m_pos_evidence_process_tokens <= 0) {
+            Misbehaving(pfrom->GetId(), 2, "posbevid rate limit");
+            return true;
+        }
+        --peer_state->m_pos_evidence_process_tokens;
+
+        const Consensus::Params& params = chainparams.GetConsensus();
+        if (!params.IsPoSActive(chainActive.Height())) return true;
+        const pos::State state = GetPoSStateSnapshot();
+        const pos::ValidationError error = pos::CheckBlockEvidence(
+            evidence, state, params.nPoSNetworkId);
+        if (error != pos::ValidationError::NONE) {
+            if (error == pos::ValidationError::VOTE_STRUCTURE ||
+                error == pos::ValidationError::EVIDENCE_SIGNATURE) {
+                Misbehaving(pfrom->GetId(), 20, "invalid posbevid");
+            }
+            return true;
+        }
+        if (pos::GetBlockEvidencePool().Add(evidence) ==
+            pos::VotePoolResult::ADDED) {
+            const CInv inv(MSG_POS_BLOCK_EVIDENCE,
+                           pos::GetBlockEvidenceId(evidence));
+            connman->ForEachNode([&inv, pfrom](CNode* node) {
+                if (node->GetId() != pfrom->GetId()) node->PushInventory(inv);
+            });
+        }
+    }
 
     else if (strCommand == NetMsgType::POSVOTEEVIDENCE)
     {
@@ -2640,6 +2841,15 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         CBlockHeaderAndShortTxIDs cmpctblock;
         vRecv >> cmpctblock;
 
+        // A PoS header is not authenticated until the full extension and
+        // committed transactions are available. Do not create a block-index
+        // entry from an unauthenticated compact-block announcement.
+        if (pos::IsPoSVersion(cmpctblock.header.nVersion)) {
+            return ProcessHeadersMessage(pfrom, connman, {cmpctblock.header},
+                                         chainparams,
+                                         /*punish_duplicate_invalid=*/false);
+        }
+
         bool received_new_header = false;
 
         {
@@ -2837,7 +3047,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // we have a chain with at least nMinimumChainWork), and we ignore
             // compact blocks with less work than our tip, it is safe to treat
             // reconstructed compact blocks as having been requested.
-            ProcessNewBlock(chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
+            const bool processed = ProcessNewBlock(
+                chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
+            if (processed) RecordPoSAuthorization(*pblock, chainparams, connman);
             if (fNewBlock) {
                 pfrom->nLastBlockTime = GetTime();
             } else {
@@ -2920,7 +3132,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // disk-space attacks), but this should be safe due to the
             // protections in the compact block handler -- see related comment
             // in compact block optimistic reconstruction handling.
-            ProcessNewBlock(chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
+            const bool processed = ProcessNewBlock(
+                chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
+            if (processed) RecordPoSAuthorization(*pblock, chainparams, connman);
             if (fNewBlock) {
                 pfrom->nLastBlockTime = GetTime();
             } else {
@@ -2985,6 +3199,13 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // Also always process if we requested the block explicitly, as we may
             // need it even though it is not a candidate for a new best tip.
             forceProcessing |= MarkBlockAsReceived(hash);
+            CNodeState* nodestate = State(pfrom->GetId());
+            if (nodestate != nullptr &&
+                nodestate->m_pending_pos_block == hash) {
+                forceProcessing = true;
+                nodestate->m_pending_pos_block.SetNull();
+                nodestate->m_pending_pos_block_time = 0;
+            }
             // mapBlockSource is only used for sending reject messages and DoS scores,
             // so the race between here and cs_main in ProcessNewBlock is fine.
             mapBlockSource.emplace(hash, std::make_pair(pfrom->GetId(), true));
@@ -2992,6 +3213,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         bool fNewBlock = false;
         const bool processed = ProcessNewBlock(
             chainparams, pblock, forceProcessing, &fNewBlock);
+        if (processed) RecordPoSAuthorization(*pblock, chainparams, connman);
         if (fNewBlock) {
             pfrom->nLastBlockTime = GetTime();
         } else {
@@ -3418,6 +3640,24 @@ void PeerLogicValidation::ConsiderEviction(CNode *pto, int64_t time_in_seconds)
 
     CNodeState &state = *State(pto->GetId());
     const CNetMsgMaker msgMaker(pto->GetSendVersion());
+
+    if (!state.m_pending_pos_block.IsNull() &&
+        time_in_seconds - state.m_pending_pos_block_time >
+            POS_HEADER_BLOCK_TIMEOUT) {
+        const CBlockIndex* completed =
+            LookupBlockIndex(state.m_pending_pos_block);
+        if (completed != nullptr &&
+            (completed->nStatus & BLOCK_VALID_POS)) {
+            state.m_pending_pos_block.SetNull();
+            state.m_pending_pos_block_time = 0;
+        } else {
+            LogPrint(BCLog::NET,
+                     "disconnecting peer=%d for withholding announced PoS block %s\n",
+                     pto->GetId(), state.m_pending_pos_block.ToString());
+            pto->fDisconnect = true;
+            return;
+        }
+    }
 
     if (!state.m_chain_sync.m_protect && IsOutboundDisconnectionCandidate(pto) && state.fSyncStarted) {
         // This is an outbound peer subject to disconnection if they don't

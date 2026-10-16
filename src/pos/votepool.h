@@ -22,8 +22,12 @@ static constexpr size_t MAX_VOTE_POOL_BYTES = 2 * 1024 * 1024;
 static constexpr uint64_t VOTE_POOL_EPOCH_TTL = 3;
 static constexpr size_t SERIALIZED_CHECKPOINT_VOTE_SIZE = 229;
 static constexpr size_t SERIALIZED_VOTE_EVIDENCE_SIZE = 459;
+static constexpr size_t SERIALIZED_BLOCK_EVIDENCE_SIZE = 547;
 static constexpr size_t MAX_VOTE_EVIDENCE_POOL_ENTRIES = 256;
 static constexpr size_t MAX_VOTE_EVIDENCE_POOL_BYTES = 256 * 1024;
+static constexpr size_t MAX_BLOCK_AUTHORIZATION_POOL_ENTRIES = 4096;
+static constexpr size_t MAX_BLOCK_EVIDENCE_POOL_ENTRIES = 256;
+static constexpr size_t MAX_BLOCK_EVIDENCE_POOL_BYTES = 256 * 1024;
 
 enum class VotePoolResult {
     ADDED,
@@ -84,6 +88,44 @@ private:
 };
 
 VoteEvidencePool& GetVoteEvidencePool();
+
+class BlockAuthorizationPool {
+public:
+    VotePoolResult Add(const BlockAuthorization& authorization,
+                       BlockEquivocationEvidence* detected = nullptr);
+    void Prune(uint64_t minimum_slot);
+    void Clear();
+    size_t Size() const;
+
+private:
+    using Key = std::pair<COutPoint, uint64_t>;
+    mutable CCriticalSection m_mutex;
+    std::map<Key, BlockAuthorization> m_authorizations GUARDED_BY(m_mutex);
+};
+
+BlockAuthorizationPool& GetBlockAuthorizationPool();
+
+class BlockEvidencePool {
+public:
+    VotePoolResult Add(const BlockEquivocationEvidence& evidence);
+    bool Get(const uint256& hash, BlockEquivocationEvidence& evidence) const;
+    bool Exists(const uint256& hash) const;
+    std::vector<BlockEquivocationEvidence> GetEvidence(size_t maximum) const;
+    void Remove(const uint256& hash);
+    void Clear();
+    size_t Size() const;
+
+private:
+    struct Entry {
+        BlockEquivocationEvidence evidence;
+        size_t serialized_size{0};
+    };
+    mutable CCriticalSection m_mutex;
+    std::map<uint256, Entry> m_evidence GUARDED_BY(m_mutex);
+    size_t m_bytes GUARDED_BY(m_mutex){0};
+};
+
+BlockEvidencePool& GetBlockEvidencePool();
 
 } // namespace pos
 

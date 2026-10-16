@@ -12,6 +12,9 @@
 
 namespace pos {
 
+bool IsValidVrfPublicKey(
+    const unsigned char public_key[VRF_PUBLIC_KEY_SIZE]);
+
 bool VrfProve(const unsigned char secret_key[32],
               const unsigned char* input, size_t input_size,
               unsigned char public_key[VRF_PUBLIC_KEY_SIZE],

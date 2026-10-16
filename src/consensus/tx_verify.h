@@ -24,6 +24,10 @@ namespace pos { class State; }
 bool CheckTransaction(const CTransaction& tx, CValidationState& state, bool fCheckDuplicateInputs=true);
 
 namespace Consensus {
+/** Validate PoS-reserved output encodings for every transaction, including coinbase. */
+bool CheckPoSOutputs(const CTransaction& tx, CValidationState& state,
+                     int nHeight, const Params& params);
+
 /**
  * Check whether all inputs of this transaction are valid (no double spends and amounts)
  * This does not modify the UTXO set. This does not check scripts and sigs.

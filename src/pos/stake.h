@@ -27,6 +27,8 @@ struct UnbondData {
 
 bool IsValid(const BondData& bond);
 bool IsValid(const UnbondData& unbond);
+bool HasBondMarker(const CScript& script);
+bool HasUnbondMarker(const CScript& script);
 CScript GetBondScript(const BondData& bond);
 CScript GetUnbondScript(const UnbondData& unbond);
 bool ParseBondScript(const CScript& script, BondData& bond);

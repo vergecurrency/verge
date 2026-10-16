@@ -4,6 +4,9 @@
 
 #include <pos/stake.h>
 
+#include <pos/crypto.h>
+#include <pos/vrf.h>
+
 #include <crypto/common.h>
 
 #include <algorithm>
@@ -57,8 +60,8 @@ bool ParseMetadataScript(const CScript& script, std::vector<unsigned char>& payl
 
 bool IsValid(const BondData& bond)
 {
-    return !IsAllZero(bond.signing_public_key) &&
-           (bond.vrf_public_key[0] == 0x02 || bond.vrf_public_key[0] == 0x03) &&
+    return IsValidSchnorrPublicKey(bond.signing_public_key) &&
+           IsValidVrfPublicKey(bond.vrf_public_key) &&
            !bond.reward_key_id.IsNull() &&
            !bond.withdrawal_key_id.IsNull();
 }
@@ -66,6 +69,28 @@ bool IsValid(const BondData& bond)
 bool IsValid(const UnbondData& unbond)
 {
     return unbond.unlock_height != 0 && !unbond.withdrawal_key_id.IsNull();
+}
+
+bool HasBondMarker(const CScript& script)
+{
+    CScript::const_iterator cursor = script.begin();
+    opcodetype opcode;
+    std::vector<unsigned char> payload;
+    return script.GetOp(cursor, opcode, payload) && opcode <= OP_PUSHDATA4 &&
+           payload.size() >= sizeof(BOND_MAGIC) &&
+           std::equal(BOND_MAGIC, BOND_MAGIC + sizeof(BOND_MAGIC),
+                      payload.begin());
+}
+
+bool HasUnbondMarker(const CScript& script)
+{
+    CScript::const_iterator cursor = script.begin();
+    opcodetype opcode;
+    std::vector<unsigned char> payload;
+    return script.GetOp(cursor, opcode, payload) && opcode <= OP_PUSHDATA4 &&
+           payload.size() >= sizeof(UNBOND_MAGIC) &&
+           std::equal(UNBOND_MAGIC, UNBOND_MAGIC + sizeof(UNBOND_MAGIC),
+                      payload.begin());
 }
 
 CScript GetBondScript(const BondData& bond)

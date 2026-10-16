@@ -4998,6 +4998,13 @@ static UniValue createbond(const JSONRPCRequest& request)
     pwallet->BlockUntilSyncedToCurrentChain();
     LOCK2(cs_main, pwallet->cs_wallet);
     EnsureWalletIsUnlocked(pwallet);
+    const Consensus::Params& params = Params().GetConsensus();
+    if (!params.ArePoSBondRulesActive(chainActive.Height() + 1)) {
+        throw JSONRPCError(
+            RPC_CLIENT_NOT_CONNECTED,
+            strprintf("Bond rules activate at height %d",
+                      params.nPoSBondRulesHeight));
+    }
 
     WalletBatch batch(pwallet->GetDBHandle());
     const CPubKey staking_pubkey = pwallet->GenerateNewKey(batch);
@@ -5052,7 +5059,7 @@ static UniValue createbond(const JSONRPCRequest& request)
     std::string error;
     CTransactionRef tx;
     CCoinControl coin_control;
-    coin_control.m_min_depth = Params().GetConsensus().nPoSStakeMaturity;
+    coin_control.m_min_depth = params.nPoSStakeMaturity;
     if (!pwallet->CreateTransaction(recipients, tx, change_key, fee,
                                     change_position, error, coin_control)) {
         throw JSONRPCError(RPC_WALLET_ERROR, error);
@@ -5258,7 +5265,8 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
         }
     }
     const int current_height = chainActive.Height();
-    const int activation_height = Params().GetConsensus().nPoSActivationHeight;
+    const int activation_height = params.nPoSActivationHeight;
+    const int bond_rules_height = params.nPoSBondRulesHeight;
     const bool worker_active = pwallet->IsStakingEnabled() && !pwallet->IsLocked();
     const bool chain_current = IsChainCurrentForServices();
     std::string status;
@@ -5266,6 +5274,7 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
     else if (pwallet->IsLocked()) status = "wallet_locked";
     else if (!peer_available) status = "no_peers";
     else if (!chain_current) status = "synchronizing";
+    else if (current_height + 1 < bond_rules_height) status = "waiting_for_bond_rules";
     else if (owned_bonds == 0) status = "bonding";
     else if (eligible_owned_bonds == 0) status = "bond_maturing";
     else if (current_height + 1 < activation_height) status = "waiting_for_activation";
@@ -5283,6 +5292,9 @@ static UniValue getstakinginfo(const JSONRPCRequest& request)
     result.pushKV("eligible_owned_bonds", eligible_owned_bonds);
     result.pushKV("eligible_owned_value", ValueFromAmount(eligible_owned_value));
     result.pushKV("current_height", current_height);
+    result.pushKV("bond_rules_height", bond_rules_height);
+    result.pushKV("blocks_until_bond_rules",
+                  std::max(0, bond_rules_height - current_height));
     result.pushKV("activation_height", activation_height);
     result.pushKV("blocks_until_activation",
                   std::max(0, activation_height - current_height));

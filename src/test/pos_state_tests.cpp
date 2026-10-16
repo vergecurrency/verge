@@ -4,8 +4,10 @@
 
 #include <chainparams.h>
 #include <coins.h>
+#include <pos/crypto.h>
 #include <pos/state.h>
 #include <pos/votepool.h>
+#include <pos/vrf.h>
 #include <primitives/block.h>
 #include <test/setup_common.h>
 
@@ -19,9 +21,13 @@ namespace {
 pos::BondData MakeBond()
 {
     pos::BondData bond;
-    std::memset(bond.signing_public_key, 1, sizeof(bond.signing_public_key));
-    bond.vrf_public_key[0] = 0x02;
-    std::memset(bond.vrf_public_key + 1, 2, sizeof(bond.vrf_public_key) - 1);
+    unsigned char secret[32]{};
+    secret[31] = 1;
+    unsigned char vrf_secret[32]{};
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret,
+                                           bond.signing_public_key));
+    BOOST_REQUIRE(pos::DeriveVrfKey(secret, vrf_secret,
+                                    bond.vrf_public_key));
     bond.reward_key_id.SetHex("01");
     bond.withdrawal_key_id.SetHex("02");
     return bond;
@@ -90,12 +96,18 @@ BOOST_AUTO_TEST_CASE(initialize_from_cached_coins_overlay)
     const COutPoint override_coin(uint256S("03"), 0);
     const COutPoint parent_add(uint256S("04"), 0);
     const COutPoint tip_add(uint256S("05"), 0);
+    const COutPoint pre_rules(uint256S("06"), 0);
+    const COutPoint below_minimum(uint256S("07"), 0);
 
     IterableCoinsView base;
     base.Add(keep, Coin(CTxOut(value, bond_script), 1, false, 1));
     base.Add(spend, Coin(CTxOut(value, bond_script), 2, false, 2));
     base.Add(override_coin,
              Coin(CTxOut(value, bond_script), 3, false, 3));
+    base.Add(pre_rules,
+             Coin(CTxOut(value, bond_script), 0, false, 0));
+    base.Add(below_minimum,
+             Coin(CTxOut(value - 1, bond_script), 7, false, 7));
 
     CCoinsViewCache parent(&base);
     parent.AddCoin(parent_add,
@@ -108,12 +120,15 @@ BOOST_AUTO_TEST_CASE(initialize_from_cached_coins_overlay)
                 Coin(CTxOut(value, bond_script), 6, false, 6), false);
 
     pos::State state;
-    BOOST_REQUIRE(state.InitializeFromCoins(tip, uint256S("10")));
+    BOOST_REQUIRE(state.InitializeFromCoins(tip, uint256S("10"),
+                                            Params().GetConsensus()));
     BOOST_CHECK(state.FindBond(keep) != nullptr);
     BOOST_CHECK(state.FindBond(spend) == nullptr);
     BOOST_CHECK(state.FindBond(override_coin) == nullptr);
     BOOST_CHECK(state.FindBond(parent_add) != nullptr);
     BOOST_CHECK(state.FindBond(tip_add) != nullptr);
+    BOOST_CHECK(state.FindBond(pre_rules) == nullptr);
+    BOOST_CHECK(state.FindBond(below_minimum) == nullptr);
     BOOST_CHECK_EQUAL(state.Bonds().size(), 3U);
 }
 

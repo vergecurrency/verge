@@ -243,6 +243,8 @@ extern const char *BLOCKTXN;
 extern const char *POSVOTE;
 /** Independently relayed proof-of-stake vote-equivocation evidence. */
 extern const char *POSVOTEEVIDENCE;
+/** Independently relayed proof-of-stake block-equivocation evidence. */
+extern const char *POSBLOCKEVIDENCE;
 };
 
 /* Get a vector of all valid message types (see above) */
@@ -388,6 +390,7 @@ enum GetDataMsg
     MSG_CMPCT_BLOCK = 4,     //!< Defined in BIP152
     MSG_POS_VOTE = 5,        //!< Verge proof-of-stake checkpoint vote
     MSG_POS_VOTE_EVIDENCE = 6, //!< Verge PoS vote-equivocation evidence
+    MSG_POS_BLOCK_EVIDENCE = 7, //!< Verge PoS block-equivocation evidence
     MSG_WITNESS_BLOCK = MSG_BLOCK | MSG_WITNESS_FLAG, //!< Defined in BIP144
     MSG_WITNESS_TX = MSG_TX | MSG_WITNESS_FLAG,       //!< Defined in BIP144
     MSG_FILTERED_WITNESS_BLOCK = MSG_FILTERED_BLOCK | MSG_WITNESS_FLAG,

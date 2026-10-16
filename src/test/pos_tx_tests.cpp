@@ -6,8 +6,10 @@
 #include <coins.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <pos/crypto.h>
 #include <pos/stake.h>
 #include <pos/state.h>
+#include <pos/vrf.h>
 #include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -19,9 +21,13 @@ namespace {
 pos::BondData MakeBond()
 {
     pos::BondData bond;
-    std::memset(bond.signing_public_key, 1, sizeof(bond.signing_public_key));
-    bond.vrf_public_key[0] = 0x02;
-    std::memset(bond.vrf_public_key + 1, 2, sizeof(bond.vrf_public_key) - 1);
+    unsigned char secret[32]{};
+    secret[31] = 1;
+    unsigned char vrf_secret[32]{};
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret,
+                                           bond.signing_public_key));
+    BOOST_REQUIRE(pos::DeriveVrfKey(secret, vrf_secret,
+                                    bond.vrf_public_key));
     bond.reward_key_id.SetHex("01");
     bond.withdrawal_key_id.SetHex("02");
     return bond;
@@ -91,6 +97,35 @@ BOOST_AUTO_TEST_CASE(enforce_bond_minimum_and_coinbase_maturity)
     CValidationState mature_state;
     BOOST_CHECK(Check(tx, mature_state, coinbase_view,
                       900 + params.nPoSStakeMaturity));
+}
+
+BOOST_AUTO_TEST_CASE(enforce_bond_outputs_without_spendable_inputs)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSBondRulesHeight = 10;
+    CMutableTransaction coinbase;
+    coinbase.vin.resize(1);
+    coinbase.vin[0].prevout.SetNull();
+    coinbase.vout.emplace_back(params.nPoSMinStake - 1,
+                               pos::GetBondScript(MakeBond()));
+
+    CValidationState before_activation;
+    BOOST_CHECK(Consensus::CheckPoSOutputs(
+        CTransaction(coinbase), before_activation, 9, params));
+
+    CValidationState active;
+    BOOST_CHECK(!Consensus::CheckPoSOutputs(
+        CTransaction(coinbase), active, 10, params));
+    BOOST_CHECK_EQUAL(active.GetRejectReason(), "bad-pos-bond-value");
+
+    coinbase.vout[0].scriptPubKey =
+        CScript() << std::vector<unsigned char>{'V', 'P', 'B', 1, 2, 3}
+                  << OP_DROP;
+    CValidationState malformed;
+    BOOST_CHECK(!Consensus::CheckPoSOutputs(
+        CTransaction(coinbase), malformed, 10, params));
+    BOOST_CHECK_EQUAL(malformed.GetRejectReason(),
+                      "bad-pos-bond-encoding");
 }
 
 BOOST_AUTO_TEST_CASE(require_canonical_unbond_transition)

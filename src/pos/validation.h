@@ -57,6 +57,10 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
 ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
                                   const State& state);
 
+ValidationError CheckBlockEvidence(const BlockEquivocationEvidence& evidence,
+                                   const State& state,
+                                   uint32_t network_id);
+
 ValidationError CheckVotesAndEvidence(const CBlock& block,
                                       const State& state,
                                       uint32_t snapshot_delay_epochs,

@@ -33,6 +33,19 @@ pos::CheckpointVote MakeVote(uint32_t bond, uint64_t target, uint64_t slot)
     return vote;
 }
 
+pos::BlockAuthorization MakeAuthorization(uint32_t bond, uint64_t slot,
+                                          uint32_t candidate)
+{
+    pos::BlockAuthorization authorization;
+    authorization.network_id = 2;
+    authorization.bond_outpoint = COutPoint(Number(bond), 0);
+    authorization.slot = slot;
+    authorization.parent_block_root = Number(candidate + 10);
+    authorization.candidate_header_hash = Number(candidate);
+    authorization.signature[0] = 1;
+    return authorization;
+}
+
 } // namespace
 
 BOOST_AUTO_TEST_SUITE(pos_votepool_tests)
@@ -114,6 +127,28 @@ BOOST_AUTO_TEST_CASE(evidence_pool_bounds_and_identity)
     BOOST_CHECK_EQUAL(pool.GetEvidence(1).size(), 1U);
     pool.Remove(evidence_hash);
     BOOST_CHECK_EQUAL(pool.Size(), 0U);
+}
+
+BOOST_AUTO_TEST_CASE(block_authorization_conflict_and_evidence_pool)
+{
+    pos::BlockAuthorizationPool authorization_pool;
+    const pos::BlockAuthorization first = MakeAuthorization(4, 77, 1);
+    const pos::BlockAuthorization conflict = MakeAuthorization(4, 77, 2);
+    BOOST_CHECK(authorization_pool.Add(first) == pos::VotePoolResult::ADDED);
+
+    pos::BlockEquivocationEvidence detected;
+    BOOST_CHECK(authorization_pool.Add(conflict, &detected) ==
+                pos::VotePoolResult::CONFLICT);
+    BOOST_CHECK(pos::CheckStructure(detected) == pos::StructureError::NONE);
+    BOOST_CHECK(detected.first.parent_block_root !=
+                detected.second.parent_block_root);
+
+    pos::BlockEvidencePool evidence_pool;
+    BOOST_CHECK(evidence_pool.Add(detected) == pos::VotePoolResult::ADDED);
+    BOOST_CHECK(evidence_pool.Add(detected) == pos::VotePoolResult::DUPLICATE);
+    BOOST_CHECK_EQUAL(evidence_pool.GetEvidence(1).size(), 1U);
+    evidence_pool.Remove(pos::GetBlockEvidenceId(detected));
+    BOOST_CHECK_EQUAL(evidence_pool.Size(), 0U);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

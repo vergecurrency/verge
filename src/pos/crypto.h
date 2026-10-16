@@ -10,6 +10,9 @@
 
 namespace pos {
 
+bool IsValidSchnorrPublicKey(
+    const unsigned char public_key[SCHNORR_PUBLIC_KEY_SIZE]);
+
 bool VerifySchnorr(const unsigned char public_key[SCHNORR_PUBLIC_KEY_SIZE],
                    const uint256& message,
                    const unsigned char signature[SCHNORR_SIGNATURE_SIZE]);

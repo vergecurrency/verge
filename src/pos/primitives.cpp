@@ -177,7 +177,6 @@ StructureError CheckStructure(const BlockEquivocationEvidence& evidence)
     if (!(first_hash < second_hash)) return StructureError::NON_CANONICAL_EVIDENCE;
     if (evidence.first.network_id != evidence.second.network_id ||
         evidence.first.bond_outpoint != evidence.second.bond_outpoint ||
-        evidence.first.parent_block_root != evidence.second.parent_block_root ||
         evidence.first.slot != evidence.second.slot ||
         evidence.first.candidate_header_hash == evidence.second.candidate_header_hash) {
         return StructureError::NOT_EQUIVOCATION;

@@ -2,7 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <pos/crypto.h>
 #include <pos/stake.h>
+#include <pos/vrf.h>
 #include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -24,9 +26,13 @@ BOOST_FIXTURE_TEST_SUITE(pos_stake_tests, BasicTestingSetup)
 BOOST_AUTO_TEST_CASE(bond_script_round_trip)
 {
     pos::BondData expected;
-    std::memset(expected.signing_public_key, 1, sizeof(expected.signing_public_key));
-    expected.vrf_public_key[0] = 0x02;
-    std::memset(expected.vrf_public_key + 1, 2, sizeof(expected.vrf_public_key) - 1);
+    unsigned char secret[32]{};
+    secret[31] = 1;
+    unsigned char vrf_secret[32]{};
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret,
+                                           expected.signing_public_key));
+    BOOST_REQUIRE(pos::DeriveVrfKey(secret, vrf_secret,
+                                    expected.vrf_public_key));
     expected.reward_key_id = KeyId("01");
     expected.withdrawal_key_id = KeyId("02");
 
@@ -73,6 +79,16 @@ BOOST_AUTO_TEST_CASE(reject_invalid_stake_metadata)
                                  << OP_EQUALVERIFY << OP_CHECKSIG;
     BOOST_CHECK(!pos::ParseBondScript(ordinary, bond));
     BOOST_CHECK(!pos::ParseUnbondScript(ordinary, unbond));
+
+    bond.reward_key_id = KeyId("01");
+    bond.withdrawal_key_id = KeyId("02");
+    std::memset(bond.signing_public_key, 1,
+                sizeof(bond.signing_public_key));
+    std::memset(bond.vrf_public_key, 2,
+                sizeof(bond.vrf_public_key));
+    bond.vrf_public_key[0] = 0x02;
+    BOOST_CHECK(!pos::IsValid(bond));
+    BOOST_CHECK(pos::GetBondScript(bond).empty());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -23,6 +23,18 @@ VoteEvidencePool& GetVoteEvidencePool()
     return pool;
 }
 
+BlockAuthorizationPool& GetBlockAuthorizationPool()
+{
+    static BlockAuthorizationPool pool;
+    return pool;
+}
+
+BlockEvidencePool& GetBlockEvidencePool()
+{
+    static BlockEvidencePool pool;
+    return pool;
+}
+
 VotePoolResult VotePool::Add(const CheckpointVote& vote,
                              VoteEquivocationEvidence* detected)
 {
@@ -235,6 +247,136 @@ void VoteEvidencePool::Clear()
 }
 
 size_t VoteEvidencePool::Size() const
+{
+    LOCK(m_mutex);
+    return m_evidence.size();
+}
+
+VotePoolResult BlockAuthorizationPool::Add(
+    const BlockAuthorization& authorization,
+    BlockEquivocationEvidence* detected)
+{
+    if (CheckStructure(authorization) != StructureError::NONE) {
+        return VotePoolResult::STALE;
+    }
+    const Key key{authorization.bond_outpoint, authorization.slot};
+    LOCK(m_mutex);
+    const auto current = m_authorizations.find(key);
+    if (current == m_authorizations.end()) {
+        if (m_authorizations.size() >= MAX_BLOCK_AUTHORIZATION_POOL_ENTRIES) {
+            return VotePoolResult::FULL;
+        }
+        m_authorizations.emplace(key, authorization);
+        return VotePoolResult::ADDED;
+    }
+    if (GetBlockSigningHash(current->second) ==
+        GetBlockSigningHash(authorization)) {
+        return VotePoolResult::DUPLICATE;
+    }
+
+    BlockEquivocationEvidence evidence;
+    evidence.first = current->second;
+    evidence.second = authorization;
+    if (GetBlockSigningHash(evidence.second) <
+        GetBlockSigningHash(evidence.first)) {
+        std::swap(evidence.first, evidence.second);
+    }
+    if (CheckStructure(evidence) != StructureError::NONE) {
+        return VotePoolResult::STALE;
+    }
+    if (detected != nullptr) *detected = evidence;
+    return VotePoolResult::CONFLICT;
+}
+
+void BlockAuthorizationPool::Prune(uint64_t minimum_slot)
+{
+    LOCK(m_mutex);
+    for (auto it = m_authorizations.begin(); it != m_authorizations.end();) {
+        if (it->first.second < minimum_slot) {
+            it = m_authorizations.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void BlockAuthorizationPool::Clear()
+{
+    LOCK(m_mutex);
+    m_authorizations.clear();
+}
+
+size_t BlockAuthorizationPool::Size() const
+{
+    LOCK(m_mutex);
+    return m_authorizations.size();
+}
+
+VotePoolResult BlockEvidencePool::Add(
+    const BlockEquivocationEvidence& evidence)
+{
+    if (CheckStructure(evidence) != StructureError::NONE) {
+        return VotePoolResult::STALE;
+    }
+    const uint256 hash = GetBlockEvidenceId(evidence);
+    const size_t serialized_size = GetSerializeSize(evidence, SER_NETWORK, 0);
+    LOCK(m_mutex);
+    if (m_evidence.count(hash) != 0) return VotePoolResult::DUPLICATE;
+    if (m_evidence.size() >= MAX_BLOCK_EVIDENCE_POOL_ENTRIES ||
+        m_bytes + serialized_size > MAX_BLOCK_EVIDENCE_POOL_BYTES) {
+        return VotePoolResult::FULL;
+    }
+    m_evidence.emplace(hash, Entry{evidence, serialized_size});
+    m_bytes += serialized_size;
+    return VotePoolResult::ADDED;
+}
+
+bool BlockEvidencePool::Get(
+    const uint256& hash, BlockEquivocationEvidence& evidence) const
+{
+    LOCK(m_mutex);
+    const auto it = m_evidence.find(hash);
+    if (it == m_evidence.end()) return false;
+    evidence = it->second.evidence;
+    return true;
+}
+
+bool BlockEvidencePool::Exists(const uint256& hash) const
+{
+    LOCK(m_mutex);
+    return m_evidence.count(hash) != 0;
+}
+
+std::vector<BlockEquivocationEvidence> BlockEvidencePool::GetEvidence(
+    size_t maximum) const
+{
+    LOCK(m_mutex);
+    std::vector<BlockEquivocationEvidence> result;
+    result.reserve(std::min(maximum, m_evidence.size()));
+    for (const auto& item : m_evidence) {
+        if (result.size() == maximum) break;
+        result.push_back(item.second.evidence);
+    }
+    return result;
+}
+
+void BlockEvidencePool::Remove(const uint256& hash)
+{
+    LOCK(m_mutex);
+    const auto it = m_evidence.find(hash);
+    if (it == m_evidence.end()) return;
+    m_bytes -= it->second.serialized_size;
+    m_evidence.erase(it);
+}
+
+void BlockEvidencePool::Clear()
+{
+    LOCK(m_mutex);
+    m_evidence.clear();
+    m_bytes = 0;
+}
+
+size_t BlockEvidencePool::Size() const
 {
     LOCK(m_mutex);
     return m_evidence.size();

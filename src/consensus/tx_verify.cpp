@@ -213,6 +213,35 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     return true;
 }
 
+bool Consensus::CheckPoSOutputs(const CTransaction& tx, CValidationState& state,
+                                int nHeight, const Consensus::Params& params)
+{
+    if (!params.ArePoSBondRulesActive(nHeight)) return true;
+
+    for (const CTxOut& output : tx.vout) {
+        pos::BondData bond;
+        if (pos::HasBondMarker(output.scriptPubKey)) {
+            if (!pos::ParseBondScript(output.scriptPubKey, bond)) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-bond-encoding");
+            }
+            if (output.nValue < params.nPoSMinStake) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-bond-value", false,
+                                 "bond value below minimum stake");
+            }
+        }
+
+        pos::UnbondData unbond;
+        if (pos::HasUnbondMarker(output.scriptPubKey) &&
+            !pos::ParseUnbondScript(output.scriptPubKey, unbond)) {
+            return state.DoS(100, false, REJECT_INVALID,
+                             "bad-pos-unbond-encoding");
+        }
+    }
+    return true;
+}
+
 bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee, const Consensus::Params& params, const pos::State* pos_state)
 {
     // are the actual inputs available?
@@ -221,12 +250,15 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                          strprintf("%s: inputs missing/spent", __func__));
     }
 
+    const bool bond_rules = params.ArePoSBondRulesActive(nSpendHeight);
+    if (!CheckPoSOutputs(tx, state, nSpendHeight, params)) return false;
+
     size_t bond_output_count = 0;
     size_t unbond_output_count = 0;
     size_t unbond_output_index = 0;
     for (size_t i = 0; i < tx.vout.size(); ++i) {
         pos::BondData bond;
-        if (pos::ParseBondScript(tx.vout[i].scriptPubKey, bond)) {
+        if (bond_rules && pos::ParseBondScript(tx.vout[i].scriptPubKey, bond)) {
             ++bond_output_count;
             if (tx.vout[i].nValue < params.nPoSMinStake) {
                 return state.DoS(100, false, REJECT_INVALID, "bad-pos-bond-value",
@@ -235,7 +267,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         }
 
         pos::UnbondData unbond;
-        if (pos::ParseUnbondScript(tx.vout[i].scriptPubKey, unbond)) {
+        if (bond_rules && pos::ParseUnbondScript(tx.vout[i].scriptPubKey, unbond)) {
             ++unbond_output_count;
             unbond_output_index = i;
         }
@@ -251,7 +283,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         assert(!coin.IsSpent());
 
         pos::BondData input_bond;
-        if (pos::ParseBondScript(coin.out.scriptPubKey, input_bond)) {
+        if (bond_rules && pos::ParseBondScript(coin.out.scriptPubKey, input_bond)) {
             if (pos_state != nullptr &&
                 pos_state->IsWithdrawalLocked(prevout, nSpendHeight)) {
                 return state.Invalid(false, REJECT_INVALID,
@@ -263,7 +295,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         }
 
         pos::UnbondData input_unbond;
-        if (pos::ParseUnbondScript(coin.out.scriptPubKey, input_unbond) &&
+        if (bond_rules && pos::ParseUnbondScript(coin.out.scriptPubKey, input_unbond) &&
             static_cast<uint64_t>(nSpendHeight) < input_unbond.unlock_height) {
             return state.Invalid(false, REJECT_INVALID, "bad-pos-premature-unbond-spend",
                                  strprintf("unbond output locked until height %u",

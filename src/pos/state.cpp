@@ -17,7 +17,8 @@
 namespace pos {
 
 bool State::InitializeFromCoins(const CCoinsView& coins,
-                                const uint256& best_block)
+                                const uint256& best_block,
+                                const Consensus::Params& params)
 {
     if (!m_best_block.IsNull() || !m_bonds.empty() || !m_bond_history.empty() ||
         !m_snapshots.empty() || !m_epoch_seeds.empty() ||
@@ -30,6 +31,8 @@ bool State::InitializeFromCoins(const CCoinsView& coins,
         [&](const COutPoint& outpoint, const Coin& coin) {
             BondData data;
             if (!coin.IsSpent() &&
+                coin.nHeight >= params.nPoSBondRulesHeight &&
+                coin.out.nValue >= params.nPoSMinStake &&
                 ParseBondScript(coin.out.scriptPubKey, data)) {
                 BondRecord record;
                 record.value = coin.out.nValue;
@@ -458,8 +461,13 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
 
         const uint256 txid = tx.GetHash();
         for (uint32_t i = 0; i < tx.vout.size(); ++i) {
+            if (!params.ArePoSBondRulesActive(height)) continue;
             BondData data;
             if (!ParseBondScript(tx.vout[i].scriptPubKey, data)) continue;
+            if (tx.vout[i].nValue < params.nPoSMinStake) {
+                UndoBlock(undo);
+                return false;
+            }
             const COutPoint outpoint(txid, i);
             BondRecord record;
             record.value = tx.vout[i].nValue;

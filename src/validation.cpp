@@ -2255,6 +2255,12 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     {
         const CTransaction &tx = *(block.vtx[i]);
 
+        if (!Consensus::CheckPoSOutputs(tx, state, pindex->nHeight,
+                                        chainparams.GetConsensus())) {
+            return error("%s: Consensus::CheckPoSOutputs: %s, %s", __func__,
+                         tx.GetHash().ToString(), FormatStateMessage(state));
+        }
+
         nInputs += tx.vin.size();
 
         if (!tx.IsCoinBase())
@@ -2629,7 +2635,8 @@ bool CChainState::DisconnectTip(CValidationState& state, const CChainParams& cha
             pos::State rebuilt;
             const uint256 parent_hash = pindexDelete->pprev == nullptr
                 ? uint256() : pindexDelete->pprev->GetBlockHash();
-            if (!rebuilt.InitializeFromCoins(view, parent_hash)) {
+            if (!rebuilt.InitializeFromCoins(view, parent_hash,
+                                             chainparams.GetConsensus())) {
                 return AbortNode(state,
                                  "Failed to rebuild pre-snapshot PoS state");
             }
@@ -2827,6 +2834,10 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     for (const pos::VoteEquivocationEvidence& evidence :
          blockConnecting.posExtension.vote_evidence) {
         pos::GetVoteEvidencePool().Remove(pos::GetVoteEvidenceId(evidence));
+    }
+    for (const pos::BlockEquivocationEvidence& evidence :
+         blockConnecting.posExtension.block_evidence) {
+        pos::GetBlockEvidencePool().Remove(pos::GetBlockEvidenceId(evidence));
     }
     // Update chainActive & related variables.
     chainActive.SetTip(pindexNew);
@@ -3882,6 +3893,15 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
     }
 
     if (is_pos) {
+        const uint64_t current_slot_time =
+            consensusParams.nPoSSlotSeconds == 0 ? 0 :
+            (static_cast<uint64_t>(std::max<int64_t>(0, nAdjustedTime)) /
+             consensusParams.nPoSSlotSeconds) *
+                consensusParams.nPoSSlotSeconds;
+        if (block.nTime > current_slot_time) {
+            return state.Invalid(false, REJECT_INVALID, "time-too-new",
+                                 "PoS block timestamp is ahead of the current slot");
+        }
         const CBlockIndex* final_pow =
             pindexPrev->GetAncestor(consensusParams.nPoSActivationHeight - 1);
         if (final_pow == nullptr) {
@@ -4814,7 +4834,7 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
         if (snapshot_height >= 0 && tip->nHeight >= snapshot_height) {
             return error("LoadPoSState: missing state at or after initial snapshot height; reindex-chainstate is required");
         }
-        if (!loaded.InitializeFromCoins(*pcoinsTip, tip->GetBlockHash()) ||
+        if (!loaded.InitializeFromCoins(*pcoinsTip, tip->GetBlockHash(), params) ||
             !blocktree.WritePoSState(loaded)) {
             return error("LoadPoSState: failed to initialize state from UTXO set");
         }
@@ -4849,7 +4869,7 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
     if (loaded.BestBlock() != tip->GetBlockHash() &&
         snapshot_height >= 0 && tip->nHeight < snapshot_height) {
         pos::State rebuilt;
-        if (!rebuilt.InitializeFromCoins(*pcoinsTip, tip->GetBlockHash()) ||
+        if (!rebuilt.InitializeFromCoins(*pcoinsTip, tip->GetBlockHash(), params) ||
             !blocktree.WritePoSState(rebuilt)) {
             return error("LoadPoSState: failed to rebuild pre-snapshot state");
         }
@@ -4873,6 +4893,36 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
                   old_snapshot_height, snapshot_height);
     }
     m_pos_state = std::move(loaded);
+
+    pos::BlockAuthorizationPool& authorization_pool =
+        pos::GetBlockAuthorizationPool();
+    authorization_pool.Clear();
+    std::vector<const CBlockIndex*> recent_pos_blocks;
+    for (const CBlockIndex* index = tip;
+         index != nullptr && pos::IsPoSVersion(index->nVersion) &&
+         recent_pos_blocks.size() <
+             pos::MAX_BLOCK_AUTHORIZATION_POOL_ENTRIES;
+         index = index->pprev) {
+        if ((index->nStatus & BLOCK_VALID_POS) &&
+            (index->nStatus & BLOCK_HAVE_DATA)) {
+            recent_pos_blocks.push_back(index);
+        }
+    }
+    std::reverse(recent_pos_blocks.begin(), recent_pos_blocks.end());
+    size_t restored_authorizations = 0;
+    for (const CBlockIndex* index : recent_pos_blocks) {
+        CBlock block;
+        if (!ReadBlockFromDisk(block, index, params)) continue;
+        const pos::VotePoolResult result = authorization_pool.Add(
+            block.posExtension.authorization);
+        if (result == pos::VotePoolResult::ADDED) {
+            ++restored_authorizations;
+        }
+    }
+    if (restored_authorizations != 0) {
+        LogPrintf("LoadPoSState: restored %u recent block authorization(s) for equivocation detection\n",
+                  restored_authorizations);
+    }
     return true;
 }
 

@@ -296,6 +296,17 @@ bool Rfc6979Nonce(const unsigned char secret[32],
 
 } // namespace
 
+bool IsValidVrfPublicKey(
+    const unsigned char public_key[VRF_PUBLIC_KEY_SIZE])
+{
+    GroupPtr group(EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1),
+                   EC_GROUP_free);
+    CtxPtr ctx(BN_CTX_new(), BN_CTX_free);
+    PointPtr point(group ? EC_POINT_new(group.get()) : nullptr, EC_POINT_free);
+    return group && ctx && point &&
+           ParsePoint(group.get(), public_key, point.get(), ctx.get());
+}
+
 bool VrfVerify(const unsigned char public_key[VRF_PUBLIC_KEY_SIZE],
                const unsigned char* input, size_t input_size,
                const unsigned char proof[VRF_PROOF_SIZE],

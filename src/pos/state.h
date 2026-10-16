@@ -189,7 +189,8 @@ public:
                     const Consensus::Params& params, StateUndo& undo);
     bool UndoBlock(const StateUndo& undo);
     bool InitializeFromCoins(const CCoinsView& coins,
-                             const uint256& best_block);
+                             const uint256& best_block,
+                             const Consensus::Params& params);
 
     const BondRecord* FindBond(const COutPoint& outpoint) const;
     const BondRecord* FindHistoricalBond(const COutPoint& outpoint) const;

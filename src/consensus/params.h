@@ -68,6 +68,7 @@ struct Params {
 
     /** Proof-of-stake activation and consensus parameters. */
     uint32_t nPoSNetworkId;
+    int nPoSBondRulesHeight;
     int nPoSActivationHeight;
     int64_t nPoSMinStake;
     uint32_t nPoSStakeMaturity;
@@ -81,6 +82,7 @@ struct Params {
     uint256 hashPoSTrustedCheckpoint;
 
     bool IsPoSActive(int height) const { return height >= nPoSActivationHeight; }
+    bool ArePoSBondRulesActive(int height) const { return height >= nPoSBondRulesHeight; }
 
 
     /**

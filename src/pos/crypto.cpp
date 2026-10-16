@@ -10,6 +10,14 @@
 
 namespace pos {
 
+bool IsValidSchnorrPublicKey(
+    const unsigned char public_key[SCHNORR_PUBLIC_KEY_SIZE])
+{
+    secp256k1_xonly_pubkey parsed;
+    return secp256k1_xonly_pubkey_parse(secp256k1_context_static, &parsed,
+                                        public_key) == 1;
+}
+
 bool VerifySchnorr(const unsigned char public_key[SCHNORR_PUBLIC_KEY_SIZE],
                    const uint256& message,
                    const unsigned char signature[SCHNORR_SIGNATURE_SIZE])

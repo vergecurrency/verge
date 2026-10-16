@@ -19,7 +19,7 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Stake maturity | 720 confirmations |
 | PoS subsidy | 0 XVG |
 | Producer reward | Current block transaction fees only |
-| Future-time tolerance | One 30-second slot |
+| Future-time tolerance | No future canonical slot |
 | Staking authorization | Delegated staking keys |
 | Principal maturity after staking | Preserved |
 | Fee reward staking eligibility | 720 confirmations |
@@ -30,14 +30,25 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Initial epoch seed | Tagged hash of network ID, activation height, and genesis hash |
 | Post-activation PoW fallback | None |
 | Mainnet activation height | 15,000,000 |
+| Mainnet bond-rules height | 14,999,280 |
 | Testnet activation height | 3,000 |
+| Testnet bond-rules height | 1 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
 
 All amounts are evaluated in base units. A staking output exactly equal to 1,000 XVG is eligible.
 
 ## Activation
 
-Each network has an explicit `nPoSActivationHeight`. The clean-chain public testnet trial activates at height 3,000, while mainnet remains scheduled separately at height 15,000,000 pending completion of the testnet phase and a production-readiness review. These are real consensus activation heights, not comments or placeholders; this branch must not be merged into a release branch before its applicable phase gates are complete.
+Each network has an explicit `nPoSActivationHeight` and an earlier or equal
+`nPoSBondRulesHeight`. Reserved bond and unbond scripts are interpreted by
+consensus only at and after the bond-rules height, which provides a deliberate
+upgrade boundary instead of changing the meaning of scripts for legacy miners
+immediately. The clean-chain public testnet trial activates bond rules at
+height 1 and PoS at height 3,000. Mainnet schedules bond rules at height
+14,999,280 and PoS at height 15,000,000 pending completion of the testnet phase
+and a production-readiness review. These are real consensus activation heights,
+not comments or placeholders; this branch must not be merged into a release
+branch before its applicable phase gates are complete.
 
 For this clean testnet trial, the initial stake snapshot is recorded at height
 2,760. A bond must be created by height 2,280 to have 720 confirmations at
@@ -91,7 +102,7 @@ At activation:
 
 1. The block at height `nPoSActivationHeight - 1` is the final PoW block.
 2. The block at `nPoSActivationHeight` must be PoS.
-3. Bond and unbond transactions are valid before activation, allowing delegated stake to mature and enter the delayed snapshots while PoW still secures the chain.
+3. Bond and unbond consensus rules activate at `nPoSBondRulesHeight`. Wallets refuse to create either transaction before that height. This permits a reviewed preparation interval while PoW still secures the chain without silently reinterpreting old scripts before the upgrade boundary.
 4. A bond must satisfy the 720-confirmation maturity rule and appear in the stake snapshot selected two epochs before its first eligible PoS epoch. Merely bonding immediately before activation does not bypass either delay.
 5. The initial epoch seed is the domain-separated SHA-256 hash of the network identifier, activation height, and network genesis hash. It does not depend on grindable pre-activation PoW block IDs.
 6. Existing unbonded UTXOs remain spendable but are not eligible stake until explicitly bonded.
@@ -258,7 +269,7 @@ waived.
 ## Block Representation
 
 A dedicated version bit identifies PoS. A PoS header appends a 32-byte `hashPoSData` commitment to the complete signed PoS extension; historical PoW headers retain their original serialization. After activation, the five PoW algorithm version encodings are invalid for new blocks.
-Historical blocks through activation height minus one retain their original header interpretation and proof-of-work validation. At and after activation, the PoS version bit is mandatory, proof-of-work blocks are invalid, and both nBits and nNonce must be zero. The in-memory null-header sentinel uses nVersion equal to zero so a valid PoS header with zero nBits is not mistaken for an empty object. PoS timestamps must be exact 30-second slot boundaries and must map to a slot strictly later than the parent block's slot; skipped slots remain valid.
+Historical blocks through activation height minus one retain their original header interpretation and proof-of-work validation. At and after activation, the PoS version bit is mandatory, proof-of-work blocks are invalid, and both nBits and nNonce must be zero. The in-memory null-header sentinel uses nVersion equal to zero so a valid PoS header with zero nBits is not mistaken for an empty object. PoS timestamps must be exact 30-second slot boundaries, must map to a slot strictly later than the parent block's slot, and cannot exceed the canonical slot containing network-adjusted time; skipped slots remain valid.
 
 The first transaction remains structurally coinbase-like so existing block indexing can be adapted incrementally. It creates no subsidy and may pay at most the block's transaction fees to the owner-controlled reward destination committed by the selected bond.
 
@@ -279,6 +290,11 @@ fork-choice candidate by itself. Header relay stops after one PoS header. A
 node requests and fully validates that block before accepting a PoS descendant
 header, preventing unauthenticated header chains from poisoning best-header
 state or consuming unbounded index memory.
+
+The same rule applies to compact-block announcements: a PoS compact header is
+treated only as a locator and the full block is requested. A peer that announces
+but withholds that full block is disconnected after 60 seconds so another peer
+can supply it.
 
 ### PoS Block Extension Limits
 
@@ -335,7 +351,7 @@ OP_DROP ||
 OP_DUP OP_HASH160 withdrawal_key_id[20] OP_EQUALVERIFY OP_CHECKSIG
 ~~~
 
-The parser requires the exact field sizes, a nonzero signing key, a compressed VRF-key prefix of 0x02 or 0x03, nonzero reward and withdrawal key identifiers, minimal push encoding produced by the script builder, and no trailing opcodes. The script remains cryptographically spendable by the withdrawal key, but post-activation consensus rejects spending a live bond except through the explicit equal-principal unbond transition. Script validity alone never authorizes an ordinary bond spend.
+The parser requires the exact field sizes, a fully parseable BIP340 secp256k1 x-only signing public key, a fully parseable compressed P-256 VRF public key, nonzero reward and withdrawal key identifiers, minimal push encoding produced by the script builder, and no trailing opcodes. Once bond rules activate, any output beginning with the reserved bond or unbond magic is rejected if the complete payload is malformed, and every transaction including coinbase-like transactions must satisfy the minimum bond value. The script remains cryptographically spendable by the withdrawal key, but consensus rejects spending a live bond except through the explicit equal-principal unbond transition. Script validity alone never authorizes an ordinary bond spend.
 
 ## Slots And Timestamps
 
@@ -350,7 +366,9 @@ A valid block must:
 
 Empty slots are allowed. The next eligible producer may build on the latest valid block using a later slot; no empty placeholder blocks are inserted. This prevents a single offline winner from halting the chain.
 
-A node accepts a candidate no more than one 30-second slot ahead of network-adjusted time. A farther-future block is not accepted early or retained as valid pending work.
+A node accepts no candidate from a canonical slot later than the slot containing
+network-adjusted time. A future-slot block is not accepted early or retained as
+valid pending work.
 
 ## Slot And Epoch Numbering
 
@@ -496,6 +514,12 @@ corresponding requested full block passes PoS validation. This prevents cheap
 unvalidated header chains from consuming memory while allowing lagging nodes
 to advance continuously through the post-activation chain.
 
+During initial block download an unprivileged node still serves connecting
+headers. Pre-activation PoW uses the protocol's normal 2,000-header maximum so
+the requester can unambiguously continue, while post-activation relay still
+stops at one PoS locator header. This prevents two restarting nodes from
+refusing all progress without creating an unbounded response.
+
 The legacy fixed-depth reorganization limiter applies only before PoS
 activation. After activation, LMD-GHOST chooses among fully validated branches
 and the finalized-checkpoint barrier rejects reorganizations below finality.
@@ -558,7 +582,10 @@ Regtest must exercise finalization, but Phase 2 must not pretend that a single-n
 
 ## Equivocation
 
-Signing two different blocks for the same parent and slot is objectively detectable. Equivocation evidence consists of both conflicting, validly signed block authorization messages and is bounded to a canonical fixed format.
+Signing two different blocks in the same slot is objectively detectable even
+when the blocks name different parents. Equivocation evidence consists of both
+conflicting, validly signed block authorization messages and is bounded to a
+canonical fixed format.
 
 Evidence affects consensus only after inclusion in a valid block. The offending bond becomes ineligible at the first block of the next epoch and remains locked against withdrawal and staking for 20,160 blocks. Evidence already applied for a bond and offense is idempotent. Conflicting or malformed evidence is rejected before expensive signature checks where possible.
 
@@ -661,13 +688,13 @@ Cheap structural validation rejects unsupported versions, null bond outpoints, s
 
 Consensus detects and applies lockouts for all objectively provable violations:
 
-- two valid block authorizations by one bond for the same parent and slot;
+- two valid block authorizations by one bond for the same slot, including competing parents;
 - two checkpoint votes by one bond for different targets in the same target epoch;
 - a later vote whose source and target epochs surround an earlier vote; and
 - a later vote surrounded by an earlier vote.
 
 Evidence contains both conflicting signed messages, is canonically ordered, and is applied only after inclusion in a valid block. Malformed evidence cannot trigger a lockout. Replay identity is domain-separated by evidence type and bond outpoint, limiting persistent markers to at most one block-offense and one vote-offense identity per bond. Signature-byte variants cannot allocate additional identities. A marker remains until the corresponding authenticated bond history is safely pruned, so old evidence cannot be replayed later to renew an expired lockout.
-Version 1 block equivocation evidence is exactly 547 bytes: one version byte followed by two 273-byte block authorizations. Both authorizations must have the same nonzero network identifier, bond outpoint, parent block root, and slot, but different candidate header hashes. Version 1 vote equivocation evidence is exactly 459 bytes: one version byte followed by two 229-byte checkpoint votes from the same bond. It proves either different target roots for one target epoch or a strict surround relation. Each pair is sorted by its full signed-object hash and duplicates are rejected before signature verification.
+Version 1 block equivocation evidence is exactly 547 bytes: one version byte followed by two 273-byte block authorizations. Both authorizations must have the same nonzero network identifier, bond outpoint, and slot but different candidate signing hashes; the parents may differ because signing two branches in one slot is still equivocation. Version 1 vote equivocation evidence is exactly 459 bytes: one version byte followed by two 229-byte checkpoint votes from the same bond. It proves either different target roots for one target epoch or a strict surround relation. Each pair is sorted by its full signed-object hash and duplicates are rejected before signature verification.
 
 ### Committed State
 
@@ -728,6 +755,17 @@ new traffic. When two independently admitted votes form canonical double-target
 or surround evidence, the node constructs and relays the evidence automatically.
 Producers revalidate and include at most 16 records, removing them from the
 local pool only after the containing block is accepted.
+
+Block-equivocation evidence uses inventory type `MSG_POS_BLOCK_EVIDENCE` and
+the `posbevid` command with an exact 547-byte payload. Nodes retain one bounded
+authorization per bond and slot, automatically construct evidence when a
+second valid authorization conflicts, verify both signatures against retained
+bond history, relay the evidence, and stage at most 256 records or 256 KiB.
+On restart, the authorization cache is reconstructed from up to 4,096 recent
+fully validated active-chain PoS blocks so restarting during a partition does
+not erase the local side of a later equivocation proof.
+Producers revalidate staged evidence before inclusion and remove it only after
+the containing block is accepted.
 
 Before expensive signature or kernel checks, nodes must enforce:
 
