@@ -12,6 +12,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <limits>
+
 BOOST_FIXTURE_TEST_SUITE(pow_tests, BasicTestingSetup)
 // FIXME: adjust tests
 // /* Test calculation of next difficulty target with no constraints applying */
@@ -82,6 +84,21 @@ BOOST_AUTO_TEST_CASE(GetBlockProofEquivalentTime_test)
         int64_t tdiff = GetBlockProofEquivalentTime(*p1, *p2, *p3, chainParams->GetConsensus());
         BOOST_CHECK_EQUAL(tdiff, p1->GetBlockTime() - p2->GetBlockTime());
     }
+
+    CBlockIndex pos_tip;
+    pos_tip.nBits = 0;
+    BOOST_CHECK_EQUAL(
+        GetBlockProofEquivalentTime(blocks[20], blocks[20], pos_tip,
+                                    chainParams->GetConsensus()),
+        0);
+    BOOST_CHECK_EQUAL(
+        GetBlockProofEquivalentTime(blocks[20], blocks[10], pos_tip,
+                                    chainParams->GetConsensus()),
+        std::numeric_limits<int64_t>::max());
+    BOOST_CHECK_EQUAL(
+        GetBlockProofEquivalentTime(blocks[10], blocks[20], pos_tip,
+                                    chainParams->GetConsensus()),
+        -std::numeric_limits<int64_t>::max());
 }
 
 BOOST_AUTO_TEST_CASE(multialgo_consensus_regression)

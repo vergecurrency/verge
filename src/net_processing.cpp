@@ -1576,7 +1576,10 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
                             pindexLast->GetBlockHash().ToString(), pindexLast->nHeight);
                 }
                 if (vGetData.size() > 0) {
-                    if (nodestate->fSupportsDesiredCmpctVersion && vGetData.size() == 1 && mapBlocksInFlight.size() == 1 && pindexLast->pprev->IsValid(BLOCK_VALID_CHAIN)) {
+                    if (!pos::IsPoSVersion(pindexLast->nVersion) &&
+                        nodestate->fSupportsDesiredCmpctVersion &&
+                        vGetData.size() == 1 && mapBlocksInFlight.size() == 1 &&
+                        pindexLast->pprev->IsValid(BLOCK_VALID_CHAIN)) {
                         // In any case, we want to download using a compact block, not a regular one
                         vGetData[0] = CInv(MSG_CMPCT_BLOCK, vGetData[0].hash);
                     }
@@ -2987,12 +2990,35 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             mapBlockSource.emplace(hash, std::make_pair(pfrom->GetId(), true));
         }
         bool fNewBlock = false;
-        ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock);
+        const bool processed = ProcessNewBlock(
+            chainparams, pblock, forceProcessing, &fNewBlock);
         if (fNewBlock) {
             pfrom->nLastBlockTime = GetTime();
         } else {
             LOCK(cs_main);
             mapBlockSource.erase(pblock->GetHash());
+        }
+
+        if (processed && fNewBlock && forceProcessing &&
+            pos::IsPoSVersion(pblock->nVersion)) {
+            CBlockLocator locator;
+            bool request_next = false;
+            {
+                LOCK(cs_main);
+                const CBlockIndex* accepted = LookupBlockIndex(hash);
+                if (accepted != nullptr &&
+                    (accepted->nStatus & BLOCK_VALID_POS)) {
+                    locator = chainActive.GetLocator(accepted);
+                    request_next = true;
+                }
+            }
+            if (request_next) {
+                LogPrint(BCLog::NET,
+                         "requesting next PoS header after validated block %s peer=%d\n",
+                         hash.ToString(), pfrom->GetId());
+                connman->PushMessage(pfrom, msgMaker.Make(
+                    NetMsgType::GETHEADERS, locator, uint256()));
+            }
         }
 
         if (smsg::fSecMsgEnabled) {

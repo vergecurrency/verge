@@ -135,10 +135,21 @@ class PoSActivationTest(VergeTestFramework):
         assert_equal(node.getblockcount(), 1502)
         assert_equal(node.getbestblockhash(), epoch_two)
         assert observer.getbestblockhash() != epoch_two
-        observer.setmocktime(epoch_zero_time + 240 * 30)
+
+        node.setmocktime(epoch_zero_time + 360 * 30)
+        epoch_three = node.generatestake()
+        node.setmocktime(epoch_zero_time + 480 * 30)
+        epoch_four = node.generatestake()
+        assert_equal(node.getblockcount(), 1504)
+        assert_equal(node.getbestblockhash(), epoch_four)
+
+        # PoS peers intentionally serve one header and its fully validated
+        # block at a time. Reconnecting several blocks behind must continue
+        # requesting headers until the peer's tip is reached.
+        observer.setmocktime(epoch_zero_time + 480 * 30)
         connect_nodes_bi(self.nodes, 0, 1)
         self.sync_all()
-        assert_equal(observer.getbestblockhash(), epoch_two)
+        assert_equal(observer.getbestblockhash(), epoch_four)
 
         assert_equal(node.setstaking(True)["enabled"], True)
         staking_info = node.getstakinginfo()
@@ -147,24 +158,24 @@ class PoSActivationTest(VergeTestFramework):
 
         self.restart_node(0, [
             "-posactivationheight=1500",
-            "-mocktime={}".format(epoch_zero_time + 240 * 30),
+            "-mocktime={}".format(epoch_zero_time + 480 * 30),
         ])
         node = self.nodes[0]
-        assert_equal(node.getbestblockhash(), epoch_two)
+        assert_equal(node.getbestblockhash(), epoch_four)
         assert_equal(node.getstakinginfo()["enabled"], True)
 
         self.restart_node(1, [
             "-posactivationheight=1500",
-            "-mocktime={}".format(epoch_zero_time + 240 * 30),
+            "-mocktime={}".format(epoch_zero_time + 480 * 30),
             "-reindex-chainstate",
         ])
         self.sync_all()
-        assert_equal(self.nodes[1].getbestblockhash(), epoch_two)
+        assert_equal(self.nodes[1].getbestblockhash(), epoch_four)
 
-        node.invalidateblock(epoch_two)
-        assert_equal(node.getbestblockhash(), epoch_one)
-        node.reconsiderblock(epoch_two)
-        assert_equal(node.getbestblockhash(), epoch_two)
+        node.invalidateblock(epoch_four)
+        assert_equal(node.getbestblockhash(), epoch_three)
+        node.reconsiderblock(epoch_four)
+        assert_equal(node.getbestblockhash(), epoch_four)
         assert_equal(node.getblockheader(epoch_zero)["height"], 1500)
 
         node.setstaking(False)

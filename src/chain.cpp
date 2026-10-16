@@ -146,7 +146,13 @@ int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& fr
         r = from.nChainWork - to.nChainWork;
         sign = -1;
     }
-    r = r * arith_uint256(params.nPowTargetSpacing) / GetBlockProof(tip);
+    if (r == 0) return 0;
+
+    const arith_uint256 tip_proof = GetBlockProof(tip);
+    if (tip_proof == 0) {
+        return sign * std::numeric_limits<int64_t>::max();
+    }
+    r = r * arith_uint256(params.nPowTargetSpacing) / tip_proof;
     if (r.bits() > 63) {
         return sign * std::numeric_limits<int64_t>::max();
     }

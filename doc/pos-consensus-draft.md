@@ -485,6 +485,17 @@ The fork-choice rule is:
 
 PoW chainwork does not participate in post-activation fork choice. Receiving a structurally valid PoS header is not enough to add stake score or make it an active-chain candidate. A PoS branch becomes eligible only after every required full block has passed branch-local UTXO, stake proof, authorization, commitment, vote, evidence, and state-transition validation. Vote weight is compared first; if branch support is equal, the higher fully validated tip wins, then the lower divergent child hash breaks an equal-height tie. Legacy `GetBlockProof` returns zero for `nBits` zero and is not replaced with synthetic work.
 
+Legacy equivalent-work-time calculations return a saturated duration when
+their reference tip has zero proof. This prevents division by zero after PoS
+activation without assigning synthetic work to PoS blocks or influencing PoS
+fork choice.
+
+Historical PoS synchronization is validation-gated. A peer serves one PoS
+header at a time, and the receiver requests the next header only after the
+corresponding requested full block passes PoS validation. This prevents cheap
+unvalidated header chains from consuming memory while allowing lagging nodes
+to advance continuously through the post-activation chain.
+
 The legacy fixed-depth reorganization limiter applies only before PoS
 activation. After activation, LMD-GHOST chooses among fully validated branches
 and the finalized-checkpoint barrier rejects reorganizations below finality.
