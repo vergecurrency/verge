@@ -433,10 +433,10 @@ consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // M
 consensus.nMinimumChainWork = uint256S("0x00");
 consensus.defaultAssumeValid = uint256S("0x00");
 
-pchMessageStart[0] = 0xb9;
-pchMessageStart[1] = 0x68;
-pchMessageStart[2] = 0xe2;
-pchMessageStart[3] = 0x1e;
+pchMessageStart[0] = 0xc3;
+pchMessageStart[1] = 0x71;
+pchMessageStart[2] = 0xa4;
+pchMessageStart[3] = 0x5b;
 nDefaultPort = 21104;
 nPruneAfterHeight = 1000;
 
