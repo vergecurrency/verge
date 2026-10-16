@@ -85,10 +85,6 @@ struct Params {
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
 
-    /** maximum reorg depth */
-    int nMaxReorgDepth;
-    /** block to start reorg depth enforcement */
-    int nMaxReorgDepthEnforcementBlock;
 };
 } // namespace Consensus
 
