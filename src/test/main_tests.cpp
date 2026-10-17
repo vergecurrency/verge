@@ -4,8 +4,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
-#include <validation.h>
 #include <net.h>
+#include <pow.h>
+#include <validation.h>
 
 #include <test/setup_common.h>
 
@@ -109,10 +110,20 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
     BOOST_CHECK_EQUAL(mainParams->GetConsensus().nPoSActivationHeight, 15000000);
     BOOST_CHECK_EQUAL(testParams->GetConsensus().nPoSActivationHeight, 3000);
     BOOST_CHECK_EQUAL(regtestParams->GetConsensus().nPoSActivationHeight, std::numeric_limits<int>::max());
-    BOOST_CHECK_EQUAL(testParams->MessageStart()[0], 0xb9);
-    BOOST_CHECK_EQUAL(testParams->MessageStart()[1], 0x68);
-    BOOST_CHECK_EQUAL(testParams->MessageStart()[2], 0xe2);
-    BOOST_CHECK_EQUAL(testParams->MessageStart()[3], 0x1e);
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[0], 0xd6);
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[1], 0x93);
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[2], 0x2f);
+    BOOST_CHECK_EQUAL(testParams->MessageStart()[3], 0x8a);
+    BOOST_CHECK_EQUAL(testParams->GenesisBlock().GetHash(),
+                      uint256S("000005e0bb94e3a30a565d1a14ad95a189d47ca45c5bbbe48ee7a32eab8cb980"));
+    BOOST_CHECK_EQUAL(testParams->GenesisBlock().hashMerkleRoot,
+                      uint256S("2ebf7632df1eac8f32e205e6628a0508181f191c0a1ec0c57277c7bfee9e9765"));
+    BOOST_CHECK_EQUAL(testParams->GenesisBlock().nTime, 1792251000U);
+    BOOST_CHECK_EQUAL(testParams->GenesisBlock().nNonce, 4607376U);
+    BOOST_CHECK_EQUAL(testParams->GenesisBlock().nBits, 0x1e0fffffU);
+    BOOST_CHECK(CheckProofOfWork(testParams->GenesisBlock().GetPoWHash(ALGO_SCRYPT),
+                                 testParams->GenesisBlock().nBits,
+                                 testParams->GetConsensus()));
     BOOST_CHECK(testParams->GetConsensus().nMinimumChainWork.IsNull());
     BOOST_CHECK(testParams->GetConsensus().defaultAssumeValid.IsNull());
     BOOST_CHECK_EQUAL(testParams->TxData().nTime, 0);

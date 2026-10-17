@@ -433,18 +433,19 @@ consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // M
 consensus.nMinimumChainWork = uint256S("0x00");
 consensus.defaultAssumeValid = uint256S("0x00");
 
-pchMessageStart[0] = 0xc3;
-pchMessageStart[1] = 0x71;
-pchMessageStart[2] = 0xa4;
-pchMessageStart[3] = 0x5b;
+pchMessageStart[0] = 0xd6;
+pchMessageStart[1] = 0x93;
+pchMessageStart[2] = 0x2f;
+pchMessageStart[3] = 0x8a;
 nDefaultPort = 21104;
 nPruneAfterHeight = 1000;
 
-genesis = CreateGenesisBlock(1462058066, 2, 0x1e0fffff, 1, true);
+genesis = CreateGenesisBlock("VERGE TESTNET RESET 2026-10-17",
+                             1792251000, 4607376, 0x1e0fffff, 1);
 consensus.hashGenesisBlock = genesis.GetHash();
 
-assert(consensus.hashGenesisBlock == uint256S("0x65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347"));
-assert(genesis.hashMerkleRoot == uint256S("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
+assert(consensus.hashGenesisBlock == uint256S("0x000005e0bb94e3a30a565d1a14ad95a189d47ca45c5bbbe48ee7a32eab8cb980"));
+assert(genesis.hashMerkleRoot == uint256S("0x2ebf7632df1eac8f32e205e6628a0508181f191c0a1ec0c57277c7bfee9e9765"));
 
 vFixedSeeds.clear();
 vSeeds.clear();
@@ -477,7 +478,7 @@ fMineBlocksOnDemand = false;
 
 checkpointData = {
 {
-{0, uint256S("65b4e101cacf3e1e4f3a9237e3a74ffd1186e595d8b78fa8ea22c21ef5bf9347")},
+{0, uint256S("000005e0bb94e3a30a565d1a14ad95a189d47ca45c5bbbe48ee7a32eab8cb980")},
 }
 };
 
