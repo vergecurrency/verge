@@ -434,8 +434,8 @@ void SetupServerArgs()
     gArgs.AddArg("-timeout=<n>", strprintf("Specify connection timeout in milliseconds (minimum: 1, default: %d)", DEFAULT_CONNECT_TIMEOUT), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-without-tor", strprintf("Removes the limitation to route all traffic through tor. (default: %s)", false), false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-dynamic-network", strprintf("Removes the limitation to route all traffic through tor but keeps running a tor proxy. (default: %s)", false), false, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-torsocksport", strprintf("Sets the tor port to a custom socket port. (default: %i)", 9080), false, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-torcontrol=<ip>:<port>", strprintf("Tor control port to use if onion listening enabled (default: %s)", DEFAULT_TOR_CONTROL), false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-torsocksport=<port>", "Set the embedded Tor SOCKS port (defaults: mainnet 9090, testnet 19090, regtest 29090)", false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-torcontrol=<ip>:<port>", "Tor control endpoint (defaults: mainnet 127.0.0.1:9051, testnet 127.0.0.1:19051, regtest 127.0.0.1:29051)", false, OptionsCategory::CONNECTION);
     gArgs.AddArg("-torpassword=<pass>", "Tor control port password (default: empty)", false, OptionsCategory::CONNECTION);
 #ifdef USE_UPNP
 #if USE_UPNP
@@ -1419,14 +1419,15 @@ bool AppInitMain()
         SetLimited(NET_IPV6);
 
         CService onionProxy;
-        std::string defaultPort = "127.0.0.1:" + std::to_string(DEFAULT_TOR_PORT);
-        if (!Lookup(defaultPort.c_str(), onionProxy, DEFAULT_TOR_PORT, false/*name lookup*/))
-            return InitError(strprintf(_("Invalid -onion address or hostname: 127.0.0.1:9089")));
+        const unsigned int torSocksPort = GetTorSocksPort();
+        std::string defaultPort = "127.0.0.1:" + std::to_string(torSocksPort);
+        if (!Lookup(defaultPort.c_str(), onionProxy, torSocksPort, false/*name lookup*/))
+            return InitError(strprintf(_("Invalid embedded Tor SOCKS endpoint: %s"), defaultPort));
         
 
         proxyType addrOnion = proxyType(onionProxy, true);
         if (!addrOnion.IsValid())
-            return InitError(strprintf(_("Invalid -onion address or hostname: '127.0.0.1:9050'")));
+            return InitError(strprintf(_("Invalid embedded Tor SOCKS endpoint: %s"), defaultPort));
 
         SetProxy(NET_TOR, addrOnion);
         if(!gArgs.GetBoolArg("-dynamic-network", false)) {

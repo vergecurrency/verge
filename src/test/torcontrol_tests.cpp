@@ -3,7 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 //
 #include <test/setup_common.h>
+#include <chainparams.h>
+#include <chainparamsbase.h>
 #include <torcontrol.h>
+#include <torcontroller.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -17,6 +20,26 @@ std::map<std::string, std::string> ParseTorReplyMapping(const std::string& s);
 
 
 BOOST_FIXTURE_TEST_SUITE(torcontrol_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(network_specific_embedded_tor_ports)
+{
+    SelectParams(CBaseChainParams::MAIN);
+    BOOST_CHECK_EQUAL(GetDefaultTorSocksPort(), 9090U);
+    BOOST_CHECK_EQUAL(GetDefaultTorControlPort(), 9051U);
+    BOOST_CHECK_EQUAL(GetDefaultTorControl(), "127.0.0.1:9051");
+
+    SelectParams(CBaseChainParams::TESTNET);
+    BOOST_CHECK_EQUAL(GetDefaultTorSocksPort(), 19090U);
+    BOOST_CHECK_EQUAL(GetDefaultTorControlPort(), 19051U);
+    BOOST_CHECK_EQUAL(GetDefaultTorControl(), "127.0.0.1:19051");
+
+    SelectParams(CBaseChainParams::REGTEST);
+    BOOST_CHECK_EQUAL(GetDefaultTorSocksPort(), 29090U);
+    BOOST_CHECK_EQUAL(GetDefaultTorControlPort(), 29051U);
+    BOOST_CHECK_EQUAL(GetDefaultTorControl(), "127.0.0.1:29051");
+
+    SelectParams(CBaseChainParams::MAIN);
+}
 
 static void CheckSplitTorReplyLine(std::string input, std::string command, std::string args)
 {

@@ -12,6 +12,7 @@
 #include <crypto/hmac_sha256.h>
 #include <torcontroller.h>
 
+#include <cctype>
 #include <vector>
 #include <deque>
 #include <set>
@@ -29,8 +30,6 @@
 #include <event2/event.h>
 #include <event2/thread.h>
 
-/** Default control port */
-const std::string DEFAULT_TOR_CONTROL = "127.0.0.1:9051";
 /** Tor cookie size (from control-spec.txt) */
 static const int TOR_COOKIE_SIZE = 32;
 /** Size of client/server nonce for SAFECOOKIE */
@@ -449,6 +448,9 @@ private:
     /** Callback after connection lost or failed connection attempt */
     void disconnected_cb(TorControlConnection& conn);
 
+    /** Advertise the persistent onion service managed by the embedded Tor. */
+    bool AdvertisePersistentService();
+
     /** Callback for reconnect timer */
     static void reconnect_cb(evutil_socket_t fd, short what, void *arg);
 };
@@ -520,6 +522,43 @@ void TorController::add_onion_cb(TorControlConnection& _conn, const TorControlRe
     }
 }
 
+bool TorController::AdvertisePersistentService()
+{
+    const fs::path hostname_file = GetDataDir() / "tor" / "onion" / "hostname";
+    std::pair<bool, std::string> hostname_result = ReadBinaryFile(hostname_file, 256);
+    if (!hostname_result.first) {
+        return false;
+    }
+
+    std::string hostname = hostname_result.second;
+    while (!hostname.empty() && std::isspace(static_cast<unsigned char>(hostname.back()))) {
+        hostname.pop_back();
+    }
+    while (!hostname.empty() && std::isspace(static_cast<unsigned char>(hostname.front()))) {
+        hostname.erase(hostname.begin());
+    }
+
+    static const std::string onion_suffix = ".onion";
+    if (hostname.size() <= onion_suffix.size() ||
+        hostname.compare(hostname.size() - onion_suffix.size(), onion_suffix.size(), onion_suffix) != 0) {
+        LogPrintf("tor: Invalid persistent onion hostname in %s\n", hostname_file.string());
+        return false;
+    }
+
+    CService persistent_service = LookupNumeric(hostname.c_str(), GetListenPort());
+    if (!persistent_service.IsValid() || persistent_service.GetNetwork() != NET_TOR) {
+        LogPrintf("tor: Invalid persistent onion hostname in %s\n", hostname_file.string());
+        return false;
+    }
+
+    service = persistent_service;
+    service_id = hostname.substr(0, hostname.size() - onion_suffix.size());
+    LogPrintf("tor: Advertising persistent service %s from %s\n",
+              service.ToString(), hostname_file.string());
+    AddLocal(service, LOCAL_MANUAL);
+    return true;
+}
+
 void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& reply)
 {
     if (reply.code == 250) {
@@ -528,13 +567,20 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
         // Now that we know Tor is running setup the proxy for onion addresses
         // if -onion isn't set to something else.
         if (gArgs.GetArg("-onion", "") != "" || !gArgs.IsArgSet("-without-tor") || gArgs.GetBoolArg("-dynamic-network", false)) {
-            CService resolved(LookupNumeric("127.0.0.1", DEFAULT_TOR_PORT));
+            CService resolved(LookupNumeric("127.0.0.1", GetTorSocksPort()));
             proxyType addrOnion = proxyType(resolved, true);
             SetProxy(NET_TOR, addrOnion);
             SetLimited(NET_TOR, false);
         }
 
-        // Finally - now create the service
+        // Prefer the persistent service created by the embedded Tor. Its
+        // hostname is stable across restarts and is the address shown to users.
+        if (AdvertisePersistentService()) {
+            return;
+        }
+
+        // External Tor setups may not provide the embedded service directory.
+        // Retain ADD_ONION as a fallback for those configurations.
         if (private_key.empty()) // No private key, generate one
             private_key = "NEW:ED25519-V3";
         // Request hidden service, redirect port.
@@ -738,7 +784,7 @@ static std::thread torControlThread;
 
 static void TorControlThread()
 {
-    TorController ctrl(gBase, gArgs.GetArg("-torcontrol", DEFAULT_TOR_CONTROL));
+    TorController ctrl(gBase, gArgs.GetArg("-torcontrol", GetDefaultTorControl()));
 
     event_base_dispatch(gBase);
 }

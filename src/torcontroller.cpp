@@ -7,13 +7,41 @@
 #endif
 
 #include <torcontroller.h>
+#include <chainparams.h>
+#include <chainparamsbase.h>
 #include <fs.h>
+#include <net.h>
 
 extern "C" {
     int tor_main(int argc, char *argv[]);
 }
 
 static boost::thread torControllerThread;
+
+unsigned int GetDefaultTorSocksPort()
+{
+    if (Params().NetworkIDString() == CBaseChainParams::TESTNET) return 19090;
+    if (Params().NetworkIDString() == CBaseChainParams::REGTEST) return 29090;
+    return 9090;
+}
+
+unsigned int GetTorSocksPort()
+{
+    const int64_t port = gArgs.GetArg("-torsocksport", static_cast<int64_t>(GetDefaultTorSocksPort()));
+    return port > 0 && port <= 65535 ? static_cast<unsigned int>(port) : GetDefaultTorSocksPort();
+}
+
+unsigned int GetDefaultTorControlPort()
+{
+    if (Params().NetworkIDString() == CBaseChainParams::TESTNET) return 19051;
+    if (Params().NetworkIDString() == CBaseChainParams::REGTEST) return 29051;
+    return 9051;
+}
+
+std::string GetDefaultTorControl()
+{
+    return "127.0.0.1:" + std::to_string(GetDefaultTorControlPort());
+}
 
 char *convert_str(const std::string &s) {
     char *pc = new char[s.size()+1];
@@ -64,24 +92,18 @@ void run_tor() {
     argv.push_back("notice file " + log_file.string());
     argv.push_back("--SocksPort");
 
-    std::string onion_port = std::to_string(DEFAULT_TOR_PORT);
-    if (gArgs.IsArgSet("-torsocksport") && gArgs.GetArg("-torsocksport", "0") != "0")
-    {
-        onion_port = gArgs.GetArg("-torsocksport", "0");
-    }
-
-    argv.push_back(onion_port.c_str());
+    argv.push_back(std::to_string(GetTorSocksPort()));
     argv.push_back("--ignore-missing-torrc");
     argv.push_back("-f");
     argv.push_back((tor_dir / "torrc").string());
     argv.push_back("--HiddenServiceDir");
     argv.push_back((tor_dir / "onion").string());
     argv.push_back("--ControlPort");
-    argv.push_back(std::to_string(DEFAULT_TOR_CONTROL_PORT));
+    argv.push_back(std::to_string(GetDefaultTorControlPort()));
     argv.push_back("--HiddenServiceVersion");
     argv.push_back("3");
     argv.push_back("--HiddenServicePort");
-    argv.push_back("21102");
+    argv.push_back(std::to_string(GetListenPort()) + ",127.0.0.1:" + std::to_string(GetListenPort()));
     argv.push_back("--CookieAuthentication");
     argv.push_back("1");
 
