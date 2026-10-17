@@ -43,6 +43,13 @@ std::string GetDefaultTorControl()
     return "127.0.0.1:" + std::to_string(GetDefaultTorControlPort());
 }
 
+std::string GetEmbeddedTorHiddenServicePort()
+{
+    // With no explicit target, Tor maps this virtual port to the same port on
+    // 127.0.0.1. Keep this as a single port value accepted by every Tor build.
+    return std::to_string(GetListenPort());
+}
+
 char *convert_str(const std::string &s) {
     char *pc = new char[s.size()+1];
     std::strcpy(pc, s.c_str());
@@ -104,7 +111,7 @@ void run_tor() {
     argv.push_back("--HiddenServiceVersion");
     argv.push_back("3");
     argv.push_back("--HiddenServicePort");
-    argv.push_back(std::to_string(GetListenPort()) + ",127.0.0.1:" + std::to_string(GetListenPort()));
+    argv.push_back(GetEmbeddedTorHiddenServicePort());
     argv.push_back("--CookieAuthentication");
     argv.push_back("1");
 

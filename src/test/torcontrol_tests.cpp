@@ -27,16 +27,19 @@ BOOST_AUTO_TEST_CASE(network_specific_embedded_tor_ports)
     BOOST_CHECK_EQUAL(GetDefaultTorSocksPort(), 9090U);
     BOOST_CHECK_EQUAL(GetDefaultTorControlPort(), 9051U);
     BOOST_CHECK_EQUAL(GetDefaultTorControl(), "127.0.0.1:9051");
+    BOOST_CHECK_EQUAL(GetEmbeddedTorHiddenServicePort(), "21102");
 
     SelectParams(CBaseChainParams::TESTNET);
     BOOST_CHECK_EQUAL(GetDefaultTorSocksPort(), 19090U);
     BOOST_CHECK_EQUAL(GetDefaultTorControlPort(), 19051U);
     BOOST_CHECK_EQUAL(GetDefaultTorControl(), "127.0.0.1:19051");
+    BOOST_CHECK_EQUAL(GetEmbeddedTorHiddenServicePort(), "21104");
 
     SelectParams(CBaseChainParams::REGTEST);
     BOOST_CHECK_EQUAL(GetDefaultTorSocksPort(), 29090U);
     BOOST_CHECK_EQUAL(GetDefaultTorControlPort(), 29051U);
     BOOST_CHECK_EQUAL(GetDefaultTorControl(), "127.0.0.1:29051");
+    BOOST_CHECK_EQUAL(GetEmbeddedTorHiddenServicePort(), "31102");
 
     SelectParams(CBaseChainParams::MAIN);
 }

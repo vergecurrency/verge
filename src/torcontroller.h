@@ -26,6 +26,7 @@ unsigned int GetDefaultTorSocksPort();
 unsigned int GetTorSocksPort();
 unsigned int GetDefaultTorControlPort();
 std::string GetDefaultTorControl();
+std::string GetEmbeddedTorHiddenServicePort();
 
 char *convert_str(const std::string &s);
 
