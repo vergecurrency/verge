@@ -1442,7 +1442,7 @@ bool AppInitMain()
             SetLimited(NET_IPV6, false);
         }
 
-        LogPrintf("Tor Successfully bound ...\n");
+		LogPrintf("Embedded Tor startup requested for %s\n", (GetDataDir() / "tor").string());
 	}
     
     if (gArgs.IsArgSet("-without-tor")){

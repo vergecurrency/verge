@@ -53,7 +53,7 @@ void run_tor() {
     std::string clientTransportPlugin;
     // struct stat sb;
     fs::path tor_dir = GetDataDir() / "tor";
-    fs::create_directory(tor_dir);
+    fs::create_directories(tor_dir);
     fs::path log_file = tor_dir / "tor.log";
     fs::path torrc_file = tor_dir / "torrc";
     // std::regex bridge_regex("^Bridge obfs4");
@@ -90,8 +90,9 @@ void run_tor() {
     argv.push_back("tor");
     argv.push_back("--Log");
     argv.push_back("notice file " + log_file.string());
+    argv.push_back("--DataDirectory");
+    argv.push_back(tor_dir.string());
     argv.push_back("--SocksPort");
-
     argv.push_back(std::to_string(GetTorSocksPort()));
     argv.push_back("--ignore-missing-torrc");
     argv.push_back("-f");
@@ -121,7 +122,13 @@ void run_tor() {
     std::vector<char *> argv_c;
     std::transform(argv.begin(), argv.end(), std::back_inserter(argv_c), convert_str);
 
-    tor_main(argv_c.size(), &argv_c[0]);
+    LogPrintf("Embedded Tor starting: data=%s socks=127.0.0.1:%u control=127.0.0.1:%u onion_port=%u\n",
+              tor_dir.string(), GetTorSocksPort(), GetDefaultTorControlPort(), GetListenPort());
+    const int result = tor_main(argv_c.size(), &argv_c[0]);
+    for (char* arg : argv_c) {
+        delete[] arg;
+    }
+    LogPrintf("Embedded Tor exited with status %d; see %s\n", result, log_file.string());
 }
 
 void InitalizeTorThread(){
@@ -144,6 +151,6 @@ void StartTorController()
         run_tor();
     }
     catch (std::exception& e) {
-        printf("%s\n", e.what());
+        LogPrintf("Embedded Tor exception: %s\n", e.what());
     }    
 }
