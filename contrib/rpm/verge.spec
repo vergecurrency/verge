@@ -332,12 +332,12 @@ if [ `%{_sbindir}/sestatus |grep -c "disabled"` -eq 0 ]; then
 for selinuxvariant in %{selinux_variants}; do
 	%{_sbindir}/semodule -s ${selinuxvariant} -i %{_datadir}/selinux/${selinuxvariant}/verge.pp &> /dev/null || :
 done
-%{_sbindir}/semanage port -a -t verge_port_t -p tcp 20103
-%{_sbindir}/semanage port -a -t verge_port_t -p tcp 21103
-%{_sbindir}/semanage port -a -t verge_port_t -p tcp 120103
+%{_sbindir}/semanage port -a -t verge_port_t -p tcp 20102
+%{_sbindir}/semanage port -a -t verge_port_t -p tcp 21102
+%{_sbindir}/semanage port -a -t verge_port_t -p tcp 20104
 %{_sbindir}/semanage port -a -t verge_port_t -p tcp 21104
-%{_sbindir}/semanage port -a -t verge_port_t -p tcp 18443
-%{_sbindir}/semanage port -a -t verge_port_t -p tcp 18444
+%{_sbindir}/semanage port -a -t verge_port_t -p tcp 18334
+%{_sbindir}/semanage port -a -t verge_port_t -p tcp 31102
 %{_sbindir}/fixfiles -R verge-server restore &> /dev/null || :
 %{_sbindir}/restorecon -R %{_localstatedir}/lib/verge || :
 fi
@@ -353,12 +353,12 @@ fi
 # SELinux
 if [ $1 -eq 0 ]; then
 	if [ `%{_sbindir}/sestatus |grep -c "disabled"` -eq 0 ]; then
-	%{_sbindir}/semanage port -d -p tcp 20103
-	%{_sbindir}/semanage port -d -p tcp 21103
-	%{_sbindir}/semanage port -d -p tcp 120103
+	%{_sbindir}/semanage port -d -p tcp 20102
+	%{_sbindir}/semanage port -d -p tcp 21102
+	%{_sbindir}/semanage port -d -p tcp 20104
 	%{_sbindir}/semanage port -d -p tcp 21104
-	%{_sbindir}/semanage port -d -p tcp 18443
-	%{_sbindir}/semanage port -d -p tcp 18444
+	%{_sbindir}/semanage port -d -p tcp 18334
+	%{_sbindir}/semanage port -d -p tcp 31102
 	for selinuxvariant in %{selinux_variants}; do
 		%{_sbindir}/semodule -s ${selinuxvariant} -r verge &> /dev/null || :
 	done

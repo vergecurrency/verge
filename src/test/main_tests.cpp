@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
+#include <chainparamsbase.h>
 #include <net.h>
 #include <pow.h>
 #include <validation.h>
@@ -14,6 +15,17 @@
 #include <boost/test/unit_test.hpp>
 
 BOOST_FIXTURE_TEST_SUITE(main_tests, TestingSetup)
+
+BOOST_AUTO_TEST_CASE(network_specific_rpc_ports)
+{
+    const auto mainParams = CreateBaseChainParams(CBaseChainParams::MAIN);
+    const auto testParams = CreateBaseChainParams(CBaseChainParams::TESTNET);
+    const auto regtestParams = CreateBaseChainParams(CBaseChainParams::REGTEST);
+
+    BOOST_CHECK_EQUAL(mainParams->RPCPort(), 20102);
+    BOOST_CHECK_EQUAL(testParams->RPCPort(), 20104);
+    BOOST_CHECK_EQUAL(regtestParams->RPCPort(), 18334);
+}
 
 static void TestBlockSubsidyHalvings(const Consensus::Params& consensusParams)
 {

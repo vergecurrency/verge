@@ -3,8 +3,7 @@ Unauthenticated REST Interface
 
 The REST API can be enabled with the `-rest` option.
 
-The interface runs on the same port as the JSON-RPC interface, by default port 20103 for mainnet, port 120103 for testnet,
-and port 18443 for regtest.
+The interface runs on the same port as the JSON-RPC interface: port 20102 for mainnet, port 20104 for testnet, and port 18334 for regtest by default.
 
 Supported API
 -------------
@@ -56,7 +55,7 @@ The getutxo command allows querying of the UTXO set given a set of outpoints.
 
 Example:
 ```
-$ curl localhost:120103/rest/getutxos/checkmempool/b2cdfd7b89def827ff8af7cd9bff7627ff72e5e8b0f71210f92ea7a4000c5d75-0.json 2>/dev/null | json_pp
+$ curl localhost:20104/rest/getutxos/checkmempool/b2cdfd7b89def827ff8af7cd9bff7627ff72e5e8b0f71210f92ea7a4000c5d75-0.json 2>/dev/null | json_pp
 {
    "chainHeight" : 325347,
    "chaintipHash" : "00000000fb01a7f3745a717f8caebee056c484e6e0bfe4a9591c235bb70506fb",
@@ -98,4 +97,4 @@ Only supports JSON as output format.
 
 Risks
 -------------
-Running a web browser on the same node with a REST enabled verged can be a risk. Accessing prepared XSS websites could read out tx/block data of your node by placing links like `<script src="http://127.0.0.1:20103/rest/tx/1234567890.json">` which might break the nodes privacy.
+Running a web browser on the same node with a REST enabled verged can be a risk. Accessing prepared XSS websites could read out tx/block data of your node by placing links like `<script src="http://127.0.0.1:20102/rest/tx/1234567890.json">` which might break the nodes privacy.
