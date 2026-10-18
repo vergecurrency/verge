@@ -26,7 +26,6 @@ static constexpr uint64_t INITIAL_SNAPSHOT_EPOCH = UINT64_MAX;
 // Keep enough delayed snapshots for normal voting and short reorgs without
 // retaining a full copy of the validator set for the lifetime of the chain.
 static constexpr uint64_t POS_STATE_RETENTION_EPOCHS = 8;
-static constexpr size_t MAX_ACTIVE_BONDS = 100000;
 static constexpr size_t MAX_BOND_OUTPUTS_PER_TRANSACTION = 16;
 
 struct BondRecord {
@@ -133,13 +132,14 @@ struct LockoutUndo {
 struct AppliedEvidenceRecord {
     COutPoint bond_outpoint;
     int32_t height{0};
+    uint64_t offense_sequence{0};
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     void SerializationOp(Stream& s, Operation ser_action)
     {
-        READWRITE(bond_outpoint, height);
+        READWRITE(bond_outpoint, height, offense_sequence);
     }
 };
 

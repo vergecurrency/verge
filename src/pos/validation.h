@@ -55,17 +55,20 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
                                     int32_t current_height);
 
 ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
-                                  const State& state);
+                                  const State& state,
+                                  uint64_t maximum_target_epoch);
 
 ValidationError CheckBlockEvidence(const BlockEquivocationEvidence& evidence,
                                    const State& state,
-                                   uint32_t network_id);
+                                   uint32_t network_id,
+                                   uint64_t maximum_slot);
 
 ValidationError CheckVotesAndEvidence(const CBlock& block,
                                       const State& state,
                                       uint32_t snapshot_delay_epochs,
                                       uint32_t network_id,
                                       uint64_t current_epoch,
+                                      uint64_t current_slot,
                                       int32_t current_height);
 
 ValidationError CheckReward(const CBlock& block, const BondRecord& bond,

@@ -535,6 +535,8 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
     pos::BlockEquivocationEvidence evidence;
     evidence.first.bond_outpoint = bond_outpoint;
     evidence.second.bond_outpoint = bond_outpoint;
+    evidence.first.slot = 10;
+    evidence.second.slot = 10;
     evidence.first.candidate_header_hash = uint256S("01");
     evidence.second.candidate_header_hash = uint256S("02");
 
@@ -571,6 +573,45 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
     BOOST_CHECK(state.IsWithdrawalLocked(bond_outpoint, 1005));
     BOOST_CHECK(!state.IsEligibilityLocked(bond_outpoint, 1, 1006));
     BOOST_CHECK(!state.IsWithdrawalLocked(bond_outpoint, 1006));
+
+    CBlock replay = MakeBlock({MakeCoinbase()});
+    replay.hashPrevBlock = activation.GetHash();
+    replay.posExtension.block_evidence.push_back(evidence);
+    replay.posExtension.stake_proof.vrf_output[31] = 2;
+    pos::StateUndo replay_undo;
+    BOOST_REQUIRE(state.ApplyBlock(replay, 1006, true, 1, 1,
+                                   params, replay_undo));
+    BOOST_CHECK(!state.IsEligibilityLocked(bond_outpoint, 1, 1006));
+    BOOST_CHECK(!state.IsWithdrawalLocked(bond_outpoint, 1006));
+
+    pos::BlockEquivocationEvidence later_evidence = evidence;
+    later_evidence.first.slot = 20;
+    later_evidence.second.slot = 20;
+    later_evidence.first.candidate_header_hash = uint256S("03");
+    later_evidence.second.candidate_header_hash = uint256S("04");
+    CBlock renewal = MakeBlock({MakeCoinbase()});
+    renewal.hashPrevBlock = replay.GetHash();
+    renewal.posExtension.block_evidence.push_back(later_evidence);
+    renewal.posExtension.stake_proof.vrf_output[31] = 3;
+    pos::StateUndo renewal_undo;
+    BOOST_REQUIRE(state.ApplyBlock(renewal, 1007, true, 1, 2,
+                                   params, renewal_undo));
+    BOOST_CHECK(state.IsWithdrawalLocked(bond_outpoint, 1007));
+    BOOST_CHECK(!state.IsEligibilityLocked(bond_outpoint, 1, 1007));
+
+    CBlock renewal_activation = MakeBlock({MakeCoinbase()});
+    renewal_activation.hashPrevBlock = renewal.GetHash();
+    renewal_activation.posExtension.stake_proof.vrf_output[31] = 4;
+    pos::StateUndo renewal_activation_undo;
+    BOOST_REQUIRE(state.ApplyBlock(renewal_activation, 1008, true, 2, 0,
+                                   params, renewal_activation_undo));
+    BOOST_CHECK(state.IsEligibilityLocked(bond_outpoint, 2, 1008));
+    BOOST_CHECK(state.IsWithdrawalLocked(bond_outpoint, 1012));
+    BOOST_CHECK(!state.IsEligibilityLocked(bond_outpoint, 2, 1013));
+
+    BOOST_CHECK(state.UndoBlock(renewal_activation_undo));
+    BOOST_CHECK(state.UndoBlock(renewal_undo));
+    BOOST_CHECK(state.UndoBlock(replay_undo));
 
     BOOST_CHECK(state.UndoBlock(activation_undo));
     BOOST_CHECK(!state.IsEligibilityLocked(bond_outpoint, 0, 1000));

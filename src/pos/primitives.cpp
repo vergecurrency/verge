@@ -28,6 +28,8 @@ const char* GetDomainTag(HashDomain domain)
     case HashDomain::POS_DATA: return "VergePoS/Data/v1";
     case HashDomain::BLOCK_EVIDENCE_ID: return "VergePoS/BlockEvidenceId/v1";
     case HashDomain::VOTE_EVIDENCE_ID: return "VergePoS/VoteEvidenceId/v1";
+    case HashDomain::BLOCK_EVIDENCE_PENALTY: return "VergePoS/BlockEvidencePenalty/v1";
+    case HashDomain::VOTE_EVIDENCE_PENALTY: return "VergePoS/VoteEvidencePenalty/v1";
     case HashDomain::SLOT: return "VergePoS/Slot/v1";
     case HashDomain::VRF_KEY: return "VergePoS/VRFKey/v1";
     case HashDomain::EPOCH_ENTROPY: return "VergePoS/EpochEntropy/v1";
@@ -97,14 +99,32 @@ uint256 GetVoteSigningHash(const CheckpointVote& vote)
 uint256 GetBlockEvidenceId(const BlockEquivocationEvidence& evidence)
 {
     TaggedHashWriter writer(HashDomain::BLOCK_EVIDENCE_ID);
-    writer << evidence.version << evidence.first.bond_outpoint;
+    writer << evidence.version
+           << GetBlockSigningHash(evidence.first)
+           << GetBlockSigningHash(evidence.second);
     return writer.GetHash();
 }
 
 uint256 GetVoteEvidenceId(const VoteEquivocationEvidence& evidence)
 {
     TaggedHashWriter writer(HashDomain::VOTE_EVIDENCE_ID);
-    writer << evidence.version << evidence.first.bond_outpoint;
+    writer << evidence.version
+           << GetVoteSigningHash(evidence.first)
+           << GetVoteSigningHash(evidence.second);
+    return writer.GetHash();
+}
+
+uint256 GetBlockEvidencePenaltyKey(const COutPoint& bond_outpoint)
+{
+    TaggedHashWriter writer(HashDomain::BLOCK_EVIDENCE_PENALTY);
+    writer << bond_outpoint;
+    return writer.GetHash();
+}
+
+uint256 GetVoteEvidencePenaltyKey(const COutPoint& bond_outpoint)
+{
+    TaggedHashWriter writer(HashDomain::VOTE_EVIDENCE_PENALTY);
+    writer << bond_outpoint;
     return writer.GetHash();
 }
 bool HasSupportedVersion(const StakeProof& proof)

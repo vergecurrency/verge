@@ -39,8 +39,7 @@ bool State::InitializeFromCoins(const CCoinsView& coins,
                 record.value = coin.out.nValue;
                 record.creation_height = coin.nHeight;
                 record.data = data;
-                if (m_bonds.size() >= MAX_ACTIVE_BONDS ||
-                    !m_bonds.emplace(outpoint, record).second ||
+                if (!m_bonds.emplace(outpoint, record).second ||
                     !m_bond_history.emplace(outpoint, record).second) {
                     return false;
                 }
@@ -175,8 +174,6 @@ bool State::AddSnapshot(uint64_t source_epoch, int32_t source_height,
                         StateUndo& undo)
 {
     if (m_snapshots.count(source_epoch) != 0 || maturity_height < 0) return false;
-    if (m_bonds.size() > MAX_ACTIVE_BONDS) return false;
-
     StakeSnapshot snapshot;
     snapshot.source_epoch = source_epoch;
     snapshot.source_height = source_height;
@@ -406,8 +403,13 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
         m_last_pos_epoch = block_epoch;
 
         const auto apply_evidence = [&](const COutPoint& outpoint,
-                                        const uint256& evidence_id) {
-            if (m_applied_evidence.count(evidence_id) != 0) return true;
+                                        const uint256& penalty_key,
+                                        uint64_t offense_sequence) {
+            const auto applied = m_applied_evidence.find(penalty_key);
+            if (applied != m_applied_evidence.end() &&
+                offense_sequence <= applied->second.offense_sequence) {
+                return true;
+            }
             LockoutUndo change;
             change.bond_outpoint = outpoint;
             const auto previous = m_lockouts.find(outpoint);
@@ -418,23 +420,38 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
             undo.lockout_undo.push_back(change);
             LockoutRecord& lockout = m_lockouts[outpoint];
             const uint64_t activation_epoch = block_epoch + 1;
-            if (!change.had_previous ||
-                activation_epoch < lockout.activation_epoch) {
+            if (!change.had_previous || lockout.until_height <= height) {
                 lockout.activation_epoch = activation_epoch;
+                lockout.until_height = 0;
+            } else if (lockout.until_height != 0) {
+                const int64_t extended_until = static_cast<int64_t>(height) +
+                    params.nPoSUnbondingBlocks;
+                if (extended_until > std::numeric_limits<int32_t>::max()) {
+                    return false;
+                }
+                lockout.until_height = std::max(
+                    lockout.until_height, static_cast<int32_t>(extended_until));
+            }
+            if (applied != m_applied_evidence.end()) {
+                undo.removed_evidence.push_back(*applied);
+                m_applied_evidence.erase(applied);
             }
             if (!m_applied_evidence.emplace(
-                    evidence_id,
-                    AppliedEvidenceRecord{outpoint, height}).second) {
+                    penalty_key,
+                    AppliedEvidenceRecord{outpoint, height,
+                                          offense_sequence}).second) {
                 return false;
             }
-            undo.added_evidence.push_back(evidence_id);
+            undo.added_evidence.push_back(penalty_key);
             return true;
         };
         for (const BlockEquivocationEvidence& evidence :
              block.posExtension.block_evidence) {
             if (!apply_evidence(
                     evidence.first.bond_outpoint,
-                    GetBlockEvidenceId(evidence))) {
+                    GetBlockEvidencePenaltyKey(
+                        evidence.first.bond_outpoint),
+                    evidence.first.slot)) {
                 UndoBlock(undo);
                 return false;
             }
@@ -443,7 +460,10 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
              block.posExtension.vote_evidence) {
             if (!apply_evidence(
                     evidence.first.bond_outpoint,
-                    GetVoteEvidenceId(evidence))) {
+                    GetVoteEvidencePenaltyKey(
+                        evidence.first.bond_outpoint),
+                    std::max(evidence.first.target_epoch,
+                             evidence.second.target_epoch))) {
                 UndoBlock(undo);
                 return false;
             }
@@ -489,10 +509,6 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
                 return false;
             }
             const COutPoint outpoint(txid, i);
-            if (m_bonds.size() >= MAX_ACTIVE_BONDS) {
-                UndoBlock(undo);
-                return false;
-            }
             BondRecord record;
             record.value = tx.vout[i].nValue;
             record.creation_height = height;

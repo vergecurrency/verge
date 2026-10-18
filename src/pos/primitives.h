@@ -133,6 +133,8 @@ enum class HashDomain {
     POS_DATA,
     BLOCK_EVIDENCE_ID,
     VOTE_EVIDENCE_ID,
+    BLOCK_EVIDENCE_PENALTY,
+    VOTE_EVIDENCE_PENALTY,
     SLOT,
     VRF_KEY,
     EPOCH_ENTROPY,
@@ -188,6 +190,8 @@ uint256 GetBlockSigningHash(const BlockAuthorization& authorization);
 uint256 GetVoteSigningHash(const CheckpointVote& vote);
 uint256 GetBlockEvidenceId(const BlockEquivocationEvidence& evidence);
 uint256 GetVoteEvidenceId(const VoteEquivocationEvidence& evidence);
+uint256 GetBlockEvidencePenaltyKey(const COutPoint& bond_outpoint);
+uint256 GetVoteEvidencePenaltyKey(const COutPoint& bond_outpoint);
 bool HasSupportedVersion(const StakeProof& proof);
 bool HasSupportedVersion(const CheckpointVote& vote);
 bool HasSupportedVersion(const BlockAuthorization& authorization);

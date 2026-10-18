@@ -171,10 +171,15 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
 }
 
 ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
-                                  const State& state)
+                                  const State& state,
+                                  uint64_t maximum_target_epoch)
 {
     if (CheckStructure(evidence) != StructureError::NONE) {
         return ValidationError::VOTE_STRUCTURE;
+    }
+    if (evidence.first.target_epoch > maximum_target_epoch ||
+        evidence.second.target_epoch > maximum_target_epoch) {
+        return ValidationError::VOTE_CHECKPOINT;
     }
     const BondRecord* bond =
         state.FindHistoricalBond(evidence.first.bond_outpoint);
@@ -192,7 +197,8 @@ ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
 
 ValidationError CheckBlockEvidence(const BlockEquivocationEvidence& evidence,
                                    const State& state,
-                                   uint32_t network_id)
+                                   uint32_t network_id,
+                                   uint64_t maximum_slot)
 {
     if (CheckStructure(evidence) != StructureError::NONE) {
         return ValidationError::VOTE_STRUCTURE;
@@ -200,6 +206,10 @@ ValidationError CheckBlockEvidence(const BlockEquivocationEvidence& evidence,
     if (evidence.first.network_id != network_id ||
         evidence.second.network_id != network_id) {
         return ValidationError::EVIDENCE_SIGNATURE;
+    }
+    if (evidence.first.slot > maximum_slot ||
+        evidence.second.slot > maximum_slot) {
+        return ValidationError::VOTE_STRUCTURE;
     }
     const BondRecord* bond =
         state.FindHistoricalBond(evidence.first.bond_outpoint);
@@ -220,6 +230,7 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
                                       uint32_t snapshot_delay_epochs,
                                       uint32_t network_id,
                                       uint64_t current_epoch,
+                                      uint64_t current_slot,
                                       int32_t current_height)
 {
     for (const CheckpointVote& vote : block.posExtension.votes) {
@@ -232,13 +243,14 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
     for (const BlockEquivocationEvidence& evidence :
          block.posExtension.block_evidence) {
         const ValidationError error = CheckBlockEvidence(
-            evidence, state, network_id);
+            evidence, state, network_id, current_slot);
         if (error != ValidationError::NONE) return error;
     }
 
     for (const VoteEquivocationEvidence& evidence :
          block.posExtension.vote_evidence) {
-        const ValidationError error = CheckVoteEvidence(evidence, state);
+        const ValidationError error = CheckVoteEvidence(
+            evidence, state, current_epoch);
         if (error != ValidationError::NONE) return error;
     }
     return ValidationError::NONE;

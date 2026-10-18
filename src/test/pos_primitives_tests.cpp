@@ -191,10 +191,22 @@ BOOST_AUTO_TEST_CASE(equivocation_structure)
 
     const uint256 block_id = pos::GetBlockEvidenceId(block_evidence);
     const uint256 vote_id = pos::GetVoteEvidenceId(vote_evidence);
+    const uint256 block_penalty = pos::GetBlockEvidencePenaltyKey(
+        block_evidence.first.bond_outpoint);
+    const uint256 vote_penalty = pos::GetVoteEvidencePenaltyKey(
+        vote_evidence.first.bond_outpoint);
     block_evidence.first.signature[0] ^= 1;
     vote_evidence.first.signature[0] ^= 1;
     BOOST_CHECK(pos::GetBlockEvidenceId(block_evidence) == block_id);
     BOOST_CHECK(pos::GetVoteEvidenceId(vote_evidence) == vote_id);
+    block_evidence.first.parent_randomness = uint256S("10");
+    vote_evidence.first.head_block_root = uint256S("11");
+    BOOST_CHECK(pos::GetBlockEvidenceId(block_evidence) != block_id);
+    BOOST_CHECK(pos::GetVoteEvidenceId(vote_evidence) != vote_id);
+    BOOST_CHECK(pos::GetBlockEvidencePenaltyKey(
+                    block_evidence.first.bond_outpoint) == block_penalty);
+    BOOST_CHECK(pos::GetVoteEvidencePenaltyKey(
+                    vote_evidence.first.bond_outpoint) == vote_penalty);
 }
 BOOST_AUTO_TEST_CASE(canonical_vote_order)
 {

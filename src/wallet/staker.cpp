@@ -271,7 +271,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         for (const pos::VoteEquivocationEvidence& evidence :
              pos::GetVoteEvidencePool().GetEvidence(
                  pos::MAX_EVIDENCE_PER_BLOCK)) {
-            if (pos::CheckVoteEvidence(evidence, state) ==
+            if (pos::CheckVoteEvidence(evidence, state, slot.epoch) ==
                 pos::ValidationError::NONE) {
                 vote_evidence.push_back(evidence);
             }
@@ -280,7 +280,8 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
              pos::GetBlockEvidencePool().GetEvidence(
                  params.nPoSMaxEvidencePerBlock)) {
             if (pos::CheckBlockEvidence(evidence, state,
-                                        params.nPoSNetworkId) ==
+                                        params.nPoSNetworkId,
+                                        slot.global_slot) ==
                 pos::ValidationError::NONE) {
                 block_evidence.push_back(evidence);
             }

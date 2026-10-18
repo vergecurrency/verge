@@ -224,7 +224,9 @@ private:
     void SetNewPreciousBlockWork(const arith_uint256& newWork);
     void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state);
     bool IsPreferredPoSCandidate(const CBlockIndex* candidate,
-                                 const CBlockIndex* current);
+                                 const CBlockIndex* current,
+                                 const pos::State* candidate_state = nullptr,
+                                 const pos::State* current_state = nullptr);
     bool ValidatePoSBranch(CBlockIndex* target, CValidationState& state,
                            const CChainParams& chainparams,
                            pos::State* branch_state = nullptr);
@@ -2068,6 +2070,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     block, next_pos_state,
                     consensus.nPoSSnapshotDelayEpochs,
                     consensus.nPoSNetworkId, pos_slot.epoch,
+                    pos_slot.global_slot,
                     pindex->nHeight) != pos::ValidationError::NONE) {
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-authorization");
@@ -2934,7 +2937,9 @@ ReplayProtectionContext GetReplayProtectionContextForHeight(
 }
 
 bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
-                                          const CBlockIndex* current)
+                                          const CBlockIndex* current,
+                                          const pos::State* candidate_state,
+                                          const pos::State* current_state)
 {
     if (current == nullptr) return candidate != nullptr;
     if (candidate == nullptr || candidate == current) return false;
@@ -2961,24 +2966,30 @@ bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
 
     const CBlockIndex* candidate_child = candidate->GetAncestor(fork->nHeight + 1);
     const CBlockIndex* current_child = current->GetAncestor(fork->nHeight + 1);
-    pos::State candidate_state;
-    pos::State current_state;
+    pos::State candidate_state_storage;
+    pos::State current_state_storage;
     CValidationState validation_state;
-    if (!ValidatePoSBranch(const_cast<CBlockIndex*>(candidate),
-                           validation_state, Params(), &candidate_state)) {
+    if (candidate_state == nullptr &&
+        !ValidatePoSBranch(const_cast<CBlockIndex*>(candidate),
+                           validation_state, Params(),
+                           &candidate_state_storage)) {
         return false;
     }
+    if (candidate_state == nullptr) candidate_state = &candidate_state_storage;
     validation_state = CValidationState();
-    if (!ValidatePoSBranch(const_cast<CBlockIndex*>(current),
-                           validation_state, Params(), &current_state)) {
+    if (current_state == nullptr &&
+        !ValidatePoSBranch(const_cast<CBlockIndex*>(current),
+                           validation_state, Params(),
+                           &current_state_storage)) {
         return true;
     }
+    if (current_state == nullptr) current_state = &current_state_storage;
 
     CAmount candidate_weight = 0;
     CAmount current_weight = 0;
-    for (const auto& item : candidate_state.LatestVotes()) {
+    for (const auto& item : candidate_state->LatestVotes()) {
         const pos::CheckpointVote& vote = item.second;
-        const CAmount weight = candidate_state.GetVoteWeight(vote);
+        const CAmount weight = candidate_state->GetVoteWeight(vote);
         const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
         if (weight <= 0 || head == nullptr) continue;
         if (head->nHeight >= candidate_child->nHeight &&
@@ -2987,9 +2998,9 @@ bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
             candidate_weight += weight;
         }
     }
-    for (const auto& item : current_state.LatestVotes()) {
+    for (const auto& item : current_state->LatestVotes()) {
         const pos::CheckpointVote& vote = item.second;
-        const CAmount weight = current_state.GetVoteWeight(vote);
+        const CAmount weight = current_state->GetVoteWeight(vote);
         const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
         if (weight <= 0 || head == nullptr) continue;
         if (head->nHeight >= current_child->nHeight &&
@@ -3016,6 +3027,8 @@ CBlockIndex* CChainState::FindMostWorkChain() {
                 Params().GetConsensus().nPoSActivationHeight;
             const CBlockIndex* activation_parent =
                 chainActive[activation_height - 1];
+            pos::State preferred_state;
+            bool have_preferred_state = false;
             for (CBlockIndex* candidate : setBlockIndexCandidates) {
                 if (candidate->nHeight < activation_height ||
                     activation_parent == nullptr ||
@@ -3023,8 +3036,19 @@ CBlockIndex* CChainState::FindMostWorkChain() {
                         activation_parent) {
                     continue;
                 }
-                if (IsPreferredPoSCandidate(candidate, pindexNew)) {
+                pos::State candidate_state;
+                CValidationState candidate_validation;
+                if (!ValidatePoSBranch(candidate, candidate_validation,
+                                       Params(), &candidate_state)) {
+                    continue;
+                }
+                if (pindexNew == nullptr ||
+                    IsPreferredPoSCandidate(
+                        candidate, pindexNew, &candidate_state,
+                        have_preferred_state ? &preferred_state : nullptr)) {
                     pindexNew = candidate;
+                    preferred_state = std::move(candidate_state);
+                    have_preferred_state = true;
                 }
             }
             if (pindexNew == nullptr) return nullptr;
@@ -3095,6 +3119,12 @@ void CChainState::PruneBlockIndexCandidates() {
         const pos::Checkpoint& finalized = m_pos_state.Finalized();
         const CBlockIndex* finalized_index = finalized.root.IsNull()
             ? nullptr : LookupBlockIndex(finalized.root);
+        std::set<const CBlockIndex*> candidate_parents;
+        for (const CBlockIndex* candidate : setBlockIndexCandidates) {
+            if (candidate->pprev != nullptr) {
+                candidate_parents.insert(candidate->pprev);
+            }
+        }
         for (auto it = setBlockIndexCandidates.begin();
              it != setBlockIndexCandidates.end();) {
             CBlockIndex* candidate = *it;
@@ -3103,8 +3133,12 @@ void CChainState::PruneBlockIndexCandidates() {
                  candidate->GetAncestor(finalized_index->nHeight) != finalized_index);
             const bool stale_active_ancestor =
                 chainActive.Contains(candidate) && candidate != chainActive.Tip();
+            const bool superseded_branch_ancestor =
+                candidate != chainActive.Tip() &&
+                candidate_parents.count(candidate) != 0;
             if ((candidate->nStatus & BLOCK_FAILED_MASK) ||
-                conflicts_finality || stale_active_ancestor) {
+                conflicts_finality || stale_active_ancestor ||
+                superseded_branch_ancestor) {
                 it = setBlockIndexCandidates.erase(it);
             } else {
                 ++it;
@@ -4892,6 +4926,34 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
         }
         LogPrintf("LoadPoSState: removed stale pre-activation stake snapshot at height %d; replacement height is %d\n",
                   old_snapshot_height, snapshot_height);
+    }
+
+    const bool trusted_configured =
+        params.nPoSTrustedCheckpointHeight >= 0 &&
+        !params.hashPoSTrustedCheckpoint.IsNull();
+    if (trusted_configured &&
+        tip->nHeight >= params.nPoSTrustedCheckpointHeight) {
+        const CBlockIndex* trusted = LookupBlockIndex(
+            params.hashPoSTrustedCheckpoint);
+        const CBlockIndex* active_at_height = tip->GetAncestor(
+            params.nPoSTrustedCheckpointHeight);
+        const CBlockIndex* finalized = loaded.Finalized().root.IsNull()
+            ? nullptr : LookupBlockIndex(loaded.Finalized().root);
+        const bool finality_conflict =
+            trusted != nullptr && finalized != nullptr &&
+            finalized->nHeight >= trusted->nHeight &&
+            finalized->GetAncestor(trusted->nHeight) != trusted;
+        if (trusted == nullptr ||
+            trusted->nHeight != params.nPoSTrustedCheckpointHeight ||
+            active_at_height != trusted || finality_conflict) {
+            return error("LoadPoSState: configured trusted checkpoint %d:%s is inconsistent with the active chain",
+                         params.nPoSTrustedCheckpointHeight,
+                         params.hashPoSTrustedCheckpoint.ToString());
+        }
+    } else if (!trusted_configured && params.IsPoSActive(tip->nHeight) &&
+               tip->nHeight - params.nPoSActivationHeight >=
+                   static_cast<int>(params.nPoSUnbondingBlocks)) {
+        LogPrintf("WARNING: PoS chain is beyond one unbonding window without a trusted finalized checkpoint; configure -postrustedcheckpoint or install a release containing a recent checkpoint\n");
     }
     m_pos_state = std::move(loaded);
 

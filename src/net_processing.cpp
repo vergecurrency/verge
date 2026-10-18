@@ -1100,7 +1100,8 @@ static void RecordPoSAuthorization(const CBlock& block,
         LOCK(cs_main);
         const pos::State state = GetPoSStateSnapshot();
         accepted = pos::CheckBlockEvidence(
-            detected, state, chainparams.GetConsensus().nPoSNetworkId) ==
+            detected, state, chainparams.GetConsensus().nPoSNetworkId,
+            slot) ==
             pos::ValidationError::NONE;
     }
     if (!accepted || pos::GetBlockEvidencePool().Add(detected) !=
@@ -2495,8 +2496,12 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         const Consensus::Params& params = chainparams.GetConsensus();
         if (!params.IsPoSActive(chainActive.Height())) return true;
         const pos::State state = GetPoSStateSnapshot();
+        const uint64_t maximum_slot = params.nPoSSlotSeconds == 0
+            ? 0
+            : static_cast<uint64_t>(std::max<int64_t>(
+                  0, GetAdjustedTime())) / params.nPoSSlotSeconds;
         const pos::ValidationError error = pos::CheckBlockEvidence(
-            evidence, state, params.nPoSNetworkId);
+            evidence, state, params.nPoSNetworkId, maximum_slot);
         if (error != pos::ValidationError::NONE) {
             if (error == pos::ValidationError::VOTE_STRUCTURE ||
                 error == pos::ValidationError::EVIDENCE_SIGNATURE) {
@@ -2558,7 +2563,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (!params.IsPoSActive(chainActive.Height())) return true;
         const pos::State state = GetPoSStateSnapshot();
         const pos::ValidationError error =
-            pos::CheckVoteEvidence(evidence, state);
+            pos::CheckVoteEvidence(evidence, state, state.LastPoSEpoch());
         if (error != pos::ValidationError::NONE) {
             if (error == pos::ValidationError::VOTE_STRUCTURE ||
                 error == pos::ValidationError::EVIDENCE_SIGNATURE) {

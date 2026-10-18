@@ -568,7 +568,7 @@ PoS-only consensus requires protection against old keys constructing alternate h
 - an unbonding or eligibility-lock period;
 - weak-subjectivity checkpoints for new or long-offline nodes; and
 - explicit bootstrap behavior for assume-valid and snapshots.
-Official releases must embed a recent finalized checkpoint for public networks before mainnet activation. A node can configure the exact trusted height and block hash with `-postrustedcheckpoint=<height>:<hash>`; startup rejects malformed values or heights before activation. Consensus rejects a different block at that height and every descendant whose ancestor does not match it. A node that has been offline longer than the 20,160-block unbonding period must obtain a newer release or configure a current trusted checkpoint. Peer majority alone cannot establish a weak-subjectivity root.
+Official releases must embed a recent finalized checkpoint for public networks as soon as post-activation finality exists, and subsequent releases must keep it current. A node can configure the exact trusted height and block hash with `-postrustedcheckpoint=<height>:<hash>`; startup rejects malformed values or heights before activation, verifies that a reached checkpoint is on the active chain and consistent with any local finality that has advanced past it, and warns when the chain advances one unbonding window without any trusted checkpoint. Consensus rejects a different block at that height and every descendant whose ancestor does not match it. A node that has been offline longer than the 20,160-block unbonding period must obtain a newer release or configure a current trusted checkpoint. Peer majority alone cannot establish a weak-subjectivity root.
 
 After activation, the legacy fixed-depth reorganization limit does not select the chain. Reorganizations may affect any unfinalized block according to stake-weighted fork choice, but no ordinary fork may replace or precede the latest finalized checkpoint.
 
@@ -587,7 +587,7 @@ when the blocks name different parents. Equivocation evidence consists of both
 conflicting, validly signed block authorization messages and is bounded to a
 canonical fixed format.
 
-Evidence affects consensus only after inclusion in a valid block. The offending bond becomes ineligible at the first block of the next epoch and remains locked against withdrawal and staking for 20,160 blocks. Evidence already applied for a bond and offense is idempotent. Conflicting or malformed evidence is rejected before expensive signature checks where possible.
+Evidence affects consensus only after inclusion in a valid block. The offending bond becomes ineligible at the first block of the next epoch and remains locked against withdrawal and staking for 20,160 blocks. Replaying the same offense is idempotent, while a later offense renews an expired lockout or extends an active one. Conflicting or malformed evidence is rejected before expensive signature checks where possible.
 
 Transactions spending a withdrawal-locked bond are rejected from the mempool. When newly included evidence activates a lock, any conflicting mempool spend and all of its descendants are evicted so stale withdrawals cannot poison subsequent PoS block templates.
 
@@ -693,7 +693,7 @@ Consensus detects and applies lockouts for all objectively provable violations:
 - a later vote whose source and target epochs surround an earlier vote; and
 - a later vote surrounded by an earlier vote.
 
-Evidence contains both conflicting signed messages, is canonically ordered, and is applied only after inclusion in a valid block. Malformed evidence cannot trigger a lockout. Replay identity is domain-separated by evidence type and bond outpoint, limiting persistent markers to at most one block-offense and one vote-offense identity per bond. Signature-byte variants cannot allocate additional identities. A marker remains until the corresponding authenticated bond history is safely pruned, so old evidence cannot be replayed later to renew an expired lockout.
+Evidence contains both conflicting signed messages, is canonically ordered, and is applied only after inclusion in a valid block. Malformed evidence cannot trigger a lockout. Relay identity commits to both unsigned conflicting messages, so distinct offenses propagate independently while signature-byte variants cannot allocate additional identities. Consensus stores one monotonic high-water record per bond for block offenses and one for vote offenses. A later slot or target epoch renews the penalty, while an old offense cannot be replayed to renew an expired lockout. The fixed-size high-water records remain until the corresponding authenticated bond history is safely pruned.
 Version 1 block equivocation evidence is exactly 547 bytes: one version byte followed by two 273-byte block authorizations. Both authorizations must have the same nonzero network identifier, bond outpoint, and slot but different candidate signing hashes; the parents may differ because signing two branches in one slot is still equivocation. Version 1 vote equivocation evidence is exactly 459 bytes: one version byte followed by two 229-byte checkpoint votes from the same bond. It proves either different target roots for one target epoch or a strict surround relation. Each pair is sorted by its full signed-object hash and duplicates are rejected before signature verification.
 
 ### Committed State
@@ -716,12 +716,12 @@ Bonding, unbonding, eligibility lockouts, latest votes, justified and finalized 
 
 Validation orders inexpensive checks before cryptographic work: activation and version, canonical lengths, count limits, parent availability, slot bounds, sorted uniqueness, known bond, maturity, and snapshot membership precede VRF and signature verification. Per-peer accounting limits repeated invalid proofs, votes, evidence, and duplicate announcements. Batch verification may optimize valid traffic but must fall back to individual verification and must never change acceptance results.
 
-Consensus permits at most 16 bond outputs in one transaction and at most
-100,000 simultaneously active bond outpoints. A transaction that spends an
-active bond may replace it in the same transaction because inputs are removed
-before outputs are admitted. These limits bound parsing, snapshot construction,
-database growth, and replay cost; they are consensus constants and cannot be
-changed independently by node operators.
+Consensus permits at most 16 bond outputs in one transaction. There is no
+first-come global active-bond ceiling: such a ceiling could be filled to deny
+later users access to staking and could make otherwise valid mempool
+transactions poison block templates at the boundary. Transaction and block
+size limits bound immediate parsing work, while minimum bond value and the
+on-chain transaction fee make persistent registry growth economically costly.
 
 After two distinct, fully processed block authorizations establish that one
 bond signed conflicting candidates for the same slot, nodes retain and relay
