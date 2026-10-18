@@ -12,6 +12,7 @@
 #include <serialize.h>
 #include <uint256.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <set>
@@ -25,6 +26,8 @@ static constexpr uint64_t INITIAL_SNAPSHOT_EPOCH = UINT64_MAX;
 // Keep enough delayed snapshots for normal voting and short reorgs without
 // retaining a full copy of the validator set for the lifetime of the chain.
 static constexpr uint64_t POS_STATE_RETENTION_EPOCHS = 8;
+static constexpr size_t MAX_ACTIVE_BONDS = 100000;
+static constexpr size_t MAX_BOND_OUTPUTS_PER_TRANSACTION = 16;
 
 struct BondRecord {
     CAmount value{0};
@@ -140,6 +143,20 @@ struct AppliedEvidenceRecord {
     }
 };
 
+struct EpochEntropyUndo {
+    uint64_t epoch{0};
+    bool had_previous{false};
+    uint256 previous;
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    void SerializationOp(Stream& s, Operation ser_action)
+    {
+        READWRITE(epoch, had_previous, previous);
+    }
+};
+
 struct StateUndo {
     uint256 previous_best_block;
     std::vector<COutPoint> added_bonds;
@@ -156,12 +173,16 @@ struct StateUndo {
     std::vector<uint256> added_evidence;
     std::vector<StakeSnapshot> removed_snapshots;
     std::vector<std::pair<uint64_t, uint256>> removed_epoch_seeds;
+    std::vector<std::pair<uint64_t, uint256>> removed_epoch_entropy;
     std::vector<SnapshotEntry> removed_bond_history;
     std::vector<std::pair<COutPoint, int32_t>> removed_retired_bonds;
     std::vector<COutPoint> added_retired_bonds;
     std::vector<std::pair<uint256, AppliedEvidenceRecord>> removed_evidence;
     bool finalized_changed{false};
     Checkpoint previous_finalized;
+    bool initial_entropy_changed{false};
+    uint256 previous_initial_entropy;
+    std::vector<EpochEntropyUndo> epoch_entropy_undo;
 
     ADD_SERIALIZE_METHODS;
 
@@ -174,11 +195,13 @@ struct StateUndo {
                   previous_has_pos, previous_pos_epoch, added_checkpoints,
                   added_justified, vote_undo, lockout_undo, added_evidence,
                   removed_snapshots, removed_epoch_seeds,
+                  removed_epoch_entropy,
                   removed_bond_history,
                   removed_retired_bonds, added_retired_bonds,
                   removed_evidence,
                   finalized_changed,
-                  previous_finalized);
+                  previous_finalized, initial_entropy_changed,
+                  previous_initial_entropy, epoch_entropy_undo);
     }
 };
 
@@ -201,6 +224,7 @@ public:
     uint64_t LastPoSEpoch() const { return m_last_pos_epoch; }
     const uint256& BestBlock() const { return m_best_block; }
     const uint256* FindEpochSeed(uint64_t epoch) const;
+    const uint256& InitialPoWEntropy() const { return m_initial_pow_entropy; }
     bool SetEpochSeed(uint64_t epoch, const uint256& seed, StateUndo& undo);
     bool PrepareEpoch(uint64_t block_epoch, int32_t height,
                       const Consensus::Params& params, StateUndo& undo);
@@ -227,7 +251,8 @@ public:
     void SerializationOp(Stream& s, Operation ser_action)
     {
         READWRITE(m_best_block, m_bonds, m_bond_history, m_snapshots,
-                  m_epoch_seeds, m_has_pos, m_last_pos_epoch);
+                  m_epoch_seeds, m_initial_pow_entropy, m_epoch_entropy,
+                  m_has_pos, m_last_pos_epoch);
         READWRITE(m_checkpoints, m_justified, m_latest_votes, m_finalized,
                   m_lockouts, m_applied_evidence, m_retired_bonds);
     }
@@ -244,6 +269,8 @@ private:
     std::map<COutPoint, BondRecord> m_bond_history;
     std::map<uint64_t, StakeSnapshot> m_snapshots;
     std::map<uint64_t, uint256> m_epoch_seeds;
+    uint256 m_initial_pow_entropy;
+    std::map<uint64_t, uint256> m_epoch_entropy;
     bool m_has_pos{false};
     uint64_t m_last_pos_epoch{0};
     std::map<uint64_t, Checkpoint> m_checkpoints;

@@ -27,10 +27,10 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Bonding | Automatically created after staking opt-in |
 | Delegation granularity | Entire bonded UTXO |
 | Unbonding lock | 20,160 accepted blocks |
-| Initial epoch seed | Tagged hash of network ID, activation height, and genesis hash |
+| Initial epoch seed | Tagged hash of network ID, activation height, genesis hash, and post-snapshot PoW entropy |
 | Post-activation PoW fallback | None |
 | Mainnet activation height | 15,000,000 |
-| Mainnet bond-rules height | 14,999,280 |
+| Mainnet bond-rules height | 14,979,120 |
 | Testnet activation height | 3,000 |
 | Testnet bond-rules height | 1 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
@@ -45,7 +45,7 @@ consensus only at and after the bond-rules height, which provides a deliberate
 upgrade boundary instead of changing the meaning of scripts for legacy miners
 immediately. The clean-chain public testnet trial activates bond rules at
 height 1 and PoS at height 3,000. Mainnet schedules bond rules at height
-14,999,280 and PoS at height 15,000,000 pending completion of the testnet phase
+14,979,120 and PoS at height 15,000,000 pending completion of the testnet phase
 and a production-readiness review. These are real consensus activation heights,
 not comments or placeholders; this branch must not be merged into a release
 branch before its applicable phase gates are complete.
@@ -104,7 +104,7 @@ At activation:
 2. The block at `nPoSActivationHeight` must be PoS.
 3. Bond and unbond consensus rules activate at `nPoSBondRulesHeight`. Wallets refuse to create either transaction before that height. This permits a reviewed preparation interval while PoW still secures the chain without silently reinterpreting old scripts before the upgrade boundary.
 4. A bond must satisfy the 720-confirmation maturity rule and appear in the stake snapshot selected two epochs before its first eligible PoS epoch. Merely bonding immediately before activation does not bypass either delay.
-5. The initial epoch seed is the domain-separated SHA-256 hash of the network identifier, activation height, and network genesis hash. It does not depend on grindable pre-activation PoW block IDs.
+5. The initial epoch seed is a domain-separated SHA-256 commitment to the network identifier, activation height, network genesis hash, and an ordered accumulator of every accepted PoW block hash after the initial stake snapshot through the final PoW block. The validator set is therefore fixed before the seed is known. A final PoW producer can withhold its own candidate block, but cannot select new bond keys or outpoints after learning the completed seed without reorganizing the snapshot.
 6. Existing unbonded UTXOs remain spendable but are not eligible stake until explicitly bonded.
 7. PoW difficulty and algorithm-frequency rules no longer determine validity after activation.
 8. No emergency PoW fallback exists after activation. If no valid PoS producer is available, the chain pauses until an eligible producer returns.
@@ -389,7 +389,7 @@ slot_in_epoch = relative_slot % 120
 
 `relative_slot` must be non-negative and strictly greater than the parent PoS block's relative slot. The activation block may use `activation_slot` or any later permissible slot. Empty slots advance time and epoch numbering but do not create blocks.
 
-The initial stake snapshot is taken from chain state at height `nPoSActivationHeight - 240`. A bond in that snapshot is initially eligible only if it also has 720 confirmations at activation. Subsequent epoch `e` uses the canonical bonded-stake snapshot from the end of epoch `e - 2`. Epochs 0 and 1 use the initial snapshot. Snapshot membership, values, credentials, and total eligible bonded value are committed by a canonical Merkle root.
+The initial stake snapshot is taken from chain state at height `nPoSActivationHeight - 240`. A bond in that snapshot is initially eligible only if it also has 720 confirmations at activation. Accepted PoW block hashes from the next height through `nPoSActivationHeight - 1` are accumulated in chain order and committed into the initial epoch seed. Subsequent epoch `e` uses the canonical bonded-stake snapshot from the end of epoch `e - 2`. Epochs 0 and 1 use the initial snapshot. Snapshot membership, values, credentials, and total eligible bonded value are committed by a canonical Merkle root.
 ## Randomness And Fork Choice
 
 The consensus design uses:
@@ -397,7 +397,7 @@ The consensus design uses:
 1. Use the RFC 9381 `ECVRF-P256-SHA256-SSWU` ciphersuite for private slot eligibility and publicly verifiable proofs. P-256 support is already available through the required OpenSSL dependency, but the ECVRF protocol wrapper remains new consensus code and must pass RFC vectors and independent audit.
 2. Give each bonded delegation a separate VRF public key. The online delegated credential produces VRF proofs; the unrestricted XVG spending key is not used for slot evaluation.
 3. Snapshot bonded stake two epochs before it is used for leader selection and voting, and commit the canonical snapshot root in every applicable PoS block. This prevents a producer from moving stake after seeing the randomness for the target epoch.
-4. Derive each later epoch seed as a tagged hash of the previous seed, next epoch number, and the required delayed stake-snapshot root. Producer signatures, transaction selection, and optionally withheld VRF outputs cannot grind this transition. Although the public seed is predictable, another validator's private VRF result remains unknown without its delegated VRF key.
+4. Derive each later epoch seed as a tagged hash of the previous seed, next epoch number, required delayed stake-snapshot root, and an ordered accumulator of the completed epoch's accepted VRF outputs. The delayed snapshot fixes eligible keys before that entropy is revealed. Signatures, transaction ordering, reward destinations, and arbitrary nonce fields are excluded. A selected producer can still withhold an eligible block, but cannot substitute arbitrary entropy or register a favorable key after seeing the completed seed.
 5. Use latest-message-driven, stake-weighted GHOST from the latest finalized checkpoint for temporary fork choice. Each competing branch is first replayed against its own UTXO and PoS state, and each bonded delegation has one monotonic latest vote weighted by that branch's delayed snapshot. Finalized history is never reconsidered by ordinary fork choice.
 
 This design does not treat a Schnorr or ECDSA signature as random output. Signatures authorize blocks and votes; VRF proofs determine private slot eligibility. Users do not manually operate either mechanism.
@@ -418,7 +418,7 @@ winner if uint256(vrf_output) <= threshold
 
 The threshold calculation uses overflow-safe wide arithmetic and the two-epoch-delayed stake snapshot. The sum of all eligibility probabilities is approximately one, so the expected number of eligible producers is one per slot. Empty and multiply-won slots are normal; temporary competing branches are resolved by the approved fork-choice rule. No PoS difficulty retarget is required.
 
-The kernel must not include mutable transaction ordering, reward destination, signature bytes, or arbitrary nonce fields. This limits grinding by a candidate producer. `parent_randomness` is the deterministic epoch seed derived from the previous seed, epoch number, and delayed snapshot root, never from producer-controlled signature bytes or selectively published VRF outputs.
+The kernel must not include mutable transaction ordering, reward destination, signature bytes, or arbitrary nonce fields. This limits grinding by a candidate producer. `parent_randomness` is the deterministic epoch seed derived from the previous seed, epoch number, delayed snapshot root, and the accepted VRF-output accumulator for the completed epoch. Only outputs committed by accepted blocks contribute.
 
 Slot eligibility uses RFC 9381 `ECVRF-P256-SHA256-SSWU`. The VRF proof and output are consensus data. The pseudocode hash denotes the verified VRF output mapped to an unsigned 256-bit integer.
 
@@ -716,6 +716,19 @@ Bonding, unbonding, eligibility lockouts, latest votes, justified and finalized 
 
 Validation orders inexpensive checks before cryptographic work: activation and version, canonical lengths, count limits, parent availability, slot bounds, sorted uniqueness, known bond, maturity, and snapshot membership precede VRF and signature verification. Per-peer accounting limits repeated invalid proofs, votes, evidence, and duplicate announcements. Batch verification may optimize valid traffic but must fall back to individual verification and must never change acceptance results.
 
+Consensus permits at most 16 bond outputs in one transaction and at most
+100,000 simultaneously active bond outpoints. A transaction that spends an
+active bond may replace it in the same transaction because inputs are removed
+before outputs are admitted. These limits bound parsing, snapshot construction,
+database growth, and replay cost; they are consensus constants and cannot be
+changed independently by node operators.
+
+After two distinct, fully processed block authorizations establish that one
+bond signed conflicting candidates for the same slot, nodes retain and relay
+the canonical evidence but ignore third and later candidates for that
+bond-slot pair. The throttle applies equally to normal and reconstructed
+compact blocks and is pruned with the authorization retention window.
+
 ### Security Test Gate
 
 Phase 3 includes fixed cross-platform vectors, round-trip and differential serialization tests, fuzz targets for every PoS parser, malformed cryptographic proof tests, restart/reindex/disconnect tests, simulated partitions, concurrent slot winners, delayed and conflicting votes, finality stalls, long-range forks, and resource-exhaustion tests. A public testnet release is blocked while any consensus vector differs across supported platforms.
@@ -868,9 +881,10 @@ stake-state transitions, committed vote/evidence/stake roots, fee-reward
 destination checks, and overflow-safe stake-weighted VRF eligibility.
 The ECVRF implementation is checked byte-for-byte against the official RFC 9381
 Examples 13 and 14. The initial seed commits to the network identifier,
-activation height, and genesis hash. Later seeds commit to the previous seed,
-next epoch, and delayed snapshot root, eliminating producer-controlled seed
-inputs.
+activation height, genesis hash, and the ordered post-snapshot PoW block-hash
+accumulator. Later seeds commit to the previous seed, next epoch, delayed
+snapshot root, and the completed epoch's accepted VRF-output accumulator.
+Validator membership is fixed before either entropy window completes.
 
 Regtest PoS block acceptance now uses an explicit caller-owned state view.
 `ConnectTip` atomically persists the resulting state and block undo record;

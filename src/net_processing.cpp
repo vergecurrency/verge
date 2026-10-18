@@ -1112,6 +1112,14 @@ static void RecordPoSAuthorization(const CBlock& block,
     connman->ForEachNode([&inv](CNode* node) { node->PushInventory(inv); });
 }
 
+static bool IsAdditionalPoSEquivocation(const CBlock& block)
+{
+    if (!pos::IsPoSVersion(block.nVersion)) return false;
+    return pos::GetBlockAuthorizationPool().IsConflicted(
+        block.posExtension.authorization.bond_outpoint,
+        block.posExtension.authorization.slot);
+}
+
 static void RelayAddress(const CAddress& addr, bool fReachable, CConnman* connman)
 {
     unsigned int nRelayNodes = fReachable ? 2 : 1; // limited relaying of addresses outside our network(s)
@@ -3037,6 +3045,14 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 LOCK(cs_main);
                 mapBlockSource.emplace(pblock->GetHash(), std::make_pair(pfrom->GetId(), false));
             }
+            if (IsAdditionalPoSEquivocation(*pblock)) {
+                LOCK(cs_main);
+                mapBlockSource.erase(pblock->GetHash());
+                LogPrint(BCLog::NET,
+                         "ignored additional compact PoS equivocation %s peer=%d\n",
+                         pblock->GetHash().ToString(), pfrom->GetId());
+                return true;
+            }
             bool fNewBlock = false;
             // Setting fForceProcessing to true means that we bypass some of
             // our anti-DoS protections in AcceptBlock, which filters
@@ -3125,6 +3141,14 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
         } // Don't hold cs_main when we call into ProcessNewBlock
         if (fBlockRead) {
+            if (IsAdditionalPoSEquivocation(*pblock)) {
+                LOCK(cs_main);
+                mapBlockSource.erase(pblock->GetHash());
+                LogPrint(BCLog::NET,
+                         "ignored additional compact PoS equivocation %s peer=%d\n",
+                         pblock->GetHash().ToString(), pfrom->GetId());
+                return true;
+            }
             bool fNewBlock = false;
             // Since we requested this block (it was in mapBlocksInFlight), force it to be processed,
             // even if it would not be a candidate for new tip (missing previous block, chain not long enough, etc)
@@ -3209,6 +3233,14 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // mapBlockSource is only used for sending reject messages and DoS scores,
             // so the race between here and cs_main in ProcessNewBlock is fine.
             mapBlockSource.emplace(hash, std::make_pair(pfrom->GetId(), true));
+        }
+        if (IsAdditionalPoSEquivocation(*pblock)) {
+            LOCK(cs_main);
+            mapBlockSource.erase(hash);
+            LogPrint(BCLog::NET,
+                     "ignored additional PoS equivocation %s peer=%d\n",
+                     hash.ToString(), pfrom->GetId());
+            return true;
         }
         bool fNewBlock = false;
         const bool processed = ProcessNewBlock(

@@ -139,6 +139,8 @@ BOOST_AUTO_TEST_CASE(block_authorization_conflict_and_evidence_pool)
     pos::BlockEquivocationEvidence detected;
     BOOST_CHECK(authorization_pool.Add(conflict, &detected) ==
                 pos::VotePoolResult::CONFLICT);
+    BOOST_CHECK(authorization_pool.IsConflicted(first.bond_outpoint,
+                                                first.slot));
     BOOST_CHECK(pos::CheckStructure(detected) == pos::StructureError::NONE);
     BOOST_CHECK(detected.first.parent_block_root !=
                 detected.second.parent_block_root);
@@ -149,6 +151,10 @@ BOOST_AUTO_TEST_CASE(block_authorization_conflict_and_evidence_pool)
     BOOST_CHECK_EQUAL(evidence_pool.GetEvidence(1).size(), 1U);
     evidence_pool.Remove(pos::GetBlockEvidenceId(detected));
     BOOST_CHECK_EQUAL(evidence_pool.Size(), 0U);
+
+    authorization_pool.Prune(first.slot + 1);
+    BOOST_CHECK(!authorization_pool.IsConflicted(first.bond_outpoint,
+                                                 first.slot));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

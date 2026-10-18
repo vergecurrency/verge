@@ -2024,6 +2024,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                         consensus.nPoSNetworkId,
                         consensus.nPoSActivationHeight,
                         consensus.hashGenesisBlock,
+                        next_pos_state.InitialPoWEntropy(),
                         initial_seed) ||
                     !next_pos_state.SetEpochSeed(0, initial_seed,
                                                  next_pos_undo)) {

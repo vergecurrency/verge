@@ -135,6 +135,7 @@ enum class HashDomain {
     VOTE_EVIDENCE_ID,
     SLOT,
     VRF_KEY,
+    EPOCH_ENTROPY,
 };
 
 enum class StructureError {

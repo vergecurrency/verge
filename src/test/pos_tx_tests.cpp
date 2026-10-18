@@ -128,6 +128,25 @@ BOOST_AUTO_TEST_CASE(enforce_bond_outputs_without_spendable_inputs)
                       "bad-pos-bond-encoding");
 }
 
+BOOST_AUTO_TEST_CASE(limit_bond_outputs_per_transaction)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSBondRulesHeight = 1;
+    CMutableTransaction tx;
+    tx.vin.resize(1);
+    tx.vin[0].prevout.SetNull();
+    for (size_t i = 0; i < pos::MAX_BOND_OUTPUTS_PER_TRANSACTION + 1; ++i) {
+        tx.vout.emplace_back(params.nPoSMinStake,
+                             pos::GetBondScript(MakeBond()));
+    }
+
+    CValidationState state;
+    BOOST_CHECK(!Consensus::CheckPoSOutputs(CTransaction(tx), state, 1,
+                                            params));
+    BOOST_CHECK_EQUAL(state.GetRejectReason(),
+                      "bad-pos-too-many-bond-outputs");
+}
+
 BOOST_AUTO_TEST_CASE(require_canonical_unbond_transition)
 {
     const Consensus::Params& params = Params().GetConsensus();

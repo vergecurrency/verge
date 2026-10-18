@@ -218,6 +218,7 @@ bool Consensus::CheckPoSOutputs(const CTransaction& tx, CValidationState& state,
 {
     if (!params.ArePoSBondRulesActive(nHeight)) return true;
 
+    size_t bond_outputs = 0;
     for (const CTxOut& output : tx.vout) {
         pos::BondData bond;
         if (pos::HasBondMarker(output.scriptPubKey)) {
@@ -229,6 +230,10 @@ bool Consensus::CheckPoSOutputs(const CTransaction& tx, CValidationState& state,
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-bond-value", false,
                                  "bond value below minimum stake");
+            }
+            if (++bond_outputs > pos::MAX_BOND_OUTPUTS_PER_TRANSACTION) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-too-many-bond-outputs");
             }
         }
 

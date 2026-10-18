@@ -4,6 +4,7 @@
 
 #include <chainparams.h>
 #include <coins.h>
+#include <pos/consensus.h>
 #include <pos/crypto.h>
 #include <pos/state.h>
 #include <pos/votepool.h>
@@ -204,6 +205,107 @@ BOOST_AUTO_TEST_CASE(stale_pre_activation_snapshot_can_be_replaced)
     BOOST_REQUIRE(state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) != nullptr);
     BOOST_CHECK(state.RemovePreActivationSnapshot(800));
     BOOST_CHECK(state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) == nullptr);
+}
+
+BOOST_AUTO_TEST_CASE(initial_seed_entropy_is_post_snapshot_and_reversible)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSEpochSlots = 2;
+    params.nPoSSnapshotDelayEpochs = 2;
+
+    pos::State state;
+    CBlock block = MakeBlock({MakeCoinbase()});
+    block.nTime = 1;
+    pos::StateUndo snapshot_undo;
+    BOOST_REQUIRE(state.ApplyBlock(block, 996, false, 0, 0,
+                                   params, snapshot_undo));
+    BOOST_CHECK(state.InitialPoWEntropy().IsNull());
+
+    block.nTime = 2;
+    pos::StateUndo first_undo;
+    BOOST_REQUIRE(state.ApplyBlock(block, 997, false, 0, 0,
+                                   params, first_undo));
+    const uint256 first_entropy = state.InitialPoWEntropy();
+    BOOST_CHECK(!first_entropy.IsNull());
+
+    block.nTime = 3;
+    pos::StateUndo second_undo;
+    BOOST_REQUIRE(state.ApplyBlock(block, 998, false, 0, 0,
+                                   params, second_undo));
+    BOOST_CHECK(state.InitialPoWEntropy() != first_entropy);
+    BOOST_CHECK(state.UndoBlock(second_undo));
+    BOOST_CHECK(state.InitialPoWEntropy() == first_entropy);
+    BOOST_CHECK(state.UndoBlock(first_undo));
+    BOOST_CHECK(state.InitialPoWEntropy().IsNull());
+}
+
+BOOST_AUTO_TEST_CASE(epoch_seed_commits_to_accepted_vrf_outputs)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSEpochSlots = 2;
+    params.nPoSSnapshotDelayEpochs = 2;
+
+    pos::State state;
+    pos::StateUndo snapshot_undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 996, false,
+                                   0, 0, params, snapshot_undo));
+    const pos::StakeSnapshot* snapshot =
+        state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
+    BOOST_REQUIRE(snapshot != nullptr);
+
+    const uint256 initial_seed = uint256S("11");
+    pos::StateUndo seed_undo;
+    BOOST_REQUIRE(state.SetEpochSeed(0, initial_seed, seed_undo));
+
+    CBlock first = MakeBlock({MakeCoinbase()});
+    first.nTime = 10;
+    first.posExtension.stake_proof.slot = 10;
+    first.posExtension.stake_proof.bond_outpoint =
+        COutPoint(uint256S("21"), 0);
+    first.posExtension.stake_proof.vrf_output[31] = 1;
+    pos::StateUndo first_undo;
+    BOOST_REQUIRE(state.ApplyBlock(first, 1000, true, 0, 0,
+                                   params, first_undo));
+
+    CBlock second = MakeBlock({MakeCoinbase()});
+    second.nTime = 11;
+    second.posExtension.stake_proof.slot = 11;
+    second.posExtension.stake_proof.bond_outpoint =
+        COutPoint(uint256S("22"), 0);
+    second.posExtension.stake_proof.vrf_output[31] = 2;
+    pos::StateUndo second_undo;
+    BOOST_REQUIRE(state.ApplyBlock(second, 1001, true, 0, 1,
+                                   params, second_undo));
+
+    uint256 entropy = pos::MixEpochEntropy(
+        uint256(), 0, first.posExtension.stake_proof.slot,
+        first.posExtension.stake_proof.bond_outpoint,
+        first.posExtension.stake_proof.vrf_output);
+    entropy = pos::MixEpochEntropy(
+        entropy, 0, second.posExtension.stake_proof.slot,
+        second.posExtension.stake_proof.bond_outpoint,
+        second.posExtension.stake_proof.vrf_output);
+
+    CBlock transition = MakeBlock({MakeCoinbase()});
+    transition.nTime = 12;
+    transition.posExtension.stake_proof.slot = 12;
+    transition.posExtension.stake_proof.bond_outpoint =
+        COutPoint(uint256S("23"), 0);
+    transition.posExtension.stake_proof.vrf_output[31] = 3;
+    pos::StateUndo transition_undo;
+    BOOST_REQUIRE(state.ApplyBlock(transition, 1002, true, 1, 0,
+                                   params, transition_undo));
+    const uint256* next_seed = state.FindEpochSeed(1);
+    BOOST_REQUIRE(next_seed != nullptr);
+    BOOST_CHECK(*next_seed == pos::ComputeNextEpochSeed(
+        initial_seed, 1, snapshot->root, entropy));
+
+    BOOST_CHECK(state.UndoBlock(transition_undo));
+    BOOST_CHECK(state.FindEpochSeed(1) == nullptr);
+    BOOST_CHECK(state.UndoBlock(second_undo));
+    BOOST_CHECK(state.UndoBlock(first_undo));
 }
 
 BOOST_AUTO_TEST_CASE(skipped_epochs_advance_and_undo)

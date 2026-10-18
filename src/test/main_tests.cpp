@@ -144,6 +144,7 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
 
     const Consensus::Params& pos = mainParams->GetConsensus();
     BOOST_CHECK_EQUAL(pos.nPoSMinStake, 1000 * COIN);
+    BOOST_CHECK_EQUAL(pos.nPoSBondRulesHeight, 14979120);
     BOOST_CHECK_EQUAL(pos.nPoSStakeMaturity, 720U);
     BOOST_CHECK_EQUAL(pos.nPoSSlotSeconds, 30U);
     BOOST_CHECK_EQUAL(pos.nPoSEpochSlots, 120U);
@@ -151,6 +152,13 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
     BOOST_CHECK_EQUAL(pos.nPoSUnbondingBlocks, 20160U);
     BOOST_CHECK_EQUAL(pos.nPoSMaxVotesPerBlock, 1024U);
     BOOST_CHECK_EQUAL(pos.nPoSMaxEvidencePerBlock, 16U);
+    BOOST_CHECK(pos.nPoSBondRulesHeight +
+                    static_cast<int>(pos.nPoSStakeMaturity) <=
+                pos.nPoSActivationHeight);
+    BOOST_CHECK_EQUAL(pos.nPoSActivationHeight -
+                          static_cast<int>(pos.nPoSStakeMaturity) -
+                          pos.nPoSBondRulesHeight,
+                      20160);
     BOOST_CHECK(!pos.IsPoSActive(14999999));
     BOOST_CHECK(pos.IsPoSActive(15000000));
     const Consensus::Params& test_pos = testParams->GetConsensus();

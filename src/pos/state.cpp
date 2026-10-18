@@ -22,6 +22,7 @@ bool State::InitializeFromCoins(const CCoinsView& coins,
 {
     if (!m_best_block.IsNull() || !m_bonds.empty() || !m_bond_history.empty() ||
         !m_snapshots.empty() || !m_epoch_seeds.empty() ||
+        !m_initial_pow_entropy.IsNull() || !m_epoch_entropy.empty() ||
         !m_lockouts.empty() || !m_applied_evidence.empty() ||
         !m_retired_bonds.empty() ||
         m_has_pos || best_block.IsNull()) {
@@ -38,7 +39,8 @@ bool State::InitializeFromCoins(const CCoinsView& coins,
                 record.value = coin.out.nValue;
                 record.creation_height = coin.nHeight;
                 record.data = data;
-                if (!m_bonds.emplace(outpoint, record).second ||
+                if (m_bonds.size() >= MAX_ACTIVE_BONDS ||
+                    !m_bonds.emplace(outpoint, record).second ||
                     !m_bond_history.emplace(outpoint, record).second) {
                     return false;
                 }
@@ -173,6 +175,7 @@ bool State::AddSnapshot(uint64_t source_epoch, int32_t source_height,
                         StateUndo& undo)
 {
     if (m_snapshots.count(source_epoch) != 0 || maturity_height < 0) return false;
+    if (m_bonds.size() > MAX_ACTIVE_BONDS) return false;
 
     StakeSnapshot snapshot;
     snapshot.source_epoch = source_epoch;
@@ -237,9 +240,13 @@ bool State::PrepareEpoch(uint64_t block_epoch, int32_t height,
             next_epoch, params.nPoSSnapshotDelayEpochs);
         const StakeSnapshot* seed_snapshot = FindSnapshot(seed_snapshot_epoch);
         if (seed_snapshot == nullptr || seed_snapshot->root.IsNull()) return false;
+        const auto entropy = m_epoch_entropy.find(completed_epoch);
+        const uint256 completed_entropy = entropy == m_epoch_entropy.end()
+            ? EmptyEpochEntropy(completed_epoch) : entropy->second;
         if (!SetEpochSeed(next_epoch,
                           ComputeNextEpochSeed(*previous_seed, next_epoch,
-                                               seed_snapshot->root), undo)) return false;
+                                               seed_snapshot->root,
+                                               completed_entropy), undo)) return false;
         ++next_epoch;
     }
     PruneState(block_epoch, height, params, undo);
@@ -280,6 +287,19 @@ void State::PruneState(uint64_t block_epoch, int32_t height,
             undo.removed_epoch_seeds.push_back(*it);
         }
         it = m_epoch_seeds.erase(it);
+    }
+    for (auto it = m_epoch_entropy.begin(); it != m_epoch_entropy.end();) {
+        if (it->first + POS_STATE_RETENTION_EPOCHS >= block_epoch) {
+            ++it;
+            continue;
+        }
+        const auto changed = std::find_if(
+            undo.epoch_entropy_undo.begin(), undo.epoch_entropy_undo.end(),
+            [&](const EpochEntropyUndo& item) { return item.epoch == it->first; });
+        if (changed == undo.epoch_entropy_undo.end()) {
+            undo.removed_epoch_entropy.push_back(*it);
+        }
+        it = m_epoch_entropy.erase(it);
     }
     const uint64_t maximum_vote_age =
         POS_STATE_RETENTION_EPOCHS > params.nPoSSnapshotDelayEpochs
@@ -469,6 +489,10 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
                 return false;
             }
             const COutPoint outpoint(txid, i);
+            if (m_bonds.size() >= MAX_ACTIVE_BONDS) {
+                UndoBlock(undo);
+                return false;
+            }
             BondRecord record;
             record.value = tx.vout[i].nValue;
             record.creation_height = height;
@@ -493,6 +517,29 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
             UndoBlock(undo);
             return false;
         }
+    }
+    if (!is_pos && initial_height >= 0 && height > initial_height &&
+        height < params.nPoSActivationHeight) {
+        undo.initial_entropy_changed = true;
+        undo.previous_initial_entropy = m_initial_pow_entropy;
+        m_initial_pow_entropy = MixPoWEntropy(
+            m_initial_pow_entropy, height, block.GetHash());
+    }
+    if (is_pos) {
+        EpochEntropyUndo entropy_undo;
+        entropy_undo.epoch = block_epoch;
+        const auto previous = m_epoch_entropy.find(block_epoch);
+        if (previous != m_epoch_entropy.end()) {
+            entropy_undo.had_previous = true;
+            entropy_undo.previous = previous->second;
+        }
+        undo.epoch_entropy_undo.push_back(entropy_undo);
+        const uint256 prior = entropy_undo.had_previous
+            ? entropy_undo.previous : uint256();
+        m_epoch_entropy[block_epoch] = MixEpochEntropy(
+            prior, block_epoch, block.posExtension.stake_proof.slot,
+            block.posExtension.stake_proof.bond_outpoint,
+            block.posExtension.stake_proof.vrf_output);
     }
     (void)slot_in_epoch;
     m_best_block = block.GetHash();
@@ -651,6 +698,17 @@ bool State::UndoBlock(const StateUndo& undo)
          it != undo.added_epoch_seeds.rend(); ++it) {
         clean = m_epoch_seeds.erase(*it) == 1 && clean;
     }
+    for (auto it = undo.epoch_entropy_undo.rbegin();
+         it != undo.epoch_entropy_undo.rend(); ++it) {
+        if (it->had_previous) {
+            m_epoch_entropy[it->epoch] = it->previous;
+        } else {
+            clean = m_epoch_entropy.erase(it->epoch) == 1 && clean;
+        }
+    }
+    if (undo.initial_entropy_changed) {
+        m_initial_pow_entropy = undo.previous_initial_entropy;
+    }
     for (auto it = undo.added_snapshots.rbegin();
          it != undo.added_snapshots.rend(); ++it) {
         clean = m_snapshots.erase(*it) == 1 && clean;
@@ -677,6 +735,10 @@ bool State::UndoBlock(const StateUndo& undo)
     for (auto it = undo.removed_epoch_seeds.rbegin();
          it != undo.removed_epoch_seeds.rend(); ++it) {
         clean = m_epoch_seeds.emplace(it->first, it->second).second && clean;
+    }
+    for (auto it = undo.removed_epoch_entropy.rbegin();
+         it != undo.removed_epoch_entropy.rend(); ++it) {
+        clean = m_epoch_entropy.emplace(it->first, it->second).second && clean;
     }
     for (auto it = undo.removed_snapshots.rbegin();
          it != undo.removed_snapshots.rend(); ++it) {

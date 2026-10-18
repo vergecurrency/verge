@@ -46,24 +46,51 @@ int GetInitialStakeSnapshotHeight(const Consensus::Params& params)
 }
 
 bool ComputeInitialEpochSeed(uint32_t network_id, int32_t activation_height,
-                             const uint256& genesis_hash, uint256& seed)
+                             const uint256& genesis_hash,
+                             const uint256& pow_entropy, uint256& seed)
 {
     if (network_id == 0 || activation_height < 0 ||
-        genesis_hash.IsNull()) {
+        genesis_hash.IsNull() || pow_entropy.IsNull()) {
         return false;
     }
     TaggedHashWriter writer(HashDomain::EPOCH_SEED);
-    writer << network_id << activation_height << genesis_hash;
+    writer << network_id << activation_height << genesis_hash << pow_entropy;
     seed = writer.GetHash();
     return !seed.IsNull();
 }
 
 uint256 ComputeNextEpochSeed(
     const uint256& previous_seed, uint64_t next_epoch,
-    const uint256& snapshot_root)
+    const uint256& snapshot_root, const uint256& previous_epoch_entropy)
 {
     TaggedHashWriter writer(HashDomain::EPOCH_SEED);
-    writer << previous_seed << next_epoch << snapshot_root;
+    writer << previous_seed << next_epoch << snapshot_root
+           << previous_epoch_entropy;
+    return writer.GetHash();
+}
+
+uint256 MixPoWEntropy(const uint256& previous, int32_t height,
+                      const uint256& block_hash)
+{
+    TaggedHashWriter writer(HashDomain::EPOCH_ENTROPY);
+    writer << uint8_t{0} << previous << height << block_hash;
+    return writer.GetHash();
+}
+
+uint256 MixEpochEntropy(const uint256& previous, uint64_t epoch,
+                        uint64_t slot, const COutPoint& bond_outpoint,
+                        const unsigned char vrf_output[32])
+{
+    TaggedHashWriter writer(HashDomain::EPOCH_ENTROPY);
+    writer << uint8_t{1} << previous << epoch << slot << bond_outpoint;
+    writer.write(reinterpret_cast<const char*>(vrf_output), 32);
+    return writer.GetHash();
+}
+
+uint256 EmptyEpochEntropy(uint64_t epoch)
+{
+    TaggedHashWriter writer(HashDomain::EPOCH_ENTROPY);
+    writer << uint8_t{2} << epoch;
     return writer.GetHash();
 }
 

@@ -284,8 +284,16 @@ VotePoolResult BlockAuthorizationPool::Add(
     if (CheckStructure(evidence) != StructureError::NONE) {
         return VotePoolResult::STALE;
     }
+    m_conflicted.insert(key);
     if (detected != nullptr) *detected = evidence;
     return VotePoolResult::CONFLICT;
+}
+
+bool BlockAuthorizationPool::IsConflicted(const COutPoint& outpoint,
+                                          uint64_t slot) const
+{
+    LOCK(m_mutex);
+    return m_conflicted.count(Key{outpoint, slot}) != 0;
 }
 
 void BlockAuthorizationPool::Prune(uint64_t minimum_slot)
@@ -293,6 +301,7 @@ void BlockAuthorizationPool::Prune(uint64_t minimum_slot)
     LOCK(m_mutex);
     for (auto it = m_authorizations.begin(); it != m_authorizations.end();) {
         if (it->first.second < minimum_slot) {
+            m_conflicted.erase(it->first);
             it = m_authorizations.erase(it);
         } else {
             ++it;
@@ -304,6 +313,7 @@ void BlockAuthorizationPool::Clear()
 {
     LOCK(m_mutex);
     m_authorizations.clear();
+    m_conflicted.clear();
 }
 
 size_t BlockAuthorizationPool::Size() const

@@ -187,7 +187,8 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
             uint256 initial_seed;
             if (!pos::ComputeInitialEpochSeed(
                     params.nPoSNetworkId, params.nPoSActivationHeight,
-                    params.hashGenesisBlock, initial_seed) ||
+                    params.hashGenesisBlock, state.InitialPoWEntropy(),
+                    initial_seed) ||
                 !state.SetEpochSeed(0, initial_seed, preparation_undo)) {
                 error = "failed to derive the initial epoch seed";
                 return false;

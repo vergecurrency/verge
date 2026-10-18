@@ -30,6 +30,7 @@ const char* GetDomainTag(HashDomain domain)
     case HashDomain::VOTE_EVIDENCE_ID: return "VergePoS/VoteEvidenceId/v1";
     case HashDomain::SLOT: return "VergePoS/Slot/v1";
     case HashDomain::VRF_KEY: return "VergePoS/VRFKey/v1";
+    case HashDomain::EPOCH_ENTROPY: return "VergePoS/EpochEntropy/v1";
     }
     throw std::invalid_argument("unknown Verge PoS hash domain");
 }

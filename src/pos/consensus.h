@@ -11,6 +11,7 @@
 #include <cstdint>
 
 class uint256;
+class COutPoint;
 
 namespace pos {
 
@@ -30,10 +31,17 @@ bool GetSlotInfo(uint32_t final_pow_time, uint32_t candidate_time,
 int GetInitialStakeSnapshotHeight(const Consensus::Params& params);
 
 bool ComputeInitialEpochSeed(uint32_t network_id, int32_t activation_height,
-                             const uint256& genesis_hash, uint256& seed);
+                             const uint256& genesis_hash,
+                             const uint256& pow_entropy, uint256& seed);
 uint256 ComputeNextEpochSeed(
     const uint256& previous_seed, uint64_t next_epoch,
-    const uint256& snapshot_root);
+    const uint256& snapshot_root, const uint256& previous_epoch_entropy);
+uint256 MixPoWEntropy(const uint256& previous, int32_t height,
+                      const uint256& block_hash);
+uint256 MixEpochEntropy(const uint256& previous, uint64_t epoch,
+                        uint64_t slot, const COutPoint& bond_outpoint,
+                        const unsigned char vrf_output[32]);
+uint256 EmptyEpochEntropy(uint64_t epoch);
 
 /** Compare two post-activation fork children by vote weight, then hash. */
 bool PreferFork(CAmount candidate_weight, const uint256& candidate_child,

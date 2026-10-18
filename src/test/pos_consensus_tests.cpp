@@ -47,17 +47,37 @@ BOOST_AUTO_TEST_CASE(initial_snapshot_height)
     BOOST_CHECK_EQUAL(pos::GetInitialStakeSnapshotHeight(params), -1);
 }
 
-BOOST_AUTO_TEST_CASE(epoch_seeds_do_not_depend_on_producer_reveals)
+BOOST_AUTO_TEST_CASE(epoch_seeds_commit_to_delayed_entropy)
 {
     uint256 first;
     uint256 second;
-    BOOST_REQUIRE(pos::ComputeInitialEpochSeed(2, 3500, uint256S("01"), first));
-    BOOST_REQUIRE(pos::ComputeInitialEpochSeed(2, 3500, uint256S("01"), second));
+    const uint256 pow_entropy = pos::MixPoWEntropy(
+        uint256(), 3261, uint256S("04"));
+    BOOST_REQUIRE(pos::ComputeInitialEpochSeed(
+        2, 3500, uint256S("01"), pow_entropy, first));
+    BOOST_REQUIRE(pos::ComputeInitialEpochSeed(
+        2, 3500, uint256S("01"), pow_entropy, second));
     BOOST_CHECK(first == second);
-    BOOST_CHECK(pos::ComputeNextEpochSeed(first, 1, uint256S("02")) ==
-                pos::ComputeNextEpochSeed(second, 1, uint256S("02")));
-    BOOST_CHECK(pos::ComputeNextEpochSeed(first, 1, uint256S("02")) !=
-                pos::ComputeNextEpochSeed(first, 1, uint256S("03")));
+    BOOST_CHECK(!pos::ComputeInitialEpochSeed(
+        2, 3500, uint256S("01"), uint256(), second));
+
+    const uint256 vrf_output = uint256S("06");
+    const uint256 epoch_entropy = pos::MixEpochEntropy(
+        uint256(), 0, 10, COutPoint(uint256S("05"), 1),
+        vrf_output.begin());
+    BOOST_CHECK(pos::ComputeNextEpochSeed(
+                    first, 1, uint256S("02"), epoch_entropy) ==
+                pos::ComputeNextEpochSeed(
+                    second, 1, uint256S("02"), epoch_entropy));
+    BOOST_CHECK(pos::ComputeNextEpochSeed(
+                    first, 1, uint256S("02"), epoch_entropy) !=
+                pos::ComputeNextEpochSeed(
+                    first, 1, uint256S("03"), epoch_entropy));
+    BOOST_CHECK(pos::ComputeNextEpochSeed(
+                    first, 1, uint256S("02"), epoch_entropy) !=
+                pos::ComputeNextEpochSeed(
+                    first, 1, uint256S("02"),
+                    pos::EmptyEpochEntropy(0)));
 }
 
 BOOST_AUTO_TEST_CASE(fork_weight_and_tie_breaking)

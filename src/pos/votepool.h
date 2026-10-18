@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <set>
 #include <vector>
 
 namespace pos {
@@ -93,6 +94,7 @@ class BlockAuthorizationPool {
 public:
     VotePoolResult Add(const BlockAuthorization& authorization,
                        BlockEquivocationEvidence* detected = nullptr);
+    bool IsConflicted(const COutPoint& outpoint, uint64_t slot) const;
     void Prune(uint64_t minimum_slot);
     void Clear();
     size_t Size() const;
@@ -101,6 +103,7 @@ private:
     using Key = std::pair<COutPoint, uint64_t>;
     mutable CCriticalSection m_mutex;
     std::map<Key, BlockAuthorization> m_authorizations GUARDED_BY(m_mutex);
+    std::set<Key> m_conflicted GUARDED_BY(m_mutex);
 };
 
 BlockAuthorizationPool& GetBlockAuthorizationPool();
