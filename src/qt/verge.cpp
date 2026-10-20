@@ -2136,6 +2136,31 @@ QPlainTextEdit#SignVerifyMessageBox {
     selection-background-color: #7d3cff;
 }
 
+QDialog#OptionsDialog QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    background-color: #12081f;
+    border: 1px solid #60378a;
+    border-radius: 3px;
+}
+
+QDialog#OptionsDialog QCheckBox::indicator:checked {
+    image: url(:/icons/transaction_confirmed);
+}
+
+QDialog#OptionsDialog QCheckBox::indicator:enabled:hover,
+QDialog#OptionsDialog QCheckBox:focus::indicator {
+    border-color: #ff8bee;
+}
+
+QDialog#OptionsDialog QCheckBox::indicator:enabled:pressed {
+    background-color: #1b0d2c;
+}
+
+QDialog#OptionsDialog QCheckBox::indicator:disabled {
+    border-color: #3e2c50;
+}
+
 QPushButton:focus,
 QToolButton:focus,
 QComboBox#ShellWalletSelector:focus,
