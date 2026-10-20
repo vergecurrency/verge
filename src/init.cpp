@@ -90,6 +90,7 @@ public:
     bool Verify() const override {return true;}
     bool Open() const override {LogPrintf("No wallet support compiled in!\n"); return true;}
     void Start(CScheduler& scheduler) const override {}
+    void StopStaking() const override {}
     void Flush() const override {}
     void Stop() const override {}
     void Close() const override {}
@@ -213,6 +214,9 @@ void Shutdown()
     StopREST();
     StopRPC();
     StopHTTPServer();
+    // Staking may need the scheduler to drain validation callbacks before
+    // it can finish its current block and release the chainstate lock.
+    g_wallet_init_interface.StopStaking();
     g_wallet_init_interface.Flush();
     StopMapPort();
 

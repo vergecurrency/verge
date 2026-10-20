@@ -924,9 +924,15 @@ block establishes the finalized PoW anchor, eligible PoS candidates must
 descend directly from the active block at activation height minus one.
 
 Wallet production now has a shared single-attempt path used by both the
-automatic scheduler and the `generatestake` regtest control. Each wallet is
-evaluated at most once per canonical slot. The producer derives skipped-epoch
-seeds and snapshots through the same state transition used by block
+dedicated automatic staking worker and the `generatestake` regtest control.
+The staking worker runs independently of the scheduler that delivers validation
+callbacks: block activation may wait for that queue to drain. Shutdown signals
+and joins the staking worker while the scheduler, script verification workers,
+wallets, and networking are still available, before tearing those services down.
+Restart restores each header's `hashPoSData` commitment from the block index,
+preserving the block ID used for header announcements and block downloads.
+Each wallet is evaluated at most once per canonical slot. The producer derives
+skipped-epoch seeds and snapshots through the same state transition used by block
 connection, matches snapshot credentials to encrypted wallet keys, creates
 and locally verifies the RFC 9381 proof, selects fee-paying mempool packages,
 commits the PoS extension in the fee-only reward transaction, fixes the Merkle

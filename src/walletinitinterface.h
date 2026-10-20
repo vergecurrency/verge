@@ -25,6 +25,8 @@ public:
     virtual bool Open() const = 0;
     /** Start wallets*/
     virtual void Start(CScheduler& scheduler) const = 0;
+    /** Stop staking before the scheduler and network are shut down. */
+    virtual void StopStaking() const = 0;
     /** Flush Wallets*/
     virtual void Flush() const = 0;
     /** Stop Wallets*/

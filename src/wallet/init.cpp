@@ -9,8 +9,10 @@
 #include <init.h>
 #include <net.h>
 #include <scheduler.h>
+#include <shutdown.h>
 #include <smsg/rpcsmessage.h>
 #include <smsg/smessage.h>
+#include <threadinterrupt.h>
 #include <util/system.h>
 #include <util/moneystr.h>
 #include <validation.h>
@@ -19,6 +21,9 @@
 #include <wallet/staker.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
+
+#include <chrono>
+#include <thread>
 
 class WalletInit : public WalletInitInterface {
 public:
@@ -43,6 +48,8 @@ public:
     //! Complete startup of wallets.
     void Start(CScheduler& scheduler) const override;
 
+    void StopStaking() const override;
+
     //! Flush all wallets in preparation for shutdown.
     void Flush() const override;
 
@@ -51,6 +58,10 @@ public:
 
     //! Close all wallets.
     void Close() const override;
+
+private:
+    mutable CThreadInterrupt m_staking_interrupt;
+    mutable std::thread m_staking_thread;
 };
 
 const WalletInitInterface& g_wallet_init_interface = WalletInit();
@@ -295,7 +306,26 @@ void WalletInit::Start(CScheduler& scheduler) const
     // Run a thread to flush wallet periodically
     uiInterface.InitMessage(_("Starting wallet database maintenance..."));
     scheduler.scheduleEvery(MaybeCompactWalletDB, 500);
-    scheduler.scheduleEvery(StakeWallets, 1000);
+    if (!wallets.empty() && !m_staking_thread.joinable()) {
+        m_staking_interrupt.reset();
+        m_staking_thread = std::thread([this] {
+            TraceThread("staking", [this] {
+                // Block activation may wait for validation callbacks on the
+                // scheduler, so staking must run on a separate thread.
+                while (!m_staking_interrupt && !ShutdownRequested()) {
+                    StakeWallets();
+                    if (!m_staking_interrupt.sleep_for(
+                            std::chrono::milliseconds{1000})) break;
+                }
+            });
+        });
+    }
+}
+
+void WalletInit::StopStaking() const
+{
+    m_staking_interrupt();
+    if (m_staking_thread.joinable()) m_staking_thread.join();
 }
 
 void WalletInit::Flush() const
