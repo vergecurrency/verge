@@ -931,6 +931,11 @@ and joins the staking worker while the scheduler, script verification workers,
 wallets, and networking are still available, before tearing those services down.
 Restart restores each header's `hashPoSData` commitment from the block index,
 preserving the block ID used for header announcements and block downloads.
+During initial download, an empty headers reply releases that peer's initial
+sync slot so a later connected peer can provide the chain. The empty peer stays
+connected and can be retried after 60 seconds, avoiding a tight request loop.
+Already-known valid headers still update per-peer block availability, so a
+preferred outbound peer can supply block bodies first announced by another peer.
 Each wallet is evaluated at most once per canonical slot. The producer derives
 skipped-epoch seeds and snapshots through the same state transition used by block
 connection, matches snapshot credentials to encrypted wallet keys, creates

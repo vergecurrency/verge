@@ -75,6 +75,7 @@ static const int64_t ADDR_PROCESSING_TOKENS_PER_SECOND = 100;
 static const int64_t MAX_POS_VOTE_PROCESSING_TOKENS = 256;
 static const int64_t POS_VOTE_PROCESSING_TOKENS_PER_MINUTE = 64;
 static const int64_t POS_HEADER_BLOCK_TIMEOUT = 60;
+static const int64_t EMPTY_HEADERS_RETRY_INTERVAL = 60 * 1000000;
 static const int64_t MAX_POS_EVIDENCE_PROCESSING_TOKENS = 32;
 static const int64_t POS_EVIDENCE_PROCESSING_TOKENS_PER_MINUTE = 8;
 
@@ -195,6 +196,8 @@ struct CNodeState {
     bool fSyncStarted;
     //! When to potentially disconnect peer for stalling headers download
     int64_t nHeadersSyncTimeout;
+    //! Earliest retry after this peer supplied no headers during IBD.
+    int64_t nHeadersSyncRetryTime;
     //! Since when we're stalling block download progress (in microseconds), or 0.
     int64_t nStallingSince;
     std::list<QueuedBlock> vBlocksInFlight;
@@ -274,6 +277,7 @@ struct CNodeState {
         nUnconnectingHeaders = 0;
         fSyncStarted = false;
         nHeadersSyncTimeout = 0;
+        nHeadersSyncRetryTime = 0;
         nStallingSince = 0;
         nDownloadingSince = 0;
         nBlocksInFlight = 0;
@@ -1436,7 +1440,22 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
     size_t nCount = headers.size();
 
     if (nCount == 0) {
-        // Nothing interesting. Stop asking this peers for more headers.
+        LOCK(cs_main);
+        CNodeState* nodestate = State(pfrom->GetId());
+        if (nodestate != nullptr && nodestate->fSyncStarted &&
+            IsInitialBlockDownload()) {
+            // An empty peer must not monopolize initial sync. Keep the
+            // connection, but give other peers a turn before retrying it.
+            assert(nSyncStarted > 0);
+            nodestate->fSyncStarted = false;
+            --nSyncStarted;
+            nodestate->nHeadersSyncTimeout = 0;
+            nodestate->nHeadersSyncRetryTime =
+                GetTimeMicros() + EMPTY_HEADERS_RETRY_INTERVAL;
+            LogPrint(BCLog::NET,
+                     "peer=%d returned no headers during IBD; releasing sync slot\n",
+                     pfrom->GetId());
+        }
         return true;
     }
 
@@ -1575,11 +1594,8 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
             received_new_header = true;
         }
 
-        // we are patiently waiting for new headers to receive
-        // instead we got already known headers ... ignore.
-        if(IsInitialBlockDownload() && !received_new_header) {
-            return true;
-        }
+        // Known headers still identify this peer as a source for missing
+        // block data, including during initial download.
     }
 
     CValidationState state;
@@ -3924,7 +3940,8 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
         if (pindexBestHeader == nullptr)
             pindexBestHeader = chainActive.Tip();
         bool fFetch = state.fPreferredDownload || (nPreferredDownload == 0 && !pto->fClient && !pto->fOneShot); // Download if this is a nice peer, or we have no nice peers and this one might do.
-        if (!state.fSyncStarted && !pto->fClient && !fImporting && !fReindex) {
+        if (!state.fSyncStarted && !pto->fClient && !fImporting && !fReindex &&
+            nNow >= state.nHeadersSyncRetryTime) {
             // Only actively request headers from a single peer, unless we're close to today.
             if ((nSyncStarted == 0 && fFetch) || pindexBestHeader->GetBlockTime() > GetAdjustedTime() - 24 * 60 * 60) {
                 state.fSyncStarted = true;
