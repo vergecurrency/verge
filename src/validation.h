@@ -72,7 +72,7 @@ static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 336;
 /** Maximum kilobytes for transactions to store for processing during reorg */
 static const unsigned int MAX_DISCONNECTED_TX_POOL_SIZE = 20000;
 /** Maximum number of active blocks an automatic branch switch may disconnect. */
-static constexpr int MAX_AUTOMATIC_REORG_DEPTH = 10;
+static constexpr int MAX_AUTOMATIC_REORG_DEPTH = 6;
 
 /** Local history protection; this is not a context-free block validity rule. */
 bool IsAutomaticReorgAllowed(const CBlockIndex* active_tip, const CBlockIndex* candidate);

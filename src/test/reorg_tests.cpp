@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(automatic_reorg_depth_boundary)
 {
     auto chain = MakeBranch(nullptr, 302);
     const CBlockIndex* tip = &chain[300];
-    BOOST_CHECK_EQUAL(MAX_AUTOMATIC_REORG_DEPTH, 10);
+    BOOST_CHECK_EQUAL(MAX_AUTOMATIC_REORG_DEPTH, 6);
     auto within_limit = MakeBranch(&chain[300 - MAX_AUTOMATIC_REORG_DEPTH], 120);
     auto beyond_limit = MakeBranch(&chain[299 - MAX_AUTOMATIC_REORG_DEPTH], 10000);
     BOOST_CHECK(IsAutomaticReorgAllowed(tip, tip));

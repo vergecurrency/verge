@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Verge
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test the 10-block automatic rollback limit without changing branch scores."""
+"""Test the 6-block automatic rollback limit without changing branch scores."""
 
 from test_framework.test_framework import VergeTestFramework
 from test_framework.util import assert_equal, connect_nodes, disconnect_nodes, sync_blocks, wait_until
@@ -22,7 +22,7 @@ class ReorgLimitTest(VergeTestFramework):
 
     def run_test(self):
         local, remote, fresh = self.nodes
-        limit = 10
+        limit = 6
         self.log.info("An automatic rollback of exactly %d blocks is allowed", limit)
         local.rpc.generate(limit)
         accepted_tip = remote.rpc.generate(limit + 1)[-1]

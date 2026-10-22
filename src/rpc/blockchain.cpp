@@ -1228,7 +1228,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
             "  \"blocks\": xxxxxx,             (numeric) the current number of blocks processed in the server\n"
             "  \"headers\": xxxxxx,            (numeric) the current number of headers we have validated\n"
             "  \"bestblockhash\": \"...\",       (string) the hash of the currently best block\n"
-            "  \"maxreorgdepth\": 10,           (numeric) maximum active blocks disconnected by an automatic branch switch\n"
+            "  \"maxreorgdepth\": 6,            (numeric) maximum active blocks disconnected by an automatic branch switch\n"
             "  \"reorgprotectedheight\": n,     (numeric) height that automatic branch switches must preserve\n"
             "  \"reorgprotectedhash\": \"...\",   (string) active-chain hash at reorgprotectedheight\n"
             "  \"difficulty\": xxxxxx,         (numeric) the current difficulty\n"
