@@ -311,14 +311,10 @@ libverge_server_a_SOURCES = \
   policy/policy.cpp \
   policy/rbf.cpp \
   pos/consensus.cpp \
-  pos/crypto.cpp \
   pos/block.cpp \
-  pos/primitives.cpp \
-  pos/stake.cpp \
   pos/state.cpp \
   pos/votepool.cpp \
   pos/validation.cpp \
-  pos/vrf.cpp \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \
@@ -534,6 +530,10 @@ libverge_common_a_SOURCES = \
   netaddress.cpp \
   netbase.cpp \
   policy/feerate.cpp \
+  pos/crypto.cpp \
+  pos/primitives.cpp \
+  pos/stake.cpp \
+  pos/vrf.cpp \
   protocol.cpp \
   scheduler.cpp \
   script/ismine.cpp \

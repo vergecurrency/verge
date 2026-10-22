@@ -8,12 +8,35 @@
 
 #include <key.h>
 #include <policy/policy.h>
+#include <pos/stake.h>
 #include <primitives/transaction.h>
 #include <script/standard.h>
 #include <uint256.h>
 
 
 typedef std::vector<unsigned char> valtype;
+
+static bool SolverForSigning(const CScript& script, txnouttype& type,
+                             std::vector<valtype>& solutions)
+{
+    if (Solver(script, type, solutions)) return true;
+
+    pos::BondData bond;
+    pos::UnbondData unbond;
+    uint160 withdrawal_key_id;
+    if (pos::ParseBondScript(script, bond)) {
+        withdrawal_key_id = bond.withdrawal_key_id;
+    } else if (pos::ParseUnbondScript(script, unbond)) {
+        withdrawal_key_id = unbond.withdrawal_key_id;
+    } else {
+        return false;
+    }
+
+    // Only the stack template is P2PKH; signatures still commit to all metadata.
+    type = TX_PUBKEYHASH;
+    solutions = {valtype(withdrawal_key_id.begin(), withdrawal_key_id.end())};
+    return true;
+}
 
 MutableTransactionSignatureCreator::MutableTransactionSignatureCreator(
     const CMutableTransaction* txToIn, unsigned int nInIn,
@@ -77,7 +100,7 @@ static bool SignStep(const SigningProvider& provider, const BaseSignatureCreator
     ret.clear();
 
     std::vector<valtype> vSolutions;
-    if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
+    if (!SolverForSigning(scriptPubKey, whichTypeRet, vSolutions))
         return false;
 
     CKeyID keyID;
@@ -342,7 +365,7 @@ static Stacks CombineSignatures(const CScript& scriptPubKey, const BaseSignature
 
             txnouttype txType2;
             std::vector<std::vector<unsigned char> > vSolutions2;
-            Solver(pubKey2, txType2, vSolutions2);
+            SolverForSigning(pubKey2, txType2, vSolutions2);
             sigs1.script.pop_back();
             sigs2.script.pop_back();
             Stacks result = CombineSignatures(pubKey2, checker, txType2, vSolutions2, sigs1, sigs2, sigversion);
@@ -362,7 +385,7 @@ static Stacks CombineSignatures(const CScript& scriptPubKey, const BaseSignature
             CScript pubKey2(sigs1.witness.back().begin(), sigs1.witness.back().end());
             txnouttype txType2;
             std::vector<valtype> vSolutions2;
-            Solver(pubKey2, txType2, vSolutions2);
+            SolverForSigning(pubKey2, txType2, vSolutions2);
             sigs1.witness.pop_back();
             sigs1.script = sigs1.witness;
             sigs1.witness.clear();
@@ -385,7 +408,7 @@ SignatureData CombineSignatures(const CScript& scriptPubKey, const BaseSignature
 {
     txnouttype txType;
     std::vector<std::vector<unsigned char> > vSolutions;
-    Solver(scriptPubKey, txType, vSolutions);
+    SolverForSigning(scriptPubKey, txType, vSolutions);
 
     return CombineSignatures(scriptPubKey, checker, txType, vSolutions, Stacks(scriptSig1), Stacks(scriptSig2), SigVersion::BASE).Output();
 }

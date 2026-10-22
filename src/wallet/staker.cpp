@@ -658,6 +658,11 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
         error = "wallet does not control the withdrawal key";
         return false;
     }
+    if (GetPoSStateSnapshot().IsWithdrawalLocked(
+            outpoint, chainActive.Height() + 1)) {
+        error = "bond withdrawal is locked by equivocation evidence";
+        return false;
+    }
     const int64_t unlock_height = static_cast<int64_t>(chainActive.Height()) +
         1 + params.nPoSUnbondingBlocks;
     if (unlock_height > std::numeric_limits<uint32_t>::max()) {
@@ -680,6 +685,8 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
     CTransactionRef tx;
     if (!wallet.CreateTransaction(recipients, tx, change_key, fee,
                                   change_position, error, coin_control)) {
+        LogPrintf("Unable to create unbond transaction for %s:%u: %s\n",
+                  txid.ToString(), vout, error);
         return false;
     }
     CValidationState validation_state;

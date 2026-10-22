@@ -20,6 +20,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/rbf.h>
+#include <pos/stake.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <script/script.h>
@@ -1402,6 +1403,16 @@ CAmount CWallet::GetDebit(const CTxIn &txin, const isminefilter& filter) const
 
 isminetype CWallet::IsMine(const CTxOut& txout) const
 {
+    pos::BondData bond;
+    pos::UnbondData unbond;
+    if (pos::ParseBondScript(txout.scriptPubKey, bond) &&
+        HaveKey(CKeyID(bond.withdrawal_key_id))) {
+        return ISMINE_SPENDABLE;
+    }
+    if (pos::ParseUnbondScript(txout.scriptPubKey, unbond) &&
+        HaveKey(CKeyID(unbond.withdrawal_key_id))) {
+        return ISMINE_SPENDABLE;
+    }
     return ::IsMine(*this, txout.scriptPubKey);
 }
 
@@ -2039,9 +2050,19 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache, const isminefilter& filter
     }
 
     CAmount nCredit = 0;
+    bool cacheable = true;
     uint256 hashTx = GetHash();
     for (unsigned int i = 0; i < tx->vout.size(); i++)
     {
+        pos::BondData bond;
+        if (pos::ParseBondScript(tx->vout[i].scriptPubKey, bond)) continue;
+        pos::UnbondData unbond;
+        if (pos::ParseUnbondScript(tx->vout[i].scriptPubKey, unbond)) {
+            // Recompute across unlock heights and reorgs, even for spent outputs.
+            cacheable = false;
+            if (static_cast<int64_t>(chainActive.Height()) + 1 <
+                unbond.unlock_height) continue;
+        }
         if (!pwallet->IsSpent(hashTx, i))
         {
             const CTxOut &txout = tx->vout[i];
@@ -2051,7 +2072,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache, const isminefilter& filter
         }
     }
 
-    if (cache) {
+    if (cache && cacheable) {
         *cache = nCredit;
         *cache_used = true;
     }
@@ -2282,11 +2303,23 @@ CAmount CWallet::GetLegacyBalance(const isminefilter& filter, int minDepth, cons
         // treat change outputs specially, as part of the amount debited.
         CAmount debit = wtx.GetDebit(filter);
         const bool outgoing = debit > 0;
-        for (const CTxOut& out : wtx.tx->vout) {
+        for (size_t i = 0; i < wtx.tx->vout.size(); ++i) {
+            const CTxOut& out = wtx.tx->vout[i];
             if (outgoing && IsChange(out)) {
                 debit -= out.nValue;
             } else if (IsMine(out) & filter && depth >= minDepth && (!account || *account == GetLabelName(out.scriptPubKey))) {
                 balance += out.nValue;
+            }
+            pos::BondData bond;
+            pos::UnbondData unbond;
+            const bool stake_locked = pos::ParseBondScript(out.scriptPubKey, bond) ||
+                (pos::ParseUnbondScript(out.scriptPubKey, unbond) &&
+                 static_cast<int64_t>(chainActive.Height()) + 1 <
+                     unbond.unlock_height);
+            if (stake_locked && (IsMine(out) & filter) && depth >= minDepth &&
+                (!account || *account == GetLabelName(out.scriptPubKey)) &&
+                !IsSpent(wtx.GetHash(), i)) {
+                balance -= out.nValue;
             }
         }
 
@@ -2400,6 +2433,14 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const
 
             if (IsSpent(wtxid, i))
                 continue;
+
+            pos::BondData bond;
+            if (pos::ParseBondScript(pcoin->tx->vout[i].scriptPubKey, bond))
+                continue;
+            pos::UnbondData unbond;
+            if (pos::ParseUnbondScript(pcoin->tx->vout[i].scriptPubKey, unbond) &&
+                static_cast<int64_t>(chainActive.Height()) + 1 <
+                    unbond.unlock_height) continue;
 
             isminetype mine = IsMine(pcoin->tx->vout[i]);
 
@@ -2600,6 +2641,11 @@ bool CWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAm
             // Clearly invalid input, fail
             if (pcoin->tx->vout.size() <= outpoint.n)
                 return false;
+            pos::UnbondData unbond;
+            if (pos::ParseUnbondScript(
+                    pcoin->tx->vout[outpoint.n].scriptPubKey, unbond) &&
+                static_cast<int64_t>(chainActive.Height()) + 1 <
+                    unbond.unlock_height) return false;
             // Just to calculate the marginal byte size
             nValueFromPresetInputs += pcoin->tx->vout[outpoint.n].nValue;
             setPresetCoins.insert(CInputCoin(pcoin->tx, outpoint.n));

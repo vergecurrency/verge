@@ -474,6 +474,15 @@ The transaction-validation implementation enforces the lifecycle before and afte
 
 Ordinary inputs and outputs may accompany an unbond transition to pay fees and return ordinary change. The bonded principal itself cannot pay the fee. Requiring every coinbase input in a bond-creation transaction to satisfy the 720-block rule is intentionally conservative: wallets should avoid mixing immature fee rewards into a bond transaction.
 
+Wallets may begin unbonding either maturing or eligible bonds, provided no
+consensus withdrawal lock applies and liquid funds are available for the fee.
+The signer uses the withdrawal key and commits to the complete metadata-prefixed
+script, both before and after PoS replay protection activates. Starting unbonding
+does not release spendable funds immediately: the wallet excludes unbond outputs
+from available balance and coin selection until the next candidate block reaches
+their encoded unlock height. This availability is recalculated across height
+changes and reorganizations. Live bonds remain excluded from ordinary payments.
+
 An actively locked bond cannot evade equivocation consequences by unbonding. Consensus rejects an unbond transition that conflicts with an applicable on-chain eligibility lockout.
 ## Rewards And Value Conservation
 

@@ -5,6 +5,7 @@
 
 #include <wallet/wallet.h>
 
+#include <algorithm>
 #include <memory>
 #include <set>
 #include <stdint.h>
@@ -12,6 +13,9 @@
 #include <vector>
 
 #include <consensus/validation.h>
+#include <pos/stake.h>
+#include <pos/crypto.h>
+#include <pos/vrf.h>
 #include <rpc/server.h>
 #include <test/setup_common.h>
 #include <validation.h>
@@ -366,6 +370,64 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup)
     BOOST_CHECK_EQUAL(list.size(), 1U);
     BOOST_CHECK_EQUAL(boost::get<CKeyID>(list.begin()->first).ToString(), coinbaseAddress);
     BOOST_CHECK_EQUAL(list.begin()->second.size(), 2U);
+}
+
+BOOST_FIXTURE_TEST_CASE(unbond_balance_unlock_and_reorg, ListCoinsTestingSetup)
+{
+    LOCK2(cs_main, wallet->cs_wallet);
+    CBlockIndex* const tip = chainActive.Tip();
+    const CAmount ordinary_balance = wallet->GetBalance();
+    const CAmount legacy_balance = wallet->GetLegacyBalance(ISMINE_SPENDABLE, 1, nullptr);
+    pos::UnbondData unbond;
+    unbond.unlock_height = tip->nHeight + 1;
+    unbond.withdrawal_key_id = coinbaseKey.GetPubKey().GetID();
+
+    CMutableTransaction tx;
+    tx.vin.emplace_back(COutPoint(uint256S("1234"), 0));
+    tx.vout.emplace_back(1000 * COIN, pos::GetUnbondScript(unbond));
+    pos::BondData bond;
+    unsigned char vrf_secret[32]{};
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(coinbaseKey.begin(), bond.signing_public_key));
+    BOOST_REQUIRE(pos::DeriveVrfKey(coinbaseKey.begin(), vrf_secret, bond.vrf_public_key));
+    bond.reward_key_id = bond.withdrawal_key_id = unbond.withdrawal_key_id;
+    tx.vout.emplace_back(2000 * COIN, pos::GetBondScript(bond));
+    CWalletTx wtx(wallet.get(), MakeTransactionRef(tx));
+    wtx.SetMerkleBranch(tip->pprev, 1);
+    BOOST_REQUIRE(wallet->AddToWallet(wtx));
+    const CWalletTx& stored = wallet->mapWallet.at(wtx.GetHash());
+    BOOST_CHECK_EQUAL(wallet->IsMine(tx.vout[0]), ISMINE_SPENDABLE);
+    BOOST_CHECK_EQUAL(wallet->IsMine(tx.vout[1]), ISMINE_SPENDABLE);
+    BOOST_CHECK_EQUAL(stored.GetCredit(ISMINE_SPENDABLE), 3000 * COIN);
+    BOOST_CHECK_EQUAL(stored.GetAvailableCredit(), 1000 * COIN);
+    BOOST_CHECK_EQUAL(wallet->GetBalance(), ordinary_balance + 1000 * COIN);
+    BOOST_CHECK_EQUAL(wallet->GetLegacyBalance(ISMINE_SPENDABLE, 1, nullptr),
+                      legacy_balance + 1000 * COIN);
+
+    // Reusing the credit cache must not expose locked funds after a rewind.
+    chainActive.SetTip(tip->pprev);
+    BOOST_CHECK_EQUAL(stored.GetAvailableCredit(), 0);
+    std::vector<COutput> coins;
+    wallet->AvailableCoins(coins);
+    BOOST_CHECK(std::none_of(coins.begin(), coins.end(),
+        [&wtx](const COutput& coin) { return coin.tx->GetHash() == wtx.GetHash(); }));
+    chainActive.SetTip(tip);
+
+    BOOST_CHECK_EQUAL(stored.GetAvailableCredit(), 1000 * COIN);
+    wallet->AvailableCoins(coins);
+    BOOST_CHECK(std::any_of(coins.begin(), coins.end(),
+        [&wtx](const COutput& coin) {
+            return coin.tx->GetHash() == wtx.GetHash() && coin.i == 0;
+        }));
+    BOOST_CHECK(std::none_of(coins.begin(), coins.end(),
+        [&wtx](const COutput& coin) {
+            return coin.tx->GetHash() == wtx.GetHash() && coin.i == 1;
+        }));
+
+    CKey other;
+    other.MakeNewKey(true);
+    unbond.withdrawal_key_id = other.GetPubKey().GetID();
+    BOOST_CHECK_EQUAL(wallet->IsMine(CTxOut(
+        1000 * COIN, pos::GetUnbondScript(unbond))), ISMINE_NO);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

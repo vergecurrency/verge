@@ -83,6 +83,7 @@ BASE_SCRIPTS = [
     'feature_pos_worker.py',
     'p2p_initial_header_sync.py',
     'wallet_pos_bond_batching.py',
+    'wallet_pos_unbond.py',
     'rpc_fundrawtransaction.py',
     'p2p_compactblocks.py',
     'feature_segwit.py',
