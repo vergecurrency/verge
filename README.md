@@ -82,6 +82,12 @@ P2P port | 21102 (testnet: 21104)
 pre-mine | Not Applicable
 ICO | Not Applicable
 
+## Automatic Reorganization Limit
+
+Automatic chain switches may disconnect at most **10 blocks from the local active tip**. A rollback of 10 blocks is allowed; 11 or more is blocked even if the competing branch is longer. Initial synchronization and extensions of the active chain are not restricted to 10 new blocks. Blocked branches remain available for operator review and are not permanently marked invalid. `getblockchaininfo` reports `maxreorgdepth`, `reorgprotectedheight`, and `reorgprotectedhash`; `debug.log` reports blocked automatic switches.
+
+This is a local, history-dependent safeguard, **not cryptographic finality or a guarantee against mining attacks**. Reorganizations of up to 10 blocks remain possible. Pools, exchanges, and full nodes must coordinate deployment: older nodes can accept deeper reorganizations, and updated nodes on opposite sides of a long partition can remain on different branches. A fresh sync or deliberate reindex can choose a different history. Recovery requires operator verification of the intended chain before using tools such as `invalidateblock` and `reconsiderblock`; `preciousblock` and `reconsiderblock` alone do not bypass the limit. The limit applies on every network and has no automatic two-month expiry. It must be reviewed when integrating the PoS transition. Existing branch scoring, mining rules, and transaction formats are unchanged.
+
 ## RPC Reference
 
 See [RPC.md](RPC.md) for the complete `verged`/`verge-qt` RPC command reference, including wallet, network, raw transaction, mining, and secure messaging commands.

@@ -1228,6 +1228,9 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
             "  \"blocks\": xxxxxx,             (numeric) the current number of blocks processed in the server\n"
             "  \"headers\": xxxxxx,            (numeric) the current number of headers we have validated\n"
             "  \"bestblockhash\": \"...\",       (string) the hash of the currently best block\n"
+            "  \"maxreorgdepth\": 10,           (numeric) maximum active blocks disconnected by an automatic branch switch\n"
+            "  \"reorgprotectedheight\": n,     (numeric) height that automatic branch switches must preserve\n"
+            "  \"reorgprotectedhash\": \"...\",   (string) active-chain hash at reorgprotectedheight\n"
             "  \"difficulty\": xxxxxx,         (numeric) the current difficulty\n"
             "  \"mediantime\": xxxxxx,         (numeric) median time for the current best block\n"
             "  \"verificationprogress\": xxxx, (numeric) estimate of verification progress [0..1]\n"
@@ -1277,6 +1280,10 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("blocks",                (int)chainActive.Height());
     obj.pushKV("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1);
     obj.pushKV("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex());
+    const int protected_height = std::max(0, chainActive.Height() - MAX_AUTOMATIC_REORG_DEPTH);
+    obj.pushKV("maxreorgdepth",          MAX_AUTOMATIC_REORG_DEPTH);
+    obj.pushKV("reorgprotectedheight",   protected_height);
+    obj.pushKV("reorgprotectedhash",     chainActive[protected_height]->GetBlockHash().GetHex());
     obj.pushKV("difficulty",            (double)GetDifficulty(chainActive.Tip()));
     obj.pushKV("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast());
     obj.pushKV("verificationprogress",  GuessVerificationProgress(Params().TxData(), chainActive.Tip()));

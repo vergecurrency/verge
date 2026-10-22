@@ -49,6 +49,8 @@ Use `verge-cli help <command>` for the exact JSON result schema exposed by the r
 | `gettxoutproof` | `gettxoutproof ["txid",...] ( "blockhash" )` | `verge-cli gettxoutproof '["<txid>"]'` |
 | `verifytxoutproof` | `verifytxoutproof "proof"` | `verge-cli verifytxoutproof <proof>` |
 
+`getblockchaininfo` also returns `maxreorgdepth` (10), `reorgprotectedheight`, and `reorgprotectedhash`. Automatic chain switches cannot change the protected block or its ancestors. This is local history protection, not network-wide finality; see the [automatic reorganization limit](README.md#automatic-reorganization-limit). `preciousblock` and `reconsiderblock` do not override it. Verify the intended chain before using `invalidateblock` or reindexing for deliberate recovery.
+
 ## Network
 
 | Command | Usage | Example |

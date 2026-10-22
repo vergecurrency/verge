@@ -70,6 +70,7 @@ TEST_EXIT_PASSED = 0
 TEST_EXIT_SKIPPED = 77
 
 BASE_SCRIPTS = [
+    'feature_reorg_limit.py',
     # Scripts that are run by the travis build process.
     # Longest test should go first, to favor running tests in parallel
     'feature_fee_estimation.py',

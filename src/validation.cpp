@@ -130,6 +130,7 @@ private:
     // FIXME VIP-1
     // arith_uint256 nLastPreciousChainwork = 0;
     arith_uint256 nLastPreciousBlockHeight = 0;
+    int64_t m_last_reorg_warning = 0;
 
     /** In order to efficiently track invalidity of headers, we keep the set of
       * blocks which we tried to connect and found to be invalid here (ie which
@@ -2516,9 +2517,17 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     return true;
 }
 
+bool IsAutomaticReorgAllowed(const CBlockIndex* active_tip, const CBlockIndex* candidate)
+{
+    if (!candidate) return false;
+    if (!active_tip) return true;
+    const int protected_height = std::max(0, active_tip->nHeight - MAX_AUTOMATIC_REORG_DEPTH);
+    return candidate->GetAncestor(protected_height) == active_tip->GetAncestor(protected_height);
+}
+
 /**
- * Return the tip of the chain with the most work in it, that isn't
- * known to be invalid (it's however far from certain to be valid).
+ * Return the highest-ranked usable tip that respects the local rollback limit.
+ * Its blocks may still fail validation when connected.
  */
 CBlockIndex* CChainState::FindMostWorkChain() {
     do {
@@ -2527,9 +2536,23 @@ CBlockIndex* CChainState::FindMostWorkChain() {
         // Find the best candidate header.
         {
             std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexCandidates.rbegin();
-            if (it == setBlockIndexCandidates.rend())
-                return nullptr;
+            if (it == setBlockIndexCandidates.rend()) return nullptr;
             pindexNew = *it;
+            if (!IsAutomaticReorgAllowed(chainActive.Tip(), pindexNew)) {
+                const int64_t now = GetTime();
+                if (!m_last_reorg_warning || now - m_last_reorg_warning >= 60) {
+                    const CBlockIndex* fork = chainActive.FindFork(pindexNew);
+                    LogPrintf("Automatic reorganization blocked: active=%s height=%d candidate=%s height=%d fork_height=%d limit=%d; operator review required\n",
+                              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
+                              pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
+                              fork ? fork->nHeight : -1, MAX_AUTOMATIC_REORG_DEPTH);
+                    m_last_reorg_warning = now;
+                }
+                // Retain the block index and data, but do not rescan this tip
+                // on every later block received from the blocked branch.
+                setBlockIndexCandidates.erase(pindexNew);
+                continue;
+            }
         }
 
         // Check whether all blocks on the path between the currently active chain and the candidate are valid.
@@ -2596,6 +2619,11 @@ bool CChainState::ActivateBestChainStep(CValidationState& state, const CChainPar
 
     const CBlockIndex *pindexOldTip = chainActive.Tip();
     const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
+
+    if (!IsAutomaticReorgAllowed(pindexOldTip, pindexMostWork)) {
+        return state.Error(strprintf("Automatic reorganization exceeds the %d-block rollback limit",
+                                    MAX_AUTOMATIC_REORG_DEPTH));
+    }
 
     // Disconnect active blocks which are no longer in the best chain.
     bool fBlocksDisconnected = false;
@@ -4451,6 +4479,7 @@ bool RewindBlockIndex(const CChainParams& params, bool fForceFullScan) {
 
 void CChainState::UnloadBlockIndex() {
     nBlockSequenceId = 1;
+    m_last_reorg_warning = 0;
     m_failed_blocks.clear();
     setBlockIndexCandidates.clear();
 }
@@ -4743,9 +4772,9 @@ void CChainState::CheckBlockIndex(const Consensus::Params& consensusParams)
             assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0); // The failed mask cannot be set for blocks without invalid parents.
         }
         if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) && pindexFirstNeverProcessed == nullptr) {
-            if (pindexFirstInvalid == nullptr) {
+            if (pindexFirstInvalid == nullptr && IsAutomaticReorgAllowed(chainActive.Tip(), pindex)) {
                 // If this block sorts at least as good as the current tip and
-                // is valid and we have all data for its parents, it must be in
+                // respects the rollback limit and is valid with all parent data, it must be in
                 // setBlockIndexCandidates.  chainActive.Tip() must also be there
                 // even if some data has been pruned.
                 if (pindexFirstMissing == nullptr || pindex == chainActive.Tip()) {
@@ -4787,7 +4816,7 @@ void CChainState::CheckBlockIndex(const Consensus::Params& consensusParams)
             // So if this block is itself better than chainActive.Tip() and it wasn't in
             // setBlockIndexCandidates, then it must be in mapBlocksUnlinked.
             if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) && setBlockIndexCandidates.count(pindex) == 0) {
-                if (pindexFirstInvalid == nullptr) {
+                if (pindexFirstInvalid == nullptr && IsAutomaticReorgAllowed(chainActive.Tip(), pindex)) {
                     assert(foundInUnlinked);
                 }
             }

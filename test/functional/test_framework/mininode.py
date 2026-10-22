@@ -421,6 +421,13 @@ class NetworkThread(threading.Thread):
     def __init__(self):
         super().__init__(name="NetworkThread")
 
+    def close(self):
+        with mininode_lock:
+            for connection in list(mininode_socket_map.values()):
+                connection.disconnect = True
+        self.join(timeout=10)
+        assert not self.is_alive()
+
     def run(self):
         while mininode_socket_map:
             # We check for whether to disconnect outside of the asyncore
