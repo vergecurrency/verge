@@ -18,6 +18,10 @@
 
 namespace {
 
+struct PoSTxTestingSetup : BasicTestingSetup {
+    PoSTxTestingSetup() : BasicTestingSetup(CBaseChainParams::REGTEST) {}
+};
+
 pos::BondData MakeBond()
 {
     pos::BondData bond;
@@ -64,7 +68,7 @@ CTransactionRef MakeCoinbase()
 
 } // namespace
 
-BOOST_FIXTURE_TEST_SUITE(pos_tx_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(pos_tx_tests, PoSTxTestingSetup)
 
 BOOST_AUTO_TEST_CASE(enforce_bond_minimum_and_coinbase_maturity)
 {
@@ -86,7 +90,7 @@ BOOST_AUTO_TEST_CASE(enforce_bond_minimum_and_coinbase_maturity)
     CCoinsView coinbase_base;
     CCoinsViewCache coinbase_view(&coinbase_base);
     tx.vin[0].prevout = AddTestCoin(
-        coinbase_view, CTxOut(params.nPoSMinStake, ordinary), 900, true, 2);
+        coinbase_view, CTxOut(params.nPoSMinStake, ordinary), 800, true, 2);
     tx.vout[0].nValue = params.nPoSMinStake;
 
     CValidationState immature_state;
@@ -96,7 +100,7 @@ BOOST_AUTO_TEST_CASE(enforce_bond_minimum_and_coinbase_maturity)
 
     CValidationState mature_state;
     BOOST_CHECK(Check(tx, mature_state, coinbase_view,
-                      900 + params.nPoSStakeMaturity));
+                      800 + params.nPoSStakeMaturity));
 }
 
 BOOST_AUTO_TEST_CASE(enforce_bond_outputs_without_spendable_inputs)

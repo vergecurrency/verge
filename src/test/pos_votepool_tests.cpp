@@ -42,6 +42,9 @@ pos::BlockAuthorization MakeAuthorization(uint32_t bond, uint64_t slot,
     authorization.slot = slot;
     authorization.parent_block_root = Number(candidate + 10);
     authorization.candidate_header_hash = Number(candidate);
+    authorization.stake_proof_hash = Number(20);
+    authorization.fee_reward_transaction_hash = Number(21);
+    authorization.parent_randomness = Number(22);
     authorization.signature[0] = 1;
     return authorization;
 }
@@ -109,10 +112,8 @@ BOOST_AUTO_TEST_CASE(evidence_pool_bounds_and_identity)
     evidence.first = MakeVote(7, 4, 100);
     evidence.second = MakeVote(7, 4, 101);
     evidence.second.target_checkpoint_root = Number(99);
-    const uint256 first_hash = pos::GetTaggedHash(
-        pos::HashDomain::VOTE, evidence.first);
-    const uint256 second_hash = pos::GetTaggedHash(
-        pos::HashDomain::VOTE, evidence.second);
+    const uint256 first_hash = pos::GetVoteSigningHash(evidence.first);
+    const uint256 second_hash = pos::GetVoteSigningHash(evidence.second);
     if (second_hash < first_hash) std::swap(evidence.first, evidence.second);
 
     BOOST_CHECK_EQUAL(GetSerializeSize(evidence, SER_NETWORK, 0),

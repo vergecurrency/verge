@@ -265,6 +265,7 @@ struct CNodeState {
     int64_t m_pos_evidence_process_time;
     uint256 m_pending_pos_block;
     int64_t m_pending_pos_block_time;
+    uint256 m_last_pos_header_request;
 
     CNodeState(CAddress addrIn, std::string addrNameIn) : address(addrIn), name(addrNameIn) {
         fCurrentlyConnected = false;
@@ -299,6 +300,7 @@ struct CNodeState {
         m_pos_evidence_process_time = GetTime();
         m_pending_pos_block.SetNull();
         m_pending_pos_block_time = 0;
+        m_last_pos_header_request.SetNull();
     }
 };
 
@@ -960,6 +962,20 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew, const CB
     connman->SetBestHeight(nNewHeight);
 
     SetServiceFlagsIBDCache(!fInitialDownload);
+    if (nNewHeight == Params().GetConsensus().nPoSActivationHeight - 1) {
+        CBlockLocator locator;
+        {
+            LOCK(cs_main);
+            locator = chainActive.GetLocator(pindexNew);
+        }
+        // Retry the transition header after every transport's parent-validation
+        // path, including compact blocks and out-of-order block downloads.
+        connman->ForEachNode([this, &locator](CNode* peer) {
+            if (peer->fDisconnect || !peer->fSuccessfullyConnected) return;
+            connman->PushMessage(peer, CNetMsgMaker(peer->GetSendVersion()).Make(
+                NetMsgType::GETHEADERS, locator, uint256()));
+        });
+    }
     if (!fInitialDownload) {
         // Find the hashes of all blocks that weren't previously in the best chain.
         std::vector<uint256> vHashes;
@@ -1497,6 +1513,14 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
                         nodestate->m_pending_pos_block_time = 0;
                     }
                     UpdateBlockAvailability(pfrom->GetId(), hash);
+                    // Initial/reconnect locators deliberately start one header
+                    // back. Continue past a known PoS header, without an echo loop.
+                    if (nodestate->m_last_pos_header_request != hash) {
+                        nodestate->m_last_pos_header_request = hash;
+                        connman->PushMessage(pfrom, msgMaker.Make(
+                            NetMsgType::GETHEADERS,
+                            chainActive.GetLocator(known), uint256()));
+                    }
                     return true;
                 }
             }
@@ -1517,6 +1541,13 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
                 return true;
             }
             const Consensus::Params& params = chainparams.GetConsensus();
+            // The terminal PoS header can arrive with a batch of PoW headers
+            // before their block data. Request it again once the anchor connects.
+            if (!pos::IsPoSVersion(parent->nVersion) &&
+                !parent->IsValid(BLOCK_VALID_SCRIPTS)) {
+                UpdateBlockAvailability(pfrom->GetId(), header.hashPrevBlock);
+                return true;
+            }
             const int height = parent->nHeight + 1;
             const uint64_t current_slot_time = params.nPoSSlotSeconds == 0
                 ? 0
@@ -2632,7 +2663,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
         }
         if (peer_state->m_pos_vote_process_tokens <= 0) {
-            Misbehaving(pfrom->GetId(), 1, "posvote rate limit");
+            LogPrint(BCLog::NET, "Throttling posvote processing peer=%d\n",
+                     pfrom->GetId());
             return true;
         }
         --peer_state->m_pos_vote_process_tokens;
@@ -3274,7 +3306,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             mapBlockSource.erase(pblock->GetHash());
         }
 
-        if (processed && fNewBlock && forceProcessing &&
+        if (processed && forceProcessing &&
             pos::IsPoSVersion(pblock->nVersion)) {
             CBlockLocator locator;
             bool request_next = false;
@@ -3284,6 +3316,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 if (accepted != nullptr &&
                     (accepted->nStatus & BLOCK_VALID_POS)) {
                     locator = chainActive.GetLocator(accepted);
+                    CNodeState* peer_state = State(pfrom->GetId());
+                    if (peer_state != nullptr) {
+                        peer_state->m_last_pos_header_request = hash;
+                    }
                     request_next = true;
                 }
             }

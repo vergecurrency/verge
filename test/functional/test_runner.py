@@ -80,6 +80,7 @@ BASE_SCRIPTS = [
     'feature_maxuploadtarget.py',
     'feature_block.py',
     'feature_pos_activation.py',
+    'feature_pos_vote_heads.py',
     'feature_pos_worker.py',
     'p2p_initial_header_sync.py',
     'wallet_pos_bond_batching.py',

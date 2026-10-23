@@ -758,7 +758,9 @@ known source and target checkpoint checks, a fully validated known head, and
 Schnorr signature verification. A per-peer token bucket allows a burst of 256
 votes and refills 64 votes per minute. Invalid structure, signatures, or wire
 sizes increase peer misbehavior; stale or temporarily unknown chain-context
-votes are ignored without punishment.
+votes are ignored without punishment. Exhausting processing credits also drops
+votes without increasing misbehavior: an honest peer may relay many validators'
+votes at once. The CPU budget and malformed-message penalties remain in force.
 
 The non-consensus vote pool stores at most 4,096 votes and 2 MiB of serialized
 vote data, retains one latest vote per bond, and expires votes more than three
@@ -767,6 +769,60 @@ for one target epoch are not allowed to replace the pool entry. Block producers 
 at most `nPoSMaxVotesPerBlock` votes in canonical order and revalidate every
 pooled vote against their current chain state before including it. Pool policy
 does not change block validity.
+
+#### Vote Heads and Partition Recovery
+
+A committed vote authenticates two distinct claims: a source-to-target
+checkpoint link and a `(head_slot, head_block_root)` fork-choice preference.
+The checkpoint link is verified against the containing branch's authenticated
+PoS state, delayed stake snapshot, eligibility locks, and Schnorr signature.
+The head slot must not precede the target checkpoint or exceed the containing
+block's slot. Naming the target itself requires its exact slot, and a different
+head cannot claim that same slot.
+
+Block validity must not depend on whether the receiver has seen a losing
+branch's headers. A correctly signed checkpoint link can therefore remain valid
+when its head names an unknown or orphaned block. Such a head carries **zero
+fork-choice weight** for a candidate unless its hash and signed slot match an
+ancestor of that candidate. Fork-choice head resolution searches only the
+candidate's ancestry, not the global collection of previously received headers.
+Every fully branch-validated PoS alternative is admitted to the candidate set,
+including alternatives arriving later or at a lower height. The PoS selector,
+not the old height/arrival-order comparator, decides between them. Finality and
+branch-tip pruning still apply.
+At the activation boundary, header relay defers the first PoS body until the
+PoW anchor is script-validated, then requests the next header as that anchor
+connects. A stored PoS body that was previously deferred can also continue
+header download after successful revalidation.
+Receiving an already-validated PoS header also continues from that header,
+since initial/reconnect locators intentionally start one header back. A peer's
+last continuation hash suppresses repeated identical requests.
+External block-file imports
+activate the available parent state before each PoS body instead of repeatedly
+replaying all pre-activation history while leaving the active tip at genesis.
+New block producers include only votes whose heads resolve on their parent
+branch. Historical block validation does not require orphan-header downloads.
+This is a correction to the experimental PoS validation/fork-choice rules;
+all PoS testnet participants must upgrade together. It does not change PoW
+validation, transaction serialization, or the PoS wire format.
+
+Nodes that rejected a block under the old `bad-pos-vote-ancestry` check retain
+that invalidity record across restart. After upgrading, an operator can use
+`reconsiderblock <first-incorrectly-rejected-block-hash>`. Reconsideration fully
+revalidates stored PoS blocks before restoring their validation marker and
+candidate status; it does not bypass signatures, stake rules, or finalized
+checkpoints. The October 22 testnet incident's first rejected block was
+`a4770fd8a99ba52d8e4277fbea756bb5cd441df2f26c45c6edd5c662b71c3408`
+at height 3203. Invalidity is not automatically cleared on startup, preserving
+deliberate operator invalidations. No chain-data wipe is required for this
+recovery when the needed block data remains available.
+
+Regression coverage includes signed links with unavailable orphan heads,
+signature and slot rejection, branch-local fork weight, independent producers
+partitioning and reconnecting, a fresh observer crossing activation, bounded
+vote-relay bursts without false bans, malformed-message penalties, explicit
+reconsideration, restart, and chainstate reindex. Test fixtures use regtest bond
+activation parameters and the current signed-extension header format.
 
 Vote-equivocation evidence uses inventory type `MSG_POS_VOTE_EVIDENCE` and the
 `posvevid` command with an exact 459-byte payload. Nodes stage at most 256

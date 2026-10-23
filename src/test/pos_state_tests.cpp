@@ -19,6 +19,10 @@
 
 namespace {
 
+struct PoSStateTestingSetup : BasicTestingSetup {
+    PoSStateTestingSetup() : BasicTestingSetup(CBaseChainParams::REGTEST) {}
+};
+
 pos::BondData MakeBond()
 {
     pos::BondData bond;
@@ -86,7 +90,7 @@ private:
 
 } // namespace
 
-BOOST_FIXTURE_TEST_SUITE(pos_state_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(pos_state_tests, PoSStateTestingSetup)
 
 BOOST_AUTO_TEST_CASE(initialize_from_cached_coins_overlay)
 {
@@ -173,6 +177,7 @@ BOOST_AUTO_TEST_CASE(track_bonds_snapshots_and_undo)
 
     pos::StateUndo epoch_undo;
     BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("01"), epoch_undo));
+    snapshot_block.hashPrevBlock = uint256S("aa");
     BOOST_REQUIRE(state.ApplyBlock(snapshot_block, 1100, true, 1, 0,
                                    params, epoch_undo));
     const pos::StakeSnapshot* epoch_zero = state.FindSnapshot(0);
@@ -260,6 +265,7 @@ BOOST_AUTO_TEST_CASE(epoch_seed_commits_to_accepted_vrf_outputs)
     BOOST_REQUIRE(state.SetEpochSeed(0, initial_seed, seed_undo));
 
     CBlock first = MakeBlock({MakeCoinbase()});
+    first.hashPrevBlock = uint256S("aa");
     first.nTime = 10;
     first.posExtension.stake_proof.slot = 10;
     first.posExtension.stake_proof.bond_outpoint =
@@ -324,6 +330,7 @@ BOOST_AUTO_TEST_CASE(skipped_epochs_advance_and_undo)
     BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("02"), seed_undo));
 
     CBlock block = MakeBlock({MakeCoinbase()});
+    block.hashPrevBlock = uint256S("aa");
     block.posExtension.stake_proof.vrf_output[31] = 1;
     pos::StateUndo transition_undo;
     BOOST_REQUIRE(state.ApplyBlock(block, 1001, true, 3, 5,

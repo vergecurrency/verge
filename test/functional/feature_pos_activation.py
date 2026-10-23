@@ -5,6 +5,9 @@
 
 """Exercise bonding, PoS activation, production, restart, and reconnect."""
 
+from io import BytesIO
+
+from test_framework.messages import deser_compact_size, deser_string, msg_posvote
 from test_framework.test_framework import VergeTestFramework
 from test_framework.mininode import MESSAGEMAP, P2PInterface
 from test_framework.util import (
@@ -32,13 +35,23 @@ class IgnoredBlockMessage:
         payload.read()
 
 
+class KnownPoSHeader:
+    command = b"headers"
+
+    def __init__(self, header):
+        self.header = bytes.fromhex(header)
+
+    def serialize(self):
+        return b"\x01" + self.header + b"\x00\x00"
+
+
 class PoSActivationTest(VergeTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
         self.rpc_timewait = 300
-        self.extra_args = [["-posactivationheight=1500"],
-                           ["-posactivationheight=1500"]]
+        self.extra_args = [["-posactivationheight=1500", "-without-tor"],
+                           ["-posactivationheight=1500", "-without-tor"]]
 
     @staticmethod
     def next_slot(timestamp, slots=1):
@@ -50,6 +63,23 @@ class PoSActivationTest(VergeTestFramework):
             batch = min(count, 100)
             node.generatetoaddress(batch, address)
             count -= batch
+
+    @staticmethod
+    def first_vote(node, block_hash):
+        stream = BytesIO(bytes.fromhex(node.getblock(block_hash, 0)))
+        stream.seek(112)  # PoS header, including its signed-extension commitment.
+        transactions = node.getblock(block_hash, 2)["tx"]
+        assert_equal(deser_compact_size(stream), len(transactions))
+        for tx in transactions:
+            raw_tx = bytes.fromhex(tx["hex"])
+            assert_equal(stream.read(len(raw_tx)), raw_tx)
+        deser_string(stream)  # Legacy block-signature vector.
+        assert_equal(stream.read(1), b"\x01")
+        assert_equal(len(stream.read(295 + 273)), 295 + 273)
+        assert deser_compact_size(stream) > 0
+        vote = msg_posvote()
+        vote.deserialize(stream)
+        return vote
 
     def run_test(self):
         node = self.nodes[0]
@@ -82,7 +112,7 @@ class PoSActivationTest(VergeTestFramework):
         assert_equal(pos_info["next_block_proof"], "pos")
         assert_equal(pos_info["tracked_bonds"], 1)
         assert_equal(pos_info["eligible_snapshot"]["bonds"], 1)
-        assert_equal(pos_info["network"]["connections"], 1)
+        assert_equal(pos_info["network"]["connections"], len(node.getpeerinfo()))
         bond_info = node.getbondinfo(bond["txid"], bond["vout"])
         assert_equal(bond_info["active"], True)
         assert_equal(bond_info["amount"], 1000)
@@ -94,7 +124,8 @@ class PoSActivationTest(VergeTestFramework):
 
         final_pow_time = node.getblockheader(node.getbestblockhash())["time"]
         epoch_zero_time = self.next_slot(final_pow_time)
-        node.setmocktime(epoch_zero_time)
+        for peer in self.nodes:
+            peer.setmocktime(epoch_zero_time)
         epoch_zero = node.generatestake()
         assert_equal(node.getblockcount(), 1500)
         pos_block = node.getblock(epoch_zero, 2)
@@ -112,33 +143,62 @@ class PoSActivationTest(VergeTestFramework):
         assert "peers_at_tip" in pos_info["network"]
 
         MESSAGEMAP[b"block"] = IgnoredBlockMessage
-        vote_peer = node.add_p2p_connection(P2PInterface())
-        node.setmocktime(epoch_zero_time + 120 * 30)
+        disconnect_nodes(node, 1)
+        disconnect_nodes(observer, 0)
+        vote_peer = observer.add_p2p_connection(P2PInterface())
+        relay_peer = observer.add_p2p_connection(P2PInterface())
+        for peer in self.nodes:
+            peer.setmocktime(epoch_zero_time + 120 * 30)
         epoch_one = node.generatestake()
+        # Keep the observer at epoch zero while testing standalone relay;
+        # otherwise block inclusion can prune the vote before GETDATA arrives.
+        vote = self.first_vote(node, epoch_one)
+        vote_peer.send_message(vote)
         vote_peer.sync_with_ping()
-        wait_until(lambda: "posvote" in vote_peer.last_message)
-        assert_equal(len(vote_peer.last_message["posvote"].serialize()), 229)
+        wait_until(lambda: "posvote" in relay_peer.last_message)
+        assert_equal(relay_peer.last_message["posvote"].serialize(), vote.serialize())
+        assert_equal(len(vote.serialize()), 229)
+        known = KnownPoSHeader(observer.getblockheader(epoch_zero, False))
+        before = vote_peer.message_count["getheaders"]
+        vote_peer.send_message(known)
+        vote_peer.sync_with_ping()
+        wait_until(lambda: vote_peer.message_count["getheaders"] == before + 1)
+        for _ in range(10):
+            vote_peer.send_message(known)
+        vote_peer.sync_with_ping()
+        assert_equal(vote_peer.message_count["getheaders"], before + 1)
+        # A valid relay burst may exhaust CPU credits, but is not evidence
+        # that the peer is malicious. Malformed messages are still penalized.
+        for _ in range(400):
+            vote_peer.send_message(vote)
+        vote_peer.sync_with_ping()
+        assert_equal(max(peer.get("banscore", 0)
+                         for peer in observer.getpeerinfo()), 0)
         assert_equal(node.getblockcount(), 1501)
-        self.sync_all()
 
         vote_peer.send_message(MalformedPoSMessage(b"posvote", 228))
         vote_peer.send_message(MalformedPoSMessage(b"posvevid", 458))
         vote_peer.sync_with_ping()
         wait_until(lambda: any(peer.get("banscore", 0) >= 40
-                               for peer in node.getpeerinfo()))
-
+                               for peer in observer.getpeerinfo()))
+        observer.disconnect_p2ps()
+        connect_nodes_bi(self.nodes, 0, 1)
+        self.sync_all()
         disconnect_nodes(node, 1)
         disconnect_nodes(observer, 0)
 
-        node.setmocktime(epoch_zero_time + 240 * 30)
+        for peer in self.nodes:
+            peer.setmocktime(epoch_zero_time + 240 * 30)
         epoch_two = node.generatestake()
         assert_equal(node.getblockcount(), 1502)
         assert_equal(node.getbestblockhash(), epoch_two)
         assert observer.getbestblockhash() != epoch_two
 
-        node.setmocktime(epoch_zero_time + 360 * 30)
+        for peer in self.nodes:
+            peer.setmocktime(epoch_zero_time + 360 * 30)
         epoch_three = node.generatestake()
-        node.setmocktime(epoch_zero_time + 480 * 30)
+        for peer in self.nodes:
+            peer.setmocktime(epoch_zero_time + 480 * 30)
         epoch_four = node.generatestake()
         assert_equal(node.getblockcount(), 1504)
         assert_equal(node.getbestblockhash(), epoch_four)
@@ -151,13 +211,16 @@ class PoSActivationTest(VergeTestFramework):
         self.sync_all()
         assert_equal(observer.getbestblockhash(), epoch_four)
 
-        assert_equal(node.setstaking(True)["enabled"], True)
+        # Keep liquid funds out of automatic bonding while checking persisted
+        # staking settings; transaction trickle timers use this test's mock time.
+        assert_equal(node.setstaking(True, node.getbalance())["enabled"], True)
         staking_info = node.getstakinginfo()
         assert_equal(staking_info["enabled"], True)
         assert_equal(staking_info["active"], True)
 
         self.restart_node(0, [
             "-posactivationheight=1500",
+            "-without-tor",
             "-mocktime={}".format(epoch_zero_time + 480 * 30),
         ])
         node = self.nodes[0]
@@ -166,9 +229,12 @@ class PoSActivationTest(VergeTestFramework):
 
         self.restart_node(1, [
             "-posactivationheight=1500",
+            "-without-tor",
             "-mocktime={}".format(epoch_zero_time + 480 * 30),
             "-reindex-chainstate",
         ])
+        wait_until(lambda: self.nodes[1].getbestblockhash() == epoch_four)
+        connect_nodes_bi(self.nodes, 0, 1)
         self.sync_all()
         assert_equal(self.nodes[1].getbestblockhash(), epoch_four)
 

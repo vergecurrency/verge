@@ -4,6 +4,8 @@
 
 #include <pos/validation.h>
 
+#include <chain.h>
+
 #include <pos/block.h>
 #include <pos/crypto.h>
 #include <pos/vrf.h>
@@ -170,6 +172,49 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
     return ValidationError::NONE;
 }
 
+ValidationError CheckVoteHead(const CheckpointVote& vote, const State& state,
+                              uint64_t maximum_slot)
+{
+    const Checkpoint* target = state.FindCheckpoint(vote.target_epoch);
+    if (target == nullptr || target->root != vote.target_checkpoint_root) {
+        return ValidationError::VOTE_CHECKPOINT;
+    }
+    if (vote.head_slot < target->slot || vote.head_slot > maximum_slot ||
+        (vote.head_block_root == target->root) !=
+            (vote.head_slot == target->slot)) {
+        return ValidationError::VOTE_HEAD;
+    }
+    return ValidationError::NONE;
+}
+
+const CBlockIndex* FindVoteHead(const CheckpointVote& vote,
+                               const CBlockIndex* tip,
+                               const Consensus::Params& params)
+{
+    if (tip == nullptr || params.nPoSSlotSeconds == 0 ||
+        vote.head_slot > UINT32_MAX / params.nPoSSlotSeconds) {
+        return nullptr;
+    }
+    const uint64_t timestamp = vote.head_slot * params.nPoSSlotSeconds;
+    int low = params.nPoSActivationHeight;
+    int high = tip->nHeight;
+    while (low <= high) {
+        const int height = low + (high - low) / 2;
+        const CBlockIndex* index = tip->GetAncestor(height);
+        if (index == nullptr) return nullptr;
+        if (index->nTime < timestamp) {
+            low = height + 1;
+        } else if (index->nTime > timestamp) {
+            high = height - 1;
+        } else {
+            return IsPoSVersion(index->nVersion) &&
+                    index->GetBlockHash() == vote.head_block_root
+                ? index : nullptr;
+        }
+    }
+    return nullptr;
+}
+
 ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
                                   const State& state,
                                   uint64_t maximum_target_epoch)
@@ -238,6 +283,8 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
             vote, state, snapshot_delay_epochs, current_epoch,
             current_height);
         if (error != ValidationError::NONE) return error;
+        const ValidationError head_error = CheckVoteHead(vote, state, current_slot);
+        if (head_error != ValidationError::NONE) return head_error;
     }
 
     for (const BlockEquivocationEvidence& evidence :

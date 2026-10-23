@@ -2,9 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <arith_uint256.h>
+#include <chain.h>
+#include <chainparams.h>
 #include <pos/block.h>
 #include <pos/crypto.h>
 #include <pos/validation.h>
+#include <pos/vrf.h>
 #include <primitives/block.h>
 #include <pubkey.h>
 #include <script/standard.h>
@@ -13,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cstring>
+#include <limits>
 
 namespace {
 
@@ -163,6 +168,116 @@ BOOST_AUTO_TEST_CASE(checkpoint_vote_freshness_precedes_crypto)
     vote.snapshot_epoch = 2;
     BOOST_CHECK(pos::CheckCheckpointVote(vote, state, 2, 10, 1000) ==
                 pos::ValidationError::VOTE_SNAPSHOT);
+}
+
+BOOST_AUTO_TEST_CASE(checkpoint_link_does_not_require_orphan_headers)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSBondRulesHeight = 1;
+    pos::State state;
+    pos::StateUndo undo;
+    unsigned char secret[32]{};
+    secret[31] = 3;
+    pos::BondData bond;
+    unsigned char vrf_secret[32]{};
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret, bond.signing_public_key));
+    BOOST_REQUIRE(pos::DeriveVrfKey(secret, vrf_secret, bond.vrf_public_key));
+    bond.reward_key_id.SetHex("01");
+    bond.withdrawal_key_id.SetHex("02");
+    CMutableTransaction create;
+    create.vin.emplace_back(COutPoint(uint256S("09"), 0));
+    create.vout.emplace_back(params.nPoSMinStake, pos::GetBondScript(bond));
+    CBlock creation;
+    creation.vtx.push_back(MakeTransactionRef(create));
+    BOOST_REQUIRE(state.ApplyBlock(creation, 1, false, 0, 0, params, undo));
+    CBlock snapshot;
+    BOOST_REQUIRE(state.ApplyBlock(snapshot, 760, false, 0, 0, params, undo));
+    BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("01"), undo));
+    CBlock checkpoint;
+    checkpoint.nVersion = pos::BLOCK_VERSION_POS | 2;
+    checkpoint.hashPrevBlock = uint256S("02");
+    checkpoint.nTime = 3000;
+    checkpoint.posExtension.stake_proof.slot = 100;
+    BOOST_REQUIRE(state.ApplyBlock(checkpoint, 1000, true, 0, 0, params, undo));
+
+    pos::CheckpointVote vote;
+    vote.bond_outpoint = COutPoint(create.GetHash(), 0);
+    vote.snapshot_epoch = pos::INITIAL_SNAPSHOT_EPOCH;
+    vote.source_epoch = pos::FINAL_POW_CHECKPOINT_EPOCH;
+    vote.source_checkpoint_root = checkpoint.hashPrevBlock;
+    vote.target_epoch = 0;
+    vote.target_checkpoint_root = checkpoint.GetHash();
+    vote.head_slot = 101;
+    vote.head_block_root = uint256S("03");
+    unsigned char auxiliary[32]{};
+    BOOST_REQUIRE(pos::SignSchnorr(secret, pos::GetVoteSigningHash(vote),
+                                    auxiliary, vote.signature,
+                                    bond.signing_public_key));
+    CBlock containing;
+    containing.posExtension.votes.push_back(vote);
+    BOOST_CHECK(pos::CheckVotesAndEvidence(containing, state, 2,
+                    params.nPoSNetworkId, 0, 102, 1001) ==
+                pos::ValidationError::NONE);
+    containing.posExtension.votes[0].head_block_root = uint256S("ff");
+    BOOST_CHECK(pos::CheckVotesAndEvidence(containing, state, 2,
+                    params.nPoSNetworkId, 0, 102, 1001) ==
+                pos::ValidationError::VOTE_SIGNATURE);
+    BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::NONE);
+    vote.head_slot = 103;
+    BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::VOTE_HEAD);
+    vote.head_slot = 99;
+    BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::VOTE_HEAD);
+    vote.head_slot = 100;
+    BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::VOTE_HEAD);
+    vote.head_block_root = checkpoint.GetHash();
+    BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::NONE);
+    vote.head_slot = 101;
+    BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::VOTE_HEAD);
+    vote.target_checkpoint_root = uint256S("04");
+    BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::VOTE_CHECKPOINT);
+}
+
+BOOST_AUTO_TEST_CASE(fork_weight_uses_only_branch_local_head_and_signed_slot)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1;
+    std::vector<CBlockIndex> chain(5);
+    std::vector<uint256> hashes(5);
+    for (size_t i = 0; i < chain.size(); ++i) {
+        hashes[i] = ArithToUint256(arith_uint256(i + 1));
+        chain[i].phashBlock = &hashes[i];
+        chain[i].nHeight = static_cast<int>(i);
+        chain[i].nVersion = i == 0 ? 4 : pos::BLOCK_VERSION_POS | 2;
+        chain[i].nTime = static_cast<uint32_t>((100 + i * 2) * 30);
+        chain[i].pprev = i == 0 ? nullptr : &chain[i - 1];
+        chain[i].BuildSkip();
+    }
+    pos::CheckpointVote vote;
+    vote.head_block_root = hashes[2];
+    vote.head_slot = 104;
+    BOOST_CHECK(pos::FindVoteHead(vote, &chain.back(), params) == &chain[2]);
+    BOOST_CHECK(pos::FindVoteHead(vote, &chain[1], params) == nullptr);
+    vote.head_slot = 105;
+    BOOST_CHECK(pos::FindVoteHead(vote, &chain.back(), params) == nullptr);
+    vote.head_slot = 104;
+    CBlockIndex orphan(chain[2]);
+    const uint256 orphan_hash = uint256S("ff");
+    orphan.phashBlock = &orphan_hash;
+    vote.head_block_root = orphan_hash;
+    BOOST_CHECK(pos::FindVoteHead(vote, &orphan, params) == &orphan);
+    BOOST_CHECK(pos::FindVoteHead(vote, &chain.back(), params) == nullptr);
+    vote.head_slot = std::numeric_limits<uint64_t>::max();
+    BOOST_CHECK(pos::FindVoteHead(vote, &chain.back(), params) == nullptr);
+    params.nPoSSlotSeconds = 0;
+    BOOST_CHECK(pos::FindVoteHead(vote, &chain.back(), params) == nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

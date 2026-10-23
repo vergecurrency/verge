@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(full_block_serialization_is_version_gated)
     pos_block.nVersion = 2 | pos::BLOCK_VERSION_POS;
     pos_block.nBits = 1;
     pos_block.posExtension = MakeExtension();
-    BOOST_CHECK_EQUAL(GetSerializeSize(pos_block, SER_NETWORK, 0), pow_size + 572U);
+    BOOST_CHECK_EQUAL(GetSerializeSize(pos_block, SER_NETWORK, 0), pow_size + 604U);
 
     CDataStream stream(SER_NETWORK, 0);
     stream << pos_block;

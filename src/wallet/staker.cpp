@@ -264,7 +264,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
              pos::GetVotePool().GetVotes(params.nPoSMaxVotesPerBlock)) {
             if (pos::CheckCheckpointVote(
                     vote, state, params.nPoSSnapshotDelayEpochs, slot.epoch,
-                    tip->nHeight + 1) == pos::ValidationError::NONE) {
+                    tip->nHeight + 1) == pos::ValidationError::NONE &&
+                pos::CheckVoteHead(vote, state, slot.global_slot) ==
+                    pos::ValidationError::NONE &&
+                pos::FindVoteHead(vote, tip, params) != nullptr) {
                 votes.push_back(vote);
             }
         }

@@ -2075,29 +2075,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-authorization");
             }
-            for (const pos::CheckpointVote& vote : block.posExtension.votes) {
-                const CBlockIndex* source = LookupBlockIndex(
-                    vote.source_checkpoint_root);
-                const CBlockIndex* target = LookupBlockIndex(
-                    vote.target_checkpoint_root);
-                const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
-                if (source == nullptr || target == nullptr || head == nullptr ||
-                    target->nHeight < source->nHeight ||
-                    head->nHeight < target->nHeight ||
-                    target->GetAncestor(source->nHeight) != source ||
-                    head->GetAncestor(target->nHeight) != target) {
-                    return state.DoS(100, false, REJECT_INVALID,
-                                     "bad-pos-vote-ancestry");
-                }
-                pos::SlotInfo head_slot;
-                if (!pos::GetSlotInfo(final_pow->nTime, head->nTime,
-                                      consensus, head_slot) ||
-                    head_slot.global_slot != vote.head_slot ||
-                    vote.head_slot > pos_slot.global_slot) {
-                    return state.DoS(100, false, REJECT_INVALID,
-                                     "bad-pos-vote-head");
-                }
-            }
+            // Checkpoint links were authenticated against this branch's state.
+            // A signed LMD head may name an orphan unknown to a fresh node;
+            // only branch-local heads contribute weight during fork choice.
             if (!next_pos_state.ApplyVotes(block.posExtension.votes,
                                            next_pos_undo)) {
                 return state.DoS(100, false, REJECT_INVALID,
@@ -2914,7 +2894,8 @@ bool CChainState::ValidatePoSBranch(CBlockIndex* target,
         }
         pos::StateUndo undo;
         CValidationState block_state;
-        if (!ConnectBlock(block, block_state, index, view, chainparams, true,
+        if (!CheckBlock(block, block_state, chainparams.GetConsensus()) ||
+            !ConnectBlock(block, block_state, index, view, chainparams, true,
                           &candidate_state, &undo)) {
             state = block_state;
             return false;
@@ -2990,7 +2971,8 @@ bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
     for (const auto& item : candidate_state->LatestVotes()) {
         const pos::CheckpointVote& vote = item.second;
         const CAmount weight = candidate_state->GetVoteWeight(vote);
-        const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
+        const CBlockIndex* head = pos::FindVoteHead(vote, candidate,
+                                                   Params().GetConsensus());
         if (weight <= 0 || head == nullptr) continue;
         if (head->nHeight >= candidate_child->nHeight &&
             head->GetAncestor(candidate_child->nHeight) == candidate_child &&
@@ -3001,7 +2983,8 @@ bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
     for (const auto& item : current_state->LatestVotes()) {
         const pos::CheckpointVote& vote = item.second;
         const CAmount weight = current_state->GetVoteWeight(vote);
-        const CBlockIndex* head = LookupBlockIndex(vote.head_block_root);
+        const CBlockIndex* head = pos::FindVoteHead(vote, current,
+                                                   Params().GetConsensus());
         if (weight <= 0 || head == nullptr) continue;
         if (head->nHeight >= current_child->nHeight &&
             head->GetAncestor(current_child->nHeight) == current_child &&
@@ -3499,7 +3482,8 @@ bool CChainState::InvalidateBlock(CValidationState& state, const CChainParams& c
             it->second->nChainTx &&
             (!pos::IsPoSVersion(it->second->nVersion) ||
              (it->second->nStatus & BLOCK_VALID_POS)) &&
-            !setBlockIndexCandidates.value_comp()(it->second, chainActive.Tip())) {
+            (pos::IsPoSVersion(it->second->nVersion) ||
+             !setBlockIndexCandidates.value_comp()(it->second, chainActive.Tip()))) {
             setBlockIndexCandidates.insert(it->second);
         }
         it++;
@@ -3521,6 +3505,7 @@ bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
     int nHeight = pindex->nHeight;
+    std::vector<CBlockIndex*> pos_rechecks;
 
     // Remove the invalidity flag from this block and all its descendants.
     BlockMap::iterator it = mapBlockIndex.begin();
@@ -3532,7 +3517,8 @@ bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
                 it->second->nChainTx &&
                 (!pos::IsPoSVersion(it->second->nVersion) ||
                  (it->second->nStatus & BLOCK_VALID_POS)) &&
-                setBlockIndexCandidates.value_comp()(chainActive.Tip(), it->second)) {
+                (pos::IsPoSVersion(it->second->nVersion) ||
+                 setBlockIndexCandidates.value_comp()(chainActive.Tip(), it->second))) {
                 setBlockIndexCandidates.insert(it->second);
             }
             if (it->second == pindexBestInvalid) {
@@ -3540,6 +3526,10 @@ bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
                 pindexBestInvalid = nullptr;
             }
             m_failed_blocks.erase(it->second);
+            if (pos::IsPoSVersion(it->second->nVersion) &&
+                (it->second->nStatus & BLOCK_HAVE_DATA)) {
+                pos_rechecks.push_back(it->second);
+            }
         }
         it++;
     }
@@ -3552,6 +3542,29 @@ bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
             m_failed_blocks.erase(pindex);
         }
         pindex = pindex->pprev;
+    }
+
+    // Old vote-head failures were stored before BLOCK_VALID_POS was set.
+    // Explicit reconsideration must revalidate them, not merely clear flags.
+    std::sort(pos_rechecks.begin(), pos_rechecks.end(),
+              [](const CBlockIndex* a, const CBlockIndex* b) {
+                  return a->nHeight < b->nHeight;
+              });
+    for (CBlockIndex* index : pos_rechecks) {
+        if (index->pprev == nullptr ||
+            (index->pprev->nStatus & BLOCK_FAILED_MASK)) continue;
+        CValidationState state;
+        if (!ValidatePoSBranch(index, state, Params())) {
+            if (state.IsInvalid() && !state.CorruptionPossible()) {
+                InvalidBlockFound(index, state);
+            }
+            continue;
+        }
+        setBlockIndexCandidates.insert(index);
+        if (pindexBestHeader == nullptr ||
+            CBlockIndexWorkComparator()(pindexBestHeader, index)) {
+            pindexBestHeader = index;
+        }
     }
     return true;
 }
@@ -3628,7 +3641,8 @@ void CChainState::ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pi
             }
             const bool pos_ready = !pos::IsPoSVersion(pindex->nVersion) ||
                 (pindex->nStatus & BLOCK_VALID_POS);
-            if (pos_ready && (chainActive.Tip() == nullptr ||
+            if (pos_ready && (pos::IsPoSVersion(pindex->nVersion) ||
+                chainActive.Tip() == nullptr ||
                 !setBlockIndexCandidates.value_comp()(pindex, chainActive.Tip()))) {
                 setBlockIndexCandidates.insert(pindex);
             }
@@ -4320,11 +4334,8 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
             }
             pindex->nStatus |= BLOCK_VALID_POS;
             setDirtyBlockIndex.insert(pindex);
-            if (chainActive.Tip() == nullptr ||
-                !setBlockIndexCandidates.value_comp()(pindex,
-                                                        chainActive.Tip())) {
-                setBlockIndexCandidates.insert(pindex);
-            }
+            setBlockIndexCandidates.insert(pindex);
+            PruneBlockIndexCandidates();
             if (pindexBestHeader == nullptr ||
                 CBlockIndexWorkComparator()(pindexBestHeader, pindex)) {
                 pindexBestHeader = pindex;
@@ -4377,11 +4388,8 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
             }
             pindex->nStatus |= BLOCK_VALID_POS;
             setDirtyBlockIndex.insert(pindex);
-            if (chainActive.Tip() == nullptr ||
-                !setBlockIndexCandidates.value_comp()(pindex,
-                                                        chainActive.Tip())) {
-                setBlockIndexCandidates.insert(pindex);
-            }
+            setBlockIndexCandidates.insert(pindex);
+            PruneBlockIndexCandidates();
             if (pindexBestHeader == nullptr ||
                 CBlockIndexWorkComparator()(pindexBestHeader, pindex)) {
                 pindexBestHeader = pindex;
@@ -5524,6 +5532,16 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, FlatFi
                 nRewind = blkdat.GetPos();
 
                 uint256 hash = block.GetHash();
+                if (pos::IsPoSVersion(block.nVersion)) {
+                    // Establish the imported parent state before validating the
+                    // next PoS extension, rather than replaying all PoW per block.
+                    CValidationState state;
+                    if (!ActivateBestChain(state, chainparams)) {
+                        LogPrintf("Block Import: failed to activate PoS parent: %s\n",
+                                  FormatStateMessage(state));
+                        break;
+                    }
+                }
                 {
                     LOCK(cs_main);
                     // detect out of order blocks, and store them for later
@@ -5689,7 +5707,10 @@ void CChainState::CheckBlockIndex(const Consensus::Params& consensusParams)
         }
         const bool pos_candidate_selection =
             consensusParams.IsPoSActive(chainActive.Height() + 1);
-        if (pos_candidate_selection) {
+        const bool pos_index = pos::IsPoSVersion(pindex->nVersion);
+        if (pos_index && !(pindex->nStatus & BLOCK_VALID_POS)) {
+            assert(setBlockIndexCandidates.count(pindex) == 0);
+        } else if (pos_candidate_selection || pos_index) {
             const bool is_candidate = setBlockIndexCandidates.count(pindex) != 0;
             if (pindex == chainActive.Tip()) assert(is_candidate);
             if (chainActive.Contains(pindex) && pindex != chainActive.Tip()) {

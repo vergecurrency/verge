@@ -2084,6 +2084,7 @@ static UniValue reconsiderblock(const JSONRPCRequest& request)
             "reconsiderblock \"blockhash\"\n"
             "\nRemoves invalidity status of a block and its descendants, reconsider them for activation.\n"
             "This can be used to undo the effects of invalidateblock.\n"
+            "Stored PoS blocks are fully revalidated before becoming fork-choice candidates again.\n"
             "\nArguments:\n"
             "1. \"blockhash\"   (string, required) the hash of the block to reconsider\n"
             "\nResult:\n"

@@ -9,6 +9,7 @@
 #include <pos/state.h>
 
 class CBlock;
+class CBlockIndex;
 
 namespace pos {
 
@@ -28,6 +29,7 @@ enum class ValidationError {
     VOTE_BOND,
     VOTE_CHECKPOINT,
     VOTE_SIGNATURE,
+    VOTE_HEAD,
     EVIDENCE_BOND,
     EVIDENCE_SIGNATURE,
     COMMITMENT_MISSING,
@@ -53,6 +55,15 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
                                     uint32_t snapshot_delay_epochs,
                                     uint64_t current_epoch,
                                     int32_t current_height);
+
+/** Validate the signed head claim without consulting unrelated block headers. */
+ValidationError CheckVoteHead(const CheckpointVote& vote, const State& state,
+                              uint64_t maximum_slot);
+
+/** Only ancestors of this branch, at the signed slot, carry fork-choice weight. */
+const CBlockIndex* FindVoteHead(const CheckpointVote& vote,
+                               const CBlockIndex* tip,
+                               const Consensus::Params& params);
 
 ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
                                   const State& state,
