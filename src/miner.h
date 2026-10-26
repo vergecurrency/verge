@@ -157,8 +157,8 @@ public:
     explicit BlockAssembler(const CChainParams& params);
     BlockAssembler(const CChainParams& params, const Options& options);
 
-    /** Construct a new block template with coinbase to scriptPubKeyIn */
-    std::unique_ptr<CBlockTemplate> CreateNewBlock(const CScript& scriptPubKeyIn, int algo = ALGO, bool fMineWitnessTx=true);
+    /** Construct a new block template; only RPC callers may request a temporarily disabled algorithm. */
+    std::unique_ptr<CBlockTemplate> CreateNewBlock(const CScript& scriptPubKeyIn, int algo = ALGO, bool fMineWitnessTx=true, bool fAllowDisabledMining=false);
 
 private:
     // utility functions

@@ -311,7 +311,8 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             "  \"weightlimit\" : n,                (numeric) limit of block weight\n"
             "  \"curtime\" : ttt,                  (numeric) current timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"bits\" : \"xxxxxxxx\",              (string) compressed target of next block\n"
-            "  \"height\" : n                      (numeric) The height of the next block\n"
+            "  \"height\" : n,                     (numeric) The height of the next block\n"
+            "  \"mining_disabled\" : b             (boolean) Whether this algorithm is temporarily ineligible for the next block; refresh after the chain advances\n"
             "}\n"
 
             "\nExamples:\n"
@@ -496,7 +497,9 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, templateAlgorithm, false /*supports segwit bool*/);
+        // Return paused templates with mining_disabled instead of an RPC error.
+        // Submitted blocks and proposal checks still enforce algorithm eligibility.
+        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, templateAlgorithm, false /*supports segwit bool*/, true /*allow disabled mining*/);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
