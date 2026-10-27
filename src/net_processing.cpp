@@ -75,6 +75,7 @@ static const int64_t ADDR_PROCESSING_TOKENS_PER_SECOND = 100;
 static const int64_t MAX_POS_VOTE_PROCESSING_TOKENS = 256;
 static const int64_t POS_VOTE_PROCESSING_TOKENS_PER_MINUTE = 64;
 static const int64_t POS_HEADER_BLOCK_TIMEOUT = 60;
+static const int64_t POS_FUTURE_HEADER_TIMEOUT = 60;
 static const int64_t EMPTY_HEADERS_RETRY_INTERVAL = 60 * 1000000;
 static const int64_t MAX_POS_EVIDENCE_PROCESSING_TOKENS = 32;
 static const int64_t POS_EVIDENCE_PROCESSING_TOKENS_PER_MINUTE = 8;
@@ -265,6 +266,8 @@ struct CNodeState {
     int64_t m_pos_evidence_process_time;
     uint256 m_pending_pos_block;
     int64_t m_pending_pos_block_time;
+    CBlockHeader m_deferred_pos_header;
+    int64_t m_deferred_pos_header_time;
     uint256 m_last_pos_header_request;
 
     CNodeState(CAddress addrIn, std::string addrNameIn) : address(addrIn), name(addrNameIn) {
@@ -300,6 +303,7 @@ struct CNodeState {
         m_pos_evidence_process_time = GetTime();
         m_pending_pos_block.SetNull();
         m_pending_pos_block_time = 0;
+        m_deferred_pos_header_time = 0;
         m_last_pos_header_request.SetNull();
     }
 };
@@ -1556,16 +1560,39 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
             if (!params.IsPoSActive(height) || header.nBits != 0 ||
                 header.nNonce != 0 || params.nPoSSlotSeconds == 0 ||
                 header.nTime % params.nPoSSlotSeconds != 0 ||
-                header.nTime <= parent->nTime ||
-                header.nTime > current_slot_time) {
+                header.nTime <= parent->nTime) {
+                LogPrint(BCLog::NET,
+                         "invalid PoS header %s peer=%d height=%d time=%u parent_time=%u bits=%u nonce=%u\n",
+                         hash.ToString(), pfrom->GetId(), height, header.nTime,
+                         parent->nTime, header.nBits, header.nNonce);
                 Misbehaving(pfrom->GetId(), 20, "invalid PoS header announcement");
                 return false;
             }
             const int64_t now = GetTime();
+            if (header.nTime > current_slot_time) {
+                // A clock difference at the slot boundary is not misconduct.
+                // Retain at most one next-slot locator, never its full block.
+                if (header.nTime - current_slot_time > params.nPoSSlotSeconds) {
+                    LogPrint(BCLog::NET,
+                             "ignoring far-future PoS header %s peer=%d time=%u current_slot=%u\n",
+                             hash.ToString(), pfrom->GetId(), header.nTime,
+                             current_slot_time);
+                    return true;
+                }
+                if (nodestate->m_deferred_pos_header.IsNull()) {
+                    nodestate->m_deferred_pos_header = header;
+                    nodestate->m_deferred_pos_header_time = now;
+                    LogPrint(BCLog::NET,
+                             "deferring early PoS header %s peer=%d time=%u current_slot=%u\n",
+                             hash.ToString(), pfrom->GetId(), header.nTime,
+                             current_slot_time);
+                }
+                return true;
+            }
             if (!nodestate->m_pending_pos_block.IsNull() &&
-                nodestate->m_pending_pos_block != hash &&
-                now - nodestate->m_pending_pos_block_time <
-                    POS_HEADER_BLOCK_TIMEOUT) {
+                (nodestate->m_pending_pos_block == hash ||
+                 now - nodestate->m_pending_pos_block_time <
+                     POS_HEADER_BLOCK_TIMEOUT)) {
                 return true;
             }
             nodestate->m_pending_pos_block = hash;
@@ -3935,6 +3962,33 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
         if (SendRejectsAndCheckIfBanned(pto, connman))
             return true;
         CNodeState &state = *State(pto->GetId());
+
+        if (!state.m_deferred_pos_header.IsNull()) {
+            const int64_t now = GetTime();
+            if (now < state.m_deferred_pos_header_time ||
+                now - state.m_deferred_pos_header_time >=
+                    POS_FUTURE_HEADER_TIMEOUT) {
+                LogPrint(BCLog::NET,
+                         "expiring deferred PoS header %s peer=%d\n",
+                         state.m_deferred_pos_header.GetHash().ToString(),
+                         pto->GetId());
+                state.m_deferred_pos_header.SetNull();
+                state.m_deferred_pos_header_time = 0;
+            } else if (!fImporting && !fReindex &&
+                       state.m_deferred_pos_header.nTime <=
+                           std::max<int64_t>(0, GetAdjustedTime()) &&
+                       state.m_pending_pos_block.IsNull()) {
+                const CBlockHeader header = state.m_deferred_pos_header;
+                state.m_deferred_pos_header.SetNull();
+                state.m_deferred_pos_header_time = 0;
+                LogPrint(BCLog::NET,
+                         "retrying deferred PoS header %s peer=%d\n",
+                         header.GetHash().ToString(), pto->GetId());
+                ProcessHeadersMessage(pto, connman, {header}, Params(),
+                                      !pto->fInbound && !pto->m_manual_connection);
+                if (SendRejectsAndCheckIfBanned(pto, connman)) return true;
+            }
+        }
 
         // Address refresh broadcast
         int64_t nNow = GetTimeMicros();

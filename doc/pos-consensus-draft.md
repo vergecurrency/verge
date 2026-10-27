@@ -296,6 +296,17 @@ treated only as a locator and the full block is requested. A peer that announces
 but withholds that full block is disconnected after 60 seconds so another peer
 can supply it.
 
+An otherwise well-formed announcement for the next canonical slot can arrive
+slightly before the receiver's adjusted clock reaches that slot. This is not
+peer misconduct. Each peer may have at most one such header deferred for up to
+60 seconds; duplicate or replacement announcements do not extend that deadline.
+When the slot arrives, normal header checks run again and the full block is
+requested once. Announcements farther than one slot ahead are ignored, not
+queued. Deferred headers never enter the block index or fork-choice state,
+and actual blocks still cannot be accepted ahead of the current canonical
+slot. Duplicate announcements for an outstanding block request neither resend
+that request nor reset its 60-second withholding timeout.
+
 ### PoS Block Extension Limits
 
 PoS uses version bit `1 << 15`, which is distinct from the five PoW algorithm bits. The conditional PoS block extension follows the existing transaction vector and block-signature field and contains canonical stake-proof, checkpoint-vote, and equivocation-evidence objects.
