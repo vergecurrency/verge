@@ -54,7 +54,7 @@ For this clean testnet trial, the initial stake snapshot is recorded at height
 2,760. A bond must be created by height 2,280 to have 720 confirmations at
 activation and must remain unspent through the snapshot. Block 2,999 is the
 last valid PoW block; block 3,000 must be produced by an eligible PoS bond.
-The October 28 clean-chain testnet trial uses `27.0.beta8` and P2P
+The October 28 clean-chain testnet trial uses `27.0.beta9` and P2P
 message-start bytes `b7 61 89 96`,
 derived from the first four bytes of
 `SHA256("Verge PoS Testnet Reset 2026-10-28 beta8 height 3000")`. This separates
