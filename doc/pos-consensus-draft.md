@@ -54,12 +54,17 @@ For this clean testnet trial, the initial stake snapshot is recorded at height
 2,760. A bond must be created by height 2,280 to have 720 confirmations at
 activation and must remain unspent through the snapshot. Block 2,999 is the
 last valid PoW block; block 3,000 must be produced by an eligible PoS bond.
-The October 13 clean-chain testnet uses P2P message-start bytes `b9 68 e2 1e`,
+The October 28 clean-chain testnet trial uses `27.0.beta8` and P2P
+message-start bytes `b7 61 89 96`,
 derived from the first four bytes of
-`SHA256("Verge PoS Testnet Reset 2026-10-13 height 3000")`. This separates it
-from the prior reset magic `e6 5d 7f ad` and the legacy testnet magic
-`cd f2 c0 ef`, so an old testnet node cannot exchange P2P messages with the
-clean network. Every seed and
+`SHA256("Verge PoS Testnet Reset 2026-10-28 beta8 height 3000")`. This separates
+it from the previous trial's magic `d6 93 2f 8a` and earlier testnet identities,
+so an old testnet node cannot exchange P2P messages with the clean network.
+The testnet genesis block and height-3,000 PoS activation are unchanged.
+Changing magic does not reset stored history: every participant in this trial
+must start with fresh testnet blockchain data, keeping mainnet data and wallet
+backups separate and intact.
+Every seed and
 participant still must upgrade because old binaries cannot join the new network.
 Operators should use a fresh testnet wallet or, after making a verified backup,
 start once with `-zapwallettxes=2` so transactions from the discarded chain are
