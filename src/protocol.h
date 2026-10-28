@@ -245,6 +245,9 @@ extern const char *POSVOTE;
 extern const char *POSVOTEEVIDENCE;
 /** Independently relayed proof-of-stake block-equivocation evidence. */
 extern const char *POSBLOCKEVIDENCE;
+/** Request/response for bounded, parent-ordered full PoS block downloads. */
+extern const char *GETPOSBLOCKS;
+extern const char *POSBLOCKS;
 };
 
 /* Get a vector of all valid message types (see above) */
@@ -274,6 +277,8 @@ enum ServiceFlags : uint64_t {
     // NODE_SMSG means the node supports secure messaging relay messages.
     // This is a Verge-specific service bit.
     NODE_SMSG = (1 << 24),
+    // Optional bounded PoS block download transport; not a consensus signal.
+    NODE_POS_SYNC = (1 << 25),
     // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation of only
     // serving the last 288 (2 day) blocks
     // See BIP159 for details on how this is implemented.

@@ -3820,6 +3820,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     // Note that witness malleability is checked in ContextualCheckBlock, so no
     // checks that use witness data may be performed here.
 
+    // A different extension under the same header is a bad payload, not an
+    // invalid block ID. Check before AcceptBlockHeader can index that ID.
+    if (pos::IsPoSVersion(block.nVersion) &&
+        block.hashPoSData != pos::ComputePoSDataHash(block.posExtension)) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-pos-data-hash", true,
+                         "PoS extension does not match its header commitment");
+    }
+
     // Size limits
     if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");

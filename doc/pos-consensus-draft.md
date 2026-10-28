@@ -552,6 +552,42 @@ corresponding requested full block passes PoS validation. This prevents cheap
 unvalidated header chains from consuming memory while allowing lagging nodes
 to advance continuously through the post-activation chain.
 
+Peers advertising the optional Verge `NODE_POS_SYNC` service bit (`1 << 25`)
+can additionally prefetch full PoS blocks. `getposblocks` contains one 32-byte
+hash of a fully validated active-chain anchor. `posblocks` echoes that anchor,
+then a one-byte `more` flag, a CompactSize count, and the complete blocks in
+parent-first order, without witness serialization. A response contains at most
+eight blocks and at most 2 MiB including its envelope. This replaces repeated
+header/body round trips with one bounded full-block response, not a trusted
+header chain.
+
+Only one batch may be outstanding globally, with a fixed 60-second deadline.
+New requests must start at the current fully validated active tip, not an old
+ancestor supplied by a peer. Blocks already validated through another peer are
+skipped without reprocessing their payloads or secure messaging contents.
+If an in-flight batch encounters a competing active-chain successor, it falls
+back without penalizing its sender; branch exploration and selection continue
+through normal legacy synchronization and the unchanged fork-choice rules.
+Unsolicited replies and mismatched anchors never enter the block index. Count,
+byte, framing, and linkage checks precede block processing; every accepted block
+still undergoes the normal branch-local PoS, UTXO, signature, vote, evidence,
+finality, and fork-choice checks before the next block is processed. No block
+or header receives synthetic work or eligibility from being prefetched. A failed
+block stops the batch; a future-slot block falls back to the bounded header
+retry path without penalizing honest clock skew. Disconnect releases the global
+request. Timeout, an empty response, a changed active-chain anchor, or a block
+too large for the batch budget selects legacy download for that connection.
+Serving respects pruning, historical upload limits, send-buffer backpressure,
+and a per-peer token bucket (32 requests initially, eight replenished per second).
+Old peers need no changes and never receive this optional request. This is a
+transport optimization, not a consensus or transaction-format change. The GUI
+shows validated PoS block counts instead of extrapolating a PoW header-sync
+percentage from elapsed time.
+The full extension is checked against the header's `hashPoSData` commitment
+before block-index admission, for both batch and legacy body transport. A
+damaged extension is treated as a corrupt payload, so it cannot permanently
+invalidate the committed block ID or prevent retrying the authentic body.
+
 During initial block download an unprivileged node still serves connecting
 headers. Pre-activation PoW uses the protocol's normal 2,000-header maximum so
 the requester can unambiguously continue, while post-activation relay still

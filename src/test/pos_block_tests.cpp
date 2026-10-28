@@ -3,11 +3,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <pos/block.h>
+#include <chainparams.h>
+#include <consensus/validation.h>
+#include <consensus/merkle.h>
 #include <primitives/block.h>
 #include <netmessagemaker.h>
 #include <protocol.h>
 #include <streams.h>
 #include <test/setup_common.h>
+#include <validation.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -43,6 +47,32 @@ pos::BlockExtension MakeExtension()
 }
 
 } // namespace
+
+BOOST_AUTO_TEST_CASE(corrupt_extension_does_not_invalidate_committed_header)
+{
+    CBlock block;
+    block.nVersion = 2 | pos::BLOCK_VERSION_POS;
+    block.posExtension = MakeExtension();
+    CMutableTransaction reward;
+    reward.nTime = block.nTime;
+    reward.vin.resize(1);
+    reward.vin[0].prevout.SetNull();
+    reward.vin[0].scriptSig = CScript() << OP_0 << OP_0;
+    reward.vout.emplace_back(0, CScript() << OP_TRUE);
+    block.vtx.push_back(MakeTransactionRef(reward));
+    block.hashMerkleRoot = BlockMerkleRoot(block);
+    block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
+
+    CBlock damaged = block;
+    damaged.posExtension.authorization.signature[0] ^= 1;
+    BOOST_CHECK(damaged.GetHash() == block.GetHash());
+    CValidationState damaged_state;
+    BOOST_CHECK(!CheckBlock(damaged, damaged_state, Params().GetConsensus()));
+    BOOST_CHECK_EQUAL(damaged_state.GetRejectReason(), "bad-pos-data-hash");
+    BOOST_CHECK(damaged_state.CorruptionPossible());
+    CValidationState valid_state;
+    BOOST_CHECK(CheckBlock(block, valid_state, Params().GetConsensus()));
+}
 
 BOOST_AUTO_TEST_CASE(empty_collection_size_and_round_trip)
 {

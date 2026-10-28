@@ -1578,6 +1578,13 @@ void VERGEGUI::updateHeadersSyncProgressLabel()
 {
     int64_t headersTipTime = clientModel->getHeaderTipTime();
     int headersTipHeight = clientModel->getHeaderTipHeight();
+    if (Params().GetConsensus().IsPoSActive(headersTipHeight)) {
+        progressBarLabel->setText(tr("Synchronizing PoS blocks (%1 validated)...")
+                                     .arg(headersTipHeight));
+        progressBar->setRange(0, 0);
+        progressBar->setFormat(tr("PoS block sync"));
+        return;
+    }
     int estHeadersLeft = (GetTime() - headersTipTime) / CalculateAvgBlockTimeForHeight(headersTipHeight); //Params().GetConsensus().nPowTargetSpacing;
     const int headerTarget = headersTipHeight + estHeadersLeft;
     if (estHeadersLeft > HEADER_HEIGHT_DELTA_SYNC && headerTarget > 0) {
@@ -1652,7 +1659,8 @@ void VERGEGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerif
             if (header) {
                 updateHeadersSyncProgressLabel();
                 syncState = "syncing";
-                chainStateText = tr("Headers");
+                chainStateText = Params().GetConsensus().IsPoSActive(count)
+                    ? tr("Syncing") : tr("Headers");
                 progressBarLabel->setVisible(true);
                 progressBar->setVisible(true);
                 syncStatusCard->setVisible(true);
@@ -1732,8 +1740,12 @@ void VERGEGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerif
 
         progressBarLabel->setVisible(true);
         progressBar->setFormat(tr("%1 behind").arg(timeBehindText));
-        progressBar->setMaximum(1000000000);
-        progressBar->setValue(nVerificationProgress * 1000000000.0 + 0.5);
+        if (Params().GetConsensus().IsPoSActive(count)) {
+            progressBar->setRange(0, 0);
+        } else {
+            progressBar->setRange(0, 1000000000);
+            progressBar->setValue(nVerificationProgress * 1000000000.0 + 0.5);
+        }
         progressBar->setVisible(true);
         if (!syncStatusCard->isVisible()) {
             syncStatusCard->setVisible(true);

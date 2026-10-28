@@ -45,6 +45,8 @@ const char *BLOCKTXN="blocktxn";
 const char *POSVOTE="posvote";
 const char *POSVOTEEVIDENCE="posvevid";
 const char *POSBLOCKEVIDENCE="posbevid";
+const char *GETPOSBLOCKS="getposblocks";
+const char *POSBLOCKS="posblocks";
 } // namespace NetMsgType
 
 /** All known message types. Keep this in the same order as the list of
@@ -80,6 +82,8 @@ const static std::string allNetMessageTypes[] = {
     NetMsgType::POSVOTE,
     NetMsgType::POSVOTEEVIDENCE,
     NetMsgType::POSBLOCKEVIDENCE,
+    NetMsgType::GETPOSBLOCKS,
+    NetMsgType::POSBLOCKS,
 };
 const static std::vector<std::string> allNetMessageTypesVec(allNetMessageTypes, allNetMessageTypes+ARRAYLEN(allNetMessageTypes));
 

@@ -76,6 +76,9 @@ static const int64_t MAX_POS_VOTE_PROCESSING_TOKENS = 256;
 static const int64_t POS_VOTE_PROCESSING_TOKENS_PER_MINUTE = 64;
 static const int64_t POS_HEADER_BLOCK_TIMEOUT = 60;
 static const int64_t POS_FUTURE_HEADER_TIMEOUT = 60;
+static constexpr size_t MAX_POS_PREFETCH_BLOCKS = 8;
+static constexpr size_t MAX_POS_PREFETCH_BYTES = 2 * 1024 * 1024;
+static constexpr int64_t POS_PREFETCH_TIMEOUT = 60;
 static const int64_t EMPTY_HEADERS_RETRY_INTERVAL = 60 * 1000000;
 static const int64_t MAX_POS_EVIDENCE_PROCESSING_TOKENS = 32;
 static const int64_t POS_EVIDENCE_PROCESSING_TOKENS_PER_MINUTE = 8;
@@ -101,6 +104,11 @@ namespace {
      * punished if the block is invalid.
      */
     std::map<uint256, std::pair<NodeId, bool>> mapBlockSource;
+
+    // Only one untrusted full-block batch may be outstanding across all peers.
+    NodeId g_pos_prefetch_peer = -1;
+    uint256 g_pos_prefetch_anchor;
+    int64_t g_pos_prefetch_time = 0;
 
     /**
      * Filter for transactions that were recently rejected by
@@ -269,6 +277,9 @@ struct CNodeState {
     CBlockHeader m_deferred_pos_header;
     int64_t m_deferred_pos_header_time;
     uint256 m_last_pos_header_request;
+    bool m_pos_prefetch_disabled{false};
+    int64_t m_pos_prefetch_serve_time{0};
+    int64_t m_pos_prefetch_serve_tokens{32};
 
     CNodeState(CAddress addrIn, std::string addrNameIn) : address(addrIn), name(addrNameIn) {
         fCurrentlyConnected = false;
@@ -317,6 +328,51 @@ CNodeState *State(NodeId pnode) {
     if (it == mapNodeState.end())
         return nullptr;
     return &it->second;
+}
+
+static void ClearPoSPrefetch() EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    g_pos_prefetch_peer = -1;
+    g_pos_prefetch_anchor.SetNull();
+    g_pos_prefetch_time = 0;
+}
+
+static bool RequestPoSPrefetch(CNode* peer, CConnman* connman,
+                               const CBlockIndex* anchor)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    CNodeState* state = State(peer->GetId());
+    if (state == nullptr || state->m_pos_prefetch_disabled ||
+        !(peer->nServices & NODE_POS_SYNC) || fImporting || fReindex ||
+        anchor == nullptr || anchor != chainActive.Tip() ||
+        !Params().GetConsensus().IsPoSActive(anchor->nHeight + 1) ||
+        (pos::IsPoSVersion(anchor->nVersion)
+            ? !(anchor->nStatus & BLOCK_VALID_POS)
+            : !anchor->IsValid(BLOCK_VALID_SCRIPTS))) {
+        return false;
+    }
+    if (g_pos_prefetch_peer != -1) {
+        return g_pos_prefetch_peer == peer->GetId();
+    }
+    g_pos_prefetch_peer = peer->GetId();
+    g_pos_prefetch_anchor = anchor->GetBlockHash();
+    g_pos_prefetch_time = GetTime();
+    LogPrint(BCLog::NET, "requesting PoS batch after %s peer=%d\n",
+             g_pos_prefetch_anchor.ToString(), peer->GetId());
+    connman->PushMessage(peer, CNetMsgMaker(peer->GetSendVersion()).Make(
+        NetMsgType::GETPOSBLOCKS, g_pos_prefetch_anchor));
+    return true;
+}
+
+static void FallbackPoSPrefetch(CNode* peer, CConnman* connman)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    if (g_pos_prefetch_peer == peer->GetId()) ClearPoSPrefetch();
+    CNodeState* state = State(peer->GetId());
+    if (state == nullptr) return;
+    state->m_pos_prefetch_disabled = true;
+    connman->PushMessage(peer, CNetMsgMaker(peer->GetSendVersion()).Make(
+        NetMsgType::GETHEADERS, chainActive.GetLocator(), uint256()));
 }
 
 static void UpdatePreferredDownload(CNode* node, CNodeState* state)
@@ -634,6 +690,7 @@ void PeerLogicValidation::FinalizeNode(NodeId nodeid, bool& fUpdateConnectionTim
     LOCK(cs_main);
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
+    if (g_pos_prefetch_peer == nodeid) ClearPoSPrefetch();
 
     if (state->fSyncStarted)
         nSyncStarted--;
@@ -1595,6 +1652,7 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
                      POS_HEADER_BLOCK_TIMEOUT)) {
                 return true;
             }
+            if (RequestPoSPrefetch(pfrom, connman, parent)) return true;
             nodestate->m_pending_pos_block = hash;
             nodestate->m_pending_pos_block_time = now;
             UpdateBlockAvailability(pfrom->GetId(), hash);
@@ -2528,6 +2586,182 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             SER_BLOCKHEADERONLY, NetMsgType::HEADERS, vHeaders));
     }
 
+
+    else if (strCommand == NetMsgType::GETPOSBLOCKS)
+    {
+        uint256 anchor_hash;
+        vRecv >> anchor_hash;
+        if (!vRecv.empty()) throw std::ios_base::failure("trailing getposblocks data");
+        std::vector<CBlock> blocks;
+        bool more = false;
+        {
+            LOCK(cs_main);
+            CNodeState* state = State(pfrom->GetId());
+            const CBlockIndex* anchor = LookupBlockIndex(anchor_hash);
+            const int64_t now = GetTime();
+            const int64_t elapsed = std::min<int64_t>(
+                4, std::max<int64_t>(0, now - state->m_pos_prefetch_serve_time));
+            state->m_pos_prefetch_serve_time = now;
+            state->m_pos_prefetch_serve_tokens = std::min<int64_t>(
+                32, state->m_pos_prefetch_serve_tokens + elapsed * 8);
+            if (anchor != nullptr && chainActive.Contains(anchor) &&
+                chainparams.GetConsensus().IsPoSActive(anchor->nHeight + 1) &&
+                state->m_pos_prefetch_serve_tokens > 0) {
+                --state->m_pos_prefetch_serve_tokens;
+                // Include the anchor, more flag, and compact block count.
+                size_t bytes = 32 + 1 + 1;
+                const CBlockIndex* index = chainActive.Next(anchor);
+                for (; index != nullptr && blocks.size() < MAX_POS_PREFETCH_BLOCKS;
+                     index = chainActive.Next(index)) {
+                    if (interruptMsgProc) return true;
+                    if (!pos::IsPoSVersion(index->nVersion) ||
+                        !(index->nStatus & BLOCK_VALID_POS) ||
+                        !(index->nStatus & BLOCK_HAVE_DATA)) break;
+                    if (!pfrom->fWhitelisted &&
+                        ((connman->OutboundTargetReached(true) &&
+                          chainActive.Tip()->GetBlockTime() - index->GetBlockTime() >
+                              HISTORICAL_BLOCK_AGE) ||
+                         ((pfrom->GetLocalServices() & NODE_NETWORK_LIMITED) &&
+                          !(pfrom->GetLocalServices() & NODE_NETWORK) &&
+                          chainActive.Height() - index->nHeight >
+                              static_cast<int>(NODE_NETWORK_LIMITED_MIN_BLOCKS) + 2))) {
+                        break;
+                    }
+                    CBlock block;
+                    if (!ReadBlockFromDisk(block, index, chainparams.GetConsensus())) break;
+                    const size_t size = GetSerializeSize(
+                        block, SER_NETWORK,
+                        pfrom->GetSendVersion() | SERIALIZE_TRANSACTION_NO_WITNESS);
+                    if (size > MAX_POS_PREFETCH_BYTES - bytes) break;
+                    bytes += size;
+                    blocks.push_back(std::move(block));
+                }
+                more = index != nullptr;
+            }
+        }
+        connman->PushMessage(pfrom, msgMaker.Make(
+            SERIALIZE_TRANSACTION_NO_WITNESS, NetMsgType::POSBLOCKS,
+            anchor_hash, more, blocks));
+    }
+
+    else if (strCommand == NetMsgType::POSBLOCKS)
+    {
+        {
+            LOCK(cs_main);
+            if (g_pos_prefetch_peer != pfrom->GetId()) return true;
+            if (vRecv.size() > MAX_POS_PREFETCH_BYTES) {
+                FallbackPoSPrefetch(pfrom, connman);
+                Misbehaving(pfrom->GetId(), 20, "oversized PoS batch");
+                return false;
+            }
+        }
+        uint256 anchor_hash;
+        bool more = false;
+        std::vector<std::shared_ptr<CBlock>> blocks;
+        try {
+            vRecv >> anchor_hash >> more;
+            {
+                LOCK(cs_main);
+                if (anchor_hash != g_pos_prefetch_anchor) return true;
+                const CBlockIndex* anchor = LookupBlockIndex(anchor_hash);
+                if (fImporting || fReindex || anchor == nullptr ||
+                    !chainActive.Contains(anchor)) {
+                    FallbackPoSPrefetch(pfrom, connman);
+                    return true;
+                }
+            }
+            const uint64_t count = ReadCompactSize(vRecv);
+            if (count > MAX_POS_PREFETCH_BLOCKS)
+                throw std::ios_base::failure("too many PoS batch blocks");
+            uint256 parent = anchor_hash;
+            for (uint64_t i = 0; i < count; ++i) {
+                auto block = std::make_shared<CBlock>();
+                vRecv >> *block;
+                if (!pos::IsPoSVersion(block->nVersion) || block->hashPrevBlock != parent)
+                    throw std::ios_base::failure("non-contiguous PoS batch");
+                parent = block->GetHash();
+                blocks.push_back(std::move(block));
+            }
+            if (!vRecv.empty()) throw std::ios_base::failure("trailing PoS batch data");
+        } catch (const std::ios_base::failure&) {
+            LOCK(cs_main);
+            FallbackPoSPrefetch(pfrom, connman);
+            Misbehaving(pfrom->GetId(), 20, "malformed PoS batch");
+            return false;
+        }
+        if (blocks.empty()) {
+            LOCK(cs_main);
+            FallbackPoSPrefetch(pfrom, connman);
+            return true;
+        }
+        LogPrint(BCLog::NET, "received PoS batch of %u block(s) peer=%d\n",
+                 blocks.size(), pfrom->GetId());
+        for (const auto& block : blocks) {
+            if (interruptMsgProc) return true;
+            const uint256 hash = block->GetHash();
+            const uint32_t slot_seconds = chainparams.GetConsensus().nPoSSlotSeconds;
+            const uint64_t current_slot = slot_seconds == 0 ? 0 :
+                (static_cast<uint64_t>(std::max<int64_t>(0, GetAdjustedTime())) /
+                 slot_seconds) * slot_seconds;
+            if (block->nTime > current_slot || IsAdditionalPoSEquivocation(*block)) {
+                LOCK(cs_main);
+                FallbackPoSPrefetch(pfrom, connman);
+                return true;
+            }
+            {
+                LOCK(cs_main);
+                if (g_pos_prefetch_peer != pfrom->GetId() ||
+                    g_pos_prefetch_anchor != anchor_hash) return true;
+                const CBlockIndex* known = LookupBlockIndex(hash);
+                if (known != nullptr && (known->nStatus & BLOCK_VALID_POS)) {
+                    UpdateBlockAvailability(pfrom->GetId(), hash);
+                    continue;
+                }
+                // A competing successor may have won or finalized in flight.
+                // Explore branches through legacy sync, without blaming a stale reply.
+                if (chainActive.Tip() == nullptr ||
+                    block->hashPrevBlock != chainActive.Tip()->GetBlockHash()) {
+                    FallbackPoSPrefetch(pfrom, connman);
+                    return true;
+                }
+                MarkBlockAsReceived(hash);
+                mapBlockSource.emplace(hash, std::make_pair(pfrom->GetId(), true));
+            }
+            bool new_block = false;
+            const bool processed = ProcessNewBlock(chainparams, block, true, &new_block);
+            if (processed) RecordPoSAuthorization(*block, chainparams, connman);
+            bool authenticated;
+            {
+                LOCK(cs_main);
+                const CBlockIndex* accepted = LookupBlockIndex(hash);
+                authenticated = processed && accepted != nullptr &&
+                    (accepted->nStatus & BLOCK_VALID_POS);
+                if (!new_block || !processed) mapBlockSource.erase(hash);
+                if (!authenticated) {
+                    FallbackPoSPrefetch(pfrom, connman);
+                    return false;
+                }
+                UpdateBlockAvailability(pfrom->GetId(), hash);
+            }
+            if (new_block) pfrom->nLastBlockTime = GetTime();
+            if (smsg::fSecMsgEnabled) smsgModule.ScanBlock(*block);
+        }
+        {
+            LOCK(cs_main);
+            if (g_pos_prefetch_peer != pfrom->GetId() ||
+                g_pos_prefetch_anchor != anchor_hash) return true;
+            const uint256 last = blocks.back()->GetHash();
+            CNodeState* state = State(pfrom->GetId());
+            state->m_last_pos_header_request = last;
+            ClearPoSPrefetch();
+            if (more && RequestPoSPrefetch(pfrom, connman, LookupBlockIndex(last))) {
+                return true;
+            }
+            connman->PushMessage(pfrom, msgMaker.Make(
+                NetMsgType::GETHEADERS,
+                chainActive.GetLocator(LookupBlockIndex(last)), uint256()));
+        }
+    }
 
     else if (strCommand == NetMsgType::POSBLOCKEVIDENCE)
     {
@@ -3756,6 +3990,14 @@ void PeerLogicValidation::ConsiderEviction(CNode *pto, int64_t time_in_seconds)
 
     CNodeState &state = *State(pto->GetId());
     const CNetMsgMaker msgMaker(pto->GetSendVersion());
+
+    if (g_pos_prefetch_peer == pto->GetId() &&
+        (time_in_seconds < g_pos_prefetch_time ||
+         time_in_seconds - g_pos_prefetch_time >= POS_PREFETCH_TIMEOUT)) {
+        LogPrint(BCLog::NET, "PoS batch timeout; using legacy sync peer=%d\n",
+                 pto->GetId());
+        FallbackPoSPrefetch(pto, connman);
+    }
 
     if (!state.m_pending_pos_block.IsNull() &&
         time_in_seconds - state.m_pending_pos_block_time >
