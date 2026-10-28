@@ -394,7 +394,7 @@
             <item row="4" column="0">
              <widget class="QLabel" name="labelStakedText">
               <property name="text">
-               <string>Staked:</string>
+               <string>Bonded / unbonding:</string>
               </property>
              </widget>
             </item>
@@ -410,7 +410,7 @@
                <cursorShape>IBeamCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>Your balance currently committed to proof-of-stake bonds</string>
+               <string>Your balance locked in proof-of-stake bonds or confirmed unbonding outputs</string>
               </property>
               <property name="text">
                <string notr="true">0.000 000 00 XVG</string>

@@ -13,6 +13,8 @@
 #include <vector>
 
 #include <consensus/validation.h>
+#include <arith_uint256.h>
+#include <chainparams.h>
 #include <pos/stake.h>
 #include <pos/crypto.h>
 #include <pos/vrf.h>
@@ -20,6 +22,7 @@
 #include <test/setup_common.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
+#include <wallet/staker.h>
 #include <wallet/test/wallet_test_fixture.h>
 
 #include <boost/test/unit_test.hpp>
@@ -376,6 +379,24 @@ BOOST_FIXTURE_TEST_CASE(unbond_balance_unlock_and_reorg, ListCoinsTestingSetup)
 {
     LOCK2(cs_main, wallet->cs_wallet);
     CBlockIndex* const tip = chainActive.Tip();
+    const uint32_t delay = Params().GetConsensus().nPoSUnbondingBlocks;
+    std::vector<CBlockIndex> extension(delay - 2);
+    std::vector<uint256> hashes(extension.size());
+    for (size_t i = 0; i < extension.size(); ++i) {
+        CBlockIndex& index = extension[i];
+        hashes[i] = ArithToUint256(arith_uint256(i + 1));
+        index.phashBlock = &hashes[i];
+        index.pprev = i == 0 ? tip : &extension[i - 1];
+        index.nHeight = index.pprev->nHeight + 1;
+        index.nTime = index.pprev->nTime + 1;
+        index.BuildSkip();
+    }
+    struct RestoreTip {
+        CBlockIndex* original;
+        ~RestoreTip() { chainActive.SetTip(original); }
+    } restore{tip};
+    CBlockIndex* const unlocked_tip = &extension.back();
+    chainActive.SetTip(unlocked_tip);
     const CAmount ordinary_balance = wallet->GetBalance();
     const CAmount legacy_balance = wallet->GetLegacyBalance(ISMINE_SPENDABLE, 1, nullptr);
     pos::UnbondData unbond;
@@ -395,6 +416,8 @@ BOOST_FIXTURE_TEST_CASE(unbond_balance_unlock_and_reorg, ListCoinsTestingSetup)
     wtx.SetMerkleBranch(tip->pprev, 1);
     BOOST_REQUIRE(wallet->AddToWallet(wtx));
     const CWalletTx& stored = wallet->mapWallet.at(wtx.GetHash());
+    BOOST_CHECK_EQUAL(stored.GetUnbondUnlockHeight(unbond),
+                      tip->pprev->nHeight + delay);
     BOOST_CHECK_EQUAL(wallet->IsMine(tx.vout[0]), ISMINE_SPENDABLE);
     BOOST_CHECK_EQUAL(wallet->IsMine(tx.vout[1]), ISMINE_SPENDABLE);
     BOOST_CHECK_EQUAL(stored.GetCredit(ISMINE_SPENDABLE), 3000 * COIN);
@@ -404,13 +427,13 @@ BOOST_FIXTURE_TEST_CASE(unbond_balance_unlock_and_reorg, ListCoinsTestingSetup)
                       legacy_balance + 1000 * COIN);
 
     // Reusing the credit cache must not expose locked funds after a rewind.
-    chainActive.SetTip(tip->pprev);
+    chainActive.SetTip(unlocked_tip->pprev);
     BOOST_CHECK_EQUAL(stored.GetAvailableCredit(), 0);
     std::vector<COutput> coins;
     wallet->AvailableCoins(coins);
     BOOST_CHECK(std::none_of(coins.begin(), coins.end(),
         [&wtx](const COutput& coin) { return coin.tx->GetHash() == wtx.GetHash(); }));
-    chainActive.SetTip(tip);
+    chainActive.SetTip(unlocked_tip);
 
     BOOST_CHECK_EQUAL(stored.GetAvailableCredit(), 1000 * COIN);
     wallet->AvailableCoins(coins);
@@ -428,6 +451,29 @@ BOOST_FIXTURE_TEST_CASE(unbond_balance_unlock_and_reorg, ListCoinsTestingSetup)
     unbond.withdrawal_key_id = other.GetPubKey().GetID();
     BOOST_CHECK_EQUAL(wallet->IsMine(CTxOut(
         1000 * COIN, pos::GetUnbondScript(unbond))), ISMINE_NO);
+}
+
+BOOST_FIXTURE_TEST_CASE(unbond_pending_wallet_rows, ListCoinsTestingSetup)
+{
+    LOCK2(cs_main, wallet->cs_wallet);
+    pos::UnbondData unbond;
+    unbond.unlock_height = chainActive.Height() + 1 +
+        Params().GetConsensus().nPoSUnbondingBlocks;
+    unbond.withdrawal_key_id = coinbaseKey.GetPubKey().GetID();
+    CMutableTransaction tx;
+    tx.vin.emplace_back(COutPoint(uint256S("1235"), 0));
+    tx.vout.emplace_back(1000 * COIN, pos::GetUnbondScript(unbond));
+    CWalletTx wtx(wallet.get(), MakeTransactionRef(tx));
+    BOOST_REQUIRE(wallet->AddToWallet(wtx));
+    const auto rows = GetWalletStakeBonds(*wallet);
+    BOOST_REQUIRE_EQUAL(rows.size(), 1U);
+    BOOST_CHECK(rows[0].unbond_pending);
+    BOOST_CHECK_EQUAL(rows[0].confirmations, 0);
+    BOOST_CHECK_EQUAL(rows[0].blocks_until_unlock,
+                      Params().GetConsensus().nPoSUnbondingBlocks);
+    BOOST_CHECK_EQUAL(wallet->mapWallet.at(wtx.GetHash()).GetAvailableCredit(), 0);
+    wallet->mapWallet.at(wtx.GetHash()).setAbandoned();
+    BOOST_CHECK(GetWalletStakeBonds(*wallet).empty());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

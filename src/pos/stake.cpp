@@ -71,6 +71,14 @@ bool IsValid(const UnbondData& unbond)
     return unbond.unlock_height != 0 && !unbond.withdrawal_key_id.IsNull();
 }
 
+uint64_t GetUnbondUnlockHeight(const UnbondData& unbond,
+                               uint32_t confirmation_height,
+                               uint32_t unbonding_blocks)
+{
+    return std::max<uint64_t>(unbond.unlock_height,
+        static_cast<uint64_t>(confirmation_height) + unbonding_blocks);
+}
+
 bool HasBondMarker(const CScript& script)
 {
     CScript::const_iterator cursor = script.begin();

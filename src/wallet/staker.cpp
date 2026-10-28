@@ -33,6 +33,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <set>
 
 namespace {
 
@@ -560,6 +561,36 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     return true;
 }
 
+std::vector<WalletUnbondingInfo> GetWalletUnbondings(CWallet& wallet)
+{
+    LOCK2(cs_main, wallet.cs_wallet);
+    std::vector<WalletUnbondingInfo> result;
+    const int64_t next_height = static_cast<int64_t>(chainActive.Height()) + 1;
+    for (const auto& item : wallet.mapWallet) {
+        const CWalletTx& tx = item.second;
+        const int depth = tx.GetDepthInMainChain();
+        if (depth < 0 || tx.isAbandoned()) continue;
+        for (uint32_t i = 0; i < tx.tx->vout.size(); ++i) {
+            pos::UnbondData unbond;
+            if (wallet.IsSpent(item.first, i) ||
+                !pos::ParseUnbondScript(tx.tx->vout[i].scriptPubKey, unbond) ||
+                !wallet.HaveKey(CKeyID(unbond.withdrawal_key_id))) continue;
+            WalletUnbondingInfo info;
+            info.txid = item.first;
+            info.vout = i;
+            info.amount = tx.tx->vout[i].nValue;
+            info.confirmations = depth;
+            info.encoded_unlock_height = unbond.unlock_height;
+            info.unlock_height = tx.GetUnbondUnlockHeight(unbond);
+            info.blocks_until_unlock = std::max<int64_t>(
+                0, info.unlock_height - next_height);
+            info.withdrawal_key_id = unbond.withdrawal_key_id;
+            result.push_back(std::move(info));
+        }
+    }
+    return result;
+}
+
 std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
 {
     LOCK2(cs_main, wallet.cs_wallet);
@@ -569,6 +600,16 @@ std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
 
     pos::State state = GetPoSStateSnapshot();
     const Consensus::Params& params = Params().GetConsensus();
+    const std::vector<WalletUnbondingInfo> unbondings = GetWalletUnbondings(wallet);
+    std::set<COutPoint> pending_bonds;
+    for (const WalletUnbondingInfo& unbond : unbondings) {
+        if (unbond.confirmations != 0) continue;
+        const CWalletTx* tx = wallet.GetWalletTx(unbond.txid);
+        if (tx == nullptr) continue;
+        for (const CTxIn& input : tx->tx->vin) {
+            pending_bonds.insert(input.prevout);
+        }
+    }
     uint64_t eligibility_epoch = 0;
     const pos::StakeSnapshot* snapshot =
         state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH);
@@ -598,6 +639,7 @@ std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
         const COutPoint& outpoint = item.first;
         const pos::BondRecord& bond = item.second;
         if (!wallet.HaveKey(CKeyID(bond.data.withdrawal_key_id))) continue;
+        if (pending_bonds.count(outpoint) != 0) continue;
 
         const bool in_snapshot = snapshot != nullptr &&
             std::any_of(snapshot->entries.begin(), snapshot->entries.end(),
@@ -619,6 +661,17 @@ std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
         info.withdrawal_locked = state.IsWithdrawalLocked(
             outpoint, tip->nHeight + 1);
         info.eligible = in_snapshot && !info.eligibility_locked;
+        bonds.push_back(std::move(info));
+    }
+    for (const WalletUnbondingInfo& unbond : unbondings) {
+        WalletStakeBondInfo info;
+        info.txid = unbond.txid;
+        info.vout = unbond.vout;
+        info.amount = unbond.amount;
+        info.confirmations = unbond.confirmations;
+        info.unbond_pending = unbond.confirmations == 0;
+        info.unlock_height = unbond.unlock_height;
+        info.blocks_until_unlock = unbond.blocks_until_unlock;
         bonds.push_back(std::move(info));
     }
     return bonds;
@@ -659,6 +712,10 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
     }
     if (!wallet.HaveKey(CKeyID(bond.withdrawal_key_id))) {
         error = "wallet does not control the withdrawal key";
+        return false;
+    }
+    if (wallet.IsSpent(txid, vout)) {
+        error = "bond already has a pending spend";
         return false;
     }
     if (GetPoSStateSnapshot().IsWithdrawalLocked(

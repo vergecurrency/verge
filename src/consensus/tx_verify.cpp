@@ -300,11 +300,14 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         }
 
         pos::UnbondData input_unbond;
-        if (bond_rules && pos::ParseUnbondScript(coin.out.scriptPubKey, input_unbond) &&
-            static_cast<uint64_t>(nSpendHeight) < input_unbond.unlock_height) {
-            return state.Invalid(false, REJECT_INVALID, "bad-pos-premature-unbond-spend",
-                                 strprintf("unbond output locked until height %u",
-                                           input_unbond.unlock_height));
+        if (bond_rules && pos::ParseUnbondScript(coin.out.scriptPubKey, input_unbond)) {
+            const uint64_t unlock_height = pos::GetUnbondUnlockHeight(
+                input_unbond, coin.nHeight, params.nPoSUnbondingBlocks);
+            if (static_cast<uint64_t>(nSpendHeight) < unlock_height) {
+                return state.Invalid(false, REJECT_INVALID, "bad-pos-premature-unbond-spend",
+                                     strprintf("unbond output locked until height %u",
+                                               unlock_height));
+            }
         }
 
         if (bond_output_count != 0 && coin.IsCoinBase() &&
@@ -352,7 +355,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         const uint64_t required_unlock =
             static_cast<uint64_t>(nSpendHeight) + params.nPoSUnbondingBlocks;
         if (required_unlock > std::numeric_limits<uint32_t>::max() ||
-            unbond.unlock_height != required_unlock) {
+            unbond.unlock_height <= params.nPoSUnbondingBlocks ||
+            unbond.unlock_height > required_unlock) {
             return state.DoS(100, false, REJECT_INVALID, "bad-pos-unbond-height");
         }
     }

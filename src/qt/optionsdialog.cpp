@@ -80,11 +80,12 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
         " selection-background-color: #5b21b6; selection-color: #ffffff; }"));
 
     stakingSummaryLabel->setObjectName(QStringLiteral("StakingSummaryLabel"));
+    stakingSummaryLabel->setWordWrap(true);
     bondTable->setObjectName(QStringLiteral("StakingBondTable"));
-    bondTable->setColumnCount(4);
+    bondTable->setColumnCount(5);
     bondTable->setHorizontalHeaderLabels(
         QStringList() << tr("Amount") << tr("Confirmations")
-                      << tr("Status") << tr("Outpoint"));
+                      << tr("Status") << tr("Blocks to unlock") << tr("Outpoint"));
     bondTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     bondTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
     bondTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -95,6 +96,7 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     bondTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     bondTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     bondTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    bondTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
 
     refreshBondsButton->setObjectName(QStringLiteral("DialogSecondaryButton"));
     refreshBondsButton->setText(tr("Refresh"));
@@ -277,12 +279,19 @@ void OptionsDialog::refreshStakeBonds()
         walletModel->wallet().getStakeBonds();
     CAmount total = 0;
     CAmount eligible = 0;
+    CAmount unbonding = 0;
+    size_t bondCount = 0;
     const int displayUnit = walletModel->getOptionsModel()->getDisplayUnit();
     for (const interfaces::WalletStakeBond& bond : bonds) {
         const int row = bondTable->rowCount();
         bondTable->insertRow(row);
-        total += bond.amount;
-        if (bond.eligible) eligible += bond.amount;
+        if (bond.unlock_height == 0) {
+            ++bondCount;
+            total += bond.amount;
+            if (bond.eligible) eligible += bond.amount;
+        } else if (bond.unbond_pending || bond.blocks_until_unlock > 0) {
+            unbonding += bond.amount;
+        }
 
         QTableWidgetItem *amount = new QTableWidgetItem(
             VERGEUnits::formatWithUnit(displayUnit, bond.amount, false,
@@ -291,6 +300,7 @@ void OptionsDialog::refreshStakeBonds()
         amount->setData(Qt::UserRole, QString::fromStdString(bond.txid.GetHex()));
         amount->setData(Qt::UserRole + 1, static_cast<qulonglong>(bond.vout));
         const bool canUnbond =
+            bond.unlock_height == 0 &&
             !bond.withdrawal_locked && !bond.eligibility_locked;
         amount->setData(Qt::UserRole + 2, canUnbond);
         bondTable->setItem(row, 0, amount);
@@ -301,7 +311,11 @@ void OptionsDialog::refreshStakeBonds()
         bondTable->setItem(row, 1, confirmations);
 
         QString status;
-        if (bond.withdrawal_locked || bond.eligibility_locked) {
+        if (bond.unbond_pending) {
+            status = tr("Unbond pending");
+        } else if (bond.unlock_height > 0) {
+            status = bond.blocks_until_unlock > 0 ? tr("Unbonding") : tr("Unlocked");
+        } else if (bond.withdrawal_locked || bond.eligibility_locked) {
             status = tr("Locked");
         } else if (bond.eligible) {
             status = tr("Eligible");
@@ -312,15 +326,25 @@ void OptionsDialog::refreshStakeBonds()
         }
         QTableWidgetItem *statusItem = new QTableWidgetItem(status);
         bondTable->setItem(row, 2, statusItem);
+        QTableWidgetItem *remaining = new QTableWidgetItem(
+            bond.unbond_pending ? tr("Pending") : bond.unlock_height > 0
+                ? QLocale().toString(static_cast<qlonglong>(bond.blocks_until_unlock))
+                : QStringLiteral("-"));
+        remaining->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        bondTable->setItem(row, 3, remaining);
         const QString outpoint =
             QString::fromStdString(bond.txid.GetHex()) + QStringLiteral(":") +
             QString::number(bond.vout);
-        bondTable->setItem(row, 3, new QTableWidgetItem(outpoint));
+        bondTable->setItem(row, 4, new QTableWidgetItem(outpoint));
         if (!canUnbond) {
             for (int column = 0; column < bondTable->columnCount(); ++column) {
                 QTableWidgetItem *item = bondTable->item(row, column);
                 item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
-                item->setToolTip(tr("This bond is currently consensus-locked."));
+                item->setToolTip(bond.unbond_pending
+                    ? tr("Unbond transaction awaiting confirmation; the withdrawal lock has not started.")
+                    : bond.unlock_height > 0
+                        ? tr("Withdrawal unlock height: %1").arg(bond.unlock_height)
+                        : tr("This bond is currently consensus-locked."));
             }
         } else if (selectedOutpoints.contains(outpoint)) {
             bondTable->selectionModel()->select(
@@ -330,12 +354,14 @@ void OptionsDialog::refreshStakeBonds()
     }
 
     stakingSummaryLabel->setText(
-        tr("%1 owned bonds | %2 bonded | %3 eligible")
-            .arg(bonds.size())
+        tr("%1 owned bonds | %2 bonded | %3 eligible | %4 unbonding")
+            .arg(bondCount)
             .arg(VERGEUnits::formatWithUnit(
                 displayUnit, total, false, VERGEUnits::separatorAlways))
             .arg(VERGEUnits::formatWithUnit(
-                displayUnit, eligible, false, VERGEUnits::separatorAlways)));
+                displayUnit, eligible, false, VERGEUnits::separatorAlways))
+            .arg(VERGEUnits::formatWithUnit(
+                displayUnit, unbonding, false, VERGEUnits::separatorAlways)));
     updateBondActionState();
 }
 
@@ -433,7 +459,6 @@ void OptionsDialog::unbondRows(bool all)
     initialStakingEnabled = false;
 
     int completed = 0;
-    int64_t latestUnlockHeight = 0;
     QStringList errors;
     for (const SelectedBond& bond : selectedBonds) {
         interfaces::WalletUnbond result;
@@ -441,8 +466,6 @@ void OptionsDialog::unbondRows(bool all)
         if (walletModel->wallet().unbondStake(
                 bond.txid, bond.vout, result, error)) {
             ++completed;
-            latestUnlockHeight = std::max(latestUnlockHeight,
-                                          result.unlock_height);
         } else {
             errors.push_back(QStringLiteral("%1:%2 - %3")
                 .arg(QString::fromStdString(bond.txid.GetHex()))
@@ -455,8 +478,10 @@ void OptionsDialog::unbondRows(bool all)
     if (completed > 0) {
         QMessageBox::information(
             this, tr("Unbonding started"),
-            tr("%1 unbond transaction(s) were created. The latest unlock "
-               "height is %2.").arg(completed).arg(latestUnlockHeight));
+            tr("%1 unbond transaction(s) were submitted. The withdrawal lock "
+               "is %2 accepted blocks after each transaction confirms.")
+                .arg(completed).arg(QLocale().toString(
+                    static_cast<qulonglong>(unbondingBlocks))));
     }
     if (!errors.isEmpty()) {
         QMessageBox::critical(

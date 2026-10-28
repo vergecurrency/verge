@@ -172,6 +172,8 @@ BOOST_AUTO_TEST_CASE(require_canonical_unbond_transition)
 
     CValidationState valid_state;
     BOOST_CHECK(Check(tx, valid_state, view, spend_height));
+    CValidationState delayed_state;
+    BOOST_CHECK(Check(tx, delayed_state, view, spend_height + 400));
 
     tx.vout[0].nValue -= 1;
     CValidationState principal_state;
@@ -185,6 +187,43 @@ BOOST_AUTO_TEST_CASE(require_canonical_unbond_transition)
     CValidationState height_state;
     BOOST_CHECK(!Check(tx, height_state, view, spend_height));
     BOOST_CHECK_EQUAL(height_state.GetRejectReason(), "bad-pos-unbond-height");
+}
+
+BOOST_AUTO_TEST_CASE(delayed_unbond_keeps_full_confirmation_lock)
+{
+    const Consensus::Params& params = Params().GetConsensus();
+    const int requested_height = 50000;
+    const int confirmed_height = requested_height + 400;
+    pos::UnbondData unbond;
+    unbond.unlock_height = requested_height + params.nPoSUnbondingBlocks;
+    unbond.withdrawal_key_id = MakeBond().withdrawal_key_id;
+    CCoinsView base;
+    CCoinsViewCache view(&base);
+    CMutableTransaction spend;
+    spend.vin.emplace_back(AddTestCoin(view,
+        CTxOut(params.nPoSMinStake, pos::GetUnbondScript(unbond)),
+        confirmed_height));
+    spend.vout.emplace_back(params.nPoSMinStake, CScript() << OP_TRUE);
+
+    CValidationState encoded_height_state;
+    BOOST_CHECK(!Check(spend, encoded_height_state, view, unbond.unlock_height));
+    BOOST_CHECK_EQUAL(encoded_height_state.GetRejectReason(),
+                      "bad-pos-premature-unbond-spend");
+    const int unlock_height = confirmed_height + params.nPoSUnbondingBlocks;
+    CValidationState premature_state;
+    BOOST_CHECK(!Check(spend, premature_state, view, unlock_height - 1));
+    CValidationState unlocked_state;
+    BOOST_CHECK(Check(spend, unlocked_state, view, unlock_height));
+
+    // A deliberately old encoded height cannot pre-age the lock either.
+    unbond.unlock_height = params.nPoSUnbondingBlocks + 1;
+    CCoinsView old_base;
+    CCoinsViewCache old_view(&old_base);
+    spend.vin[0].prevout = AddTestCoin(old_view,
+        CTxOut(params.nPoSMinStake, pos::GetUnbondScript(unbond)),
+        confirmed_height);
+    CValidationState preaged_state;
+    BOOST_CHECK(!Check(spend, preaged_state, old_view, confirmed_height + 1));
 }
 
 BOOST_AUTO_TEST_CASE(reject_unbacked_and_premature_unbond)

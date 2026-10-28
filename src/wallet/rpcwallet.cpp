@@ -5121,6 +5121,7 @@ static UniValue unbond(const JSONRPCRequest& request)
     UniValue result(UniValue::VOBJ);
     result.pushKV("txid", unbond_result.txid.GetHex());
     result.pushKV("unlock_height", unbond_result.unlock_height);
+    result.pushKV("unlock_height_estimated", true);
     result.pushKV("amount", ValueFromAmount(unbond_result.amount));
     return result;
 }
@@ -5396,6 +5397,7 @@ static UniValue listbonds(const JSONRPCRequest& request)
         entry.pushKV("withdrawal_locked",
                      state.IsWithdrawalLocked(outpoint, tip->nHeight + 1));
         entry.pushKV("eligible", in_snapshot && !eligibility_locked);
+        entry.pushKV("unbond_pending", pwallet->IsSpent(outpoint.hash, outpoint.n));
         entry.pushKV("signing_public_key",
                      HexStr(bond.data.signing_public_key,
                             bond.data.signing_public_key +
@@ -5431,7 +5433,8 @@ static UniValue listunbondings(const JSONRPCRequest& request)
         throw std::runtime_error(
             "listunbondings\n"
             "Returns unspent proof-of-stake unbond outputs controlled by this "
-            "wallet and their remaining consensus lock time.\n"
+            "wallet and their remaining consensus lock time. Pending unlock "
+            "heights are estimates until confirmation.\n"
             "\nExamples:\n"
             + HelpExampleCli("listunbondings", "")
             + HelpExampleRpc("listunbondings", ""));
@@ -5439,38 +5442,26 @@ static UniValue listunbondings(const JSONRPCRequest& request)
 
     pwallet->BlockUntilSyncedToCurrentChain();
     LOCK2(cs_main, pwallet->cs_wallet);
-    const int current_height = chainActive.Height();
     UniValue result(UniValue::VARR);
-    for (const auto& wallet_item : pwallet->mapWallet) {
-        const CWalletTx& wallet_tx = wallet_item.second;
-        const int depth = wallet_tx.GetDepthInMainChain();
-        if (depth < 0) continue;
-        for (uint32_t i = 0; i < wallet_tx.tx->vout.size(); ++i) {
-            pos::UnbondData unbond;
-            if (pwallet->IsSpent(wallet_item.first, i) ||
-                !pos::ParseUnbondScript(
-                    wallet_tx.tx->vout[i].scriptPubKey, unbond) ||
-                !pwallet->HaveKey(CKeyID(unbond.withdrawal_key_id))) {
-                continue;
-            }
-            UniValue entry(UniValue::VOBJ);
-            entry.pushKV("txid", wallet_item.first.GetHex());
-            entry.pushKV("vout", static_cast<uint64_t>(i));
-            entry.pushKV("amount",
-                         ValueFromAmount(wallet_tx.tx->vout[i].nValue));
-            entry.pushKV("confirmations", depth);
-            entry.pushKV("unlock_height",
-                         static_cast<uint64_t>(unbond.unlock_height));
-            entry.pushKV("blocks_until_unlock", std::max<int64_t>(
-                0, static_cast<int64_t>(unbond.unlock_height) -
-                       (static_cast<int64_t>(current_height) + 1)));
-            entry.pushKV("unlocked",
-                         current_height + 1 >=
-                             static_cast<int64_t>(unbond.unlock_height));
-            entry.pushKV("withdrawal_address",
-                         EncodeDestination(CKeyID(unbond.withdrawal_key_id)));
-            result.push_back(entry);
-        }
+    for (const WalletUnbondingInfo& unbond : GetWalletUnbondings(*pwallet)) {
+        const bool pending = unbond.confirmations == 0;
+        const bool unlocked = !pending && unbond.blocks_until_unlock == 0;
+        UniValue entry(UniValue::VOBJ);
+        entry.pushKV("txid", unbond.txid.GetHex());
+        entry.pushKV("vout", static_cast<uint64_t>(unbond.vout));
+        entry.pushKV("amount", ValueFromAmount(unbond.amount));
+        entry.pushKV("confirmations", unbond.confirmations);
+        entry.pushKV("encoded_unlock_height",
+                     static_cast<uint64_t>(unbond.encoded_unlock_height));
+        entry.pushKV("unlock_height", unbond.unlock_height);
+        entry.pushKV("unlock_height_estimated", pending);
+        entry.pushKV("blocks_until_unlock", unbond.blocks_until_unlock);
+        entry.pushKV("unlocked", unlocked);
+        entry.pushKV("status", pending ? "unbond_pending" :
+                     unlocked ? "unlocked" : "unbonding");
+        entry.pushKV("withdrawal_address",
+                     EncodeDestination(CKeyID(unbond.withdrawal_key_id)));
+        result.push_back(entry);
     }
     return result;
 }

@@ -75,6 +75,7 @@ class CScript;
 class CTxMemPool;
 class CBlockPolicyEstimator;
 class CWalletTx;
+namespace pos { struct UnbondData; }
 struct FeeCalculation;
 enum class FeeEstimateMode;
 
@@ -466,6 +467,7 @@ public:
     CAmount GetCredit(const isminefilter& filter) const;
     CAmount GetImmatureCredit(bool fUseCache=true) const;
     CAmount GetAvailableCredit(bool fUseCache=true, const isminefilter& filter=ISMINE_SPENDABLE) const;
+    int64_t GetUnbondUnlockHeight(const pos::UnbondData& unbond) const;
     CAmount GetImmatureWatchOnlyCredit(const bool fUseCache=true) const;
     CAmount GetChange() const;
 

@@ -2027,6 +2027,17 @@ CAmount CWalletTx::GetImmatureCredit(bool fUseCache) const
     return 0;
 }
 
+int64_t CWalletTx::GetUnbondUnlockHeight(const pos::UnbondData& unbond) const
+{
+    AssertLockHeld(cs_main);
+    const CBlockIndex* confirmed = nullptr;
+    const int depth = GetDepthInMainChain(confirmed);
+    const uint32_t height = depth > 0 && confirmed != nullptr
+        ? confirmed->nHeight : std::max(0, chainActive.Height() + 1);
+    return pos::GetUnbondUnlockHeight(
+        unbond, height, Params().GetConsensus().nPoSUnbondingBlocks);
+}
+
 CAmount CWalletTx::GetAvailableCredit(bool fUseCache, const isminefilter& filter) const
 {
     if (pwallet == nullptr)
@@ -2061,7 +2072,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache, const isminefilter& filter
             // Recompute across unlock heights and reorgs, even for spent outputs.
             cacheable = false;
             if (static_cast<int64_t>(chainActive.Height()) + 1 <
-                unbond.unlock_height) continue;
+                GetUnbondUnlockHeight(unbond)) continue;
         }
         if (!pwallet->IsSpent(hashTx, i))
         {
@@ -2315,7 +2326,7 @@ CAmount CWallet::GetLegacyBalance(const isminefilter& filter, int minDepth, cons
             const bool stake_locked = pos::ParseBondScript(out.scriptPubKey, bond) ||
                 (pos::ParseUnbondScript(out.scriptPubKey, unbond) &&
                  static_cast<int64_t>(chainActive.Height()) + 1 <
-                     unbond.unlock_height);
+                     wtx.GetUnbondUnlockHeight(unbond));
             if (stake_locked && (IsMine(out) & filter) && depth >= minDepth &&
                 (!account || *account == GetLabelName(out.scriptPubKey)) &&
                 !IsSpent(wtx.GetHash(), i)) {
@@ -2440,7 +2451,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const
             pos::UnbondData unbond;
             if (pos::ParseUnbondScript(pcoin->tx->vout[i].scriptPubKey, unbond) &&
                 static_cast<int64_t>(chainActive.Height()) + 1 <
-                    unbond.unlock_height) continue;
+                    pcoin->GetUnbondUnlockHeight(unbond)) continue;
 
             isminetype mine = IsMine(pcoin->tx->vout[i]);
 
@@ -2645,7 +2656,7 @@ bool CWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAm
             if (pos::ParseUnbondScript(
                     pcoin->tx->vout[outpoint.n].scriptPubKey, unbond) &&
                 static_cast<int64_t>(chainActive.Height()) + 1 <
-                    unbond.unlock_height) return false;
+                    pcoin->GetUnbondUnlockHeight(unbond)) return false;
             // Just to calculate the marginal byte size
             nValueFromPresetInputs += pcoin->tx->vout[outpoint.n].nValue;
             setPresetCoins.insert(CInputCoin(pcoin->tx, outpoint.n));

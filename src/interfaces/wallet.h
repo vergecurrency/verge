@@ -51,6 +51,9 @@ struct WalletStakeBond
     bool eligible{false};
     bool eligibility_locked{false};
     bool withdrawal_locked{false};
+    bool unbond_pending{false};
+    int64_t unlock_height{0};
+    int64_t blocks_until_unlock{0};
 };
 
 struct WalletUnbond

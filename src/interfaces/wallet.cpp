@@ -173,6 +173,9 @@ public:
             item.eligible = bond.eligible;
             item.eligibility_locked = bond.eligibility_locked;
             item.withdrawal_locked = bond.withdrawal_locked;
+            item.unbond_pending = bond.unbond_pending;
+            item.unlock_height = bond.unlock_height;
+            item.blocks_until_unlock = bond.blocks_until_unlock;
             result.push_back(std::move(item));
         }
         return result;
@@ -399,6 +402,11 @@ public:
             if (m_wallet.HaveKey(
                     CKeyID(item.second.data.withdrawal_key_id))) {
                 result.staked_balance += item.second.value;
+            }
+        }
+        for (const WalletUnbondingInfo& unbond : GetWalletUnbondings(m_wallet)) {
+            if (unbond.confirmations > 0 && unbond.blocks_until_unlock > 0) {
+                result.staked_balance += unbond.amount;
             }
         }
         result.have_watch_only = m_wallet.HaveWatchOnly();

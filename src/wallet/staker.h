@@ -25,6 +25,21 @@ struct WalletStakeBondInfo
     bool eligible{false};
     bool eligibility_locked{false};
     bool withdrawal_locked{false};
+    bool unbond_pending{false};
+    int64_t unlock_height{0};
+    int64_t blocks_until_unlock{0};
+};
+
+struct WalletUnbondingInfo
+{
+    uint256 txid;
+    uint32_t vout{0};
+    CAmount amount{0};
+    int confirmations{0};
+    uint32_t encoded_unlock_height{0};
+    int64_t unlock_height{0};
+    int64_t blocks_until_unlock{0};
+    uint160 withdrawal_key_id;
 };
 
 struct WalletUnbondResult
@@ -39,6 +54,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
 bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
                               CAmount& amount, std::string& error);
 std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet);
+std::vector<WalletUnbondingInfo> GetWalletUnbondings(CWallet& wallet);
 bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
                        WalletUnbondResult& result, std::string& error);
 void StakeWallets();

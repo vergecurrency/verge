@@ -27,6 +27,10 @@ struct UnbondData {
 
 bool IsValid(const BondData& bond);
 bool IsValid(const UnbondData& unbond);
+/** Enforce the full lock from confirmation, even after delayed inclusion. */
+uint64_t GetUnbondUnlockHeight(const UnbondData& unbond,
+                               uint32_t confirmation_height,
+                               uint32_t unbonding_blocks);
 bool HasBondMarker(const CScript& script);
 bool HasUnbondMarker(const CScript& script);
 CScript GetBondScript(const BondData& bond);

@@ -460,7 +460,7 @@ Changing the delegated signing key, VRF key, or reward destination requires comp
 
 ## Unbonding Transaction
 
-A valid unbond transaction spends one `TX_STAKE_BOND_V1` output into one `TX_STAKE_UNBOND_V1` output carrying exactly the same principal and withdrawal credential. It sets the consensus unlock height to the containing block height plus 20,160 accepted blocks.
+A valid unbond transaction spends one `TX_STAKE_BOND_V1` output into one `TX_STAKE_UNBOND_V1` output carrying exactly the same principal and withdrawal credential. The wallet encodes a requested unlock height based on the next block plus 20,160 accepted blocks. Missing that next block does not expire the transaction: the effective withdrawal height is the greater of the encoded height and the actual confirmation height plus 20,160.
 The version 1 unbond output uses a 35-byte script:
 
 ~~~text
@@ -470,9 +470,9 @@ OP_DROP ||
 OP_DUP OP_HASH160 withdrawal_key_id[20] OP_EQUALVERIFY OP_CHECKSIG
 ~~~
 
-The unlock height is an absolute accepted-block height encoded as an unsigned little-endian 32-bit integer. Zero heights, zero withdrawal identifiers, malformed pushes, altered magic/version bytes, and trailing opcodes are rejected. The transaction may use separate ordinary inputs to pay its fee; the bonded principal may not be reduced to pay fees.
+The requested unlock height is an absolute accepted-block height encoded as an unsigned little-endian 32-bit integer. Creation rejects heights no greater than the unbonding interval or later than the containing block height plus that interval. Delayed inclusion is allowed, but never shortens the confirmation-based lock. Zero heights, zero withdrawal identifiers, malformed pushes, altered magic/version bytes, and trailing opcodes are rejected. The transaction may use separate ordinary inputs to pay its fee; the bonded principal may not be reduced to pay fees.
 
-The bond stops contributing eligibility and vote weight according to the approved delayed snapshot rules. Before the unlock height, spending the unbond output is invalid. At or after the unlock height, the withdrawal credential may spend it normally or create a new bond. New bonding resets maturity and enters future snapshots normally.
+The bond stops contributing eligibility and vote weight according to the approved delayed snapshot rules. Before the effective unlock height, spending the unbond output is invalid. At or after that height, the withdrawal credential may spend it normally or create a new bond. New bonding resets maturity and enters future snapshots normally.
 The transaction-validation implementation enforces the lifecycle before and after PoS activation so stake may be prepared while the PoW history is still active:
 
 - every bond output is at least 1,000 XVG;
@@ -480,8 +480,15 @@ The transaction-validation implementation enforces the lifecycle before and afte
 - an unbond output cannot be created unless the transaction spends a live bond;
 - a transaction spending a live bond has exactly one bond input and exactly one unbond output;
 - that unbond output preserves the complete bonded principal and withdrawal credential;
-- its unlock height equals the containing block height plus 20,160 exactly; and
-- an unbond output cannot be spent before its encoded unlock height.
+- its requested unlock height is no later than the containing block height plus 20,160; and
+- an unbond output cannot be spent before either its encoded height or its confirmation height plus 20,160.
+
+This delayed-inclusion rule is a PoS consensus update and requires coordinated
+testnet upgrades. Previously confirmed canonical unbonds retain the same
+effective unlock height and replay unchanged. Existing unconfirmed requests
+can be included without changing their signatures or transaction IDs, but the
+full lock starts at their eventual confirmation. No serialization or wallet
+database migration is involved.
 
 Ordinary inputs and outputs may accompany an unbond transition to pay fees and return ordinary change. The bonded principal itself cannot pay the fee. Requiring every coinbase input in a bond-creation transaction to satisfy the 720-block rule is intentionally conservative: wallets should avoid mixing immature fee rewards into a bond transaction.
 
@@ -491,8 +498,19 @@ The signer uses the withdrawal key and commits to the complete metadata-prefixed
 script, both before and after PoS replay protection activates. Starting unbonding
 does not release spendable funds immediately: the wallet excludes unbond outputs
 from available balance and coin selection until the next candidate block reaches
-their encoded unlock height. This availability is recalculated across height
+their effective unlock height. This availability is recalculated across height
 changes and reorganizations. Live bonds remain excluded from ordinary payments.
+
+The wallet table includes pending and confirmed unbond outputs. Pending requests
+show `Unbond pending` with zero confirmations and no running countdown. Confirmed
+outputs show `Unbonding` and their blocks remaining, then `Unlocked` when
+spendable. An outstanding request cannot be unbonded a second time. Confirmed
+locked principal remains in the overview's bonded/unbonding balance until it
+becomes available; pending outputs do not double-count the still-active bond.
+`listunbondings` reports the encoded height separately from the effective
+`unlock_height`, marks pending heights as estimates, and exposes the same
+lifecycle statuses. Unconfirmed or abandoned outputs are never spendable merely
+because an old encoded height has passed.
 
 An actively locked bond cannot evade equivocation consequences by unbonding. Consensus rejects an unbond transition that conflicts with an applicable on-chain eligibility lockout.
 ## Rewards And Value Conservation

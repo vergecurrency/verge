@@ -189,6 +189,14 @@ saved reserve; unbonding remains an explicit transaction.
 | `unbond` | `unbond "txid" vout` | `verge-cli unbond <txid> 0` |
 | `generatestake` | `generatestake` | `verge-cli generatestake` |
 
+`listunbondings` includes `status` (`unbond_pending`, `unbonding`, or `unlocked`),
+actual confirmations, `blocks_until_unlock`, and the effective `unlock_height`.
+For pending requests, `unlock_height_estimated` is true and the full lock has
+not started. `encoded_unlock_height` is the value signed into the transaction;
+delayed confirmation moves the effective unlock later to preserve the complete
+20,160-block withdrawal lock. `listbonds` marks bonds with an outstanding wallet
+spend as `unbond_pending`; they remain active on-chain until that spend confirms.
+
 `getposinfo` is the primary operator view. It reports activation and sync state,
 tip age and local timing, slot and epoch progress, missed-slot and occupancy
 metrics, tracked and eligible stake, largest-bond concentration, current
