@@ -896,8 +896,18 @@ from chain synchronization.
 The one-way initial-block-download latch is not sufficient to authorize
 network services after a node has synchronized once. Staking, automatic
 bonding, secure messaging, and externally served mining templates additionally
-require the active chain to contain the best known validated header. Staking
-and automatic bonding also require at least one peer outside regtest. These
+require a fully selected active chain. Before PoS, the active chain must
+contain the best known validated header. After PoS, readiness follows the
+candidate selected by the existing PoS fork-choice rules and requires the
+active UTXO-backed PoS state to match that candidate. A runtime-only readiness
+marker is cleared when a newly validated candidate needs fork-choice review,
+when blocks are invalidated or reconsidered, and when state is reloaded. It
+becomes usable only when chain activation reaches the selected tip. Valid
+losing branches, including equal-height branches received earlier, cannot
+leave staking permanently paused as synchronizing. These checks do not alter
+fork choice, finality, or block validity, and they perform no branch replay
+on each staking readiness query.
+Staking and automatic bonding also require at least one peer outside regtest. These
 checks disable the affected service again if the node learns that its active
 chain is behind, while avoiding a tip-age rule that could prevent an otherwise
 valid stalled PoS network from recovering.

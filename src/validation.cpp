@@ -204,11 +204,21 @@ public:
     void UnloadBlockIndex();
 
     const pos::State& GetPoSState() const { return m_pos_state; }
+    bool IsPoSCurrentForServices() const {
+        AssertLockHeld(cs_main);
+        const CBlockIndex* tip = chainActive.Tip();
+        return tip != nullptr && m_pos_service_tip == tip &&
+            tip->IsValid(BLOCK_VALID_SCRIPTS) &&
+            (tip->nStatus & BLOCK_VALID_POS) &&
+            m_pos_state.BestBlock() == tip->GetBlockHash();
+    }
     bool LoadPoSState(CBlockTreeDB& blocktree, const CBlockIndex* tip,
                       const Consensus::Params& params);
 
 private:
     pos::State m_pos_state;
+    // Selected by PoS fork choice; cleared whenever new candidates need review.
+    const CBlockIndex* m_pos_service_tip{nullptr};
     bool ActivateBestChainStep(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexMostWork, const std::shared_ptr<const CBlock>& pblock, bool& fInvalidFound, ConnectTrace& connectTrace);
     bool ConnectTip(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexNew, const std::shared_ptr<const CBlock>& pblock, ConnectTrace& connectTrace, DisconnectedBlockTransactions &disconnectpool);
 
@@ -1319,9 +1329,16 @@ bool IsInitialBlockDownload()
 bool IsChainCurrentForServices()
 {
     LOCK(cs_main);
-    if (IsInitialBlockDownload() || chainActive.Tip() == nullptr ||
+    if (fImporting || fReindex || IsInitialBlockDownload() ||
+        chainActive.Tip() == nullptr ||
         pindexBestHeader == nullptr) {
         return false;
+    }
+
+    if (pos::IsPoSVersion(chainActive.Tip()->nVersion)) {
+        // Arrival order is not PoS fork choice. A valid losing header must not
+        // prevent producers from extending the fully selected active chain.
+        return g_chainstate.IsPoSCurrentForServices();
     }
 
     // Unlike the one-way IBD latch, this becomes false again when a better
@@ -3001,6 +3018,8 @@ bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
 }
 
 CBlockIndex* CChainState::FindMostWorkChain() {
+    AssertLockHeld(cs_main);
+    m_pos_service_tip = nullptr;
     do {
         CBlockIndex *pindexNew = nullptr;
 
@@ -3091,8 +3110,12 @@ CBlockIndex* CChainState::FindMostWorkChain() {
             }
             pindexTest = pindexTest->pprev;
         }
-        if (!fInvalidAncestor)
+        if (!fInvalidAncestor) {
+            if (pos::IsPoSVersion(pindexNew->nVersion)) {
+                m_pos_service_tip = pindexNew;
+            }
             return pindexNew;
+        }
     } while(true);
 }
 
@@ -3398,6 +3421,7 @@ bool CChainState::PreciousBlock(CValidationState& state, const CChainParams& par
 
         SetNewPreciousBlockWork(chainActive.Tip()->GetBlockWork());
 
+        m_pos_service_tip = nullptr;
         setBlockIndexCandidates.erase(pindex);
         pindex->nSequenceId = nBlockReverseSequenceId;
         if (nBlockReverseSequenceId > std::numeric_limits<int32_t>::min()) {
@@ -3432,6 +3456,8 @@ bool CChainState::InvalidateBlock(CValidationState& state, const CChainParams& c
                              "bad-pos-finalized-invalidate",
                              "cannot invalidate finalized PoS history");
     }
+
+    m_pos_service_tip = nullptr;
 
     // We first disconnect backwards and then mark the blocks as invalid.
     // This prevents a case where pruned nodes may fail to invalidateblock
@@ -3503,6 +3529,7 @@ bool InvalidateBlock(CValidationState& state, const CChainParams& chainparams, C
 
 bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
+    m_pos_service_tip = nullptr;
 
     int nHeight = pindex->nHeight;
     std::vector<CBlockIndex*> pos_rechecks;
@@ -4334,6 +4361,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
             }
             pindex->nStatus |= BLOCK_VALID_POS;
             setDirtyBlockIndex.insert(pindex);
+            m_pos_service_tip = nullptr;
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
             if (pindexBestHeader == nullptr ||
@@ -4388,6 +4416,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
             }
             pindex->nStatus |= BLOCK_VALID_POS;
             setDirtyBlockIndex.insert(pindex);
+            m_pos_service_tip = nullptr;
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
             if (pindexBestHeader == nullptr ||
@@ -4871,6 +4900,7 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
                                const CBlockIndex* tip,
                                const Consensus::Params& params)
 {
+    m_pos_service_tip = nullptr;
     pos::State loaded;
     if (!blocktree.ReadPoSState(loaded)) {
         const int snapshot_height = pos::GetInitialStakeSnapshotHeight(params);
@@ -5400,6 +5430,7 @@ bool RewindBlockIndex(const CChainParams& params, bool fForceFullScan) {
 
 void CChainState::UnloadBlockIndex() {
     nBlockSequenceId = 1;
+    m_pos_service_tip = nullptr;
     m_failed_blocks.clear();
     setBlockIndexCandidates.clear();
 }

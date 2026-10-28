@@ -10,7 +10,13 @@ import time
 from test_framework.messages import ser_compact_size
 from test_framework.mininode import P2PInterface
 from test_framework.test_framework import VergeTestFramework
-from test_framework.util import assert_equal, connect_nodes, sync_blocks, wait_until
+from test_framework.util import (
+    assert_equal,
+    connect_nodes,
+    disconnect_nodes,
+    sync_blocks,
+    wait_until,
+)
 
 
 class HeaderAnnouncement:
@@ -61,6 +67,7 @@ class InitialHeaderSyncTest(VergeTestFramework):
         connect_nodes(receiver, 2)
         sync_blocks([receiver, miner], timeout=10)
         assert_equal(receiver.getblockcount(), 3)
+
         assert_equal(receiver.getblockchaininfo()["initialblockdownload"], False)
         assert any("testnode1" in peer["subver"] for peer in receiver.getpeerinfo())
 
@@ -77,6 +84,25 @@ class InitialHeaderSyncTest(VergeTestFramework):
         connect_nodes(receiver, 2)
         sync_blocks([receiver, miner], timeout=10)
         assert_equal(receiver.getblockcount(), 3)
+
+        self.log.info("A known better PoW header must pause services after IBD")
+        assert_equal(receiver.getblockchaininfo()["initialblockdownload"], False)
+        assert_equal(receiver.getblockchaininfo()["chaincurrentforservices"], True)
+        disconnect_nodes(receiver, 2)
+        miner.generatetoaddress(3, miner.getnewaddress())
+        headers = [bytes.fromhex(miner.getblockheader(miner.getblockhash(height), False))
+                   for height in range(4, 7)]
+        headers_peer.send_and_ping(HeaderAnnouncement(headers))
+        info = receiver.getblockchaininfo()
+        assert_equal(info["blocks"], 3)
+        assert_equal(info["headers"], 6)
+        assert_equal(info["initialblockdownload"], False)
+        assert_equal(info["chaincurrentforservices"], False)
+        headers_peer.peer_disconnect()
+        headers_peer.wait_for_disconnect()
+        connect_nodes(receiver, 2)
+        sync_blocks([receiver, miner], timeout=10)
+        assert_equal(receiver.getblockchaininfo()["chaincurrentforservices"], True)
 
 
 if __name__ == "__main__":

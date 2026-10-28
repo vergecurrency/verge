@@ -5,6 +5,8 @@
 
 """Check independent PoS producers converge without orphan-header history."""
 
+import time
+
 from test_framework.authproxy import JSONRPCException
 from test_framework.test_framework import VergeTestFramework
 from test_framework.util import (
@@ -47,6 +49,13 @@ class PoSVoteHeadsTest(VergeTestFramework):
                 assert "wallet has no eligible bond" in error.error["message"]
         raise AssertionError("No eligible slot in 100 attempts")
 
+    @staticmethod
+    def assert_services_ready(node):
+        info = node.getblockchaininfo()
+        assert_equal(info["initialblockdownload"], False)
+        assert_equal(info["chaincurrentforservices"], True)
+        assert_equal(node.getstakinginfo()["chain_current_for_services"], True)
+
     def run_test(self):
         first, second, fresh = self.nodes
         address = first.getnewaddress()
@@ -54,7 +63,8 @@ class PoSVoteHeadsTest(VergeTestFramework):
         sync_blocks([first, second])
         self.mine(second, 720, second.getnewaddress())
         sync_blocks([first, second])
-        first_bond = first.createbond(1000)
+        # Prefer this producer's votes without letting it justify alone.
+        first_bond = first.createbond(1500)
         second_bond = second.createbond(1000)
         # Test consensus rather than transaction-inventory trickle timing.
         second.sendrawtransaction(first.getrawtransaction(first_bond["txid"]))
@@ -75,19 +85,52 @@ class PoSVoteHeadsTest(VergeTestFramework):
         for _ in range(3):
             self.stake(first)
             self.stake(second)
+        self.stake(second)
+        preferred = first.getbestblockhash()
+        assert_equal(second.getblockcount(), first.getblockcount() + 1)
         assert first.getbestblockhash() != second.getbestblockhash()
         assert_equal(fresh.getblockcount(), 0)
         connect_nodes_bi(self.nodes, 0, 1)
         sync_blocks([first, second], timeout=120)
         common = first.getbestblockhash()
+        assert_equal(common, preferred)
         for node in (first, second):
             assert not any(tip["status"] == "invalid"
                            for tip in node.getchaintips())
+            self.assert_services_ready(node)
 
         self.log.info("Fresh sync must not require losing-branch headers")
         connect_nodes_bi(self.nodes, 0, 2)
         sync_blocks(self.nodes, timeout=120)
         assert_equal(fresh.getbestblockhash(), common)
+        for node in self.nodes:
+            self.assert_services_ready(node)
+
+        self.log.info("Losing headers must not prevent production after missed epochs")
+        self.timestamp += 3 * 120 * 30
+        for node in self.nodes:
+            node.setmocktime(self.timestamp)
+        previous_height = first.getblockcount()
+        first.setstaking(True, first.getbalance())
+        try:
+            for _ in range(100):
+                self.timestamp += 30
+                for node in self.nodes:
+                    node.setmocktime(self.timestamp)
+                deadline = time.monotonic() + 1.5
+                while (first.getblockcount() == previous_height and
+                       time.monotonic() < deadline):
+                    time.sleep(0.05)
+                if first.getblockcount() > previous_height:
+                    break
+            else:
+                raise AssertionError("Automatic staking did not resume in 100 slots")
+        finally:
+            first.setstaking(False)
+        sync_blocks(self.nodes, timeout=120)
+        common = first.getbestblockhash()
+        for node in self.nodes:
+            self.assert_services_ready(node)
 
         self.log.info("Explicit reconsideration and restart retain convergence")
         disconnect_nodes(fresh, 0)
@@ -101,11 +144,13 @@ class PoSVoteHeadsTest(VergeTestFramework):
                 "-mocktime={}".format(self.timestamp),
             ])
             assert_equal(self.nodes[index].getbestblockhash(), common)
+            self.assert_services_ready(self.nodes[index])
         self.restart_node(2, self.extra_args[2] + [
             "-mocktime={}".format(self.timestamp), "-reindex-chainstate",
         ])
         wait_until(lambda: fresh.getbestblockhash() == common, timeout=120)
         assert_equal(fresh.getposinfo()["state_block_hash"], common)
+        self.assert_services_ready(fresh)
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
         sync_blocks(self.nodes, timeout=120)
