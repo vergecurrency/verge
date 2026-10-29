@@ -708,6 +708,9 @@ public:
     const uint64_t nKeyedNetGroup;
     std::atomic_bool fPauseRecv;
     std::atomic_bool fPauseSend;
+    std::atomic<int64_t> m_pause_send_since{0};
+
+    void SetPauseSend(bool pause) EXCLUSIVE_LOCKS_REQUIRED(cs_vSend);
 protected:
 
     mapMsgCmdSize mapSendBytesPerMsgCmd;

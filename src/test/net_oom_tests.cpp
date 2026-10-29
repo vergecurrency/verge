@@ -141,4 +141,49 @@ BOOST_AUTO_TEST_CASE(urgent_data_cannot_bypass_receive_pause)
     BOOST_CHECK(WaitFor([&] { return node->fPauseRecv.load(); }));
 }
 
+BOOST_AUTO_TEST_CASE(send_pause_deadline_is_not_refreshed)
+{
+    CNode node(0, NODE_NETWORK, 0, INVALID_SOCKET, CAddress(), 0, 0, CAddress());
+    LOCK(node.cs_vSend);
+    node.SetPauseSend(true);
+    BOOST_CHECK(node.fPauseSend);
+    BOOST_CHECK(node.m_pause_send_since > 0);
+    const int64_t original = GetSystemTimeInSeconds() - TIMEOUT_INTERVAL - 1;
+    node.m_pause_send_since = original;
+    node.SetPauseSend(true);
+    BOOST_CHECK_EQUAL(node.m_pause_send_since.load(), original);
+    node.SetPauseSend(false);
+    BOOST_CHECK(!node.fPauseSend);
+    node.SetPauseSend(true);
+    BOOST_CHECK(node.m_pause_send_since > original);
+}
+
+BOOST_AUTO_TEST_CASE(paused_send_times_out_without_ping)
+{
+    for (const int version : {BIP0031_VERSION, PROTOCOL_VERSION}) {
+        SocketPair sockets;
+        sockets.Open();
+        SocketEvents events;
+        CConnman connman(0, 0);
+        CConnman::Options options;
+        options.m_msgproc = &events;
+        connman.Init(options);
+        auto* node = new CNode(0, NODE_NETWORK, 0, sockets.receiver, CAddress(), 0, 0, CAddress());
+        sockets.receiver = INVALID_SOCKET;
+        node->nVersion = version;
+        node->fSuccessfullyConnected = true;
+        node->nLastSend = GetSystemTimeInSeconds();
+        node->nLastRecv = GetSystemTimeInSeconds();
+        node->AddRef(); // Keep the disconnected node alive until connman is destroyed.
+        {
+            LOCK(node->cs_vSend);
+            node->SetPauseSend(true);
+            node->m_pause_send_since = GetSystemTimeInSeconds() - TIMEOUT_INTERVAL - 1;
+        }
+        BOOST_REQUIRE_EQUAL(node->nPingNonceSent.load(), 0U);
+        CConnmanTest::StartSocketHandler(connman, *node);
+        BOOST_CHECK(WaitFor([&] { return node->fDisconnect.load(); }));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
