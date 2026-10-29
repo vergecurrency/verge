@@ -61,6 +61,7 @@ class CNode;
 struct CConnmanTest {
     static void AddNode(CNode& node);
     static void ClearNodes();
+    static void StartSocketHandler(CConnman& connman, CNode& node);
 };
 
 class PeerLogicValidation;
