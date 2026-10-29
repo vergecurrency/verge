@@ -3,6 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <limits>
 #include <stdexcept>
 
 #include <flatfile.h>
@@ -10,13 +11,13 @@
 #include <tinyformat.h>
 #include <util/system.h>
 
-FlatFileSeq::FlatFileSeq(fs::path dir, const char* prefix, size_t chunk_size) :
+FlatFileSeq::FlatFileSeq(fs::path dir, const char* prefix, uint64_t chunk_size) :
     m_dir(std::move(dir)),
     m_prefix(prefix),
     m_chunk_size(chunk_size)
 {
-    if (chunk_size == 0) {
-        throw std::invalid_argument("chunk_size must be positive");
+    if (chunk_size == 0 || chunk_size > uint64_t{std::numeric_limits<int64_t>::max()}) {
+        throw std::invalid_argument("chunk_size is outside the supported file range");
     }
 }
 
@@ -44,7 +45,7 @@ FILE* FlatFileSeq::Open(const FlatFilePos& pos, bool read_only)
         LogPrintf("Unable to open file %s\n", path.string());
         return nullptr;
     }
-    if (pos.nPos && fseek(file, pos.nPos, SEEK_SET)) {
+    if (pos.nPos && !FileSeek(file, pos.nPos)) {
         LogPrintf("Unable to seek to position %u of %s\n", pos.nPos, path.string());
         fclose(file);
         return nullptr;
@@ -52,16 +53,26 @@ FILE* FlatFileSeq::Open(const FlatFilePos& pos, bool read_only)
     return file;
 }
 
-size_t FlatFileSeq::Allocate(const FlatFilePos& pos, size_t add_size, bool& out_of_space)
+uint64_t FlatFileSeq::Allocate(const FlatFilePos& pos, uint64_t add_size, bool& out_of_space)
 {
     out_of_space = false;
 
-    unsigned int n_old_chunks = (pos.nPos + m_chunk_size - 1) / m_chunk_size;
-    unsigned int n_new_chunks = (pos.nPos + add_size + m_chunk_size - 1) / m_chunk_size;
+    const uint64_t max_position = std::numeric_limits<int64_t>::max();
+    if (pos.nPos > max_position || add_size > max_position - pos.nPos) {
+        out_of_space = true;
+        return 0;
+    }
+    const uint64_t end = pos.nPos + add_size;
+    const uint64_t n_old_chunks = pos.nPos / m_chunk_size + (pos.nPos % m_chunk_size != 0);
+    const uint64_t n_new_chunks = end / m_chunk_size + (end % m_chunk_size != 0);
+    if (n_new_chunks > max_position / m_chunk_size) {
+        out_of_space = true;
+        return 0;
+    }
     if (n_new_chunks > n_old_chunks) {
-        size_t old_size = pos.nPos;
-        size_t new_size = n_new_chunks * m_chunk_size;
-        size_t inc_size = new_size - old_size;
+        uint64_t old_size = pos.nPos;
+        uint64_t new_size = n_new_chunks * m_chunk_size;
+        uint64_t inc_size = new_size - old_size;
 
         if (CheckDiskSpace(m_dir, inc_size)) {
             FILE *file = Open(pos);

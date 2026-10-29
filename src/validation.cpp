@@ -1168,10 +1168,10 @@ static bool WriteBlockToDisk(const CBlock& block, FlatFilePos& pos, const CMessa
     fileout << messageStart << nSize;
 
     // Write block
-    long fileOutPos = ftell(fileout.Get());
+    int64_t fileOutPos = FileTell(fileout.Get());
     if (fileOutPos < 0)
         return error("WriteBlockToDisk: ftell failed");
-    pos.nPos = (unsigned int)fileOutPos;
+    pos.nPos = static_cast<uint64_t>(fileOutPos);
     fileout << block;
 
     return true;
@@ -1623,10 +1623,10 @@ bool UndoWriteToDisk(const CBlockUndo& blockundo, FlatFilePos& pos, const uint25
     fileout << messageStart << nSize;
 
     // Write undo data
-    long fileOutPos = ftell(fileout.Get());
+    int64_t fileOutPos = FileTell(fileout.Get());
     if (fileOutPos < 0)
         return error("%s: ftell failed", __func__);
-    pos.nPos = (unsigned int)fileOutPos;
+    pos.nPos = static_cast<uint64_t>(fileOutPos);
     fileout << blockundo;
 
     // calculate & write checksum
@@ -1798,7 +1798,7 @@ void static FlushBlockFile(bool fFinalize = false)
     }
 }
 
-static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, unsigned int nAddSize);
+static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, uint64_t nAddSize);
 
 static bool WriteUndoDataForBlock(const CBlockUndo& blockundo, CValidationState& state, CBlockIndex* pindex, const CChainParams& chainparams)
 {
@@ -3724,7 +3724,7 @@ static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int n
 
     if (!fKnown) {
         bool out_of_space;
-        size_t bytes_allocated = BlockFileSeq().Allocate(pos, nAddSize, out_of_space);
+        uint64_t bytes_allocated = BlockFileSeq().Allocate(pos, nAddSize, out_of_space);
         if (out_of_space) {
             return AbortNode("Disk space is low!", _("Error: Disk space is low!"));
         }
@@ -3737,18 +3737,22 @@ static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int n
     return true;
 }
 
-static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, unsigned int nAddSize)
+static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, uint64_t nAddSize)
 {
     pos.nFile = nFile;
 
     LOCK(cs_LastBlockFile);
 
+    const uint64_t max_position = std::numeric_limits<int64_t>::max();
+    if (vinfoBlockFile[nFile].nUndoSize > max_position || nAddSize > max_position - vinfoBlockFile[nFile].nUndoSize) {
+        return AbortNode(state, "Undo file size exceeds the supported file range");
+    }
     pos.nPos = vinfoBlockFile[nFile].nUndoSize;
     vinfoBlockFile[nFile].nUndoSize += nAddSize;
     setDirtyFileInfo.insert(nFile);
 
     bool out_of_space;
-    size_t bytes_allocated = UndoFileSeq().Allocate(pos, nAddSize, out_of_space);
+    uint64_t bytes_allocated = UndoFileSeq().Allocate(pos, nAddSize, out_of_space);
     if (out_of_space) {
         return AbortNode(state, "Disk space is low!", _("Error: Disk space is low!"));
     }
