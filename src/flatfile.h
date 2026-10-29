@@ -6,6 +6,7 @@
 #ifndef VERGE_FLATFILE_H
 #define VERGE_FLATFILE_H
 
+#include <cstdint>
 #include <string>
 
 #include <fs.h>
@@ -14,7 +15,7 @@
 struct FlatFilePos
 {
     int nFile;
-    unsigned int nPos;
+    uint64_t nPos;
 
     ADD_SERIALIZE_METHODS;
 
@@ -26,7 +27,7 @@ struct FlatFilePos
 
     FlatFilePos() : nFile(-1), nPos(0) {}
 
-    FlatFilePos(int nFileIn, unsigned int nPosIn) :
+    FlatFilePos(int nFileIn, uint64_t nPosIn) :
         nFile(nFileIn),
         nPos(nPosIn)
     {}
@@ -54,7 +55,7 @@ class FlatFileSeq
 private:
     const fs::path m_dir;
     const char* const m_prefix;
-    const size_t m_chunk_size;
+    const uint64_t m_chunk_size;
 
 public:
     /**
@@ -64,7 +65,7 @@ public:
      * @param prefix A short prefix given to all file names.
      * @param chunk_size Disk space is pre-allocated in multiples of this amount.
      */
-    FlatFileSeq(fs::path dir, const char* prefix, size_t chunk_size);
+    FlatFileSeq(fs::path dir, const char* prefix, uint64_t chunk_size);
 
     /** Get the name of the file at the given position. */
     fs::path FileName(const FlatFilePos& pos) const;
@@ -81,7 +82,7 @@ public:
      * @param[out] out_of_space Whether the allocation failed due to insufficient disk space.
      * @return The number of bytes successfully allocated.
      */
-    size_t Allocate(const FlatFilePos& pos, size_t add_size, bool& out_of_space);
+    uint64_t Allocate(const FlatFilePos& pos, uint64_t add_size, bool& out_of_space);
 
     /**
      * Commit a file to disk, and optionally truncate off extra pre-allocated bytes if final.
