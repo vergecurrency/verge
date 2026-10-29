@@ -1450,7 +1450,6 @@ void CConnman::ThreadSocketHandler()
                 if (pnode->hSocket == INVALID_SOCKET)
                     continue;
 
-                FD_SET(pnode->hSocket, &fdsetError);
                 hSocketMax = std::max(hSocketMax, pnode->hSocket);
                 have_fds = true;
 
@@ -1460,6 +1459,7 @@ void CConnman::ThreadSocketHandler()
                 }
                 if (select_recv) {
                     FD_SET(pnode->hSocket, &fdsetRecv);
+                    FD_SET(pnode->hSocket, &fdsetError);
                 }
             }
         }
@@ -1524,7 +1524,8 @@ void CConnman::ThreadSocketHandler()
                 sendSet = FD_ISSET(pnode->hSocket, &fdsetSend);
                 errorSet = FD_ISSET(pnode->hSocket, &fdsetError);
             }
-            if (recvSet || errorSet)
+            // Exceptional readiness must not bypass receive backpressure.
+            if ((recvSet || errorSet) && !pnode->fPauseRecv)
             {
                 // typical socket buffer is 8K-64K
                 char pchBuf[0x10000];

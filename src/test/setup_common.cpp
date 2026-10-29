@@ -49,6 +49,13 @@ void CConnmanTest::ClearNodes()
     ClearNodes(*g_connman);
 }
 
+void CConnmanTest::StartSocketHandler(CConnman& connman, CNode& node)
+{
+    node.AddRef();
+    connman.vNodes.push_back(&node);
+    connman.threadSocketHandler = std::thread(&CConnman::ThreadSocketHandler, &connman);
+}
+
 uint256 insecure_rand_seed = GetRandHash();
 FastRandomContext insecure_rand_ctx(insecure_rand_seed);
 
