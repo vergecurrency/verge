@@ -1053,6 +1053,20 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   #endif
   ]])],
   [AC_MSG_RESULT(mismatched); BOOST_CPPFLAGS="$BOOST_CPPFLAGS -DBOOST_NO_SCOPED_ENUMS -DBOOST_NO_CXX11_SCOPED_ENUMS"], [AC_MSG_RESULT(ok)])
+
+dnl The library-name probe can succeed without pulling in any Boost.Thread code.
+dnl Link a real thread to catch incompatible C++ runtimes before building.
+CPPFLAGS="$TEMP_CPPFLAGS $BOOST_CPPFLAGS"
+AC_MSG_CHECKING([whether Boost.Thread links with the selected C++ runtime])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <boost/thread.hpp>
+  ]], [[
+  boost::thread worker([] {});
+  worker.join();
+  ]])],
+  [AC_MSG_RESULT(yes)],
+  [AC_MSG_RESULT(no)
+   AC_MSG_ERROR([Boost.Thread cannot link with the selected C++ compiler/runtime. Use matching Boost and libstdc++ libraries, and check config.log for the unresolved symbols.])])
 LIBS="$TEMP_LIBS"
 CPPFLAGS="$TEMP_CPPFLAGS"
 

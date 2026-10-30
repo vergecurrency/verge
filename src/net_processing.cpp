@@ -24,7 +24,9 @@
 #include <primitives/transaction.h>
 #include <random.h>
 #include <reverse_iterator.h>
+#ifdef ENABLE_WALLET
 #include <smsg/smessage.h>
+#endif
 #include <scheduler.h>
 #include <tinyformat.h>
 #include <txmempool.h>
@@ -2792,9 +2794,11 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             mapBlockSource.erase(pblock->GetHash());
         }
 
+#ifdef ENABLE_WALLET
         if (smsg::fSecMsgEnabled) {
             smsgModule.ScanBlock(*pblock);
         }
+#endif
     }
 
 
@@ -2999,6 +3003,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     }
 
     else {
+#ifdef ENABLE_WALLET
         if (smsg::fSecMsgEnabled && strCommand.rfind("smsg", 0) == 0) {
             if (!(pfrom->nServices.load() & NODE_SMSG)) {
                 LogPrint(BCLog::SMSG,
@@ -3019,6 +3024,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     smsg::GetString(rv));
             }
         }
+#endif
 
         // Ignore unknown commands for extensibility
         LogPrint(BCLog::NET, "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->GetId());
@@ -3857,9 +3863,11 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
             }
         }
 
+#ifdef ENABLE_WALLET
         if (smsg::fSecMsgEnabled && (pto->nServices.load() & NODE_SMSG)) {
             smsgModule.SendData(pto, true);
         }
+#endif
     }
     return true;
 }
