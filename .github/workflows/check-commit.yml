@@ -2135,7 +2135,18 @@ jobs:
           if-no-files-found: error
 
   ubuntu24:
-    runs-on: ubuntu-24.04
+    name: ubuntu${{ matrix.ubuntu }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ubuntu: '24'
+            runner: ubuntu-24.04
+            cache: linux64
+          - ubuntu: '26'
+            runner: ubuntu-26.04
+            cache: ubuntu26-linux64
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
@@ -2148,17 +2159,17 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-base-${{ runner.os }}-linux64-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-base-${{ runner.os }}-${{ matrix.cache }}-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-base-${{ runner.os }}-linux64-v5-
+            depends-base-${{ runner.os }}-${{ matrix.cache }}-v5-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-linux64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-${{ matrix.cache }}-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-linux64-
+            ccache-${{ runner.os }}-${{ matrix.cache }}-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -2572,7 +2583,7 @@ jobs:
 
           (
             cd "$PWD/release"
-            zip -j verge-ubuntu24-appimages.zip \
+            zip -j "verge-ubuntu${{ matrix.ubuntu }}-appimages.zip" \
               Verge-Qt-x86_64.AppImage \
               verged-x86_64.AppImage \
               verge-cli-x86_64.AppImage \
@@ -2617,12 +2628,73 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu24
+          name: verge-ubuntu${{ matrix.ubuntu }}
           path: |
             ./release/Verge-Qt-x86_64.AppImage
             ./release/verged-x86_64.AppImage
             ./release/verge-cli-x86_64.AppImage
             ./release/verge-tx-x86_64.AppImage
+
+  walletless:
+    name: Walletless Ubuntu ${{ matrix.ubuntu }}.04
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ubuntu: '24'
+            runner: ubuntu-24.04
+            cache: linux64
+          - ubuntu: '26'
+            runner: ubuntu-26.04
+            cache: ubuntu26-linux64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache non-Qt depends build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            depends/built
+            depends/x86_64-linux-gnu
+            depends/sources
+          key: depends-base-${{ runner.os }}-${{ matrix.cache }}-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          restore-keys: |
+            depends-base-${{ runner.os }}-${{ matrix.cache }}-v5-
+
+      - name: Install headless build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential xutils-dev libtool gperf \
+            autotools-dev automake pkg-config bsdmainutils libattr1-dev \
+            bison byacc cmake curl g++-multilib binutils-gold ccache \
+            ninja-build flex libevent-dev libssl-dev zlib1g-dev libseccomp-dev libcap-dev
+
+      - name: Build non-Qt depends
+        run: make -C depends -j4 HOST=x86_64-linux-gnu NO_QT=1 install
+
+      - name: Configure without wallet or GUI
+        run: |
+          set -euo pipefail
+          ./autogen.sh
+          export DEPENDS_PREFIX="$PWD/depends/x86_64-linux-gnu"
+          export CPPFLAGS="-I$DEPENDS_PREFIX/include"
+          export LDFLAGS="-L$DEPENDS_PREFIX/lib"
+          export PKG_CONFIG_PATH="$DEPENDS_PREFIX/lib/pkgconfig:$DEPENDS_PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          export LIBCAP_LIBS="-lcap"
+          CONFIG_SITE="$DEPENDS_PREFIX/share/config.site" \
+            ./configure --disable-wallet --without-gui --disable-tests \
+            --disable-bench --disable-werror --enable-scrypt-sse2
+
+      - name: Build walletless daemon and tools
+        run: make -j4
+
+      - name: Test walletless secure messaging isolation
+        run: python test/functional/feature_smsg_walletless.py
 
   raspberrypi:
     runs-on: ubuntu-24.04-arm

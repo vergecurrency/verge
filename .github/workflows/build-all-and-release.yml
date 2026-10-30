@@ -1,4 +1,4 @@
-name: '[Full Build - Linux (Ubuntu 20,22,24), Windows32, Windows64, MacOS]'
+name: '[Full Build - Linux (Ubuntu 20,22,24,26), Windows32, Windows64, MacOS]'
 
 permissions:
   contents: write
@@ -2157,7 +2157,18 @@ jobs:
           if-no-files-found: error
 
   ubuntu24:
-    runs-on: ubuntu-24.04
+    name: ubuntu${{ matrix.ubuntu }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ubuntu: '24'
+            runner: ubuntu-24.04
+            cache: linux64
+          - ubuntu: '26'
+            runner: ubuntu-26.04
+            cache: ubuntu26-linux64
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
@@ -2170,17 +2181,17 @@ jobs:
             depends/built
             depends/x86_64-linux-gnu
             depends/sources
-          key: depends-base-${{ runner.os }}-linux64-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
+          key: depends-base-${{ runner.os }}-${{ matrix.cache }}-v5-${{ hashFiles('depends/packages/**', 'depends/hosts/**', 'depends/**.mk', 'depends/Makefile') }}
           restore-keys: |
-            depends-base-${{ runner.os }}-linux64-v5-
+            depends-base-${{ runner.os }}-${{ matrix.cache }}-v5-
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-linux64-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
+          key: ccache-${{ runner.os }}-${{ matrix.cache }}-${{ hashFiles('configure.ac', 'Makefile.am', 'src/**', 'build-aux/**') }}
           restore-keys: |
-            ccache-${{ runner.os }}-linux64-
+            ccache-${{ runner.os }}-${{ matrix.cache }}-
 
       - name: Update apt repos
         run: sudo apt-get update
@@ -2592,7 +2603,7 @@ jobs:
 
           (
             cd "$PWD/release"
-            zip -j verge-ubuntu24-appimages.zip \
+            zip -j "verge-ubuntu${{ matrix.ubuntu }}-appimages.zip" \
               Verge-Qt-x86_64.AppImage \
               verged-x86_64.AppImage \
               verge-cli-x86_64.AppImage \
@@ -2637,13 +2648,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: verge-ubuntu24
+          name: verge-ubuntu${{ matrix.ubuntu }}
           path: |
             ./release/Verge-Qt-x86_64.AppImage
             ./release/verged-x86_64.AppImage
             ./release/verge-cli-x86_64.AppImage
             ./release/verge-tx-x86_64.AppImage
-            ./release/verge-ubuntu24-appimages.zip
+            ./release/verge-ubuntu${{ matrix.ubuntu }}-appimages.zip
 
   raspberrypi:
     runs-on: ubuntu-24.04-arm
@@ -3089,6 +3100,12 @@ jobs:
           name: verge-ubuntu24
           path: release-assets/ubuntu24
 
+      - name: Download Ubuntu 26 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: verge-ubuntu26
+          path: release-assets/ubuntu26
+
       - name: Download Raspberry Pi artifact
         uses: actions/download-artifact@v4
         with:
@@ -3122,6 +3139,7 @@ jobs:
           cp "$(find_one release-assets/macos26 'Verge-Qt.dmg')" dist/Verge-Qt-macos26.dmg
           cp "$(find_one release-assets/macos14 'Verge-Qt.dmg')" dist/Verge-Qt-macos14.dmg
           cp "$(find_one release-assets/ubuntu24 'verge-ubuntu24-appimages.zip')" dist/
+          cp "$(find_one release-assets/ubuntu26 'verge-ubuntu26-appimages.zip')" dist/
 
           cp "$(find_one release-assets/windows64 'verge-windows64-setup.exe')" dist/
           if [ -d release-assets/windows64/windows64 ]; then
@@ -3146,6 +3164,7 @@ jobs:
             dist/Verge-Qt-macos26.dmg
             dist/Verge-Qt-macos14.dmg
             dist/verge-ubuntu24-appimages.zip
+            dist/verge-ubuntu26-appimages.zip
             dist/verge-aarch64-pi5-appimages.zip
             dist/verge-windows64-setup.exe
             dist/verge-windows64bit.zip
