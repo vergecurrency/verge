@@ -2696,7 +2696,21 @@ jobs:
         run: make -j4
 
       - name: Test walletless secure messaging isolation
-        run: python test/functional/feature_smsg_walletless.py
+        id: walletless_test
+        run: python test/functional/feature_smsg_walletless.py --tmpdir="$RUNNER_TEMP/walletless-smsg"
+
+      - name: Upload walletless test logs on failure
+        if: ${{ failure() && steps.walletless_test.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: walletless-ubuntu${{ matrix.ubuntu }}-logs
+          path: |
+            ${{ runner.temp }}/walletless-smsg/test_framework.log
+            ${{ runner.temp }}/walletless-smsg/node*/debug.log
+            ${{ runner.temp }}/walletless-smsg/node*/regtest/debug.log
+            ${{ runner.temp }}/walletless-smsg/node*/stderr/*
+            ${{ runner.temp }}/walletless-smsg/node*/stdout/*
+          if-no-files-found: ignore
 
   raspberrypi:
     runs-on: ubuntu-24.04-arm

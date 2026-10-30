@@ -26,6 +26,7 @@ class WalletlessMessagingTest(VergeTestFramework):
 
     def run_test(self):
         node = self.nodes[0]
+        assert_equal(node.getblockchaininfo()['chain'], 'regtest')
         assert_equal(int(node.getnetworkinfo()['localservices'], 16) & NODE_SMSG, 0)
         assert_raises_rpc_error(-32601, 'Method not found', node.getwalletinfo)
         assert_raises_rpc_error(-32601, 'Method not found', node.smsgenable)
