@@ -32,7 +32,7 @@ class IncludeConfTest(VergeTestFramework):
         # - tmpdir/node0/relative2.conf
         with open(os.path.join(self.options.tmpdir, "node0", "relative2.conf"), "w", encoding="utf8") as f:
             f.write("uacomment=relative2\n")
-        with open(os.path.join(self.options.tmpdir, "node0", "verge.conf"), "a", encoding='utf8') as f:
+        with open(os.path.join(self.options.tmpdir, "node0", "VERGE.conf"), "a", encoding='utf8') as f:
             f.write("uacomment=main\nincludeconf=relative.conf\n")
 
     def run_test(self):
@@ -68,7 +68,7 @@ class IncludeConfTest(VergeTestFramework):
             # Restore initial file contents
             f.write("uacomment=relative\n")
 
-        with open(os.path.join(self.options.tmpdir, "node0", "verge.conf"), "a", encoding='utf8') as f:
+        with open(os.path.join(self.options.tmpdir, "node0", "VERGE.conf"), "a", encoding='utf8') as f:
             f.write("includeconf=relative2.conf\n")
 
         self.start_node(0)
