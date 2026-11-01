@@ -75,6 +75,8 @@ public:
         StatusRole,
         /** Unprocessed icon */
         RawDecorationRole,
+        /** Confirmations in the active chain (negative when conflicted). */
+        DepthRole,
     };
 
     int rowCount(const QModelIndex &parent) const;

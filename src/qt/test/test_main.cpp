@@ -17,6 +17,7 @@
 #include <qt/test/addressbooktests.h>
 #include <qt/test/paymentservertests.h>
 #include <qt/test/wallettests.h>
+#include <qt/test/uidisplaytests.h>
 #endif
 
 #include <QApplication>
@@ -103,6 +104,10 @@ int main(int argc, char *argv[])
     }
     AddressBookTests test6;
     if (QTest::qExec(&test6) != 0) {
+        fInvalid = true;
+    }
+    UIDisplayTests test7;
+    if (QTest::qExec(&test7) != 0) {
         fInvalid = true;
     }
 #endif

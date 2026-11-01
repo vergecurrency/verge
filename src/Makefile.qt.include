@@ -207,6 +207,7 @@ VERGE_QT_H = \
   qt/editaddressdialog.h \
   qt/guiconstants.h \
   qt/guiutil.h \
+  qt/numerictablewidgetitem.h \
   qt/games/pongwidget.h \
   qt/games/spaceinvaderswidget.h \
   qt/games/tetriswidget.h \
@@ -248,6 +249,7 @@ VERGE_QT_H = \
   qt/transactionrecord.h \
   qt/transactiontablemodel.h \
   qt/transactionview.h \
+  qt/transactionstatusdelegate.h \
   qt/utilitydialog.h \
   qt/walletframe.h \
   qt/walletmodel.h \

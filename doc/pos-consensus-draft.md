@@ -992,6 +992,14 @@ period. GUI unbond actions disable automatic staking before creating the
 transactions so the wallet cannot immediately replace the selected bonds. The
 GUI and RPC use the same wallet transaction implementation.
 
+The bond table sorts numerically by amount, confirmations, or blocks to unlock
+when its column headers are clicked. Refreshes preserve the chosen sort order
+and selected outpoints. Transactions and recent overview entries show a green
+Confirmed badge after inclusion in the active chain, or a red Unconfirmed badge
+before inclusion. Conflicted, abandoned, and unaccepted transactions retain
+distinct red labels. These badges do not indicate PoS finality or coinbase
+maturity; the transaction details retain that additional information.
+
 Wallet locking, backup, encryption, hardware-wallet behavior, and delegated staking require explicit tests.
 
 ## Required Test Coverage

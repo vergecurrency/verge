@@ -13,6 +13,7 @@ TEST_QT_MOC_CPP = \
 if ENABLE_WALLET
 TEST_QT_MOC_CPP += \
   qt/test/moc_addressbooktests.cpp \
+  qt/test/moc_uidisplaytests.cpp \
   qt/test/moc_paymentservertests.cpp \
   qt/test/moc_wallettests.cpp
 endif
@@ -22,6 +23,7 @@ TEST_QT_H = \
   qt/test/compattests.h \
   qt/test/rpcnestedtests.h \
   qt/test/uritests.h \
+  qt/test/uidisplaytests.h \
   qt/test/util.h \
   qt/test/paymentrequestdata.h \
   qt/test/paymentservertests.h \
@@ -50,6 +52,7 @@ qt_test_test_verge_qt_SOURCES += \
   qt/test/addressbooktests.cpp \
   qt/test/paymentservertests.cpp \
   qt/test/wallettests.cpp \
+  qt/test/uidisplaytests.cpp \
   wallet/test/wallet_test_fixture.cpp
 endif
 

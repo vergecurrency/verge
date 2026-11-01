@@ -13,6 +13,7 @@
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
 #include <qt/transactionfilterproxy.h>
+#include <qt/transactionstatusdelegate.h>
 #include <qt/transactiontablemodel.h>
 #include <qt/walletmodel.h>
 
@@ -68,7 +69,7 @@ public:
         int xspace = decorationRect.right() + 14;
         const int amountWidth = qMax(170, cardRect.width() / 3);
         const int typeWidth = 88;
-        QRect amountRect(cardRect.right() - amountWidth - 16, cardRect.top() + 18, amountWidth, 28);
+        QRect amountRect(cardRect.right() - amountWidth - 16, cardRect.top() + 8, amountWidth, 26);
         QRect dateRect(xspace, cardRect.top() + 10, amountRect.left() - xspace - 12, 20);
         QRect typeRect(xspace, cardRect.top() + 32, typeWidth, 22);
         QRect addressRect(typeRect.right() + 10, cardRect.top() + 30, amountRect.left() - typeRect.right() - 28, 26);
@@ -103,6 +104,9 @@ public:
         QFont amountFont = option.font;
         amountFont.setPointSizeF(basePointSize * 1.15);
         amountFont.setWeight(QFont::DemiBold);
+        amountRect.setHeight(qMax(26, QFontMetrics(amountFont).height() + 4));
+        QFont badgeFont = option.font;
+        badgeFont.setWeight(QFont::DemiBold);
 
         painter->setFont(dateFont);
         painter->setPen(QColor("#8e9bb3"));
@@ -153,14 +157,24 @@ public:
         }
         painter->drawText(amountRect, Qt::AlignRight|Qt::AlignVCenter, amountText);
 
+        QSize badgeSize = TransactionStatusDelegate::badgeSize(index, badgeFont);
+        badgeSize.setWidth(qMin(badgeSize.width(), amountWidth));
+        const QRect badgeRect(amountRect.right() - badgeSize.width() + 1,
+                              amountRect.bottom() + 3, badgeSize.width(), badgeSize.height());
+        TransactionStatusDelegate::paintBadge(painter, badgeRect, index, badgeFont);
+
         painter->restore();
     }
 
     inline QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
-        Q_UNUSED(option);
         Q_UNUSED(index);
-        return QSize(OVERVIEW_DECORATION_SIZE, 72);
+        QFont amountFont = option.font;
+        const qreal pointSize = option.font.pointSizeF() > 0 ? option.font.pointSizeF() : 11.0;
+        amountFont.setPointSizeF(pointSize * 1.15);
+        const int height = QFontMetrics(amountFont).height() +
+            QFontMetrics(option.font).height() + 34;
+        return QSize(OVERVIEW_DECORATION_SIZE, qMax(80, height));
     }
 
     int unit;
@@ -223,7 +237,12 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     ui->listTransactions->setItemDelegate(txdelegate);
     ui->listTransactions->setIconSize(QSize(OVERVIEW_DECORATION_SIZE, OVERVIEW_DECORATION_SIZE));
     ui->listTransactions->setSpacing(8);
-    ui->listTransactions->setMinimumHeight(NUM_ITEMS * 80);
+    QStyleOptionViewItem transactionOption;
+    transactionOption.font = ui->listTransactions->font();
+    ui->listTransactions->setMinimumHeight(
+        NUM_ITEMS * txdelegate->sizeHint(transactionOption, QModelIndex()).height() +
+        (NUM_ITEMS - 1) * ui->listTransactions->spacing() +
+        2 * ui->listTransactions->frameWidth());
     ui->listTransactions->setAttribute(Qt::WA_MacShowFocusRect, false);
     ApplyCardShadow(ui->frame);
     ApplyCardShadow(ui->frame_2);

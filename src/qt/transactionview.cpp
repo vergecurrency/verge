@@ -15,6 +15,7 @@
 #include <qt/transactiondescdialog.h>
 #include <qt/transactionfilterproxy.h>
 #include <qt/transactionrecord.h>
+#include <qt/transactionstatusdelegate.h>
 #include <qt/transactiontablemodel.h>
 #include <qt/walletmodel.h>
 
@@ -175,8 +176,11 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     transactionView->setFrameShape(QFrame::NoFrame);
     transactionView->setWordWrap(false);
     transactionView->setSortingEnabled(true);
+    transactionView->setItemDelegateForColumn(
+        TransactionTableModel::Status, new TransactionStatusDelegate(transactionView));
     transactionView->setCornerButtonEnabled(false);
-    transactionView->verticalHeader()->setDefaultSectionSize(44);
+    transactionView->verticalHeader()->setDefaultSectionSize(qMax(44,
+        TransactionStatusDelegate::maximumBadgeSize(transactionView->font()).height() + 12));
     transactionView->horizontalHeader()->setStretchLastSection(false);
     transactionView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     ApplyCardShadow(transactionView);
@@ -254,7 +258,8 @@ void TransactionView::setModel(WalletModel *_model)
         transactionView->sortByColumn(TransactionTableModel::Date, Qt::DescendingOrder);
         transactionView->verticalHeader()->hide();
 
-        transactionView->setColumnWidth(TransactionTableModel::Status, STATUS_COLUMN_WIDTH);
+        transactionView->setColumnWidth(TransactionTableModel::Status, qMax(static_cast<int>(STATUS_COLUMN_WIDTH),
+            TransactionStatusDelegate::maximumBadgeSize(transactionView->font()).width() + 16));
         transactionView->setColumnWidth(TransactionTableModel::Watchonly, WATCHONLY_COLUMN_WIDTH);
         transactionView->setColumnWidth(TransactionTableModel::Date, DATE_COLUMN_WIDTH);
         transactionView->setColumnWidth(TransactionTableModel::Type, TYPE_COLUMN_WIDTH);

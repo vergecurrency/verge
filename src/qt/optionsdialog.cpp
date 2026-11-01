@@ -12,6 +12,7 @@
 
 #include <qt/vergeunits.h>
 #include <qt/guiutil.h>
+#include <qt/numerictablewidgetitem.h>
 #include <qt/optionsmodel.h>
 #include <qt/walletmodel.h>
 
@@ -31,11 +32,13 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QStyle>
 #include <QTableWidget>
 #include <QTimer>
 
 #include <algorithm>
+#include <limits>
 
 OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     QDialog(parent),
@@ -97,6 +100,8 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     bondTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     bondTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     bondTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    bondTable->setSortingEnabled(true);
+    bondTable->sortByColumn(0, Qt::DescendingOrder);
 
     refreshBondsButton->setObjectName(QStringLiteral("DialogSecondaryButton"));
     refreshBondsButton->setText(tr("Refresh"));
@@ -255,6 +260,10 @@ void OptionsDialog::setWalletModel(WalletModel *_walletModel)
 
 void OptionsDialog::refreshStakeBonds()
 {
+    const QSignalBlocker tableSignals(bondTable);
+    const QSignalBlocker selectionSignals(bondTable->selectionModel());
+    const bool sortingEnabled = bondTable->isSortingEnabled();
+    bondTable->setSortingEnabled(false);
     QStringList selectedOutpoints;
     if (bondTable->selectionModel()) {
         for (const QModelIndex& index :
@@ -271,6 +280,7 @@ void OptionsDialog::refreshStakeBonds()
     bondTable->setRowCount(0);
     if (!walletModel) {
         stakingSummaryLabel->setText(tr("No wallet loaded"));
+        bondTable->setSortingEnabled(sortingEnabled);
         updateBondActionState();
         return;
     }
@@ -293,9 +303,9 @@ void OptionsDialog::refreshStakeBonds()
             unbonding += bond.amount;
         }
 
-        QTableWidgetItem *amount = new QTableWidgetItem(
+        QTableWidgetItem *amount = new NumericTableWidgetItem(
             VERGEUnits::formatWithUnit(displayUnit, bond.amount, false,
-                                       VERGEUnits::separatorAlways));
+                                       VERGEUnits::separatorAlways), bond.amount);
         amount->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         amount->setData(Qt::UserRole, QString::fromStdString(bond.txid.GetHex()));
         amount->setData(Qt::UserRole + 1, static_cast<qulonglong>(bond.vout));
@@ -306,7 +316,7 @@ void OptionsDialog::refreshStakeBonds()
         bondTable->setItem(row, 0, amount);
 
         QTableWidgetItem *confirmations =
-            new QTableWidgetItem(QString::number(bond.confirmations));
+            new NumericTableWidgetItem(QString::number(bond.confirmations), bond.confirmations);
         confirmations->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         bondTable->setItem(row, 1, confirmations);
 
@@ -326,10 +336,13 @@ void OptionsDialog::refreshStakeBonds()
         }
         QTableWidgetItem *statusItem = new QTableWidgetItem(status);
         bondTable->setItem(row, 2, statusItem);
-        QTableWidgetItem *remaining = new QTableWidgetItem(
+        QTableWidgetItem *remaining = new NumericTableWidgetItem(
             bond.unbond_pending ? tr("Pending") : bond.unlock_height > 0
                 ? QLocale().toString(static_cast<qlonglong>(bond.blocks_until_unlock))
-                : QStringLiteral("-"));
+                : QStringLiteral("-"),
+            !bond.unbond_pending && bond.unlock_height > 0
+                ? static_cast<qint64>(bond.blocks_until_unlock)
+                : std::numeric_limits<qint64>::max());
         remaining->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         bondTable->setItem(row, 3, remaining);
         const QString outpoint =
@@ -346,7 +359,14 @@ void OptionsDialog::refreshStakeBonds()
                         ? tr("Withdrawal unlock height: %1").arg(bond.unlock_height)
                         : tr("This bond is currently consensus-locked."));
             }
-        } else if (selectedOutpoints.contains(outpoint)) {
+        }
+    }
+
+    bondTable->setSortingEnabled(sortingEnabled);
+    for (int row = 0; row < bondTable->rowCount(); ++row) {
+        const QTableWidgetItem* amount = bondTable->item(row, 0);
+        if (amount->data(Qt::UserRole + 2).toBool() &&
+            selectedOutpoints.contains(bondTable->item(row, 4)->text())) {
             bondTable->selectionModel()->select(
                 bondTable->model()->index(row, 0),
                 QItemSelectionModel::Select | QItemSelectionModel::Rows);

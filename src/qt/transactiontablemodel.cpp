@@ -648,6 +648,8 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         return formatTxAmount(rec, false, VERGEUnits::separatorNever);
     case StatusRole:
         return rec->status.status;
+    case DepthRole:
+        return rec->status.depth;
     }
     return QVariant();
 }
