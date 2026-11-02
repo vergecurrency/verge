@@ -219,7 +219,7 @@ jobs:
               BINARY="$LIBTOOL_BINARY"
             fi
             file "$BINARY"
-            lipo -verify_arch "$EXPECTED_ARCH" "$BINARY"
+            lipo "$BINARY" -verify_arch "$EXPECTED_ARCH"
           done
         
       - name: Test verged daemon
