@@ -123,6 +123,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     pos::BondRecord selected_bond;
     CKey selected_key;
     uint32_t block_time = 0;
+    uint256 parent_hash;
     std::vector<pos::CheckpointVote> votes;
     std::vector<pos::BlockEquivocationEvidence> block_evidence;
     std::vector<pos::VoteEquivocationEvidence> vote_evidence;
@@ -147,6 +148,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
             error = "proof of stake is not active at the next height";
             return false;
         }
+        parent_hash = tip->GetBlockHash();
         const CBlockIndex* final_pow =
             chainActive[params.nPoSActivationHeight - 1];
         if (final_pow == nullptr) {
@@ -355,7 +357,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
     }
     std::unique_ptr<CBlockTemplate> block_template =
         BlockAssembler(Params()).CreateNewPoSBlock(
-            proof, selected_bond, selected_key.begin(), block_time, votes,
+            proof, selected_bond, selected_key.begin(), block_time, parent_hash, votes,
             block_evidence,
             vote_evidence);
     if (!block_template) {

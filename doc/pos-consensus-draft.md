@@ -971,6 +971,16 @@ checks disable the affected service again if the node learns that its active
 chain is behind, while avoiding a tip-age rule that could prevent an otherwise
 valid stalled PoS network from recovering.
 
+Local block production binds the selected stake proof, votes, and evidence to
+the exact parent hash used during selection. Under the chain and mempool
+locks, the assembler discards the attempt before transaction selection or
+block signing if the active parent changed (including an equal-height tip
+replacement), or if the selected timestamp no longer advances the parent.
+The automatic worker treats this as an ordinary unsuccessful attempt and
+retains its one-attempt-per-slot policy. It does not re-sign the same slot
+against another parent. This is producer-side race handling only: block
+validation, slot eligibility, fork choice, and finality rules are unchanged.
+
 ## Wallet Behavior
 
 Staking is opt-in. Merely owning XVG or opening a wallet does not automatically expose keys or begin staking. The wallet must show:

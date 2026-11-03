@@ -226,6 +226,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
 std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     const pos::StakeProof& proof, const pos::BondRecord& bond,
     const unsigned char signing_secret[32], uint32_t block_time,
+    const uint256& expected_parent,
     const std::vector<pos::CheckpointVote>& votes,
     const std::vector<pos::BlockEquivocationEvidence>& block_evidence,
     const std::vector<pos::VoteEquivocationEvidence>& vote_evidence)
@@ -239,7 +240,12 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
 
     LOCK2(cs_main, mempool.cs);
     CBlockIndex* pindexPrev = chainActive.Tip();
-    if (pindexPrev == nullptr) return nullptr;
+    // Proofs and votes were selected before acquiring the assembly lock.
+    if (pindexPrev == nullptr ||
+        pindexPrev->GetBlockHash() != expected_parent ||
+        block_time <= pindexPrev->nTime) {
+        return nullptr;
+    }
     nHeight = pindexPrev->nHeight + 1;
     const Consensus::Params& consensus = chainparams.GetConsensus();
     if (!consensus.IsPoSActive(nHeight)) return nullptr;

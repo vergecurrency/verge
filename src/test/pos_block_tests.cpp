@@ -3,19 +3,23 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <pos/block.h>
+#include <pos/crypto.h>
 #include <chainparams.h>
 #include <consensus/validation.h>
 #include <consensus/merkle.h>
+#include <miner.h>
 #include <primitives/block.h>
 #include <netmessagemaker.h>
 #include <protocol.h>
 #include <streams.h>
 #include <test/setup_common.h>
+#include <timedata.h>
 #include <validation.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <cstring>
+#include <stdexcept>
 
 BOOST_FIXTURE_TEST_SUITE(pos_block_tests, BasicTestingSetup)
 
@@ -291,6 +295,109 @@ BOOST_AUTO_TEST_CASE(reject_mismatched_authorization)
     extension = MakeExtension();
     extension.authorization.stake_proof_hash = uint256S("09");
     BOOST_CHECK(pos::CheckStructure(extension) == pos::StructureError::INVALID_AUTHORIZATION);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+namespace {
+
+struct PoSAssemblerTestingSetup : RegTestingSetup {
+    std::unique_ptr<CChainParams> params{CreateChainParams(CBaseChainParams::REGTEST)};
+    CBlockIndex* original_tip{chainActive.Tip()};
+    const uint256 replacement_hash{uint256S("02")};
+    CBlockIndex replacement;
+    uint32_t block_time;
+    unsigned char secret[32]{};
+    pos::StakeProof proof;
+
+    PoSAssemblerTestingSetup()
+    {
+        params->UpdatePoSActivationHeight(1);
+        block_time = static_cast<uint32_t>(GetAdjustedTime() / 30 * 30);
+        replacement.pprev = original_tip;
+        replacement.nHeight = original_tip->nHeight + 1;
+        replacement.nTime = block_time;
+        replacement.nVersion = 2 | pos::BLOCK_VERSION_POS;
+        replacement.phashBlock = &replacement_hash;
+        replacement.BuildSkip();
+        secret[31] = 3;
+        proof = pos_block_tests::MakeExtension().stake_proof;
+        BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret, proof.signing_public_key));
+    }
+
+    ~PoSAssemblerTestingSetup()
+    {
+        LOCK(cs_main);
+        chainActive.SetTip(original_tip);
+    }
+};
+
+} // namespace
+
+BOOST_FIXTURE_TEST_SUITE(pos_assembler_tests, PoSAssemblerTestingSetup)
+
+BOOST_AUTO_TEST_CASE(discard_proof_when_parent_advances)
+{
+    LOCK(cs_main);
+    const uint256 selected_parent = original_tip->GetBlockHash();
+    chainActive.SetTip(&replacement);
+    std::unique_ptr<CBlockTemplate> block_template;
+
+    // The arriving parent occupies the slot selected by the staking worker.
+    BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
+        proof, pos::BondRecord(), secret, block_time,
+        selected_parent));
+    BOOST_CHECK(!block_template);
+
+    // A later slot must not silently reuse proof/votes from a stale parent.
+    BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
+        proof, pos::BondRecord(), secret, block_time + 30,
+        selected_parent));
+    BOOST_CHECK(!block_template);
+}
+
+BOOST_AUTO_TEST_CASE(discard_proof_when_parent_replaced_at_same_height)
+{
+    LOCK(cs_main);
+    replacement.nTime = block_time - 30;
+    chainActive.SetTip(&replacement);
+    const uint256 selected_parent = replacement.GetBlockHash();
+    const uint256 competing_hash = uint256S("03");
+    CBlockIndex competing = replacement;
+    competing.phashBlock = &competing_hash;
+    chainActive.SetTip(&competing);
+    std::unique_ptr<CBlockTemplate> block_template;
+
+    BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
+        proof, pos::BondRecord(), secret, block_time,
+        selected_parent));
+    BOOST_CHECK(!block_template);
+    chainActive.SetTip(&replacement);
+}
+
+BOOST_AUTO_TEST_CASE(discard_nonadvancing_slot_with_current_parent)
+{
+    LOCK(cs_main);
+    chainActive.SetTip(&replacement);
+
+    for (const uint32_t timestamp : {block_time - 30, block_time}) {
+        std::unique_ptr<CBlockTemplate> block_template;
+        BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
+            proof, pos::BondRecord(), secret, timestamp,
+            replacement.GetBlockHash()));
+        BOOST_CHECK(!block_template);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(current_parent_and_advancing_slot_still_validate)
+{
+    LOCK(cs_main);
+    chainActive.SetTip(&replacement);
+
+    // A matching parent is not enough to bypass validation of this dummy proof.
+    BOOST_CHECK_THROW(BlockAssembler(*params).CreateNewPoSBlock(
+        proof, pos::BondRecord(), secret, block_time + 30,
+        replacement.GetBlockHash()), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
