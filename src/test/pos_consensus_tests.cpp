@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <pos/forkchoice.h>
 #include <chainparams.h>
 #include <pos/consensus.h>
 #include <test/setup_common.h>
@@ -90,6 +91,45 @@ BOOST_AUTO_TEST_CASE(fork_weight_and_tie_breaking)
     BOOST_CHECK(pos::PreferFork(1, lower, 1, higher));
     BOOST_CHECK(!pos::PreferFork(1, higher, 1, lower));
     BOOST_CHECK(!pos::PreferFork(1, lower, 1, lower));
+}
+
+BOOST_AUTO_TEST_CASE(fork_summary_preserves_order_and_cache_is_bounded)
+{
+    auto summary = std::make_shared<pos::ForkChoiceSummary>();
+    summary->heads = {{10, MAX_MONEY - 5}, {12, 10}, {14, 3}, {9, 1}};
+    for (int threshold = 0; threshold < 20; ++threshold) {
+        CAmount reference = 0;
+        for (const auto& head : summary->heads) {
+            if (head.first >= threshold && MoneyRange(reference + head.second)) {
+                reference += head.second;
+            }
+        }
+        BOOST_CHECK_EQUAL(summary->WeightAbove(threshold), reference);
+    }
+    pos::ForkChoiceCache cache(2, 4096);
+    cache.Put(uint256S("01"), summary);
+    cache.Put(uint256S("02"), summary);
+    BOOST_REQUIRE(cache.Get(uint256S("01")));
+    cache.Put(uint256S("03"), summary);
+    BOOST_CHECK(!cache.Get(uint256S("02")));
+    BOOST_CHECK(cache.Get(uint256S("01")));
+    BOOST_CHECK_EQUAL(cache.Size(), 2U);
+    BOOST_CHECK_LE(cache.DynamicMemoryUsage(), 4096U);
+    auto large = std::make_shared<pos::ForkChoiceSummary>();
+    large->heads.resize(1000);
+    cache.Put(uint256S("04"), large);
+    BOOST_CHECK(!cache.Get(uint256S("04")));
+    BOOST_CHECK_EQUAL(cache.Size(), 2U);
+    pos::ForkChoiceCache byte_limited(128, cache.DynamicMemoryUsage() / 2);
+    for (int i = 1; i <= 100; ++i) {
+        uint256 hash;
+        hash.begin()[0] = i;
+        byte_limited.Put(hash, summary);
+    }
+    BOOST_CHECK_EQUAL(byte_limited.Size(), 1U);
+    cache.Clear();
+    BOOST_CHECK_EQUAL(cache.Size(), 0U);
+    BOOST_CHECK_EQUAL(cache.DynamicMemoryUsage(), 0U);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

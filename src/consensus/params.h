@@ -76,8 +76,6 @@ struct Params {
     uint32_t nPoSEpochSlots;
     uint32_t nPoSSnapshotDelayEpochs;
     uint32_t nPoSUnbondingBlocks;
-    uint32_t nPoSMaxVotesPerBlock;
-    uint32_t nPoSMaxEvidencePerBlock;
     int nPoSTrustedCheckpointHeight;
     uint256 hashPoSTrustedCheckpoint;
 

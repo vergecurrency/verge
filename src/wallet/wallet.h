@@ -701,6 +701,9 @@ private:
     bool fBroadcastTransactions = false;
     bool m_staking_enabled{false};
     CAmount m_staking_reserve_balance{0};
+    bool m_have_staking_attempt{false};
+    uint64_t m_last_staking_slot{0};
+    int64_t m_last_automatic_bond_attempt{0};
 
     /**
      * Used to keep track of spent outpoints, and
@@ -1056,6 +1059,19 @@ public:
         return m_staking_enabled;
     }
     bool SetStakingEnabled(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool MarkStakingAttempt(uint64_t slot, bool force = false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
+    {
+        if (!force && m_have_staking_attempt && m_last_staking_slot == slot) return false;
+        m_have_staking_attempt = true;
+        m_last_staking_slot = slot;
+        return true;
+    }
+    bool MarkAutomaticBondAttempt(int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
+    {
+        if (m_last_automatic_bond_attempt != 0 && now - m_last_automatic_bond_attempt < 60) return false;
+        m_last_automatic_bond_attempt = now;
+        return true;
+    }
     bool SetStakingReserveBalance(CAmount reserve) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void LoadStakingEnabled(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
     {

@@ -1173,6 +1173,126 @@ review remain mandatory before mainnet activation.
 6. Phase 6 begins only after readiness review, complete post-fork transaction
    replay protection, and independent verification of its fixed vectors;
    production activation height is selected last.
+## Resource And Correctness Review (2026-11-03)
+
+This is maintainer remediation and test coverage, not an independent audit.
+The existing master-branch security report is not a PoS audit. Mainnet activation
+continues to require independent consensus and cryptographic review.
+
+### Implemented Hardening
+
+- A block has one combined budget of **16** block/vote evidence objects and
+  **1,024** votes. Local assembly selects vote evidence first, then uses only
+  the remaining evidence capacity for block evidence. Previously, independently
+  filling both pools could produce a locally invalid staking template. The
+  authoritative limits are `pos::MAX_EVIDENCE_PER_BLOCK` and
+  `pos::MAX_VOTES_PER_BLOCK`; the unused chain-parameter copies were removed.
+  Wire decoding and accepted block limits are unchanged.
+- Vote replacement checks capacity and allocates the new entry before deleting
+  the previous one. New admission rolls back the vote if allocating its bond
+  index fails. Tests cover a full pool and its accounting after replacement.
+- Staking-slot and automatic-bond throttles belong to each wallet instance,
+  instead of process-global maps keyed by wallet addresses. Unbond enumeration
+  has an explicitly locked helper to avoid its redundant outer lock acquisition.
+- PoS batch handlers check peer-state pointers before use. A non-authenticated
+  result falls back to normal synchronization without treating the mere handler
+  return value as misconduct. `ProcessMessages` returning false is not itself
+  an automatic disconnect in this codebase; actual invalid-block scoring remains
+  in force. Malformed framing, invalid signatures and abusive traffic still
+  receive their existing penalties.
+- PoS inventory hashes no longer trigger the wallet transaction-inventory
+  callback. This was unnecessary accounting work, not demonstrated coin theft.
+- Signing uses a randomized thread-local context, retaining per-signature
+  auxiliary randomness and clearing temporary keypairs. Tests compare the
+  fixed Schnorr vector across repeated operations in four threads.
+
+### Fork-Choice And State Costs
+
+Successful branch validation caches only authenticated `(head height, weight)`
+summaries, never a full branch state or unauthenticated header claims. Summaries
+preserve the original bond iteration order and money-range rule. Fork selection
+still compares branch-local vote weight, then validated height, then the original
+child-hash ordering. Off-chain relay votes are not a substitute for branch state.
+
+The process-local LRU cache is limited to 128 entries and 16 MiB of accounted
+allocation usage, including vector capacity and container/shared allocation
+overhead. Oversized entries are evaluated without retention. Eviction removes
+only an optimization, never a chain candidate. Cache hits still check failed
+ancestry and available branch data. Invalidation, reconsideration, state loading
+and block-index teardown clear the cache. Existing finalized-ancestry checks
+remain authoritative. A cache miss still replays that candidate's branch.
+
+`BLOCK_VALID_POS` publication now belongs to admission/reconsideration after the
+entire replay succeeds, not fork-choice evaluation or a partially failed replay.
+Read-only network validation, chain RPCs and balance reporting use a state
+reference held under `cs_main`. Block connection consumes the caller's disposable
+state copy, avoiding a second complete copy while keeping active state isolated
+from failed validation.
+
+Finality link tallies are derived runtime data. New/replaced votes update their
+links incrementally; snapshot changes, vote pruning, lockout vote removal,
+undo and deserialization invalidate them for reconstruction. The cache is not
+serialized. Differential unit coverage compares warmed and freshly deserialized
+states with 2,048 bonds through batched votes, replacements, skipped-epoch
+pruning and undo. The partition test accepts `--reference-binary` to compare an
+older daemon with the new one through competing production, convergence,
+fresh sync, missed epochs, reconsideration, restart and chainstate reindex.
+Benchmark logging records branch replay time, replayed blocks and retained
+summary bytes (`-debug=bench`, or `logging ["bench"]` in the RPC console).
+
+### Local Verification
+
+The Windows MSVC-compatible build passed a full daemon/test-object rebuild.
+All **79 selected PoS and wallet unit tests** passed, including fixed signing
+vectors, full-pool replacement, all 17 permitted splits of the evidence budget,
+cache eviction/oversize handling, wallet attempt lifetime, and tally rebuild
+equivalence. The new fork-choice header also compiled as the first project
+include in its test translation unit.
+
+The final build passed these functional scenarios:
+
+- `feature_pos_vote_heads.py`, with a pre-change reference daemon as the second
+  producer, comparing chain/state hashes, initial snapshot, vote totals,
+  justification and finality through partition, convergence and recovery.
+- `feature_pos_crash_recovery.py`, including repeated abrupt exits and interrupted
+  UTXO flushing/startup replay.
+- `feature_pos_activation.py` and `feature_pos_worker.py`.
+- `p2p_pos_prefetch.py`, including malformed/authentication failures, benign
+  future-slot handling, bounded historical sync and reindex.
+- `p2p_pos_header_time.py` and `wallet_pos_unbond.py`.
+
+One local 2,048-bond measurement took 89 us for 100 warmed empty-vote updates
+versus 82,698 us for tally rebuilding alone. Deserialization and byte comparison
+are excluded from the latter measurement. These are focused test timings, not
+mainnet throughput or a sustained DoS-resistance benchmark. Sanitizers, a
+large-scale resource test, Pi-class measurements and overnight soak were not
+performed in this local verification. No live wallet data was modified.
+
+### Remaining Mainnet Gates
+
+1. Per-block durable persistence still serializes and rewrites the complete
+   state. Incremental, versioned record-level persistence with atomic state-tip
+   and undo updates remains separate work. It must include old-format migration,
+   explicit downgrade behavior, partial-write and power-loss fault injection,
+   and full/chainstate reindex equivalence. The recovery ordering established
+   in the crash-recovery work must not be weakened to reduce writes.
+2. Cold branch replay, retained eligible candidate count and state copies still
+   require stress measurements. Test 1k/10k/100k bonds, long histories, many
+   authenticated competing forks, finalized and stalled-finality cases, and
+   cache eviction/oversize fallback. Record CPU, peak RSS, lock hold times,
+   validation latency and database bytes written. Repeat on desktop and Pi-class
+   hardware, with sanitizer runs and an overnight partition/recovery soak.
+3. Give an independent reviewer a pinned commit/build manifest, this consensus
+   specification, signature/VRF/replay-protection vectors and test commands.
+   Scope includes weighted eligibility and bond-splitting invariance, entropy
+   manipulation, branch-local vote accounting, finality safety under partition,
+   evidence censorship/replay, lockouts and withdrawal recovery, historical
+   synchronization, resource limits, and crash consistency. Publish findings,
+   remediations and a reviewer retest; a maintainer test pass is not this gate.
+
+No activation height, network identity, signature construction, accepted block
+limit or serialized state/undo format changes in this remediation stage.
+
 ## Documentation Discipline
 
 This document is updated with each approved consensus decision. Implementation commits must reference the relevant section and must not introduce undocumented consensus behavior. Before public testnet, the draft must include exact byte serialization, domain-separation strings, arithmetic bounds, state-transition pseudocode, RPC behavior, and fixed vectors. Before Phase 6 it will be promoted from a research draft to a versioned consensus specification linked from the root README and release documentation.

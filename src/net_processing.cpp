@@ -1181,7 +1181,7 @@ static void RecordPoSAuthorization(const CBlock& block,
     bool accepted = false;
     {
         LOCK(cs_main);
-        const pos::State state = GetPoSStateSnapshot();
+        const pos::State& state = GetPoSStateView();
         accepted = pos::CheckBlockEvidence(
             detected, state, chainparams.GetConsensus().nPoSNetworkId,
             slot) ==
@@ -1416,7 +1416,6 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
                 } else {
                     vNotFound.push_back(inv);
                 }
-                GetMainSignals().Inventory(inv.hash);
                 continue;
             }
             if (inv.type == MSG_POS_VOTE_EVIDENCE) {
@@ -1427,7 +1426,6 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
                 } else {
                     vNotFound.push_back(inv);
                 }
-                GetMainSignals().Inventory(inv.hash);
                 continue;
             }
             if (inv.type == MSG_POS_BLOCK_EVIDENCE) {
@@ -1438,7 +1436,6 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
                 } else {
                     vNotFound.push_back(inv);
                 }
-                GetMainSignals().Inventory(inv.hash);
                 continue;
             }
 
@@ -2387,7 +2384,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
 
             // Track requests for our stuff
-            GetMainSignals().Inventory(inv.hash);
+            if (inv.type != MSG_POS_VOTE && inv.type != MSG_POS_VOTE_EVIDENCE &&
+                inv.type != MSG_POS_BLOCK_EVIDENCE) {
+                GetMainSignals().Inventory(inv.hash);
+            }
         }
     }
 
@@ -2599,6 +2599,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         {
             LOCK(cs_main);
             CNodeState* state = State(pfrom->GetId());
+            if (state == nullptr) return true;
             const CBlockIndex* anchor = LookupBlockIndex(anchor_hash);
             const int64_t now = GetTime();
             const int64_t elapsed = std::min<int64_t>(
@@ -2741,7 +2742,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 if (!new_block || !processed) mapBlockSource.erase(hash);
                 if (!authenticated) {
                     FallbackPoSPrefetch(pfrom, connman);
-                    return false;
+                    return true;
                 }
                 UpdateBlockAvailability(pfrom->GetId(), hash);
             }
@@ -2756,6 +2757,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 g_pos_prefetch_anchor != anchor_hash) return true;
             const uint256 last = blocks.back()->GetHash();
             CNodeState* state = State(pfrom->GetId());
+            if (state == nullptr) {
+                ClearPoSPrefetch();
+                return true;
+            }
             state->m_last_pos_header_request = last;
             ClearPoSPrefetch();
             if (more && RequestPoSPrefetch(pfrom, connman, LookupBlockIndex(last))) {
@@ -2807,7 +2812,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
         const Consensus::Params& params = chainparams.GetConsensus();
         if (!params.IsPoSActive(chainActive.Height())) return true;
-        const pos::State state = GetPoSStateSnapshot();
+        const pos::State& state = GetPoSStateView();
         const uint64_t maximum_slot = params.nPoSSlotSeconds == 0
             ? 0
             : static_cast<uint64_t>(std::max<int64_t>(
@@ -2873,7 +2878,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
         const Consensus::Params& params = chainparams.GetConsensus();
         if (!params.IsPoSActive(chainActive.Height())) return true;
-        const pos::State state = GetPoSStateSnapshot();
+        const pos::State& state = GetPoSStateView();
         const pos::ValidationError error =
             pos::CheckVoteEvidence(evidence, state, state.LastPoSEpoch());
         if (error != pos::ValidationError::NONE) {
@@ -2941,7 +2946,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (head == nullptr || !head->IsValid(BLOCK_VALID_SCRIPTS)) {
             return true;
         }
-        const pos::State state = GetPoSStateSnapshot();
+        const pos::State& state = GetPoSStateView();
         const pos::Checkpoint* latest = state.LatestCheckpoint();
         if (latest == nullptr) return true;
         const pos::ValidationError error = pos::CheckCheckpointVote(

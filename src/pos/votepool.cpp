@@ -69,15 +69,22 @@ VotePoolResult VotePool::Add(const CheckpointVote& vote,
                  vote.source_checkpoint_root != previous.source_checkpoint_root)) {
                 return VotePoolResult::CONFLICT;
             }
-            m_bytes -= current->second.serialized_size;
+            const size_t remaining = m_bytes - current->second.serialized_size;
+            if (serialized_size > MAX_VOTE_POOL_BYTES - remaining) {
+                return VotePoolResult::FULL;
+            }
+            // Allocate before removing the old vote, preserving it on failure.
+            m_votes.emplace(hash, Entry{vote, serialized_size});
+            by_bond->second = hash;
+            m_bytes = remaining + serialized_size;
             m_votes.erase(current);
+            return VotePoolResult::REPLACED;
         }
-        m_by_bond.erase(by_bond);
         if (m_bytes + serialized_size > MAX_VOTE_POOL_BYTES) {
             return VotePoolResult::FULL;
         }
         m_votes.emplace(hash, Entry{vote, serialized_size});
-        m_by_bond.emplace(vote.bond_outpoint, hash);
+        by_bond->second = hash;
         m_bytes += serialized_size;
         return VotePoolResult::REPLACED;
     }
@@ -86,8 +93,13 @@ VotePoolResult VotePool::Add(const CheckpointVote& vote,
         m_bytes + serialized_size > MAX_VOTE_POOL_BYTES) {
         return VotePoolResult::FULL;
     }
-    m_votes.emplace(hash, Entry{vote, serialized_size});
-    m_by_bond.emplace(vote.bond_outpoint, hash);
+    const auto inserted = m_votes.emplace(hash, Entry{vote, serialized_size});
+    try {
+        m_by_bond.emplace(vote.bond_outpoint, hash);
+    } catch (...) {
+        m_votes.erase(inserted.first);
+        throw;
+    }
     m_bytes += serialized_size;
     return VotePoolResult::ADDED;
 }

@@ -397,7 +397,7 @@ public:
         result.balance = m_wallet.GetBalance();
         result.unconfirmed_balance = m_wallet.GetUnconfirmedBalance();
         result.immature_balance = m_wallet.GetImmatureBalance();
-        const pos::State state = GetPoSStateSnapshot();
+        const pos::State& state = GetPoSStateView();
         for (const auto& item : state.Bonds()) {
             if (m_wallet.HaveKey(
                     CKeyID(item.second.data.withdrawal_key_id))) {

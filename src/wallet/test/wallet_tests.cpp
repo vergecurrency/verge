@@ -34,6 +34,22 @@ extern UniValue importwallet(const JSONRPCRequest& request);
 
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
 
+BOOST_AUTO_TEST_CASE(staking_attempts_follow_wallet_lifetime)
+{
+    for (int generation = 0; generation < 2; ++generation) {
+        CWallet wallet("attempt-test", WalletDatabase::CreateDummy());
+        LOCK(wallet.cs_wallet);
+        BOOST_CHECK(wallet.MarkStakingAttempt(0));
+        BOOST_CHECK(!wallet.MarkStakingAttempt(0));
+        BOOST_CHECK(wallet.MarkStakingAttempt(0, true));
+        BOOST_CHECK(!wallet.MarkStakingAttempt(0));
+        BOOST_CHECK(wallet.MarkStakingAttempt(1));
+        BOOST_CHECK(wallet.MarkAutomaticBondAttempt(100));
+        BOOST_CHECK(!wallet.MarkAutomaticBondAttempt(159));
+        BOOST_CHECK(wallet.MarkAutomaticBondAttempt(160));
+    }
+}
+
 static void AddKey(CWallet& wallet, const CKey& key)
 {
     LOCK(wallet.cs_wallet);

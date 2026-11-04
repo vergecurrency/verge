@@ -105,6 +105,26 @@ BOOST_AUTO_TEST_CASE(ordering_removal_and_pruning)
     BOOST_CHECK_EQUAL(pool.DynamicMemoryUsage(), 0U);
 }
 
+BOOST_AUTO_TEST_CASE(replacement_at_capacity_preserves_pool_accounting)
+{
+    pos::VotePool pool;
+    for (uint32_t i = 1; i <= pos::MAX_VOTE_POOL_ENTRIES; ++i) {
+        BOOST_REQUIRE(pool.Add(MakeVote(i, 4, 100)) == pos::VotePoolResult::ADDED);
+    }
+    const size_t bytes = pool.DynamicMemoryUsage();
+    BOOST_CHECK(pool.Add(MakeVote(99999, 4, 100)) == pos::VotePoolResult::FULL);
+    BOOST_CHECK_EQUAL(pool.DynamicMemoryUsage(), bytes);
+    const auto old = MakeVote(1, 4, 100);
+    const auto replacement = MakeVote(1, 5, 120);
+    BOOST_CHECK(pool.Add(replacement) == pos::VotePoolResult::REPLACED);
+    BOOST_CHECK_EQUAL(pool.Size(), pos::MAX_VOTE_POOL_ENTRIES);
+    BOOST_CHECK_EQUAL(pool.DynamicMemoryUsage(), bytes);
+    BOOST_CHECK(!pool.Exists(pos::GetVoteSigningHash(old)));
+    BOOST_CHECK(pool.Exists(pos::GetVoteSigningHash(replacement)));
+    BOOST_CHECK(pool.Add(old) == pos::VotePoolResult::STALE);
+    BOOST_CHECK(pool.Exists(pos::GetVoteSigningHash(replacement)));
+}
+
 BOOST_AUTO_TEST_CASE(evidence_pool_bounds_and_identity)
 {
     pos::VoteEvidencePool pool;

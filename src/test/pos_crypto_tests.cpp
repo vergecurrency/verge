@@ -10,10 +10,13 @@
 #include <script/standard.h>
 #include <streams.h>
 #include <test/setup_common.h>
+#include <util/strencodings.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <cstring>
+#include <array>
+#include <thread>
 
 BOOST_FIXTURE_TEST_SUITE(pos_crypto_tests, BasicTestingSetup)
 
@@ -55,6 +58,36 @@ BOOST_AUTO_TEST_CASE(reject_invalid_secret_and_public_key)
 
     std::memset(public_key, 0xff, sizeof(public_key));
     BOOST_CHECK(!pos::VerifySchnorr(public_key, uint256S("01"), signature));
+}
+
+BOOST_AUTO_TEST_CASE(reused_and_thread_local_signing_matches_fixed_vector)
+{
+    const auto expected = ParseHex(
+        "e907831f80848d1069a5371b402410364bdf1c5f8307b0084c55f1ce2dca8215"
+        "25f66a4a85ea8b71e482a74f382d2ce5ebeee8fdb2172f477df4900d310536c0");
+    const auto expected_key = ParseHex(
+        "f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9");
+    std::array<bool, 4> passed{};
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < passed.size(); ++i) {
+        threads.emplace_back([&, i] {
+            unsigned char secret[32]{};
+            secret[31] = 3;
+            unsigned char aux[32]{};
+            unsigned char signature[64]{};
+            unsigned char key[32]{};
+            bool ok = true;
+            for (int iteration = 0; iteration < 16; ++iteration) {
+                ok = ok && pos::SignSchnorr(secret, uint256(), aux, signature, key) &&
+                    std::equal(expected.begin(), expected.end(), signature) &&
+                    std::equal(expected_key.begin(), expected_key.end(), key) &&
+                    pos::VerifySchnorr(key, uint256(), signature);
+            }
+            passed[i] = ok;
+        });
+    }
+    for (auto& thread : threads) thread.join();
+    for (bool ok : passed) BOOST_CHECK(ok);
 }
 
 BOOST_AUTO_TEST_CASE(transaction_replay_protection)

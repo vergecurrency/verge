@@ -286,6 +286,28 @@ BOOST_AUTO_TEST_CASE(reject_combined_evidence_count)
     BOOST_CHECK(decoded.vote_evidence.empty());
 }
 
+BOOST_AUTO_TEST_CASE(mixed_evidence_uses_one_fixed_budget)
+{
+    BOOST_CHECK_EQUAL(pos::MAX_VOTES_PER_BLOCK, 1024U);
+    BOOST_CHECK_EQUAL(pos::MAX_EVIDENCE_PER_BLOCK, 16U);
+    for (size_t vote_count = 0; vote_count <= pos::MAX_EVIDENCE_PER_BLOCK; ++vote_count) {
+        pos::BlockExtension extension = MakeExtension();
+        extension.vote_evidence.resize(vote_count);
+        extension.block_evidence.resize(pos::RemainingEvidenceBudget(vote_count));
+        BOOST_CHECK_EQUAL(extension.vote_evidence.size() + extension.block_evidence.size(), 16U);
+        CDataStream stream(SER_NETWORK, 0);
+        stream << extension;
+        pos::BlockExtension decoded;
+        BOOST_CHECK_NO_THROW(stream >> decoded);
+        BOOST_CHECK_EQUAL(decoded.vote_evidence.size(), vote_count);
+        extension.vote_evidence.emplace_back();
+        CDataStream over_limit(SER_NETWORK, 0);
+        over_limit << extension;
+        BOOST_CHECK_THROW(over_limit >> decoded, std::ios_base::failure);
+    }
+    BOOST_CHECK_EQUAL(pos::RemainingEvidenceBudget(17), 0U);
+}
+
 BOOST_AUTO_TEST_CASE(reject_mismatched_authorization)
 {
     pos::BlockExtension extension = MakeExtension();

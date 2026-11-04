@@ -247,6 +247,8 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
  */
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool* fNewBlock);
 pos::State GetPoSStateSnapshot();
+// Reference is valid only while cs_main remains held; do not retain across callbacks.
+const pos::State& GetPoSStateView() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Process incoming block headers.

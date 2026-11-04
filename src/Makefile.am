@@ -209,6 +209,7 @@ VERGE_CORE_H = \
   pos/consensus.h \
   pos/crypto.h \
   pos/block.h \
+  pos/forkchoice.h \
   pos/primitives.h \
   pos/stake.h \
   pos/state.h \

@@ -20,6 +20,11 @@ namespace pos {
 static constexpr uint32_t MAX_VOTES_PER_BLOCK = 1024;
 static constexpr uint32_t MAX_EVIDENCE_PER_BLOCK = 16;
 
+inline size_t RemainingEvidenceBudget(size_t used)
+{
+    return used < MAX_EVIDENCE_PER_BLOCK ? MAX_EVIDENCE_PER_BLOCK - used : 0;
+}
+
 struct BlockCommitment {
     uint8_t version{POS_OBJECT_VERSION};
     uint256 stake_proof_hash;

@@ -88,6 +88,7 @@ bool State::RemovePreActivationSnapshot(int32_t expected_source_height)
         return true;
     }
     m_snapshots.erase(snapshot);
+    m_link_weights_valid = false;
     return true;
 }
 
@@ -195,6 +196,7 @@ bool State::AddSnapshot(uint64_t source_epoch, int32_t source_height,
     }
     snapshot.root = ComputeSnapshotRoot(snapshot.entries);
     m_snapshots.emplace(source_epoch, std::move(snapshot));
+    m_link_weights_valid = false;
     undo.added_snapshots.push_back(source_epoch);
     return true;
 }
@@ -224,6 +226,7 @@ bool State::PrepareEpoch(uint64_t block_epoch, int32_t height,
             vote_change.previous = vote->second;
             undo.vote_undo.push_back(vote_change);
             m_latest_votes.erase(vote);
+            m_link_weights_valid = false;
         }
     }
     uint64_t next_epoch = m_has_pos ? m_last_pos_epoch + 1 : 1;
@@ -270,6 +273,7 @@ void State::PruneState(uint64_t block_epoch, int32_t height,
             undo.removed_snapshots.push_back(it->second);
         }
         it = m_snapshots.erase(it);
+        m_link_weights_valid = false;
     }
     for (auto it = m_epoch_seeds.begin(); it != m_epoch_seeds.end();) {
         if (it->first + POS_STATE_RETENTION_EPOCHS >= block_epoch) {
@@ -315,6 +319,7 @@ void State::PruneState(uint64_t block_epoch, int32_t height,
         change.previous = vote;
         undo.vote_undo.push_back(change);
         it = m_latest_votes.erase(it);
+        m_link_weights_valid = false;
     }
     for (auto it = m_retired_bonds.begin(); it != m_retired_bonds.end();) {
         if (static_cast<int64_t>(it->second) + params.nPoSUnbondingBlocks >= height) {
@@ -576,9 +581,44 @@ bool State::CanApplyVote(const CheckpointVote& vote) const
          vote.head_slot > old.head_slot);
 }
 
+bool State::UpdateLinkWeight(const CheckpointVote& vote, bool add)
+{
+    const StakeSnapshot* snapshot = FindSnapshot(vote.snapshot_epoch);
+    const CAmount vote_weight = GetVoteWeight(vote);
+    if (snapshot == nullptr || snapshot->total_value <= 0 || vote_weight <= 0) {
+        return true;
+    }
+    const VoteLink link(vote.source_epoch, vote.source_checkpoint_root,
+                        vote.target_epoch, vote.target_checkpoint_root,
+                        vote.snapshot_epoch);
+    auto it = m_link_weights.find(link);
+    if (!add) {
+        if (it == m_link_weights.end() || it->second < vote_weight) return false;
+        it->second -= vote_weight;
+        if (it->second == 0) m_link_weights.erase(it);
+        return true;
+    }
+    CAmount& weight = m_link_weights[link];
+    if (vote_weight > MAX_MONEY - weight) return false;
+    weight += vote_weight;
+    return true;
+}
+
+bool State::EnsureLinkWeights()
+{
+    if (m_link_weights_valid) return true;
+    m_link_weights.clear();
+    for (const auto& item : m_latest_votes) {
+        if (!UpdateLinkWeight(item.second, true)) return false;
+    }
+    m_link_weights_valid = true;
+    return true;
+}
+
 bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
                        StateUndo& undo)
 {
+    if (!EnsureLinkWeights()) return false;
     COutPoint previous_in_block;
     bool have_previous_in_block = false;
     for (const CheckpointVote& vote : votes) {
@@ -601,33 +641,25 @@ bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
         if (previous != m_latest_votes.end()) {
             item.had_previous = true;
             item.previous = previous->second;
+            if (!UpdateLinkWeight(previous->second, false)) {
+                m_link_weights_valid = false;
+                return false;
+            }
             previous->second = vote;
         } else {
             m_latest_votes.emplace(vote.bond_outpoint, vote);
         }
         undo.vote_undo.push_back(item);
-    }
-
-    using Link = std::tuple<uint64_t, uint256, uint64_t, uint256, uint64_t>;
-    std::map<Link, CAmount> link_weight;
-    for (const auto& item : m_latest_votes) {
-        const CheckpointVote& vote = item.second;
-        const StakeSnapshot* snapshot = FindSnapshot(vote.snapshot_epoch);
-        const CAmount vote_weight = GetVoteWeight(vote);
-        if (snapshot == nullptr || snapshot->total_value <= 0 ||
-            vote_weight <= 0) continue;
-        const Link link(vote.source_epoch, vote.source_checkpoint_root,
-                        vote.target_epoch, vote.target_checkpoint_root,
-                        vote.snapshot_epoch);
-        CAmount& weight = link_weight[link];
-        if (!MoneyRange(weight + vote_weight)) return false;
-        weight += vote_weight;
+        if (!UpdateLinkWeight(vote, true)) {
+            m_link_weights_valid = false;
+            return false;
+        }
     }
 
     bool changed;
     do {
         changed = false;
-        for (const auto& item : link_weight) {
+        for (const auto& item : m_link_weights) {
             const uint64_t source_epoch = std::get<0>(item.first);
             const uint256& source_root = std::get<1>(item.first);
             const uint64_t target_epoch = std::get<2>(item.first);
@@ -675,6 +707,7 @@ bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
 
 bool State::UndoBlock(const StateUndo& undo)
 {
+    m_link_weights_valid = false;
     bool clean = true;
     for (auto it = undo.added_evidence.rbegin();
          it != undo.added_evidence.rend(); ++it) {

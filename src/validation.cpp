@@ -23,6 +23,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <pos/consensus.h>
+#include <pos/forkchoice.h>
 #include <pos/state.h>
 #include <pos/validation.h>
 #include <pos/votepool.h>
@@ -179,7 +180,8 @@ public:
     bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex);
     bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested, const FlatFilePos* dbp, bool* fNewBlock);
 
-    // Block (dis)connection on a given view:
+    // Block (dis)connection on a given view. pos_state must be disposable:
+    // connection consumes it on failure; never pass the active state itself.
     DisconnectResult DisconnectBlock(const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view);
     bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex,
                     CCoinsViewCache& view, const CChainParams& chainparams,
@@ -217,6 +219,7 @@ public:
 
 private:
     pos::State m_pos_state;
+    pos::ForkChoiceCache m_pos_fork_cache;
     // Selected by PoS fork choice; cleared whenever new candidates need review.
     const CBlockIndex* m_pos_service_tip{nullptr};
     bool ActivateBestChainStep(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexMostWork, const std::shared_ptr<const CBlock>& pblock, bool& fInvalidFound, ConnectTrace& connectTrace);
@@ -235,11 +238,12 @@ private:
     void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state);
     bool IsPreferredPoSCandidate(const CBlockIndex* candidate,
                                  const CBlockIndex* current,
-                                 const pos::State* candidate_state = nullptr,
-                                 const pos::State* current_state = nullptr);
+                                 const pos::ForkChoiceSummary& candidate_summary,
+                                 const pos::ForkChoiceSummary& current_summary);
     bool ValidatePoSBranch(CBlockIndex* target, CValidationState& state,
                            const CChainParams& chainparams,
-                           pos::State* branch_state = nullptr);
+                           std::shared_ptr<const pos::ForkChoiceSummary>* summary = nullptr);
+    void PublishPoSBranchValidation(CBlockIndex* target);
     CBlockIndex* FindMostWorkChain();
     void ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pindexNew, const FlatFilePos& pos, const Consensus::Params& consensusParams);
 
@@ -2000,7 +2004,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     // (its coinbase is unspendable)
     if (block.GetHash() == chainparams.GetConsensus().hashGenesisBlock) {
         if (pos_state != nullptr) {
-            pos::State next = *pos_state;
+            pos::State next = std::move(*pos_state);
             pos::StateUndo undo;
             if (!next.ApplyBlock(block, 0, false, 0, 0,
                                  chainparams.GetConsensus(), undo)) {
@@ -2025,7 +2029,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     pos::SlotInfo pos_slot;
     const CBlockIndex* final_pow = nullptr;
     if (pos_state != nullptr) {
-        next_pos_state = *pos_state;
+        next_pos_state = std::move(*pos_state);
         if (is_pos) {
             final_pow = pindex->pprev->GetAncestor(
                 consensus.nPoSActivationHeight - 1);
@@ -2880,18 +2884,47 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
 bool CChainState::ValidatePoSBranch(CBlockIndex* target,
                                     CValidationState& state,
                                     const CChainParams& chainparams,
-                                    pos::State* branch_state)
+                                    std::shared_ptr<const pos::ForkChoiceSummary>* summary)
 {
     AssertLockHeld(cs_main);
     if (target == nullptr) return false;
     if (!pos::IsPoSVersion(target->nVersion)) {
-        if (branch_state != nullptr) *branch_state = m_pos_state;
         return true;
     }
 
     const CBlockIndex* fork = chainActive.FindFork(target);
     if (fork == nullptr) return state.Error("PoS candidate has no active-chain fork");
 
+    for (const CBlockIndex* index = target; index != fork; index = index->pprev) {
+        if (index == nullptr || (index->nStatus & BLOCK_FAILED_MASK) ||
+            !(index->nStatus & BLOCK_HAVE_DATA)) {
+            return state.Error("PoS candidate branch is invalid or incomplete");
+        }
+    }
+    if (auto cached = m_pos_fork_cache.Get(target->GetBlockHash())) {
+        if (summary != nullptr) *summary = std::move(cached);
+        LogPrint(BCLog::BENCH, "PoS branch summary cache hit height=%d bytes=%u\n",
+                 target->nHeight, m_pos_fork_cache.DynamicMemoryUsage());
+        return true;
+    }
+    auto save_summary = [&](const pos::State& branch) {
+        auto result = std::make_shared<pos::ForkChoiceSummary>();
+        for (const auto& item : branch.LatestVotes()) {
+            const CAmount weight = branch.GetVoteWeight(item.second);
+            const CBlockIndex* head = pos::FindVoteHead(
+                item.second, target, chainparams.GetConsensus());
+            if (weight > 0 && head != nullptr) {
+                result->heads.emplace_back(head->nHeight, weight);
+            }
+        }
+        m_pos_fork_cache.Put(target->GetBlockHash(), result);
+        if (summary != nullptr) *summary = std::move(result);
+    };
+    if (target == chainActive.Tip()) {
+        save_summary(m_pos_state);
+        return true;
+    }
+    const int64_t start = GetTimeMicros();
     CCoinsViewCache view(pcoinsTip.get());
     pos::State candidate_state = m_pos_state;
     for (const CBlockIndex* index = chainActive.Tip(); index != fork;
@@ -2929,11 +2962,25 @@ bool CChainState::ValidatePoSBranch(CBlockIndex* target,
             state = block_state;
             return false;
         }
+    }
+    save_summary(candidate_state);
+    LogPrint(BCLog::BENCH, "PoS branch replay height=%d blocks=%u time=%dus cache_bytes=%u\n",
+             target->nHeight, path.size(), GetTimeMicros() - start,
+             m_pos_fork_cache.DynamicMemoryUsage());
+    return true;
+}
+
+void CChainState::PublishPoSBranchValidation(CBlockIndex* target)
+{
+    AssertLockHeld(cs_main);
+    // Called only by admission/reconsideration after full branch validation.
+    for (CBlockIndex* index = target;
+         index != nullptr && pos::IsPoSVersion(index->nVersion) &&
+             !(index->nStatus & BLOCK_VALID_POS); index = index->pprev) {
+        assert(!(index->nStatus & BLOCK_FAILED_MASK));
         index->nStatus |= BLOCK_VALID_POS;
         setDirtyBlockIndex.insert(index);
     }
-    if (branch_state != nullptr) *branch_state = std::move(candidate_state);
-    return true;
 }
 
 ReplayProtectionContext GetReplayProtectionContextForHeight(
@@ -2948,8 +2995,8 @@ ReplayProtectionContext GetReplayProtectionContextForHeight(
 
 bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
                                           const CBlockIndex* current,
-                                          const pos::State* candidate_state,
-                                          const pos::State* current_state)
+                                          const pos::ForkChoiceSummary& candidate_summary,
+                                          const pos::ForkChoiceSummary& current_summary)
 {
     if (current == nullptr) return candidate != nullptr;
     if (candidate == nullptr || candidate == current) return false;
@@ -2976,51 +3023,8 @@ bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
 
     const CBlockIndex* candidate_child = candidate->GetAncestor(fork->nHeight + 1);
     const CBlockIndex* current_child = current->GetAncestor(fork->nHeight + 1);
-    pos::State candidate_state_storage;
-    pos::State current_state_storage;
-    CValidationState validation_state;
-    if (candidate_state == nullptr &&
-        !ValidatePoSBranch(const_cast<CBlockIndex*>(candidate),
-                           validation_state, Params(),
-                           &candidate_state_storage)) {
-        return false;
-    }
-    if (candidate_state == nullptr) candidate_state = &candidate_state_storage;
-    validation_state = CValidationState();
-    if (current_state == nullptr &&
-        !ValidatePoSBranch(const_cast<CBlockIndex*>(current),
-                           validation_state, Params(),
-                           &current_state_storage)) {
-        return true;
-    }
-    if (current_state == nullptr) current_state = &current_state_storage;
-
-    CAmount candidate_weight = 0;
-    CAmount current_weight = 0;
-    for (const auto& item : candidate_state->LatestVotes()) {
-        const pos::CheckpointVote& vote = item.second;
-        const CAmount weight = candidate_state->GetVoteWeight(vote);
-        const CBlockIndex* head = pos::FindVoteHead(vote, candidate,
-                                                   Params().GetConsensus());
-        if (weight <= 0 || head == nullptr) continue;
-        if (head->nHeight >= candidate_child->nHeight &&
-            head->GetAncestor(candidate_child->nHeight) == candidate_child &&
-            MoneyRange(candidate_weight + weight)) {
-            candidate_weight += weight;
-        }
-    }
-    for (const auto& item : current_state->LatestVotes()) {
-        const pos::CheckpointVote& vote = item.second;
-        const CAmount weight = current_state->GetVoteWeight(vote);
-        const CBlockIndex* head = pos::FindVoteHead(vote, current,
-                                                   Params().GetConsensus());
-        if (weight <= 0 || head == nullptr) continue;
-        if (head->nHeight >= current_child->nHeight &&
-            head->GetAncestor(current_child->nHeight) == current_child &&
-            MoneyRange(current_weight + weight)) {
-            current_weight += weight;
-        }
-    }
+    const CAmount candidate_weight = candidate_summary.WeightAbove(candidate_child->nHeight);
+    const CAmount current_weight = current_summary.WeightAbove(current_child->nHeight);
     if (candidate_weight == current_weight &&
         candidate->nHeight != current->nHeight) {
         return candidate->nHeight > current->nHeight;
@@ -3041,28 +3045,31 @@ CBlockIndex* CChainState::FindMostWorkChain() {
                 Params().GetConsensus().nPoSActivationHeight;
             const CBlockIndex* activation_parent =
                 chainActive[activation_height - 1];
-            pos::State preferred_state;
-            bool have_preferred_state = false;
+            const pos::Checkpoint& finalized = m_pos_state.Finalized();
+            const CBlockIndex* finalized_index = finalized.root.IsNull()
+                ? nullptr : LookupBlockIndex(finalized.root);
+            std::shared_ptr<const pos::ForkChoiceSummary> preferred_summary;
             for (CBlockIndex* candidate : setBlockIndexCandidates) {
                 if (candidate->nHeight < activation_height ||
                     activation_parent == nullptr ||
                     candidate->GetAncestor(activation_parent->nHeight) !=
-                        activation_parent) {
+                        activation_parent ||
+                    (finalized_index != nullptr &&
+                     (candidate->nHeight < finalized_index->nHeight ||
+                      candidate->GetAncestor(finalized_index->nHeight) != finalized_index))) {
                     continue;
                 }
-                pos::State candidate_state;
+                std::shared_ptr<const pos::ForkChoiceSummary> candidate_summary;
                 CValidationState candidate_validation;
                 if (!ValidatePoSBranch(candidate, candidate_validation,
-                                       Params(), &candidate_state)) {
+                                       Params(), &candidate_summary)) {
                     continue;
                 }
                 if (pindexNew == nullptr ||
                     IsPreferredPoSCandidate(
-                        candidate, pindexNew, &candidate_state,
-                        have_preferred_state ? &preferred_state : nullptr)) {
+                        candidate, pindexNew, *candidate_summary, *preferred_summary)) {
                     pindexNew = candidate;
-                    preferred_state = std::move(candidate_state);
-                    have_preferred_state = true;
+                    preferred_summary = std::move(candidate_summary);
                 }
             }
             if (pindexNew == nullptr) return nullptr;
@@ -3458,6 +3465,7 @@ bool PreciousBlock(CValidationState& state, const CChainParams& params, CBlockIn
 bool CChainState::InvalidateBlock(CValidationState& state, const CChainParams& chainparams, CBlockIndex *pindex)
 {
     AssertLockHeld(cs_main);
+    m_pos_fork_cache.Clear();
 
     const pos::Checkpoint& finalized = m_pos_state.Finalized();
     const CBlockIndex* finalized_index = finalized.root.IsNull()
@@ -3541,6 +3549,7 @@ bool InvalidateBlock(CValidationState& state, const CChainParams& chainparams, C
 
 bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
+    m_pos_fork_cache.Clear();
     m_pos_service_tip = nullptr;
 
     int nHeight = pindex->nHeight;
@@ -3599,6 +3608,7 @@ bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
             }
             continue;
         }
+        PublishPoSBranchValidation(index);
         setBlockIndexCandidates.insert(index);
         if (pindexBestHeader == nullptr ||
             CBlockIndexWorkComparator()(pindexBestHeader, index)) {
@@ -4383,8 +4393,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
                 return error("%s: stored PoS block validation failed: %s",
                              __func__, FormatStateMessage(state));
             }
-            pindex->nStatus |= BLOCK_VALID_POS;
-            setDirtyBlockIndex.insert(pindex);
+            PublishPoSBranchValidation(pindex);
             m_pos_service_tip = nullptr;
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
@@ -4438,8 +4447,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
                 return error("%s: PoS branch validation failed: %s",
                              __func__, FormatStateMessage(state));
             }
-            pindex->nStatus |= BLOCK_VALID_POS;
-            setDirtyBlockIndex.insert(pindex);
+            PublishPoSBranchValidation(pindex);
             m_pos_service_tip = nullptr;
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
@@ -4494,6 +4502,12 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 }
 
 pos::State GetPoSStateSnapshot()
+{
+    AssertLockHeld(cs_main);
+    return g_chainstate.GetPoSState();
+}
+
+const pos::State& GetPoSStateView()
 {
     AssertLockHeld(cs_main);
     return g_chainstate.GetPoSState();
@@ -4924,6 +4938,7 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
                                const CBlockIndex* tip,
                                const Consensus::Params& params)
 {
+    m_pos_fork_cache.Clear();
     m_pos_service_tip = nullptr;
     pos::State loaded;
     if (!blocktree.ReadPoSState(loaded)) {
@@ -5454,6 +5469,7 @@ bool RewindBlockIndex(const CChainParams& params, bool fForceFullScan) {
 
 void CChainState::UnloadBlockIndex() {
     nBlockSequenceId = 1;
+    m_pos_fork_cache.Clear();
     m_pos_service_tip = nullptr;
     m_failed_blocks.clear();
     setBlockIndexCandidates.clear();

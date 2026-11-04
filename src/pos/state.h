@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <map>
 #include <set>
+#include <tuple>
 #include <vector>
 
 class CBlock;
@@ -250,6 +251,10 @@ public:
     template <typename Stream, typename Operation>
     void SerializationOp(Stream& s, Operation ser_action)
     {
+        if (ser_action.ForRead()) {
+            m_link_weights_valid = false;
+            m_link_weights.clear();
+        }
         READWRITE(m_best_block, m_bonds, m_bond_history, m_snapshots,
                   m_epoch_seeds, m_initial_pow_entropy, m_epoch_entropy,
                   m_has_pos, m_last_pos_epoch);
@@ -258,6 +263,9 @@ public:
     }
 
 private:
+    using VoteLink = std::tuple<uint64_t, uint256, uint64_t, uint256, uint64_t>;
+    bool UpdateLinkWeight(const CheckpointVote& vote, bool add);
+    bool EnsureLinkWeights();
     bool AddSnapshot(uint64_t source_epoch, int32_t source_height,
                      int32_t maturity_height, const Consensus::Params& params,
                      StateUndo& undo);
@@ -280,6 +288,9 @@ private:
     std::map<COutPoint, LockoutRecord> m_lockouts;
     std::map<uint256, AppliedEvidenceRecord> m_applied_evidence;
     std::map<COutPoint, int32_t> m_retired_bonds;
+    // Derived only: never serialized or used without rebuilding after undo/load.
+    std::map<VoteLink, CAmount> m_link_weights;
+    bool m_link_weights_valid{false};
 };
 
 uint256 ComputeSnapshotRoot(const std::vector<SnapshotEntry>& entries);

@@ -12,6 +12,7 @@
 #include <primitives/block.h>
 #include <script/standard.h>
 #include <shutdown.h>
+#include <streams.h>
 #include <test/setup_common.h>
 #include <txdb.h>
 #include <util/system.h>
@@ -20,6 +21,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cstring>
+#include <chrono>
 #include <map>
 
 namespace {
@@ -486,6 +488,122 @@ BOOST_AUTO_TEST_CASE(final_pow_anchor_bootstraps_finality)
     BOOST_CHECK(state.UndoBlock(epoch_zero_undo));
     BOOST_CHECK(state.FindJustified(0) == nullptr);
     BOOST_CHECK(state.Finalized().root.IsNull());
+}
+
+BOOST_AUTO_TEST_CASE(incremental_vote_tallies_match_rebuild_after_replace_prune_and_undo)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSStakeMaturity = 1;
+    const pos::BondData bond = MakeBond();
+    std::vector<CTransactionRef> transactions{MakeCoinbase()};
+    for (uint32_t i = 0; i < 128; ++i) {
+        CMutableTransaction tx;
+        tx.vin.emplace_back(COutPoint(uint256S("01"), i));
+        for (uint32_t j = 0; j < 16; ++j) {
+            tx.vout.emplace_back(params.nPoSMinStake, pos::GetBondScript(bond));
+        }
+        transactions.push_back(MakeTransactionRef(tx));
+    }
+    pos::State state;
+    pos::StateUndo create_undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock(transactions), 1, false, 0, 0,
+                                   params, create_undo));
+    pos::StateUndo snapshot_undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 760, false,
+                                   0, 0, params, snapshot_undo));
+    CBlock first = MakeBlock({MakeCoinbase()});
+    first.hashPrevBlock = uint256S("aa");
+    pos::StateUndo first_undo;
+    BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("01"), first_undo));
+    BOOST_REQUIRE(state.ApplyBlock(first, 1000, true, 0, 0, params, first_undo));
+
+    auto cold_copy = [](const pos::State& source) {
+        CDataStream data(SER_DISK, CLIENT_VERSION);
+        data << source;
+        pos::State result;
+        data >> result;
+        return result;
+    };
+    auto check_same = [](const pos::State& a, const pos::State& b) {
+        CDataStream left(SER_DISK, CLIENT_VERSION), right(SER_DISK, CLIENT_VERSION);
+        left << a;
+        right << b;
+        BOOST_CHECK(left.size() == right.size() &&
+                    std::equal(left.begin(), left.end(), right.begin()));
+    };
+    pos::State rebuilt = cold_copy(state);
+    std::vector<pos::CheckpointVote> votes;
+    for (const auto& item : state.Bonds()) {
+        pos::CheckpointVote vote;
+        vote.bond_outpoint = item.first;
+        vote.snapshot_epoch = pos::INITIAL_SNAPSHOT_EPOCH;
+        vote.source_epoch = pos::FINAL_POW_CHECKPOINT_EPOCH;
+        vote.source_checkpoint_root = first.hashPrevBlock;
+        vote.target_epoch = 0;
+        vote.target_checkpoint_root = first.GetHash();
+        vote.head_slot = 1;
+        vote.head_block_root = first.GetHash();
+        votes.push_back(vote);
+    }
+    BOOST_REQUIRE_EQUAL(votes.size(), 2048U);
+    for (size_t start = 0; start < votes.size(); start += 256) {
+        const std::vector<pos::CheckpointVote> batch(votes.begin() + start,
+                                                     votes.begin() + start + 256);
+        rebuilt = cold_copy(rebuilt);
+        pos::StateUndo warm_undo, cold_undo;
+        BOOST_REQUIRE(state.ApplyVotes(batch, warm_undo));
+        BOOST_REQUIRE(rebuilt.ApplyVotes(batch, cold_undo));
+        check_same(state, rebuilt);
+    }
+    for (auto& vote : votes) ++vote.head_slot;
+    pos::StateUndo replacement, rebuilt_replacement;
+    BOOST_REQUIRE(state.ApplyVotes(votes, replacement));
+    rebuilt = cold_copy(rebuilt);
+    BOOST_REQUIRE(rebuilt.ApplyVotes(votes, rebuilt_replacement));
+    check_same(state, rebuilt);
+    const auto start = std::chrono::steady_clock::now();
+    for (int i = 0; i < 100; ++i) {
+        pos::StateUndo unused;
+        BOOST_REQUIRE(state.ApplyVotes({}, unused));
+    }
+    const auto warm_us = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count();
+    const auto cold_start = std::chrono::steady_clock::now();
+    int64_t rebuild_us = 0;
+    for (int i = 0; i < 100; ++i) {
+        pos::State cold = cold_copy(state);
+        pos::StateUndo unused;
+        const auto apply_start = std::chrono::steady_clock::now();
+        BOOST_REQUIRE(cold.ApplyVotes({}, unused));
+        rebuild_us += std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - apply_start).count();
+        check_same(state, cold);
+    }
+    BOOST_TEST_MESSAGE("2048 bonds, 100 empty vote applications: warm=" << warm_us
+        << "us, rebuild=" << rebuild_us << "us, deserialize/rebuild/compare="
+        << std::chrono::duration_cast<std::chrono::microseconds>(
+               std::chrono::steady_clock::now() - cold_start).count() << "us");
+
+    CBlock later = MakeBlock({MakeCoinbase()});
+    later.hashPrevBlock = first.GetHash();
+    later.nTime = 30000;
+    pos::StateUndo prune, rebuilt_prune;
+    BOOST_REQUIRE(state.ApplyBlock(later, 1001, true, 10, 0, params, prune));
+    BOOST_REQUIRE(rebuilt.ApplyBlock(later, 1001, true, 10, 0, params, rebuilt_prune));
+    pos::StateUndo empty;
+    BOOST_REQUIRE(state.ApplyVotes({}, empty));
+    BOOST_REQUIRE(rebuilt.ApplyVotes({}, empty));
+    check_same(state, rebuilt);
+    BOOST_REQUIRE(state.UndoBlock(prune));
+    BOOST_REQUIRE(rebuilt.UndoBlock(rebuilt_prune));
+    rebuilt = cold_copy(rebuilt);
+    BOOST_REQUIRE(state.ApplyVotes({}, empty));
+    BOOST_REQUIRE(rebuilt.ApplyVotes({}, empty));
+    check_same(state, rebuilt);
+    BOOST_REQUIRE(state.UndoBlock(replacement));
+    BOOST_REQUIRE(rebuilt.UndoBlock(rebuilt_replacement));
+    check_same(state, rebuilt);
 }
 
 BOOST_AUTO_TEST_CASE(snapshot_excludes_immature_bond)

@@ -150,8 +150,6 @@ BOOST_AUTO_TEST_CASE(pos_consensus_parameters)
     BOOST_CHECK_EQUAL(pos.nPoSEpochSlots, 120U);
     BOOST_CHECK_EQUAL(pos.nPoSSnapshotDelayEpochs, 2U);
     BOOST_CHECK_EQUAL(pos.nPoSUnbondingBlocks, 20160U);
-    BOOST_CHECK_EQUAL(pos.nPoSMaxVotesPerBlock, 1024U);
-    BOOST_CHECK_EQUAL(pos.nPoSMaxEvidencePerBlock, 16U);
     BOOST_CHECK(pos.nPoSBondRulesHeight +
                     static_cast<int>(pos.nPoSStakeMaturity) <=
                 pos.nPoSActivationHeight);

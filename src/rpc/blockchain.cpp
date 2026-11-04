@@ -1471,7 +1471,7 @@ static UniValue getposinfo(const JSONRPCRequest& request)
     }
 
     const Consensus::Params& params = Params().GetConsensus();
-    const pos::State state = GetPoSStateSnapshot();
+    const pos::State& state = GetPoSStateView();
     uint64_t eligibility_epoch = 0;
     const pos::StakeSnapshot* eligible_snapshot = GetReportingSnapshot(
         state, params, eligibility_epoch);
@@ -1830,7 +1830,7 @@ static UniValue getbondinfo(const JSONRPCRequest& request)
     }
     const COutPoint outpoint(txid, static_cast<uint32_t>(output_index));
     const Consensus::Params& params = Params().GetConsensus();
-    const pos::State state = GetPoSStateSnapshot();
+    const pos::State& state = GetPoSStateView();
     const pos::BondRecord* bond = state.FindBond(outpoint);
     const bool active = bond != nullptr;
     if (bond == nullptr) bond = state.FindHistoricalBond(outpoint);

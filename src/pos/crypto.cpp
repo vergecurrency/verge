@@ -4,11 +4,44 @@
 
 #include <pos/crypto.h>
 
+#include <random.h>
+#include <support/cleanse.h>
+
 #include <secp256k1.h>
 #include <secp256k1_extrakeys.h>
 #include <secp256k1_schnorrsig.h>
 
 namespace pos {
+
+namespace {
+struct SigningContext {
+    secp256k1_context* context{secp256k1_context_create(SECP256K1_CONTEXT_SIGN)};
+
+    SigningContext()
+    {
+        if (context == nullptr) return;
+        unsigned char seed[32];
+        GetRandBytes(seed, sizeof(seed));
+        const int randomized = secp256k1_context_randomize(context, seed);
+        memory_cleanse(seed, sizeof(seed));
+        if (!randomized) {
+            secp256k1_context_destroy(context);
+            context = nullptr;
+        }
+    }
+
+    ~SigningContext() { secp256k1_context_destroy(context); }
+    SigningContext(const SigningContext&) = delete;
+    SigningContext& operator=(const SigningContext&) = delete;
+};
+
+secp256k1_context* GetSigningContext()
+{
+    // No shared mutable context or per-signature precomputation allocation.
+    static thread_local SigningContext signing;
+    return signing.context;
+}
+} // namespace
 
 bool IsValidSchnorrPublicKey(
     const unsigned char public_key[SCHNORR_PUBLIC_KEY_SIZE])
@@ -37,8 +70,7 @@ bool SignSchnorr(const unsigned char secret_key[32], const uint256& message,
                  unsigned char signature[SCHNORR_SIGNATURE_SIZE],
                  unsigned char public_key[SCHNORR_PUBLIC_KEY_SIZE])
 {
-    secp256k1_context* context =
-        secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
+    secp256k1_context* context = GetSigningContext();
     if (context == nullptr) return false;
 
     secp256k1_keypair keypair;
@@ -50,7 +82,7 @@ bool SignSchnorr(const unsigned char secret_key[32], const uint256& message,
         secp256k1_xonly_pubkey_serialize(context, public_key, &xonly) == 1 &&
         secp256k1_schnorrsig_sign32(context, signature, message.begin(),
                                     &keypair, auxiliary_randomness) == 1;
-    secp256k1_context_destroy(context);
+    memory_cleanse(&keypair, sizeof(keypair));
     return valid;
 }
 
@@ -58,8 +90,7 @@ bool GetSchnorrPublicKey(
     const unsigned char secret_key[32],
     unsigned char public_key[SCHNORR_PUBLIC_KEY_SIZE])
 {
-    secp256k1_context* context = secp256k1_context_create(
-        SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
+    secp256k1_context* context = GetSigningContext();
     if (context == nullptr) return false;
     secp256k1_keypair keypair;
     secp256k1_xonly_pubkey xonly;
@@ -67,7 +98,7 @@ bool GetSchnorrPublicKey(
     const bool ok = secp256k1_keypair_create(context, &keypair, secret_key) &&
         secp256k1_keypair_xonly_pub(context, &xonly, &parity, &keypair) &&
         secp256k1_xonly_pubkey_serialize(context, public_key, &xonly);
-    secp256k1_context_destroy(context);
+    memory_cleanse(&keypair, sizeof(keypair));
     return ok;
 }
 

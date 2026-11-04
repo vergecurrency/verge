@@ -6,6 +6,7 @@
 """Check independent PoS producers converge without orphan-header history."""
 
 import time
+from pathlib import Path
 
 from test_framework.authproxy import JSONRPCException
 from test_framework.test_framework import VergeTestFramework
@@ -20,6 +21,28 @@ from test_framework.util import (
 
 
 class PoSVoteHeadsTest(VergeTestFramework):
+    def add_options(self, parser):
+        parser.add_argument("--reference-binary", help="Run the second producer with a previous daemon for differential validation")
+
+    def setup_nodes(self):
+        if not self.options.reference_binary:
+            return super().setup_nodes()
+        self.add_nodes(self.num_nodes, self.extra_args, binary=[
+            self.options.verged, self.options.reference_binary, self.options.verged,
+        ])
+        self.start_nodes()
+        self.import_deterministic_coinbase_privkeys()
+
+    def assert_consensus_matches(self):
+        reference = self.nodes[0].getposinfo()
+        fields = ("best_block_hash", "state_block_hash", "tracked_bonds",
+                  "tracked_bond_value", "latest_votes", "latest_vote_weight",
+                  "initial_snapshot", "latest_checkpoint", "latest_justified", "finalized")
+        for node in self.nodes[1:]:
+            info = node.getposinfo()
+            for field in fields:
+                assert_equal(info[field], reference[field])
+
     def set_test_params(self):
         self.num_nodes = 3
         self.setup_clean_chain = True
@@ -103,6 +126,9 @@ class PoSVoteHeadsTest(VergeTestFramework):
         connect_nodes_bi(self.nodes, 0, 2)
         sync_blocks(self.nodes, timeout=120)
         assert_equal(fresh.getbestblockhash(), common)
+        self.assert_consensus_matches()
+        log = Path(first.datadir) / "regtest" / "debug.log"
+        assert "PoS branch summary cache hit" in log.read_text(encoding="utf-8")
         for node in self.nodes:
             self.assert_services_ready(node)
 
@@ -129,6 +155,7 @@ class PoSVoteHeadsTest(VergeTestFramework):
             first.setstaking(False)
         sync_blocks(self.nodes, timeout=120)
         common = first.getbestblockhash()
+        self.assert_consensus_matches()
         for node in self.nodes:
             self.assert_services_ready(node)
 
@@ -154,6 +181,7 @@ class PoSVoteHeadsTest(VergeTestFramework):
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
         sync_blocks(self.nodes, timeout=120)
+        self.assert_consensus_matches()
 
 
 if __name__ == "__main__":

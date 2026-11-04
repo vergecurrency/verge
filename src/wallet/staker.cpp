@@ -38,18 +38,11 @@
 namespace {
 
 using PublicKeyBytes = std::array<unsigned char, pos::SCHNORR_PUBLIC_KEY_SIZE>;
-std::mutex g_attempt_mutex;
-std::map<const CWallet*, uint64_t> g_last_attempted_slot;
-std::map<const CWallet*, int64_t> g_last_bond_attempt;
-
-bool ShouldAttemptAutomaticBond(const CWallet* wallet)
+bool ShouldAttemptAutomaticBond(CWallet& wallet)
 {
     const int64_t now = GetTime();
-    std::lock_guard<std::mutex> lock(g_attempt_mutex);
-    int64_t& last_attempt = g_last_bond_attempt[wallet];
-    if (last_attempt != 0 && now - last_attempt < 60) return false;
-    last_attempt = now;
-    return true;
+    LOCK(wallet.cs_wallet);
+    return wallet.MarkAutomaticBondAttempt(now);
 }
 
 bool HasStakingPeer()
@@ -173,14 +166,9 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
             error = "candidate time is not a canonical proof-of-stake slot";
             return false;
         }
-        {
-            std::lock_guard<std::mutex> lock(g_attempt_mutex);
-            uint64_t& last_slot = g_last_attempted_slot[&wallet];
-            if (!force && last_slot == slot.global_slot) {
-                error = "current slot was already evaluated";
-                return false;
-            }
-            last_slot = slot.global_slot;
+        if (!wallet.MarkStakingAttempt(slot.global_slot, force)) {
+            error = "current slot was already evaluated";
+            return false;
         }
 
         pos::State state = GetPoSStateSnapshot();
@@ -264,7 +252,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
 
         pos::GetVotePool().Prune(slot.epoch);
         for (const pos::CheckpointVote& vote :
-             pos::GetVotePool().GetVotes(params.nPoSMaxVotesPerBlock)) {
+             pos::GetVotePool().GetVotes(pos::MAX_VOTES_PER_BLOCK)) {
             if (pos::CheckCheckpointVote(
                     vote, state, params.nPoSSnapshotDelayEpochs, slot.epoch,
                     tip->nHeight + 1) == pos::ValidationError::NONE &&
@@ -284,7 +272,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         }
         for (const pos::BlockEquivocationEvidence& evidence :
              pos::GetBlockEvidencePool().GetEvidence(
-                 params.nPoSMaxEvidencePerBlock)) {
+                 pos::RemainingEvidenceBudget(vote_evidence.size()))) {
             if (pos::CheckBlockEvidence(evidence, state,
                                         params.nPoSNetworkId,
                                         slot.global_slot) ==
@@ -563,9 +551,10 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
     return true;
 }
 
-std::vector<WalletUnbondingInfo> GetWalletUnbondings(CWallet& wallet)
+static std::vector<WalletUnbondingInfo> GetWalletUnbondingsLocked(CWallet& wallet)
 {
-    LOCK2(cs_main, wallet.cs_wallet);
+    AssertLockHeld(cs_main);
+    AssertLockHeld(wallet.cs_wallet);
     std::vector<WalletUnbondingInfo> result;
     const int64_t next_height = static_cast<int64_t>(chainActive.Height()) + 1;
     for (const auto& item : wallet.mapWallet) {
@@ -593,6 +582,12 @@ std::vector<WalletUnbondingInfo> GetWalletUnbondings(CWallet& wallet)
     return result;
 }
 
+std::vector<WalletUnbondingInfo> GetWalletUnbondings(CWallet& wallet)
+{
+    LOCK2(cs_main, wallet.cs_wallet);
+    return GetWalletUnbondingsLocked(wallet);
+}
+
 std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
 {
     LOCK2(cs_main, wallet.cs_wallet);
@@ -602,7 +597,7 @@ std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
 
     pos::State state = GetPoSStateSnapshot();
     const Consensus::Params& params = Params().GetConsensus();
-    const std::vector<WalletUnbondingInfo> unbondings = GetWalletUnbondings(wallet);
+    const std::vector<WalletUnbondingInfo> unbondings = GetWalletUnbondingsLocked(wallet);
     std::set<COutPoint> pending_bonds;
     for (const WalletUnbondingInfo& unbond : unbondings) {
         if (unbond.confirmations != 0) continue;
@@ -720,7 +715,7 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
         error = "bond already has a pending spend";
         return false;
     }
-    if (GetPoSStateSnapshot().IsWithdrawalLocked(
+    if (GetPoSStateView().IsWithdrawalLocked(
             outpoint, chainActive.Height() + 1)) {
         error = "bond withdrawal is locked by equivocation evidence";
         return false;
@@ -774,7 +769,7 @@ void StakeWallets()
             uint256 bond_txid;
             CAmount bond_amount = 0;
             std::string bond_error;
-            if (ShouldAttemptAutomaticBond(wallet.get()) &&
+            if (ShouldAttemptAutomaticBond(*wallet) &&
                 EnsureAutomaticStakeBond(*wallet, bond_txid, bond_amount,
                                          bond_error) && !bond_txid.IsNull()) {
                 LogPrintf("Created automatic stake bond %s for %s with wallet %s\n",
