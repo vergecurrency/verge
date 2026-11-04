@@ -10,7 +10,12 @@
 #include <pos/votepool.h>
 #include <pos/vrf.h>
 #include <primitives/block.h>
+#include <script/standard.h>
+#include <shutdown.h>
 #include <test/setup_common.h>
+#include <txdb.h>
+#include <util/system.h>
+#include <validation.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -626,6 +631,73 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
     BOOST_CHECK(state.UndoBlock(offense_undo));
     BOOST_CHECK(!state.IsWithdrawalLocked(bond_outpoint, 1000));
     BOOST_CHECK(state.UndoBlock(seed_undo));
+}
+
+BOOST_AUTO_TEST_CASE(journal_keeps_recovery_undo_until_explicit_pruning)
+{
+    SetDataDir("pos-journal");
+    ClearDatadirCache();
+    CBlockTreeDB database(1 << 20, true);
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    pos::State state;
+    CBlock first = MakeBlock({MakeCoinbase()});
+    first.nTime = 1;
+    pos::StateUndo first_undo;
+    BOOST_REQUIRE(state.ApplyBlock(first, 1, false, 0, 0, params, first_undo));
+    BOOST_REQUIRE(database.WritePoSStateTransition(state, first.GetHash(), first_undo));
+    CBlock second = MakeBlock({MakeCoinbase()});
+    second.hashPrevBlock = first.GetHash();
+    second.nTime = 2;
+    pos::StateUndo second_undo;
+    BOOST_REQUIRE(state.ApplyBlock(second, 2, false, 0, 0, params, second_undo));
+    BOOST_REQUIRE(database.WritePoSStateTransition(state, second.GetHash(), second_undo));
+
+    pos::State loaded;
+    pos::StateUndo undo;
+    BOOST_REQUIRE(database.ReadPoSState(loaded));
+    BOOST_CHECK(loaded.BestBlock() == second.GetHash());
+    BOOST_REQUIRE(database.ReadPoSUndo(second.GetHash(), undo));
+    BOOST_REQUIRE(loaded.UndoBlock(undo));
+    BOOST_CHECK(loaded.BestBlock() == first.GetHash());
+    BOOST_REQUIRE(database.ReadPoSUndo(first.GetHash(), undo));
+
+    BOOST_REQUIRE(database.PrunePoSUndo({first.GetHash()}));
+    BOOST_CHECK(!database.ReadPoSUndo(first.GetHash(), undo));
+    BOOST_CHECK(database.ReadPoSUndo(second.GetHash(), undo));
+    BOOST_REQUIRE(database.ReadPoSState(loaded));
+    BOOST_CHECK(loaded.BestBlock() == second.GetHash());
+    ClearDatadirCache();
+}
+
+BOOST_FIXTURE_TEST_CASE(failed_block_flush_does_not_commit_utxos, TestChain100Setup)
+{
+    FlushStateToDisk();
+    const uint256 saved_tip = pcoinsdbview->GetBestBlock();
+    const CBlock next = CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
+    BOOST_REQUIRE(next.GetHash() != saved_tip);
+    BOOST_REQUIRE(pcoinsdbview->GetBestBlock() == saved_tip);
+
+    const fs::path block_file = GetBlocksDir() / "blk00000.dat";
+    const fs::path backup = GetBlocksDir() / "blk00000.saved";
+    fs::rename(block_file, backup);
+    const auto restore = [&] {
+        fs::remove(block_file);
+        fs::rename(backup, block_file);
+        AbortShutdown();
+    };
+    try {
+        fs::create_directory(block_file);
+        FlushStateToDisk();
+        BOOST_CHECK(ShutdownRequested());
+        BOOST_CHECK(pcoinsdbview->GetBestBlock() == saved_tip);
+    } catch (...) {
+        restore();
+        throw;
+    }
+    restore();
+    FlushStateToDisk();
+    BOOST_CHECK(pcoinsdbview->GetBestBlock() == next.GetHash());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

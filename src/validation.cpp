@@ -1782,7 +1782,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
-void static FlushBlockFile(bool fFinalize = false)
+bool static FlushBlockFile(bool fFinalize = false)
 {
     LOCK(cs_LastBlockFile);
 
@@ -1794,8 +1794,9 @@ void static FlushBlockFile(bool fFinalize = false)
     status &= UndoFileSeq().Flush(undo_pos_old, fFinalize);
 
     if (!status) {
-        AbortNode("Flushing block file to disk failed. This is likely the result of an I/O error.");
+        return AbortNode("Flushing block file to disk failed. This is likely the result of an I/O error.");
     }
+    return true;
 }
 
 static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, uint64_t nAddSize);
@@ -2462,7 +2463,7 @@ bool static FlushStateToDisk(const CChainParams& chainparams, CValidationState &
                 return AbortNode(state, "Disk space is low!", _("Error: Disk space is low!"));
             }
             // First make sure all block and undo data is flushed to disk.
-            FlushBlockFile();
+            if (!FlushBlockFile()) return state.Error("Failed to flush block and undo files");
             // Then update all block file information (which may refer to block and undo files).
             {
                 std::vector<std::pair<int, const CBlockFileInfo*> > vFiles;
@@ -2646,6 +2647,13 @@ bool CChainState::DisconnectTip(CValidationState& state, const CChainParams& cha
         bool flushed = view.Flush();
         assert(flushed);
     }
+    // A crash must not leave persisted PoS state behind the durable UTXOs.
+    // Keep this block's undo until its UTXO rollback is durably committed.
+    if (have_pos_undo &&
+        pcoinsdbview->GetBestBlock() == pindexDelete->GetBlockHash() &&
+        !FlushStateToDisk(chainparams, state, FlushStateMode::ALWAYS)) {
+        return false;
+    }
     if (!pblocktree->WritePoSStateRollback(
             next_pos_state, pindexDelete->GetBlockHash())) {
         return AbortNode(state, "Failed to persist rolled-back PoS state");
@@ -2814,17 +2822,21 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     const bool persisted = pindexNew->nHeight <= snapshot_height
         ? pblocktree->WritePoSState(next_pos_state)
         : pblocktree->WritePoSStateTransition(
-              next_pos_state, pindexNew->GetBlockHash(), pos_undo,
-              prune_pos_undo);
+              next_pos_state, pindexNew->GetBlockHash(), pos_undo);
     if (!persisted) {
         return AbortNode(state, "Failed to persist connected PoS state");
     }
     m_pos_state = std::move(next_pos_state);
     int64_t nTime4 = GetTimeMicros(); nTimeFlush += nTime4 - nTime3;
     LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime4 - nTime3) * MILLI, nTimeFlush * MICRO, nTimeFlush * MILLI / nBlocksTotal);
-    // Write the chain state to disk, if necessary.
-    if (!FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED))
+    // Finality cannot prune recovery undo while the durable UTXOs lag behind.
+    const FlushStateMode flush_mode = prune_pos_undo.empty()
+        ? FlushStateMode::IF_NEEDED : FlushStateMode::ALWAYS;
+    if (!FlushStateToDisk(chainparams, state, flush_mode))
         return false;
+    if (!prune_pos_undo.empty() && !pblocktree->PrunePoSUndo(prune_pos_undo)) {
+        return AbortNode(state, "Failed to prune finalized PoS undo state");
+    }
     int64_t nTime5 = GetTimeMicros(); nTimeChainState += nTime5 - nTime4;
     LogPrint(BCLog::BENCH, "  - Writing chainstate: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime5 - nTime4) * MILLI, nTimeChainState * MICRO, nTimeChainState * MILLI / nBlocksTotal);
     // Remove conflicting transactions from the mempool.;
@@ -3712,7 +3724,7 @@ static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int n
         if (!fKnown) {
             LogPrintf("Leaving block file %i: %s\n", nLastBlockFile, vinfoBlockFile[nLastBlockFile].ToString());
         }
-        FlushBlockFile(!fKnown);
+        if (!FlushBlockFile(!fKnown)) return false;
         nLastBlockFile = nFile;
     }
 
@@ -5247,7 +5259,7 @@ bool CChainState::ReplayBlocks(const CChainParams& params, CCoinsView* view)
     }
 
     cache.SetBestBlock(pindexNew->GetBlockHash());
-    cache.Flush();
+    if (!cache.Flush()) return error("ReplayBlocks(): failed to flush replayed chainstate");
     uiInterface.ShowProgress("", 100, false);
     return true;
 }

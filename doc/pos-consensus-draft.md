@@ -981,6 +981,38 @@ retains its one-attempt-per-slot policy. It does not re-sign the same slot
 against another parent. This is producer-side race handling only: block
 validation, slot eligibility, fork choice, and finality rules are unchanged.
 
+## Crash Recovery And Durability
+
+PoS state and its transition undo are journaled atomically in the block-index
+database. UTXOs are cached separately. Advancing finality must durably flush
+block files, undo files, block-index entries, and the UTXO database before
+deleting finalized PoS undo records. The final UTXO batch uses a synchronous
+write, so a completed flush cannot be overtaken by later undo pruning.
+
+When disconnecting the block named by the saved UTXO tip, its UTXO rollback
+must be durably flushed before persisting the parent PoS state and erasing
+the disconnected block's PoS undo. A crash before that step leaves the old
+PoS state and the undo required to reconcile it with the saved UTXOs.
+Ordinary connects and disconnects above the saved tip retain cached UTXO
+updates; this does not force a disk flush for every block or competing winner.
+Existing wallet and indexer notification ordering is preserved.
+
+Interrupted multi-batch UTXO writes use the existing head markers and block
+replay. Failed block/undo-file flushes stop the sequence before database
+commits or undo pruning. Replay and normal UTXO flushes propagate write
+failures instead of treating them as successful recovery. Recovery never
+bypasses block validation or changes finality and fork-choice rules. No
+database format change or routine
+reindex is required by this hardening. A database already missing required
+undo data from an older build may still require a one-time chainstate rebuild.
+
+`feature_pos_crash_recovery.py` covers abrupt termination after finality
+advances, recovery of an unflushed suffix, interrupted finality and disconnect
+flushes, a repeated crash during startup replay, state/UTXO agreement with an
+independent node, and continued block production without reindexing.
+Unit coverage also checks that a failed block-file flush cannot advance the
+durable UTXO tip and that a later successful flush can complete normally.
+
 ## Wallet Behavior
 
 Staking is opt-in. Merely owning XVG or opening a wallet does not automatically expose keys or begin staking. The wallet must show:

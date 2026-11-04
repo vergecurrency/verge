@@ -124,7 +124,7 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
         mapCoins.erase(itOld);
         if (batch.SizeEstimate() > batch_size) {
             LogPrint(BCLog::COINDB, "Writing partial batch of %.2f MiB\n", batch.SizeEstimate() * (1.0 / 1048576.0));
-            db.WriteBatch(batch);
+            if (!db.WriteBatch(batch)) return false;
             batch.Clear();
             if (crash_simulate) {
                 static FastRandomContext rng;
@@ -141,7 +141,8 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
     batch.Write(DB_BEST_BLOCK, hashBlock);
 
     LogPrint(BCLog::COINDB, "Writing final batch of %.2f MiB\n", batch.SizeEstimate() * (1.0 / 1048576.0));
-    bool ret = db.WriteBatch(batch);
+    // Later PoS undo pruning must not overtake this chainstate commit.
+    bool ret = db.WriteBatch(batch, true);
     LogPrint(BCLog::COINDB, "Committed %u changed transaction outputs (out of %u) to coin database...\n", (unsigned int)changed, (unsigned int)count);
     return ret;
 }
@@ -273,16 +274,19 @@ bool CBlockTreeDB::ErasePoSUndo(const uint256& block_hash)
 
 bool CBlockTreeDB::WritePoSStateTransition(const pos::State& state,
                                            const uint256& block_hash,
-                                           const pos::StateUndo& undo,
-                                           const std::vector<uint256>& prune_undo)
+                                           const pos::StateUndo& undo)
 {
     CDBBatch batch(*this);
     batch.Write(DB_POS_STATE, state);
     batch.Write(std::make_pair(DB_POS_UNDO, block_hash), undo);
-    for (const uint256& hash : prune_undo) {
-        if (hash != block_hash) {
-            batch.Erase(std::make_pair(DB_POS_UNDO, hash));
-        }
+    return WriteBatch(batch, true);
+}
+
+bool CBlockTreeDB::PrunePoSUndo(const std::vector<uint256>& block_hashes)
+{
+    CDBBatch batch(*this);
+    for (const uint256& hash : block_hashes) {
+        batch.Erase(std::make_pair(DB_POS_UNDO, hash));
     }
     return WriteBatch(batch, true);
 }
