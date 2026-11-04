@@ -81,6 +81,7 @@ BASE_SCRIPTS = [
     'feature_block.py',
     'feature_pos_activation.py',
     'feature_pos_crash_recovery.py',
+    'feature_pos_storage.py',
     'feature_pos_vote_heads.py',
     'feature_pos_worker.py',
     'p2p_initial_header_sync.py',
@@ -203,6 +204,7 @@ BASE_SCRIPTS = [
 ]
 
 EXTENDED_SCRIPTS = [
+    'feature_pos_soak.py',
     # These tests are not run by the travis build process.
     # Longest test should go first, to favor running tests in parallel
     'feature_pruning.py',

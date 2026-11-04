@@ -71,6 +71,7 @@ VERGE_TESTS =\
   test/pos_primitives_tests.cpp \
   test/pos_stake_tests.cpp \
   test/pos_state_tests.cpp \
+  test/pos_storage_tests.cpp \
   test/pos_tx_tests.cpp \
   test/pos_validation_tests.cpp \
   test/pos_votepool_tests.cpp \

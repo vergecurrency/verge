@@ -216,6 +216,7 @@ public:
     }
     bool LoadPoSState(CBlockTreeDB& blocktree, const CBlockIndex* tip,
                       const Consensus::Params& params);
+    bool ResetPoSStateForEmptyChain();
 
 private:
     pos::State m_pos_state;
@@ -2652,9 +2653,8 @@ bool CChainState::DisconnectTip(CValidationState& state, const CChainParams& cha
         assert(flushed);
     }
     // A crash must not leave persisted PoS state behind the durable UTXOs.
-    // Keep this block's undo until its UTXO rollback is durably committed.
-    if (have_pos_undo &&
-        pcoinsdbview->GetBestBlock() == pindexDelete->GetBlockHash() &&
+    // This also covers legacy snapshot blocks written without PoS undo.
+    if (pcoinsdbview->GetBestBlock() == pindexDelete->GetBlockHash() &&
         !FlushStateToDisk(chainparams, state, FlushStateMode::ALWAYS)) {
         return false;
     }
@@ -2788,8 +2788,8 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
     int64_t nTime2 = GetTimeMicros(); nTimeReadFromDisk += nTime2 - nTime1;
     int64_t nTime3;
     LogPrint(BCLog::BENCH, "  - Load block from disk: %.2fms [%.2fs]\n", (nTime2 - nTime1) * MILLI, nTimeReadFromDisk * MICRO);
+    CCoinsViewCache view(pcoinsTip.get());
     {
-        CCoinsViewCache view(pcoinsTip.get());
         bool rv = ConnectBlock(blockConnecting, state, pindexNew, view,
                                chainparams, false, &next_pos_state, &pos_undo);
         GetMainSignals().BlockChecked(blockConnecting, state);
@@ -2800,8 +2800,6 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
         }
         nTime3 = GetTimeMicros(); nTimeConnectTotal += nTime3 - nTime2;
         LogPrint(BCLog::BENCH, "  - Connect total: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime3 - nTime2) * MILLI, nTimeConnectTotal * MICRO, nTimeConnectTotal * MILLI / nBlocksTotal);
-        bool flushed = view.Flush();
-        assert(flushed);
     }
     const int snapshot_height =
         pos::GetInitialStakeSnapshotHeight(chainparams.GetConsensus());
@@ -2823,13 +2821,16 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
                              "Failed to locate prior finalized PoS checkpoint");
         }
     }
-    const bool persisted = pindexNew->nHeight <= snapshot_height
-        ? pblocktree->WritePoSState(next_pos_state)
-        : pblocktree->WritePoSStateTransition(
-              next_pos_state, pindexNew->GetBlockHash(), pos_undo);
+    const bool persisted = pblocktree->WritePoSStateTransition(
+        next_pos_state, pindexNew->GetBlockHash(), pos_undo,
+        pindexNew->nHeight >= snapshot_height);
     if (!persisted) {
         return AbortNode(state, "Failed to persist connected PoS state");
     }
+    // A rejected/failed state write must leave the shared UTXO cache at its
+    // parent. Once state+undo commit, an interrupted cache flush is recoverable.
+    const bool flushed = view.Flush();
+    assert(flushed);
     m_pos_state = std::move(next_pos_state);
     int64_t nTime4 = GetTimeMicros(); nTimeFlush += nTime4 - nTime3;
     LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime4 - nTime3) * MILLI, nTimeFlush * MICRO, nTimeFlush * MILLI / nBlocksTotal);
@@ -4507,6 +4508,25 @@ pos::State GetPoSStateSnapshot()
     return g_chainstate.GetPoSState();
 }
 
+bool CChainState::ResetPoSStateForEmptyChain()
+{
+    AssertLockHeld(cs_main);
+    if (chainActive.Tip() != nullptr || !pcoinsTip ||
+        !pcoinsTip->GetBestBlock().IsNull() || !pblocktree) return false;
+    pos::State empty;
+    if (!pblocktree->WritePoSState(empty)) return false;
+    m_pos_state = std::move(empty);
+    m_pos_fork_cache.Clear();
+    m_pos_service_tip = nullptr;
+    return true;
+}
+
+bool ResetPoSStateForEmptyChain()
+{
+    LOCK(cs_main);
+    return g_chainstate.ResetPoSStateForEmptyChain();
+}
+
 const pos::State& GetPoSStateView()
 {
     AssertLockHeld(cs_main);
@@ -5469,6 +5489,7 @@ bool RewindBlockIndex(const CChainParams& params, bool fForceFullScan) {
 
 void CChainState::UnloadBlockIndex() {
     nBlockSequenceId = 1;
+    m_pos_state = pos::State();
     m_pos_fork_cache.Clear();
     m_pos_service_tip = nullptr;
     m_failed_blocks.clear();

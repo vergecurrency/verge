@@ -1270,18 +1270,18 @@ performed in this local verification. No live wallet data was modified.
 
 ### Remaining Mainnet Gates
 
-1. Per-block durable persistence still serializes and rewrites the complete
-   state. Incremental, versioned record-level persistence with atomic state-tip
-   and undo updates remains separate work. It must include old-format migration,
-   explicit downgrade behavior, partial-write and power-loss fault injection,
-   and full/chainstate reindex equivalence. The recovery ordering established
-   in the crash-recovery work must not be weakened to reduce writes.
-2. Cold branch replay, retained eligible candidate count and state copies still
-   require stress measurements. Test 1k/10k/100k bonds, long histories, many
-   authenticated competing forks, finalized and stalled-finality cases, and
-   cache eviction/oversize fallback. Record CPU, peak RSS, lock hold times,
-   validation latency and database bytes written. Repeat on desktop and Pi-class
-   hardware, with sanitizer runs and an overnight partition/recovery soak.
+1. Incremental record persistence and local migration/recovery coverage are
+   implemented below. Repeat this coverage on release platforms before
+   deployment, including backups and operator downgrade/rebuild instructions.
+   The recovery ordering established in the crash-recovery work must not be
+   weakened to reduce writes.
+2. The larger disk-state and summary-cache tests below are not a full-node
+   100k-validator benchmark. Cold branch replay, retained eligible candidate
+   count, state copies, long histories and many authenticated competing forks
+   still require profiling under finalized and stalled-finality conditions.
+   Record CPU, peak RSS, lock hold times, validation latency and physical
+   database bytes written. Repeat on desktop and Pi-class hardware, with
+   sanitizer runs and an overnight partition/recovery soak.
 3. Give an independent reviewer a pinned commit/build manifest, this consensus
    specification, signature/VRF/replay-protection vectors and test commands.
    Scope includes weighted eligibility and bond-splitting invariance, entropy
@@ -1292,6 +1292,152 @@ performed in this local verification. No live wallet data was modified.
 
 No activation height, network identity, signature construction, accepted block
 limit or serialized state/undo format changes in this remediation stage.
+
+## Incremental Persistence And Soak Work
+
+The incremental implementation changes the local LevelDB schema, not transaction,
+block, signature, snapshot, or undo serialization. Legacy state under key `P`
+is readable until the first new write migrates it in one batch. Schema version
+1 uses metadata key `p` and record prefix `q`. A record key is the prefix byte,
+field byte, 32-byte identifier and uint32 output index. Epoch keys encode the
+uint64 epoch in the identifier's first eight little-endian bytes; the remaining
+identifier bytes and output index must be zero.
+
+Field numbers 1 through 11 identify bonds, historical bonds, snapshots, seeds,
+epoch entropy, checkpoints, justified checkpoints, latest votes, lockouts,
+applied evidence and retired bonds, respectively. Metadata contains version,
+state tip, initial entropy, PoS flag, last epoch, finalized checkpoint and the
+eleven map counts. Reads reject unknown versions/types, non-canonical keys,
+missing metadata, mismatched record counts, and mixed legacy/new state.
+Values use the corresponding existing state-map value serialization. A future
+incompatible record/metadata change must use a new database schema version;
+an unknown version is rejected before parsing its remaining metadata.
+
+`StateChanges` collects affected keys from existing undo records. Connection
+writes only those keys and metadata, plus the block undo, in one atomic batch.
+The shared UTXO cache is updated only after that batch succeeds, so failure cannot
+make shutdown persist UTXOs whose matching PoS state was never committed.
+Snapshot creation still writes the new snapshot once per epoch. Disconnection
+uses the same key set and resulting parent state. Startup recovery merges key
+sets across its rollback suffix without retaining copies of every removed
+snapshot, verifies undo continuity and atomically commits the recovered state
+while deleting precisely that suffix's undo records. Full resets are reserved
+for initialization, explicit rebuilding and pre-snapshot recovery without undo.
+
+At and after creation of the initial snapshot, state/undo batches are synchronous.
+The snapshot-creation block now retains undo too, closing the boundary where
+the pre-snapshot reconstruction shortcut is no longer sufficient. Finality
+still flushes blocks, indexes and UTXOs before pruning recovery undo. Earlier
+state batches remain asynchronous because that state can be rebuilt from UTXOs.
+Disconnecting the durable UTXO tip flushes its rollback before writing parent
+PoS state, including legacy snapshot-creation blocks that have no PoS undo.
+The block-index unload path now also clears in-memory PoS state; otherwise its
+old tip can incorrectly survive rebuilding into a fresh database.
+An empty-UTXO rebuild explicitly resets PoS records before replaying genesis;
+the reset refuses an active chain or a nonempty UTXO tip. Ordinary writes never
+discard their persisted-parent check to accommodate rebuilding.
+
+Upgrade does not require wiping chain data. In-place downgrade is not supported:
+an older binary cannot read record-format PoS state after the snapshot and must
+not be used to write alongside it. Restore a matching pre-upgrade backup, or
+perform the appropriate explicit rebuild with a compatible binary. Never remove
+wallet files to change the chain database format.
+In particular, `-reindex-chainstate` alone is not a downgrade procedure: it does
+not clear the PoS records in the block-index database. Both reindex modes are
+tested with the upgraded binary; after the initial snapshot, a normal
+post-migration startup with the previous binary fails rather than silently
+reinterpreting the data. Before that snapshot, an old binary can instead
+reconstruct legacy state; a later upgrade rejects the resulting mixed formats.
+Neither behavior is a supported in-place downgrade.
+
+Verification includes record-versus-normal-state serialization hashes, all map
+families across evidence/retention/undo, uncommitted-batch interruption, malformed
+schema refusal, durable reopen, multi-block rollback and real binary migration.
+Set `VERGE_POS_STORAGE_STRESS=1` to include disk-backed 1k/10k/100k-bond cases in
+`pos_storage_tests`. Batch byte figures are encoded size estimates, not physical
+disk write amplification or complete block-validation throughput.
+
+`feature_pos_soak.py` is an extended four-node test with configurable rounds,
+minimum duration, bond count and random seed. It exercises competing production
+under repeated partitions, convergence, clean/abrupt restarts, delayed catch-up,
+record-state recovery and final chainstate reindex. It compares consensus state,
+UTXO hashes, readiness and honest-peer scores, and records observed resident
+memory plus a JSON results artifact. A local bounded soak does not substitute
+for an overnight run, hardware-specific profiling or independent review.
+
+The first longer soak exposed an outbound announcement mismatch: queued tip
+announcements could include multiple PoS headers, although the receiving path
+permits only one terminal PoS header. Such outbound batches now fall back to
+tip inventory; bounded full-block synchronization handles catch-up. The
+receiver's single-header authentication bound and penalties for malformed
+multi-header announcements remain unchanged.
+
+### Larger Local Verification
+
+All 87 selected PoS/wallet unit cases pass on the Windows MSVC-compatible
+build, including failed-write UTXO isolation, snapshot-boundary undo and legacy
+rollback, all record families, schema rejection, durable reopen, and ordered
+64-block recovery. Extended disk-backed measurements were:
+
+| Bonds | Full Encoded Batch (Bytes) | Maximum Delta With Undo (Bytes) | 64 Durable Writes (us) |
+| --- | --- | --- | --- |
+| 1,000 | 469,731 | 1,047 | 33,949 |
+| 10,000 | 4,690,731 | 1,047 | 46,997 |
+| 100,000 | 46,900,733 | 1,047 | 37,066 |
+
+Each measured transition updates one vote plus entropy/metadata and its undo;
+the combined 64 delta batches total 67,008 encoded bytes at each size. Bond
+churn, large vote sets and new snapshots require proportionally larger writes.
+These timings cover the durable write call, not state construction, signature
+verification, total validation latency or physical disk amplification.
+
+The summary-cache stress inserts 256 synthetic branch summaries with 100,000
+vote heads each into a 16 MiB accounted budget. It retains 10 summaries, peaks
+at 16,001,920 accounted bytes, preserves reference weights, and evicts older
+entries. The measured cache loop took 212,901 us. This tests cache accounting
+and eviction, not replay/authentication of 256 real competing branches.
+
+The final daemon build passes `feature_pos_activation`,
+`feature_pos_crash_recovery`, `feature_pos_vote_heads`, `feature_pos_worker`,
+`p2p_pos_prefetch`, `p2p_pos_header_time`, `wallet_pos_unbond`, and
+`feature_pos_storage`. Persistence coverage runs both in default CI mode and
+against the previous single-state-record daemon, including successful in-place
+migration, explicit old-binary refusal after activation, retention pruning,
+restart, full reindex and chainstate reindex with matching UTXO/state results.
+The prefetch regression also confirms that malformed multiple-PoS-header
+announcements still receive a penalty after the outbound announcement fix.
+
+The four-node run with 32 real bonds per node passed 600.9 seconds of
+steady-state soak and completed its final reindex/comparisons at 605.625 seconds.
+It exercised 554 action rounds, 27 partitions, 8 clean restarts and 7 abrupt
+restarts, producing 490 blocks including competing branches. All four nodes
+converged at height 2442, with checkpoint epoch 82 finalized at height 2432.
+Current peer scores and a complete log scan found no honest-peer penalties.
+Consensus/snapshot comparisons and the final four-way UTXO hash comparison
+passed, including the participant rebuilt with `-reindex-chainstate`.
+
+Observed combined resident memory began at 387,448,832 bytes and peaked/ended
+at 404,201,472 bytes (about 385.5 MiB) after final rebuilding. These are sampled
+working-set totals, not private-memory or leak-freedom measurements. The local
+artifact is `build-msvc/pos-records-final-soak/pos-soak-results.json`, marked
+`passed`. This bounded desktop run does not complete the overnight, sanitizer,
+Pi-class or full-scale authenticated-branch profiling gates above.
+
+Run the disk/cache cases with `VERGE_POS_STORAGE_STRESS=1` and the PoS unit
+binary. Run the network soak with:
+
+```sh
+python test/functional/feature_pos_soak.py --rounds=120 --duration=600 --bonds-per-node=32 --soak-seed=20261104
+```
+
+`--duration` is a minimum steady-state wall time in addition to `--rounds`;
+setup and final reindex are extra. The activation override in this test is
+regtest-only. For an overnight run, use `--duration=43200` in an isolated test
+directory, not a live wallet directory. Results are written to
+`pos-soak-results.json`; only a report marked `passed` includes the final
+state/UTXO and reindex assertions. No live wallet data is modified.
+These tests exercise process crashes and batch commit boundaries, not physical
+power loss, torn device writes or storage hardware that fails to honor sync.
 
 ## Documentation Discipline
 

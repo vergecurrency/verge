@@ -4381,6 +4381,13 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                     }
                 }
             }
+            const auto first_pos = std::find_if(vHeaders.begin(), vHeaders.end(),
+                [](const CBlock& header) { return pos::IsPoSVersion(header.nVersion); });
+            if (first_pos != vHeaders.end() && first_pos + 1 != vHeaders.end()) {
+                // Receivers authenticate one terminal PoS header at a time.
+                // Queued announcements can accumulate during branch catch-up.
+                fRevertToInv = true;
+            }
             if (!fRevertToInv && !vHeaders.empty()) {
                 if (vHeaders.size() == 1 && state.fPreferHeaderAndIDs) {
                     // We only send up to 1 block as header-and-ids, as otherwise

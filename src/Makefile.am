@@ -213,6 +213,7 @@ VERGE_CORE_H = \
   pos/primitives.h \
   pos/stake.h \
   pos/state.h \
+  pos/storage.h \
   pos/votepool.h \
   pos/validation.h \
   pos/vrf.h \
@@ -314,6 +315,7 @@ libverge_server_a_SOURCES = \
   pos/consensus.cpp \
   pos/block.cpp \
   pos/state.cpp \
+  pos/storage.cpp \
   pos/votepool.cpp \
   pos/validation.cpp \
   pow.cpp \

@@ -104,7 +104,8 @@ public:
     bool ErasePoSUndo(const uint256& block_hash);
     bool WritePoSStateTransition(const pos::State& state,
                                  const uint256& block_hash,
-                                 const pos::StateUndo& undo);
+                                 const pos::StateUndo& undo,
+                                 bool save_undo = true);
     bool PrunePoSUndo(const std::vector<uint256>& block_hashes);
     bool WritePoSStateRollback(const pos::State& state,
                                const uint256& block_hash);

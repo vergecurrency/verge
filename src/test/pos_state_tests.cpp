@@ -4,9 +4,11 @@
 
 #include <chainparams.h>
 #include <coins.h>
+#include <consensus/validation.h>
 #include <pos/consensus.h>
 #include <pos/crypto.h>
 #include <pos/state.h>
+#include <pos/storage.h>
 #include <pos/votepool.h>
 #include <pos/vrf.h>
 #include <primitives/block.h>
@@ -93,6 +95,19 @@ public:
 
 private:
     std::map<COutPoint, Coin> m_coins;
+};
+
+struct RawStateMetadata {
+    std::vector<unsigned char> bytes;
+    template <typename Stream> void Serialize(Stream& stream) const
+    {
+        stream.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    }
+    template <typename Stream> void Unserialize(Stream& stream)
+    {
+        bytes.resize(stream.size());
+        stream.read(reinterpret_cast<char*>(bytes.data()), bytes.size());
+    }
 };
 
 } // namespace
@@ -816,6 +831,80 @@ BOOST_FIXTURE_TEST_CASE(failed_block_flush_does_not_commit_utxos, TestChain100Se
     restore();
     FlushStateToDisk();
     BOOST_CHECK(pcoinsdbview->GetBestBlock() == next.GetHash());
+}
+
+BOOST_FIXTURE_TEST_CASE(unloading_block_index_discards_pos_state, RegTestingSetup)
+{
+    LOCK(cs_main);
+    BOOST_REQUIRE(chainActive.Tip() != nullptr);
+    BOOST_CHECK(GetPoSStateView().BestBlock() == chainActive.Tip()->GetBlockHash());
+    BOOST_CHECK(!ResetPoSStateForEmptyChain());
+    UnloadBlockIndex();
+    BOOST_CHECK(GetPoSStateView().BestBlock().IsNull());
+    BOOST_CHECK(GetPoSStateView().Bonds().empty());
+    BOOST_CHECK(!ResetPoSStateForEmptyChain());
+}
+
+BOOST_FIXTURE_TEST_CASE(snapshot_creation_retains_recovery_undo, TestChain100Setup)
+{
+    UpdatePoSActivationHeight(1500);
+    const int snapshot_height = pos::GetInitialStakeSnapshotHeight(Params().GetConsensus());
+    BOOST_REQUIRE(snapshot_height > chainActive.Height() && snapshot_height < 2000);
+    const CScript destination = GetScriptForRawPubKey(coinbaseKey.GetPubKey());
+    while (chainActive.Height() < snapshot_height) {
+        const int previous = chainActive.Height();
+        CreateAndProcessBlock({}, destination);
+        BOOST_REQUIRE_EQUAL(chainActive.Height(), previous + 1);
+    }
+    LOCK(cs_main);
+    pos::StateUndo undo;
+    BOOST_REQUIRE(pblocktree->ReadPoSUndo(chainActive.Tip()->GetBlockHash(), undo));
+    BOOST_CHECK(std::find(undo.added_snapshots.begin(), undo.added_snapshots.end(),
+                          pos::INITIAL_SNAPSHOT_EPOCH) != undo.added_snapshots.end());
+    BOOST_CHECK(GetPoSStateView().FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) != nullptr);
+
+    FlushStateToDisk();
+    CBlockIndex* snapshot = chainActive.Tip();
+    BOOST_REQUIRE(pcoinsdbview->GetBestBlock() == snapshot->GetBlockHash());
+    // Older releases did not retain undo for the snapshot-creation block.
+    BOOST_REQUIRE(pblocktree->ErasePoSUndo(snapshot->GetBlockHash()));
+    CValidationState validation;
+    BOOST_REQUIRE(InvalidateBlock(validation, Params(), snapshot));
+    BOOST_REQUIRE(chainActive.Tip() == snapshot->pprev);
+    BOOST_CHECK(pcoinsdbview->GetBestBlock() == snapshot->pprev->GetBlockHash());
+    pos::State stored;
+    BOOST_REQUIRE(pblocktree->ReadPoSState(stored));
+    BOOST_CHECK(stored.BestBlock() == snapshot->pprev->GetBlockHash());
+    BOOST_CHECK(stored.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH) == nullptr);
+}
+
+BOOST_FIXTURE_TEST_CASE(failed_pos_write_keeps_parent_utxos, TestChain100Setup)
+{
+    FlushStateToDisk();
+    const uint256 parent = chainActive.Tip()->GetBlockHash();
+    RawStateMetadata saved;
+    BOOST_REQUIRE(pblocktree->Read(pos::STATE_DB_METADATA_KEY, saved));
+    const auto restore = [&] {
+        pblocktree->Write(pos::STATE_DB_METADATA_KEY, saved, true);
+        AbortShutdown();
+    };
+    CBlock next;
+    try {
+        BOOST_REQUIRE(pblocktree->Write(pos::STATE_DB_METADATA_KEY,
+                                        pos::STATE_DB_VERSION + 1, true));
+        next = CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
+        BOOST_CHECK(ShutdownRequested());
+        BOOST_CHECK(chainActive.Tip()->GetBlockHash() == parent);
+        BOOST_CHECK(pcoinsTip->GetBestBlock() == parent);
+        restore();
+    } catch (...) {
+        restore();
+        throw;
+    }
+    FlushStateToDisk();
+    BOOST_CHECK(pcoinsdbview->GetBestBlock() == parent);
+    BOOST_REQUIRE(ProcessNewBlock(Params(), std::make_shared<const CBlock>(next), true, nullptr));
+    BOOST_CHECK(chainActive.Tip()->GetBlockHash() == next.GetHash());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

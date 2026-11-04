@@ -9,6 +9,9 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <chrono>
+#include <cstdlib>
+
 BOOST_FIXTURE_TEST_SUITE(pos_consensus_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(slot_boundaries)
@@ -130,6 +133,42 @@ BOOST_AUTO_TEST_CASE(fork_summary_preserves_order_and_cache_is_bounded)
     cache.Clear();
     BOOST_CHECK_EQUAL(cache.Size(), 0U);
     BOOST_CHECK_EQUAL(cache.DynamicMemoryUsage(), 0U);
+}
+
+BOOST_AUTO_TEST_CASE(large_fork_summary_eviction_stress)
+{
+    const size_t votes = std::getenv("VERGE_POS_STORAGE_STRESS") ? 100000 : 1000;
+    pos::ForkChoiceSummary reference;
+    reference.heads.reserve(votes);
+    for (size_t i = 0; i < votes; ++i) {
+        reference.heads.emplace_back(1000 + i % 1000, (1 + i % 13) * COIN);
+    }
+    CAmount expected = 0;
+    for (const auto& head : reference.heads) {
+        if (head.first >= 1500 && MoneyRange(expected + head.second)) expected += head.second;
+    }
+    constexpr size_t maximum = 16 * 1024 * 1024;
+    pos::ForkChoiceCache cache(128, maximum);
+    const auto start = std::chrono::steady_clock::now();
+    size_t peak = 0;
+    for (uint32_t branch = 1; branch <= 256; ++branch) {
+        uint256 hash;
+        WriteLE32(hash.begin(), branch);
+        cache.Put(hash, std::make_shared<pos::ForkChoiceSummary>(reference));
+        auto summary = cache.Get(hash);
+        BOOST_REQUIRE(summary);
+        BOOST_CHECK_EQUAL(summary->WeightAbove(1500), expected);
+        peak = std::max(peak, cache.DynamicMemoryUsage());
+        BOOST_CHECK_LE(cache.DynamicMemoryUsage(), maximum);
+        BOOST_CHECK_LE(cache.Size(), 128U);
+    }
+    uint256 first;
+    WriteLE32(first.begin(), 1);
+    BOOST_CHECK(!cache.Get(first));
+    BOOST_TEST_MESSAGE("Fork summary stress votes=" << votes << " branches=256 retained="
+        << cache.Size() << " peak_accounted_bytes=" << peak << " elapsed_us="
+        << std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - start).count());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

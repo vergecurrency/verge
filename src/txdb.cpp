@@ -9,6 +9,7 @@
 #include <chainparams.h>
 #include <hash.h>
 #include <pos/primitives.h>
+#include <pos/storage.h>
 #include <random.h>
 #include <pow.h>
 #include <shutdown.h>
@@ -31,7 +32,6 @@ static const char DB_HEAD_BLOCKS = 'H';
 static const char DB_FLAG = 'F';
 static const char DB_REINDEX_FLAG = 'R';
 static const char DB_LAST_BLOCK = 'l';
-static const char DB_POS_STATE = 'P';
 static const char DB_POS_UNDO = 'U';
 
 namespace {
@@ -246,13 +246,17 @@ bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
 }
 
 bool CBlockTreeDB::WritePoSState(const pos::State& state)
-{
-    return Write(DB_POS_STATE, state);
+try {
+    CDBBatch batch(*this);
+    if (!pos::StateStorage::WriteFull(*this, batch, state)) return false;
+    return WriteBatch(batch, true);
+} catch (const dbwrapper_error& e) {
+    return error("WritePoSState: %s", e.what());
 }
 
 bool CBlockTreeDB::ReadPoSState(pos::State& state)
 {
-    return Read(DB_POS_STATE, state);
+    return pos::StateStorage::Read(*this, state);
 }
 
 bool CBlockTreeDB::WritePoSUndo(const uint256& block_hash,
@@ -274,41 +278,84 @@ bool CBlockTreeDB::ErasePoSUndo(const uint256& block_hash)
 
 bool CBlockTreeDB::WritePoSStateTransition(const pos::State& state,
                                            const uint256& block_hash,
-                                           const pos::StateUndo& undo)
-{
+                                           const pos::StateUndo& undo,
+                                           bool save_undo)
+try {
+    if (state.BestBlock() != block_hash || undo.previous_best_block == block_hash) return false;
+    const bool migrating = Exists(pos::LEGACY_STATE_DB_KEY);
     CDBBatch batch(*this);
-    batch.Write(DB_POS_STATE, state);
-    batch.Write(std::make_pair(DB_POS_UNDO, block_hash), undo);
-    return WriteBatch(batch, true);
+    pos::StateChanges changes;
+    changes.AddUndo(undo);
+    if (!pos::StateStorage::WriteChanges(*this, batch, state, changes,
+                                        undo.previous_best_block)) return false;
+    if (save_undo) batch.Write(std::make_pair(DB_POS_UNDO, block_hash), undo);
+    LogPrint(BCLog::BENCH, "PoS state batch tip=%s estimated_bytes=%u undo=%d\n",
+             block_hash.ToString(), batch.SizeEstimate(), save_undo);
+    // Before the bootstrap snapshot the state can be reconstructed from UTXOs.
+    // After it, retain the existing durable state/undo commit ordering.
+    const bool written = WriteBatch(batch, save_undo);
+    if (written && migrating) {
+        LogPrintf("Migrated PoS state to record database version %u at %s\n",
+                  pos::STATE_DB_VERSION, block_hash.ToString());
+    }
+    return written;
+} catch (const dbwrapper_error& e) {
+    return error("WritePoSStateTransition: %s", e.what());
 }
 
 bool CBlockTreeDB::PrunePoSUndo(const std::vector<uint256>& block_hashes)
-{
+try {
     CDBBatch batch(*this);
     for (const uint256& hash : block_hashes) {
         batch.Erase(std::make_pair(DB_POS_UNDO, hash));
     }
     return WriteBatch(batch, true);
+} catch (const dbwrapper_error& e) {
+    return error("PrunePoSUndo: %s", e.what());
 }
 
 bool CBlockTreeDB::WritePoSStateRollback(const pos::State& state,
                                          const uint256& block_hash)
-{
+try {
     CDBBatch batch(*this);
-    batch.Write(DB_POS_STATE, state);
+    pos::StateUndo undo;
+    if (ReadPoSUndo(block_hash, undo)) {
+        if (state.BestBlock() != undo.previous_best_block) return false;
+        pos::StateChanges changes;
+        changes.AddUndo(undo);
+        if (!pos::StateStorage::WriteChanges(*this, batch, state, changes,
+                                            block_hash)) return false;
+    } else if (!pos::StateStorage::WriteFull(*this, batch, state, &block_hash)) {
+        return false;
+    }
     batch.Erase(std::make_pair(DB_POS_UNDO, block_hash));
     return WriteBatch(batch, true);
+} catch (const dbwrapper_error& e) {
+    return error("WritePoSStateRollback: %s", e.what());
 }
 
 bool CBlockTreeDB::WritePoSStateRecovery(
     const pos::State& state, const std::vector<uint256>& block_hashes)
-{
+try {
     CDBBatch batch(*this);
-    batch.Write(DB_POS_STATE, state);
+    pos::StateChanges changes;
+    uint256 expected = block_hashes.empty() ? state.BestBlock() : block_hashes.front();
+    for (const uint256& block_hash : block_hashes) {
+        pos::StateUndo undo;
+        if (block_hash != expected || !ReadPoSUndo(block_hash, undo) ||
+            undo.previous_best_block == block_hash) return false;
+        changes.AddUndo(undo);
+        expected = undo.previous_best_block;
+    }
+    if (expected != state.BestBlock() ||
+        !pos::StateStorage::WriteChanges(*this, batch, state, changes,
+            block_hashes.empty() ? state.BestBlock() : block_hashes.front())) return false;
     for (const uint256& block_hash : block_hashes) {
         batch.Erase(std::make_pair(DB_POS_UNDO, block_hash));
     }
     return WriteBatch(batch, true);
+} catch (const dbwrapper_error& e) {
+    return error("WritePoSStateRecovery: %s", e.what());
 }
 
 bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {

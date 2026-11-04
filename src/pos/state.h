@@ -263,6 +263,7 @@ public:
     }
 
 private:
+    friend class StateStorage;
     using VoteLink = std::tuple<uint64_t, uint256, uint64_t, uint256, uint64_t>;
     bool UpdateLinkWeight(const CheckpointVote& vote, bool add);
     bool EnsureLinkWeights();

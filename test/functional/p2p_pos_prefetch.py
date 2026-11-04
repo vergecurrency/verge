@@ -79,6 +79,17 @@ class RawBlockMessage:
         return self.raw
 
 
+class MultipleHeadersMessage:
+    command = b"headers"
+
+    def __init__(self, headers):
+        self.headers = headers
+
+    def serialize(self):
+        return ser_compact_size(len(self.headers)) + b"".join(
+            header + b"\x00\x00" for header in self.headers)
+
+
 class DownloadPeer(P2PInterface):
     def __init__(self, hashes, headers, blocks, serve=False):
         super().__init__()
@@ -216,6 +227,13 @@ class PoSPrefetchTest(VergeTestFramework):
         assert_equal(observer.getblockcount(), 1499)
         assert_raises_rpc_error(-5, "Block not found", observer.getblockheader,
                                 "{:064x}".format(self.hashes[1]))
+        observer.disconnect_p2ps()
+
+        self.log.info("Multiple unauthenticated PoS headers remain prohibited")
+        peer = self.peer(observer)
+        peer.send_and_ping(MultipleHeadersMessage(self.headers[1:3]))
+        assert_equal(observer.getblockcount(), 1499)
+        assert_equal(observer.getpeerinfo()[0]["banscore"], 20)
         observer.disconnect_p2ps()
 
         self.log.info("Malformed batches are rejected before admitting any prefix")
