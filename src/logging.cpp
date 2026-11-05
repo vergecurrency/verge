@@ -7,6 +7,8 @@
 #include <logging.h>
 #include <util/time.h>
 
+#include <limits>
+
 const char * const DEFAULT_DEBUGLOGFILE = "debug.log";
 
 /**
@@ -31,6 +33,20 @@ static int FileWriteStr(const std::string &str, FILE *fp)
     return fwrite(str.data(), 1, str.size(), fp);
 }
 
+constexpr size_t BCLog::Logger::MAX_BUFFERED_LOG_BYTES;
+constexpr size_t BCLog::Logger::MAX_BUFFERED_LOG_MESSAGES;
+
+BCLog::Logger::~Logger()
+{
+    if (m_fileout) fclose(m_fileout);
+}
+
+BCLog::Logger::BufferStats BCLog::Logger::GetBufferStats()
+{
+    std::lock_guard<std::mutex> scoped_lock(m_file_mutex);
+    return {m_buffered_bytes, m_msgs_before_open.size(), m_dropped_messages};
+}
+
 bool BCLog::Logger::OpenDebugLog()
 {
     std::lock_guard<std::mutex> scoped_lock(m_file_mutex);
@@ -44,11 +60,17 @@ bool BCLog::Logger::OpenDebugLog()
     }
 
     setbuf(m_fileout, nullptr); // unbuffered
+    if (m_dropped_messages != 0) {
+        FileWriteStr(strprintf("Warning: dropped %u log messages before opening debug log (buffer limit reached)\n",
+                               m_dropped_messages), m_fileout);
+        m_dropped_messages = 0;
+    }
     // dump buffered messages from before we opened the log
     while (!m_msgs_before_open.empty()) {
         FileWriteStr(m_msgs_before_open.front(), m_fileout);
         m_msgs_before_open.pop_front();
     }
+    m_buffered_bytes = 0;
 
     return true;
 }
@@ -214,18 +236,37 @@ void BCLog::Logger::LogPrintStr(const std::string &str)
 
         // buffer if we haven't opened the log yet
         if (m_fileout == nullptr) {
+            const auto dropped = [this] {
+                if (m_dropped_messages != std::numeric_limits<uint64_t>::max()) ++m_dropped_messages;
+            };
+            if (strTimestamped.size() > MAX_BUFFERED_LOG_BYTES) {
+                dropped();
+                return;
+            }
+            while (!m_msgs_before_open.empty() &&
+                   (m_msgs_before_open.size() >= MAX_BUFFERED_LOG_MESSAGES ||
+                    m_buffered_bytes + strTimestamped.size() > MAX_BUFFERED_LOG_BYTES)) {
+                m_buffered_bytes -= m_msgs_before_open.front().size();
+                m_msgs_before_open.pop_front();
+                dropped();
+            }
             m_msgs_before_open.push_back(strTimestamped);
+            m_buffered_bytes += strTimestamped.size();
         }
         else
         {
             // reopen the log file, if requested
-            if (m_reopen_file) {
-                m_reopen_file = false;
-                m_fileout = fsbridge::freopen(m_file_path, "a", m_fileout);
-                if (!m_fileout) {
-                    return;
+            if (m_reopen_file.exchange(false)) {
+                // A failed reopen must not discard the working stream and turn
+                // runtime logging into an indefinitely growing startup buffer.
+                FILE* replacement = fsbridge::fopen(m_file_path, "a");
+                if (replacement) {
+                    setbuf(replacement, nullptr);
+                    fclose(m_fileout);
+                    m_fileout = replacement;
+                } else {
+                    FileWriteStr("Warning: could not reopen debug log; continuing on previous stream\n", m_fileout);
                 }
-                setbuf(m_fileout, nullptr); // unbuffered
             }
 
             FileWriteStr(strTimestamped, m_fileout);

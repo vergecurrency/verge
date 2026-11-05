@@ -98,9 +98,10 @@ private:
     CCriticalSection m_cs_callbacks_pending;
     std::list<std::function<void (void)>> m_callbacks_pending GUARDED_BY(m_cs_callbacks_pending);
     bool m_are_callbacks_running GUARDED_BY(m_cs_callbacks_pending) = false;
+    bool m_are_callbacks_scheduled GUARDED_BY(m_cs_callbacks_pending) = false;
 
     void MaybeScheduleProcessQueue();
-    void ProcessQueue();
+    void ProcessQueue(bool reschedule = true);
 
 public:
     explicit SingleThreadedSchedulerClient(CScheduler *pschedulerIn) : m_pscheduler(pschedulerIn) {}

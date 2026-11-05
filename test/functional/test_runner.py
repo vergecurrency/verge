@@ -204,6 +204,7 @@ BASE_SCRIPTS = [
 ]
 
 EXTENDED_SCRIPTS = [
+    'feature_memory_usage.py',
     'feature_pos_soak.py',
     # These tests are not run by the travis build process.
     # Longest test should go first, to favor running tests in parallel

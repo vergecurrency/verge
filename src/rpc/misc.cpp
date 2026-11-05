@@ -10,6 +10,7 @@
 #include <crypto/ripemd160.h>
 #include <init.h>
 #include <key_io.h>
+#include <memusage.h>
 #include <validation.h>
 #include <httpserver.h>
 #include <net.h>
@@ -17,6 +18,8 @@
 #include <rpc/blockchain.h>
 #include <rpc/server.h>
 #include <timedata.h>
+#include <txmempool.h>
+#include <validationinterface.h>
 #include <util/system.h>
 #include <rpc/util.h>
 #include <util/strencodings.h>
@@ -332,6 +335,7 @@ static UniValue getmemoryinfo(const JSONRPCRequest& request)
             "Arguments:\n"
             "1. \"mode\" determines what kind of information is returned. This argument is optional, the default mode is \"stats\".\n"
             "  - \"stats\" returns general statistics about memory usage in the daemon.\n"
+            "    Components are estimates, not total process RAM. Use OS RSS/private-memory measurements too.\n"
             "  - \"mallocinfo\" returns an XML string describing low-level heap state (only available if compiled with glibc 2.10+).\n"
             "\nResult (mode \"stats\"):\n"
             "{\n"
@@ -355,6 +359,22 @@ static UniValue getmemoryinfo(const JSONRPCRequest& request)
     if (mode == "stats") {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("locked", RPCLockedMemoryInfo());
+        UniValue components(UniValue::VOBJ);
+        {
+            LOCK(cs_main);
+            components.pushKV("block_index_entries", uint64_t(mapBlockIndex.size()));
+            components.pushKV("block_index_bytes_estimate", uint64_t(
+                memusage::DynamicUsage(mapBlockIndex) + mapBlockIndex.size() * memusage::MallocUsage(sizeof(CBlockIndex))));
+            components.pushKV("utxo_cache_bytes", uint64_t(pcoinsTip ? pcoinsTip->DynamicMemoryUsage() : 0));
+            components.pushKV("utxo_cache_entries", uint64_t(pcoinsTip ? pcoinsTip->GetCacheSize() : 0));
+        }
+        components.pushKV("mempool_bytes", uint64_t(mempool.DynamicMemoryUsage()));
+        components.pushKV("validation_callbacks_pending", uint64_t(GetMainSignals().CallbacksPending()));
+        const auto buffered = g_logger->GetBufferStats();
+        components.pushKV("log_buffer_bytes", uint64_t(buffered.bytes));
+        components.pushKV("log_buffer_messages", uint64_t(buffered.messages));
+        components.pushKV("log_messages_dropped", buffered.dropped);
+        obj.pushKV("components", components);
         return obj;
     } else if (mode == "mallocinfo") {
 #ifdef HAVE_MALLOC_INFO
