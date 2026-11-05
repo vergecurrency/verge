@@ -1439,6 +1439,17 @@ state/UTXO and reindex assertions. No live wallet data is modified.
 These tests exercise process crashes and batch commit boundaries, not physical
 power loss, torn device writes or storage hardware that fails to honor sync.
 
+## Shared Runtime Memory Review (2026-11-05)
+
+The daemon memory investigation and shared logging/scheduler hardening
+add partial component counters to `getmemoryinfo stats` and a concurrent
+mining-RPC resource regression, including walletless operation. A failed log
+reopen no longer converts runtime logging to unbounded buffering, and callback
+bursts no longer create redundant processing jobs. Callback ordering and
+consensus rules are unchanged. The reported exhaustion on 16 GiB hosts still
+requires affected-host evidence; bounded local tests are not a mainnet OOM
+reproduction or an overnight leak audit.
+
 ## Documentation Discipline
 
 This document is updated with each approved consensus decision. Implementation commits must reference the relevant section and must not introduce undocumented consensus behavior. Before public testnet, the draft must include exact byte serialization, domain-separation strings, arithmetic bounds, state-transition pseudocode, RPC behavior, and fixed vectors. Before Phase 6 it will be promoted from a research draft to a versioned consensus specification linked from the root README and release documentation.

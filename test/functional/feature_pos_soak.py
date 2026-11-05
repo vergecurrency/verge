@@ -5,47 +5,15 @@
 
 """Bounded multi-producer PoS soak with partitions, crashes and recovery."""
 
-import ctypes
 import json
-import os
 from pathlib import Path
 import random
 import time
 
 from test_framework.authproxy import JSONRPCException
+from test_framework.memory import resident_bytes
 from test_framework.test_framework import VergeTestFramework
 from test_framework.util import assert_equal, connect_nodes_bi, disconnect_nodes, sync_blocks
-
-
-def resident_bytes(pid):
-    if os.name == "nt":
-        from ctypes import wintypes
-
-        class Counters(ctypes.Structure):
-            _fields_ = [("cb", wintypes.DWORD), ("faults", wintypes.DWORD)] + [
-                (name, ctypes.c_size_t) for name in ("peak", "working", "pool_peak",
-                    "pool", "nonpaged_peak", "nonpaged", "pagefile", "pagefile_peak")]
-
-        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
-        kernel.OpenProcess.restype = wintypes.HANDLE
-        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
-        query = kernel.K32GetProcessMemoryInfo
-        query.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
-        handle = kernel.OpenProcess(0x0400 | 0x0010, False, pid)
-        if not handle:
-            return 0
-        try:
-            counters = Counters()
-            counters.cb = ctypes.sizeof(counters)
-            return counters.working if query(handle, ctypes.byref(counters), counters.cb) else 0
-        finally:
-            kernel.CloseHandle(handle)
-    status = Path("/proc/{}/status".format(pid))
-    if status.exists():
-        for line in status.read_text().splitlines():
-            if line.startswith("VmRSS:"):
-                return int(line.split()[1]) * 1024
-    return 0
 
 
 class PoSSoakTest(VergeTestFramework):
