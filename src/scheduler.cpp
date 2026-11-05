@@ -148,21 +148,22 @@ bool CScheduler::AreThreadsServicingQueue() const {
 
 
 void SingleThreadedSchedulerClient::MaybeScheduleProcessQueue() {
-    {
-        LOCK(m_cs_callbacks_pending);
-        // Try to avoid scheduling too many copies here, but if we
-        // accidentally have two ProcessQueue's scheduled at once its
-        // not a big deal.
-        if (m_are_callbacks_running) return;
-        if (m_callbacks_pending.empty()) return;
+    LOCK(m_cs_callbacks_pending);
+    if (m_are_callbacks_running || m_are_callbacks_scheduled || m_callbacks_pending.empty()) return;
+    m_are_callbacks_scheduled = true;
+    try {
+        m_pscheduler->schedule([this] { ProcessQueue(); });
+    } catch (...) {
+        m_are_callbacks_scheduled = false;
+        throw;
     }
-    m_pscheduler->schedule(std::bind(&SingleThreadedSchedulerClient::ProcessQueue, this));
 }
 
-void SingleThreadedSchedulerClient::ProcessQueue() {
+void SingleThreadedSchedulerClient::ProcessQueue(bool reschedule) {
     std::function<void (void)> callback;
     {
         LOCK(m_cs_callbacks_pending);
+        if (reschedule) m_are_callbacks_scheduled = false;
         if (m_are_callbacks_running) return;
         if (m_callbacks_pending.empty()) return;
         m_are_callbacks_running = true;
@@ -175,15 +176,17 @@ void SingleThreadedSchedulerClient::ProcessQueue() {
     // to ensure both happen safely even if callback() throws.
     struct RAIICallbacksRunning {
         SingleThreadedSchedulerClient* instance;
-        explicit RAIICallbacksRunning(SingleThreadedSchedulerClient* _instance) : instance(_instance) {}
+        bool reschedule;
+        RAIICallbacksRunning(SingleThreadedSchedulerClient* _instance, bool _reschedule)
+            : instance(_instance), reschedule(_reschedule) {}
         ~RAIICallbacksRunning() {
             {
                 LOCK(instance->m_cs_callbacks_pending);
                 instance->m_are_callbacks_running = false;
             }
-            instance->MaybeScheduleProcessQueue();
+            if (reschedule) instance->MaybeScheduleProcessQueue();
         }
-    } raiicallbacksrunning(this);
+    } raiicallbacksrunning(this, reschedule);
 
     callback();
 }
@@ -202,7 +205,7 @@ void SingleThreadedSchedulerClient::EmptyQueue() {
     assert(!m_pscheduler->AreThreadsServicingQueue());
     bool should_continue = true;
     while (should_continue) {
-        ProcessQueue();
+        ProcessQueue(false);
         LOCK(m_cs_callbacks_pending);
         should_continue = !m_callbacks_pending.empty();
     }

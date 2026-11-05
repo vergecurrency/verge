@@ -69,6 +69,8 @@ namespace BCLog {
         FILE* m_fileout = nullptr;
         std::mutex m_file_mutex;
         std::list<std::string> m_msgs_before_open;
+        size_t m_buffered_bytes{0};
+        uint64_t m_dropped_messages{0};
 
         /**
          * m_started_new_line is a state variable that will suppress printing of
@@ -88,6 +90,18 @@ namespace BCLog {
 #endif
 
     public:
+        static constexpr size_t MAX_BUFFERED_LOG_BYTES = 1024 * 1024;
+        static constexpr size_t MAX_BUFFERED_LOG_MESSAGES = 1024;
+
+        struct BufferStats {
+            size_t bytes;
+            size_t messages;
+            uint64_t dropped;
+        };
+
+        ~Logger();
+        BufferStats GetBufferStats();
+
         bool m_print_to_console = false;
         bool m_print_to_file = false;
 
