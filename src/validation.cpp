@@ -2080,6 +2080,35 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-snapshot-missing");
             }
+            const auto it = std::lower_bound(
+                snapshot->entries.begin(), snapshot->entries.end(),
+                block.posExtension.stake_proof.bond_outpoint,
+                [](const pos::SnapshotEntry& entry,
+                   const COutPoint& outpoint) {
+                    return entry.outpoint < outpoint;
+                });
+            if (it == snapshot->entries.end() ||
+                it->outpoint != block.posExtension.stake_proof.bond_outpoint) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-bond-not-found");
+            }
+            const pos::BondRecord& bond = it->bond;
+            if (bond.creation_height > 0 &&
+                bond.creation_height + consensus.nPoSStakeMaturity >
+                    pindex->nHeight) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-bond-immature");
+            }
+            if (next_pos_state.IsWithdrawalLocked(
+                    block.posExtension.stake_proof.bond_outpoint,
+                    pindex->nHeight)) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-bond-locked");
+            }
+            if (snapshot->source_height > pindex->nHeight) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-snapshot-future");
+            }
             if (next_pos_state.IsEligibilityLocked(
                     block.posExtension.stake_proof.bond_outpoint,
                     pos_slot.epoch, pindex->nHeight) ||

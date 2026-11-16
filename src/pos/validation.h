@@ -37,6 +37,9 @@ enum class ValidationError {
     COMMITMENT_MISMATCH,
     REWARD_DESTINATION,
     REWARD_AMOUNT,
+    BOND_IMMATURE,
+    BOND_LOCKED,
+    SNAPSHOT_FUTURE,
 };
 
 uint64_t GetRequiredSnapshotEpoch(uint64_t block_epoch,
