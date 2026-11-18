@@ -100,6 +100,39 @@ FixtureData MakeFixture()
     return fixture;
 }
 
+struct BondValidationFixture {
+    Consensus::Params params{Params().GetConsensus()};
+    pos::State state;
+    pos::BondData data;
+    COutPoint outpoint;
+    unsigned char secret[32]{};
+
+    BondValidationFixture()
+    {
+        params.nPoSBondRulesHeight = 1;
+        params.nPoSActivationHeight = 1000;
+        params.nPoSStakeMaturity = 720;
+        params.nPoSUnbondingBlocks = 5;
+        secret[31] = 3;
+        unsigned char vrf_secret[32]{};
+        BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret, data.signing_public_key));
+        BOOST_REQUIRE(pos::DeriveVrfKey(secret, vrf_secret, data.vrf_public_key));
+        data.reward_key_id.SetHex("01");
+        data.withdrawal_key_id.SetHex("02");
+        CMutableTransaction tx;
+        tx.vin.emplace_back(COutPoint(uint256S("09"), 0));
+        tx.vout.emplace_back(params.nPoSMinStake, pos::GetBondScript(data));
+        outpoint = COutPoint(tx.GetHash(), 0);
+        CBlock creation;
+        creation.vtx.push_back(MakeTransactionRef(tx));
+        pos::StateUndo undo;
+        BOOST_REQUIRE(state.ApplyBlock(creation, 1, false, 0, 0, params, undo));
+        CBlock snapshot;
+        BOOST_REQUIRE(state.ApplyBlock(snapshot, 760, false, 0, 0, params, undo));
+        BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("01"), undo));
+    }
+};
+
 } // namespace
 
 BOOST_FIXTURE_TEST_SUITE(pos_validation_tests, BasicTestingSetup)
@@ -143,6 +176,106 @@ BOOST_AUTO_TEST_CASE(snapshot_epoch_selection)
                       pos::INITIAL_SNAPSHOT_EPOCH);
     BOOST_CHECK_EQUAL(pos::GetRequiredSnapshotEpoch(2, 2), 0U);
     BOOST_CHECK_EQUAL(pos::GetRequiredSnapshotEpoch(10, 2), 8U);
+}
+
+BOOST_AUTO_TEST_CASE(signed_surround_evidence_includes_final_pow_source)
+{
+    BondValidationFixture fixture;
+    for (uint64_t source : {uint64_t{0}, pos::FINAL_POW_CHECKPOINT_EPOCH}) {
+        pos::CheckpointVote outer;
+        outer.bond_outpoint = fixture.outpoint;
+        outer.source_epoch = source;
+        outer.source_checkpoint_root = uint256S("10");
+        outer.target_epoch = 3;
+        outer.target_checkpoint_root = uint256S("11");
+        outer.head_slot = 500;
+        outer.head_block_root = uint256S("12");
+        pos::CheckpointVote inner = outer;
+        inner.source_epoch = 1;
+        inner.source_checkpoint_root = uint256S("13");
+        inner.target_epoch = 2;
+        inner.target_checkpoint_root = uint256S("14");
+        unsigned char auxiliary[32]{};
+        unsigned char public_key[32];
+        BOOST_REQUIRE(pos::SignSchnorr(fixture.secret, pos::GetVoteSigningHash(outer),
+                                       auxiliary, outer.signature, public_key));
+        BOOST_REQUIRE(pos::SignSchnorr(fixture.secret, pos::GetVoteSigningHash(inner),
+                                       auxiliary, inner.signature, public_key));
+        pos::VoteEquivocationEvidence evidence;
+        evidence.first = outer;
+        evidence.second = inner;
+        if (pos::GetVoteSigningHash(evidence.second) < pos::GetVoteSigningHash(evidence.first)) {
+            std::swap(evidence.first, evidence.second);
+        }
+        BOOST_CHECK(pos::CheckVoteEvidence(evidence, fixture.state, 3) == pos::ValidationError::NONE);
+        BOOST_CHECK(pos::CheckVoteEvidence(evidence, fixture.state, 2) == pos::ValidationError::VOTE_CHECKPOINT);
+        evidence.second.signature[0] ^= 1;
+        BOOST_CHECK(pos::CheckVoteEvidence(evidence, fixture.state, 3) == pos::ValidationError::EVIDENCE_SIGNATURE);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(producer_eligibility_obeys_delayed_penalty_not_withdrawal_lock)
+{
+    BondValidationFixture fixture;
+    const pos::BondRecord* stored = fixture.state.FindBond(fixture.outpoint);
+    BOOST_REQUIRE(stored != nullptr);
+    const pos::BondRecord bond = *stored;
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, bond, fixture.state, 0, 720,
+                                         fixture.params) == pos::ValidationError::BOND_IMMATURE);
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, bond, fixture.state, 0, 721,
+                                         fixture.params) == pos::ValidationError::NONE);
+    pos::BlockEquivocationEvidence evidence;
+    evidence.first.network_id = fixture.params.nPoSNetworkId;
+    evidence.first.parent_block_root = uint256S("20");
+    evidence.first.candidate_header_hash = uint256S("21");
+    evidence.first.slot = 10;
+    evidence.first.bond_outpoint = fixture.outpoint;
+    evidence.first.stake_proof_hash = uint256S("22");
+    evidence.first.fee_reward_transaction_hash = uint256S("23");
+    evidence.first.parent_randomness = uint256S("24");
+    evidence.second = evidence.first;
+    evidence.second.candidate_header_hash = uint256S("25");
+    unsigned char auxiliary[32]{};
+    unsigned char public_key[32];
+    for (pos::BlockAuthorization* authorization : {&evidence.first, &evidence.second}) {
+        BOOST_REQUIRE(pos::SignSchnorr(fixture.secret, pos::GetBlockSigningHash(*authorization),
+                                       auxiliary, authorization->signature, public_key));
+    }
+    if (pos::GetBlockSigningHash(evidence.second) < pos::GetBlockSigningHash(evidence.first)) {
+        std::swap(evidence.first, evidence.second);
+    }
+    BOOST_REQUIRE(pos::CheckBlockEvidence(evidence, fixture.state, fixture.params.nPoSNetworkId, 100) ==
+                  pos::ValidationError::NONE);
+    CBlock offense;
+    offense.nVersion = 2 | pos::BLOCK_VERSION_POS;
+    offense.hashPrevBlock = uint256S("aa");
+    offense.nTime = 3000;
+    offense.posExtension.stake_proof.slot = 100;
+    offense.posExtension.block_evidence.push_back(evidence);
+    pos::StateUndo offense_undo;
+    BOOST_REQUIRE(fixture.state.ApplyBlock(offense, 1000, true, 0, 0, fixture.params, offense_undo));
+    BOOST_CHECK(fixture.state.IsWithdrawalLocked(fixture.outpoint, 1000));
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, bond, fixture.state, 0, 1000,
+                                         fixture.params) == pos::ValidationError::NONE);
+    pos::StateUndo epoch_undo;
+    BOOST_REQUIRE(fixture.state.PrepareEpoch(1, 1001, fixture.params, epoch_undo));
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, bond, fixture.state, 1, 1001,
+                                         fixture.params) == pos::ValidationError::BOND_LOCKED);
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, bond, fixture.state, 1, 1005,
+                                         fixture.params) == pos::ValidationError::BOND_LOCKED);
+    BOOST_CHECK(!fixture.state.IsWithdrawalLocked(fixture.outpoint, 1006));
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, bond, fixture.state, 1, 1006,
+                                         fixture.params) == pos::ValidationError::NONE);
+    BOOST_CHECK(fixture.state.UndoBlock(epoch_undo));
+    BOOST_CHECK(fixture.state.IsWithdrawalLocked(fixture.outpoint, 1000));
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, bond, fixture.state, 0, 1000,
+                                         fixture.params) == pos::ValidationError::NONE);
+    BOOST_CHECK(fixture.state.UndoBlock(offense_undo));
+    BOOST_CHECK(!fixture.state.IsWithdrawalLocked(fixture.outpoint, 1000));
+    auto future_bond = bond;
+    future_bond.creation_height = std::numeric_limits<int32_t>::max() - 10;
+    BOOST_CHECK(pos::CheckBondEligibility(fixture.outpoint, future_bond, fixture.state, 0,
+        std::numeric_limits<int32_t>::max(), fixture.params) == pos::ValidationError::BOND_IMMATURE);
 }
 
 BOOST_AUTO_TEST_CASE(checkpoint_vote_freshness_precedes_crypto)

@@ -569,6 +569,15 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             if (!MoneyRange(reserve)) return false;
             pwallet->LoadStakingReserveBalance(reserve);
         }
+        else if (strType == "possigning")
+        {
+            PoSSigningKey key;
+            PoSSigningHistory history;
+            ssKey >> key;
+            ssValue >> history;
+            if (!ssKey.empty() || !ssValue.empty() ||
+                !pwallet->LoadPoSSigningHistory(key, history)) return false;
+        }
         else if (strType == "destdata")
         {
             std::string strAddress, strKey, strValue;
@@ -650,7 +659,8 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
             {
                 // losing keys is considered a catastrophic error, anything else
                 // we assume the user can live with:
-                if (IsKeyType(strType) || strType == "defaultkey")
+                if (IsKeyType(strType) || strType == "defaultkey" ||
+                    strType == "possigning")
                     result = DBErrors::CORRUPT;
                 else
                 {
@@ -883,7 +893,7 @@ bool WalletBatch::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey, C
         fReadOK = ReadKeyValue(dummyWallet, ssKey, ssValue,
                                dummyWss, strType, strErr);
     }
-    if (!IsKeyType(strType) && strType != "hdchain")
+    if (!IsKeyType(strType) && strType != "hdchain" && strType != "possigning")
         return false;
     if (!fReadOK)
     {
@@ -925,9 +935,15 @@ bool WalletBatch::TxnBegin()
     return m_batch.TxnBegin();
 }
 
-bool WalletBatch::TxnCommit()
+bool WalletBatch::WritePoSSigningHistory(const PoSSigningKey& key,
+                                       const PoSSigningHistory& history)
 {
-    return m_batch.TxnCommit();
+    return WriteIC(std::make_pair(std::string("possigning"), key), history);
+}
+
+bool WalletBatch::TxnCommit(bool sync)
+{
+    return m_batch.TxnCommit(sync);
 }
 
 bool WalletBatch::TxnAbort()

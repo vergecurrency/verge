@@ -675,6 +675,7 @@ struct CoinEligibilityFilter
     CoinEligibilityFilter(int conf_mine, int conf_theirs, uint64_t max_ancestors, uint64_t max_descendants) : conf_mine(conf_mine), conf_theirs(conf_theirs), max_ancestors(max_ancestors), max_descendants(max_descendants) {}
 };
 
+namespace Consensus { struct Params; }
 class WalletRescanReserver; //forward declarations for ScanForWalletTransactions/RescanFromTime
 /**
  * A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
@@ -704,6 +705,11 @@ private:
     bool m_have_staking_attempt{false};
     uint64_t m_last_staking_slot{0};
     int64_t m_last_automatic_bond_attempt{0};
+    std::map<PoSSigningKey, PoSSigningHistory> m_pos_signing_history;
+    bool m_pos_signing_failed{false};
+    void PersistPoSSigningHistory(const PoSSigningKey& key,
+                                 const PoSSigningHistory& history)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**
      * Used to keep track of spent outpoints, and
@@ -1059,6 +1065,17 @@ public:
         return m_staking_enabled;
     }
     bool SetStakingEnabled(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool RecordPoSBlockSigning(const Consensus::Params& params,
+                              const pos::StakeProof& proof,
+                              const pos::BlockAuthorization& authorization)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool RecordPoSVoteSigning(const Consensus::Params& params,
+                             const pos::CheckpointVote& vote,
+                             const unsigned char public_key[32])
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool LoadPoSSigningHistory(const PoSSigningKey& key,
+                              const PoSSigningHistory& history)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool MarkStakingAttempt(uint64_t slot, bool force = false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
     {
         if (!force && m_have_staking_attempt && m_last_staking_slot == slot) return false;

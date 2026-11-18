@@ -50,6 +50,120 @@ BOOST_AUTO_TEST_CASE(staking_attempts_follow_wallet_lifetime)
     }
 }
 
+BOOST_AUTO_TEST_CASE(staking_signing_journal_survives_wallet_reload)
+{
+    const fs::path path = GetDataDir() / "pos-signing-test.dat";
+    const Consensus::Params& params = Params().GetConsensus();
+    unsigned char secret[32]{};
+    secret[31] = 3;
+    pos::StakeProof proof;
+    proof.bond_outpoint = COutPoint(uint256S("1234"), 0);
+    proof.slot = 100;
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret, proof.signing_public_key));
+    pos::BlockAuthorization authorization;
+    authorization.network_id = params.nPoSNetworkId;
+    authorization.bond_outpoint = proof.bond_outpoint;
+    authorization.slot = proof.slot;
+    authorization.candidate_header_hash = uint256S("1111");
+    pos::CheckpointVote vote;
+    vote.bond_outpoint = proof.bond_outpoint;
+    vote.source_epoch = pos::FINAL_POW_CHECKPOINT_EPOCH;
+    vote.source_checkpoint_root = uint256S("2222");
+    vote.target_epoch = 3;
+    vote.target_checkpoint_root = uint256S("3333");
+    vote.head_slot = 99;
+    vote.head_block_root = uint256S("4444");
+
+    for (int reopen = 0; reopen < 2; ++reopen) {
+        CWallet wallet("signing-test", WalletDatabase::Create(path));
+        bool first_run;
+        BOOST_REQUIRE(wallet.LoadWallet(first_run) == DBErrors::LOAD_OK);
+        LOCK(wallet.cs_wallet);
+        BOOST_CHECK(wallet.RecordPoSBlockSigning(params, proof, authorization));
+        BOOST_CHECK(wallet.RecordPoSVoteSigning(params, vote, proof.signing_public_key));
+        auto conflict = authorization;
+        conflict.candidate_header_hash = uint256S("9999");
+        BOOST_CHECK(!wallet.RecordPoSBlockSigning(params, proof, conflict));
+        auto older_proof = proof;
+        auto older_authorization = authorization;
+        --older_proof.slot;
+        --older_authorization.slot;
+        BOOST_CHECK(!wallet.RecordPoSBlockSigning(params, older_proof, older_authorization));
+        auto conflicting_vote = vote;
+        conflicting_vote.target_checkpoint_root = uint256S("aaaa");
+        BOOST_CHECK(!wallet.RecordPoSVoteSigning(params, conflicting_vote, proof.signing_public_key));
+        conflicting_vote = vote;
+        conflicting_vote.source_epoch = 1;
+        conflicting_vote.target_epoch = 2;
+        BOOST_CHECK(!wallet.RecordPoSVoteSigning(params, conflicting_vote, proof.signing_public_key));
+    }
+
+    CWallet wallet("signing-test", WalletDatabase::Create(path));
+    bool first_run;
+    BOOST_REQUIRE(wallet.LoadWallet(first_run) == DBErrors::LOAD_OK);
+    LOCK(wallet.cs_wallet);
+    // The same checkpoint link may update its head at a later slot.
+    ++vote.head_slot;
+    vote.head_block_root = uint256S("5555");
+    BOOST_CHECK(wallet.RecordPoSVoteSigning(params, vote, proof.signing_public_key));
+    auto advance = vote;
+    advance.source_epoch = 2;
+    advance.source_checkpoint_root = uint256S("6666");
+    advance.target_epoch = 4;
+    advance.target_checkpoint_root = uint256S("7777");
+    BOOST_CHECK(wallet.RecordPoSVoteSigning(params, advance, proof.signing_public_key));
+    vote.target_epoch = 5;
+    ++vote.head_slot;
+    BOOST_CHECK(!wallet.RecordPoSVoteSigning(params, vote, proof.signing_public_key));
+    // Histories are scoped to the network, activation and individual bond.
+    auto other_params = params;
+    ++other_params.nPoSNetworkId;
+    BOOST_CHECK(wallet.RecordPoSVoteSigning(other_params, vote, proof.signing_public_key));
+    ++vote.bond_outpoint.n;
+    BOOST_CHECK(wallet.RecordPoSVoteSigning(params, vote, proof.signing_public_key));
+    PoSSigningKey corrupt_key;
+    corrupt_key.domain = uint256S("abcd");
+    corrupt_key.bond_outpoint = vote.bond_outpoint;
+    corrupt_key.public_key = uint256S("1234");
+    PoSSigningHistory corrupt_history;
+    corrupt_history.version = 2;
+    BOOST_REQUIRE(WalletBatch(wallet.GetDBHandle()).WritePoSSigningHistory(corrupt_key, corrupt_history));
+    CWallet rejected("corrupt-journal", WalletDatabase::CreateDummy());
+    BOOST_CHECK(WalletBatch(wallet.GetDBHandle()).LoadWallet(&rejected) == DBErrors::CORRUPT);
+    wallet.GetDBHandle().Flush(true);
+    ReleaseDirectoryLocks();
+}
+
+BOOST_AUTO_TEST_CASE(staking_signing_journal_fails_closed)
+{
+    CWallet wallet("journal-failure", WalletDatabase::CreateDummy());
+    LOCK(wallet.cs_wallet);
+    pos::CheckpointVote vote;
+    vote.bond_outpoint = COutPoint(uint256S("12"), 0);
+    vote.source_checkpoint_root = uint256S("23");
+    vote.target_epoch = 1;
+    vote.target_checkpoint_root = uint256S("34");
+    vote.head_slot = 1;
+    vote.head_block_root = uint256S("45");
+    unsigned char public_key[32]{};
+    public_key[0] = 1;
+    BOOST_CHECK_THROW(wallet.RecordPoSVoteSigning(Params().GetConsensus(), vote, public_key), std::runtime_error);
+    BOOST_CHECK_THROW(wallet.RecordPoSVoteSigning(Params().GetConsensus(), vote, public_key), std::runtime_error);
+
+    PoSSigningKey key;
+    key.domain = uint256S("12");
+    key.bond_outpoint = vote.bond_outpoint;
+    key.public_key = uint256S("34");
+    PoSSigningHistory history;
+    BOOST_CHECK(!wallet.LoadPoSSigningHistory(key, history));
+    history.have_vote = true;
+    history.vote = vote;
+    BOOST_CHECK(wallet.LoadPoSSigningHistory(key, history));
+    BOOST_CHECK(!wallet.LoadPoSSigningHistory(key, history));
+    history.version = 2;
+    BOOST_CHECK(!wallet.LoadPoSSigningHistory(key, history));
+}
+
 static void AddKey(CWallet& wallet, const CKey& key)
 {
     LOCK(wallet.cs_wallet);

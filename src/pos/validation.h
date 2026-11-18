@@ -45,6 +45,12 @@ enum class ValidationError {
 uint64_t GetRequiredSnapshotEpoch(uint64_t block_epoch,
                                   uint32_t snapshot_delay_epochs);
 
+ValidationError CheckBondEligibility(const COutPoint& outpoint,
+                                      const BondRecord& bond,
+                                      const State& state, uint64_t epoch,
+                                      int32_t height,
+                                      const Consensus::Params& params);
+
 ValidationError CheckStakeAuthorization(const CBlock& block,
                                         const StakeSnapshot& snapshot,
                                         uint64_t expected_snapshot_epoch);

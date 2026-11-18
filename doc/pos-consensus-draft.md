@@ -29,8 +29,8 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Unbonding lock | 20,160 accepted blocks |
 | Initial epoch seed | Tagged hash of network ID, activation height, genesis hash, and post-snapshot PoW entropy |
 | Post-activation PoW fallback | None |
-| Mainnet activation height | 15,000,000 |
-| Mainnet bond-rules height | 14,979,120 |
+| Mainnet activation height | 15,000,000 (provisional, not approved for release) |
+| Mainnet bond-rules height | Derived from activation minus unbonding and stake maturity; currently 14,979,120 |
 | Testnet activation height | 3,000 |
 | Testnet bond-rules height | 1 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
@@ -45,20 +45,24 @@ consensus only at and after the bond-rules height, which provides a deliberate
 upgrade boundary instead of changing the meaning of scripts for legacy miners
 immediately. The clean-chain public testnet trial activates bond rules at
 height 1 and PoS at height 3,000. Mainnet schedules bond rules at height
-14,979,120 and PoS at height 15,000,000 pending completion of the testnet phase
-and a production-readiness review. These are real consensus activation heights,
-not comments or placeholders; this branch must not be merged into a release
-branch before its applicable phase gates are complete.
+14,979,120 and PoS at height 15,000,000 in the current configuration. The owner
+will choose a different production activation height after testing, targeting
+2027; no replacement height is approved yet. These provisional values are real
+consensus settings, not a disabled mainnet deployment. Do not ship this branch
+as the mainnet activation release until the chosen height and phase gates are
+approved. The mainnet bond-rules height is derived from the activation height
+minus the configured unbonding window and stake maturity, so changing the
+activation constant keeps the pre-bonding window aligned.
 
 For this clean testnet trial, the initial stake snapshot is recorded at height
 2,760. A bond must be created by height 2,280 to have 720 confirmations at
 activation and must remain unspent through the snapshot. Block 2,999 is the
 last valid PoW block; block 3,000 must be produced by an eligible PoS bond.
-The October 28 clean-chain testnet trial uses `27.0.beta9` and P2P
-message-start bytes `b7 61 89 96`,
+The November 18 consensus-hardening clean-chain testnet trial uses P2P
+message-start bytes `98 5b 96 5d`,
 derived from the first four bytes of
-`SHA256("Verge PoS Testnet Reset 2026-10-28 beta8 height 3000")`. This separates
-it from the previous trial's magic `d6 93 2f 8a` and earlier testnet identities,
+`SHA256("Verge PoS Testnet Reset 2026-11-18 consensus hardening height 3000")`. This separates
+it from the previous trial's magic `b7 61 89 96` and earlier testnet identities,
 so an old testnet node cannot exchange P2P messages with the clean network.
 The testnet genesis block and height-3,000 PoS activation are unchanged.
 Changing magic does not reset stored history: every participant in this trial
@@ -80,7 +84,7 @@ Regtest activation is disabled by default and requires `-posactivationheight=<he
 
 The same PoS consensus code path must be used on regtest, public testnet, and mainnet. Network classes provide parameters such as activation height, slot duration, maturity, minimum stake, target limits, checkpoint intervals, and deployment state; they do not select separate consensus algorithms.
 
-Regtest may expose deterministic test controls and an activation-height override, but those controls must be unavailable on public networks. Promotion follows regtest to public testnet to mainnet by changing reviewed network parameters, not by copying or rewriting the implementation. Mainnet activation remains disabled by default until Phase 6.
+Regtest may expose deterministic test controls and an activation-height override, but those controls must be unavailable on public networks. Promotion follows regtest to public testnet to mainnet by changing reviewed network parameters, not by copying or rewriting the implementation. Mainnet release approval and the final activation height remain gated on Phase 6; the currently configured height is not a disabled deployment.
 
 Database records, block serialization, wallet staking records, RPC schemas, and P2P messages must be forward-compatible across those environments so testnet exercises the actual production format. A node must log the configured activation height and reject ambiguous or conflicting activation settings at startup.
 
@@ -273,7 +277,22 @@ waived.
 
 ## Block Representation
 
-A dedicated version bit identifies PoS. A PoS header appends a 32-byte `hashPoSData` commitment to the complete signed PoS extension; historical PoW headers retain their original serialization. After activation, the five PoW algorithm version encodings are invalid for new blocks.
+A dedicated version bit identifies PoS. A PoS header appends a 32-byte `hashPoSData` commitment to the canonical PoS extension encoding described below; historical PoW headers retain their original serialization. After activation, the five PoW algorithm version encodings are invalid for new blocks.
+
+For `hashPoSData`, serialize the extension in its normal wire order, replacing
+only the producer authorization's 64-byte `signature` array with 64 zero bytes,
+and apply the existing `POS_DATA` tagged hash. All other fields, including the
+stake proof, votes and evidence with their signatures, remain committed exactly
+as transmitted. The wire format still contains the full producer signature.
+Two valid Schnorr signatures for the same authorization therefore identify one
+candidate, rather than creating different block IDs through signing randomness.
+The signature is verified before admission and before any header-invalidity
+decision. A missing or invalid signature is a corrupt candidate body, not proof
+that this block ID is permanently invalid. Authorization field changes still
+change the ID, and conflicting candidate headers remain evidence-eligible.
+This change applies to the fresh testnet and the future mainnet PoS activation;
+it is not compatible with PoS history from the previous trial. Transaction
+formats, transaction signature hashes and historical PoW block IDs are unchanged.
 Historical blocks through activation height minus one retain their original header interpretation and proof-of-work validation. At and after activation, the PoS version bit is mandatory, proof-of-work blocks are invalid, and both nBits and nNonce must be zero. The in-memory null-header sentinel uses nVersion equal to zero so a valid PoS header with zero nBits is not mistaken for an empty object. PoS timestamps must be exact 30-second slot boundaries, must map to a slot strictly later than the parent block's slot, and cannot exceed the canonical slot containing network-adjusted time; skipped slots remain valid.
 
 The first transaction remains structurally coinbase-like so existing block indexing can be adapted incrementally. It creates no subsidy and may pay at most the block's transaction fees to the owner-controlled reward destination committed by the selected bond.
@@ -588,8 +607,9 @@ Old peers need no changes and never receive this optional request. This is a
 transport optimization, not a consensus or transaction-format change. The GUI
 shows validated PoS block counts instead of extrapolating a PoW header-sync
 percentage from elapsed time.
-The full extension is checked against the header's `hashPoSData` commitment
-before block-index admission, for both batch and legacy body transport. A
+The canonical extension encoding and independent producer signature are checked
+against the header's `hashPoSData` commitment and authorization before
+block-index admission, for both batch and legacy body transport. A
 damaged extension is treated as a corrupt payload, so it cannot permanently
 invalidate the committed block ID or prevent retrying the authentic body.
 
@@ -666,7 +686,17 @@ when the blocks name different parents. Equivocation evidence consists of both
 conflicting, validly signed block authorization messages and is bounded to a
 canonical fixed format.
 
-Evidence affects consensus only after inclusion in a valid block. The offending bond becomes ineligible at the first block of the next epoch and remains locked against withdrawal and staking for 20,160 blocks. Replaying the same offense is idempotent, while a later offense renews an expired lockout or extends an active one. Conflicting or malformed evidence is rejected before expensive signature checks where possible.
+Evidence affects consensus only after inclusion in a valid block. Withdrawal
+locks begin immediately in the evidence-containing block. Production and voting
+eligibility are removed at the first block of the next epoch, when the
+20,160-block lockout duration begins. A withdrawal lock alone must not reject an
+otherwise eligible producer in the evidence epoch. Producers and block
+validation share the same maturity and eligibility check. Replaying the same
+offense is idempotent, while a later offense renews an expired lockout or extends
+an active one. Conflicting or malformed evidence is rejected before expensive
+signature checks where possible. For surround-vote ordering, the final-PoW
+checkpoint's serialized `UINT64_MAX` epoch is logically epoch -1, preceding
+epoch 0; it is valid only as a source, never as a vote target.
 
 Transactions spending a withdrawal-locked bond are rejected from the mempool. When newly included evidence activates a lock, any conflicting mempool spend and all of its descendants are evicted so stale withdrawals cannot poison subsequent PoS block templates.
 
@@ -744,7 +774,15 @@ The block signature is deliberately excluded from the stake proof. Including it 
 | parent randomness | 32 bytes |
 | block signature | 64 bytes |
 
-The block signing hash uses the `VergePoS/Block/v1` domain over the first 209 bytes and excludes the signature. The candidate signing-header hash is calculated with `hashPoSData` set to zero, avoiding a signature cycle. After signing, `hashPoSData` is the `VergePoS/Data/v1` tagged hash of the complete extension, including the signature, and the final PoS block ID hashes the extended header. Mutating any signed-extension byte therefore changes the block ID and cannot poison a valid block's identity.
+The block signing hash uses the `VergePoS/Block/v1` domain over the first 209
+bytes and excludes the signature. The candidate signing-header hash is
+calculated with `hashPoSData` set to zero, avoiding a signature cycle.
+`hashPoSData` is the `VergePoS/Data/v1` tagged hash of the extension with only
+the producer authorization signature replaced by 64 zero bytes. The full
+signature remains serialized in the body and must verify independently. The
+final PoS block ID hashes the extended header. Signature randomness alone
+therefore cannot create another block ID; unsigned authorization changes remain
+committed. Invalid signature variants cannot permanently invalidate the ID.
 The version 1 checkpoint vote is exactly 229 bytes in this order:
 
 | Field | Size |
@@ -773,7 +811,7 @@ Consensus detects and applies lockouts for all objectively provable violations:
 - a later vote surrounded by an earlier vote.
 
 Evidence contains both conflicting signed messages, is canonically ordered, and is applied only after inclusion in a valid block. Malformed evidence cannot trigger a lockout. Relay identity commits to both unsigned conflicting messages, so distinct offenses propagate independently while signature-byte variants cannot allocate additional identities. Consensus stores one monotonic high-water record per bond for block offenses and one for vote offenses. A later slot or target epoch renews the penalty, while an old offense cannot be replayed to renew an expired lockout. The fixed-size high-water records remain until the corresponding authenticated bond history is safely pruned.
-Version 1 block equivocation evidence is exactly 547 bytes: one version byte followed by two 273-byte block authorizations. Both authorizations must have the same nonzero network identifier, bond outpoint, and slot but different candidate signing hashes; the parents may differ because signing two branches in one slot is still equivocation. Version 1 vote equivocation evidence is exactly 459 bytes: one version byte followed by two 229-byte checkpoint votes from the same bond. It proves either different target roots for one target epoch or a strict surround relation. Each pair is sorted by its full signed-object hash and duplicates are rejected before signature verification.
+Version 1 block equivocation evidence is exactly 547 bytes: one version byte followed by two 273-byte block authorizations. Both authorizations must have the same nonzero network identifier, bond outpoint, and slot but different candidate header signing hashes; the parents may differ because signing two branches in one slot is still equivocation. Version 1 vote equivocation evidence is exactly 459 bytes: one version byte followed by two 229-byte checkpoint votes from the same bond. It proves either different target roots for one target epoch or a strict surround relation. Each pair is sorted by its signature-independent signing hash and duplicates are rejected before signature verification. The final-PoW source epoch is ordered before ordinary epochs in surround comparisons.
 
 ### Committed State
 
@@ -836,7 +874,7 @@ The non-consensus vote pool stores at most 4,096 votes and 2 MiB of serialized
 vote data, retains one latest vote per bond, and expires votes more than three
 epochs behind. Duplicate and regressing votes are ignored. Conflicting votes
 for one target epoch are not allowed to replace the pool entry. Block producers select
-at most `nPoSMaxVotesPerBlock` votes in canonical order and revalidate every
+at most `MAX_VOTES_PER_BLOCK` (1,024) votes in canonical order and revalidate every
 pooled vote against their current chain state before including it. Pool policy
 does not change block validity.
 
@@ -1390,6 +1428,28 @@ the combined 64 delta batches total 67,008 encoded bytes at each size. Bond
 churn, large vote sets and new snapshots require proportionally larger writes.
 These timings cover the durable write call, not state construction, signature
 verification, total validation latency or physical disk amplification.
+
+### Local Signing Safety
+
+Before releasing a block or checkpoint-vote signature, the wallet commits a
+`possigning` safety record with a synchronous database transaction. Records are
+scoped to the network, genesis, activation height, signing key and bond outpoint.
+They prevent conflicting same-slot blocks, backward slot signing, double-target
+votes and surround votes by conservatively retaining monotonic signing history.
+Repeated identical messages and safe later-head updates remain permitted. These
+are local signer restrictions, not additional consensus acceptance rules.
+
+A failed journal write stops further signing until restart. Corrupt or unknown
+journal records are fatal wallet-load errors, not records that can be skipped.
+Wallet recovery retains valid signing records. **Never run copies of an active
+staking wallet simultaneously or restore an older backup while reusing active
+bond signing keys.** A local journal cannot coordinate independent copies or
+reconstruct signatures made after a backup was taken. Do not downgrade to a
+staking build that ignores the journal. Preserve the latest wallet database and
+its normal recovery files when migrating a staking node.
+Protection starts when this signer first records a message; it cannot prove
+what an older build previously signed. Coordinate upgrades on a single branch
+before producing new votes, and use a clean trial for consensus-changing fixes.
 
 The summary-cache stress inserts 256 synthetic branch summaries with 100,000
 vote heads each into a 16 MiB accounted budget. It retains 10 summaries, peaks

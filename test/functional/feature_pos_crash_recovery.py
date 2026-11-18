@@ -10,7 +10,7 @@ import http.client
 from test_framework.messages import msg_generic
 from test_framework.mininode import P2PInterface
 from test_framework.test_framework import VergeTestFramework
-from test_framework.util import assert_equal, connect_nodes_bi, sync_blocks
+from test_framework.util import assert_equal, assert_raises_rpc_error, connect_nodes_bi, sync_blocks
 
 
 class BlockDeliveryPeer(P2PInterface):
@@ -99,6 +99,27 @@ class PoSCrashRecoveryTest(VergeTestFramework):
         self.timestamp = source.getblockheader(source.getbestblockhash())["time"]
         self.timestamp = self.timestamp // 30 * 30
         self.stake()
+        sync_blocks(self.nodes)
+
+        self.log.info("Signing protection survives a producer crash and same-slot reorg")
+        signed_block = source.getbestblockhash()
+        source.invalidateblock(signed_block)
+        # A normal self-payment changes the candidate body and reward. After
+        # reopening the wallet, the forced RPC must still refuse to sign a
+        # different block with this same bond and slot.
+        source.sendtoaddress(source.getnewaddress(), 1)
+        # Persist the deliberate invalidateblock flag, so startup does not
+        # simply select the original valid block again before the signing check.
+        source.gettxoutsetinfo()
+        assert_equal(source.getblockcount(), 1499)
+        self.kill_node(source)
+        self.start_node(0, self.restart_args())
+        assert_equal(source.getblockcount(), 1499)
+        assert_raises_rpc_error(
+            -1, "staking signing protection refused", source.generatestake)
+        source.reconsiderblock(signed_block)
+        assert_equal(source.getbestblockhash(), signed_block)
+        connect_nodes_bi(self.nodes, 0, 1)
         sync_blocks(self.nodes)
 
         self.log.info("Abrupt exit after finality advances must not require reindex")

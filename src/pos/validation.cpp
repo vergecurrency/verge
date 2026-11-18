@@ -29,6 +29,22 @@ uint64_t GetRequiredSnapshotEpoch(uint64_t block_epoch,
     return block_epoch - snapshot_delay_epochs;
 }
 
+ValidationError CheckBondEligibility(const COutPoint& outpoint,
+                                      const BondRecord& bond,
+                                      const State& state, uint64_t epoch,
+                                      int32_t height,
+                                      const Consensus::Params& params)
+{
+    if (bond.creation_height > 0 &&
+        int64_t{bond.creation_height} + params.nPoSStakeMaturity > height) {
+        return ValidationError::BOND_IMMATURE;
+    }
+    if (state.IsEligibilityLocked(outpoint, epoch, height)) {
+        return ValidationError::BOND_LOCKED;
+    }
+    return ValidationError::NONE;
+}
+
 ValidationError CheckStakeAuthorization(const CBlock& block,
                                         const StakeSnapshot& snapshot,
                                         uint64_t expected_snapshot_epoch)

@@ -227,6 +227,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     const pos::StakeProof& proof, const pos::BondRecord& bond,
     const unsigned char signing_secret[32], uint32_t block_time,
     const uint256& expected_parent,
+    const std::function<bool(const pos::BlockAuthorization&)>& signing_guard,
     const std::vector<pos::CheckpointVote>& votes,
     const std::vector<pos::BlockEquivocationEvidence>& block_evidence,
     const std::vector<pos::VoteEquivocationEvidence>& vote_evidence)
@@ -259,12 +260,6 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
                        LOCKTIME_MEDIAN_TIME_PAST)
         ? pindexPrev->GetMedianTimePast() : pblock->GetBlockTime();
 
-    int packages_selected = 0;
-    int descendants_updated = 0;
-    addPackageTxs(packages_selected, descendants_updated);
-    nLastBlockTx = nBlockTx;
-    nLastBlockWeight = nBlockWeight;
-
     pblock->posExtension.stake_proof = proof;
     pblock->posExtension.votes = votes;
     pblock->posExtension.block_evidence = block_evidence;
@@ -281,6 +276,22 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     reward.vout.emplace_back(
         0, pos::GetBlockCommitmentScript(
                pos::GetBlockCommitment(pblock->posExtension)));
+
+    pblock->vtx[0] = MakeTransactionRef(reward);
+    // Include consensus attachments before selecting packages. Reserve the
+    // largest possible transaction-count CompactSize growth as well.
+    nBlockWeight = GetBlockWeight(*pblock) + WITNESS_SCALE_FACTOR *
+        (GetSizeOfCompactSize(MAX_BLOCK_WEIGHT) - GetSizeOfCompactSize(1));
+    nBlockSigOpsCost = GetLegacySigOpCount(*pblock->vtx[0]) *
+        WITNESS_SCALE_FACTOR;
+    if (nBlockWeight >= nBlockMaxWeight) return nullptr;
+
+    int packages_selected = 0;
+    int descendants_updated = 0;
+    addPackageTxs(packages_selected, descendants_updated);
+    nLastBlockTx = nBlockTx;
+    nLastBlockWeight = nBlockWeight;
+    reward.vout[0].nValue = nFees;
     pblock->vtx[0] = MakeTransactionRef(std::move(reward));
     pblocktemplate->vTxFees[0] = -nFees;
     pblocktemplate->vTxSigOpsCost[0] =
@@ -299,6 +310,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
         pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, proof);
     authorization.fee_reward_transaction_hash = pblock->vtx[0]->GetHash();
     authorization.parent_randomness = proof.epoch_seed;
+    if (!signing_guard || !signing_guard(authorization)) return nullptr;
     unsigned char auxiliary[32];
     GetRandBytes(auxiliary, sizeof(auxiliary));
     unsigned char signing_public_key[pos::SCHNORR_PUBLIC_KEY_SIZE];

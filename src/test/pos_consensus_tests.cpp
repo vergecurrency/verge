@@ -14,6 +14,21 @@
 
 BOOST_FIXTURE_TEST_SUITE(pos_consensus_tests, BasicTestingSetup)
 
+BOOST_AUTO_TEST_CASE(network_activation_and_prebonding_parameters)
+{
+    const auto main = CreateChainParams(CBaseChainParams::MAIN);
+    const auto test = CreateChainParams(CBaseChainParams::TESTNET);
+    const auto& params = main->GetConsensus();
+    BOOST_CHECK_EQUAL(params.nPoSBondRulesHeight,
+                      params.nPoSActivationHeight - params.nPoSUnbondingBlocks - params.nPoSStakeMaturity);
+    BOOST_CHECK_EQUAL(test->GetConsensus().nPoSActivationHeight, 3000);
+    BOOST_CHECK_EQUAL(test->GetConsensus().nPoSBondRulesHeight, 1);
+    BOOST_CHECK_EQUAL(test->MessageStart()[0], 0x98);
+    BOOST_CHECK_EQUAL(test->MessageStart()[1], 0x5b);
+    BOOST_CHECK_EQUAL(test->MessageStart()[2], 0x96);
+    BOOST_CHECK_EQUAL(test->MessageStart()[3], 0x5d);
+}
+
 BOOST_AUTO_TEST_CASE(slot_boundaries)
 {
     Consensus::Params params = CreateChainParams(CBaseChainParams::REGTEST)->GetConsensus();

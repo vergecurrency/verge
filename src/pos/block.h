@@ -8,6 +8,7 @@
 #include <pos/primitives.h>
 #include <serialize.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <ios>
 #include <vector>
@@ -44,14 +45,32 @@ struct BlockExtension {
     template <typename Stream>
     void Serialize(Stream& stream) const
     {
+        SerializeWithAuthorization(stream, authorization);
+    }
+
+    template <typename Stream>
+    void SerializeForBlockId(Stream& stream) const
+    {
+        BlockAuthorization unsigned_authorization = authorization;
+        std::fill(unsigned_authorization.signature,
+                  unsigned_authorization.signature + SCHNORR_SIGNATURE_SIZE, 0);
+        SerializeWithAuthorization(stream, unsigned_authorization);
+    }
+
+private:
+    template <typename Stream>
+    void SerializeWithAuthorization(Stream& stream,
+                                    const BlockAuthorization& selected_authorization) const
+    {
         ::Serialize(stream, version);
         ::Serialize(stream, stake_proof);
-        ::Serialize(stream, authorization);
+        ::Serialize(stream, selected_authorization);
         WriteVector(stream, votes);
         WriteVector(stream, block_evidence);
         WriteVector(stream, vote_evidence);
     }
 
+public:
     template <typename Stream>
     void Unserialize(Stream& stream)
     {

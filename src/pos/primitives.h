@@ -18,6 +18,13 @@ namespace pos {
 static constexpr uint8_t POS_OBJECT_VERSION = 1;
 static constexpr int32_t BLOCK_VERSION_POS = (1 << 15);
 static constexpr uint64_t FINAL_POW_CHECKPOINT_EPOCH = UINT64_MAX;
+// The final PoW checkpoint is logically epoch -1, not the newest epoch.
+inline bool CheckpointEpochLess(uint64_t first, uint64_t second)
+{
+    return first != second &&
+        (first == FINAL_POW_CHECKPOINT_EPOCH ||
+         (second != FINAL_POW_CHECKPOINT_EPOCH && first < second));
+}
 static constexpr size_t SCHNORR_PUBLIC_KEY_SIZE = 32;
 static constexpr size_t SCHNORR_SIGNATURE_SIZE = 64;
 static constexpr size_t VRF_PUBLIC_KEY_SIZE = 33;

@@ -23,6 +23,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <pos/consensus.h>
+#include <pos/crypto.h>
 #include <pos/forkchoice.h>
 #include <pos/state.h>
 #include <pos/validation.h>
@@ -177,7 +178,7 @@ public:
      * If a block header hasn't already been seen, call CheckBlockHeader on it, ensure
      * that it doesn't descend from an invalid block, and then add it to mapBlockIndex.
      */
-    bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex);
+    bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool check_only = false);
     bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested, const FlatFilePos* dbp, bool* fNewBlock);
 
     // Block (dis)connection on a given view. pos_state must be disposable:
@@ -243,7 +244,8 @@ private:
                                  const pos::ForkChoiceSummary& current_summary);
     bool ValidatePoSBranch(CBlockIndex* target, CValidationState& state,
                            const CChainParams& chainparams,
-                           std::shared_ptr<const pos::ForkChoiceSummary>* summary = nullptr);
+                           std::shared_ptr<const pos::ForkChoiceSummary>* summary = nullptr,
+                           const CBlock* pending = nullptr);
     void PublishPoSBranchValidation(CBlockIndex* target);
     CBlockIndex* FindMostWorkChain();
     void ReceivedBlockTransactions(const CBlock& block, CBlockIndex* pindexNew, const FlatFilePos& pos, const Consensus::Params& consensusParams);
@@ -2093,15 +2095,14 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                                  "bad-pos-bond-not-found");
             }
             const pos::BondRecord& bond = it->bond;
-            if (bond.creation_height > 0 &&
-                bond.creation_height + consensus.nPoSStakeMaturity >
-                    pindex->nHeight) {
+            const pos::ValidationError eligibility_error = pos::CheckBondEligibility(
+                it->outpoint, bond, next_pos_state, pos_slot.epoch,
+                pindex->nHeight, consensus);
+            if (eligibility_error == pos::ValidationError::BOND_IMMATURE) {
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-bond-immature");
             }
-            if (next_pos_state.IsWithdrawalLocked(
-                    block.posExtension.stake_proof.bond_outpoint,
-                    pindex->nHeight)) {
+            if (eligibility_error == pos::ValidationError::BOND_LOCKED) {
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-bond-locked");
             }
@@ -2109,12 +2110,13 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-snapshot-future");
             }
-            if (next_pos_state.IsEligibilityLocked(
-                    block.posExtension.stake_proof.bond_outpoint,
-                    pos_slot.epoch, pindex->nHeight) ||
-                pos::CheckStakeAuthorization(block, *snapshot,
-                                             snapshot_epoch) !=
-                    pos::ValidationError::NONE ||
+            const pos::ValidationError authorization_error =
+                pos::CheckStakeAuthorization(block, *snapshot, snapshot_epoch);
+            if (authorization_error == pos::ValidationError::AUTHORIZATION_SIGNATURE) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-pos-signature", true);
+            }
+            if (authorization_error != pos::ValidationError::NONE ||
                 pos::CheckVrfEligibility(block, *snapshot,
                                          consensus.nPoSNetworkId) !=
                     pos::ValidationError::NONE ||
@@ -2914,7 +2916,8 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
 bool CChainState::ValidatePoSBranch(CBlockIndex* target,
                                     CValidationState& state,
                                     const CChainParams& chainparams,
-                                    std::shared_ptr<const pos::ForkChoiceSummary>* summary)
+                                    std::shared_ptr<const pos::ForkChoiceSummary>* summary,
+                                    const CBlock* pending)
 {
     AssertLockHeld(cs_main);
     if (target == nullptr) return false;
@@ -2927,11 +2930,14 @@ bool CChainState::ValidatePoSBranch(CBlockIndex* target,
 
     for (const CBlockIndex* index = target; index != fork; index = index->pprev) {
         if (index == nullptr || (index->nStatus & BLOCK_FAILED_MASK) ||
-            !(index->nStatus & BLOCK_HAVE_DATA)) {
+            (!(index->nStatus & BLOCK_HAVE_DATA) &&
+             !(pending != nullptr && index == target))) {
             return state.Error("PoS candidate branch is invalid or incomplete");
         }
     }
-    if (auto cached = m_pos_fork_cache.Get(target->GetBlockHash())) {
+    auto cached = pending == nullptr
+        ? m_pos_fork_cache.Get(target->GetBlockHash()) : nullptr;
+    if (cached) {
         if (summary != nullptr) *summary = std::move(cached);
         LogPrint(BCLog::BENCH, "PoS branch summary cache hit height=%d bytes=%u\n",
                  target->nHeight, m_pos_fork_cache.DynamicMemoryUsage());
@@ -2973,15 +2979,19 @@ bool CChainState::ValidatePoSBranch(CBlockIndex* target,
 
     std::vector<CBlockIndex*> path;
     for (CBlockIndex* index = target; index != fork; index = index->pprev) {
-        if (index == nullptr || !(index->nStatus & BLOCK_HAVE_DATA)) {
+        if (index == nullptr || (!(index->nStatus & BLOCK_HAVE_DATA) &&
+                                !(pending != nullptr && index == target))) {
             return state.Error("PoS candidate branch data is incomplete");
         }
         path.push_back(index);
     }
     std::reverse(path.begin(), path.end());
     for (CBlockIndex* index : path) {
-        CBlock block;
-        if (!ReadBlockFromDisk(block, index, chainparams.GetConsensus())) {
+        CBlock stored;
+        const CBlock& block = pending != nullptr && index == target
+            ? *pending : stored;
+        if (&block == &stored &&
+            !ReadBlockFromDisk(stored, index, chainparams.GetConsensus())) {
             return state.Error("Failed to read PoS candidate block");
         }
         pos::StateUndo undo;
@@ -3884,6 +3894,21 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
                          "PoS extension does not match its header commitment");
     }
 
+    // Authorization signatures are witness-like data: they do not affect the
+    // candidate ID. Reject a damaged signature before any permanent-invalidity
+    // checks, so it cannot poison another payload carrying the valid signature.
+    if (pos::IsPoSVersion(block.nVersion) &&
+        !pos::VerifySchnorr(block.posExtension.stake_proof.signing_public_key,
+                           pos::GetBlockSigningHash(block.posExtension.authorization),
+                           block.posExtension.authorization.signature)) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-pos-signature", true,
+                         "Invalid PoS block authorization signature");
+    }
+    if (pos::IsPoSVersion(block.nVersion) && !block.vchBlockSig.empty()) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-pos-legacy-signature", true,
+                         "PoS block contains a legacy block signature");
+    }
+
     // Size limits
     if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
@@ -3921,10 +3946,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false, "out-of-bounds SigOpCount");
 
     if (pos::IsPoSVersion(block.nVersion)) {
-        if (!block.vchBlockSig.empty()) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-pos-legacy-signature", false,
-                             "PoS block contains a legacy block signature");
-        }
         if (pos::CheckStructure(block.posExtension) != pos::StructureError::NONE) {
             return state.DoS(100, false, REJECT_INVALID, "bad-pos-extension", false,
                              "PoS block extension failed structural validation");
@@ -4264,7 +4285,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     return true;
 }
 
-bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex)
+bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool check_only)
 {
     AssertLockHeld(cs_main);
     // Check for duplicate
@@ -4325,6 +4346,7 @@ bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState&
             }
         }
     }
+    if (check_only) return true;
     if (pindex == nullptr)
         pindex = AddToBlockIndex(block);
 
@@ -4387,6 +4409,33 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
     CBlockIndex *pindexDummy = nullptr;
     CBlockIndex *&pindex = ppindex ? *ppindex : pindexDummy;
 
+    bool pos_prevalidated = false;
+    if (pos::IsPoSVersion(block.nVersion)) {
+        // PoS headers do not prove scarce work. Authenticate the complete
+        // candidate in a disposable branch view before allocating index/disk
+        // entries. A temporary index supplies ancestry without publishing it.
+        if (!AcceptBlockHeader(block, state, chainparams, nullptr, true) ||
+            !CheckBlock(block, state, chainparams.GetConsensus())) return false;
+        CBlockIndex candidate(block);
+        const uint256 hash = block.GetHash();
+        candidate.phashBlock = &hash;
+        candidate.pprev = LookupBlockIndex(block.hashPrevBlock);
+        if (candidate.pprev == nullptr) return state.Error("PoS parent unavailable");
+        candidate.nHeight = candidate.pprev->nHeight + 1;
+        candidate.BuildSkip();
+        if (!ContextualCheckBlock(block, state, chainparams.GetConsensus(),
+                                  candidate.pprev)) return false;
+        const CBlockIndex* known = LookupBlockIndex(hash);
+        if (known == nullptr || !(known->nStatus & BLOCK_VALID_POS) ||
+            !(known->nStatus & BLOCK_HAVE_DATA)) {
+            if (!ValidatePoSBranch(&candidate, state, chainparams, nullptr, &block)) {
+                return error("%s: PoS pre-admission validation failed: %s",
+                             __func__, FormatStateMessage(state));
+            }
+        }
+        pos_prevalidated = true;
+    }
+
     if (!AcceptBlockHeader(block, state, chainparams, &pindex))
         return false;
 
@@ -4416,7 +4465,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
                 !ContextualCheckBlock(block, state,
                                       chainparams.GetConsensus(),
                                       pindex->pprev) ||
-                !ValidatePoSBranch(pindex, state, chainparams)) {
+                (!pos_prevalidated && !ValidatePoSBranch(pindex, state, chainparams))) {
                 if (state.IsInvalid() && !state.CorruptionPossible()) {
                     InvalidBlockFound(pindex, state);
                 }
@@ -4470,7 +4519,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
         }
         ReceivedBlockTransactions(block, pindex, blockPos, chainparams.GetConsensus());
         if (pos::IsPoSVersion(block.nVersion)) {
-            if (!ValidatePoSBranch(pindex, state, chainparams)) {
+            if (!pos_prevalidated && !ValidatePoSBranch(pindex, state, chainparams)) {
                 if (state.IsInvalid() && !state.CorruptionPossible()) {
                     InvalidBlockFound(pindex, state);
                 }

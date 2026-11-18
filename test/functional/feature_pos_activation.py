@@ -15,6 +15,7 @@ from test_framework.util import (
     assert_raises_rpc_error,
     connect_nodes_bi,
     disconnect_nodes,
+    sync_blocks,
     wait_until,
 )
 
@@ -50,22 +51,25 @@ class PoSActivationTest(VergeTestFramework):
         self.num_nodes = 2
         self.setup_clean_chain = True
         self.rpc_timewait = 300
-        self.extra_args = [["-posactivationheight=1500", "-without-tor"],
-                           ["-posactivationheight=1500", "-without-tor"]]
+        self.activation_height = 3000
+        self.extra_args = [["-posactivationheight={}".format(self.activation_height), "-without-tor"]
+                           for _ in range(self.num_nodes)]
 
     @staticmethod
     def next_slot(timestamp, slots=1):
         return ((timestamp // 30) + slots) * 30
 
-    @staticmethod
-    def mine_blocks(node, count, address):
+    def mine_blocks(self, node, count, address):
         while count:
             batch = min(count, 100)
             node.generatetoaddress(batch, address)
             count -= batch
+            # Keep the observer caught up and its RPC connection active during
+            # the longer setup chain; idle HTTP connections may be closed.
+            sync_blocks(self.nodes)
 
     @staticmethod
-    def first_vote(node, block_hash):
+    def extension_stream(node, block_hash):
         stream = BytesIO(bytes.fromhex(node.getblock(block_hash, 0)))
         stream.seek(112)  # PoS header, including its signed-extension commitment.
         transactions = node.getblock(block_hash, 2)["tx"]
@@ -74,6 +78,11 @@ class PoSActivationTest(VergeTestFramework):
             raw_tx = bytes.fromhex(tx["hex"])
             assert_equal(stream.read(len(raw_tx)), raw_tx)
         deser_string(stream)  # Legacy block-signature vector.
+        return stream
+
+    @staticmethod
+    def first_vote(node, block_hash):
+        stream = PoSActivationTest.extension_stream(node, block_hash)
         assert_equal(stream.read(1), b"\x01")
         assert_equal(len(stream.read(295 + 273)), 295 + 273)
         assert deser_compact_size(stream) > 0
@@ -84,6 +93,7 @@ class PoSActivationTest(VergeTestFramework):
     def run_test(self):
         node = self.nodes[0]
         observer = self.nodes[1]
+        activation = self.activation_height
         mining_address = node.getnewaddress()
 
         self.mine_blocks(node, 721, mining_address)
@@ -101,8 +111,8 @@ class PoSActivationTest(VergeTestFramework):
         assert_equal(legacy_signed["complete"], True)
         assert_equal(node.decoderawtransaction(legacy_signed["hex"])["version"], 1)
 
-        self.mine_blocks(node, 777, mining_address)
-        assert_equal(node.getblockcount(), 1499)
+        self.mine_blocks(node, activation - 723, mining_address)
+        assert_equal(node.getblockcount(), activation - 1)
         staking_info = node.getstakinginfo()
         self.log.info("Pre-activation staking state: %s", staking_info)
         assert_equal(staking_info["tracked_bonds"], 1)
@@ -127,7 +137,7 @@ class PoSActivationTest(VergeTestFramework):
         for peer in self.nodes:
             peer.setmocktime(epoch_zero_time)
         epoch_zero = node.generatestake()
-        assert_equal(node.getblockcount(), 1500)
+        assert_equal(node.getblockcount(), activation)
         pos_block = node.getblock(epoch_zero, 2)
         assert all(tx["version"] == 0x05475658 for tx in pos_block["tx"])
         assert_raises_rpc_error(
@@ -139,7 +149,7 @@ class PoSActivationTest(VergeTestFramework):
         pos_info = observer.getposinfo()
         assert_equal(pos_info["active"], True)
         assert_equal(pos_info["current_epoch"], 0)
-        assert_equal(pos_info["latest_checkpoint"]["height"], 1500)
+        assert_equal(pos_info["latest_checkpoint"]["height"], activation)
         assert "peers_at_tip" in pos_info["network"]
 
         MESSAGEMAP[b"block"] = IgnoredBlockMessage
@@ -150,6 +160,16 @@ class PoSActivationTest(VergeTestFramework):
         for peer in self.nodes:
             peer.setmocktime(epoch_zero_time + 120 * 30)
         epoch_one = node.generatestake()
+        # The authorization signature is not part of the candidate ID. A
+        # damaged copy must be rejected without indexing or poisoning the ID
+        # that the observer will subsequently accept during ordinary sync.
+        stream = self.extension_stream(node, epoch_one)
+        signature_offset = stream.tell() + 1 + 295 + 273 - 64
+        damaged = bytearray.fromhex(node.getblock(epoch_one, 0))
+        damaged[signature_offset:signature_offset + 64] = bytes(64)
+        assert_equal(observer.submitblock(damaged.hex()), "bad-pos-signature")
+        assert_raises_rpc_error(-5, "Block not found", observer.getblockheader, epoch_one)
+        assert_equal(observer.getblockcount(), activation)
         # Keep the observer at epoch zero while testing standalone relay;
         # otherwise block inclusion can prune the vote before GETDATA arrives.
         vote = self.first_vote(node, epoch_one)
@@ -174,7 +194,7 @@ class PoSActivationTest(VergeTestFramework):
         vote_peer.sync_with_ping()
         assert_equal(max(peer.get("banscore", 0)
                          for peer in observer.getpeerinfo()), 0)
-        assert_equal(node.getblockcount(), 1501)
+        assert_equal(node.getblockcount(), activation + 1)
 
         vote_peer.send_message(MalformedPoSMessage(b"posvote", 228))
         vote_peer.send_message(MalformedPoSMessage(b"posvevid", 458))
@@ -184,13 +204,14 @@ class PoSActivationTest(VergeTestFramework):
         observer.disconnect_p2ps()
         connect_nodes_bi(self.nodes, 0, 1)
         self.sync_all()
+        assert_equal(observer.getbestblockhash(), epoch_one)
         disconnect_nodes(node, 1)
         disconnect_nodes(observer, 0)
 
         for peer in self.nodes:
             peer.setmocktime(epoch_zero_time + 240 * 30)
         epoch_two = node.generatestake()
-        assert_equal(node.getblockcount(), 1502)
+        assert_equal(node.getblockcount(), activation + 2)
         assert_equal(node.getbestblockhash(), epoch_two)
         assert observer.getbestblockhash() != epoch_two
 
@@ -200,7 +221,7 @@ class PoSActivationTest(VergeTestFramework):
         for peer in self.nodes:
             peer.setmocktime(epoch_zero_time + 480 * 30)
         epoch_four = node.generatestake()
-        assert_equal(node.getblockcount(), 1504)
+        assert_equal(node.getblockcount(), activation + 4)
         assert_equal(node.getbestblockhash(), epoch_four)
 
         # PoS peers intentionally serve one header and its fully validated
@@ -219,7 +240,7 @@ class PoSActivationTest(VergeTestFramework):
         assert_equal(staking_info["active"], True)
 
         self.restart_node(0, [
-            "-posactivationheight=1500",
+            "-posactivationheight={}".format(activation),
             "-without-tor",
             "-mocktime={}".format(epoch_zero_time + 480 * 30),
         ])
@@ -228,7 +249,7 @@ class PoSActivationTest(VergeTestFramework):
         assert_equal(node.getstakinginfo()["enabled"], True)
 
         self.restart_node(1, [
-            "-posactivationheight=1500",
+            "-posactivationheight={}".format(activation),
             "-without-tor",
             "-mocktime={}".format(epoch_zero_time + 480 * 30),
             "-reindex-chainstate",
@@ -242,7 +263,7 @@ class PoSActivationTest(VergeTestFramework):
         assert_equal(node.getbestblockhash(), epoch_three)
         node.reconsiderblock(epoch_four)
         assert_equal(node.getbestblockhash(), epoch_four)
-        assert_equal(node.getblockheader(epoch_zero)["height"], 1500)
+        assert_equal(node.getblockheader(epoch_zero)["height"], activation)
 
         node.setstaking(False)
         unbond = node.unbond(bond["txid"], bond["vout"])

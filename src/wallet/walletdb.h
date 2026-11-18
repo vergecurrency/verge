@@ -10,12 +10,14 @@
 #include <stealth.h>
 #include <amount.h>
 #include <primitives/transaction.h>
+#include <pos/primitives.h>
 #include <wallet/db.h>
 #include <key.h>
 
 #include <list>
 #include <stdint.h>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -46,6 +48,44 @@ class uint256;
 
 /** Backend-agnostic database type. */
 using WalletDatabase = BerkeleyDatabase;
+
+struct PoSSigningKey {
+    uint256 domain;
+    COutPoint bond_outpoint;
+    uint256 public_key;
+
+    ADD_SERIALIZE_METHODS;
+    template <typename Stream, typename Operation>
+    void SerializationOp(Stream& s, Operation ser_action)
+    {
+        READWRITE(domain, bond_outpoint, public_key);
+    }
+
+    bool operator<(const PoSSigningKey& other) const
+    {
+        return std::tie(domain, bond_outpoint, public_key) <
+            std::tie(other.domain, other.bond_outpoint, other.public_key);
+    }
+};
+
+// A conservative high-water mark prevents double signing without retaining
+// every signature. This record must reach durable storage before signing.
+struct PoSSigningHistory {
+    uint8_t version{1};
+    bool have_block{false};
+    uint64_t block_slot{0};
+    uint256 block_signing_hash;
+    bool have_vote{false};
+    pos::CheckpointVote vote;
+
+    ADD_SERIALIZE_METHODS;
+    template <typename Stream, typename Operation>
+    void SerializationOp(Stream& s, Operation ser_action)
+    {
+        READWRITE(version, have_block, block_slot, block_signing_hash,
+                  have_vote, vote);
+    }
+};
 
 /** Error statuses for the wallet database */
 enum class DBErrors
@@ -226,6 +266,8 @@ public:
     bool WriteOrderPosNext(int64_t nOrderPosNext);
     bool WriteStakingEnabled(bool enabled);
     bool WriteStakingReserveBalance(CAmount reserve);
+    bool WritePoSSigningHistory(const PoSSigningKey& key,
+                               const PoSSigningHistory& history);
 
     bool ReadPool(int64_t nPool, CKeyPool& keypool);
     bool WritePool(int64_t nPool, const CKeyPool& keypool);
@@ -271,7 +313,7 @@ public:
     //! Begin a new transaction
     bool TxnBegin();
     //! Commit current transaction
-    bool TxnCommit();
+    bool TxnCommit(bool sync = false);
     //! Abort current transaction
     bool TxnAbort();
     //! Read wallet version

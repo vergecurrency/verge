@@ -86,7 +86,7 @@ consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;
 consensus.CLOCK_DRIFT_FORK = 2218500;
 consensus.nPoSNetworkId = 1;
-consensus.nPoSBondRulesHeight = 14979120;
+// Provisional configuration; a production activation height is not approved yet.
 consensus.nPoSActivationHeight = 15000000;
 consensus.nPoSMinStake = 1000 * COIN;
 consensus.nPoSStakeMaturity = 720;
@@ -94,6 +94,9 @@ consensus.nPoSSlotSeconds = 30;
 consensus.nPoSEpochSlots = 120;
 consensus.nPoSSnapshotDelayEpochs = 2;
 consensus.nPoSUnbondingBlocks = 20160;
+// Keep the pre-bonding window aligned when the mainnet activation is selected.
+consensus.nPoSBondRulesHeight = consensus.nPoSActivationHeight -
+    consensus.nPoSUnbondingBlocks - consensus.nPoSStakeMaturity;
 consensus.nPoSTrustedCheckpointHeight = -1;
 consensus.hashPoSTrustedCheckpoint.SetNull();
 consensus.nSubsidyHalvingInterval = 500000;
@@ -429,11 +432,11 @@ consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // M
 consensus.nMinimumChainWork = uint256S("0x00");
 consensus.defaultAssumeValid = uint256S("0x00");
 
-// First four SHA256 bytes of "Verge PoS Testnet Reset 2026-10-28 beta8 height 3000".
-pchMessageStart[0] = 0xb7;
-pchMessageStart[1] = 0x61;
-pchMessageStart[2] = 0x89;
-pchMessageStart[3] = 0x96;
+// First four SHA256 bytes of "Verge PoS Testnet Reset 2026-11-18 consensus hardening height 3000".
+pchMessageStart[0] = 0x98;
+pchMessageStart[1] = 0x5b;
+pchMessageStart[2] = 0x96;
+pchMessageStart[3] = 0x5d;
 nDefaultPort = 21104;
 nPruneAfterHeight = 1000;
 

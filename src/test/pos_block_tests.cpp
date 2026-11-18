@@ -4,6 +4,7 @@
 
 #include <pos/block.h>
 #include <pos/crypto.h>
+#include <pos/consensus.h>
 #include <chainparams.h>
 #include <consensus/validation.h>
 #include <consensus/merkle.h>
@@ -20,6 +21,9 @@
 
 #include <cstring>
 #include <stdexcept>
+
+extern uint64_t nLastBlockTx;
+extern uint64_t nLastBlockWeight;
 
 BOOST_FIXTURE_TEST_SUITE(pos_block_tests, BasicTestingSetup)
 
@@ -65,6 +69,16 @@ BOOST_AUTO_TEST_CASE(corrupt_extension_does_not_invalidate_committed_header)
     reward.vout.emplace_back(0, CScript() << OP_TRUE);
     block.vtx.push_back(MakeTransactionRef(reward));
     block.hashMerkleRoot = BlockMerkleRoot(block);
+    unsigned char secret[32]{};
+    secret[31] = 3;
+    auto& proof = block.posExtension.stake_proof;
+    auto& authorization = block.posExtension.authorization;
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret, proof.signing_public_key));
+    authorization.stake_proof_hash = pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, proof);
+    unsigned char auxiliary[32]{};
+    unsigned char public_key[32];
+    BOOST_REQUIRE(pos::SignSchnorr(secret, pos::GetBlockSigningHash(authorization),
+                                   auxiliary, authorization.signature, public_key));
     block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
 
     CBlock damaged = block;
@@ -72,10 +86,34 @@ BOOST_AUTO_TEST_CASE(corrupt_extension_does_not_invalidate_committed_header)
     BOOST_CHECK(damaged.GetHash() == block.GetHash());
     CValidationState damaged_state;
     BOOST_CHECK(!CheckBlock(damaged, damaged_state, Params().GetConsensus()));
-    BOOST_CHECK_EQUAL(damaged_state.GetRejectReason(), "bad-pos-data-hash");
+    BOOST_CHECK_EQUAL(damaged_state.GetRejectReason(), "bad-pos-signature");
     BOOST_CHECK(damaged_state.CorruptionPossible());
     CValidationState valid_state;
     BOOST_CHECK(CheckBlock(block, valid_state, Params().GetConsensus()));
+
+    damaged = block;
+    damaged.fChecked = false;
+    std::fill(std::begin(damaged.posExtension.authorization.signature),
+              std::end(damaged.posExtension.authorization.signature), 0);
+    CValidationState zero_signature;
+    BOOST_CHECK(!CheckBlock(damaged, zero_signature, Params().GetConsensus()));
+    BOOST_CHECK_EQUAL(zero_signature.GetRejectReason(), "bad-pos-signature");
+    BOOST_CHECK(zero_signature.CorruptionPossible());
+    damaged = block;
+    damaged.fChecked = false;
+    damaged.posExtension.stake_proof.snapshot_root = uint256S("1234");
+    CValidationState bad_commitment;
+    BOOST_CHECK(!CheckBlock(damaged, bad_commitment, Params().GetConsensus()));
+    BOOST_CHECK_EQUAL(bad_commitment.GetRejectReason(), "bad-pos-data-hash");
+    BOOST_CHECK(bad_commitment.CorruptionPossible());
+    damaged = block;
+    damaged.fChecked = false;
+    damaged.vchBlockSig.resize(MAX_BLOCK_WEIGHT / WITNESS_SCALE_FACTOR);
+    CValidationState bad_legacy_signature;
+    BOOST_CHECK(damaged.GetHash() == block.GetHash());
+    BOOST_CHECK(!CheckBlock(damaged, bad_legacy_signature, Params().GetConsensus()));
+    BOOST_CHECK_EQUAL(bad_legacy_signature.GetRejectReason(), "bad-pos-legacy-signature");
+    BOOST_CHECK(bad_legacy_signature.CorruptionPossible());
 }
 
 BOOST_AUTO_TEST_CASE(empty_collection_size_and_round_trip)
@@ -235,7 +273,7 @@ BOOST_AUTO_TEST_CASE(full_block_linkage)
                 pos::StructureError::INVALID_AUTHORIZATION);
 }
 
-BOOST_AUTO_TEST_CASE(pos_authorization_is_committed_to_block_id)
+BOOST_AUTO_TEST_CASE(unsigned_pos_authorization_is_committed_to_block_id)
 {
     CBlock block;
     block.nVersion = 2 | pos::BLOCK_VERSION_POS;
@@ -253,8 +291,61 @@ BOOST_AUTO_TEST_CASE(pos_authorization_is_committed_to_block_id)
     block.posExtension.authorization.signature[1] ^= 1;
     block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
     block.hash.SetNull();
-    BOOST_CHECK(block.GetHash() != original);
+    BOOST_CHECK(block.GetHash() == original);
     BOOST_CHECK(pos::GetPoSHeaderSigningHash(block) == signing_hash);
+    block.posExtension.authorization.parent_randomness = uint256S("aa");
+    block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
+    block.hash.SetNull();
+    BOOST_CHECK(block.GetHash() != original);
+}
+
+BOOST_AUTO_TEST_CASE(valid_signature_variants_have_one_candidate_id)
+{
+    CBlock first;
+    first.nVersion = 2 | pos::BLOCK_VERSION_POS;
+    first.posExtension = MakeExtension();
+    unsigned char secret[32]{};
+    secret[31] = 3;
+    auto& proof = first.posExtension.stake_proof;
+    auto& authorization = first.posExtension.authorization;
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret, proof.signing_public_key));
+    authorization.stake_proof_hash = pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, proof);
+    unsigned char auxiliary[32]{};
+    unsigned char public_key[32];
+    BOOST_REQUIRE(pos::SignSchnorr(secret, pos::GetBlockSigningHash(authorization),
+                                   auxiliary, authorization.signature, public_key));
+    first.hashPoSData = pos::ComputePoSDataHash(first.posExtension);
+    CBlock second = first;
+    auxiliary[0] = 1;
+    auto& variant = second.posExtension.authorization;
+    BOOST_REQUIRE(pos::SignSchnorr(secret, pos::GetBlockSigningHash(variant),
+                                   auxiliary, variant.signature, public_key));
+    BOOST_CHECK(!std::equal(std::begin(authorization.signature),
+                            std::end(authorization.signature), variant.signature));
+    BOOST_CHECK(pos::VerifySchnorr(public_key, pos::GetBlockSigningHash(authorization),
+                                   authorization.signature));
+    BOOST_CHECK(pos::VerifySchnorr(public_key, pos::GetBlockSigningHash(variant), variant.signature));
+    second.hashPoSData = pos::ComputePoSDataHash(second.posExtension);
+    BOOST_CHECK(first.GetHash() == second.GetHash());
+
+    // Identity serialization is exactly the normal extension encoding with
+    // this one signature zeroed, including all CompactSize boundaries.
+    for (size_t count : {size_t{0}, size_t{252}, size_t{253}, size_t{1024}}) {
+        auto extension = first.posExtension;
+        extension.votes.resize(count);
+        extension.block_evidence.resize(pos::MAX_EVIDENCE_PER_BLOCK);
+        auto reference = extension;
+        std::fill(std::begin(reference.authorization.signature),
+                  std::end(reference.authorization.signature), 0);
+        BOOST_CHECK(pos::ComputePoSDataHash(extension) ==
+                    pos::GetTaggedHash(pos::HashDomain::POS_DATA, reference));
+        const uint256 original = pos::ComputePoSDataHash(extension);
+        extension.stake_proof.vrf_proof[0] ^= 1;
+        BOOST_CHECK(pos::ComputePoSDataHash(extension) != original);
+        extension = reference;
+        extension.block_evidence[0].first.candidate_header_hash = uint256S("abcd");
+        BOOST_CHECK(pos::ComputePoSDataHash(extension) != original);
+    }
 }
 BOOST_AUTO_TEST_CASE(reject_vote_count_before_allocation)
 {
@@ -368,13 +459,13 @@ BOOST_AUTO_TEST_CASE(discard_proof_when_parent_advances)
     // The arriving parent occupies the slot selected by the staking worker.
     BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
         proof, pos::BondRecord(), secret, block_time,
-        selected_parent));
+        selected_parent, [](const pos::BlockAuthorization&) { return true; }));
     BOOST_CHECK(!block_template);
 
     // A later slot must not silently reuse proof/votes from a stale parent.
     BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
         proof, pos::BondRecord(), secret, block_time + 30,
-        selected_parent));
+        selected_parent, [](const pos::BlockAuthorization&) { return true; }));
     BOOST_CHECK(!block_template);
 }
 
@@ -392,7 +483,7 @@ BOOST_AUTO_TEST_CASE(discard_proof_when_parent_replaced_at_same_height)
 
     BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
         proof, pos::BondRecord(), secret, block_time,
-        selected_parent));
+        selected_parent, [](const pos::BlockAuthorization&) { return true; }));
     BOOST_CHECK(!block_template);
     chainActive.SetTip(&replacement);
 }
@@ -406,7 +497,7 @@ BOOST_AUTO_TEST_CASE(discard_nonadvancing_slot_with_current_parent)
         std::unique_ptr<CBlockTemplate> block_template;
         BOOST_CHECK_NO_THROW(block_template = BlockAssembler(*params).CreateNewPoSBlock(
             proof, pos::BondRecord(), secret, timestamp,
-            replacement.GetBlockHash()));
+            replacement.GetBlockHash(), [](const pos::BlockAuthorization&) { return true; }));
         BOOST_CHECK(!block_template);
     }
 }
@@ -419,7 +510,110 @@ BOOST_AUTO_TEST_CASE(current_parent_and_advancing_slot_still_validate)
     // A matching parent is not enough to bypass validation of this dummy proof.
     BOOST_CHECK_THROW(BlockAssembler(*params).CreateNewPoSBlock(
         proof, pos::BondRecord(), secret, block_time + 30,
-        replacement.GetBlockHash()), std::runtime_error);
+        replacement.GetBlockHash(), [](const pos::BlockAuthorization&) { return true; }), std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(reserve_attachment_weight_before_transaction_selection)
+{
+    LOCK2(cs_main, mempool.cs);
+    chainActive.SetTip(&replacement);
+    mempool.clear();
+    TestMemPoolEntryHelper entry;
+    for (uint32_t i = 0; i < 600; ++i) {
+        CMutableTransaction tx;
+        tx.nTime = block_time;
+        tx.vin.emplace_back(COutPoint(uint256S("1234"), i));
+        tx.vout.emplace_back(1, CScript() << std::vector<unsigned char>(1000, 0));
+        mempool.addUnchecked(tx.GetHash(), entry.Fee(COIN).FromTx(tx));
+    }
+    BlockAssembler::Options options;
+    options.nBlockMaxWeight = 2000000;
+    uint64_t empty_count = 0;
+    for (const bool attachments : {false, true}) {
+        std::vector<pos::CheckpointVote> votes;
+        std::vector<pos::BlockEquivocationEvidence> evidence;
+        if (attachments) {
+            votes.resize(pos::MAX_VOTES_PER_BLOCK);
+            evidence.resize(pos::MAX_EVIDENCE_PER_BLOCK);
+        }
+        bool reached_signing = false;
+        // Stop before signing/validation: these are assembly-only fixtures.
+        auto block_template = BlockAssembler(*params, options).CreateNewPoSBlock(
+            proof, pos::BondRecord(), secret, block_time + 30,
+            replacement.GetBlockHash(), [&](const pos::BlockAuthorization&) {
+                reached_signing = true;
+                BOOST_CHECK(nLastBlockWeight <= options.nBlockMaxWeight);
+                BOOST_CHECK(nLastBlockWeight > options.nBlockMaxWeight - 10000);
+                return false;
+            }, votes, evidence);
+        BOOST_CHECK(reached_signing);
+        BOOST_CHECK(!block_template);
+        if (!attachments) empty_count = nLastBlockTx;
+        else BOOST_CHECK(nLastBlockTx < empty_count);
+    }
+    options.nBlockMaxWeight = 4000;
+    bool reached_signing = false;
+    auto block_template = BlockAssembler(*params, options).CreateNewPoSBlock(
+        proof, pos::BondRecord(), secret, block_time + 30,
+        replacement.GetBlockHash(), [&](const pos::BlockAuthorization&) {
+            reached_signing = true;
+            return false;
+        }, std::vector<pos::CheckpointVote>(pos::MAX_VOTES_PER_BLOCK));
+    BOOST_CHECK(!reached_signing);
+    BOOST_CHECK(!block_template);
+    mempool.clear();
+}
+
+BOOST_AUTO_TEST_CASE(rejected_candidate_does_not_allocate_index_or_block_data)
+{
+    CBlock block;
+    block.nVersion = 2 | pos::BLOCK_VERSION_POS;
+    block.hashPrevBlock = original_tip->GetBlockHash();
+    block.nTime = block_time;
+    block.nBits = 0;
+    block.nNonce = 0;
+    block.posExtension = pos_block_tests::MakeExtension();
+    pos::SlotInfo slot;
+    BOOST_REQUIRE(pos::GetSlotInfo(original_tip->nTime, block_time,
+                                   params->GetConsensus(), slot));
+    block.posExtension.stake_proof.slot = slot.global_slot;
+    std::copy(proof.signing_public_key,
+              proof.signing_public_key + pos::SCHNORR_PUBLIC_KEY_SIZE,
+              block.posExtension.stake_proof.signing_public_key);
+    CMutableTransaction reward;
+    reward.nVersion = CTransaction::POS_REPLAY_PROTECTED_VERSION;
+    reward.nTime = block_time;
+    reward.vin.resize(1);
+    reward.vin[0].prevout.SetNull();
+    reward.vin[0].scriptSig = CScript() << 1 << OP_0;
+    reward.vout.emplace_back(0, CScript() << OP_TRUE);
+    reward.vout.emplace_back(0, pos::GetBlockCommitmentScript(
+        pos::GetBlockCommitment(block.posExtension)));
+    block.vtx.push_back(MakeTransactionRef(reward));
+    block.hashMerkleRoot = BlockMerkleRoot(block);
+    auto& authorization = block.posExtension.authorization;
+    authorization.network_id = params->GetConsensus().nPoSNetworkId;
+    authorization.parent_block_root = block.hashPrevBlock;
+    authorization.slot = slot.global_slot;
+    authorization.candidate_header_hash = pos::GetPoSHeaderSigningHash(block);
+    authorization.stake_proof_hash = pos::GetTaggedHash(
+        pos::HashDomain::STAKE_PROOF, block.posExtension.stake_proof);
+    authorization.fee_reward_transaction_hash = reward.GetHash();
+    unsigned char auxiliary[32]{};
+    unsigned char public_key[32];
+    BOOST_REQUIRE(pos::SignSchnorr(secret, pos::GetBlockSigningHash(authorization),
+                                   auxiliary, authorization.signature, public_key));
+    block.hashPoSData = pos::ComputePoSDataHash(block.posExtension);
+    CValidationState state;
+    BOOST_REQUIRE(CheckBlock(block, state, params->GetConsensus()));
+    const size_t index_size = mapBlockIndex.size();
+    const auto file_size = GetBlockFileInfo(0)->nSize;
+    // The isolated fixture has no stake history. Full authentication must
+    // fail before this structurally well-formed candidate is persisted.
+    BOOST_CHECK(!ProcessNewBlock(*params, std::make_shared<const CBlock>(block), true, nullptr));
+    BOOST_CHECK_EQUAL(mapBlockIndex.size(), index_size);
+    BOOST_CHECK(LookupBlockIndex(block.GetHash()) == nullptr);
+    BOOST_CHECK_EQUAL(GetBlockFileInfo(0)->nSize, file_size);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -52,7 +52,7 @@ bool HasStakingPeer()
          g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) > 0);
 }
 
-bool BuildVote(const pos::State& state, const COutPoint& bond_outpoint,
+bool BuildVote(CWallet& wallet, const pos::State& state, const COutPoint& bond_outpoint,
                const CKey& key, const CBlockIndex* head,
                const CBlockIndex* final_pow, const pos::SlotInfo& current_slot,
                const Consensus::Params& params, pos::CheckpointVote& vote)
@@ -86,6 +86,8 @@ bool BuildVote(const pos::State& state, const COutPoint& bond_outpoint,
     vote.target_checkpoint_root = target->root;
     vote.head_slot = head_slot.global_slot;
     vote.head_block_root = head->GetBlockHash();
+    if (!wallet.RecordPoSVoteSigning(params, vote,
+                                    member->bond.data.signing_public_key)) return false;
     unsigned char auxiliary[32];
     GetRandBytes(auxiliary, sizeof(auxiliary));
     unsigned char public_key[pos::SCHNORR_PUBLIC_KEY_SIZE];
@@ -227,8 +229,9 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
                 error = "shutdown requested";
                 return false;
             }
-            if (state.IsEligibilityLocked(entry.outpoint, slot.epoch,
-                                          tip->nHeight + 1)) continue;
+            if (pos::CheckBondEligibility(entry.outpoint, entry.bond, state,
+                    slot.epoch, tip->nHeight + 1, params) !=
+                    pos::ValidationError::NONE) continue;
             PublicKeyBytes signing_public_key{};
             std::copy(entry.bond.data.signing_public_key,
                       entry.bond.data.signing_public_key +
@@ -237,7 +240,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
             const auto owned = wallet_keys.find(signing_public_key);
             if (owned == wallet_keys.end()) continue;
             pos::CheckpointVote vote;
-            if (!BuildVote(state, entry.outpoint, owned->second, tip,
+            if (!BuildVote(wallet, state, entry.outpoint, owned->second, tip,
                            final_pow, slot, params, vote)) continue;
             const pos::VotePoolResult result = pos::GetVotePool().Add(vote);
             if (g_connman &&
@@ -286,8 +289,9 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
                 error = "shutdown requested";
                 return false;
             }
-            if (state.IsEligibilityLocked(entry.outpoint, slot.epoch,
-                                          tip->nHeight + 1)) continue;
+            if (pos::CheckBondEligibility(entry.outpoint, entry.bond, state,
+                    slot.epoch, tip->nHeight + 1, params) !=
+                    pos::ValidationError::NONE) continue;
             PublicKeyBytes signing_public_key{};
             std::copy(entry.bond.data.signing_public_key,
                       entry.bond.data.signing_public_key +
@@ -343,13 +347,24 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         error = "shutdown requested";
         return false;
     }
-    std::unique_ptr<CBlockTemplate> block_template =
-        BlockAssembler(Params()).CreateNewPoSBlock(
-            proof, selected_bond, selected_key.begin(), block_time, parent_hash, votes,
-            block_evidence,
-            vote_evidence);
+    std::unique_ptr<CBlockTemplate> block_template;
+    bool signing_refused = false;
+    {
+        // Acquire the wallet before the assembler takes mempool.cs. The guard
+        // synchronously records authorization while these locks remain held.
+        LOCK2(cs_main, wallet.cs_wallet);
+        block_template = BlockAssembler(Params()).CreateNewPoSBlock(
+            proof, selected_bond, selected_key.begin(), block_time, parent_hash,
+            [&](const pos::BlockAuthorization& authorization) {
+                signing_refused = !wallet.RecordPoSBlockSigning(
+                    Params().GetConsensus(), proof, authorization);
+                return !signing_refused;
+            }, votes, block_evidence, vote_evidence);
+    }
     if (!block_template) {
-        error = "failed to construct proof-of-stake block template";
+        error = signing_refused
+            ? "staking signing protection refused a conflicting or older block"
+            : "failed to construct proof-of-stake block template";
         return false;
     }
     const std::shared_ptr<const CBlock> block =

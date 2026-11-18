@@ -159,8 +159,9 @@ StructureError CheckStructure(const CheckpointVote& vote)
 {
     if (!HasSupportedVersion(vote)) return StructureError::UNSUPPORTED_VERSION;
     if (vote.bond_outpoint.IsNull()) return StructureError::NULL_BOND_OUTPOINT;
-    if (vote.source_epoch != FINAL_POW_CHECKPOINT_EPOCH &&
-        vote.source_epoch > vote.target_epoch) {
+    if (vote.target_epoch == FINAL_POW_CHECKPOINT_EPOCH ||
+        (vote.source_epoch != FINAL_POW_CHECKPOINT_EPOCH &&
+         vote.source_epoch > vote.target_epoch)) {
         return StructureError::INVALID_EPOCH_ORDER;
     }
     if (vote.source_checkpoint_root.IsNull() || vote.target_checkpoint_root.IsNull()) return StructureError::NULL_COMMITMENT;
@@ -223,11 +224,11 @@ StructureError CheckStructure(const VoteEquivocationEvidence& evidence)
         evidence.first.target_epoch == evidence.second.target_epoch &&
         evidence.first.target_checkpoint_root != evidence.second.target_checkpoint_root;
     const bool first_surrounds_second =
-        evidence.first.source_epoch < evidence.second.source_epoch &&
-        evidence.second.target_epoch < evidence.first.target_epoch;
+        CheckpointEpochLess(evidence.first.source_epoch, evidence.second.source_epoch) &&
+        CheckpointEpochLess(evidence.second.target_epoch, evidence.first.target_epoch);
     const bool second_surrounds_first =
-        evidence.second.source_epoch < evidence.first.source_epoch &&
-        evidence.first.target_epoch < evidence.second.target_epoch;
+        CheckpointEpochLess(evidence.second.source_epoch, evidence.first.source_epoch) &&
+        CheckpointEpochLess(evidence.first.target_epoch, evidence.second.target_epoch);
     if (!double_target && !first_surrounds_second && !second_surrounds_first) {
         return StructureError::NOT_EQUIVOCATION;
     }

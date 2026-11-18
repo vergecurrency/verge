@@ -59,7 +59,11 @@ uint256 ComputeEvidenceRoot(
 
 uint256 ComputePoSDataHash(const BlockExtension& extension)
 {
-    return GetTaggedHash(HashDomain::POS_DATA, extension);
+    // Signature randomness must not create another ID for the same candidate.
+    // The signature remains on the wire and is independently authenticated.
+    TaggedHashWriter writer(HashDomain::POS_DATA);
+    extension.SerializeForBlockId(writer);
+    return writer.GetHash();
 }
 
 uint256 GetPoSHeaderSigningHash(const CBlockHeader& header)

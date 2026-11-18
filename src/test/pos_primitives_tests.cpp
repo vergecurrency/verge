@@ -112,6 +112,46 @@ BOOST_AUTO_TEST_CASE(structural_checks)
     vote.source_epoch = pos::FINAL_POW_CHECKPOINT_EPOCH;
     vote.target_epoch = 0;
     BOOST_CHECK(pos::CheckStructure(vote) == pos::StructureError::NONE);
+    vote.target_epoch = pos::FINAL_POW_CHECKPOINT_EPOCH;
+    BOOST_CHECK(pos::CheckStructure(vote) == pos::StructureError::INVALID_EPOCH_ORDER);
+}
+
+BOOST_AUTO_TEST_CASE(anchor_surround_ordering)
+{
+    BOOST_CHECK(pos::CheckpointEpochLess(pos::FINAL_POW_CHECKPOINT_EPOCH, 0));
+    BOOST_CHECK(!pos::CheckpointEpochLess(0, pos::FINAL_POW_CHECKPOINT_EPOCH));
+    BOOST_CHECK(!pos::CheckpointEpochLess(pos::FINAL_POW_CHECKPOINT_EPOCH,
+                                        pos::FINAL_POW_CHECKPOINT_EPOCH));
+    for (const uint64_t source : {uint64_t{0}, pos::FINAL_POW_CHECKPOINT_EPOCH}) {
+        pos::CheckpointVote outer;
+        outer.bond_outpoint = COutPoint(uint256S("11"), 0);
+        outer.source_epoch = source;
+        outer.source_checkpoint_root = uint256S("12");
+        outer.target_epoch = 3;
+        outer.target_checkpoint_root = uint256S("13");
+        outer.head_slot = 10;
+        outer.head_block_root = uint256S("14");
+        outer.signature[0] = 1;
+        pos::CheckpointVote inner = outer;
+        inner.source_epoch = 1;
+        inner.target_epoch = 2;
+        pos::VoteEquivocationEvidence evidence;
+        evidence.first = outer;
+        evidence.second = inner;
+        if (pos::GetVoteSigningHash(evidence.second) < pos::GetVoteSigningHash(evidence.first)) {
+            std::swap(evidence.first, evidence.second);
+        }
+        BOOST_CHECK(pos::CheckStructure(evidence) == pos::StructureError::NONE);
+        std::swap(evidence.first, evidence.second);
+        BOOST_CHECK(pos::CheckStructure(evidence) == pos::StructureError::NON_CANONICAL_EVIDENCE);
+        inner.source_epoch = source;
+        evidence.first = outer;
+        evidence.second = inner;
+        if (pos::GetVoteSigningHash(evidence.second) < pos::GetVoteSigningHash(evidence.first)) {
+            std::swap(evidence.first, evidence.second);
+        }
+        BOOST_CHECK(pos::CheckStructure(evidence) == pos::StructureError::NOT_EQUIVOCATION);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(signing_hash_excludes_signature)

@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <memory>
+#include <functional>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 
@@ -164,6 +165,7 @@ public:
         const pos::StakeProof& proof, const pos::BondRecord& bond,
         const unsigned char signing_secret[32], uint32_t block_time,
         const uint256& expected_parent,
+        const std::function<bool(const pos::BlockAuthorization&)>& signing_guard,
         const std::vector<pos::CheckpointVote>& votes = {},
         const std::vector<pos::BlockEquivocationEvidence>& block_evidence = {},
         const std::vector<pos::VoteEquivocationEvidence>& vote_evidence = {});

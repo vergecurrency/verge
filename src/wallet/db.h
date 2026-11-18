@@ -16,6 +16,7 @@
 #include <version.h>
 
 #include <atomic>
+#include <cstdio>
 #include <map>
 #include <memory>
 #include <string>
@@ -34,6 +35,7 @@ private:
     // Don't change into fs::path, as that can result in
     // shutdown problems/crashes caused by a static initialized internal pointer.
     std::string strPath;
+    std::unique_ptr<FILE, decltype(&fclose)> m_error_file{nullptr, &fclose};
 
 public:
     std::unique_ptr<DbEnv> dbenv;
@@ -359,12 +361,14 @@ public:
         return true;
     }
 
-    bool TxnCommit()
+    bool TxnCommit(bool sync = false)
     {
         if (!pdb || !activeTxn)
             return false;
-        int ret = activeTxn->commit(0);
+        // Commit consumes the transaction, including on error.
+        DbTxn* txn = activeTxn;
         activeTxn = nullptr;
+        int ret = txn->commit(sync ? DB_TXN_SYNC : 0);
         return (ret == 0);
     }
 

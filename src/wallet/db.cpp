@@ -104,6 +104,7 @@ void BerkeleyEnvironment::Close()
     int ret = dbenv->close(0);
     if (ret != 0)
         LogPrintf("BerkeleyEnvironment::Close: Error %d closing database environment: %s\n", ret, DbEnv::strerror(ret));
+    m_error_file.reset();
     if (!fMockDb)
         DbEnv((u_int32_t)0).remove(strPath.c_str(), 0);
 }
@@ -111,6 +112,7 @@ void BerkeleyEnvironment::Close()
 void BerkeleyEnvironment::Reset()
 {
     dbenv.reset(new DbEnv(DB_CXX_NO_EXCEPTIONS));
+    m_error_file.reset();
     fDbEnvInit = false;
     fMockDb = false;
 }
@@ -154,7 +156,8 @@ bool BerkeleyEnvironment::Open(bool retry)
     dbenv->set_lg_max(1048576);
     dbenv->set_lk_max_locks(40000);
     dbenv->set_lk_max_objects(40000);
-    dbenv->set_errfile(fsbridge::fopen(pathErrorFile, "a")); /// debug
+    m_error_file.reset(fsbridge::fopen(pathErrorFile, "a"));
+    dbenv->set_errfile(m_error_file.get());
     dbenv->set_flags(DB_AUTO_COMMIT, 1);
     dbenv->set_flags(DB_TXN_WRITE_NOSYNC, 1);
     dbenv->log_set_config(DB_LOG_AUTO_REMOVE, 1);
@@ -504,8 +507,12 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase& database, const char* pszMode, bo
             // be implemented, so no equality checks are needed at all. (Newer
             // versions of BDB have an set_lk_exclusive method for this
             // purpose, but the older version we use does not.)
-            for (auto& env : g_dbenvs) {
-                CheckUniqueFileid(env.second, strFilename, *pdb_temp);
+            // In-memory test databases have no fileid to compare with disk
+            // environments. Real wallets always retain the cross-env check.
+            if (!fMockDb) {
+                for (auto& other : g_dbenvs) {
+                    CheckUniqueFileid(other.second, strFilename, *pdb_temp);
+                }
             }
 
             pdb = pdb_temp.release();

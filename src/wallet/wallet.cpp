@@ -322,6 +322,130 @@ bool CWallet::SetStakingReserveBalance(CAmount reserve)
     return true;
 }
 
+namespace {
+PoSSigningKey MakePoSSigningKey(const Consensus::Params& params,
+                               const COutPoint& outpoint,
+                               const unsigned char public_key[32])
+{
+    PoSSigningKey key;
+    CHashWriter domain(SER_GETHASH, 0);
+    domain << std::string("Verge/PoSSigningJournal/v1") << params.nPoSNetworkId
+           << params.hashGenesisBlock << params.nPoSActivationHeight;
+    key.domain = domain.GetHash();
+    key.bond_outpoint = outpoint;
+    std::copy(public_key, public_key + 32, key.public_key.begin());
+    return key;
+}
+
+bool ValidSigningVote(const pos::CheckpointVote& vote)
+{
+    pos::CheckpointVote checked = vote;
+    checked.signature[0] = 1;
+    return vote.target_epoch != pos::FINAL_POW_CHECKPOINT_EPOCH &&
+        pos::CheckStructure(checked) == pos::StructureError::NONE;
+}
+} // namespace
+
+void CWallet::PersistPoSSigningHistory(const PoSSigningKey& key,
+                                     const PoSSigningHistory& history)
+{
+    AssertLockHeld(cs_wallet);
+    if (m_pos_signing_failed) {
+        throw std::runtime_error("PoS signing journal failed; restart required");
+    }
+    try {
+        // The synchronous commit below provides durability; avoid an extra
+        // full BDB checkpoint for each individual bond's vote.
+        WalletBatch batch(*database, "r+", false);
+        if (!batch.TxnBegin() || !batch.WritePoSSigningHistory(key, history) ||
+            !batch.TxnCommit(true)) {
+            batch.TxnAbort();
+            throw std::runtime_error("Unable to sync PoS signing journal");
+        }
+        m_pos_signing_history[key] = history;
+    } catch (...) {
+        // A failed/ambiguous commit must never allow an in-memory retry to
+        // authorize a signature without another durable write.
+        m_pos_signing_failed = true;
+        throw;
+    }
+}
+
+bool CWallet::LoadPoSSigningHistory(const PoSSigningKey& key,
+                                  const PoSSigningHistory& history)
+{
+    AssertLockHeld(cs_wallet);
+    if (key.domain.IsNull() || key.bond_outpoint.IsNull() ||
+        key.public_key.IsNull() || history.version != 1 ||
+        (!history.have_block && !history.have_vote) ||
+        (history.have_block && (history.block_slot == 0 ||
+                                history.block_signing_hash.IsNull())) ||
+        (history.have_vote && (history.vote.bond_outpoint != key.bond_outpoint ||
+                              !ValidSigningVote(history.vote)))) return false;
+    return m_pos_signing_history.emplace(key, history).second;
+}
+
+bool CWallet::RecordPoSBlockSigning(
+    const Consensus::Params& params, const pos::StakeProof& proof,
+    const pos::BlockAuthorization& authorization)
+{
+    AssertLockHeld(cs_wallet);
+    if (m_pos_signing_failed) {
+        throw std::runtime_error("PoS signing journal failed; restart required");
+    }
+    if (proof.slot == 0 || authorization.slot != proof.slot ||
+        authorization.bond_outpoint != proof.bond_outpoint ||
+        authorization.network_id != params.nPoSNetworkId) return false;
+    const PoSSigningKey key = MakePoSSigningKey(
+        params, proof.bond_outpoint, proof.signing_public_key);
+    PoSSigningHistory next;
+    const auto previous = m_pos_signing_history.find(key);
+    if (previous != m_pos_signing_history.end()) next = previous->second;
+    const uint256 hash = pos::GetBlockSigningHash(authorization);
+    if (next.have_block && proof.slot <= next.block_slot) {
+        return proof.slot == next.block_slot && hash == next.block_signing_hash;
+    }
+    next.have_block = true;
+    next.block_slot = proof.slot;
+    next.block_signing_hash = hash;
+    PersistPoSSigningHistory(key, next);
+    return true;
+}
+
+bool CWallet::RecordPoSVoteSigning(const Consensus::Params& params,
+                                 const pos::CheckpointVote& vote,
+                                 const unsigned char public_key[32])
+{
+    AssertLockHeld(cs_wallet);
+    if (m_pos_signing_failed) {
+        throw std::runtime_error("PoS signing journal failed; restart required");
+    }
+    if (!ValidSigningVote(vote)) return false;
+    const PoSSigningKey key = MakePoSSigningKey(params, vote.bond_outpoint, public_key);
+    PoSSigningHistory next;
+    const auto previous = m_pos_signing_history.find(key);
+    if (previous != m_pos_signing_history.end()) next = previous->second;
+    if (next.have_vote) {
+        const pos::CheckpointVote& old = next.vote;
+        if (pos::CheckpointEpochLess(vote.source_epoch, old.source_epoch) ||
+            vote.target_epoch < old.target_epoch || vote.head_slot < old.head_slot ||
+            (vote.source_epoch == old.source_epoch &&
+             vote.source_checkpoint_root != old.source_checkpoint_root) ||
+            (vote.target_epoch == old.target_epoch &&
+             (vote.source_epoch != old.source_epoch ||
+              vote.target_checkpoint_root != old.target_checkpoint_root ||
+              vote.snapshot_epoch != old.snapshot_epoch)) ||
+            (vote.head_slot == old.head_slot &&
+             vote.head_block_root != old.head_block_root)) return false;
+        if (pos::GetVoteSigningHash(vote) == pos::GetVoteSigningHash(old)) return true;
+    }
+    next.have_vote = true;
+    next.vote = vote;
+    std::fill(std::begin(next.vote.signature), std::end(next.vote.signature), 0);
+    PersistPoSSigningHistory(key, next);
+    return true;
+}
+
 bool CWallet::LoadScriptMetadata(const CScriptID& script_id, const CKeyMetadata &meta)
 {
     AssertLockHeld(cs_wallet); // m_script_metadata
