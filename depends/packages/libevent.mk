@@ -1,8 +1,8 @@
 package=libevent
-$(package)_version=2.1.12-stable
-$(package)_download_path=https://github.com/libevent/libevent/archive/
-$(package)_file_name=release-$($(package)_version).tar.gz
-$(package)_sha256_hash=7180a979aaa7000e1264da484f712d403fcf7679b1e9212c4e3d09f5c93efc24
+$(package)_version=2.1.13-stable
+$(package)_download_path=https://github.com/libevent/libevent/releases/download/release-$($(package)_version)
+$(package)_file_name=libevent-$($(package)_version).tar.gz
+$(package)_sha256_hash=f7e9383b8c0baa81b687e5b5eecc01beefaf1b19b64151d95ed61647fe7a315c
 $(package)_dependencies=openssl
 #$(package)_patches+=fix_mingw_link.patch
 

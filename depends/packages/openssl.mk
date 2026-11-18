@@ -1,8 +1,8 @@
 package=openssl
-$(package)_version=4.0.2
+$(package)_version=4.0.3
 $(package)_download_path=https://github.com/openssl/openssl/releases/download/openssl-$($(package)_version)
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=736b467530f916737b7031310ccb21d8218c6229e61e8e160cd1d3458cd543a8
+$(package)_sha256_hash=325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9
 define $(package)_set_vars
 $(package)_config_env=AR="$($(package)_ar)" ARFLAGS=$($(package)_arflags) RANLIB="$($(package)_ranlib)" CC="$($(package)_cc)"
 $(package)_config_env_android=ANDROID_NDK_ROOT="$(host_prefix)/native" PATH="$(host_prefix)/native/bin" CC=clang AR=ar RANLIB=ranlib

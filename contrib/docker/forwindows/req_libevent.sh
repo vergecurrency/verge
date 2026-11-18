@@ -6,7 +6,7 @@ echo "=== Building libevent now..."
 
 cd /tmp/
 
-LIBEVENT_VERSION=2.1.12-stable
+LIBEVENT_VERSION=2.1.13-stable
 
 wget https://github.com/libevent/libevent/releases/download/release-${LIBEVENT_VERSION}/libevent-${LIBEVENT_VERSION}.tar.gz
 
