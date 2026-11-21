@@ -430,9 +430,11 @@ bool CWallet::RecordPoSVoteSigning(const Consensus::Params& params,
         if (pos::CheckpointEpochLess(vote.source_epoch, old.source_epoch) ||
             vote.target_epoch < old.target_epoch || vote.head_slot < old.head_slot ||
             (vote.source_epoch == old.source_epoch &&
-             vote.source_checkpoint_root != old.source_checkpoint_root) ||
+             vote.source_checkpoint_root != old.source_checkpoint_root &&
+             vote.source_epoch != pos::FINAL_POW_CHECKPOINT_EPOCH) ||
             (vote.target_epoch == old.target_epoch &&
              (vote.source_epoch != old.source_epoch ||
+              vote.source_checkpoint_root != old.source_checkpoint_root ||
               vote.target_checkpoint_root != old.target_checkpoint_root ||
               vote.snapshot_epoch != old.snapshot_epoch)) ||
             (vote.head_slot == old.head_slot &&

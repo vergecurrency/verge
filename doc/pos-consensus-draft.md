@@ -58,11 +58,11 @@ For this clean testnet trial, the initial stake snapshot is recorded at height
 2,760. A bond must be created by height 2,280 to have 720 confirmations at
 activation and must remain unspent through the snapshot. Block 2,999 is the
 last valid PoW block; block 3,000 must be produced by an eligible PoS bond.
-The November 18 consensus-hardening clean-chain testnet trial uses P2P
-message-start bytes `98 5b 96 5d`,
+The November 21 deterministic-fork-choice clean-chain testnet trial uses P2P
+message-start bytes `69 c1 da 8e`,
 derived from the first four bytes of
-`SHA256("Verge PoS Testnet Reset 2026-11-18 consensus hardening height 3000")`. This separates
-it from the previous trial's magic `b7 61 89 96` and earlier testnet identities,
+`SHA256("Verge PoS Testnet Reset 2026-11-21 deterministic fork choice height 3000")`. This separates
+it from the previous trial's magic `98 5b 96 5d` and earlier testnet identities,
 so an old testnet node cannot exchange P2P messages with the clean network.
 The testnet genesis block and height-3,000 PoS activation are unchanged.
 Changing magic does not reset stored history: every participant in this trial
@@ -357,7 +357,7 @@ The version 1 extension serializes fields in this exact order:
 
 The minimum extension is 572 bytes, including three zero-valued one-byte collection counts. The decoder rejects a vote count above 1,024 immediately after reading that count. It rejects a block-evidence count above 16 immediately, then limits vote evidence to 16 minus the block-evidence count. No collection is reserved or populated until its count passes the applicable bound. Locally constructed extensions repeat the same non-overflowing limits during structural validation.
 
-The coinbase-like transaction commits to tagged roots for the stake proof, vote vector, evidence vector, stake snapshot, and epoch seed. The header commits to the entire signed extension. The extension is invalid if either commitment differs. Full-block validation also requires the authorization network identifier (mainnet 1, testnet 2, regtest 3), parent root, canonical global slot, candidate signing-header hash, bond outpoint, tagged stake-proof hash, and fee-reward transaction hash to match the block and stake proof exactly.
+The coinbase-like transaction commits to tagged roots for the stake proof, vote vector, evidence vector, stake snapshot, and epoch seed. The header commits to the canonical extension with only the producer authorization signature normalized to zero. The actual signature remains mandatory and is independently verified; changing its encoding cannot change the block ID or win a fork-choice tie. Vote and evidence signatures remain committed. The extension is invalid if either commitment differs. Full-block validation also requires the authorization network identifier (mainnet 1, testnet 2, regtest 3), parent root, canonical global slot, candidate signing-header hash, bond outpoint, tagged stake-proof hash, and fee-reward transaction hash to match the block and stake proof exactly.
 
 ## Stake Eligibility
 
@@ -433,7 +433,7 @@ The consensus design uses:
 2. Give each bonded delegation a separate VRF public key. The online delegated credential produces VRF proofs; the unrestricted XVG spending key is not used for slot evaluation.
 3. Snapshot bonded stake two epochs before it is used for leader selection and voting, and commit the canonical snapshot root in every applicable PoS block. This prevents a producer from moving stake after seeing the randomness for the target epoch.
 4. Derive each later epoch seed as a tagged hash of the previous seed, next epoch number, required delayed stake-snapshot root, and an ordered accumulator of the completed epoch's accepted VRF outputs. The delayed snapshot fixes eligible keys before that entropy is revealed. Signatures, transaction ordering, reward destinations, and arbitrary nonce fields are excluded. A selected producer can still withhold an eligible block, but cannot substitute arbitrary entropy or register a favorable key after seeing the completed seed.
-5. Use latest-message-driven, stake-weighted GHOST from the latest finalized checkpoint for temporary fork choice. Each competing branch is first replayed against its own UTXO and PoS state, and each bonded delegation has one monotonic latest vote weighted by that branch's delayed snapshot. Finalized history is never reconsidered by ordinary fork choice.
+5. Use deterministic, stake-weighted tree descent from the latest finalized checkpoint for temporary fork choice. Each competing branch is first replayed against its own UTXO and PoS state, and each bonded delegation has one monotonic latest vote weighted by that branch's delayed snapshot. The tree projects the maximum authenticated branch-view support onto each child edge, rather than adding incompatible histories together. Finalized history is never reconsidered by ordinary fork choice.
 
 This design does not treat a Schnorr or ECDSA signature as random output. Signatures authorize blocks and votes; VRF proofs determine private slot eligibility. Users do not manually operate either mechanism.
 
@@ -553,17 +553,24 @@ Stake principal and rewards are accounted for separately. Block production does 
 
 ## Fork Choice
 
-PoW chainwork is not meaningful after activation. The PoS fork-choice rule must be deterministic and must not reward production of private empty histories.
+PoW chainwork is not assigned to PoS blocks. Before checkpoint finality exists, actual cumulative PoW work still ranks competing transition ancestors. The PoS fork-choice rule must be deterministic for the same authenticated candidate tree.
 
 The fork-choice rule is:
 
 1. Never reorganize below a finalized checkpoint.
-2. Starting at the latest finalized checkpoint, apply latest-message-driven, stake-weighted GHOST using the bonded-stake snapshot for the voting epoch.
-3. Count at most one latest valid vote per bonded delegation, weighted by its snapshotted bonded value.
-4. Ignore votes that conflict with finalized history, are from an ineligible delegation, or target an unknown or invalid block.
-5. Resolve equal-weight child branches by the lowest block hash.
+2. Starting at the latest finalized checkpoint, project each fully validated candidate's branch-local latest votes onto the ancestry of their voted heads. Count at most one latest valid vote per bonded delegation in that branch view, weighted by its declared delayed snapshot.
+3. For each child edge, use the maximum support assigned to that edge by any eligible descendant candidate's authenticated branch view. Never sum support from competing branch views: incompatible bond histories must not multiply the same principal.
+4. Repeatedly choose the child with the greatest projected support. Break a support tie by the greatest fully validated descendant height, then by the lowest child block hash. Descend until a validated leaf is reached. This is a whole-tree rule, not a pairwise fold of candidate preferences; candidate arrival and iteration order do not select the winner.
+5. Ignore votes that conflict with finalized history, are from an ineligible delegation, or target an unknown or invalid block. Off-chain relay votes do not replace the authenticated branch state.
 
-PoW chainwork does not participate in post-activation fork choice. Receiving a structurally valid PoS header is not enough to add stake score or make it an active-chain candidate. A PoS branch becomes eligible only after every required full block has passed branch-local UTXO, stake proof, authorization, commitment, vote, evidence, and state-transition validation. Vote weight is compared first; if branch support is equal, the higher fully validated tip wins, then the lower divergent child hash breaks an equal-height tie. Legacy `GetBlockProof` returns zero for `nBits` zero and is not replaced with synthetic work.
+Hash ties use lexicographic comparison of the 32-byte wire serialization,
+matching `uint256::Compare`. This byte order is the reverse of the displayed
+RPC hexadecimal string; it is not numeric comparison of that string. The same
+ordering applies to the transition-ancestor hash tie below.
+
+Receiving a structurally valid PoS header is not enough to add stake score or make it an active-chain candidate. A PoS branch becomes eligible only after every required full block has passed branch-local UTXO, stake proof, authorization, commitment, vote, evidence, and state-transition validation. Legacy `GetBlockProof` returns zero for `nBits` zero and is not replaced with synthetic work. Recent fully validated side-branch blocks remain servable after activation; the zero-work clock must not make them unavailable for convergence.
+
+Before a supermajority certifies a checkpoint, select a transition ancestor at height `nPoSActivationHeight - 1` by greatest actual cumulative PoW work, then presence of an authenticated PoS descendant, then lowest transition block hash. Run tree descent only within that ancestry. The first local PoS block does not irreversibly pin that node's last-PoW block. Once checkpoint finality exists, its ancestry is fixed and the finalized barrier remains authoritative.
 
 Legacy equivalent-work-time calculations return a saturated duration when
 their reference tip has zero proof. This prevents division by zero after PoS
@@ -619,8 +626,8 @@ the requester can unambiguously continue, while post-activation relay still
 stops at one PoS locator header. This prevents two restarting nodes from
 refusing all progress without creating an unbounded response.
 
-The legacy fixed-depth reorganization limiter applies only before PoS
-activation. After activation, LMD-GHOST chooses among fully validated branches
+Any legacy fixed-depth reorganization limiter must apply only before PoS
+activation. After activation, stake-weighted tree descent chooses among fully validated branches
 and the finalized-checkpoint barrier rejects reorganizations below finality.
 Retaining the fixed-depth limiter after activation would prevent convergence
 after a legitimate partition before those blocks become finalized.
@@ -629,12 +636,16 @@ after a legitimate partition before those blocks become finalized.
 
 A synthetic bootstrap checkpoint is assigned to the final PoW block at height
 `nPoSActivationHeight - 1`. It uses checkpoint epoch `UINT64_MAX` and is
-justified and finalized by consensus at activation. It is not a stake snapshot
+initially justified, but not automatically finalized. It is not a stake snapshot
 epoch and the shared numeric sentinel is interpreted according to the serialized
 field's type. The first valid PoS block creates the epoch 0 checkpoint, and the
 first supermajority link therefore votes from the final-PoW bootstrap checkpoint
-to epoch 0. The bootstrap checkpoint carries no stake weight and cannot be
-recreated or replaced by an ordinary fork.
+to epoch 0. The bootstrap checkpoint carries no stake weight. It becomes
+irreversible only through an authenticated supermajority link, not merely
+because one node observed a particular final PoW block first. Before that link,
+transition ancestry follows the deterministic rule above. Durable wallet signing
+records permit changing this synthetic source root only at a strictly later
+target epoch; same-target equivocation and regressing heads remain forbidden.
 
 A checkpoint for epoch `e` is the first valid block in epoch `e`. If an epoch has no block, it creates no distinct checkpoint. Each signed vote contains:
 
@@ -1148,13 +1159,13 @@ excludes the bond from production, voting, and new snapshots for 20,160
 accepted blocks. Lockout activation, expiry, evidence IDs, and vote removal
 are all covered by disconnect undo records. LMD-GHOST candidate selection
 is implemented over full-data block-index candidates replayed against their
-own UTXO and PoS state: each bond's latest valid vote contributes its
-delayed-snapshot weight to the complete descendant subtree containing its
-voted head. The heavier subtree wins, then validated height, then the lower
-child block hash. Candidate pruning retains shorter PoS forks that may have
-greater stake support. Before the first PoS
-block establishes the finalized PoW anchor, eligible PoS candidates must
-descend directly from the active block at activation height minus one.
+own UTXO and PoS state. Each bond's latest valid vote contributes its
+delayed-snapshot weight to the ancestry of its voted head within that branch
+view. Each tree edge takes the maximum authenticated branch-view support,
+then descendant height and child hash break ties. Candidate pruning retains
+shorter PoS forks that may have greater stake support. Until a real
+supermajority link establishes finality, competing last-PoW ancestors remain
+eligible under the deterministic transition-ancestor rule.
 
 Wallet production now has a shared single-attempt path used by both the
 dedicated automatic staking worker and the `generatestake` regtest control.
@@ -1248,9 +1259,10 @@ continues to require independent consensus and cryptographic review.
 
 Successful branch validation caches only authenticated `(head height, weight)`
 summaries, never a full branch state or unauthenticated header claims. Summaries
-preserve the original bond iteration order and money-range rule. Fork selection
-still compares branch-local vote weight, then validated height, then the original
-child-hash ordering. Off-chain relay votes are not a substitute for branch state.
+preserve the bond iteration order and money-range rule. Fork selection projects
+those branch-local summaries into a deterministic tree, using maximum edge
+support rather than an order-dependent pairwise comparison. Off-chain relay
+votes are not a substitute for branch state.
 
 The process-local LRU cache is limited to 128 entries and 16 MiB of accounted
 allocation usage, including vector capacity and container/shared allocation
@@ -1266,6 +1278,25 @@ Read-only network validation, chain RPCs and balance reporting use a state
 reference held under `cs_main`. Block connection consumes the caller's disposable
 state copy, avoiding a second complete copy while keeping active state isolated
 from failed validation.
+
+Incoming active-tip successors authenticate known bond credentials, maturity,
+snapshot membership, authorization and VRF eligibility against a read-only parent
+context before copying full state. Skipped empty epochs stream their seed and
+delayed-root recurrence, rebuilding membership only at an eligibility change and
+materializing full snapshots only inside the retained state window. This keeps
+accepted roots and undo deterministic without allocating one validator vector
+for every empty epoch.
+
+Full-body PoS admission has per-peer and global work budgets, weighted by bond
+count and alternate-branch replay distance. Active-tip and alternate-fork traffic,
+and inbound and outbound connections, have separate global allowances. These
+are local resource policies, not consensus validity rules: exhaustion retains a
+bounded deferred header and retries later without banning the sender or marking
+the block invalid. All body transports share this accounting.
+
+`submitblock` belongs to the chain-level mining RPC interface. A fully signed PoS
+block can be submitted with a locked wallet or `-disablewallet`; it never invokes
+legacy wallet block signing. Already-signed PoW blocks also require no wallet.
 
 Finality link tallies are derived runtime data. New/replaced votes update their
 links incrementally; snapshot changes, vote pruning, lockout vote removal,

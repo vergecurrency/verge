@@ -24,6 +24,7 @@
 
 #include <cstring>
 #include <chrono>
+#include <cstdlib>
 #include <map>
 
 namespace {
@@ -441,6 +442,8 @@ BOOST_AUTO_TEST_CASE(final_pow_anchor_bootstraps_finality)
     BOOST_REQUIRE(state.ApplyBlock(epoch_zero, 1000, true, 0, 0,
                                    params, epoch_zero_undo));
 
+    BOOST_CHECK(state.Finalized().root.IsNull());
+
     pos::CheckpointVote vote_zero;
     vote_zero.bond_outpoint = bond_outpoint;
     vote_zero.snapshot_epoch = pos::INITIAL_SNAPSHOT_EPOCH;
@@ -668,6 +671,8 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
     create.vin[0].prevout = COutPoint(uint256S("30"), 0);
     create.vout.emplace_back(params.nPoSMinStake,
                              pos::GetBondScript(MakeBond()));
+    create.vout.emplace_back(params.nPoSMinStake,
+                             pos::GetBondScript(MakeBond()));
     const COutPoint bond_outpoint(create.GetHash(), 0);
     pos::StateUndo creation_undo;
     BOOST_REQUIRE(state.ApplyBlock(
@@ -707,6 +712,28 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
                                    params, offense_undo));
     BOOST_CHECK(state.IsWithdrawalLocked(bond_outpoint, 1000));
     BOOST_CHECK(!state.IsEligibilityLocked(bond_outpoint, 0, 1000));
+
+    const uint256 before_gap = SerializeHash(state);
+    uint256 gap_seed;
+    const pos::StakeSnapshot* gap_context = nullptr;
+    pos::StakeSnapshot generated;
+    BOOST_REQUIRE(state.GetStakeContext(4, 1001, params, gap_seed,
+                                        gap_context, generated));
+    BOOST_REQUIRE(gap_context != nullptr);
+    BOOST_REQUIRE_EQUAL(gap_context->entries.size(), 1U);
+    BOOST_CHECK(gap_context->entries[0].outpoint == COutPoint(create.GetHash(), 1));
+    const uint256 gap_root = gap_context->root;
+    BOOST_CHECK(SerializeHash(state) == before_gap);
+    CBlock gap = MakeBlock({MakeCoinbase()});
+    gap.hashPrevBlock = offense.GetHash();
+    pos::StateUndo gap_undo;
+    BOOST_REQUIRE(state.ApplyBlock(gap, 1001, true, 4, 0, params, gap_undo));
+    BOOST_REQUIRE(state.FindEpochSeed(4) != nullptr);
+    BOOST_CHECK(*state.FindEpochSeed(4) == gap_seed);
+    BOOST_REQUIRE(state.FindSnapshot(2) != nullptr);
+    BOOST_CHECK(state.FindSnapshot(2)->root == gap_root);
+    BOOST_REQUIRE(state.UndoBlock(gap_undo));
+    BOOST_CHECK(SerializeHash(state) == before_gap);
 
     CBlock activation = MakeBlock({MakeCoinbase()});
     activation.hashPrevBlock = offense.GetHash();
@@ -905,6 +932,70 @@ BOOST_FIXTURE_TEST_CASE(failed_pos_write_keeps_parent_utxos, TestChain100Setup)
     BOOST_CHECK(pcoinsdbview->GetBestBlock() == parent);
     BOOST_REQUIRE(ProcessNewBlock(Params(), std::make_shared<const CBlock>(next), true, nullptr));
     BOOST_CHECK(chainActive.Tip()->GetBlockHash() == next.GetHash());
+}
+
+BOOST_AUTO_TEST_CASE(long_empty_epoch_gap_has_bounded_snapshots_and_read_only_authentication)
+{
+    Consensus::Params params = Params().GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSStakeMaturity = 1;
+    const size_t count = std::getenv("VERGE_POS_STORAGE_STRESS") ? 100000 : 1024;
+    const CScript script = pos::GetBondScript(MakeBond());
+    std::vector<CTransactionRef> transactions{MakeCoinbase()};
+    for (size_t i = 0; i < count; i += 16) {
+        CMutableTransaction tx;
+        tx.vin.emplace_back(COutPoint(uint256S("09"), i));
+        for (size_t j = i; j < std::min(count, i + 16); ++j) {
+            tx.vout.emplace_back(params.nPoSMinStake, script);
+        }
+        transactions.push_back(MakeTransactionRef(tx));
+    }
+    pos::State state;
+    pos::StateUndo creation, snapshot_undo, first_undo;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock(transactions), 1, false, 0, 0, params, creation));
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 760, false, 0, 0, params, snapshot_undo));
+    const uint256 snapshot_root = state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH)->root;
+    CBlock first = MakeBlock({MakeCoinbase()});
+    first.hashPrevBlock = uint256S("aa");
+    first.posExtension.stake_proof.slot = 1;
+    first.posExtension.stake_proof.vrf_output[31] = 1;
+    BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("03"), first_undo));
+    BOOST_REQUIRE(state.ApplyBlock(first, 1000, true, 0, 0, params, first_undo));
+    const uint256 before = SerializeHash(state);
+    constexpr uint64_t epoch = 10000;
+    uint256 expected = uint256S("03");
+    for (uint64_t next = 1; next <= epoch; ++next) {
+        const uint256 entropy = next == 1 ? pos::MixEpochEntropy(uint256(), 0, 1,
+            first.posExtension.stake_proof.bond_outpoint,
+            first.posExtension.stake_proof.vrf_output) : pos::EmptyEpochEntropy(next - 1);
+        expected = pos::ComputeNextEpochSeed(expected, next, snapshot_root, entropy);
+    }
+    uint256 seed;
+    const pos::StakeSnapshot* context = nullptr;
+    pos::StakeSnapshot generated;
+    BOOST_REQUIRE(state.GetStakeContext(epoch, 1001, params, seed, context, generated));
+    BOOST_CHECK(seed == expected);
+    BOOST_CHECK_EQUAL(context->source_epoch, epoch - params.nPoSSnapshotDelayEpochs);
+    BOOST_CHECK_EQUAL(context->entries.size(), count);
+    BOOST_CHECK(context->root == snapshot_root);
+    BOOST_CHECK(SerializeHash(state) == before);
+    CBlock after_gap = MakeBlock({MakeCoinbase()});
+    after_gap.hashPrevBlock = first.GetHash();
+    after_gap.posExtension.stake_proof.slot = epoch * params.nPoSEpochSlots + 1;
+    after_gap.nTime = after_gap.posExtension.stake_proof.slot * params.nPoSSlotSeconds;
+    pos::StateUndo undo;
+    BOOST_REQUIRE(state.ApplyBlock(after_gap, 1001, true, epoch, 0, params, undo));
+    BOOST_REQUIRE(state.FindEpochSeed(epoch) != nullptr);
+    BOOST_CHECK(*state.FindEpochSeed(epoch) == expected);
+    BOOST_CHECK_LE(undo.added_snapshots.size(), pos::POS_STATE_RETENTION_EPOCHS);
+    BOOST_CHECK_LE(undo.added_epoch_seeds.size(), pos::POS_STATE_RETENTION_EPOCHS + 1);
+    size_t snapshots = 0;
+    for (uint64_t i = 0; i < epoch; ++i) snapshots += state.FindSnapshot(i) != nullptr;
+    BOOST_CHECK_EQUAL(snapshots, pos::POS_STATE_RETENTION_EPOCHS);
+    BOOST_REQUIRE(state.UndoBlock(undo));
+    BOOST_CHECK(SerializeHash(state) == before);
+    BOOST_TEST_MESSAGE("Long-gap authentication bonds=" << count << " epochs=" << epoch
+        << " retained_snapshots=" << snapshots);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

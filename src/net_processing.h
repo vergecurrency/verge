@@ -11,6 +11,7 @@
 #include <validationinterface.h>
 #include <consensus/params.h>
 #include <validation.h>
+#include <algorithm>
 
 /** Default for -maxorphantx, maximum number of orphan transactions kept in memory */
 static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
@@ -41,6 +42,29 @@ static constexpr int64_t MINIMUM_CONNECT_TIME = 30;
 static constexpr bool DEFAULT_ENABLE_BIP61 = true;
 /** Enable BIP61 (sending reject messages) */
 extern bool g_enable_bip61;
+
+/** Non-consensus admission credits. Exhaustion defers work, never invalidates it. */
+class PoSBlockValidationBudget {
+    int64_t m_capacity;
+    int64_t m_rate;
+    int64_t m_credit;
+    int64_t m_last{0};
+    bool m_started{false};
+public:
+    explicit PoSBlockValidationBudget(int64_t capacity = 256, int64_t rate = 128)
+        : m_capacity(capacity * 1000), m_rate(rate), m_credit(m_capacity) {}
+    bool Consume(int64_t now_ms, int64_t cost)
+    {
+        if (!m_started) { m_last = now_ms; m_started = true; }
+        const int64_t elapsed = now_ms > m_last ? std::min<int64_t>(10000, now_ms - m_last) : 0;
+        m_credit = std::min(m_capacity, m_credit + elapsed * m_rate);
+        m_last = std::max(m_last, now_ms);
+        const int64_t needed = std::min(m_capacity / 1000, std::max<int64_t>(1, cost)) * 1000;
+        if (m_credit < needed) return false;
+        m_credit -= needed;
+        return true;
+    }
+};
 
 class PeerLogicValidation final : public CValidationInterface, public NetEventsInterface {
 private:

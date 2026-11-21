@@ -176,6 +176,20 @@ bool State::AddSnapshot(uint64_t source_epoch, int32_t source_height,
 {
     if (m_snapshots.count(source_epoch) != 0 || maturity_height < 0) return false;
     StakeSnapshot snapshot;
+    if (!BuildSnapshot(source_epoch, source_height, maturity_height, params,
+                        snapshot)) return false;
+    m_snapshots.emplace(source_epoch, std::move(snapshot));
+    m_link_weights_valid = false;
+    undo.added_snapshots.push_back(source_epoch);
+    return true;
+}
+
+bool State::BuildSnapshot(uint64_t source_epoch, int32_t source_height,
+                           int32_t maturity_height, const Consensus::Params& params,
+                           StakeSnapshot& snapshot) const
+{
+    if (maturity_height < 0) return false;
+    snapshot = StakeSnapshot();
     snapshot.source_epoch = source_epoch;
     snapshot.source_height = source_height;
     for (const auto& item : m_bonds) {
@@ -195,10 +209,81 @@ bool State::AddSnapshot(uint64_t source_epoch, int32_t source_height,
         snapshot.entries.push_back(SnapshotEntry{item.first, bond});
     }
     snapshot.root = ComputeSnapshotRoot(snapshot.entries);
-    m_snapshots.emplace(source_epoch, std::move(snapshot));
-    m_link_weights_valid = false;
-    undo.added_snapshots.push_back(source_epoch);
     return true;
+}
+
+bool State::ForEachPreparedEpoch(uint64_t block_epoch, int32_t height,
+    const Consensus::Params& params, const uint256* initial_seed,
+    const std::function<bool(const StakeSnapshot&, uint64_t, const uint256&)>& visitor) const
+{
+    if (block_epoch == UINT64_MAX || (m_has_pos && block_epoch < m_last_pos_epoch)) return false;
+    const uint64_t first = m_has_pos ? m_last_pos_epoch + 1 : 1;
+    if (first > block_epoch) return true;
+    const uint256* stored = FindEpochSeed(first - 1);
+    if (stored == nullptr && first == 1) stored = initial_seed;
+    if (stored == nullptr) return false;
+    uint256 previous = *stored;
+    std::set<uint64_t> changes;
+    for (const auto& item : m_lockouts) {
+        const LockoutRecord& lockout = item.second;
+        if (lockout.activation_epoch > first &&
+            lockout.activation_epoch <= block_epoch &&
+            (lockout.until_height == 0 || height - 1 < lockout.until_height)) {
+            changes.insert(lockout.activation_epoch);
+        }
+    }
+    StakeSnapshot next_snapshot;
+    std::map<uint64_t, uint256> roots;
+    for (uint64_t next = first; next <= block_epoch; ++next) {
+        const uint64_t completed = next - 1;
+        // Empty epochs share the same UTXO height. Rebuild only when a
+        // scheduled eligibility change alters the snapshot's membership.
+        if ((next == first || changes.count(next) != 0) &&
+            !BuildSnapshot(completed, height - 1, height - 1, params,
+                            next_snapshot)) return false;
+        next_snapshot.source_epoch = completed;
+        roots[completed] = next_snapshot.root;
+        const uint64_t source = GetRequiredSnapshotEpoch(next, params.nPoSSnapshotDelayEpochs);
+        const auto prepared = roots.find(source);
+        const StakeSnapshot* existing = prepared == roots.end() ? FindSnapshot(source) : nullptr;
+        if (prepared == roots.end() && existing == nullptr) return false;
+        const uint256& root = prepared != roots.end() ? prepared->second : existing->root;
+        if (root.IsNull()) return false;
+        const auto entropy = m_epoch_entropy.find(completed);
+        previous = ComputeNextEpochSeed(previous, next, root,
+            entropy == m_epoch_entropy.end() ? EmptyEpochEntropy(completed) : entropy->second);
+        if (!visitor(next_snapshot, next, previous)) return false;
+        // Only delayed roots, not full intermediate validator vectors, are
+        // needed for the next recurrence, even after a very long gap.
+        while (source != INITIAL_SNAPSHOT_EPOCH && !roots.empty() &&
+               roots.begin()->first < source) roots.erase(roots.begin());
+    }
+    return true;
+}
+
+bool State::GetStakeContext(uint64_t epoch, int32_t height,
+    const Consensus::Params& params, uint256& seed,
+    const StakeSnapshot*& snapshot, StakeSnapshot& generated) const
+{
+    snapshot = FindSnapshot(GetRequiredSnapshotEpoch(epoch, params.nPoSSnapshotDelayEpochs));
+    const uint256* stored = FindEpochSeed(epoch);
+    uint256 initial;
+    const uint256* initial_ptr = FindEpochSeed(0);
+    if (initial_ptr == nullptr && !m_has_pos &&
+        ComputeInitialEpochSeed(params.nPoSNetworkId, params.nPoSActivationHeight,
+            params.hashGenesisBlock, m_initial_pow_entropy, initial)) initial_ptr = &initial;
+    if (stored != nullptr) seed = *stored;
+    else if (epoch == 0 && initial_ptr != nullptr) seed = *initial_ptr;
+    else if (!ForEachPreparedEpoch(epoch, height, params, initial_ptr,
+        [&](const StakeSnapshot& prepared, uint64_t next, const uint256& next_seed) {
+            if (prepared.source_epoch == GetRequiredSnapshotEpoch(epoch, params.nPoSSnapshotDelayEpochs)) {
+                generated = prepared;
+                snapshot = &generated;
+            }
+            if (next == epoch) seed = next_seed;
+            return true;
+        })) return false;
+    return snapshot != nullptr && !seed.IsNull();
 }
 
 bool State::PrepareEpoch(uint64_t block_epoch, int32_t height,
@@ -229,26 +314,17 @@ bool State::PrepareEpoch(uint64_t block_epoch, int32_t height,
             m_link_weights_valid = false;
         }
     }
-    uint64_t next_epoch = m_has_pos ? m_last_pos_epoch + 1 : 1;
-    while (next_epoch <= block_epoch) {
-        const uint64_t completed_epoch = next_epoch - 1;
-        if (!AddSnapshot(completed_epoch, height - 1, height - 1,
-                         params, undo)) return false;
-        const uint256* previous_seed = FindEpochSeed(completed_epoch);
-        if (previous_seed == nullptr) return false;
-        const uint64_t seed_snapshot_epoch = GetRequiredSnapshotEpoch(
-            next_epoch, params.nPoSSnapshotDelayEpochs);
-        const StakeSnapshot* seed_snapshot = FindSnapshot(seed_snapshot_epoch);
-        if (seed_snapshot == nullptr || seed_snapshot->root.IsNull()) return false;
-        const auto entropy = m_epoch_entropy.find(completed_epoch);
-        const uint256 completed_entropy = entropy == m_epoch_entropy.end()
-            ? EmptyEpochEntropy(completed_epoch) : entropy->second;
-        if (!SetEpochSeed(next_epoch,
-                          ComputeNextEpochSeed(*previous_seed, next_epoch,
-                                               seed_snapshot->root,
-                                               completed_entropy), undo)) return false;
-        ++next_epoch;
-    }
+    const uint64_t retain_from = block_epoch > POS_STATE_RETENTION_EPOCHS
+        ? block_epoch - POS_STATE_RETENTION_EPOCHS : 0;
+    if (!ForEachPreparedEpoch(block_epoch, height, params, nullptr,
+        [&](const StakeSnapshot& snapshot, uint64_t next, const uint256& seed) {
+            if (snapshot.source_epoch >= retain_from) {
+                if (!m_snapshots.emplace(snapshot.source_epoch, snapshot).second) return false;
+                undo.added_snapshots.push_back(snapshot.source_epoch);
+                m_link_weights_valid = false;
+            }
+            return next < retain_from || SetEpochSeed(next, seed, undo);
+        })) return false;
     PruneState(block_epoch, height, params, undo);
     return true;
 }
@@ -389,9 +465,6 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
             }
             undo.added_checkpoints.push_back(anchor.epoch);
             undo.added_justified.push_back(anchor.epoch);
-            undo.previous_finalized = m_finalized;
-            undo.finalized_changed = true;
-            m_finalized = anchor;
         }
         if (new_checkpoint) {
             Checkpoint checkpoint;
@@ -692,7 +765,8 @@ bool State::ApplyVotes(const std::vector<CheckpointVote>& votes,
                     it->first != FINAL_POW_CHECKPOINT_EPOCH) next = &it->second;
             }
             if (next != nullptr && next->epoch == target_epoch &&
-                (m_finalized.epoch == FINAL_POW_CHECKPOINT_EPOCH ||
+                (m_finalized.root.IsNull() ||
+                 m_finalized.epoch == FINAL_POW_CHECKPOINT_EPOCH ||
                  source_epoch > m_finalized.epoch)) {
                 if (!undo.finalized_changed) {
                     undo.previous_finalized = m_finalized;

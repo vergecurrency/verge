@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <amount.h>
+#include <chain.h>
 #include <prevector.h>
 #include <uint256.h>
 #include <memusage.h>
@@ -34,6 +35,69 @@ struct ForkChoiceSummary {
     }
 
     size_t DynamicMemoryUsage() const { return memusage::DynamicUsage(heads); }
+};
+
+// Project each authenticated branch view onto the tree. Competing histories
+// use a maximum, never a sum that could count the same principal twice.
+class ForkChoiceTree {
+    struct Node {
+        CAmount support{0};
+        int maximum_height{-1};
+        std::map<uint256, CBlockIndex*> children;
+    };
+    CBlockIndex* m_root;
+    std::map<CBlockIndex*, Node> m_nodes;
+
+public:
+    explicit ForkChoiceTree(CBlockIndex* root) : m_root(root) {}
+
+    bool Add(CBlockIndex* tip, const ForkChoiceSummary& summary)
+    {
+        if (m_root == nullptr || tip == nullptr || tip->nHeight < m_root->nHeight ||
+            tip->GetAncestor(m_root->nHeight) != m_root) return false;
+        std::map<int, CAmount> weights;
+        CAmount total = 0;
+        for (const auto& head : summary.heads) {
+            if (head.second < 0 || head.second > MAX_MONEY - total) return false;
+            total += head.second;
+            weights[head.first] += head.second;
+        }
+        total = 0;
+        for (auto it = weights.rbegin(); it != weights.rend(); ++it) {
+            total += it->second;
+            it->second = total;
+        }
+        m_nodes[m_root].maximum_height = std::max(
+            m_nodes[m_root].maximum_height, tip->nHeight);
+        for (CBlockIndex* index = tip; index != m_root; index = index->pprev) {
+            Node& node = m_nodes[index];
+            const auto weight = weights.lower_bound(index->nHeight);
+            node.support = std::max(node.support,
+                weight == weights.end() ? CAmount{0} : weight->second);
+            node.maximum_height = std::max(node.maximum_height, tip->nHeight);
+            m_nodes[index->pprev].children.emplace(index->GetBlockHash(), index);
+        }
+        return true;
+    }
+
+    CBlockIndex* Select() const
+    {
+        CBlockIndex* selected = m_root;
+        if (m_nodes.count(selected) == 0) return nullptr;
+        while (!m_nodes.at(selected).children.empty()) {
+            CBlockIndex* best = nullptr;
+            for (const auto& child : m_nodes.at(selected).children) {
+                const Node& node = m_nodes.at(child.second);
+                if (best == nullptr || node.support > m_nodes.at(best).support ||
+                    (node.support == m_nodes.at(best).support &&
+                     (node.maximum_height > m_nodes.at(best).maximum_height ||
+                      (node.maximum_height == m_nodes.at(best).maximum_height &&
+                       child.first < best->GetBlockHash())))) best = child.second;
+            }
+            selected = best;
+        }
+        return selected;
+    }
 };
 
 // Derived, fully authenticated summaries only. Oversized entries are evaluated

@@ -212,7 +212,7 @@ public:
         const CBlockIndex* tip = chainActive.Tip();
         return tip != nullptr && m_pos_service_tip == tip &&
             tip->IsValid(BLOCK_VALID_SCRIPTS) &&
-            (tip->nStatus & BLOCK_VALID_POS) &&
+            (!pos::IsPoSVersion(tip->nVersion) || (tip->nStatus & BLOCK_VALID_POS)) &&
             m_pos_state.BestBlock() == tip->GetBlockHash();
     }
     bool LoadPoSState(CBlockTreeDB& blocktree, const CBlockIndex* tip,
@@ -238,10 +238,6 @@ private:
     void CheckBlockIndex(const Consensus::Params& consensusParams);
     void SetNewPreciousBlockWork(const arith_uint256& newWork);
     void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state);
-    bool IsPreferredPoSCandidate(const CBlockIndex* candidate,
-                                 const CBlockIndex* current,
-                                 const pos::ForkChoiceSummary& candidate_summary,
-                                 const pos::ForkChoiceSummary& current_summary);
     bool ValidatePoSBranch(CBlockIndex* target, CValidationState& state,
                            const CChainParams& chainparams,
                            std::shared_ptr<const pos::ForkChoiceSummary>* summary = nullptr,
@@ -1342,7 +1338,7 @@ bool IsChainCurrentForServices()
         return false;
     }
 
-    if (pos::IsPoSVersion(chainActive.Tip()->nVersion)) {
+    if (Params().GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
         // Arrival order is not PoS fork choice. A valid losing header must not
         // prevent producers from extending the fully selected active chain.
         return g_chainstate.IsPoSCurrentForServices();
@@ -2927,6 +2923,13 @@ bool CChainState::ValidatePoSBranch(CBlockIndex* target,
 
     const CBlockIndex* fork = chainActive.FindFork(target);
     if (fork == nullptr) return state.Error("PoS candidate has no active-chain fork");
+    const pos::Checkpoint& finalized = m_pos_state.Finalized();
+    if (!finalized.root.IsNull()) {
+        const CBlockIndex* barrier = LookupBlockIndex(finalized.root);
+        if (barrier == nullptr || fork->nHeight < barrier->nHeight) {
+            return state.Invalid(false, REJECT_CHECKPOINT, "bad-pos-finalized-reorg");
+        }
+    }
 
     for (const CBlockIndex* index = target; index != fork; index = index->pprev) {
         if (index == nullptr || (index->nStatus & BLOCK_FAILED_MASK) ||
@@ -2961,6 +2964,17 @@ bool CChainState::ValidatePoSBranch(CBlockIndex* target,
         return true;
     }
     const int64_t start = GetTimeMicros();
+    if (pending != nullptr && target->pprev == chainActive.Tip()) {
+        const auto& params = chainparams.GetConsensus();
+        const CBlockIndex* anchor = target->pprev->GetAncestor(params.nPoSActivationHeight - 1);
+        pos::SlotInfo slot;
+        if (anchor == nullptr || !pos::GetSlotInfo(anchor->nTime, pending->nTime, params, slot) ||
+            pos::CheckProducerAtParent(*pending, m_pos_state, slot.epoch,
+                target->nHeight, params) != pos::ValidationError::NONE) {
+            LogPrint(BCLog::NET, "PoS candidate rejected before state copy height=%d\n", target->nHeight);
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-authorization");
+        }
+    }
     CCoinsViewCache view(pcoinsTip.get());
     pos::State candidate_state = m_pos_state;
     for (const CBlockIndex* index = chainActive.Tip(); index != fork;
@@ -3014,11 +3028,14 @@ void CChainState::PublishPoSBranchValidation(CBlockIndex* target)
 {
     AssertLockHeld(cs_main);
     // Called only by admission/reconsideration after full branch validation.
-    for (CBlockIndex* index = target;
-         index != nullptr && pos::IsPoSVersion(index->nVersion) &&
-             !(index->nStatus & BLOCK_VALID_POS); index = index->pprev) {
+    for (CBlockIndex* index = target; index != nullptr; index = index->pprev) {
+        const bool is_pos = pos::IsPoSVersion(index->nVersion);
+        if (index->IsValid(BLOCK_VALID_SCRIPTS) &&
+            (!is_pos || (index->nStatus & BLOCK_VALID_POS))) break;
         assert(!(index->nStatus & BLOCK_FAILED_MASK));
-        index->nStatus |= BLOCK_VALID_POS;
+        assert(index->nStatus & BLOCK_HAVE_DATA);
+        if (is_pos) index->nStatus |= BLOCK_VALID_POS;
+        index->RaiseValidity(BLOCK_VALID_SCRIPTS);
         setDirtyBlockIndex.insert(index);
     }
 }
@@ -3033,46 +3050,6 @@ ReplayProtectionContext GetReplayProtectionContextForHeight(
                                    consensusParams.nPoSActivationHeight);
 }
 
-bool CChainState::IsPreferredPoSCandidate(const CBlockIndex* candidate,
-                                          const CBlockIndex* current,
-                                          const pos::ForkChoiceSummary& candidate_summary,
-                                          const pos::ForkChoiceSummary& current_summary)
-{
-    if (current == nullptr) return candidate != nullptr;
-    if (candidate == nullptr || candidate == current) return false;
-
-    const pos::Checkpoint& finalized = m_pos_state.Finalized();
-    const CBlockIndex* finalized_index = finalized.root.IsNull()
-        ? nullptr : LookupBlockIndex(finalized.root);
-    if (finalized_index != nullptr &&
-        (candidate->nHeight < finalized_index->nHeight ||
-         candidate->GetAncestor(finalized_index->nHeight) != finalized_index)) {
-        return false;
-    }
-
-    const CBlockIndex* fork = candidate;
-    const CBlockIndex* other = current;
-    if (fork->nHeight > other->nHeight) fork = fork->GetAncestor(other->nHeight);
-    if (other->nHeight > fork->nHeight) other = other->GetAncestor(fork->nHeight);
-    while (fork != other) {
-        fork = fork->pprev;
-        other = other->pprev;
-    }
-    if (fork == current) return true;
-    if (fork == candidate) return false;
-
-    const CBlockIndex* candidate_child = candidate->GetAncestor(fork->nHeight + 1);
-    const CBlockIndex* current_child = current->GetAncestor(fork->nHeight + 1);
-    const CAmount candidate_weight = candidate_summary.WeightAbove(candidate_child->nHeight);
-    const CAmount current_weight = current_summary.WeightAbove(current_child->nHeight);
-    if (candidate_weight == current_weight &&
-        candidate->nHeight != current->nHeight) {
-        return candidate->nHeight > current->nHeight;
-    }
-    return pos::PreferFork(candidate_weight, candidate_child->GetBlockHash(),
-                           current_weight, current_child->GetBlockHash());
-}
-
 CBlockIndex* CChainState::FindMostWorkChain() {
     AssertLockHeld(cs_main);
     m_pos_service_tip = nullptr;
@@ -3080,20 +3057,22 @@ CBlockIndex* CChainState::FindMostWorkChain() {
         CBlockIndex *pindexNew = nullptr;
 
         // Find the best candidate header.
-        if (Params().GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
-            const int activation_height =
-                Params().GetConsensus().nPoSActivationHeight;
-            const CBlockIndex* activation_parent =
-                chainActive[activation_height - 1];
+        const int activation_height = Params().GetConsensus().nPoSActivationHeight;
+        const bool pos_candidate = std::any_of(
+            setBlockIndexCandidates.begin(), setBlockIndexCandidates.end(),
+            [](const CBlockIndex* index) { return pos::IsPoSVersion(index->nVersion); });
+        if (Params().GetConsensus().IsPoSActive(chainActive.Height() + 1) || pos_candidate) {
             const pos::Checkpoint& finalized = m_pos_state.Finalized();
-            const CBlockIndex* finalized_index = finalized.root.IsNull()
+            CBlockIndex* finalized_index = finalized.root.IsNull()
                 ? nullptr : LookupBlockIndex(finalized.root);
-            std::shared_ptr<const pos::ForkChoiceSummary> preferred_summary;
+            CBlockIndex* anchor = finalized_index == nullptr ? nullptr :
+                finalized_index->GetAncestor(activation_height - 1);
+            bool anchor_has_pos = finalized_index != nullptr;
+            std::vector<std::pair<CBlockIndex*, std::shared_ptr<const pos::ForkChoiceSummary>>> candidates;
             for (CBlockIndex* candidate : setBlockIndexCandidates) {
-                if (candidate->nHeight < activation_height ||
-                    activation_parent == nullptr ||
-                    candidate->GetAncestor(activation_parent->nHeight) !=
-                        activation_parent ||
+                if (candidate->nHeight < activation_height - 1 ||
+                    (candidate->nStatus & BLOCK_FAILED_MASK) ||
+                    !(candidate->nStatus & BLOCK_HAVE_DATA) ||
                     (finalized_index != nullptr &&
                      (candidate->nHeight < finalized_index->nHeight ||
                       candidate->GetAncestor(finalized_index->nHeight) != finalized_index))) {
@@ -3101,17 +3080,34 @@ CBlockIndex* CChainState::FindMostWorkChain() {
                 }
                 std::shared_ptr<const pos::ForkChoiceSummary> candidate_summary;
                 CValidationState candidate_validation;
-                if (!ValidatePoSBranch(candidate, candidate_validation,
-                                       Params(), &candidate_summary)) {
+                const bool is_pos = pos::IsPoSVersion(candidate->nVersion);
+                if (is_pos && !ValidatePoSBranch(candidate, candidate_validation,
+                                                Params(), &candidate_summary)) {
                     continue;
                 }
-                if (pindexNew == nullptr ||
-                    IsPreferredPoSCandidate(
-                        candidate, pindexNew, *candidate_summary, *preferred_summary)) {
-                    pindexNew = candidate;
-                    preferred_summary = std::move(candidate_summary);
+                CBlockIndex* candidate_anchor = candidate->GetAncestor(activation_height - 1);
+                if (candidate_anchor == nullptr) continue;
+                if (finalized_index == nullptr &&
+                    (anchor == nullptr || candidate_anchor->nChainWork > anchor->nChainWork ||
+                     (candidate_anchor->nChainWork == anchor->nChainWork &&
+                      ((is_pos && !anchor_has_pos) ||
+                       (is_pos == anchor_has_pos &&
+                        candidate_anchor->GetBlockHash() < anchor->GetBlockHash()))))) {
+                    anchor = candidate_anchor;
+                    anchor_has_pos = is_pos;
+                }
+                if (is_pos) candidates.emplace_back(candidate, std::move(candidate_summary));
+            }
+            pos::ForkChoiceTree tree(finalized_index != nullptr ? finalized_index : anchor);
+            for (const auto& candidate : candidates) {
+                if (anchor != nullptr &&
+                    candidate.first->GetAncestor(activation_height - 1) == anchor &&
+                    !tree.Add(candidate.first, *candidate.second)) {
+                    return nullptr;
                 }
             }
+            pindexNew = tree.Select();
+            if (pindexNew == nullptr && finalized_index == nullptr) pindexNew = anchor;
             if (pindexNew == nullptr) return nullptr;
         } else {
             std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexCandidates.rbegin();
@@ -3170,7 +3166,7 @@ CBlockIndex* CChainState::FindMostWorkChain() {
             pindexTest = pindexTest->pprev;
         }
         if (!fInvalidAncestor) {
-            if (pos::IsPoSVersion(pindexNew->nVersion)) {
+            if (Params().GetConsensus().IsPoSActive(pindexNew->nHeight + 1)) {
                 m_pos_service_tip = pindexNew;
             }
             return pindexNew;
@@ -3402,8 +3398,12 @@ bool CChainState::ActivateBestChain(CValidationState &state, const CChainParams&
                     return false;
                 blocks_connected = true;
 
-                if (fInvalidFound) {
+                if (fInvalidFound ||
+                    (!pos::IsPoSVersion(pindexMostWork->nVersion) &&
+                     chainparams.GetConsensus().IsPoSActive(chainActive.Height() + 1))) {
                     // Wipe cache, we may need another branch now.
+                    // Reindex can first select the PoW anchor; continue into
+                    // stored PoS descendants without waiting for a new block.
                     pindexMostWork = nullptr;
                 }
                 pindexNewTip = chainActive.Tip();

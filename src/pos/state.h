@@ -14,6 +14,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <set>
 #include <tuple>
@@ -229,6 +230,10 @@ public:
     bool SetEpochSeed(uint64_t epoch, const uint256& seed, StateUndo& undo);
     bool PrepareEpoch(uint64_t block_epoch, int32_t height,
                       const Consensus::Params& params, StateUndo& undo);
+    bool GetStakeContext(uint64_t epoch, int32_t height,
+                         const Consensus::Params& params, uint256& seed,
+                         const StakeSnapshot*& snapshot,
+                         StakeSnapshot& generated) const;
     bool ApplyVotes(const std::vector<CheckpointVote>& votes,
                     StateUndo& undo);
     bool CanApplyVote(const CheckpointVote& vote) const;
@@ -270,6 +275,14 @@ private:
     bool AddSnapshot(uint64_t source_epoch, int32_t source_height,
                      int32_t maturity_height, const Consensus::Params& params,
                      StateUndo& undo);
+    bool BuildSnapshot(uint64_t source_epoch, int32_t source_height,
+                       int32_t maturity_height, const Consensus::Params& params,
+                       StakeSnapshot& snapshot) const;
+    bool ForEachPreparedEpoch(uint64_t epoch, int32_t height,
+                              const Consensus::Params& params,
+                              const uint256* initial_seed,
+                              const std::function<bool(const StakeSnapshot&,
+                                  uint64_t, const uint256&)>& visitor) const;
     void PruneState(uint64_t block_epoch, int32_t height,
                     const Consensus::Params& params, StateUndo& undo);
 

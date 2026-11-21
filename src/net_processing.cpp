@@ -280,6 +280,8 @@ struct CNodeState {
     int64_t m_deferred_pos_header_time;
     uint256 m_last_pos_header_request;
     bool m_pos_prefetch_disabled{false};
+    PoSBlockValidationBudget m_pos_block_budget;
+    int64_t m_pos_block_retry{0};
     int64_t m_pos_prefetch_serve_time{0};
     int64_t m_pos_prefetch_serve_tokens{32};
 
@@ -910,9 +912,13 @@ static bool BlockRequestAllowed(const CBlockIndex* pindex, const Consensus::Para
 {
     AssertLockHeld(cs_main);
     if (chainActive.Contains(pindex)) return true;
-    return pindex->IsValid(BLOCK_VALID_SCRIPTS) && (pindexBestHeader != nullptr) &&
-        (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() < STALE_RELAY_AGE_LIMIT) &&
-        (GetBlockProofEquivalentTime(*pindexBestHeader, *pindex, *pindexBestHeader, consensusParams) < STALE_RELAY_AGE_LIMIT);
+    if (!pindex->IsValid(BLOCK_VALID_SCRIPTS) || pindexBestHeader == nullptr ||
+        pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() >= STALE_RELAY_AGE_LIMIT) return false;
+    // PoS has no equivalent-work clock. Authenticated recent side branches
+    // must remain retrievable so peers can evaluate the same candidate tree.
+    return pos::IsPoSVersion(pindexBestHeader->nVersion) ||
+        GetBlockProofEquivalentTime(*pindexBestHeader, *pindex, *pindexBestHeader,
+                                    consensusParams) < STALE_RELAY_AGE_LIMIT;
 }
 
 PeerLogicValidation::PeerLogicValidation(CConnman* connmanIn, CScheduler &scheduler) : connman(connmanIn), m_stale_tip_check_time(0) {
@@ -1202,6 +1208,50 @@ static bool IsAdditionalPoSEquivocation(const CBlock& block)
     return pos::GetBlockAuthorizationPool().IsConflicted(
         block.posExtension.authorization.bond_outpoint,
         block.posExtension.authorization.slot);
+}
+
+static bool ProcessBlockFromPeer(CNode* peer, const CChainParams& chainparams,
+    const std::shared_ptr<const CBlock>& block, bool force, bool* fresh)
+{
+    if (pos::IsPoSVersion(block->nVersion)) {
+        LOCK(cs_main);
+        CNodeState* state = State(peer->GetId());
+        if (state == nullptr) return false;
+        const CBlockIndex* known = LookupBlockIndex(block->GetHash());
+        if (known == nullptr || !(known->nStatus & BLOCK_VALID_POS)) {
+            int64_t cost = 1 + std::min<size_t>(255, GetPoSStateView().Bonds().size() / 4096);
+            const CBlockIndex* parent = LookupBlockIndex(block->hashPrevBlock);
+            if (parent != nullptr && parent != chainActive.Tip()) {
+                const CBlockIndex* fork = chainActive.FindFork(parent);
+                const int distance = fork == nullptr ? 256 :
+                    chainActive.Height() + parent->nHeight - 2 * fork->nHeight;
+                cost = std::min<int64_t>(256, cost + 64 + std::min(256, distance));
+            }
+            // Reserve outbound/active-tip capacity independently of inbound
+            // alternate branches, so one traffic class cannot monopolize all work.
+            static PoSBlockValidationBudget inbound_tip(1024, 512), outbound_tip(1024, 512);
+            static PoSBlockValidationBudget inbound_fork(256, 128), outbound_fork(256, 128);
+            PoSBlockValidationBudget& global = parent == chainActive.Tip()
+                ? (peer->fInbound ? inbound_tip : outbound_tip)
+                : (peer->fInbound ? inbound_fork : outbound_fork);
+            const int64_t now = GetTimeMillis();
+            if (!state->m_pos_block_budget.Consume(now, cost) || !global.Consume(now, cost)) {
+                if (fresh != nullptr) *fresh = false;
+                state->m_deferred_pos_header = block->GetBlockHeader();
+                state->m_deferred_pos_header_time = GetTime();
+                state->m_pos_block_retry = now + 1000;
+                if (state->m_pending_pos_block == block->GetHash()) {
+                    state->m_pending_pos_block.SetNull();
+                    state->m_pending_pos_block_time = 0;
+                }
+                mapBlockSource.erase(block->GetHash());
+                LogPrint(BCLog::NET, "deferring PoS block validation budget peer=%d cost=%d\n",
+                         peer->GetId(), cost);
+                return false;
+            }
+        }
+    }
+    return ProcessNewBlock(chainparams, block, force, fresh);
 }
 
 static void RelayAddress(const CAddress& addr, bool fReachable, CConnman* connman)
@@ -1560,6 +1610,8 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
             LOCK(cs_main);
             CNodeState* nodestate = State(pfrom->GetId());
             if (nodestate == nullptr) return false;
+            if (GetTimeMillis() < nodestate->m_pos_block_retry &&
+                nodestate->m_deferred_pos_header.GetHash() == hash) return true;
             const CBlockIndex* known = LookupBlockIndex(hash);
             if (known != nullptr) {
                 if (known->nStatus & BLOCK_FAILED_MASK) {
@@ -1604,8 +1656,16 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
             // The terminal PoS header can arrive with a batch of PoW headers
             // before their block data. Request it again once the anchor connects.
             if (!pos::IsPoSVersion(parent->nVersion) &&
-                !parent->IsValid(BLOCK_VALID_SCRIPTS)) {
+                !(parent->nStatus & BLOCK_HAVE_DATA)) {
                 UpdateBlockAvailability(pfrom->GetId(), header.hashPrevBlock);
+                nodestate->m_deferred_pos_header = header;
+                nodestate->m_deferred_pos_header_time = GetTime();
+                if (mapBlocksInFlight.count(header.hashPrevBlock) == 0 &&
+                    nodestate->nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+                    MarkBlockAsInFlight(pfrom->GetId(), header.hashPrevBlock, parent);
+                    connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::GETDATA,
+                        std::vector<CInv>{CInv(MSG_BLOCK, header.hashPrevBlock)}));
+                }
                 return true;
             }
             const int height = parent->nHeight + 1;
@@ -2731,7 +2791,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 mapBlockSource.emplace(hash, std::make_pair(pfrom->GetId(), true));
             }
             bool new_block = false;
-            const bool processed = ProcessNewBlock(chainparams, block, true, &new_block);
+            const bool processed = ProcessBlockFromPeer(pfrom, chainparams, block, true, &new_block);
             if (processed) RecordPoSAuthorization(*block, chainparams, connman);
             bool authenticated;
             {
@@ -3386,8 +3446,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // we have a chain with at least nMinimumChainWork), and we ignore
             // compact blocks with less work than our tip, it is safe to treat
             // reconstructed compact blocks as having been requested.
-            const bool processed = ProcessNewBlock(
-                chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
+            const bool processed = ProcessBlockFromPeer(
+                pfrom, chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
             if (processed) RecordPoSAuthorization(*pblock, chainparams, connman);
             if (fNewBlock) {
                 pfrom->nLastBlockTime = GetTime();
@@ -3479,8 +3539,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             // disk-space attacks), but this should be safe due to the
             // protections in the compact block handler -- see related comment
             // in compact block optimistic reconstruction handling.
-            const bool processed = ProcessNewBlock(
-                chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
+            const bool processed = ProcessBlockFromPeer(
+                pfrom, chainparams, pblock, /*fForceProcessing=*/true, &fNewBlock);
             if (processed) RecordPoSAuthorization(*pblock, chainparams, connman);
             if (fNewBlock) {
                 pfrom->nLastBlockTime = GetTime();
@@ -3566,8 +3626,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return true;
         }
         bool fNewBlock = false;
-        const bool processed = ProcessNewBlock(
-            chainparams, pblock, forceProcessing, &fNewBlock);
+        const bool processed = ProcessBlockFromPeer(
+            pfrom, chainparams, pblock, forceProcessing, &fNewBlock);
         if (processed) RecordPoSAuthorization(*pblock, chainparams, connman);
         if (fNewBlock) {
             pfrom->nLastBlockTime = GetTime();
@@ -4230,6 +4290,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                 state.m_deferred_pos_header.SetNull();
                 state.m_deferred_pos_header_time = 0;
             } else if (!fImporting && !fReindex &&
+                       GetTimeMillis() >= state.m_pos_block_retry &&
                        state.m_deferred_pos_header.nTime <=
                            std::max<int64_t>(0, GetAdjustedTime()) &&
                        state.m_pending_pos_block.IsNull()) {

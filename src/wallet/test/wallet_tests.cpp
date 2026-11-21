@@ -121,6 +121,18 @@ BOOST_AUTO_TEST_CASE(staking_signing_journal_survives_wallet_reload)
     BOOST_CHECK(wallet.RecordPoSVoteSigning(other_params, vote, proof.signing_public_key));
     ++vote.bond_outpoint.n;
     BOOST_CHECK(wallet.RecordPoSVoteSigning(params, vote, proof.signing_public_key));
+    auto transition = vote;
+    transition.bond_outpoint.n += 10;
+    transition.source_epoch = pos::FINAL_POW_CHECKPOINT_EPOCH;
+    BOOST_REQUIRE(wallet.RecordPoSVoteSigning(params, transition, proof.signing_public_key));
+    auto replacement_anchor = transition;
+    replacement_anchor.source_checkpoint_root = uint256S("abcd");
+    ++replacement_anchor.head_slot;
+    BOOST_CHECK(!wallet.RecordPoSVoteSigning(params, replacement_anchor, proof.signing_public_key));
+    ++replacement_anchor.target_epoch;
+    replacement_anchor.target_checkpoint_root = uint256S("bcde");
+    BOOST_CHECK(wallet.RecordPoSVoteSigning(params, replacement_anchor, proof.signing_public_key));
+    BOOST_CHECK(!wallet.RecordPoSVoteSigning(params, transition, proof.signing_public_key));
     PoSSigningKey corrupt_key;
     corrupt_key.domain = uint256S("abcd");
     corrupt_key.bond_outpoint = vote.bond_outpoint;

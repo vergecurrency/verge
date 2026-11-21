@@ -5,12 +5,15 @@
 #include <pos/forkchoice.h>
 #include <chainparams.h>
 #include <pos/consensus.h>
+#include <net_processing.h>
 #include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 
 #include <chrono>
 #include <cstdlib>
+#include <array>
+#include <limits>
 
 BOOST_FIXTURE_TEST_SUITE(pos_consensus_tests, BasicTestingSetup)
 
@@ -23,10 +26,10 @@ BOOST_AUTO_TEST_CASE(network_activation_and_prebonding_parameters)
                       params.nPoSActivationHeight - params.nPoSUnbondingBlocks - params.nPoSStakeMaturity);
     BOOST_CHECK_EQUAL(test->GetConsensus().nPoSActivationHeight, 3000);
     BOOST_CHECK_EQUAL(test->GetConsensus().nPoSBondRulesHeight, 1);
-    BOOST_CHECK_EQUAL(test->MessageStart()[0], 0x98);
-    BOOST_CHECK_EQUAL(test->MessageStart()[1], 0x5b);
-    BOOST_CHECK_EQUAL(test->MessageStart()[2], 0x96);
-    BOOST_CHECK_EQUAL(test->MessageStart()[3], 0x5d);
+    BOOST_CHECK_EQUAL(test->MessageStart()[0], 0x69);
+    BOOST_CHECK_EQUAL(test->MessageStart()[1], 0xc1);
+    BOOST_CHECK_EQUAL(test->MessageStart()[2], 0xda);
+    BOOST_CHECK_EQUAL(test->MessageStart()[3], 0x8e);
 }
 
 BOOST_AUTO_TEST_CASE(slot_boundaries)
@@ -148,6 +151,54 @@ BOOST_AUTO_TEST_CASE(fork_summary_preserves_order_and_cache_is_bounded)
     cache.Clear();
     BOOST_CHECK_EQUAL(cache.Size(), 0U);
     BOOST_CHECK_EQUAL(cache.DynamicMemoryUsage(), 0U);
+}
+
+BOOST_AUTO_TEST_CASE(tree_choice_is_independent_of_three_branch_arrival_order)
+{
+    std::array<CBlockIndex, 9> indexes;
+    std::array<uint256, 9> hashes;
+    const std::array<int, 9> parents{{-1, 0, 0, 1, 1, 2, 3, 4, 5}};
+    for (size_t i = 0; i < indexes.size(); ++i) {
+        hashes[i].begin()[0] = i + 1;
+        indexes[i].phashBlock = &hashes[i];
+        indexes[i].pprev = parents[i] < 0 ? nullptr : &indexes[parents[i]];
+        indexes[i].nHeight = parents[i] < 0 ? 1500 : indexes[parents[i]].nHeight + 1;
+    }
+    std::array<pos::ForkChoiceSummary, 3> summaries;
+    summaries[0].heads = {{1501, 90000 * COIN}, {1502, 10000 * COIN}};
+    summaries[1].heads = {{1502, 20000 * COIN}};
+    summaries[2].heads = {{1502, 75000 * COIN}};
+    std::array<int, 3> order{{0, 1, 2}};
+    do {
+        pos::ForkChoiceTree tree(&indexes[0]);
+        for (int i : order) BOOST_REQUIRE(tree.Add(&indexes[6 + i], summaries[i]));
+        BOOST_CHECK(tree.Select() == &indexes[7]);
+        // Competing views must not be added together to inflate subtree A.
+        auto stronger_b = summaries[2];
+        stronger_b.heads[0].second = 110000 * COIN;
+        BOOST_REQUIRE(tree.Add(&indexes[8], stronger_b));
+        BOOST_CHECK(tree.Select() == &indexes[8]);
+    } while (std::next_permutation(order.begin(), order.end()));
+    pos::ForkChoiceTree finalized(&indexes[1]);
+    BOOST_CHECK(!finalized.Add(&indexes[8], summaries[2]));
+    BOOST_CHECK(finalized.Select() == nullptr);
+    BOOST_REQUIRE(finalized.Add(&indexes[6], summaries[0]));
+    BOOST_CHECK(finalized.Select() == &indexes[6]);
+}
+
+BOOST_AUTO_TEST_CASE(block_admission_budget_refills_without_clock_or_cost_overflow)
+{
+    PoSBlockValidationBudget budget(4, 2);
+    BOOST_CHECK(budget.Consume(1000, 4));
+    BOOST_CHECK(!budget.Consume(1000, 1));
+    BOOST_CHECK(!budget.Consume(1499, 1));
+    BOOST_CHECK(budget.Consume(1500, 1));
+    BOOST_CHECK(!budget.Consume(1500, 1));
+    BOOST_CHECK(!budget.Consume(1000, 1));
+    BOOST_CHECK(!budget.Consume(1500, 1));
+    BOOST_CHECK(budget.Consume(2000, 1));
+    BOOST_CHECK(budget.Consume(100000, std::numeric_limits<int64_t>::max()));
+    BOOST_CHECK(!budget.Consume(100000, 1));
 }
 
 BOOST_AUTO_TEST_CASE(large_fork_summary_eviction_stress)

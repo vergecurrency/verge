@@ -152,6 +152,51 @@ BOOST_AUTO_TEST_CASE(snapshot_and_authorization)
                 pos::ValidationError::AUTHORIZATION_SIGNATURE);
 }
 
+BOOST_AUTO_TEST_CASE(parent_authentication_rejects_nonmembers_and_bad_proofs_without_mutation)
+{
+    BondValidationFixture fixture;
+    CBlock block = MakeFixture().block;
+    auto& proof = block.posExtension.stake_proof;
+    proof.bond_outpoint = fixture.outpoint;
+    proof.slot = 100;
+    proof.snapshot_epoch = pos::INITIAL_SNAPSHOT_EPOCH;
+    proof.snapshot_root = fixture.state.FindSnapshot(pos::INITIAL_SNAPSHOT_EPOCH)->root;
+    proof.epoch_seed = *fixture.state.FindEpochSeed(0);
+    std::copy(std::begin(fixture.data.signing_public_key), std::end(fixture.data.signing_public_key),
+              proof.signing_public_key);
+    unsigned char vrf_secret[32]{};
+    BOOST_REQUIRE(pos::DeriveVrfKey(fixture.secret, vrf_secret, proof.vrf_public_key));
+    const auto input = pos::GetVrfInput(fixture.params.nPoSNetworkId, proof.epoch_seed,
+                                       proof.slot, proof.bond_outpoint);
+    BOOST_REQUIRE(pos::VrfProve(vrf_secret, input.data(), input.size(),
+        proof.vrf_public_key, proof.vrf_output, proof.vrf_proof));
+    auto& authorization = block.posExtension.authorization;
+    authorization.parent_randomness = proof.epoch_seed;
+    authorization.bond_outpoint = proof.bond_outpoint;
+    authorization.slot = proof.slot;
+    authorization.stake_proof_hash = pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, proof);
+    unsigned char auxiliary[32]{};
+    unsigned char public_key[32];
+    BOOST_REQUIRE(pos::SignSchnorr(fixture.secret, pos::GetBlockSigningHash(authorization),
+        auxiliary, authorization.signature, public_key));
+    const uint256 before = SerializeHash(fixture.state);
+    BOOST_CHECK(pos::CheckProducerAtParent(block, fixture.state, 0, 1000,
+        fixture.params) == pos::ValidationError::NONE);
+    const CBlock valid = block;
+    proof.bond_outpoint.n += 1;
+    BOOST_CHECK(pos::CheckProducerAtParent(block, fixture.state, 0, 1000,
+        fixture.params) == pos::ValidationError::BOND_MISSING);
+    block = valid;
+    block.posExtension.stake_proof.vrf_proof[1] ^= 1;
+    BOOST_CHECK(pos::CheckProducerAtParent(block, fixture.state, 0, 1000,
+        fixture.params) == pos::ValidationError::VRF_INVALID);
+    block = valid;
+    block.posExtension.stake_proof.epoch_seed = uint256S("bad");
+    BOOST_CHECK(pos::CheckProducerAtParent(block, fixture.state, 0, 1000,
+        fixture.params) == pos::ValidationError::AUTHORIZATION_MISMATCH);
+    BOOST_CHECK(SerializeHash(fixture.state) == before);
+}
+
 BOOST_AUTO_TEST_CASE(commitment_reward_and_fee_limit)
 {
     FixtureData fixture = MakeFixture();

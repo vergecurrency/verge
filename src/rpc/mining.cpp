@@ -13,6 +13,7 @@
 
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
+#include <wallet/rpcwallet.h>
 #endif
 
 #include <core_io.h>
@@ -21,6 +22,7 @@
 #include <miner.h>
 #include <net.h>
 #include <policy/fees.h>
+#include <pos/primitives.h>
 #include <pow.h>
 #include <rpc/blockchain.h>
 #include <rpc/mining.h>
@@ -742,6 +744,94 @@ protected:
     }
 };
 
+static UniValue submitblock(const JSONRPCRequest& request)
+{
+    // We allow 2 arguments for compliance with BIP22. Argument 2 is ignored.
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2) {
+        throw std::runtime_error(
+            "submitblock \"hexdata\"  ( \"dummy\" )\n"
+            "\nAttempts to submit new block to network.\n"
+            "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.\n"
+
+            "\nArguments\n"
+            "1. \"hexdata\"        (string, required) the hex-encoded block data to submit\n"
+            "2. \"dummy\"          (optional) dummy value, for compatibility with BIP22. This value is ignored.\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitblock", "\"mydata\"")
+            + HelpExampleRpc("submitblock", "\"mydata\"")
+        );
+    }
+
+    std::shared_ptr<CBlock> blockptr = std::make_shared<CBlock>();
+    CBlock& block = *blockptr;
+    if (!DecodeHexBlk(block, request.params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
+    }
+
+    if (block.vtx.empty() || !block.vtx[0] || !block.vtx[0]->IsCoinBase()) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
+    }
+
+    uint256 hash = block.GetHash();
+    bool fBlockPresent = false;
+    {
+        LOCK(cs_main);
+        const CBlockIndex* pindex = LookupBlockIndex(hash);
+        if (pindex) {
+            if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) {
+                return "duplicate";
+            }
+            if (pindex->nStatus & BLOCK_FAILED_MASK) {
+                return "duplicate-invalid";
+            }
+            // Otherwise, we might only have the header - process the block before returning
+            fBlockPresent = true;
+        }
+    }
+
+    CValidationState preliminaryState;
+    if (!CheckBlock(block, preliminaryState, Params().GetConsensus(), true, true, false)) {
+        return BIP22ValidationResult(preliminaryState);
+    }
+
+    if (!pos::IsPoSVersion(block.nVersion) && !CheckBlockSignature(block)) {
+#ifdef ENABLE_WALLET
+        const auto wallet = GetWalletForJSONRPCRequest(request);
+        if (!EnsureWalletIsAvailable(wallet.get(), request.fHelp) ||
+            !SignBlock(block, *wallet)) {
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
+                               "Block signatures couldn't be created");
+        }
+#else
+        return "bad-blk-signature";
+#endif
+    }
+
+    {
+        LOCK(cs_main);
+        const CBlockIndex* pindex = LookupBlockIndex(block.hashPrevBlock);
+        if (pindex) {
+            UpdateUncommittedBlockStructures(block, pindex, Params().GetConsensus());
+        }
+    }
+
+    submitblock_StateCatcher sc(block.GetHash());
+    RegisterValidationInterface(&sc);
+    bool fAccepted = ProcessNewBlock(Params(), blockptr, true, nullptr);
+    UnregisterValidationInterface(&sc);
+    if (fBlockPresent) {
+        if (fAccepted && !sc.found) {
+            return "duplicate-inconclusive";
+        }
+        return "duplicate";
+    }
+    if (!sc.found) {
+        return "inconclusive";
+    }
+    return BIP22ValidationResult(sc.state);
+}
+
 static UniValue estimatefee(const JSONRPCRequest& request)
 {
     throw JSONRPCError(RPC_METHOD_DEPRECATED, "estimatefee was removed in v0.17.\n"
@@ -921,6 +1011,7 @@ static const CRPCCommand commands[] =
     { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request", "algorithm"} },
     { "mining",             "decodeblock",            &decodeblock,            {"hexdata"} },
     { "mining",             "reserializeblock",       &reserializeblock,       {"hexdata"} },
+    { "mining",             "submitblock",            &submitblock,            {"hexdata","dummy"} },
 
     { "hidden",             "estimatefee",            &estimatefee,            {} },
     { "util",               "estimatesmartfee",       &estimatesmartfee,       {"conf_target", "estimate_mode"} },

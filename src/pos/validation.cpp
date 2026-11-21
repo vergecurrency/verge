@@ -45,6 +45,35 @@ ValidationError CheckBondEligibility(const COutPoint& outpoint,
     return ValidationError::NONE;
 }
 
+ValidationError CheckProducerAtParent(const CBlock& block, const State& parent,
+                                      uint64_t epoch, int32_t height,
+                                      const Consensus::Params& params)
+{
+    const StakeProof& proof = block.posExtension.stake_proof;
+    const BondRecord* bond = parent.FindHistoricalBond(proof.bond_outpoint);
+    if (bond == nullptr) return ValidationError::BOND_MISSING;
+    if (std::memcmp(bond->data.signing_public_key, proof.signing_public_key,
+                    SCHNORR_PUBLIC_KEY_SIZE) != 0 ||
+        std::memcmp(bond->data.vrf_public_key, proof.vrf_public_key,
+                    VRF_PUBLIC_KEY_SIZE) != 0) return ValidationError::BOND_MISMATCH;
+    const ValidationError eligibility = CheckBondEligibility(
+        proof.bond_outpoint, *bond, parent, epoch, height, params);
+    if (eligibility != ValidationError::NONE) return eligibility;
+    const uint64_t required = GetRequiredSnapshotEpoch(epoch, params.nPoSSnapshotDelayEpochs);
+    if (proof.snapshot_epoch != required) return ValidationError::SNAPSHOT_MISMATCH;
+    uint256 seed;
+    const StakeSnapshot* snapshot = nullptr;
+    StakeSnapshot generated;
+    if (!parent.GetStakeContext(epoch, height, params, seed, snapshot, generated)) {
+        return ValidationError::SNAPSHOT_MISSING;
+    }
+    if (snapshot->source_height > height) return ValidationError::SNAPSHOT_FUTURE;
+    if (proof.epoch_seed != seed) return ValidationError::AUTHORIZATION_MISMATCH;
+    const ValidationError authorization = CheckStakeAuthorization(block, *snapshot, required);
+    return authorization != ValidationError::NONE ? authorization :
+        CheckVrfEligibility(block, *snapshot, params.nPoSNetworkId);
+}
+
 ValidationError CheckStakeAuthorization(const CBlock& block,
                                         const StakeSnapshot& snapshot,
                                         uint64_t expected_snapshot_epoch)

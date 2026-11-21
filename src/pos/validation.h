@@ -51,6 +51,12 @@ ValidationError CheckBondEligibility(const COutPoint& outpoint,
                                       int32_t height,
                                       const Consensus::Params& params);
 
+/** Authenticate against the parent after CheckBlock has bound the authorization
+ * and canonical commitments. Does not copy or mutate the parent state. */
+ValidationError CheckProducerAtParent(const CBlock& block, const State& parent,
+                                      uint64_t epoch, int32_t height,
+                                      const Consensus::Params& params);
+
 ValidationError CheckStakeAuthorization(const CBlock& block,
                                         const StakeSnapshot& snapshot,
                                         uint64_t expected_snapshot_epoch);
