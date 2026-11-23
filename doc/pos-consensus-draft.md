@@ -58,11 +58,11 @@ For this clean testnet trial, the initial stake snapshot is recorded at height
 2,760. A bond must be created by height 2,280 to have 720 confirmations at
 activation and must remain unspent through the snapshot. Block 2,999 is the
 last valid PoW block; block 3,000 must be produced by an eligible PoS bond.
-The November 21 deterministic-fork-choice clean-chain testnet trial uses P2P
-message-start bytes `69 c1 da 8e`,
+The November 22 final clean-chain testnet trial uses P2P
+message-start bytes `52 4c 7f 07`,
 derived from the first four bytes of
-`SHA256("Verge PoS Testnet Reset 2026-11-21 deterministic fork choice height 3000")`. This separates
-it from the previous trial's magic `98 5b 96 5d` and earlier testnet identities,
+`SHA256("Verge PoS Testnet Reset 2026-11-22 final trial height 3000")`. This separates
+it from the previous trial's magic `69 c1 da 8e` and earlier testnet identities,
 so an old testnet node cannot exchange P2P messages with the clean network.
 The testnet genesis block and height-3,000 PoS activation are unchanged.
 Changing magic does not reset stored history: every participant in this trial

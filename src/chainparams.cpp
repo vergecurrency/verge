@@ -432,11 +432,11 @@ consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // M
 consensus.nMinimumChainWork = uint256S("0x00");
 consensus.defaultAssumeValid = uint256S("0x00");
 
-// First four SHA256 bytes of "Verge PoS Testnet Reset 2026-11-21 deterministic fork choice height 3000".
-pchMessageStart[0] = 0x69;
-pchMessageStart[1] = 0xc1;
-pchMessageStart[2] = 0xda;
-pchMessageStart[3] = 0x8e;
+// First four SHA256 bytes of "Verge PoS Testnet Reset 2026-11-22 final trial height 3000".
+pchMessageStart[0] = 0x52;
+pchMessageStart[1] = 0x4c;
+pchMessageStart[2] = 0x7f;
+pchMessageStart[3] = 0x07;
 nDefaultPort = 21104;
 nPruneAfterHeight = 1000;
 

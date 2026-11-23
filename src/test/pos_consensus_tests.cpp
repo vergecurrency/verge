@@ -26,10 +26,10 @@ BOOST_AUTO_TEST_CASE(network_activation_and_prebonding_parameters)
                       params.nPoSActivationHeight - params.nPoSUnbondingBlocks - params.nPoSStakeMaturity);
     BOOST_CHECK_EQUAL(test->GetConsensus().nPoSActivationHeight, 3000);
     BOOST_CHECK_EQUAL(test->GetConsensus().nPoSBondRulesHeight, 1);
-    BOOST_CHECK_EQUAL(test->MessageStart()[0], 0x69);
-    BOOST_CHECK_EQUAL(test->MessageStart()[1], 0xc1);
-    BOOST_CHECK_EQUAL(test->MessageStart()[2], 0xda);
-    BOOST_CHECK_EQUAL(test->MessageStart()[3], 0x8e);
+    BOOST_CHECK_EQUAL(test->MessageStart()[0], 0x52);
+    BOOST_CHECK_EQUAL(test->MessageStart()[1], 0x4c);
+    BOOST_CHECK_EQUAL(test->MessageStart()[2], 0x7f);
+    BOOST_CHECK_EQUAL(test->MessageStart()[3], 0x07);
 }
 
 BOOST_AUTO_TEST_CASE(slot_boundaries)
