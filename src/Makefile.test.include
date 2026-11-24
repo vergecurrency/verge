@@ -11,6 +11,7 @@ JSON_TEST_FILES = \
   test/data/base58_encode_decode.json \
   test/data/key_io_valid.json \
   test/data/key_io_invalid.json \
+  test/data/mldsa44.json \
   test/data/script_tests.json \
   test/data/sighash.json \
   test/data/tx_invalid.json \
@@ -68,6 +69,8 @@ VERGE_TESTS =\
   test/policyestimator_tests.cpp \
   test/pos_consensus_tests.cpp \
   test/pos_crypto_tests.cpp \
+  test/pos_pqcrypto_tests.cpp \
+  test/pos_public_eligibility_tests.cpp \
   test/pos_block_tests.cpp \
   test/pos_primitives_tests.cpp \
   test/pos_stake_tests.cpp \

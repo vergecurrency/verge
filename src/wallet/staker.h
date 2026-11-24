@@ -40,6 +40,7 @@ struct WalletUnbondingInfo
     int64_t unlock_height{0};
     int64_t blocks_until_unlock{0};
     uint160 withdrawal_key_id;
+    uint256 pq_withdrawal_key_id;
 };
 
 struct WalletUnbondResult

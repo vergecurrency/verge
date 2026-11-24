@@ -83,8 +83,8 @@ class PoSActivationTest(VergeTestFramework):
     @staticmethod
     def first_vote(node, block_hash):
         stream = PoSActivationTest.extension_stream(node, block_hash)
-        assert_equal(stream.read(1), b"\x01")
-        assert_equal(len(stream.read(295 + 273)), 295 + 273)
+        assert_equal(stream.read(1), b"\x02")
+        assert_equal(len(stream.read(295 + 4005)), 295 + 4005)
         assert deser_compact_size(stream) > 0
         vote = msg_posvote()
         vote.deserialize(stream)
@@ -177,7 +177,7 @@ class PoSActivationTest(VergeTestFramework):
         vote_peer.sync_with_ping()
         wait_until(lambda: "posvote" in relay_peer.last_message)
         assert_equal(relay_peer.last_message["posvote"].serialize(), vote.serialize())
-        assert_equal(len(vote.serialize()), 229)
+        assert_equal(len(vote.serialize()), 3961)
         known = KnownPoSHeader(observer.getblockheader(epoch_zero, False))
         before = vote_peer.message_count["getheaders"]
         vote_peer.send_message(known)

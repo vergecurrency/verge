@@ -4,10 +4,90 @@
 
 #include <pos/consensus.h>
 #include <pos/primitives.h>
+#include <pos/state.h>
+#include <arith_uint256.h>
 
+#include <algorithm>
 #include <limits>
 
 namespace pos {
+
+bool SelectPublicStake(const StakeSnapshot& snapshot, uint32_t network_id,
+                       const uint256& epoch_seed, uint64_t slot,
+                       COutPoint& winner, uint256& selection_hash)
+{
+    winner.SetNull();
+    selection_hash.SetNull();
+    if (network_id == 0 || epoch_seed.IsNull() || slot == 0 ||
+        snapshot.root.IsNull() || snapshot.source_height < 0 ||
+        snapshot.entries.empty() || snapshot.total_value <= 0 ||
+        !MoneyRange(snapshot.total_value)) return false;
+
+    CAmount total = 0;
+    COutPoint previous;
+    bool first = true;
+    for (const auto& entry : snapshot.entries) {
+        if (entry.outpoint.IsNull() || (!first && !(previous < entry.outpoint)) ||
+            entry.bond.value <= 0 || entry.bond.value > MAX_MONEY - total) return false;
+        first = false;
+        previous = entry.outpoint;
+        total += entry.bond.value;
+    }
+    if (total != snapshot.total_value) return false;
+
+    const arith_uint256 weight(static_cast<uint64_t>(total));
+    const arith_uint256 maximum = ~arith_uint256();
+    // Reject the incomplete residue interval: 2^256 mod total.
+    arith_uint256 rejection = maximum - (maximum / weight) * weight + arith_uint256(1);
+    if (rejection == weight) rejection = arith_uint256();
+    for (uint32_t draw = 0; draw < 32; ++draw) {
+        TaggedHashWriter writer(HashDomain::PUBLIC_ELIGIBILITY);
+        writer << network_id << snapshot.source_epoch << snapshot.root
+               << epoch_seed << slot << draw;
+        const uint256 hash = writer.GetHash();
+        const arith_uint256 value = UintToArith256(hash);
+        if (value < rejection) continue;
+        const uint64_t ticket = (value - (value / weight) * weight).GetLow64();
+        uint64_t end = 0;
+        for (const auto& entry : snapshot.entries) {
+            end += static_cast<uint64_t>(entry.bond.value);
+            if (ticket < end) {
+                winner = entry.outpoint;
+                selection_hash = hash;
+                return true;
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+bool BuildPublicStakeProof(const StakeSnapshot& snapshot, uint32_t network_id,
+                          const uint256& epoch_seed, uint64_t slot,
+                          StakeProof& proof)
+{
+    proof = StakeProof();
+    COutPoint winner;
+    uint256 selection_hash;
+    if (!SelectPublicStake(snapshot, network_id, epoch_seed, slot,
+                            winner, selection_hash)) return false;
+    const auto entry = std::lower_bound(
+        snapshot.entries.begin(), snapshot.entries.end(), winner,
+        [](const SnapshotEntry& item, const COutPoint& outpoint) {
+            return item.outpoint < outpoint;
+        });
+    if (entry == snapshot.entries.end() || entry->outpoint != winner) return false;
+    proof.version = PUBLIC_STAKE_PROOF_VERSION;
+    proof.bond_outpoint = winner;
+    proof.slot = slot;
+    proof.snapshot_epoch = snapshot.source_epoch;
+    proof.snapshot_root = snapshot.root;
+    proof.epoch_seed = epoch_seed;
+    std::copy(selection_hash.begin(), selection_hash.end(), proof.vrf_output);
+    std::copy(std::begin(entry->bond.data.signing_public_key),
+              std::end(entry->bond.data.signing_public_key), proof.signing_public_key);
+    return true;
+}
 
 bool GetSlotInfo(uint32_t final_pow_time, uint32_t candidate_time,
                  const Consensus::Params& params, SlotInfo& slot_info)

@@ -115,21 +115,21 @@ data ExpandHRP(const std::string& hrp)
 }
 
 /** Verify a checksum. */
-bool VerifyChecksum(const std::string& hrp, const data& values)
+bool VerifyChecksum(const std::string& hrp, const data& values, bech32::Encoding encoding)
 {
     // PolyMod computes what value to xor into the final values to make the checksum 0. However,
     // if we required that the checksum was 0, it would be the case that appending a 0 to a valid
     // list of values would result in a new valid list. For that reason, Bech32 requires the
     // resulting checksum to be 1 instead.
-    return PolyMod(Cat(ExpandHRP(hrp), values)) == 1;
+    return PolyMod(Cat(ExpandHRP(hrp), values)) == (encoding == bech32::Encoding::BECH32M ? 0x2bc830a3U : 1U);
 }
 
 /** Create a checksum. */
-data CreateChecksum(const std::string& hrp, const data& values)
+data CreateChecksum(const std::string& hrp, const data& values, bech32::Encoding encoding)
 {
     data enc = Cat(ExpandHRP(hrp), values);
     enc.resize(enc.size() + 6); // Append 6 zeroes
-    uint32_t mod = PolyMod(enc) ^ 1; // Determine what to XOR into those 6 zeroes.
+    uint32_t mod = PolyMod(enc) ^ (encoding == bech32::Encoding::BECH32M ? 0x2bc830a3U : 1U);
     data ret(6);
     for (size_t i = 0; i < 6; ++i) {
         // Convert the 5-bit groups in mod to checksum values.
@@ -144,8 +144,10 @@ namespace bech32
 {
 
 /** Encode a Bech32 string. */
-std::string Encode(const std::string& hrp, const data& values) {
-    data checksum = CreateChecksum(hrp, values);
+std::string Encode(const std::string& hrp, const data& values, Encoding encoding) {
+    if (hrp.empty() || hrp.size() + 7 + values.size() > 90) return {};
+    for (auto c : values) if (c > 31) return {};
+    data checksum = CreateChecksum(hrp, values, encoding);
     data combined = Cat(values, checksum);
     std::string ret = hrp + '1';
     ret.reserve(ret.size() + combined.size());
@@ -156,7 +158,7 @@ std::string Encode(const std::string& hrp, const data& values) {
 }
 
 /** Decode a Bech32 string. */
-std::pair<std::string, data> Decode(const std::string& str) {
+std::pair<std::string, data> Decode(const std::string& str, Encoding encoding) {
     bool lower = false, upper = false;
     for (size_t i = 0; i < str.size(); ++i) {
         unsigned char c = str[i];
@@ -183,7 +185,7 @@ std::pair<std::string, data> Decode(const std::string& str) {
     for (size_t i = 0; i < pos; ++i) {
         hrp += LowerCase(str[i]);
     }
-    if (!VerifyChecksum(hrp, values)) {
+    if (!VerifyChecksum(hrp, values, encoding)) {
         return {};
     }
     return {hrp, data(values.begin(), values.end() - 6)};

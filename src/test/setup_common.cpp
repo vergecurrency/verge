@@ -80,6 +80,8 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
     InitScriptExecutionCache();
     fCheckBlockIndex = true;
     SelectParams(chainName);
+    // Existing classical-rule fixtures remain explicit historical compatibility tests.
+    UpdatePoSPostQuantumForTesting(false);
     noui_connect();
 }
 

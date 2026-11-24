@@ -66,6 +66,20 @@ enum txnouttype
     TX_WITNESS_V0_SCRIPTHASH,
     TX_WITNESS_V0_KEYHASH,
     TX_WITNESS_UNKNOWN, //!< Only for Witness versions not already defined above
+    TX_PQ_KEYHASH,
+    TX_PQ_MULTISIG,
+};
+
+struct PQKeyHash : public uint256
+{
+    PQKeyHash() = default;
+    explicit PQKeyHash(const uint256& id) : uint256(id) {}
+};
+
+struct PQPolicyHash : public uint256
+{
+    PQPolicyHash() = default;
+    explicit PQPolicyHash(const uint256& id) : uint256(id) {}
 };
 
 class CNoDestination {
@@ -120,7 +134,7 @@ struct WitnessUnknown
  *  * WitnessUnknown: TX_WITNESS_UNKNOWN destination (P2W???)
  *  A CTxDestination is the internal data type encoded in a verge address
  */
-typedef boost::variant<CNoDestination, CKeyID, CScriptID, WitnessV0ScriptHash, WitnessV0KeyHash, WitnessUnknown, CStealthAddress> CTxDestination;
+typedef boost::variant<CNoDestination, CKeyID, CScriptID, WitnessV0ScriptHash, WitnessV0KeyHash, WitnessUnknown, CStealthAddress, PQKeyHash, PQPolicyHash> CTxDestination;
 
 /** Check whether a CTxDestination is a CNoDestination. */
 bool IsValidDestination(const CTxDestination& dest);

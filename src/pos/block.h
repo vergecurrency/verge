@@ -19,7 +19,13 @@ class CBlockHeader;
 namespace pos {
 
 static constexpr uint32_t MAX_VOTES_PER_BLOCK = 1024;
+static constexpr uint32_t MAX_HYBRID_VOTES_PER_BLOCK = 192;
 static constexpr uint32_t MAX_EVIDENCE_PER_BLOCK = 16;
+
+inline uint32_t MaximumVotesForVersion(uint8_t version)
+{
+    return version == HYBRID_POS_OBJECT_VERSION ? MAX_HYBRID_VOTES_PER_BLOCK : MAX_VOTES_PER_BLOCK;
+}
 
 inline size_t RemainingEvidenceBudget(size_t used)
 {
@@ -51,9 +57,23 @@ struct BlockExtension {
     template <typename Stream>
     void SerializeForBlockId(Stream& stream) const
     {
+        if (version == HYBRID_POS_OBJECT_VERSION) {
+            BlockExtension canonical = *this;
+            ClearAuthenticationSignature(canonical.authorization);
+            for (auto& vote : canonical.votes) ClearAuthenticationSignature(vote);
+            for (auto& evidence : canonical.block_evidence) {
+                ClearAuthenticationSignature(evidence.first);
+                ClearAuthenticationSignature(evidence.second);
+            }
+            for (auto& evidence : canonical.vote_evidence) {
+                ClearAuthenticationSignature(evidence.first);
+                ClearAuthenticationSignature(evidence.second);
+            }
+            canonical.Serialize(stream);
+            return;
+        }
         BlockAuthorization unsigned_authorization = authorization;
-        std::fill(unsigned_authorization.signature,
-                  unsigned_authorization.signature + SCHNORR_SIGNATURE_SIZE, 0);
+        ClearAuthenticationSignature(unsigned_authorization);
         SerializeWithAuthorization(stream, unsigned_authorization);
     }
 
@@ -75,9 +95,12 @@ public:
     void Unserialize(Stream& stream)
     {
         ::Unserialize(stream, version);
+        if (version != POS_OBJECT_VERSION && version != HYBRID_POS_OBJECT_VERSION) {
+            throw std::ios_base::failure("Unknown PoS block extension version");
+        }
         ::Unserialize(stream, stake_proof);
         ::Unserialize(stream, authorization);
-        ReadVector(stream, votes, MAX_VOTES_PER_BLOCK, "too many PoS votes");
+        ReadVector(stream, votes, MaximumVotesForVersion(version), "too many PoS votes");
         ReadVector(stream, block_evidence, MAX_EVIDENCE_PER_BLOCK, "too much PoS block evidence");
         ReadVector(stream, vote_evidence,
                    MAX_EVIDENCE_PER_BLOCK - static_cast<uint32_t>(block_evidence.size()),

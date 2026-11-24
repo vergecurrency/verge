@@ -122,6 +122,7 @@ enum
     // Require signatures evaluated after PoS activation to commit to the
     // network-specific post-PoW signature-hash domain.
     SCRIPT_VERIFY_POS_REPLAY_PROTECTION = (1U << 17),
+    SCRIPT_VERIFY_PQ = (1U << 18),
 };
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned int flags, ScriptError* serror);
@@ -167,6 +168,8 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
 class BaseSignatureChecker
 {
 public:
+    virtual bool CheckPQSig(const std::vector<unsigned char>& signature,
+        const std::vector<unsigned char>& public_key, const CScript& script) const { return false; }
     virtual bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const
     {
         return false;
@@ -211,6 +214,8 @@ public:
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn),
           replay_context(replay_context_in) {}
     bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const override;
+    bool CheckPQSig(const std::vector<unsigned char>& signature,
+        const std::vector<unsigned char>& public_key, const CScript& script) const override;
     bool CheckLockTime(const CScriptNum& nLockTime) const override;
     bool CheckSequence(const CScriptNum& nSequence) const override;
 };

@@ -37,7 +37,15 @@ uint256 ComputeVoteRoot(const std::vector<CheckpointVote>& votes)
 {
     TaggedHashWriter writer(HashDomain::VOTE_ROOT);
     writer << static_cast<uint64_t>(votes.size());
-    for (const CheckpointVote& vote : votes) writer << vote;
+    for (const CheckpointVote& vote : votes) {
+        if (vote.version == HYBRID_POS_OBJECT_VERSION) {
+            CheckpointVote canonical = vote;
+            ClearAuthenticationSignature(canonical);
+            writer << canonical;
+        } else {
+            writer << vote;
+        }
+    }
     return writer.GetHash();
 }
 
@@ -48,11 +56,25 @@ uint256 ComputeEvidenceRoot(
     TaggedHashWriter writer(HashDomain::EVIDENCE_ROOT);
     writer << static_cast<uint64_t>(block_evidence.size());
     for (const BlockEquivocationEvidence& evidence : block_evidence) {
-        writer << evidence;
+        if (evidence.version == HYBRID_POS_OBJECT_VERSION) {
+            auto canonical = evidence;
+            ClearAuthenticationSignature(canonical.first);
+            ClearAuthenticationSignature(canonical.second);
+            writer << canonical;
+        } else {
+            writer << evidence;
+        }
     }
     writer << static_cast<uint64_t>(vote_evidence.size());
     for (const VoteEquivocationEvidence& evidence : vote_evidence) {
-        writer << evidence;
+        if (evidence.version == HYBRID_POS_OBJECT_VERSION) {
+            auto canonical = evidence;
+            ClearAuthenticationSignature(canonical.first);
+            ClearAuthenticationSignature(canonical.second);
+            writer << canonical;
+        } else {
+            writer << evidence;
+        }
     }
     return writer.GetHash();
 }
@@ -77,6 +99,7 @@ uint256 GetPoSHeaderSigningHash(const CBlockHeader& header)
 BlockCommitment GetBlockCommitment(const BlockExtension& extension)
 {
     BlockCommitment commitment;
+    commitment.version = extension.version;
     commitment.stake_proof_hash =
         GetTaggedHash(HashDomain::STAKE_PROOF, extension.stake_proof);
     commitment.vote_root = ComputeVoteRoot(extension.votes);
@@ -114,11 +137,12 @@ bool ParseBlockCommitmentScript(const CScript& script,
     if (!script.GetOp(it, opcode) || opcode != OP_RETURN ||
         !script.GetOp(it, opcode, payload) || it != script.end() ||
         payload.size() != 164 || payload[0] != 'V' || payload[1] != 'P' ||
-        payload[2] != 'C' || payload[3] != POS_OBJECT_VERSION) {
+        payload[2] != 'C' || (payload[3] != POS_OBJECT_VERSION && payload[3] != HYBRID_POS_OBJECT_VERSION)) {
         return false;
     }
 
     commitment = BlockCommitment();
+    commitment.version = payload[3];
     size_t offset = 4;
     std::copy_n(payload.begin() + offset, 32,
                 commitment.stake_proof_hash.begin());
@@ -136,7 +160,12 @@ bool ParseBlockCommitmentScript(const CScript& script,
 }
 StructureError CheckStructure(const BlockExtension& extension)
 {
-    if (extension.version != POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (extension.version != POS_OBJECT_VERSION && extension.version != HYBRID_POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (extension.authorization.version != extension.version ||
+        (extension.version == HYBRID_POS_OBJECT_VERSION &&
+         extension.stake_proof.version != PUBLIC_STAKE_PROOF_VERSION)) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
     if (CheckStructure(extension.stake_proof) != StructureError::NONE) {
         return StructureError::INVALID_AUTHORIZATION;
     }
@@ -149,11 +178,11 @@ StructureError CheckStructure(const BlockExtension& extension)
             GetTaggedHash(HashDomain::STAKE_PROOF, extension.stake_proof)) {
         return StructureError::INVALID_AUTHORIZATION;
     }
-    if (!HasCanonicalVoteOrder(extension.votes, MAX_VOTES_PER_BLOCK)) {
+    if (!HasCanonicalVoteOrder(extension.votes, MaximumVotesForVersion(extension.version))) {
         return StructureError::INVALID_AUTHORIZATION;
     }
     for (const CheckpointVote& vote : extension.votes) {
-        if (CheckStructure(vote) != StructureError::NONE) {
+        if (vote.version != extension.version || CheckStructure(vote) != StructureError::NONE) {
             return StructureError::INVALID_AUTHORIZATION;
         }
     }
@@ -167,12 +196,12 @@ StructureError CheckStructure(const BlockExtension& extension)
         return StructureError::NON_CANONICAL_EVIDENCE;
     }
     for (const BlockEquivocationEvidence& evidence : extension.block_evidence) {
-        if (CheckStructure(evidence) != StructureError::NONE) {
+        if (evidence.version != extension.version || CheckStructure(evidence) != StructureError::NONE) {
             return StructureError::NOT_EQUIVOCATION;
         }
     }
     for (const VoteEquivocationEvidence& evidence : extension.vote_evidence) {
-        if (CheckStructure(evidence) != StructureError::NONE) {
+        if (evidence.version != extension.version || CheckStructure(evidence) != StructureError::NONE) {
             return StructureError::NOT_EQUIVOCATION;
         }
     }

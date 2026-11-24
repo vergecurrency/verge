@@ -16,6 +16,8 @@
 #include <util/system.h>
 #include <util/time.h>
 #include <wallet/wallet.h>
+#include <pos/pqcrypto.h>
+#include <script/pq.h>
 
 #include <atomic>
 
@@ -91,6 +93,32 @@ bool WalletBatch::WriteCryptedKey(const CPubKey& vchPubKey,
 bool WalletBatch::WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey)
 {
     return WriteIC(std::make_pair(std::string("mkey"), nID), kMasterKey, true);
+}
+
+bool WalletBatch::WritePQMultisigPolicy(const uint256& id, const std::vector<unsigned char>& encoded)
+{
+    PQMultisigPolicy policy;
+    return DecodePQMultisigPolicy(encoded, policy) && GetPQMultisigPolicyId(policy) == id &&
+        WriteIC(std::make_pair(std::string("pqpolicy"), id), encoded, false);
+}
+
+bool WalletBatch::WritePQKey(const std::vector<unsigned char>& public_key,
+                              const CKeyingMaterial& seed)
+{
+    const uint256 id = pos::experimental::GetMLDSA44KeyId(public_key);
+    return !id.IsNull() && seed.size() == pos::experimental::MLDSA44_SEED_SIZE &&
+        WriteIC(std::make_pair(std::string("pqkey"), id), std::make_pair(public_key, seed), false);
+}
+
+bool WalletBatch::WriteCryptedPQKey(const std::vector<unsigned char>& public_key,
+                                     const std::vector<unsigned char>& ciphertext,
+                                     bool erase_plaintext)
+{
+    const uint256 id = pos::experimental::GetMLDSA44KeyId(public_key);
+    if (id.IsNull() || ciphertext.size() != 48 ||
+        !WriteIC(std::make_pair(std::string("cpqkey"), id),
+                 std::make_pair(public_key, ciphertext), false)) return false;
+    return !erase_plaintext || EraseIC(std::make_pair(std::string("pqkey"), id));
 }
 
 bool WalletBatch::WriteStealthKeyMeta(const CKeyID& keyId, const CStealthKeyMetadata& sxKeyMeta)
@@ -283,6 +311,7 @@ public:
     unsigned int nKeyMeta;
     unsigned int m_unknown_records;
     bool fIsEncrypted;
+    bool fHasPQKeys{false};
     bool fAnyUnordered;
     int nFileVersion;
     std::vector<uint256> vWalletUpgrade;
@@ -450,6 +479,69 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 return false;
             }
         }
+        else if (strType == "pqpolicy")
+        {
+            uint256 id;
+            ssKey >> id;
+            const size_t size = ReadCompactSize(ssValue);
+            if (!ssKey.empty() || size > PQ_MULTISIG_MAX_POLICY_BYTES || ssValue.size() != size) {
+                strErr = "Invalid PQ multisig policy encoding";
+                return false;
+            }
+            std::vector<unsigned char> encoded(size);
+            ssValue.read(reinterpret_cast<char*>(encoded.data()), size);
+            PQMultisigPolicy policy;
+            if (!DecodePQMultisigPolicy(encoded, policy) || GetPQMultisigPolicyId(policy) != id ||
+                !pwallet->LoadPQMultisigPolicy(encoded)) {
+                strErr = "Corrupt PQ multisig policy";
+                return false;
+            }
+            wss.fHasPQKeys = true;
+        }
+        else if (strType == "pqkey" || strType == "cpqkey")
+        {
+            if (!pos::experimental::MLDSA44Available()) {
+                strErr = "Wallet requires an ML-DSA-44 backend";
+                return false;
+            }
+            uint256 id;
+            ssKey >> id;
+            if (!ssKey.empty() || ReadCompactSize(ssValue) != pos::experimental::MLDSA44_PUBLIC_KEY_SIZE) {
+                strErr = "Invalid PQ wallet key encoding";
+                return false;
+            }
+            std::vector<unsigned char> public_key(pos::experimental::MLDSA44_PUBLIC_KEY_SIZE);
+            ssValue.read(reinterpret_cast<char*>(public_key.data()), public_key.size());
+            const size_t expected_size = strType == "pqkey" ? 32 : 48;
+            if (pos::experimental::GetMLDSA44KeyId(public_key) != id ||
+                ReadCompactSize(ssValue) != expected_size || ssValue.size() != expected_size) {
+                strErr = "Invalid PQ wallet secret encoding";
+                return false;
+            }
+            if (strType == "pqkey") {
+                CKeyingMaterial seed(expected_size);
+                ssValue.read(reinterpret_cast<char*>(seed.data()), seed.size());
+                pos::experimental::MLDSA44Key key;
+                std::vector<unsigned char> derived;
+                if (!key.SetSeed(seed.data(), seed.size()) ||
+                    !key.GetPublicKey(derived) || derived != public_key ||
+                    !pwallet->LoadPQKey(key, public_key)) {
+                    strErr = "Corrupt PQ wallet key";
+                    return false;
+                }
+                ++wss.nKeys;
+            } else {
+                std::vector<unsigned char> ciphertext(expected_size);
+                ssValue.read(reinterpret_cast<char*>(ciphertext.data()), ciphertext.size());
+                if (!pwallet->LoadCryptedPQKey(public_key, ciphertext)) {
+                    strErr = "Corrupt encrypted PQ wallet key";
+                    return false;
+                }
+                wss.fIsEncrypted = true;
+                ++wss.nCKeys;
+            }
+            wss.fHasPQKeys = true;
+        }
         else if (strType == "mkey")
         {
             unsigned int nID;
@@ -534,6 +626,16 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
 
             pwallet->LoadKeyPool(nIndex, keypool);
         }
+        else if (strType == "minversion")
+        {
+            int version;
+            ssValue >> version;
+            if (!ssKey.empty() || !ssValue.empty() || version < 0 || version > CLIENT_VERSION) {
+                strErr = "Invalid wallet minimum version";
+                return false;
+            }
+            pwallet->LoadMinVersion(version);
+        }
         else if (strType == "version")
         {
             ssValue >> wss.nFileVersion;
@@ -612,7 +714,8 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
 bool WalletBatch::IsKeyType(const std::string& strType)
 {
     return (strType== "key" || strType == "wkey" ||
-            strType == "mkey" || strType == "ckey");
+            strType == "mkey" || strType == "ckey" ||
+            strType == "pqkey" || strType == "cpqkey" || strType == "pqpolicy");
 }
 
 DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
@@ -659,7 +762,7 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
             {
                 // losing keys is considered a catastrophic error, anything else
                 // we assume the user can live with:
-                if (IsKeyType(strType) || strType == "defaultkey" ||
+                if (IsKeyType(strType) || strType == "defaultkey" || strType == "minversion" ||
                     strType == "possigning")
                     result = DBErrors::CORRUPT;
                 else
@@ -690,6 +793,10 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
     // upgrading, we don't want to make it worse.
     if (result != DBErrors::LOAD_OK)
         return result;
+    if (wss.fHasPQKeys && pwallet->GetVersion() < FEATURE_PQ_KEYS) {
+        LogPrintf("PQ wallet keys lack their downgrade-protection version\n");
+        return DBErrors::CORRUPT;
+    }
 
     LogPrintf("nFileVersion = %d\n", wss.nFileVersion);
 
@@ -893,7 +1000,8 @@ bool WalletBatch::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey, C
         fReadOK = ReadKeyValue(dummyWallet, ssKey, ssValue,
                                dummyWss, strType, strErr);
     }
-    if (!IsKeyType(strType) && strType != "hdchain" && strType != "possigning")
+    if (!IsKeyType(strType) && strType != "hdchain" && strType != "possigning" &&
+        strType != "minversion")
         return false;
     if (!fReadOK)
     {

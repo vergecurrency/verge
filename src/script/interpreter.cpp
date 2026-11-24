@@ -5,6 +5,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <script/interpreter.h>
+#include <script/pq.h>
+#include <pos/pqcrypto.h>
 
 #include <crypto/ripemd160.h>
 #include <crypto/sha1.h>
@@ -463,7 +465,11 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     break;
                 }
 
-                case OP_NOP1: case OP_NOP4: case OP_NOP5:
+                case OP_NOP4:
+                    if (flags & SCRIPT_VERIFY_PQ) return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+                    if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS) return set_error(serror, SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS);
+                    break;
+                case OP_NOP1: case OP_NOP5:
                 case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
                 {
                     if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
@@ -1467,6 +1473,21 @@ bool GenericTransactionSignatureChecker<T>::CheckSequence(const CScriptNum& nSeq
 }
 
 // explicit instantiation
+template <class T>
+bool GenericTransactionSignatureChecker<T>::CheckPQSig(const std::vector<unsigned char>& signature,
+    const std::vector<unsigned char>& public_key, const CScript& script) const
+{
+    if (nIn >= txTo->vin.size() || signature.size() != PQ_SIGNATURE_BYTES + 1 ||
+        signature.back() != (SIGHASH_ALL | (replay_context.IsEnabled() ? SIGHASH_POS_FORKID : 0))) return false;
+    const uint256 transaction_hash = SignatureHash(script, *txTo, nIn, signature.back(), amount,
+        SigVersion::BASE, txdata, replay_context);
+    uint256 hash;
+    if (!pos::experimental::GetPQTransactionHash(replay_context.network_id,
+        replay_context.activation_height, amount, transaction_hash, hash)) return false;
+    return pos::experimental::VerifyMLDSA44(public_key, {hash.begin(), hash.end()},
+        pos::experimental::PQTransactionContext(), {signature.begin(), signature.end() - 1});
+}
+
 template class GenericTransactionSignatureChecker<CTransaction>;
 template class GenericTransactionSignatureChecker<CMutableTransaction>;
 
@@ -1530,6 +1551,32 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         witness = &emptyWitness;
     }
     bool hadWitness = false;
+
+    uint256 pq_id;
+    if ((flags & SCRIPT_VERIFY_PQ) && ExtractPQMultisigId(scriptPubKey, pq_id)) {
+        PQMultisigPolicy policy;
+        std::vector<PQMultisigSignature> signatures;
+        if (!witness->IsNull() || !DecodePQMultisigScriptSig(scriptSig, policy, signatures) ||
+            GetPQMultisigPolicyId(policy) != pq_id || signatures.size() != policy.required) {
+            return set_error(serror, SCRIPT_ERR_CHECKSIGVERIFY);
+        }
+        for (const auto& item : signatures) {
+            if (pos::experimental::GetMLDSA44KeyId(item.public_key) != policy.keys[item.index] ||
+                !checker.CheckPQSig(item.signature, item.public_key, scriptPubKey)) {
+                return set_error(serror, SCRIPT_ERR_CHECKSIGVERIFY);
+            }
+        }
+        return set_success(serror);
+    }
+    if ((flags & SCRIPT_VERIFY_PQ) && ExtractPQKeyId(scriptPubKey, pq_id)) {
+        std::vector<unsigned char> signature, public_key;
+        if (!witness->IsNull() || !DecodePQScriptSig(scriptSig, signature, public_key) ||
+            pos::experimental::GetMLDSA44KeyId(public_key) != pq_id ||
+            !checker.CheckPQSig(signature, public_key, scriptPubKey)) {
+            return set_error(serror, SCRIPT_ERR_CHECKSIGVERIFY);
+        }
+        return set_success(serror);
+    }
 
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
 

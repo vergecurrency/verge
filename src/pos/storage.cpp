@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <pos/storage.h>
+#include <chainparams.h>
 
 #include <dbwrapper.h>
 
@@ -117,7 +118,8 @@ bool ReadMetadata(CDBWrapper& database, StateDBMetadata& metadata)
     if (!database.Read(STATE_DB_METADATA_KEY, version)) {
         throw dbwrapper_error("Corrupt PoS state format version");
     }
-    if (version != STATE_DB_VERSION) {
+    const uint32_t expected_version = Params().GetConsensus().fPoSPostQuantum ? 2 : STATE_DB_VERSION;
+    if (version != expected_version) {
         throw dbwrapper_error("Unsupported PoS state database version; use a compatible binary");
     }
     if (!database.Read(STATE_DB_METADATA_KEY, metadata)) {
@@ -132,6 +134,9 @@ bool ReadMetadata(CDBWrapper& database, StateDBMetadata& metadata)
 bool ReadLegacy(CDBWrapper& database, State& state)
 {
     if (!database.Exists(LEGACY_STATE_DB_KEY)) return false;
+    if (Params().GetConsensus().fPoSPostQuantum) {
+        throw dbwrapper_error("Classical trial state is incompatible with PQ rules; start a fresh trial chain");
+    }
     if (!database.Read(LEGACY_STATE_DB_KEY, state)) {
         throw dbwrapper_error("Corrupt legacy PoS state");
     }
@@ -164,6 +169,7 @@ void StateChanges::AddUndo(const StateUndo& undo)
 StateDBMetadata StateStorage::Metadata(const State& state)
 {
     StateDBMetadata metadata;
+    if (Params().GetConsensus().fPoSPostQuantum) metadata.version = 2;
     metadata.best_block = state.m_best_block;
     metadata.initial_entropy = state.m_initial_pow_entropy;
     metadata.has_pos = state.m_has_pos;

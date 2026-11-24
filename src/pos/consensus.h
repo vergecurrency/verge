@@ -15,6 +15,17 @@ class COutPoint;
 
 namespace pos {
 
+struct StakeSnapshot;
+struct StakeProof;
+
+/** One stake-weighted winner from an already authenticated delayed snapshot. */
+bool SelectPublicStake(const StakeSnapshot& snapshot, uint32_t network_id,
+                       const uint256& epoch_seed, uint64_t slot,
+                       COutPoint& winner, uint256& selection_hash);
+bool BuildPublicStakeProof(const StakeSnapshot& snapshot, uint32_t network_id,
+                          const uint256& epoch_seed, uint64_t slot,
+                          StakeProof& proof);
+
 struct SlotInfo {
     uint64_t activation_slot{0};
     uint64_t global_slot{0};

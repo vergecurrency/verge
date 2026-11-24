@@ -84,10 +84,15 @@ static bool verify_flags(unsigned int flags)
 
 static int verify_script(const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen, CAmount amount,
                                     const unsigned char *txTo        , unsigned int txToLen,
-                                    unsigned int nIn, unsigned int flags, vergeconsensus_error* err)
+                                    unsigned int nIn, unsigned int flags, vergeconsensus_error* err,
+                                    const ReplayProtectionContext& context = ReplayProtectionContext())
 {
     if (!verify_flags(flags)) {
-        return vergeconsensus_ERR_INVALID_FLAGS;
+        return set_error(err, vergeconsensus_ERR_INVALID_FLAGS);
+    }
+    if (((flags & SCRIPT_VERIFY_PQ) && context.network_id == 0) ||
+        ((flags & SCRIPT_VERIFY_POS_REPLAY_PROTECTION) && !context.IsEnabled()) || context.activation_height < 0) {
+        return set_error(err, vergeconsensus_ERR_CONTEXT_REQUIRED);
     }
     try {
         TxInputStream stream(SER_NETWORK, PROTOCOL_VERSION, txTo, txToLen);
@@ -101,7 +106,7 @@ static int verify_script(const unsigned char *scriptPubKey, unsigned int scriptP
         set_error(err, vergeconsensus_ERR_OK);
 
         PrecomputedTransactionData txdata(tx);
-        return VerifyScript(tx.vin[nIn].scriptSig, CScript(scriptPubKey, scriptPubKey + scriptPubKeyLen), &tx.vin[nIn].scriptWitness, flags, TransactionSignatureChecker(&tx, nIn, amount, txdata), nullptr);
+        return VerifyScript(tx.vin[nIn].scriptSig, CScript(scriptPubKey, scriptPubKey + scriptPubKeyLen), &tx.vin[nIn].scriptWitness, flags, TransactionSignatureChecker(&tx, nIn, amount, txdata, context), nullptr);
     } catch (const std::exception&) {
         return set_error(err, vergeconsensus_ERR_TX_DESERIALIZE); // Error deserializing
     }
@@ -132,4 +137,13 @@ unsigned int vergeconsensus_version()
 {
     // Just use the API version for now
     return VERGECONSENSUS_API_VER;
+}
+
+int vergeconsensus_verify_script_with_context(const unsigned char *scriptPubKey,
+    unsigned int scriptPubKeyLen, int64_t amount, const unsigned char *txTo,
+    unsigned int txToLen, unsigned int nIn, unsigned int flags, uint32_t network_id,
+    int32_t activation_height, vergeconsensus_error* err)
+{
+    return ::verify_script(scriptPubKey, scriptPubKeyLen, amount, txTo, txToLen,
+        nIn, flags, err, ReplayProtectionContext(network_id, activation_height));
 }

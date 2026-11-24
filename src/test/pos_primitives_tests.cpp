@@ -31,7 +31,9 @@ BOOST_AUTO_TEST_CASE(fixed_sizes_and_versions)
     BOOST_CHECK(pos::IsPoSVersion(pos::BLOCK_VERSION_POS));
     BOOST_CHECK(!pos::IsPoSVersion(0));
 
-    proof.version = 2;
+    proof.version = pos::PUBLIC_STAKE_PROOF_VERSION;
+    BOOST_CHECK(pos::HasSupportedVersion(proof));
+    proof.version = 255;
     vote.version = 0;
     BOOST_CHECK(!pos::HasSupportedVersion(proof));
     BOOST_CHECK(!pos::HasSupportedVersion(vote));
@@ -66,6 +68,55 @@ BOOST_AUTO_TEST_CASE(round_trip)
     BOOST_CHECK_EQUAL_COLLECTIONS(decoded.vrf_proof, decoded.vrf_proof + sizeof(decoded.vrf_proof), expected.vrf_proof, expected.vrf_proof + sizeof(expected.vrf_proof));
     BOOST_CHECK_EQUAL_COLLECTIONS(decoded.signing_public_key, decoded.signing_public_key + sizeof(decoded.signing_public_key), expected.signing_public_key, expected.signing_public_key + sizeof(expected.signing_public_key));
     BOOST_CHECK(stream.empty());
+}
+
+BOOST_AUTO_TEST_CASE(hybrid_fixed_wire_and_legacy_reuse)
+{
+    pos::BlockAuthorization authorization;
+    authorization.version = pos::HYBRID_POS_OBJECT_VERSION;
+    authorization.pq_public_key.assign(pos::MLDSA44_PUBLIC_KEY_SIZE, 1);
+    authorization.pq_signature.assign(pos::MLDSA44_SIGNATURE_SIZE, 2);
+    BOOST_CHECK_EQUAL(GetSerializeSize(authorization, SER_NETWORK, 0), 4005U);
+    CDataStream encoded(SER_NETWORK, 0);
+    encoded << authorization;
+    pos::BlockAuthorization decoded;
+    encoded >> decoded;
+    BOOST_CHECK(encoded.empty());
+    BOOST_CHECK(decoded.pq_public_key == authorization.pq_public_key);
+    BOOST_CHECK(decoded.pq_signature == authorization.pq_signature);
+    // Reading an old record into a reused object must clear all PQ fields.
+    encoded << pos::BlockAuthorization();
+    encoded >> decoded;
+    BOOST_CHECK(decoded.pq_public_key.empty());
+    BOOST_CHECK(decoded.pq_signature.empty());
+    BOOST_CHECK_EQUAL(GetSerializeSize(decoded, SER_NETWORK, 0), 273U);
+    auto invalid = authorization;
+    invalid.pq_signature.pop_back();
+    BOOST_CHECK_THROW(encoded << invalid, std::ios_base::failure);
+    encoded.clear();
+    invalid = authorization;
+    invalid.version = pos::POS_OBJECT_VERSION;
+    BOOST_CHECK_THROW(encoded << invalid, std::ios_base::failure);
+    encoded.clear();
+    encoded << authorization;
+    encoded.resize(encoded.size() - 1);
+    BOOST_CHECK_THROW(encoded >> decoded, std::ios_base::failure);
+    encoded.clear();
+    encoded << uint8_t{255};
+    BOOST_CHECK_THROW(encoded >> decoded, std::ios_base::failure);
+    pos::CheckpointVote vote;
+    vote.version = pos::HYBRID_POS_OBJECT_VERSION;
+    vote.pq_public_key = authorization.pq_public_key;
+    vote.pq_signature = authorization.pq_signature;
+    BOOST_CHECK_EQUAL(GetSerializeSize(vote, SER_NETWORK, 0), 3961U);
+    pos::BlockEquivocationEvidence block_evidence;
+    block_evidence.version = pos::HYBRID_POS_OBJECT_VERSION;
+    block_evidence.first = block_evidence.second = authorization;
+    BOOST_CHECK_EQUAL(GetSerializeSize(block_evidence, SER_NETWORK, 0), 8011U);
+    pos::VoteEquivocationEvidence vote_evidence;
+    vote_evidence.version = pos::HYBRID_POS_OBJECT_VERSION;
+    vote_evidence.first = vote_evidence.second = vote;
+    BOOST_CHECK_EQUAL(GetSerializeSize(vote_evidence, SER_NETWORK, 0), 7923U);
 }
 
 BOOST_AUTO_TEST_CASE(tagged_hash_vector)

@@ -14,15 +14,21 @@
 namespace pos {
 
 struct BondData {
+    uint8_t version{POS_OBJECT_VERSION};
     unsigned char signing_public_key[SCHNORR_PUBLIC_KEY_SIZE]{};
     unsigned char vrf_public_key[VRF_PUBLIC_KEY_SIZE]{};
     uint160 reward_key_id;
     uint160 withdrawal_key_id;
+    uint256 pq_signing_key_id;
+    uint256 pq_reward_key_id;
+    uint256 pq_withdrawal_key_id;
 };
 
 struct UnbondData {
+    uint8_t version{POS_OBJECT_VERSION};
     uint32_t unlock_height{0};
     uint160 withdrawal_key_id;
+    uint256 pq_withdrawal_key_id;
 };
 
 bool IsValid(const BondData& bond);

@@ -10,20 +10,24 @@
 #include <chainparams.h>
 #include <consensus/validation.h>
 #include <interfaces/handler.h>
+#include <key_io.h>
 #include <net.h>
 #include <policy/feerate.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <pos/state.h>
 #include <primitives/transaction.h>
+#include <script/pq.h>
 #include <script/ismine.h>
 #include <script/standard.h>
 #include <support/allocators/secure.h>
 #include <sync.h>
 #include <timedata.h>
+#include <txmempool.h>
 #include <ui_interface.h>
 #include <uint256.h>
 #include <validation.h>
+#include <wallet/coincontrol.h>
 #include <wallet/feebumper.h>
 #include <wallet/fees.h>
 #include <wallet/staker.h>
@@ -47,8 +51,27 @@ public:
         std::string& reject_reason) override
     {
         LOCK2(cs_main, m_wallet.cs_wallet);
+        if (m_pq_migration) {
+            if (!PQMigrationReady(reject_reason)) return false;
+            CCoinControl control;
+            control.m_min_depth = 1;
+            for (const auto& input : m_tx->vin) control.Select(input.prevout);
+            std::vector<COutput> coins;
+            m_wallet.AvailableCoins(coins, true, &control);
+            if (coins.size() != m_tx->vin.size()) {
+                reject_reason = "The selected legacy coins changed. Prepare the transfer again.";
+                return false;
+            }
+            CValidationState check;
+            bool missing = false;
+            if (!AcceptToMemoryPool(mempool, check, m_tx, &missing, nullptr, false, maxTxFee, true)) {
+                reject_reason = missing ? "The selected legacy coins are no longer available." : FormatStateMessage(check);
+                return false;
+            }
+        }
         CValidationState state;
-        if (!m_wallet.CommitTransaction(m_tx, std::move(value_map), std::move(order_form), std::move(from_account), m_key, g_connman.get(), state)) {
+        if (!m_wallet.CommitTransaction(m_tx, std::move(value_map), std::move(order_form), std::move(from_account), m_key, g_connman.get(), state) ||
+            (m_pq_migration && !state.IsValid())) {
             reject_reason = state.GetRejectReason();
             return false;
         }
@@ -58,6 +81,22 @@ public:
     CTransactionRef m_tx;
     CWallet& m_wallet;
     CReserveKey m_key;
+    bool m_pq_migration{false};
+
+    bool PQMigrationReady(std::string& error)
+    {
+        if (!Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
+            error = "Post-quantum transfers are not active on this network.";
+        } else if (!IsChainCurrentForServices() || !g_connman ||
+                   !g_connman->GetNetworkActive() || g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0) {
+            error = "Wait for the wallet to synchronize and connect to peers.";
+        } else if (!m_wallet.GetBroadcastTransactions()) {
+            error = "Transaction broadcasting is disabled for this wallet.";
+        } else {
+            return true;
+        }
+        return false;
+    }
 };
 
 //! Construct wallet tx struct.
@@ -196,6 +235,26 @@ public:
     {
         return m_wallet.GetKeyFromPool(pub_key, internal);
     }
+    bool createPQReceiveAddress(const std::string& label, std::string& address, std::string& error) override
+    {
+        LOCK2(cs_main, m_wallet.cs_wallet);
+        address.clear();
+        if (!Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
+            error = "Post-quantum receiving addresses are not active on this network.";
+            return false;
+        }
+        if (m_wallet.IsLocked()) {
+            error = "Unlock the wallet before creating a PQ receiving address.";
+            return false;
+        }
+        uint256 id;
+        if (!m_wallet.GeneratePQKey(id) || !m_wallet.SetAddressBook(PQKeyHash(id), label, "receive")) {
+            error = "Unable to save the new PQ receiving address in this wallet.";
+            return false;
+        }
+        address = EncodeDestination(PQKeyHash(id));
+        return true;
+    }
     bool getPubKey(const CKeyID& address, CPubKey& pub_key) override { return m_wallet.GetPubKey(address, pub_key); }
     bool getPrivKey(const CKeyID& address, CKey& key) override { return m_wallet.GetKey(address, key); }
     bool isSpendable(const CTxDestination& dest) override { return IsMine(m_wallet, dest) & ISMINE_SPENDABLE; }
@@ -292,6 +351,16 @@ public:
         return std::move(pending);
     }
     bool transactionCanBeAbandoned(const uint256& txid) override { return m_wallet.TransactionCanBeAbandoned(txid); }
+    std::unique_ptr<PendingWalletTx> createLegacyPQMigration(WalletPQMigration& migration,
+                                                           std::string& error) override
+    {
+        LOCK2(cs_main, m_wallet.cs_wallet);
+        auto pending = MakeUnique<PendingWalletTxImpl>(m_wallet);
+        if (!pending->PQMigrationReady(error) ||
+            !m_wallet.CreateLegacyPQMigration(pending->m_tx, pending->m_key, migration, error)) return {};
+        pending->m_pq_migration = true;
+        return std::move(pending);
+    }
     bool abandonTransaction(const uint256& txid) override
     {
         LOCK2(cs_main, m_wallet.cs_wallet);
@@ -394,21 +463,14 @@ public:
     {
         LOCK2(::cs_main, m_wallet.cs_wallet);
         WalletBalances result;
-        result.balance = m_wallet.GetBalance();
-        result.unconfirmed_balance = m_wallet.GetUnconfirmedBalance();
-        result.immature_balance = m_wallet.GetImmatureBalance();
-        const pos::State& state = GetPoSStateView();
-        for (const auto& item : state.Bonds()) {
-            if (m_wallet.HaveKey(
-                    CKeyID(item.second.data.withdrawal_key_id))) {
-                result.staked_balance += item.second.value;
-            }
-        }
-        for (const WalletUnbondingInfo& unbond : GetWalletUnbondings(m_wallet)) {
-            if (unbond.confirmations > 0 && unbond.blocks_until_unlock > 0) {
-                result.staked_balance += unbond.amount;
-            }
-        }
+        const auto amounts = m_wallet.GetProtectionBalances();
+        result.balance = amounts.legacy.available + amounts.pq.available;
+        result.unconfirmed_balance = amounts.legacy.pending + amounts.pq.pending;
+        result.immature_balance = amounts.legacy.immature + amounts.pq.immature;
+        result.staked_balance = amounts.legacy.staked + amounts.pq.staked;
+        result.legacy_balance = amounts.legacy.Total();
+        result.pq_balance = amounts.pq.Total();
+        result.pq_enabled = Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1);
         result.have_watch_only = m_wallet.HaveWatchOnly();
         if (result.have_watch_only) {
             result.watch_only_balance = m_wallet.GetBalance(ISMINE_WATCH_ONLY);

@@ -13,6 +13,7 @@
 #include <uint256.h>
 
 #include <cstddef>
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -40,7 +41,36 @@ struct BondRecord {
     template <typename Stream, typename Operation>
     void SerializationOp(Stream& s, Operation ser_action)
     {
-        READWRITE(value, creation_height);
+        CAmount marker = data.version == HYBRID_POS_OBJECT_VERSION ? -1 : value;
+        if (!ser_action.ForRead() && data.version != POS_OBJECT_VERSION &&
+            data.version != HYBRID_POS_OBJECT_VERSION) {
+            throw std::ios_base::failure("Unknown bond credential version");
+        }
+        READWRITE(marker);
+        if (marker == -1) {
+            READWRITE(data.version);
+            if (data.version != HYBRID_POS_OBJECT_VERSION) {
+                throw std::ios_base::failure("Unknown versioned bond record");
+            }
+            READWRITE(value, creation_height, data.signing_public_key,
+                      data.pq_signing_key_id, data.pq_reward_key_id,
+                      data.pq_withdrawal_key_id);
+            if (value <= 0 || !MoneyRange(value)) {
+                throw std::ios_base::failure("Invalid versioned bond value");
+            }
+            if (ser_action.ForRead()) {
+                std::fill(std::begin(data.vrf_public_key), std::end(data.vrf_public_key), 0);
+                data.reward_key_id.SetNull();
+                data.withdrawal_key_id.SetNull();
+            }
+            return;
+        }
+        if (marker < 0) throw std::ios_base::failure("Invalid legacy bond value");
+        if (ser_action.ForRead()) {
+            value = marker;
+            data = BondData();
+        }
+        READWRITE(creation_height);
         READWRITE(data.signing_public_key);
         READWRITE(data.vrf_public_key);
         READWRITE(data.reward_key_id, data.withdrawal_key_id);

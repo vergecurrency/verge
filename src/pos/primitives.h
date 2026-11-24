@@ -11,11 +11,14 @@
 #include <uint256.h>
 
 #include <cstdint>
+#include <ios>
 #include <vector>
 
 namespace pos {
 
 static constexpr uint8_t POS_OBJECT_VERSION = 1;
+static constexpr uint8_t PUBLIC_STAKE_PROOF_VERSION = 2;
+static constexpr uint8_t HYBRID_POS_OBJECT_VERSION = 2;
 static constexpr int32_t BLOCK_VERSION_POS = (1 << 15);
 static constexpr uint64_t FINAL_POW_CHECKPOINT_EPOCH = UINT64_MAX;
 // The final PoW checkpoint is logically epoch -1, not the newest epoch.
@@ -30,6 +33,45 @@ static constexpr size_t SCHNORR_SIGNATURE_SIZE = 64;
 static constexpr size_t VRF_PUBLIC_KEY_SIZE = 33;
 static constexpr size_t VRF_OUTPUT_SIZE = 32;
 static constexpr size_t VRF_PROOF_SIZE = 81;
+static constexpr size_t MLDSA44_PUBLIC_KEY_SIZE = 1312;
+static constexpr size_t MLDSA44_SIGNATURE_SIZE = 2420;
+
+// Fixed wire lengths, with no peer-controlled allocation or length prefix.
+template <typename Stream>
+void SerReadWriteHybridAuthentication(Stream& stream, CSerActionSerialize,
+    uint8_t version, const std::vector<unsigned char>& public_key,
+    const std::vector<unsigned char>& signature)
+{
+    if (version == POS_OBJECT_VERSION) {
+        if (!public_key.empty() || !signature.empty()) {
+            throw std::ios_base::failure("PQ authentication on a legacy PoS object");
+        }
+    } else if (version == HYBRID_POS_OBJECT_VERSION &&
+               public_key.size() == MLDSA44_PUBLIC_KEY_SIZE &&
+               signature.size() == MLDSA44_SIGNATURE_SIZE) {
+        stream.write(reinterpret_cast<const char*>(public_key.data()), public_key.size());
+        stream.write(reinterpret_cast<const char*>(signature.data()), signature.size());
+    } else {
+        throw std::ios_base::failure("Invalid hybrid PoS authentication encoding");
+    }
+}
+
+template <typename Stream>
+void SerReadWriteHybridAuthentication(Stream& stream, CSerActionUnserialize,
+    uint8_t version, std::vector<unsigned char>& public_key,
+    std::vector<unsigned char>& signature)
+{
+    public_key.clear();
+    signature.clear();
+    if (version == POS_OBJECT_VERSION) return;
+    if (version != HYBRID_POS_OBJECT_VERSION) {
+        throw std::ios_base::failure("Unknown PoS authentication version");
+    }
+    public_key.resize(MLDSA44_PUBLIC_KEY_SIZE);
+    stream.read(reinterpret_cast<char*>(public_key.data()), public_key.size());
+    signature.resize(MLDSA44_SIGNATURE_SIZE);
+    stream.read(reinterpret_cast<char*>(signature.data()), signature.size());
+}
 
 struct StakeProof {
     uint8_t version{POS_OBJECT_VERSION};
@@ -65,6 +107,8 @@ struct BlockAuthorization {
     uint256 fee_reward_transaction_hash;
     uint256 parent_randomness;
     unsigned char signature[SCHNORR_SIGNATURE_SIZE]{};
+    std::vector<unsigned char> pq_public_key;
+    std::vector<unsigned char> pq_signature;
 
     ADD_SERIALIZE_METHODS;
 
@@ -74,6 +118,7 @@ struct BlockAuthorization {
         READWRITE(version, network_id, parent_block_root, candidate_header_hash,
                   slot, bond_outpoint, stake_proof_hash,
                   fee_reward_transaction_hash, parent_randomness, signature);
+        SerReadWriteHybridAuthentication(s, ser_action, version, pq_public_key, pq_signature);
     }
 };
 struct CheckpointVote {
@@ -87,6 +132,8 @@ struct CheckpointVote {
     uint64_t head_slot{0};
     uint256 head_block_root;
     unsigned char signature[SCHNORR_SIGNATURE_SIZE]{};
+    std::vector<unsigned char> pq_public_key;
+    std::vector<unsigned char> pq_signature;
 
     ADD_SERIALIZE_METHODS;
 
@@ -96,6 +143,7 @@ struct CheckpointVote {
         READWRITE(version, bond_outpoint, snapshot_epoch, source_epoch,
                   source_checkpoint_root, target_epoch, target_checkpoint_root,
                   head_slot, head_block_root, signature);
+        SerReadWriteHybridAuthentication(s, ser_action, version, pq_public_key, pq_signature);
     }
 };
 
@@ -145,6 +193,7 @@ enum class HashDomain {
     SLOT,
     VRF_KEY,
     EPOCH_ENTROPY,
+    PUBLIC_ELIGIBILITY,
 };
 
 enum class StructureError {
@@ -199,6 +248,8 @@ uint256 GetBlockEvidenceId(const BlockEquivocationEvidence& evidence);
 uint256 GetVoteEvidenceId(const VoteEquivocationEvidence& evidence);
 uint256 GetBlockEvidencePenaltyKey(const COutPoint& bond_outpoint);
 uint256 GetVoteEvidencePenaltyKey(const COutPoint& bond_outpoint);
+void ClearAuthenticationSignature(BlockAuthorization& authorization);
+void ClearAuthenticationSignature(CheckpointVote& vote);
 bool HasSupportedVersion(const StakeProof& proof);
 bool HasSupportedVersion(const CheckpointVote& vote);
 bool HasSupportedVersion(const BlockAuthorization& authorization);

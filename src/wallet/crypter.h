@@ -137,6 +137,7 @@ protected:
 
     bool Unlock(const CKeyingMaterial& vMasterKeyIn);
     CryptedKeyMap mapCryptedKeys;
+    std::map<uint256, std::pair<std::vector<unsigned char>, std::vector<unsigned char>>> mapCryptedPQKeys;
 
 public:
     CKeyingMaterial vMasterKey;
@@ -149,6 +150,13 @@ public:
     bool Lock();
 
     virtual bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
+    virtual bool AddCryptedPQKey(const std::vector<unsigned char>& public_key,
+                                 const std::vector<unsigned char>& ciphertext);
+    bool AddPQKey(const pos::experimental::MLDSA44Key& key,
+                  const std::vector<unsigned char>& public_key) override;
+    bool HavePQKey(const uint256& id) const override;
+    bool GetPQKey(const uint256& id, pos::experimental::MLDSA44Key& key) const override;
+    bool GetPQPubKey(const uint256& id, std::vector<unsigned char>& public_key) const override;
     bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey) override;
     bool HaveKey(const CKeyID &address) const override;
     bool GetKey(const CKeyID &address, CKey& keyOut) const override;

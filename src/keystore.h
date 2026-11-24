@@ -20,6 +20,7 @@
 class CKeyStore : public SigningProvider
 {
 public:
+    virtual bool HavePQKey(const uint256&) const { return false; }
     //! Add a key to the store.
     virtual bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) =0;
 
@@ -40,6 +41,8 @@ public:
 };
 
 typedef std::map<CKeyID, CKey> KeyMap;
+typedef std::vector<unsigned char, secure_allocator<unsigned char>> CKeyingMaterial;
+typedef std::map<uint256, std::pair<std::vector<unsigned char>, CKeyingMaterial>> PQKeyMap;
 typedef std::map<CKeyID, CPubKey> WatchKeyMap;
 typedef std::map<CScriptID, CScript > ScriptMap;
 typedef std::set<CScript> WatchOnlySet;
@@ -51,6 +54,8 @@ protected:
     mutable CCriticalSection cs_KeyStore;
 
     KeyMap mapKeys;
+    PQKeyMap mapPQKeys;
+    std::map<uint256, std::vector<unsigned char>> mapPQMultisigPolicies;
     WatchKeyMap mapWatchKeys;
     ScriptMap mapScripts;
     WatchOnlySet setWatchOnly;
@@ -59,6 +64,13 @@ protected:
 
 public:
     bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey) override;
+    virtual bool AddPQKey(const pos::experimental::MLDSA44Key& key,
+                          const std::vector<unsigned char>& public_key);
+    bool HavePQKey(const uint256& id) const override;
+    bool GetPQKey(const uint256& id, pos::experimental::MLDSA44Key& key) const override;
+    bool GetPQPubKey(const uint256& id, std::vector<unsigned char>& public_key) const override;
+    virtual bool AddPQMultisigPolicy(const std::vector<unsigned char>& encoded);
+    bool GetPQMultisigPolicy(const uint256& id, std::vector<unsigned char>& encoded) const override;
     bool AddKey(const CKey &key) { return AddKeyPubKey(key, key.GetPubKey()); }
     bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const override;
     bool HaveKey(const CKeyID &address) const override;
@@ -75,7 +87,6 @@ public:
     bool HaveWatchOnly() const override;
 };
 
-typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
 typedef std::map<CKeyID, std::pair<CPubKey, std::vector<unsigned char> > > CryptedKeyMap;
 
 /** Return the CKeyID of the key involved in a script (if there is a unique one). */

@@ -67,6 +67,7 @@ public:
        Returns the added address on success, and an empty string otherwise.
      */
     QString addRow(const QString &type, const QString &label, const QString &address, const OutputType address_type);
+    QString addPQRow(const QString& label, QString& error);
 
     /** Look up label for address in address book, if not found return empty string. */
     QString labelForAddress(const QString &address) const;

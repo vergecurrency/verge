@@ -15,10 +15,14 @@
 #include <consensus/validation.h>
 #include <arith_uint256.h>
 #include <chainparams.h>
+#include <key_io.h>
 #include <pos/stake.h>
 #include <pos/crypto.h>
+#include <pos/pqcrypto.h>
 #include <pos/vrf.h>
+#include <policy/policy.h>
 #include <rpc/server.h>
+#include <script/pq.h>
 #include <test/setup_common.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
@@ -33,6 +37,228 @@ extern UniValue dumpwallet(const JSONRPCRequest& request);
 extern UniValue importwallet(const JSONRPCRequest& request);
 
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
+
+BOOST_FIXTURE_TEST_CASE(pq_keys_survive_reload_encryption_and_backup, TestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    const fs::path path = GetDataDir() / "pq-keys-test.dat";
+    const fs::path backup = GetDataDir() / "pq-keys-backup.dat";
+    const SecureString passphrase{"pq-test-passphrase"};
+    uint256 id, encrypted_id;
+    std::vector<unsigned char> public_key;
+    for (int reopen = 0; reopen < 3; ++reopen) {
+        CWallet wallet("pq-keys-test", WalletDatabase::Create(path));
+        bool first_run = false;
+        BOOST_REQUIRE(wallet.LoadWallet(first_run) == DBErrors::LOAD_OK);
+        LOCK(wallet.cs_wallet);
+        if (reopen == 0) {
+            BOOST_CHECK(first_run);
+            BOOST_CHECK(!wallet.HasPQKeys());
+            BOOST_REQUIRE(wallet.GeneratePQKey(id));
+            BOOST_REQUIRE(wallet.GetPQPubKey(id, public_key));
+            BOOST_CHECK_EQUAL(wallet.GetVersion(), FEATURE_PQ_KEYS);
+        } else {
+            BOOST_CHECK(!first_run);
+            BOOST_CHECK_EQUAL(wallet.GetVersion(), FEATURE_PQ_KEYS);
+            BOOST_CHECK(wallet.HavePQKey(id));
+        }
+        BOOST_CHECK(wallet.HasPQKeys());
+        pos::experimental::MLDSA44Key loaded;
+        if (reopen == 1) {
+            BOOST_REQUIRE(wallet.GetPQKey(id, loaded));
+            BOOST_REQUIRE(wallet.EncryptWallet(passphrase));
+            BOOST_CHECK(wallet.IsLocked());
+            BOOST_CHECK(!wallet.GetPQKey(id, loaded));
+            BOOST_CHECK(!loaded.IsValid());
+        }
+        if (reopen > 0) {
+            BOOST_CHECK(wallet.IsCrypted());
+            BOOST_CHECK(wallet.IsLocked());
+            BOOST_CHECK(!wallet.Unlock(SecureString{"wrong-passphrase"}));
+            BOOST_REQUIRE(wallet.Unlock(passphrase));
+            if (reopen == 1) BOOST_REQUIRE(wallet.GeneratePQKey(encrypted_id));
+            BOOST_CHECK(wallet.HavePQKey(encrypted_id));
+        }
+        BOOST_REQUIRE(wallet.GetPQKey(id, loaded));
+        std::vector<unsigned char> derived, signature;
+        BOOST_REQUIRE(loaded.GetPublicKey(derived));
+        BOOST_CHECK(derived == public_key);
+        BOOST_REQUIRE(loaded.Sign({1, 2, 3}, {}, signature));
+        BOOST_CHECK(pos::experimental::VerifyMLDSA44(public_key, {1, 2, 3}, {}, signature));
+        if (reopen == 2) {
+            BOOST_CHECK(!wallet.BackupWallet((path / "wallet.dat").string()));
+            BOOST_REQUIRE(wallet.BackupWallet(backup.string()));
+        }
+        if (reopen == 2) wallet.GetDBHandle().Flush(true);
+    }
+    {
+        CWallet restored("pq-keys-backup", WalletDatabase::Create(backup));
+        bool first_run = true;
+        BOOST_REQUIRE(restored.LoadWallet(first_run) == DBErrors::LOAD_OK);
+        BOOST_CHECK(!first_run);
+        BOOST_REQUIRE(restored.Unlock(passphrase));
+        pos::experimental::MLDSA44Key loaded;
+        BOOST_CHECK(restored.GetPQKey(id, loaded));
+        BOOST_CHECK(restored.GetPQKey(encrypted_id, loaded));
+        BOOST_CHECK(restored.Lock());
+        BOOST_CHECK(restored.HasPQKeys());
+        restored.GetDBHandle().Flush(true);
+    }
+    ReleaseDirectoryLocks();
+}
+
+BOOST_FIXTURE_TEST_CASE(pq_wallet_records_reject_corruption_and_future_versions, TestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    pos::experimental::MLDSA44Key key;
+    BOOST_REQUIRE(key.MakeNewKey());
+    std::vector<unsigned char> public_key;
+    BOOST_REQUIRE(key.GetPublicKey(public_key));
+    CKeyingMaterial seed(32, 7);
+    CWallet recovered("pq-key-filter", WalletDatabase::CreateDummy());
+    CDataStream record_key(SER_DISK, CLIENT_VERSION), record_value(SER_DISK, CLIENT_VERSION);
+    BOOST_REQUIRE(key.GetSeed(seed));
+    record_key << std::make_pair(std::string("pqkey"), pos::experimental::GetMLDSA44KeyId(public_key));
+    record_value << std::make_pair(public_key, seed);
+    // Salvage order need not put the minimum-version record first.
+    BOOST_REQUIRE(WalletBatch::RecoverKeysOnlyFilter(&recovered, record_key, record_value));
+    BOOST_CHECK(recovered.HavePQKey(pos::experimental::GetMLDSA44KeyId(public_key)));
+    record_key.clear();
+    record_value.clear();
+    record_key << std::string("minversion");
+    record_value << int(FEATURE_PQ_KEYS);
+    BOOST_CHECK(WalletBatch::RecoverKeysOnlyFilter(&recovered, record_key, record_value));
+    BOOST_CHECK_EQUAL(recovered.GetVersion(), FEATURE_PQ_KEYS);
+    const fs::path missing_guard = GetDataDir() / "pq-missing-guard";
+    {
+        auto database = WalletDatabase::Create(missing_guard);
+        WalletBatch batch(*database, "cr+");
+        BOOST_REQUIRE(batch.WritePQKey(public_key, seed));
+        BOOST_CHECK(!batch.WritePQKey(public_key, seed));
+    }
+    {
+        CWallet rejected("pq-missing-guard", WalletDatabase::Create(missing_guard));
+        bool first_run;
+        BOOST_CHECK(rejected.LoadWallet(first_run) == DBErrors::CORRUPT);
+        rejected.GetDBHandle().Flush(true);
+    }
+    seed[0] ^= 1;
+    const fs::path path = GetDataDir() / "pq-corrupt-test.dat";
+    {
+        auto database = WalletDatabase::Create(path);
+        WalletBatch batch(*database, "cr+");
+        // A valid-length record with mismatched seed must be fatal, not skipped.
+        BOOST_REQUIRE(batch.WriteMinVersion(FEATURE_PQ_KEYS));
+        BOOST_REQUIRE(batch.WritePQKey(public_key, seed));
+    }
+    {
+        CWallet rejected("pq-corrupt", WalletDatabase::Create(path));
+        bool first_run;
+        BOOST_CHECK(rejected.LoadWallet(first_run) == DBErrors::CORRUPT);
+        rejected.GetDBHandle().Flush(false);
+    }
+    {
+        auto database = WalletDatabase::Create(path);
+        BOOST_REQUIRE(WalletBatch(*database).WriteMinVersion(CLIENT_VERSION + 1));
+    }
+    {
+        CWallet rejected("pq-too-new", WalletDatabase::Create(path));
+        bool first_run;
+        BOOST_CHECK(rejected.LoadWallet(first_run) == DBErrors::TOO_NEW);
+        rejected.GetDBHandle().Flush(true);
+    }
+    CWallet dummy("pq-failed-write", WalletDatabase::CreateDummy());
+    uint256 id = uint256S("1234");
+    BOOST_CHECK(!dummy.GeneratePQKey(id));
+    BOOST_CHECK(id.IsNull());
+    ReleaseDirectoryLocks();
+}
+
+BOOST_FIXTURE_TEST_CASE(pq_multisig_persistence_backup_and_corruption, TestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    const fs::path path = GetDataDir() / "pq-policy-wallet";
+    const fs::path backup = GetDataDir() / "pq-policy-backup";
+    const SecureString passphrase{"policy-test"};
+    PQMultisigPolicy policy;
+    policy.required = 2;
+    CScript script;
+    std::vector<unsigned char> encoded;
+    uint256 id;
+    for (int reopen = 0; reopen < 3; ++reopen) {
+        CWallet wallet("pq-policy-test", WalletDatabase::Create(path));
+        bool first;
+        BOOST_REQUIRE(wallet.LoadWallet(first) == DBErrors::LOAD_OK);
+        LOCK(wallet.cs_wallet);
+        if (reopen == 0) {
+            uint256 owned;
+            BOOST_REQUIRE(wallet.GeneratePQKey(owned));
+            policy.keys = {owned, uint256S("01"), uint256S("02")};
+            std::sort(policy.keys.begin(), policy.keys.end());
+            encoded = EncodePQMultisigPolicy(policy);
+            id = GetPQMultisigPolicyId(policy);
+            script = GetPQMultisigScript(id);
+            BOOST_REQUIRE(wallet.AddPQMultisigPolicy(encoded));
+            BOOST_CHECK(wallet.AddPQMultisigPolicy(encoded));
+        }
+        std::vector<unsigned char> loaded;
+        BOOST_REQUIRE(wallet.GetPQMultisigPolicy(id, loaded));
+        BOOST_CHECK(loaded == encoded);
+        BOOST_CHECK_EQUAL(wallet.GetVersion(), FEATURE_PQ_KEYS);
+        BOOST_CHECK_EQUAL(IsMine(wallet, script), ISMINE_WATCH_ONLY);
+        BOOST_CHECK(wallet.HaveWatchOnly(script));
+        BOOST_CHECK(IsSolvable(wallet, script));
+        if (reopen == 0) BOOST_REQUIRE(wallet.EncryptWallet(passphrase));
+        BOOST_CHECK(wallet.IsLocked());
+        BOOST_REQUIRE(wallet.Unlock(passphrase));
+        BOOST_REQUIRE(wallet.GetPQMultisigPolicy(id, loaded));
+        if (reopen == 2) BOOST_REQUIRE(wallet.BackupWallet(backup.string()));
+        if (reopen == 2) wallet.GetDBHandle().Flush(true);
+    }
+    {
+        CWallet restored("pq-policy-backup", WalletDatabase::Create(backup));
+        bool first;
+        BOOST_REQUIRE(restored.LoadWallet(first) == DBErrors::LOAD_OK);
+        std::vector<unsigned char> loaded;
+        BOOST_REQUIRE(restored.GetPQMultisigPolicy(id, loaded));
+        BOOST_CHECK(loaded == encoded);
+        BOOST_CHECK_EQUAL(IsMine(restored, script), ISMINE_WATCH_ONLY);
+        BOOST_REQUIRE(restored.Unlock(passphrase));
+        restored.GetDBHandle().Flush(true);
+    }
+    CWallet recovered("policy-salvage", WalletDatabase::CreateDummy());
+    CDataStream key(SER_DISK, CLIENT_VERSION), value(SER_DISK, CLIENT_VERSION);
+    key << std::make_pair(std::string("pqpolicy"), id);
+    value << encoded;
+    BOOST_REQUIRE(WalletBatch::RecoverKeysOnlyFilter(&recovered, key, value));
+    BOOST_CHECK_EQUAL(IsMine(recovered, script), ISMINE_WATCH_ONLY);
+    encoded[0] = 2;
+    value.clear();
+    value << encoded;
+    BOOST_CHECK(!WalletBatch::RecoverKeysOnlyFilter(&recovered, key, value));
+    ReleaseDirectoryLocks();
+}
+
+BOOST_FIXTURE_TEST_CASE(pq_text_export_refuses_incomplete_backup, TestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    auto wallet = std::make_shared<CWallet>("pq-export-test",
+        WalletDatabase::Create(GetDataDir() / "pq-export-wallet"));
+    bool first_run;
+    BOOST_REQUIRE(wallet->LoadWallet(first_run) == DBErrors::LOAD_OK);
+    uint256 id;
+    BOOST_REQUIRE(wallet->GeneratePQKey(id));
+    const fs::path output = GetDataDir() / "incomplete-pq-export.txt";
+    JSONRPCRequest request;
+    request.params.setArray();
+    request.params.push_back(output.string());
+    BOOST_REQUIRE(AddWallet(wallet));
+    BOOST_CHECK_THROW(::dumpwallet(request), UniValue);
+    BOOST_CHECK(!fs::exists(output));
+    BOOST_CHECK(RemoveWallet(wallet));
+    wallet->GetDBHandle().Flush(true);
+    ReleaseDirectoryLocks();
+}
 
 BOOST_AUTO_TEST_CASE(staking_attempts_follow_wallet_lifetime)
 {
@@ -465,6 +691,199 @@ public:
 
     std::unique_ptr<CWallet> wallet;
 };
+
+BOOST_FIXTURE_TEST_CASE(pq_balance_breakdown_and_legacy_migration, ListCoinsTestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    UpdatePoSPostQuantumForTesting(true);
+    struct RestorePQ { ~RestorePQ() { UpdatePoSPostQuantumForTesting(false); } } restore;
+    LOCK2(cs_main, wallet->cs_wallet);
+    const auto before = wallet->GetProtectionBalances();
+    BOOST_CHECK_EQUAL(before.legacy.available, wallet->GetBalance());
+    BOOST_CHECK_EQUAL(before.legacy.immature, wallet->GetImmatureBalance());
+    BOOST_CHECK_EQUAL(before.pq.Total(), 0);
+    uint256 pq_id;
+    BOOST_REQUIRE(wallet->GeneratePQKey(pq_id));
+    const CScript legacy = GetScriptForDestination(coinbaseKey.GetPubKey().GetID());
+    pos::BondData bond;
+    bond.version = 2;
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(coinbaseKey.begin(), bond.signing_public_key));
+    bond.pq_signing_key_id = bond.pq_reward_key_id = bond.pq_withdrawal_key_id = pq_id;
+    pos::UnbondData unbond;
+    unbond.version = 2;
+    unbond.unlock_height = chainActive.Height() + Params().GetConsensus().nPoSUnbondingBlocks;
+    unbond.pq_withdrawal_key_id = pq_id;
+    CKey watch;
+    watch.MakeNewKey(true);
+    const CScript watch_script = GetScriptForDestination(watch.GetPubKey().GetID());
+    BOOST_REQUIRE(wallet->AddWatchOnly(watch_script, 0));
+    CMutableTransaction funding;
+    funding.vin.emplace_back(COutPoint(uint256S("ca11"), 0));
+    for (size_t i = 0; i < 101; ++i) funding.vout.emplace_back(1000 * COIN, legacy);
+    funding.vout.emplace_back(50000 * COIN, GetPQScript(pq_id));
+    funding.vout.emplace_back(2000 * COIN, pos::GetBondScript(bond));
+    funding.vout.emplace_back(3000 * COIN, pos::GetUnbondScript(unbond));
+    funding.vout.emplace_back(4000 * COIN, watch_script);
+    CWalletTx wtx(wallet.get(), MakeTransactionRef(funding));
+    wtx.SetMerkleBranch(chainActive.Tip(), 1);
+    BOOST_REQUIRE(wallet->AddToWallet(wtx));
+    wallet->LockCoin(COutPoint(wtx.GetHash(), 0));
+    const auto balances = wallet->GetProtectionBalances();
+    BOOST_CHECK_EQUAL(balances.legacy.available, before.legacy.available + 101000 * COIN);
+    BOOST_CHECK_EQUAL(balances.legacy.immature, before.legacy.immature);
+    BOOST_CHECK_EQUAL(balances.pq.available, 50000 * COIN);
+    BOOST_CHECK_EQUAL(balances.pq.staked, 5000 * COIN);
+    BOOST_CHECK_EQUAL(balances.pq.Total(), 55000 * COIN);
+    BOOST_CHECK_EQUAL(wallet->GetBalance(ISMINE_WATCH_ONLY), 4000 * COIN);
+
+    CReserveKey reserve(wallet.get());
+    CTransactionRef tx;
+    WalletPQMigration migration;
+    std::string error;
+    BOOST_REQUIRE_MESSAGE(wallet->CreateLegacyPQMigration(tx, reserve, migration, error), error);
+    BOOST_REQUIRE(tx);
+    BOOST_CHECK_EQUAL(tx->vin.size(), 100U);
+    BOOST_CHECK_EQUAL(migration.inputs, 100U);
+    BOOST_CHECK_EQUAL(migration.remaining, 1000 * COIN);
+    BOOST_CHECK_EQUAL(migration.amount + migration.fee, before.legacy.available + 99000 * COIN);
+    BOOST_CHECK(migration.fee > 0 && migration.fee <= maxTxFee);
+    BOOST_REQUIRE_EQUAL(tx->vout.size(), 1U);
+    BOOST_CHECK_EQUAL(tx->vout[0].nValue, migration.amount);
+    uint256 destination;
+    BOOST_REQUIRE(ExtractPQKeyId(tx->vout[0].scriptPubKey, destination));
+    BOOST_CHECK(wallet->HavePQKey(destination));
+    BOOST_CHECK(destination != pq_id);
+    BOOST_CHECK_EQUAL(migration.address, EncodeDestination(PQKeyHash(destination)));
+    BOOST_CHECK(wallet->mapAddressBook.at(PQKeyHash(destination)).purpose == "receive");
+    BOOST_CHECK(wallet->mapWallet.count(tx->GetHash()) == 0); // Preparation must not send.
+    for (const auto& input : tx->vin) {
+        BOOST_CHECK(!wallet->IsLockedCoin(input.prevout.hash, input.prevout.n));
+        const auto& prev = wallet->mapWallet.at(input.prevout.hash);
+        BOOST_CHECK(prev.GetDepthInMainChain() > 0);
+        uint256 input_id;
+        pos::BondData parsed;
+        BOOST_CHECK(!ExtractPQKeyId(prev.tx->vout[input.prevout.n].scriptPubKey, input_id));
+        BOOST_CHECK(!pos::ParseBondScript(prev.tx->vout[input.prevout.n].scriptPubKey, parsed));
+    }
+
+    // Locked coins, PQ coins and staking principal cannot fund a second sweep.
+    for (const auto& input : tx->vin) wallet->LockCoin(input.prevout);
+    for (size_t i = 0; i < 101; ++i) wallet->LockCoin(COutPoint(wtx.GetHash(), i));
+    BOOST_CHECK(!wallet->CreateLegacyPQMigration(tx, reserve, migration, error));
+    BOOST_CHECK(!tx);
+    BOOST_CHECK(error.find("No confirmed") != std::string::npos);
+    BOOST_REQUIRE(wallet->EncryptWallet(SecureString{"migration-test"}));
+    BOOST_CHECK(!wallet->CreateLegacyPQMigration(tx, reserve, migration, error));
+    BOOST_CHECK(error.find("Unlock") != std::string::npos);
+}
+
+BOOST_FIXTURE_TEST_CASE(pq_multisig_owned_balance_and_wallet_spending, ListCoinsTestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    UpdatePoSPostQuantumForTesting(true);
+    struct RestorePQ { ~RestorePQ() { UpdatePoSPostQuantumForTesting(false); } } restore;
+    LOCK2(cs_main, wallet->cs_wallet);
+    uint256 id;
+    BOOST_REQUIRE(wallet->GeneratePQKey(id));
+    PQMultisigPolicy policy{1, {id, uint256S("01")}};
+    std::sort(policy.keys.begin(), policy.keys.end());
+    BOOST_REQUIRE(wallet->AddPQMultisigPolicy(EncodePQMultisigPolicy(policy)));
+    const CScript script = GetPQMultisigScript(GetPQMultisigPolicyId(policy));
+    BOOST_CHECK_EQUAL(IsMine(*wallet, script), ISMINE_SPENDABLE);
+    CMutableTransaction funding;
+    funding.vin.emplace_back(COutPoint(uint256S("babb"), 0));
+    funding.vout.emplace_back(100 * COIN, script);
+    CWalletTx wtx(wallet.get(), MakeTransactionRef(funding));
+    wtx.SetMerkleBranch(chainActive.Tip(), 1);
+    BOOST_REQUIRE(wallet->AddToWallet(wtx));
+    BOOST_CHECK_EQUAL(wallet->GetProtectionBalances().pq.available, 100 * COIN);
+    CCoinControl control;
+    control.Select(COutPoint(wtx.GetHash(), 0));
+    CReserveKey reserve(wallet.get());
+    CTransactionRef tx;
+    CAmount fee;
+    int change = -1;
+    std::string error;
+    BOOST_REQUIRE_MESSAGE(wallet->CreateTransaction({CRecipient{GetPQScript(id), 10 * COIN, false}},
+        tx, reserve, fee, change, error, control), error);
+    BOOST_REQUIRE_EQUAL(tx->vin.size(), 1U);
+    BOOST_CHECK(tx->vin[0].prevout == COutPoint(wtx.GetHash(), 0));
+    BOOST_CHECK_EQUAL(tx->vin[0].scriptSig.size(), GetPQMultisigMaximumScriptSigSize(policy));
+    BOOST_CHECK(VerifyScript(tx->vin[0].scriptSig, script, nullptr, STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_PQ,
+        TransactionSignatureChecker(tx.get(), 0, 100 * COIN, ReplayProtectionContext(3, 0))));
+    CAmount output_value = 0;
+    for (const auto& output : tx->vout) output_value += output.nValue;
+    BOOST_CHECK_EQUAL(output_value + fee, 100 * COIN);
+}
+
+BOOST_FIXTURE_TEST_CASE(pq_balance_pending_and_migration_activation, ListCoinsTestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    UpdatePoSPostQuantumForTesting(true);
+    struct RestorePQ { ~RestorePQ() { UpdatePoSPostQuantumForTesting(false); } } restore;
+    LOCK2(cs_main, wallet->cs_wallet);
+    uint256 id;
+    BOOST_REQUIRE(wallet->GeneratePQKey(id));
+    pos::BondData bond;
+    bond.version = 2;
+    BOOST_REQUIRE(pos::GetSchnorrPublicKey(coinbaseKey.begin(), bond.signing_public_key));
+    bond.pq_signing_key_id = bond.pq_reward_key_id = bond.pq_withdrawal_key_id = id;
+    CMutableTransaction funding;
+    funding.vin.emplace_back(COutPoint(uint256S("ca12"), 0));
+    funding.vout.emplace_back(2000 * COIN, GetPQScript(id));
+    funding.vout.emplace_back(3000 * COIN, pos::GetBondScript(bond));
+    CWalletTx wtx(wallet.get(), MakeTransactionRef(funding));
+    BOOST_REQUIRE(wallet->AddToWallet(wtx));
+    BOOST_CHECK_EQUAL(wallet->GetProtectionBalances().pq.Total(), 0);
+    wallet->mapWallet.at(wtx.GetHash()).fInMempool = true;
+    auto balances = wallet->GetProtectionBalances();
+    BOOST_CHECK_EQUAL(balances.pq.available, 0);
+    BOOST_CHECK_EQUAL(balances.pq.pending, 5000 * COIN);
+    BOOST_CHECK_EQUAL(balances.pq.staked, 0);
+    wallet->mapWallet.at(wtx.GetHash()).setAbandoned();
+    wallet->mapWallet.at(wtx.GetHash()).fInMempool = false;
+    BOOST_CHECK_EQUAL(wallet->GetProtectionBalances().pq.Total(), 0);
+    UpdatePoSPostQuantumForTesting(false);
+    CReserveKey reserve(wallet.get());
+    CTransactionRef tx;
+    WalletPQMigration migration;
+    std::string error;
+    BOOST_CHECK(!wallet->CreateLegacyPQMigration(tx, reserve, migration, error));
+    BOOST_CHECK(!tx);
+    BOOST_CHECK(error.find("not active") != std::string::npos);
+}
+
+BOOST_FIXTURE_TEST_CASE(pq_legacy_migration_mempool_and_accounting, ListCoinsTestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    UpdatePoSPostQuantumForTesting(true);
+    struct RestorePQ { ~RestorePQ() { UpdatePoSPostQuantumForTesting(false); } } restore;
+    LOCK2(cs_main, wallet->cs_wallet);
+    const auto before = wallet->GetProtectionBalances();
+    CReserveKey reserve(wallet.get());
+    CTransactionRef tx;
+    WalletPQMigration migration;
+    std::string error;
+    BOOST_REQUIRE_MESSAGE(wallet->CreateLegacyPQMigration(tx, reserve, migration, error), error);
+    BOOST_CHECK_EQUAL(migration.inputs, 1U);
+    BOOST_CHECK_EQUAL(migration.remaining, 0);
+    CValidationState check;
+    bool missing = false;
+    BOOST_REQUIRE_MESSAGE(AcceptToMemoryPool(mempool, check, tx, &missing, nullptr, false, maxTxFee, true), FormatStateMessage(check));
+    BOOST_CHECK(!missing);
+    BOOST_CHECK(!mempool.exists(tx->GetHash()));
+    BOOST_CHECK(wallet->mapWallet.count(tx->GetHash()) == 0);
+    wallet->SetBroadcastTransactions(true);
+    CValidationState state;
+    BOOST_REQUIRE(wallet->CommitTransaction(tx, {}, {}, {}, reserve, nullptr, state));
+    BOOST_CHECK(state.IsValid());
+    BOOST_CHECK(mempool.exists(tx->GetHash()));
+    const auto after = wallet->GetProtectionBalances();
+    BOOST_CHECK_EQUAL(after.legacy.available, 0);
+    BOOST_CHECK_EQUAL(after.legacy.immature, before.legacy.immature);
+    BOOST_CHECK_EQUAL(after.pq.Total(), migration.amount);
+    BOOST_CHECK_EQUAL(after.pq.Total() + migration.fee, before.legacy.available);
+}
 
 BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup)
 {

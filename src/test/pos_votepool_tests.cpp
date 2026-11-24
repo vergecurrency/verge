@@ -105,6 +105,35 @@ BOOST_AUTO_TEST_CASE(ordering_removal_and_pruning)
     BOOST_CHECK_EQUAL(pool.DynamicMemoryUsage(), 0U);
 }
 
+BOOST_AUTO_TEST_CASE(hybrid_evidence_retains_its_authentication_version)
+{
+    auto vote = MakeVote(1, 4, 100);
+    vote.version = pos::HYBRID_POS_OBJECT_VERSION;
+    vote.pq_public_key.assign(pos::MLDSA44_PUBLIC_KEY_SIZE, 1);
+    vote.pq_signature.assign(pos::MLDSA44_SIGNATURE_SIZE, 2);
+    pos::VotePool votes;
+    BOOST_REQUIRE(votes.Add(vote) == pos::VotePoolResult::ADDED);
+    auto conflicting = vote;
+    conflicting.target_checkpoint_root = Number(999);
+    pos::VoteEquivocationEvidence vote_evidence;
+    BOOST_REQUIRE(votes.Add(conflicting, &vote_evidence) == pos::VotePoolResult::CONFLICT);
+    BOOST_CHECK_EQUAL(vote_evidence.version, pos::HYBRID_POS_OBJECT_VERSION);
+    BOOST_CHECK(pos::CheckStructure(vote_evidence) == pos::StructureError::NONE);
+    BOOST_CHECK_EQUAL(votes.DynamicMemoryUsage(), GetSerializeSize(vote, SER_NETWORK, 0));
+    auto authorization = MakeAuthorization(1, 100, 10);
+    authorization.version = pos::HYBRID_POS_OBJECT_VERSION;
+    authorization.pq_public_key = vote.pq_public_key;
+    authorization.pq_signature = vote.pq_signature;
+    pos::BlockAuthorizationPool blocks;
+    BOOST_REQUIRE(blocks.Add(authorization) == pos::VotePoolResult::ADDED);
+    auto second = authorization;
+    second.candidate_header_hash = Number(999);
+    pos::BlockEquivocationEvidence block_evidence;
+    BOOST_REQUIRE(blocks.Add(second, &block_evidence) == pos::VotePoolResult::CONFLICT);
+    BOOST_CHECK_EQUAL(block_evidence.version, pos::HYBRID_POS_OBJECT_VERSION);
+    BOOST_CHECK(pos::CheckStructure(block_evidence) == pos::StructureError::NONE);
+}
+
 BOOST_AUTO_TEST_CASE(replacement_at_capacity_preserves_pool_accounting)
 {
     pos::VotePool pool;

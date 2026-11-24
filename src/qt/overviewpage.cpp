@@ -12,10 +12,12 @@
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
+#include <qt/sendcoinsdialog.h>
 #include <qt/transactionfilterproxy.h>
 #include <qt/transactionstatusdelegate.h>
 #include <qt/transactiontablemodel.h>
 #include <qt/walletmodel.h>
+#include <wallet/wallet.h>
 
 #include <QAbstractItemDelegate>
 #include <QDateTime>
@@ -24,6 +26,8 @@
 #include <QGraphicsDropShadowEffect>
 #include <QLabel>
 #include <QPainter>
+#include <QMessageBox>
+#include <QScopedValueRollback>
 
 #define NUM_ITEMS 5
 
@@ -202,6 +206,10 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     ui->labelUnconfirmed->setObjectName("OverviewSecondaryBalance");
     ui->labelImmature->setObjectName("OverviewSecondaryBalance");
     ui->labelStaked->setObjectName("OverviewSecondaryBalance");
+    ui->labelLegacy->setObjectName("OverviewSecondaryBalance");
+    ui->labelPQ->setObjectName("OverviewSecondaryBalance");
+    ui->migrateLegacyButton->setIcon(platformStyle->SingleColorIcon(":/icons/send"));
+    connect(ui->migrateLegacyButton, &QPushButton::clicked, this, &OverviewPage::migrateLegacyBalance);
     ui->labelWatchAvailable->setObjectName("OverviewSecondaryBalance");
     ui->labelWatchPending->setObjectName("OverviewSecondaryBalance");
     ui->labelWatchImmature->setObjectName("OverviewSecondaryBalance");
@@ -213,6 +221,8 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
         ui->labelImmatureText,
         ui->labelStakedText,
         ui->labelTotalText,
+        ui->labelLegacyText,
+        ui->labelPQText,
         ui->labelSpendable,
         ui->labelWatchonly
     };
@@ -280,6 +290,12 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
     ui->labelImmature->setText(VERGEUnits::formatWithUnit(unit, balances.immature_balance, false, VERGEUnits::separatorAlways));
     ui->labelStaked->setText(VERGEUnits::formatWithUnit(unit, balances.staked_balance, false, VERGEUnits::separatorAlways));
     ui->labelTotal->setText(VERGEUnits::formatWithUnit(unit, balances.balance + balances.unconfirmed_balance + balances.immature_balance + balances.staked_balance, false, VERGEUnits::separatorAlways));
+    ui->labelLegacy->setText(VERGEUnits::formatWithUnit(unit, balances.legacy_balance, false, VERGEUnits::separatorAlways));
+    ui->labelPQ->setText(VERGEUnits::formatWithUnit(unit, balances.pq_balance, false, VERGEUnits::separatorAlways));
+    ui->migrateLegacyButton->setEnabled(balances.pq_enabled && balances.legacy_balance > 0);
+    ui->migrateLegacyButton->setToolTip(balances.pq_enabled
+        ? tr("Move confirmed, unlocked legacy coins to a PQ address in this wallet. Review the fee and save a current wallet backup before sending.")
+        : tr("Post-quantum transfers are not active on this network."));
     ui->labelWatchAvailable->setText(VERGEUnits::formatWithUnit(unit, balances.watch_only_balance, false, VERGEUnits::separatorAlways));
     ui->labelWatchPending->setText(VERGEUnits::formatWithUnit(unit, balances.unconfirmed_watch_only_balance, false, VERGEUnits::separatorAlways));
     ui->labelWatchImmature->setText(VERGEUnits::formatWithUnit(unit, balances.immature_watch_only_balance, false, VERGEUnits::separatorAlways));
@@ -294,6 +310,54 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
     ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelWatchImmature->setVisible(showWatchOnlyImmature); // show watch-only immature balance
+}
+
+void OverviewPage::migrateLegacyBalance()
+{
+    if (!walletModel || m_migrating) return;
+    QScopedValueRollback<bool> migrating(m_migrating, true);
+    WalletModel::UnlockContext unlock = walletModel->requestUnlock();
+    if (!unlock.isValid()) return;
+    interfaces::Wallet& wallet = walletModel->wallet();
+    WalletPQMigration migration;
+    std::string error;
+    auto pending = wallet.createLegacyPQMigration(migration, error);
+    if (!pending) {
+        QMessageBox::warning(this, tr("Move legacy balance to PQ"), QString::fromStdString(error));
+        return;
+    }
+    const int unit = walletModel->getOptionsModel()->getDisplayUnit();
+    QString question = tr("Move <b>%1</b> to a new PQ address in wallet <b>%2</b>?")
+        .arg(VERGEUnits::formatHtmlWithUnit(unit, migration.amount), GUIUtil::HtmlEscape(walletModel->getWalletName()));
+    question += QString("<br /><br />%1<br /><tt>%2</tt><br /><br />%3: <b>%4</b>")
+        .arg(tr("Destination (your wallet)"), QString::fromStdString(migration.address),
+             tr("Transaction fee"), VERGEUnits::formatHtmlWithUnit(unit, migration.fee));
+    question += QString("<br /><br />%1").arg(tr("This consolidates %1 legacy inputs. Bonds, immature coins and locked coins are not moved.")
+        .arg(static_cast<qulonglong>(migration.inputs)));
+    if (migration.remaining > 0) {
+        question += QString("<br /><br />%1").arg(tr("Another transfer will be needed for %1 of remaining confirmed, unlocked legacy coins.")
+            .arg(VERGEUnits::formatHtmlWithUnit(unit, migration.remaining)));
+    }
+    question += QString("<br /><br />%1").arg(tr("A new full wallet backup is required before sending. Your old backup or HD seed alone cannot recover this PQ address. Keep the backup secure."));
+    SendConfirmationDialog confirmation(tr("Confirm legacy-to-PQ transfer"), question, SEND_CONFIRM_DELAY, this);
+    if (confirmation.exec() != QMessageBox::Yes) return;
+    const QString filename = GUIUtil::getSaveFileName(this, tr("Back up wallet before PQ transfer"),
+        QStringLiteral("wallet-pq-backup.dat"), tr("Wallet Data (*.dat)"), nullptr);
+    if (filename.isEmpty()) return;
+    if (!wallet.backupWallet(filename.toLocal8Bit().constData())) {
+        QMessageBox::critical(this, tr("Backup failed"), tr("The wallet backup failed. The transfer has not been sent."));
+        return;
+    }
+    if (!pending->commit({{"comment", "Legacy to PQ migration"}}, {}, {}, error)) {
+        QMessageBox::critical(this, tr("PQ transfer not broadcast"),
+            tr("The transfer was not accepted: %1\nReview Transactions before retrying.").arg(QString::fromStdString(error)));
+    } else {
+        QMessageBox::information(this, tr("PQ transfer submitted"),
+            tr("%1 submitted to your PQ address. Waiting for confirmation.\nTransaction: %2")
+                .arg(VERGEUnits::formatWithUnit(unit, migration.amount),
+                     QString::fromStdString(pending->get().GetHash().GetHex())));
+    }
+    setBalance(wallet.getBalances());
 }
 
 // show/hide watch-only labels

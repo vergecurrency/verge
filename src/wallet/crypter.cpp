@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <wallet/crypter.h>
+#include <pos/pqcrypto.h>
 
 #include <crypto/aes.h>
 #include <crypto/sha512.h>
@@ -147,7 +148,7 @@ bool CCryptoKeyStore::SetCrypted()
     LOCK(cs_KeyStore);
     if (fUseCrypto)
         return true;
-    if (!mapKeys.empty())
+    if (!mapKeys.empty() || !mapPQKeys.empty())
         return false;
     fUseCrypto = true;
     return true;
@@ -169,6 +170,7 @@ bool CCryptoKeyStore::Lock()
 
     {
         LOCK(cs_KeyStore);
+        if (!vMasterKey.empty()) memory_cleanse(vMasterKey.data(), vMasterKey.size());
         vMasterKey.clear();
     }
 
@@ -225,6 +227,21 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             keyPass = true;
             if (fDecryptionThoroughlyChecked)
                 break;
+        }
+        if (!keyFail) {
+            for (const auto& item : mapCryptedPQKeys) {
+                CKeyingMaterial seed;
+                pos::experimental::MLDSA44Key key;
+                std::vector<unsigned char> public_key;
+                if (!DecryptSecret(vMasterKeyIn, item.second.second, item.first, seed) ||
+                    !key.SetSeed(seed.data(), seed.size()) ||
+                    !key.GetPublicKey(public_key) || public_key != item.second.first) {
+                    keyFail = true;
+                    break;
+                }
+                keyPass = true;
+                if (fDecryptionThoroughlyChecked) break;
+            }
         }
         if (keyPass && keyFail)
         {
@@ -334,7 +351,7 @@ std::set<CKeyID> CCryptoKeyStore::GetKeys() const
 bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn)
 {
     LOCK(cs_KeyStore);
-    if (!mapCryptedKeys.empty() || IsCrypted())
+    if (!mapCryptedKeys.empty() || !mapCryptedPQKeys.empty() || IsCrypted())
         return false;
 
     fUseCrypto = true;
@@ -350,5 +367,77 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn)
             return false;
     }
     mapKeys.clear();
+    for (const auto& item : mapPQKeys) {
+        std::vector<unsigned char> ciphertext;
+        if (!EncryptSecret(vMasterKeyIn, item.second.second, item.first, ciphertext) ||
+            !AddCryptedPQKey(item.second.first, ciphertext)) return false;
+    }
+    mapPQKeys.clear();
+    return true;
+}
+
+bool CCryptoKeyStore::AddPQKey(const pos::experimental::MLDSA44Key& key,
+                              const std::vector<unsigned char>& public_key)
+{
+    LOCK(cs_KeyStore);
+    if (!IsCrypted()) return CBasicKeyStore::AddPQKey(key, public_key);
+    if (IsLocked()) return false;
+    CKeyingMaterial seed;
+    std::vector<unsigned char> derived, ciphertext;
+    const uint256 id = pos::experimental::GetMLDSA44KeyId(public_key);
+    if (id.IsNull() || !key.GetPublicKey(derived) || derived != public_key ||
+        !key.GetSeed(seed) || !EncryptSecret(vMasterKey, seed, id, ciphertext)) return false;
+    return AddCryptedPQKey(public_key, ciphertext);
+}
+
+bool CCryptoKeyStore::AddCryptedPQKey(const std::vector<unsigned char>& public_key,
+                                     const std::vector<unsigned char>& ciphertext)
+{
+    const uint256 id = pos::experimental::GetMLDSA44KeyId(public_key);
+    if (id.IsNull() || ciphertext.size() != 48) return false;
+    LOCK(cs_KeyStore);
+    if (!SetCrypted()) return false;
+    const auto previous = mapCryptedPQKeys.find(id);
+    if (previous != mapCryptedPQKeys.end()) {
+        return previous->second.first == public_key && previous->second.second == ciphertext;
+    }
+    mapCryptedPQKeys.emplace(id, std::make_pair(public_key, ciphertext));
+    fDecryptionThoroughlyChecked = false;
+    return true;
+}
+
+bool CCryptoKeyStore::HavePQKey(const uint256& id) const
+{
+    LOCK(cs_KeyStore);
+    return IsCrypted() ? mapCryptedPQKeys.count(id) != 0 : CBasicKeyStore::HavePQKey(id);
+}
+
+bool CCryptoKeyStore::GetPQKey(const uint256& id, pos::experimental::MLDSA44Key& key) const
+{
+    key.Reset();
+    LOCK(cs_KeyStore);
+    if (!IsCrypted()) return CBasicKeyStore::GetPQKey(id, key);
+    if (IsLocked()) return false;
+    const auto found = mapCryptedPQKeys.find(id);
+    if (found == mapCryptedPQKeys.end()) return false;
+    CKeyingMaterial seed;
+    std::vector<unsigned char> public_key;
+    if (!DecryptSecret(vMasterKey, found->second.second, id, seed) ||
+        !key.SetSeed(seed.data(), seed.size()) || !key.GetPublicKey(public_key) ||
+        public_key != found->second.first) {
+        key.Reset();
+        return false;
+    }
+    return true;
+}
+
+bool CCryptoKeyStore::GetPQPubKey(const uint256& id, std::vector<unsigned char>& public_key) const
+{
+    public_key.clear();
+    LOCK(cs_KeyStore);
+    if (!IsCrypted()) return CBasicKeyStore::GetPQPubKey(id, public_key);
+    const auto found = mapCryptedPQKeys.find(id);
+    if (found == mapCryptedPQKeys.end()) return false;
+    public_key = found->second.first;
     return true;
 }

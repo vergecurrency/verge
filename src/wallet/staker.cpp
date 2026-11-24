@@ -14,6 +14,7 @@
 #include <protocol.h>
 #include <pos/consensus.h>
 #include <pos/crypto.h>
+#include <pos/pqcrypto.h>
 #include <pos/validation.h>
 #include <pos/votepool.h>
 #include <pos/vrf.h>
@@ -86,14 +87,32 @@ bool BuildVote(CWallet& wallet, const pos::State& state, const COutPoint& bond_o
     vote.target_checkpoint_root = target->root;
     vote.head_slot = head_slot.global_slot;
     vote.head_block_root = head->GetBlockHash();
+    pos::experimental::MLDSA44Key pq_key;
+    if (params.fPoSPostQuantum) {
+        vote.version = 2;
+        if (!wallet.GetPQKey(member->bond.data.pq_signing_key_id, pq_key) ||
+            !pq_key.GetPublicKey(vote.pq_public_key)) return false;
+        vote.pq_signature.resize(pos::MLDSA44_SIGNATURE_SIZE);
+    }
     if (!wallet.RecordPoSVoteSigning(params, vote,
                                     member->bond.data.signing_public_key)) return false;
     unsigned char auxiliary[32];
     GetRandBytes(auxiliary, sizeof(auxiliary));
     unsigned char public_key[pos::SCHNORR_PUBLIC_KEY_SIZE];
-    const bool signed_vote = pos::SignSchnorr(
-        key.begin(), pos::GetVoteSigningHash(vote), auxiliary,
-        vote.signature, public_key);
+    bool signed_vote;
+    if (params.fPoSPostQuantum) {
+        pos::experimental::HybridPublicKey hybrid_key;
+        pos::experimental::HybridSignature hybrid_signature;
+        signed_vote = pos::experimental::SignHybrid(key.begin(), auxiliary, pq_key,
+            params.nPoSNetworkId, pos::experimental::HybridPurpose::VOTE,
+            pos::GetVoteSigningHash(vote), hybrid_key, hybrid_signature);
+        std::copy(hybrid_key.schnorr.begin(), hybrid_key.schnorr.end(), public_key);
+        std::copy(hybrid_signature.schnorr.begin(), hybrid_signature.schnorr.end(), vote.signature);
+        vote.pq_public_key = std::move(hybrid_key.mldsa);
+        vote.pq_signature = std::move(hybrid_signature.mldsa);
+    } else {
+        signed_vote = pos::SignSchnorr(key.begin(), pos::GetVoteSigningHash(vote), auxiliary, vote.signature, public_key);
+    }
     memory_cleanse(auxiliary, sizeof(auxiliary));
     return signed_vote &&
         std::equal(public_key, public_key + pos::SCHNORR_PUBLIC_KEY_SIZE,
@@ -209,6 +228,13 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
             error = "required stake snapshot is empty";
             return false;
         }
+        pos::StakeProof public_proof;
+        if (params.fPoSPublicEligibility &&
+            !pos::BuildPublicStakeProof(*snapshot, params.nPoSNetworkId,
+                                       epoch_seed, slot.global_slot, public_proof)) {
+            error = "public stake selection failed";
+            return false;
+        }
 
         std::map<PublicKeyBytes, CKey> wallet_keys;
         for (const CKeyID& key_id : wallet.GetKeys()) {
@@ -255,10 +281,10 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
 
         pos::GetVotePool().Prune(slot.epoch);
         for (const pos::CheckpointVote& vote :
-             pos::GetVotePool().GetVotes(pos::MAX_VOTES_PER_BLOCK)) {
+             pos::GetVotePool().GetVotes(pos::MaximumVotesForVersion(params.fPoSPostQuantum ? 2 : 1))) {
             if (pos::CheckCheckpointVote(
                     vote, state, params.nPoSSnapshotDelayEpochs, slot.epoch,
-                    tip->nHeight + 1) == pos::ValidationError::NONE &&
+                    tip->nHeight + 1, params.nPoSNetworkId) == pos::ValidationError::NONE &&
                 pos::CheckVoteHead(vote, state, slot.global_slot) ==
                     pos::ValidationError::NONE &&
                 pos::FindVoteHead(vote, tip, params) != nullptr) {
@@ -268,7 +294,7 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         for (const pos::VoteEquivocationEvidence& evidence :
              pos::GetVoteEvidencePool().GetEvidence(
                  pos::MAX_EVIDENCE_PER_BLOCK)) {
-            if (pos::CheckVoteEvidence(evidence, state, slot.epoch) ==
+            if (pos::CheckVoteEvidence(evidence, state, slot.epoch, params.nPoSNetworkId) ==
                 pos::ValidationError::NONE) {
                 vote_evidence.push_back(evidence);
             }
@@ -300,38 +326,42 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
             const auto owned = wallet_keys.find(signing_public_key);
             if (owned == wallet_keys.end()) continue;
 
-            unsigned char vrf_secret[32]{};
-            unsigned char vrf_public_key[pos::VRF_PUBLIC_KEY_SIZE]{};
-            if (!pos::DeriveVrfKey(owned->second.begin(), vrf_secret,
-                                   vrf_public_key) ||
-                !std::equal(vrf_public_key,
-                            vrf_public_key + pos::VRF_PUBLIC_KEY_SIZE,
-                            entry.bond.data.vrf_public_key)) {
+            if (params.fPoSPublicEligibility) {
+                if (entry.outpoint != public_proof.bond_outpoint) continue;
+                proof = public_proof;
+            } else {
+                unsigned char vrf_secret[32]{};
+                unsigned char vrf_public_key[pos::VRF_PUBLIC_KEY_SIZE]{};
+                if (!pos::DeriveVrfKey(owned->second.begin(), vrf_secret,
+                                       vrf_public_key) ||
+                    !std::equal(vrf_public_key,
+                                vrf_public_key + pos::VRF_PUBLIC_KEY_SIZE,
+                                entry.bond.data.vrf_public_key)) {
+                    memory_cleanse(vrf_secret, sizeof(vrf_secret));
+                    continue;
+                }
+                proof.bond_outpoint = entry.outpoint;
+                proof.slot = slot.global_slot;
+                proof.snapshot_epoch = snapshot_epoch;
+                proof.snapshot_root = snapshot->root;
+                proof.epoch_seed = epoch_seed;
+                std::copy(signing_public_key.begin(), signing_public_key.end(),
+                          proof.signing_public_key);
+                std::copy(vrf_public_key,
+                          vrf_public_key + pos::VRF_PUBLIC_KEY_SIZE,
+                          proof.vrf_public_key);
+                const std::vector<unsigned char> input = pos::GetVrfInput(
+                    params.nPoSNetworkId, epoch_seed, slot.global_slot,
+                    entry.outpoint);
+                const bool proved = pos::VrfProve(
+                    vrf_secret, input.data(), input.size(), proof.vrf_public_key,
+                    proof.vrf_output, proof.vrf_proof);
                 memory_cleanse(vrf_secret, sizeof(vrf_secret));
-                continue;
+                if (!proved) continue;
             }
-            proof.bond_outpoint = entry.outpoint;
-            proof.slot = slot.global_slot;
-            proof.snapshot_epoch = snapshot_epoch;
-            proof.snapshot_root = snapshot->root;
-            proof.epoch_seed = epoch_seed;
-            std::copy(signing_public_key.begin(), signing_public_key.end(),
-                      proof.signing_public_key);
-            std::copy(vrf_public_key,
-                      vrf_public_key + pos::VRF_PUBLIC_KEY_SIZE,
-                      proof.vrf_public_key);
-            const std::vector<unsigned char> input = pos::GetVrfInput(
-                params.nPoSNetworkId, epoch_seed, slot.global_slot,
-                entry.outpoint);
-            const bool proved = pos::VrfProve(
-                vrf_secret, input.data(), input.size(), proof.vrf_public_key,
-                proof.vrf_output, proof.vrf_proof);
-            memory_cleanse(vrf_secret, sizeof(vrf_secret));
-            if (!proved) continue;
             CBlock eligibility;
             eligibility.posExtension.stake_proof = proof;
-            if (pos::CheckVrfEligibility(eligibility, *snapshot,
-                                         params.nPoSNetworkId) !=
+            if (pos::CheckStakeEligibility(eligibility, *snapshot, params) !=
                 pos::ValidationError::NONE) continue;
             selected_bond = entry.bond;
             selected_key = owned->second;
@@ -353,13 +383,19 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         // Acquire the wallet before the assembler takes mempool.cs. The guard
         // synchronously records authorization while these locks remain held.
         LOCK2(cs_main, wallet.cs_wallet);
+        pos::experimental::MLDSA44Key pq_key;
+        if (Params().GetConsensus().fPoSPostQuantum &&
+            !wallet.GetPQKey(selected_bond.data.pq_signing_key_id, pq_key)) {
+            error = "post-quantum block signing key is unavailable";
+            return false;
+        }
         block_template = BlockAssembler(Params()).CreateNewPoSBlock(
             proof, selected_bond, selected_key.begin(), block_time, parent_hash,
             [&](const pos::BlockAuthorization& authorization) {
                 signing_refused = !wallet.RecordPoSBlockSigning(
                     Params().GetConsensus(), proof, authorization);
                 return !signing_refused;
-            }, votes, block_evidence, vote_evidence);
+            }, votes, block_evidence, vote_evidence, &pq_key);
     }
     if (!block_template) {
         error = signing_refused
@@ -499,26 +535,36 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         error = "failed to retrieve delegated staking key";
         return false;
     }
-    const CPubKey reward_pubkey = wallet.GenerateNewKey(batch);
-    const CPubKey withdrawal_pubkey = wallet.GenerateNewKey(batch);
     pos::BondData bond;
     unsigned char vrf_secret[32]{};
     const bool keys_ok =
         pos::GetSchnorrPublicKey(staking_key.begin(),
                                  bond.signing_public_key) &&
-        pos::DeriveVrfKey(staking_key.begin(), vrf_secret,
-                          bond.vrf_public_key);
+        (params.fPoSPostQuantum || pos::DeriveVrfKey(staking_key.begin(), vrf_secret, bond.vrf_public_key));
     memory_cleanse(vrf_secret, sizeof(vrf_secret));
     if (!keys_ok) {
         error = "failed to derive delegated staking credentials";
         return false;
     }
-    bond.reward_key_id = reward_pubkey.GetID();
-    bond.withdrawal_key_id = withdrawal_pubkey.GetID();
-    wallet.SetAddressBook(GetDestinationForKey(reward_pubkey, OutputType::LEGACY),
-                          "staking rewards", "receive");
-    wallet.SetAddressBook(GetDestinationForKey(withdrawal_pubkey, OutputType::LEGACY),
-                          "staking withdrawal", "receive");
+    if (params.fPoSPostQuantum) {
+        bond.version = 2;
+        if (!wallet.GeneratePQKey(bond.pq_signing_key_id) || !wallet.GeneratePQKey(bond.pq_reward_key_id) ||
+            !wallet.GeneratePQKey(bond.pq_withdrawal_key_id)) {
+            error = "unable to persist post-quantum bond credentials";
+            return false;
+        }
+        wallet.SetAddressBook(PQKeyHash(bond.pq_reward_key_id), "staking rewards", "receive");
+        wallet.SetAddressBook(PQKeyHash(bond.pq_withdrawal_key_id), "staking withdrawal", "receive");
+    } else {
+        const CPubKey reward_pubkey = wallet.GenerateNewKey(batch);
+        const CPubKey withdrawal_pubkey = wallet.GenerateNewKey(batch);
+        bond.reward_key_id = reward_pubkey.GetID();
+        bond.withdrawal_key_id = withdrawal_pubkey.GetID();
+        wallet.SetAddressBook(GetDestinationForKey(reward_pubkey, OutputType::LEGACY),
+                              "staking rewards", "receive");
+        wallet.SetAddressBook(GetDestinationForKey(withdrawal_pubkey, OutputType::LEGACY),
+                              "staking withdrawal", "receive");
+    }
 
     // Keep the reserve across all batches, rather than subtracting it per batch.
     amount = std::min(selected_balance, mature_balance - reserve);
@@ -580,7 +626,7 @@ static std::vector<WalletUnbondingInfo> GetWalletUnbondingsLocked(CWallet& walle
             pos::UnbondData unbond;
             if (wallet.IsSpent(item.first, i) ||
                 !pos::ParseUnbondScript(tx.tx->vout[i].scriptPubKey, unbond) ||
-                !wallet.HaveKey(CKeyID(unbond.withdrawal_key_id))) continue;
+                !(unbond.version == 2 ? wallet.HavePQKey(unbond.pq_withdrawal_key_id) : wallet.HaveKey(CKeyID(unbond.withdrawal_key_id)))) continue;
             WalletUnbondingInfo info;
             info.txid = item.first;
             info.vout = i;
@@ -591,6 +637,7 @@ static std::vector<WalletUnbondingInfo> GetWalletUnbondingsLocked(CWallet& walle
             info.blocks_until_unlock = std::max<int64_t>(
                 0, info.unlock_height - next_height);
             info.withdrawal_key_id = unbond.withdrawal_key_id;
+            info.pq_withdrawal_key_id = unbond.pq_withdrawal_key_id;
             result.push_back(std::move(info));
         }
     }
@@ -650,7 +697,7 @@ std::vector<WalletStakeBondInfo> GetWalletStakeBonds(CWallet& wallet)
     for (const auto& item : state.Bonds()) {
         const COutPoint& outpoint = item.first;
         const pos::BondRecord& bond = item.second;
-        if (!wallet.HaveKey(CKeyID(bond.data.withdrawal_key_id))) continue;
+        if (!(bond.data.version == 2 ? wallet.HavePQKey(bond.data.pq_withdrawal_key_id) : wallet.HaveKey(CKeyID(bond.data.withdrawal_key_id)))) continue;
         if (pending_bonds.count(outpoint) != 0) continue;
 
         const bool in_snapshot = snapshot != nullptr &&
@@ -722,7 +769,7 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
         error = "selected output is not a proof-of-stake bond";
         return false;
     }
-    if (!wallet.HaveKey(CKeyID(bond.withdrawal_key_id))) {
+    if (!(bond.version == 2 ? wallet.HavePQKey(bond.pq_withdrawal_key_id) : wallet.HaveKey(CKeyID(bond.withdrawal_key_id)))) {
         error = "wallet does not control the withdrawal key";
         return false;
     }
@@ -743,6 +790,8 @@ bool UnbondWalletStake(CWallet& wallet, const uint256& txid, uint32_t vout,
     }
 
     pos::UnbondData unbond_data;
+    unbond_data.version = bond.version;
+    unbond_data.pq_withdrawal_key_id = bond.pq_withdrawal_key_id;
     unbond_data.unlock_height = static_cast<uint32_t>(unlock_height);
     unbond_data.withdrawal_key_id = bond.withdrawal_key_id;
     const CAmount principal = coin.out.nValue;

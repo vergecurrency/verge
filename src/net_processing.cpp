@@ -2835,7 +2835,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     else if (strCommand == NetMsgType::POSBLOCKEVIDENCE)
     {
         if (IsInitialBlockDownload() || fImporting || fReindex) return true;
-        if (vRecv.size() != pos::SERIALIZED_BLOCK_EVIDENCE_SIZE) {
+        if (vRecv.size() != (chainparams.GetConsensus().fPoSPostQuantum ? 8011 : pos::SERIALIZED_BLOCK_EVIDENCE_SIZE)) {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20, "invalid posbevid size");
             return false;
@@ -2899,7 +2899,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     else if (strCommand == NetMsgType::POSVOTEEVIDENCE)
     {
         if (IsInitialBlockDownload() || fImporting || fReindex) return true;
-        if (vRecv.size() != pos::SERIALIZED_VOTE_EVIDENCE_SIZE) {
+        if (vRecv.size() != (chainparams.GetConsensus().fPoSPostQuantum ? 7923 : pos::SERIALIZED_VOTE_EVIDENCE_SIZE)) {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20, "invalid posvevid size");
             return false;
@@ -2940,7 +2940,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (!params.IsPoSActive(chainActive.Height())) return true;
         const pos::State& state = GetPoSStateView();
         const pos::ValidationError error =
-            pos::CheckVoteEvidence(evidence, state, state.LastPoSEpoch());
+            pos::CheckVoteEvidence(evidence, state, state.LastPoSEpoch(), params.nPoSNetworkId);
         if (error != pos::ValidationError::NONE) {
             if (error == pos::ValidationError::VOTE_STRUCTURE ||
                 error == pos::ValidationError::EVIDENCE_SIGNATURE) {
@@ -2963,7 +2963,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     {
         if (IsInitialBlockDownload() || fImporting || fReindex) return true;
 
-        if (vRecv.size() != pos::SERIALIZED_CHECKPOINT_VOTE_SIZE) {
+        if (vRecv.size() != (chainparams.GetConsensus().fPoSPostQuantum ? 3961 : pos::SERIALIZED_CHECKPOINT_VOTE_SIZE)) {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20, "invalid posvote size");
             return false;
@@ -3011,7 +3011,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (latest == nullptr) return true;
         const pos::ValidationError error = pos::CheckCheckpointVote(
             vote, state, params.nPoSSnapshotDelayEpochs, latest->epoch,
-            height);
+            height, params.nPoSNetworkId);
         if (error != pos::ValidationError::NONE) {
             if (error == pos::ValidationError::VOTE_STRUCTURE ||
                 error == pos::ValidationError::VOTE_SIGNATURE) {

@@ -433,7 +433,43 @@
               </property>
              </widget>
             </item>
+            <item row="7" column="0">
+             <widget class="QLabel" name="labelLegacyText">
+              <property name="text"><string>Legacy total:</string></property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QLabel" name="labelLegacy">
+              <property name="text"><string notr="true">0.000000 XVG</string></property>
+              <property name="alignment"><set>Qt::AlignRight|Qt::AlignVCenter</set></property>
+              <property name="textInteractionFlags"><set>Qt::TextSelectableByMouse|Qt::TextSelectableByKeyboard</set></property>
+              <property name="toolTip"><string>Owned classical coins, including pending, immature, bonded and unbonding coins. Excludes watch-only coins.</string></property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="labelPQText">
+              <property name="text"><string>PQ total:</string></property>
+             </widget>
+            </item>
+            <item row="8" column="1">
+             <widget class="QLabel" name="labelPQ">
+              <property name="text"><string notr="true">0.000000 XVG</string></property>
+              <property name="alignment"><set>Qt::AlignRight|Qt::AlignVCenter</set></property>
+              <property name="textInteractionFlags"><set>Qt::TextSelectableByMouse|Qt::TextSelectableByKeyboard</set></property>
+              <property name="toolTip"><string>Owned ML-DSA-44 coins, including pending, immature, bonded and unbonding coins. Excludes watch-only coins.</string></property>
+             </widget>
+            </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="migrateLegacyButton">
+            <property name="enabled"><bool>false</bool></property>
+            <property name="text"><string>Move legacy balance to PQ</string></property>
+            <property name="toolTip"><string>Move confirmed, unlocked legacy coins to a PQ address in this wallet. Review the fee and save a current wallet backup before sending.</string></property>
+            <property name="icon">
+             <iconset resource="../verge.qrc"><normaloff>:/icons/send</normaloff>:/icons/send</iconset>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

@@ -10,6 +10,7 @@
 #include <primitives/block.h>
 #include <pos/state.h>
 #include <txmempool.h>
+#include <pos/pqcrypto.h>
 #include <validation.h>
 
 #include <stdint.h>
@@ -168,7 +169,8 @@ public:
         const std::function<bool(const pos::BlockAuthorization&)>& signing_guard,
         const std::vector<pos::CheckpointVote>& votes = {},
         const std::vector<pos::BlockEquivocationEvidence>& block_evidence = {},
-        const std::vector<pos::VoteEquivocationEvidence>& vote_evidence = {});
+        const std::vector<pos::VoteEquivocationEvidence>& vote_evidence = {},
+        const pos::experimental::MLDSA44Key* pq_key = nullptr);
 
 private:
     // utility functions

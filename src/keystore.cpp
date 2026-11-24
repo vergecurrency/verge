@@ -5,8 +5,73 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <keystore.h>
+#include <pos/pqcrypto.h>
+#include <script/pq.h>
 
 #include <util/system.h>
+
+bool CBasicKeyStore::AddPQKey(const pos::experimental::MLDSA44Key& key,
+                             const std::vector<unsigned char>& public_key)
+{
+    std::vector<unsigned char> derived;
+    CKeyingMaterial seed;
+    if (!key.GetPublicKey(derived) || derived != public_key ||
+        !key.GetSeed(seed)) return false;
+    const uint256 id = pos::experimental::GetMLDSA44KeyId(public_key);
+    if (id.IsNull()) return false;
+    LOCK(cs_KeyStore);
+    const auto existing = mapPQKeys.find(id);
+    if (existing != mapPQKeys.end()) {
+        return existing->second.first == public_key && existing->second.second == seed;
+    }
+    mapPQKeys.emplace(id, std::make_pair(public_key, std::move(seed)));
+    return true;
+}
+
+bool CBasicKeyStore::HavePQKey(const uint256& id) const
+{
+    LOCK(cs_KeyStore);
+    return mapPQKeys.count(id) != 0;
+}
+
+bool CBasicKeyStore::GetPQKey(const uint256& id, pos::experimental::MLDSA44Key& key) const
+{
+    key.Reset();
+    LOCK(cs_KeyStore);
+    const auto found = mapPQKeys.find(id);
+    return found != mapPQKeys.end() &&
+        key.SetSeed(found->second.second.data(), found->second.second.size());
+}
+
+bool CBasicKeyStore::GetPQPubKey(const uint256& id, std::vector<unsigned char>& public_key) const
+{
+    public_key.clear();
+    LOCK(cs_KeyStore);
+    const auto found = mapPQKeys.find(id);
+    if (found == mapPQKeys.end()) return false;
+    public_key = found->second.first;
+    return true;
+}
+
+bool CBasicKeyStore::AddPQMultisigPolicy(const std::vector<unsigned char>& encoded)
+{
+    PQMultisigPolicy policy;
+    if (!DecodePQMultisigPolicy(encoded, policy)) return false;
+    const uint256 id = GetPQMultisigPolicyId(policy);
+    LOCK(cs_KeyStore);
+    const auto inserted = mapPQMultisigPolicies.emplace(id, encoded);
+    return inserted.second || inserted.first->second == encoded;
+}
+
+bool CBasicKeyStore::GetPQMultisigPolicy(const uint256& id, std::vector<unsigned char>& encoded) const
+{
+    encoded.clear();
+    LOCK(cs_KeyStore);
+    const auto found = mapPQMultisigPolicies.find(id);
+    if (found == mapPQMultisigPolicies.end()) return false;
+    encoded = found->second;
+    return true;
+}
 
 void CBasicKeyStore::ImplicitlyLearnRelatedKeyScripts(const CPubKey& pubkey)
 {

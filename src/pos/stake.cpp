@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <pos/stake.h>
+#include <script/pq.h>
 
 #include <pos/crypto.h>
 #include <pos/vrf.h>
@@ -60,6 +61,14 @@ bool ParseMetadataScript(const CScript& script, std::vector<unsigned char>& payl
 
 bool IsValid(const BondData& bond)
 {
+    if (bond.version == HYBRID_POS_OBJECT_VERSION) {
+        return IsValidSchnorrPublicKey(bond.signing_public_key) &&
+            IsAllZero(bond.vrf_public_key) && bond.reward_key_id.IsNull() &&
+            bond.withdrawal_key_id.IsNull() && !bond.pq_signing_key_id.IsNull() &&
+            !bond.pq_reward_key_id.IsNull() && !bond.pq_withdrawal_key_id.IsNull();
+    }
+    if (bond.version != POS_OBJECT_VERSION || !bond.pq_signing_key_id.IsNull() ||
+        !bond.pq_reward_key_id.IsNull() || !bond.pq_withdrawal_key_id.IsNull()) return false;
     return IsValidSchnorrPublicKey(bond.signing_public_key) &&
            IsValidVrfPublicKey(bond.vrf_public_key) &&
            !bond.reward_key_id.IsNull() &&
@@ -68,7 +77,9 @@ bool IsValid(const BondData& bond)
 
 bool IsValid(const UnbondData& unbond)
 {
-    return unbond.unlock_height != 0 && !unbond.withdrawal_key_id.IsNull();
+    return unbond.unlock_height != 0 &&
+        ((unbond.version == POS_OBJECT_VERSION && !unbond.withdrawal_key_id.IsNull() && unbond.pq_withdrawal_key_id.IsNull()) ||
+         (unbond.version == HYBRID_POS_OBJECT_VERSION && unbond.withdrawal_key_id.IsNull() && !unbond.pq_withdrawal_key_id.IsNull()));
 }
 
 uint64_t GetUnbondUnlockHeight(const UnbondData& unbond,
@@ -86,8 +97,8 @@ bool HasBondMarker(const CScript& script)
     std::vector<unsigned char> payload;
     return script.GetOp(cursor, opcode, payload) && opcode <= OP_PUSHDATA4 &&
            payload.size() >= sizeof(BOND_MAGIC) &&
-           std::equal(BOND_MAGIC, BOND_MAGIC + sizeof(BOND_MAGIC),
-                      payload.begin());
+           std::equal(BOND_MAGIC, BOND_MAGIC + 3, payload.begin()) &&
+           (payload[3] == 1 || payload[3] == 2);
 }
 
 bool HasUnbondMarker(const CScript& script)
@@ -97,13 +108,23 @@ bool HasUnbondMarker(const CScript& script)
     std::vector<unsigned char> payload;
     return script.GetOp(cursor, opcode, payload) && opcode <= OP_PUSHDATA4 &&
            payload.size() >= sizeof(UNBOND_MAGIC) &&
-           std::equal(UNBOND_MAGIC, UNBOND_MAGIC + sizeof(UNBOND_MAGIC),
-                      payload.begin());
+           std::equal(UNBOND_MAGIC, UNBOND_MAGIC + 3, payload.begin()) &&
+           (payload[3] == 1 || payload[3] == 2);
 }
 
 CScript GetBondScript(const BondData& bond)
 {
     if (!IsValid(bond)) return CScript();
+    if (bond.version == HYBRID_POS_OBJECT_VERSION) {
+        std::vector<unsigned char> payload{'V', 'P', 'B', 2};
+        payload.insert(payload.end(), std::begin(bond.signing_public_key), std::end(bond.signing_public_key));
+        payload.insert(payload.end(), bond.pq_signing_key_id.begin(), bond.pq_signing_key_id.end());
+        payload.insert(payload.end(), bond.pq_reward_key_id.begin(), bond.pq_reward_key_id.end());
+        CScript script = CScript() << payload << OP_DROP;
+        const auto suffix = GetPQScript(bond.pq_withdrawal_key_id);
+        script.insert(script.end(), suffix.begin(), suffix.end());
+        return script;
+    }
 
     std::vector<unsigned char> payload;
     payload.reserve(BOND_PAYLOAD_SIZE);
@@ -127,19 +148,34 @@ CScript GetUnbondScript(const UnbondData& unbond)
 
     std::vector<unsigned char> payload;
     payload.insert(payload.end(), UNBOND_MAGIC, UNBOND_MAGIC + sizeof(UNBOND_MAGIC));
+    payload[3] = unbond.version;
     unsigned char height[4];
     WriteLE32(height, unbond.unlock_height);
     payload.insert(payload.end(), height, height + sizeof(height));
 
     CScript script;
     script << payload << OP_DROP;
-    const CScript suffix = GetKeyHashSuffix(unbond.withdrawal_key_id);
+    const CScript suffix = unbond.version == HYBRID_POS_OBJECT_VERSION
+        ? GetPQScript(unbond.pq_withdrawal_key_id) : GetKeyHashSuffix(unbond.withdrawal_key_id);
     script.insert(script.end(), suffix.begin(), suffix.end());
     return script;
 }
 
 bool ParseBondScript(const CScript& script, BondData& bond)
 {
+    uint256 pq_id;
+    if (script.size() == 138 && ExtractPQKeyId(script, pq_id) &&
+        script[2] == 'V' && script[4] == 'B' && script[5] == 2) {
+        BondData parsed;
+        parsed.version = 2;
+        std::copy(script.begin() + 6, script.begin() + 38, parsed.signing_public_key);
+        std::copy(script.begin() + 38, script.begin() + 70, parsed.pq_signing_key_id.begin());
+        std::copy(script.begin() + 70, script.begin() + 102, parsed.pq_reward_key_id.begin());
+        parsed.pq_withdrawal_key_id = pq_id;
+        if (!IsValid(parsed)) return false;
+        bond = parsed;
+        return true;
+    }
     if (script.size() < 2 || script[0] != OP_PUSHDATA1 ||
         script[1] != BOND_PAYLOAD_SIZE) {
         return false;
@@ -169,6 +205,17 @@ bool ParseBondScript(const CScript& script, BondData& bond)
 
 bool ParseUnbondScript(const CScript& script, UnbondData& unbond)
 {
+    uint256 pq_id;
+    if (script.size() == 45 && ExtractPQKeyId(script, pq_id) &&
+        script[1] == 'V' && script[3] == 'U' && script[4] == 2) {
+        UnbondData parsed;
+        parsed.version = 2;
+        parsed.unlock_height = ReadLE32(script.data() + 5);
+        parsed.pq_withdrawal_key_id = pq_id;
+        if (!IsValid(parsed)) return false;
+        unbond = parsed;
+        return true;
+    }
     if (script.empty() || script[0] != UNBOND_PAYLOAD_SIZE) {
         return false;
     }

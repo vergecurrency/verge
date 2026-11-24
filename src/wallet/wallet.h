@@ -95,7 +95,9 @@ enum WalletFeature
 
     FEATURE_PRE_SPLIT_KEYPOOL = 169900, // Upgraded to HD SPLIT and can have a pre-split keypool
 
-    FEATURE_LATEST = FEATURE_PRE_SPLIT_KEYPOOL
+    FEATURE_LATEST = FEATURE_PRE_SPLIT_KEYPOOL,
+    // Written only when a PQ key is persisted; older 27.0.0 betas must refuse it.
+    FEATURE_PQ_KEYS = 27000100
 };
 
 enum class OutputType {
@@ -183,6 +185,31 @@ struct CRecipient
     CScript scriptPubKey;
     CAmount nAmount;
     bool fSubtractFeeFromAmount;
+};
+
+struct WalletProtectionBalance
+{
+    CAmount available{0};
+    CAmount pending{0};
+    CAmount immature{0};
+    CAmount staked{0};
+
+    CAmount Total() const { return available + pending + immature + staked; }
+};
+
+struct WalletProtectionBalances
+{
+    WalletProtectionBalance legacy;
+    WalletProtectionBalance pq;
+};
+
+struct WalletPQMigration
+{
+    CAmount amount{0};
+    CAmount fee{0};
+    CAmount remaining{0};
+    size_t inputs{0};
+    std::string address;
 };
 
 typedef std::map<std::string, std::string> mapValue_t;
@@ -901,6 +928,18 @@ public:
     CPubKey GenerateNewKey(WalletBatch& batch, bool internal = false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     //! Adds a key to the store, and saves it to disk.
     bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool AddPQKey(const pos::experimental::MLDSA44Key& key,
+                  const std::vector<unsigned char>& public_key) override;
+    bool AddCryptedPQKey(const std::vector<unsigned char>& public_key,
+                         const std::vector<unsigned char>& ciphertext) override;
+    bool LoadPQKey(const pos::experimental::MLDSA44Key& key,
+                   const std::vector<unsigned char>& public_key);
+    bool LoadCryptedPQKey(const std::vector<unsigned char>& public_key,
+                          const std::vector<unsigned char>& ciphertext);
+    bool GeneratePQKey(uint256& id);
+    bool HasPQKeys() const;
+    bool AddPQMultisigPolicy(const std::vector<unsigned char>& encoded) override;
+    bool LoadPQMultisigPolicy(const std::vector<unsigned char>& encoded);
     bool AddKeyPubKeyWithDB(WalletBatch &batch,const CKey& key, const CPubKey &pubkey) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
     bool LoadKey(const CKey& key, const CPubKey &pubkey) { return CCryptoKeyStore::AddKeyPubKey(key, pubkey); }
@@ -976,6 +1015,11 @@ public:
     CAmount GetImmatureWatchOnlyBalance() const;
     CAmount GetLegacyBalance(const isminefilter& filter, int minDepth, const std::string* account) const;
     CAmount GetAvailableBalance(const CCoinControl* coinControl = nullptr) const;
+    WalletProtectionBalances GetProtectionBalances() const;
+
+    // Prepare one bounded sweep of confirmed, unlocked classical outputs. Never broadcasts.
+    bool CreateLegacyPQMigration(CTransactionRef& tx, CReserveKey& reservekey,
+                                WalletPQMigration& migration, std::string& error);
 
     OutputType TransactionChangeType(OutputType change_type, const std::vector<CRecipient>& vecSend);
 

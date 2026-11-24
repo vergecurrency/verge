@@ -5,6 +5,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <wallet/wallet.h>
+#include <script/pq.h>
+#include <pos/pqcrypto.h>
 
 #include <checkpoints.h>
 #include <chain.h>
@@ -103,6 +105,8 @@ private:
 
 public:
     CAffectedKeysVisitor(const CKeyStore &keystoreIn, std::vector<CKeyID> &vKeysIn) : keystore(keystoreIn), vKeys(vKeysIn) {}
+    void operator()(const PQKeyHash&) {}
+    void operator()(const PQPolicyHash&) {}
 
     void Process(const CScript &script) {
         txnouttype type;
@@ -297,6 +301,125 @@ bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
     }
 }
 
+bool CWallet::AddPQKey(const pos::experimental::MLDSA44Key& key,
+                       const std::vector<unsigned char>& public_key)
+{
+    LOCK2(cs_wallet, cs_KeyStore);
+    std::vector<unsigned char> derived, ciphertext;
+    CKeyingMaterial seed;
+    const uint256 id = pos::experimental::GetMLDSA44KeyId(public_key);
+    if (id.IsNull() || !key.GetPublicKey(derived) || derived != public_key ||
+        !key.GetSeed(seed) || IsLocked()) return false;
+    if (HavePQKey(id)) {
+        return GetPQPubKey(id, derived) && derived == public_key;
+    }
+    if (IsCrypted() && !EncryptSecret(vMasterKey, seed, id, ciphertext)) return false;
+    WalletBatch batch(*database);
+    if (!batch.TxnBegin()) return false;
+    if (!batch.WriteMinVersion(std::max(nWalletVersion, int(FEATURE_PQ_KEYS))) ||
+        !(IsCrypted() ? batch.WriteCryptedPQKey(public_key, ciphertext, false)
+                      : batch.WritePQKey(public_key, seed)) ||
+        !batch.TxnCommit(true)) {
+        batch.TxnAbort();
+        return false;
+    }
+    LoadMinVersion(std::max(nWalletVersion, int(FEATURE_PQ_KEYS)));
+    return IsCrypted() ? CCryptoKeyStore::AddCryptedPQKey(public_key, ciphertext)
+                      : CBasicKeyStore::AddPQKey(key, public_key);
+}
+
+bool CWallet::AddCryptedPQKey(const std::vector<unsigned char>& public_key,
+                              const std::vector<unsigned char>& ciphertext)
+{
+    LOCK2(cs_wallet, cs_KeyStore);
+    const uint256 id = pos::experimental::GetMLDSA44KeyId(public_key);
+    if (id.IsNull() || ciphertext.size() != 48 || !IsCrypted()) return false;
+    const auto existing = mapCryptedPQKeys.find(id);
+    if (existing != mapCryptedPQKeys.end()) {
+        return existing->second.first == public_key && existing->second.second == ciphertext;
+    }
+    const int minimum_version = std::max(nWalletVersion, int(FEATURE_PQ_KEYS));
+    if (encrypted_batch) {
+        if (!encrypted_batch->WriteMinVersion(minimum_version) ||
+            !encrypted_batch->WriteCryptedPQKey(public_key, ciphertext, true)) return false;
+    } else {
+        WalletBatch batch(*database);
+        if (!batch.TxnBegin()) return false;
+        if (!batch.WriteMinVersion(minimum_version) ||
+            !batch.WriteCryptedPQKey(public_key, ciphertext, false) ||
+            !batch.TxnCommit(true)) {
+            batch.TxnAbort();
+            return false;
+        }
+    }
+    LoadMinVersion(minimum_version);
+    return CCryptoKeyStore::AddCryptedPQKey(public_key, ciphertext);
+}
+
+bool CWallet::LoadPQKey(const pos::experimental::MLDSA44Key& key,
+                        const std::vector<unsigned char>& public_key)
+{
+    return !IsCrypted() && CBasicKeyStore::AddPQKey(key, public_key);
+}
+
+bool CWallet::LoadCryptedPQKey(const std::vector<unsigned char>& public_key,
+                               const std::vector<unsigned char>& ciphertext)
+{
+    return CCryptoKeyStore::AddCryptedPQKey(public_key, ciphertext);
+}
+
+bool CWallet::GeneratePQKey(uint256& id)
+{
+    id.SetNull();
+    pos::experimental::MLDSA44Key key;
+    std::vector<unsigned char> public_key;
+    if (!key.MakeNewKey() || !key.GetPublicKey(public_key) ||
+        !AddPQKey(key, public_key)) return false;
+    id = pos::experimental::GetMLDSA44KeyId(public_key);
+    return !id.IsNull();
+}
+
+bool CWallet::AddPQMultisigPolicy(const std::vector<unsigned char>& encoded)
+{
+    LOCK2(cs_wallet, cs_KeyStore);
+    PQMultisigPolicy policy;
+    if (!DecodePQMultisigPolicy(encoded, policy)) return false;
+    const uint256 id = GetPQMultisigPolicyId(policy);
+    std::vector<unsigned char> existing;
+    if (GetPQMultisigPolicy(id, existing)) return existing == encoded;
+    const CScript script = GetPQMultisigScript(id);
+    CKeyMetadata metadata;
+    metadata.nCreateTime = GetTime();
+    WalletBatch batch(*database);
+    if (!batch.TxnBegin()) return false;
+    const int minimum_version = std::max(nWalletVersion, int(FEATURE_PQ_KEYS));
+    if (!batch.WriteMinVersion(minimum_version) || !batch.WritePQMultisigPolicy(id, encoded) ||
+        !batch.WriteWatchOnly(script, metadata) || !batch.TxnCommit(true)) {
+        batch.TxnAbort();
+        return false;
+    }
+    LoadMinVersion(minimum_version);
+    if (!LoadPQMultisigPolicy(encoded)) return false;
+    m_script_metadata[CScriptID(script)] = metadata;
+    UpdateTimeFirstKey(metadata.nCreateTime);
+    MarkDirty();
+    NotifyWatchonlyChanged(true);
+    return true;
+}
+
+bool CWallet::LoadPQMultisigPolicy(const std::vector<unsigned char>& encoded)
+{
+    PQMultisigPolicy policy;
+    return DecodePQMultisigPolicy(encoded, policy) && CBasicKeyStore::AddPQMultisigPolicy(encoded) &&
+        LoadWatchOnly(GetPQMultisigScript(GetPQMultisigPolicyId(policy)));
+}
+
+bool CWallet::HasPQKeys() const
+{
+    LOCK(cs_KeyStore);
+    return !mapPQKeys.empty() || !mapCryptedPQKeys.empty() || !mapPQMultisigPolicies.empty();
+}
+
 bool CWallet::LoadKeyMetadata(const CKeyID& keyID, const CKeyMetadata &meta)
 {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
@@ -341,6 +464,7 @@ bool ValidSigningVote(const pos::CheckpointVote& vote)
 {
     pos::CheckpointVote checked = vote;
     checked.signature[0] = 1;
+    if (checked.version == 2 && checked.pq_signature.size() == pos::MLDSA44_SIGNATURE_SIZE) checked.pq_signature[0] = 1;
     return vote.target_epoch != pos::FINAL_POW_CHECKPOINT_EPOCH &&
         pos::CheckStructure(checked) == pos::StructureError::NONE;
 }
@@ -1532,11 +1656,11 @@ isminetype CWallet::IsMine(const CTxOut& txout) const
     pos::BondData bond;
     pos::UnbondData unbond;
     if (pos::ParseBondScript(txout.scriptPubKey, bond) &&
-        HaveKey(CKeyID(bond.withdrawal_key_id))) {
+        (bond.version == 2 ? HavePQKey(bond.pq_withdrawal_key_id) : HaveKey(CKeyID(bond.withdrawal_key_id)))) {
         return ISMINE_SPENDABLE;
     }
     if (pos::ParseUnbondScript(txout.scriptPubKey, unbond) &&
-        HaveKey(CKeyID(unbond.withdrawal_key_id))) {
+        (unbond.version == 2 ? HavePQKey(unbond.pq_withdrawal_key_id) : HaveKey(CKeyID(unbond.withdrawal_key_id)))) {
         return ISMINE_SPENDABLE;
     }
     return ::IsMine(*this, txout.scriptPubKey);
@@ -1759,6 +1883,17 @@ int CWalletTx::GetRequestCount() const
 // Helper for producing a max-sized low-S signature (eg 72 bytes)
 bool CWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout) const
 {
+    uint256 policy_id;
+    std::vector<unsigned char> encoded;
+    PQMultisigPolicy policy;
+    if (ExtractPQMultisigId(txout.scriptPubKey, policy_id)) {
+        if (!GetPQMultisigPolicy(policy_id, encoded) || !DecodePQMultisigPolicy(encoded, policy) ||
+            GetPQMultisigPolicyId(policy) != policy_id) return false;
+        // Size-only placeholder; CreateTransaction replaces or clears every dummy input.
+        tx_in.scriptSig.assign(GetPQMultisigMaximumScriptSigSize(policy), 0);
+        tx_in.scriptWitness.stack.clear();
+        return true;
+    }
     // Fill in dummy signatures for fee calculation.
     const CScript& scriptPubKey = txout.scriptPubKey;
     SignatureData sigdata;
@@ -2360,6 +2495,101 @@ CAmount CWallet::GetBalance(const isminefilter& filter, const int min_depth) con
     return nTotal;
 }
 
+WalletProtectionBalances CWallet::GetProtectionBalances() const
+{
+    LOCK2(cs_main, cs_wallet);
+    WalletProtectionBalances result;
+    for (const auto& item : mapWallet) {
+        const CWalletTx& wtx = item.second;
+        const int depth = wtx.GetDepthInMainChain();
+        if (depth < 0 || !CheckFinalTx(*wtx.tx)) continue;
+        const bool immature = wtx.IsCoinBase() && wtx.GetBlocksToMaturity() > 0;
+        const bool trusted = wtx.IsTrusted();
+        if (immature ? depth == 0 : (!trusted && !(depth == 0 && wtx.InMempool()))) continue;
+        for (size_t i = 0; i < wtx.tx->vout.size(); ++i) {
+            const CTxOut& output = wtx.tx->vout[i];
+            if (IsSpent(item.first, i) || !(IsMine(output) & ISMINE_SPENDABLE)) continue;
+            auto& balance = IsPQOutputScript(output.scriptPubKey) ? result.pq : result.legacy;
+            pos::BondData bond;
+            pos::UnbondData unbond;
+            const bool locked = pos::ParseBondScript(output.scriptPubKey, bond) ||
+                (pos::ParseUnbondScript(output.scriptPubKey, unbond) &&
+                 static_cast<int64_t>(chainActive.Height()) + 1 < wtx.GetUnbondUnlockHeight(unbond));
+            CAmount& category = immature ? balance.immature :
+                locked ? (depth > 0 ? balance.staked : balance.pending) :
+                trusted ? balance.available : balance.pending;
+            category += output.nValue;
+            if (!MoneyRange(balance.Total())) throw std::runtime_error("Wallet protection balance out of range");
+        }
+    }
+    return result;
+}
+
+bool CWallet::CreateLegacyPQMigration(CTransactionRef& tx, CReserveKey& reservekey,
+                                     WalletPQMigration& migration, std::string& error)
+{
+    LOCK2(cs_main, cs_wallet);
+    tx.reset();
+    migration = {};
+    if (!Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
+        error = "Post-quantum transfers are not active on this network.";
+        return false;
+    }
+    if (IsLocked()) {
+        error = "Unlock the wallet before moving legacy coins.";
+        return false;
+    }
+    std::vector<COutput> coins;
+    AvailableCoins(coins, true, nullptr, 1, MAX_MONEY, MAX_MONEY, 0, 1);
+    std::sort(coins.begin(), coins.end(), [](const COutput& a, const COutput& b) {
+        return a.tx->tx->vout[a.i].nValue > b.tx->tx->vout[b.i].nValue;
+    });
+    CCoinControl control;
+    control.m_min_depth = 1;
+    CAmount selected = 0;
+    size_t size = 0;
+    const size_t budget = MAX_STANDARD_TX_WEIGHT / WITNESS_SCALE_FACTOR - 1000;
+    for (const COutput& coin : coins) {
+        const CTxOut& output = coin.tx->tx->vout[coin.i];
+        if (!coin.fSpendable || IsPQOutputScript(output.scriptPubKey)) continue;
+        migration.remaining += output.nValue;
+        if (!MoneyRange(migration.remaining)) {
+            error = "Legacy balance out of range.";
+            return false;
+        }
+        const int bytes = CalculateMaximumSignedInputSize(output, this);
+        if (bytes <= 0 || migration.inputs >= 100 || static_cast<size_t>(bytes) > budget - size) continue;
+        control.Select(COutPoint(coin.tx->GetHash(), coin.i));
+        selected += output.nValue;
+        size += bytes;
+        ++migration.inputs;
+    }
+    if (!control.HasSelected()) {
+        error = "No confirmed, unlocked legacy coins are available to move. Bonds and immature coins are excluded.";
+        return false;
+    }
+    uint256 pq_id;
+    if (!GeneratePQKey(pq_id) || !SetAddressBook(PQKeyHash(pq_id), "PQ migration", "receive")) {
+        error = "Unable to save the new PQ destination in this wallet.";
+        return false;
+    }
+    control.destChange = PQKeyHash(pq_id);
+    const CScript destination = GetPQScript(pq_id);
+    int change_pos = -1;
+    if (!CreateTransaction({{destination, selected, true}}, tx, reservekey, migration.fee,
+                           change_pos, error, control)) return false;
+    if (migration.fee > maxTxFee || tx->vout.size() != 1 ||
+        tx->vout[0].scriptPubKey != destination || tx->vout[0].nValue != selected - migration.fee) {
+        tx.reset();
+        error = "Unable to prepare a fee-bounded legacy-to-PQ transfer.";
+        return false;
+    }
+    migration.amount = tx->vout[0].nValue;
+    migration.remaining -= selected;
+    migration.address = EncodeDestination(PQKeyHash(pq_id));
+    return true;
+}
+
 CAmount CWallet::GetUnconfirmedBalance() const
 {
     CAmount nTotal = 0;
@@ -2954,6 +3184,12 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto& recipient : vecSend)
     {
+        uint256 pq_id;
+        if (IsPQOutputScript(recipient.scriptPubKey) &&
+            !Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
+            strFailReason = "Post-quantum destinations are not active on this network";
+            return false;
+        }
         if (nValue < 0 || recipient.nAmount < 0)
         {
             strFailReason = _("Transaction amounts must not be negative");
@@ -3026,6 +3262,13 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
             // coin control: send change to custom address
             if (!boost::get<CNoDestination>(&coin_control.destChange)) {
                 scriptChange = GetScriptForDestination(coin_control.destChange);
+            } else if (Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
+                uint256 pq_change;
+                if (!GeneratePQKey(pq_change)) {
+                    strFailReason = "Unlock the wallet to persist a post-quantum change key";
+                    return false;
+                }
+                scriptChange = GetPQScript(pq_change);
             } else { // no coin control: send change to newly generated address
                 // Note: We use a new key here to keep it from being obvious which side is the change.
                 //  The drawback is that by not reusing a previous key, the change may be lost if a
@@ -4069,7 +4312,8 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
     }
 
     // This wallet is in its first run if all of these are empty
-    fFirstRunRet = mapKeys.empty() && mapCryptedKeys.empty() && mapWatchKeys.empty() && setWatchOnly.empty() && mapScripts.empty();
+    fFirstRunRet = mapKeys.empty() && mapCryptedKeys.empty() && mapPQKeys.empty() &&
+        mapCryptedPQKeys.empty() && mapWatchKeys.empty() && setWatchOnly.empty() && mapScripts.empty();
 
     if (nLoadWalletRet != DBErrors::LOAD_OK)
         return nLoadWalletRet;

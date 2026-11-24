@@ -266,7 +266,7 @@ class PoSPrefetchTest(VergeTestFramework):
             raw = bytes.fromhex(tx["hex"])
             assert_equal(decoded.read(len(raw)), raw)
         deser_string(decoded)  # Legacy block signature vector.
-        assert_equal(decoded.read(1), b"\x01")
+        assert_equal(decoded.read(1), b"\x02")
         # The authorization signature follows the 295-byte proof and 209-byte authorization.
         corrupt[decoded.tell() + 295 + 209] ^= 1
         peer.send_message(BatchReply(self.hashes[0], [bytes(corrupt), self.blocks[2]]))

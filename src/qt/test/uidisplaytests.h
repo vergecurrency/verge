@@ -15,6 +15,8 @@ private Q_SLOTS:
     void confirmationBadges();
     void badgeRendering();
     void numericBondSorting();
+    void pqOverviewBalances();
+    void pqReceiveFlow();
 };
 
 #endif // VERGE_QT_TEST_UIDISPLAYTESTS_H

@@ -24,6 +24,7 @@
 #include <policy/policy.h>
 #include <pos/consensus.h>
 #include <pos/crypto.h>
+#include <pos/pqcrypto.h>
 #include <pos/forkchoice.h>
 #include <pos/state.h>
 #include <pos/validation.h>
@@ -669,7 +670,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
-    if (fRequireStandard && !IsStandardTx(tx, reason))
+    if (fRequireStandard && !IsStandardTx(tx, reason, chainparams.GetConsensus().ArePQRulesActive(chainActive.Height() + 1)))
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
 
     // Do not work on transactions that are too small.
@@ -790,7 +791,8 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         if (tx.HasWitness() && fRequireStandard && !IsWitnessStandard(tx, view))
             return state.DoS(0, false, REJECT_NONSTANDARD, "bad-witness-nonstandard", true);
 
-        int64_t nSigOpsCost = GetTransactionSigOpCost(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS);
+        int64_t nSigOpsCost = GetTransactionSigOpCost(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS |
+            (chainparams.GetConsensus().ArePQRulesActive(chainActive.Height() + 1) ? SCRIPT_VERIFY_PQ : 0));
 
         // nModifiedFees includes any fee deltas from PrioritiseTransaction
         CAmount nModifiedFees = nFees;
@@ -990,6 +992,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         }
 
         unsigned int scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
+        if (chainparams.GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) scriptVerifyFlags |= SCRIPT_VERIFY_PQ;
         if (chainparams.GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
             scriptVerifyFlags |= SCRIPT_VERIFY_POS_REPLAY_PROTECTION;
         }
@@ -1022,6 +1025,9 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         unsigned int currentBlockScriptVerifyFlags = GetBlockScriptFlags(chainActive.Tip(), Params().GetConsensus());
         if (chainparams.GetConsensus().IsPoSActive(chainActive.Height() + 1)) {
             currentBlockScriptVerifyFlags |= SCRIPT_VERIFY_POS_REPLAY_PROTECTION;
+        }
+        if (chainparams.GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
+            currentBlockScriptVerifyFlags |= SCRIPT_VERIFY_PQ;
         }
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool, currentBlockScriptVerifyFlags, true, txdata)) {
             // If we're using promiscuousmempoolflags, we may hit this normally
@@ -1558,7 +1564,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                 (flags & SCRIPT_VERIFY_POS_REPLAY_PROTECTION) != 0
                     ? ReplayProtectionContext(consensus.nPoSNetworkId,
                                               consensus.nPoSActivationHeight)
-                    : ReplayProtectionContext();
+                    : ((flags & SCRIPT_VERIFY_PQ) ? ReplayProtectionContext(consensus.nPoSNetworkId, 0) : ReplayProtectionContext());
             for (unsigned int i = 0; i < tx.vin.size(); i++) {
                 const COutPoint &prevout = tx.vin[i].prevout;
                 const Coin& coin = inputs.AccessCoin(prevout);
@@ -1927,6 +1933,7 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
     if (consensusparams.IsPoSActive(pindex->nHeight)) {
         flags |= SCRIPT_VERIFY_POS_REPLAY_PROTECTION;
     }
+    if (consensusparams.ArePQRulesActive(pindex->nHeight)) flags |= SCRIPT_VERIFY_PQ;
 
     return flags;
 }
@@ -2112,16 +2119,17 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-signature", true);
             }
+            const auto votes_error = pos::CheckVotesAndEvidence(block, next_pos_state,
+                consensus.nPoSSnapshotDelayEpochs, consensus.nPoSNetworkId,
+                pos_slot.epoch, pos_slot.global_slot, pindex->nHeight);
+            if (votes_error == pos::ValidationError::VOTE_SIGNATURE ||
+                votes_error == pos::ValidationError::EVIDENCE_SIGNATURE) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-pos-attachment-signature", consensus.fPoSPostQuantum);
+            }
             if (authorization_error != pos::ValidationError::NONE ||
-                pos::CheckVrfEligibility(block, *snapshot,
-                                         consensus.nPoSNetworkId) !=
+                pos::CheckStakeEligibility(block, *snapshot, consensus) !=
                     pos::ValidationError::NONE ||
-                pos::CheckVotesAndEvidence(
-                    block, next_pos_state,
-                    consensus.nPoSSnapshotDelayEpochs,
-                    consensus.nPoSNetworkId, pos_slot.epoch,
-                    pos_slot.global_slot,
-                    pindex->nHeight) != pos::ValidationError::NONE) {
+                votes_error != pos::ValidationError::NONE) {
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-authorization");
             }
@@ -3044,7 +3052,8 @@ ReplayProtectionContext GetReplayProtectionContextForHeight(
     const Consensus::Params& consensusParams, int height)
 {
     if (!consensusParams.IsPoSActive(height)) {
-        return ReplayProtectionContext();
+        return consensusParams.ArePQRulesActive(height)
+            ? ReplayProtectionContext(consensusParams.nPoSNetworkId, 0) : ReplayProtectionContext();
     }
     return ReplayProtectionContext(consensusParams.nPoSNetworkId,
                                    consensusParams.nPoSActivationHeight);
@@ -3866,6 +3875,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW))
         return false;
 
+    if (pos::IsPoSVersion(block.nVersion) &&
+        block.posExtension.version != (consensusParams.fPoSPostQuantum ? 2 : 1)) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-pos-authentication-scheme");
+    }
+
     // Check the merkle root.
     if (fCheckMerkleRoot) {
         bool mutated;
@@ -3897,10 +3911,25 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     // Authorization signatures are witness-like data: they do not affect the
     // candidate ID. Reject a damaged signature before any permanent-invalidity
     // checks, so it cannot poison another payload carrying the valid signature.
-    if (pos::IsPoSVersion(block.nVersion) &&
-        !pos::VerifySchnorr(block.posExtension.stake_proof.signing_public_key,
-                           pos::GetBlockSigningHash(block.posExtension.authorization),
-                           block.posExtension.authorization.signature)) {
+    bool signature_valid = true;
+    if (pos::IsPoSVersion(block.nVersion)) {
+        const auto& authorization = block.posExtension.authorization;
+        const auto* classical_key = block.posExtension.stake_proof.signing_public_key;
+        if (consensusParams.fPoSPostQuantum) {
+            pos::experimental::HybridPublicKey key;
+            pos::experimental::HybridSignature signature;
+            std::copy(classical_key, classical_key + 32, key.schnorr.begin());
+            key.mldsa = authorization.pq_public_key;
+            std::copy(std::begin(authorization.signature), std::end(authorization.signature), signature.schnorr.begin());
+            signature.mldsa = authorization.pq_signature;
+            signature_valid = authorization.version == 2 && authorization.network_id == consensusParams.nPoSNetworkId &&
+                pos::experimental::VerifyHybrid(key, consensusParams.nPoSNetworkId,
+                    pos::experimental::HybridPurpose::BLOCK, pos::GetBlockSigningHash(authorization), signature);
+        } else {
+            signature_valid = pos::VerifySchnorr(classical_key, pos::GetBlockSigningHash(authorization), authorization.signature);
+        }
+    }
+    if (!signature_valid) {
         return state.DoS(100, false, REJECT_INVALID, "bad-pos-signature", true,
                          "Invalid PoS block authorization signature");
     }
@@ -3947,7 +3976,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
 
     if (pos::IsPoSVersion(block.nVersion)) {
         if (pos::CheckStructure(block.posExtension) != pos::StructureError::NONE) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-pos-extension", false,
+            return state.DoS(100, false, REJECT_INVALID, "bad-pos-extension", consensusParams.fPoSPostQuantum,
                              "PoS block extension failed structural validation");
         }
     } else if (fCheckBlockSignature) {

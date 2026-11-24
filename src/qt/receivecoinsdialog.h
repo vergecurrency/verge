@@ -18,6 +18,7 @@
 
 class PlatformStyle;
 class WalletModel;
+namespace interfaces { struct WalletBalances; }
 
 namespace Ui {
     class ReceiveCoinsDialog;
@@ -61,6 +62,8 @@ private:
     QMenu *contextMenu;
     QPushButton *editLabelButton;
     const PlatformStyle *platformStyle;
+    bool m_pq_available{false};
+    bool m_creating_request{false};
 
     QModelIndex selectedRow();
     void copyColumnToClipboard(int column);
@@ -80,6 +83,8 @@ private Q_SLOTS:
     void copyMessage();
     void copyAmount();
     void editSelectedLabel();
+    void updatePQAvailability(const interfaces::WalletBalances& balances);
+    void updateAddressType();
 };
 
 #endif // VERGE_QT_RECEIVECOINSDIALOG_H

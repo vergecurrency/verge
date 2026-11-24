@@ -5,6 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <miner.h>
+#include <pos/pqcrypto.h>
 
 #include <amount.h>
 #include <chain.h>
@@ -230,7 +231,8 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     const std::function<bool(const pos::BlockAuthorization&)>& signing_guard,
     const std::vector<pos::CheckpointVote>& votes,
     const std::vector<pos::BlockEquivocationEvidence>& block_evidence,
-    const std::vector<pos::VoteEquivocationEvidence>& vote_evidence)
+    const std::vector<pos::VoteEquivocationEvidence>& vote_evidence,
+    const pos::experimental::MLDSA44Key* pq_key)
 {
     resetBlock();
     pblocktemplate.reset(new CBlockTemplate());
@@ -264,6 +266,15 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     pblock->posExtension.votes = votes;
     pblock->posExtension.block_evidence = block_evidence;
     pblock->posExtension.vote_evidence = vote_evidence;
+    if (consensus.fPoSPostQuantum) {
+        auto& authorization = pblock->posExtension.authorization;
+        if (bond.data.version != 2 || pq_key == nullptr ||
+            !pq_key->GetPublicKey(authorization.pq_public_key) ||
+            pos::experimental::GetMLDSA44KeyId(authorization.pq_public_key) != bond.data.pq_signing_key_id) return nullptr;
+        pblock->posExtension.version = 2;
+        authorization.version = 2;
+        authorization.pq_signature.resize(pos::MLDSA44_SIGNATURE_SIZE);
+    }
 
     CMutableTransaction reward;
     reward.nVersion = CTransaction::POS_REPLAY_PROTECTED_VERSION;
@@ -272,7 +283,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     reward.vin[0].prevout.SetNull();
     reward.vin[0].scriptSig = CScript() << nHeight << OP_0;
     reward.vout.emplace_back(
-        nFees, GetScriptForDestination(CKeyID(bond.data.reward_key_id)));
+        nFees, GetScriptForDestination(bond.data.version == 2 ? CTxDestination(PQKeyHash(bond.data.pq_reward_key_id)) : CTxDestination(CKeyID(bond.data.reward_key_id))));
     reward.vout.emplace_back(
         0, pos::GetBlockCommitmentScript(
                pos::GetBlockCommitment(pblock->posExtension)));
@@ -314,9 +325,21 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     unsigned char auxiliary[32];
     GetRandBytes(auxiliary, sizeof(auxiliary));
     unsigned char signing_public_key[pos::SCHNORR_PUBLIC_KEY_SIZE];
-    const bool signed_block = pos::SignSchnorr(
-        signing_secret, pos::GetBlockSigningHash(authorization), auxiliary,
-        authorization.signature, signing_public_key);
+    bool signed_block;
+    if (consensus.fPoSPostQuantum) {
+        pos::experimental::HybridPublicKey key;
+        pos::experimental::HybridSignature signature;
+        signed_block = pos::experimental::SignHybrid(signing_secret, auxiliary, *pq_key,
+            consensus.nPoSNetworkId, pos::experimental::HybridPurpose::BLOCK,
+            pos::GetBlockSigningHash(authorization), key, signature);
+        std::copy(key.schnorr.begin(), key.schnorr.end(), signing_public_key);
+        std::copy(signature.schnorr.begin(), signature.schnorr.end(), authorization.signature);
+        authorization.pq_public_key = std::move(key.mldsa);
+        authorization.pq_signature = std::move(signature.mldsa);
+    } else {
+        signed_block = pos::SignSchnorr(signing_secret, pos::GetBlockSigningHash(authorization), auxiliary,
+            authorization.signature, signing_public_key);
+    }
     memory_cleanse(auxiliary, sizeof(auxiliary));
     if (!signed_block ||
         !std::equal(signing_public_key,

@@ -7,7 +7,9 @@
 #include <chain.h>
 
 #include <pos/block.h>
+#include <pos/consensus.h>
 #include <pos/crypto.h>
+#include <pos/pqcrypto.h>
 #include <pos/vrf.h>
 #include <primitives/block.h>
 #include <pubkey.h>
@@ -19,6 +21,30 @@
 #include <limits>
 
 namespace pos {
+
+namespace {
+bool VerifyBondSignature(const BondData& bond, uint8_t version,
+    uint32_t network_id, experimental::HybridPurpose purpose,
+    const uint256& message, const unsigned char signature[SCHNORR_SIGNATURE_SIZE],
+    const std::vector<unsigned char>& pq_public_key,
+    const std::vector<unsigned char>& pq_signature)
+{
+    if (bond.version == POS_OBJECT_VERSION) {
+        return version == POS_OBJECT_VERSION && pq_public_key.empty() && pq_signature.empty() &&
+            VerifySchnorr(bond.signing_public_key, message, signature);
+    }
+    if (bond.version != HYBRID_POS_OBJECT_VERSION || version != HYBRID_POS_OBJECT_VERSION ||
+        bond.pq_signing_key_id.IsNull() ||
+        experimental::GetMLDSA44KeyId(pq_public_key) != bond.pq_signing_key_id) return false;
+    experimental::HybridPublicKey key;
+    experimental::HybridSignature hybrid_signature;
+    std::copy(std::begin(bond.signing_public_key), std::end(bond.signing_public_key), key.schnorr.begin());
+    key.mldsa = pq_public_key;
+    std::copy(signature, signature + SCHNORR_SIGNATURE_SIZE, hybrid_signature.schnorr.begin());
+    hybrid_signature.mldsa = pq_signature;
+    return experimental::VerifyHybrid(key, network_id, purpose, message, hybrid_signature);
+}
+} // namespace
 
 uint64_t GetRequiredSnapshotEpoch(uint64_t block_epoch,
                                   uint32_t snapshot_delay_epochs)
@@ -54,8 +80,9 @@ ValidationError CheckProducerAtParent(const CBlock& block, const State& parent,
     if (bond == nullptr) return ValidationError::BOND_MISSING;
     if (std::memcmp(bond->data.signing_public_key, proof.signing_public_key,
                     SCHNORR_PUBLIC_KEY_SIZE) != 0 ||
-        std::memcmp(bond->data.vrf_public_key, proof.vrf_public_key,
-                    VRF_PUBLIC_KEY_SIZE) != 0) return ValidationError::BOND_MISMATCH;
+        (!params.fPoSPublicEligibility &&
+         std::memcmp(bond->data.vrf_public_key, proof.vrf_public_key,
+                     VRF_PUBLIC_KEY_SIZE) != 0)) return ValidationError::BOND_MISMATCH;
     const ValidationError eligibility = CheckBondEligibility(
         proof.bond_outpoint, *bond, parent, epoch, height, params);
     if (eligibility != ValidationError::NONE) return eligibility;
@@ -71,7 +98,7 @@ ValidationError CheckProducerAtParent(const CBlock& block, const State& parent,
     if (proof.epoch_seed != seed) return ValidationError::AUTHORIZATION_MISMATCH;
     const ValidationError authorization = CheckStakeAuthorization(block, *snapshot, required);
     return authorization != ValidationError::NONE ? authorization :
-        CheckVrfEligibility(block, *snapshot, params.nPoSNetworkId);
+        CheckStakeEligibility(block, *snapshot, params);
 }
 
 ValidationError CheckStakeAuthorization(const CBlock& block,
@@ -101,17 +128,19 @@ ValidationError CheckStakeAuthorization(const CBlock& block,
         std::memcmp(it->bond.data.signing_public_key,
                     proof.signing_public_key,
                     SCHNORR_PUBLIC_KEY_SIZE) != 0 ||
-        std::memcmp(it->bond.data.vrf_public_key, proof.vrf_public_key,
-                    VRF_PUBLIC_KEY_SIZE) != 0) {
+        (proof.version != PUBLIC_STAKE_PROOF_VERSION &&
+         std::memcmp(it->bond.data.vrf_public_key, proof.vrf_public_key,
+                     VRF_PUBLIC_KEY_SIZE) != 0)) {
         return ValidationError::BOND_MISMATCH;
     }
 
     if (authorization.parent_randomness != proof.epoch_seed) {
         return ValidationError::AUTHORIZATION_MISMATCH;
     }
-    if (!VerifySchnorr(proof.signing_public_key,
-                       GetBlockSigningHash(authorization),
-                       authorization.signature)) {
+    if (!VerifyBondSignature(it->bond.data, authorization.version,
+            authorization.network_id, experimental::HybridPurpose::BLOCK,
+            GetBlockSigningHash(authorization), authorization.signature,
+            authorization.pq_public_key, authorization.pq_signature)) {
         return ValidationError::AUTHORIZATION_SIGNATURE;
     }
     return ValidationError::NONE;
@@ -122,6 +151,7 @@ ValidationError CheckVrfEligibility(const CBlock& block,
                                     uint32_t network_id)
 {
     const StakeProof& proof = block.posExtension.stake_proof;
+    if (proof.version != POS_OBJECT_VERSION) return ValidationError::ELIGIBILITY_SCHEME;
     const auto it = std::lower_bound(
         snapshot.entries.begin(), snapshot.entries.end(), proof.bond_outpoint,
         [](const SnapshotEntry& entry, const COutPoint& outpoint) {
@@ -162,11 +192,34 @@ ValidationError CheckVrfEligibility(const CBlock& block,
     return ValidationError::NONE;
 }
 
+ValidationError CheckStakeEligibility(const CBlock& block,
+                                      const StakeSnapshot& snapshot,
+                                      const Consensus::Params& params)
+{
+    const auto& proof = block.posExtension.stake_proof;
+    if (!params.fPoSPublicEligibility) {
+        return CheckVrfEligibility(block, snapshot, params.nPoSNetworkId);
+    }
+    if (proof.version != PUBLIC_STAKE_PROOF_VERSION) return ValidationError::ELIGIBILITY_SCHEME;
+    if (CheckStructure(proof) != StructureError::NONE) return ValidationError::PUBLIC_ELIGIBILITY_INVALID;
+    if (proof.snapshot_epoch != snapshot.source_epoch || proof.snapshot_root != snapshot.root) {
+        return ValidationError::SNAPSHOT_MISMATCH;
+    }
+    COutPoint winner;
+    uint256 hash;
+    if (!SelectPublicStake(snapshot, params.nPoSNetworkId, proof.epoch_seed,
+                            proof.slot, winner, hash) || winner != proof.bond_outpoint) {
+        return ValidationError::STAKE_INELIGIBLE;
+    }
+    return std::equal(hash.begin(), hash.end(), proof.vrf_output)
+        ? ValidationError::NONE : ValidationError::PUBLIC_ELIGIBILITY_INVALID;
+}
+
 ValidationError CheckCheckpointVote(const CheckpointVote& vote,
                                     const State& state,
                                     uint32_t snapshot_delay_epochs,
                                     uint64_t current_epoch,
-                                    int32_t current_height)
+                                    int32_t current_height, uint32_t network_id)
 {
     if (CheckStructure(vote) != StructureError::NONE) {
         return ValidationError::VOTE_STRUCTURE;
@@ -210,8 +263,9 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
     if (!state.CanApplyVote(vote)) {
         return ValidationError::VOTE_CHECKPOINT;
     }
-    if (!VerifySchnorr(it->bond.data.signing_public_key,
-                       GetVoteSigningHash(vote), vote.signature)) {
+    if (!VerifyBondSignature(it->bond.data, vote.version, network_id,
+            experimental::HybridPurpose::VOTE, GetVoteSigningHash(vote),
+            vote.signature, vote.pq_public_key, vote.pq_signature)) {
         return ValidationError::VOTE_SIGNATURE;
     }
     return ValidationError::NONE;
@@ -262,7 +316,7 @@ const CBlockIndex* FindVoteHead(const CheckpointVote& vote,
 
 ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
                                   const State& state,
-                                  uint64_t maximum_target_epoch)
+                                  uint64_t maximum_target_epoch, uint32_t network_id)
 {
     if (CheckStructure(evidence) != StructureError::NONE) {
         return ValidationError::VOTE_STRUCTURE;
@@ -274,12 +328,12 @@ ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
     const BondRecord* bond =
         state.FindHistoricalBond(evidence.first.bond_outpoint);
     if (bond == nullptr) return ValidationError::EVIDENCE_BOND;
-    if (!VerifySchnorr(bond->data.signing_public_key,
-                       GetVoteSigningHash(evidence.first),
-                       evidence.first.signature) ||
-        !VerifySchnorr(bond->data.signing_public_key,
-                       GetVoteSigningHash(evidence.second),
-                       evidence.second.signature)) {
+    if (!VerifyBondSignature(bond->data, evidence.first.version, network_id,
+            experimental::HybridPurpose::VOTE, GetVoteSigningHash(evidence.first),
+            evidence.first.signature, evidence.first.pq_public_key, evidence.first.pq_signature) ||
+        !VerifyBondSignature(bond->data, evidence.second.version, network_id,
+            experimental::HybridPurpose::VOTE, GetVoteSigningHash(evidence.second),
+            evidence.second.signature, evidence.second.pq_public_key, evidence.second.pq_signature)) {
         return ValidationError::EVIDENCE_SIGNATURE;
     }
     return ValidationError::NONE;
@@ -304,12 +358,12 @@ ValidationError CheckBlockEvidence(const BlockEquivocationEvidence& evidence,
     const BondRecord* bond =
         state.FindHistoricalBond(evidence.first.bond_outpoint);
     if (bond == nullptr) return ValidationError::EVIDENCE_BOND;
-    if (!VerifySchnorr(bond->data.signing_public_key,
-                       GetBlockSigningHash(evidence.first),
-                       evidence.first.signature) ||
-        !VerifySchnorr(bond->data.signing_public_key,
-                       GetBlockSigningHash(evidence.second),
-                       evidence.second.signature)) {
+    if (!VerifyBondSignature(bond->data, evidence.first.version, network_id,
+            experimental::HybridPurpose::BLOCK, GetBlockSigningHash(evidence.first),
+            evidence.first.signature, evidence.first.pq_public_key, evidence.first.pq_signature) ||
+        !VerifyBondSignature(bond->data, evidence.second.version, network_id,
+            experimental::HybridPurpose::BLOCK, GetBlockSigningHash(evidence.second),
+            evidence.second.signature, evidence.second.pq_public_key, evidence.second.pq_signature)) {
         return ValidationError::EVIDENCE_SIGNATURE;
     }
     return ValidationError::NONE;
@@ -326,7 +380,7 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
     for (const CheckpointVote& vote : block.posExtension.votes) {
         const ValidationError error = CheckCheckpointVote(
             vote, state, snapshot_delay_epochs, current_epoch,
-            current_height);
+            current_height, network_id);
         if (error != ValidationError::NONE) return error;
         const ValidationError head_error = CheckVoteHead(vote, state, current_slot);
         if (head_error != ValidationError::NONE) return head_error;
@@ -342,7 +396,7 @@ ValidationError CheckVotesAndEvidence(const CBlock& block,
     for (const VoteEquivocationEvidence& evidence :
          block.posExtension.vote_evidence) {
         const ValidationError error = CheckVoteEvidence(
-            evidence, state, current_epoch);
+            evidence, state, current_epoch, network_id);
         if (error != ValidationError::NONE) return error;
     }
     return ValidationError::NONE;
@@ -358,7 +412,7 @@ ValidationError CheckReward(const CBlock& block, const BondRecord& bond,
     const BlockCommitment expected =
         GetBlockCommitment(block.posExtension);
     const CScript reward_script =
-        GetScriptForDestination(CKeyID(bond.data.reward_key_id));
+        GetScriptForDestination(bond.data.version == 2 ? CTxDestination(PQKeyHash(bond.data.pq_reward_key_id)) : CTxDestination(CKeyID(bond.data.reward_key_id)));
     size_t commitments = 0;
     CAmount claimed = 0;
     for (const CTxOut& output : block.vtx.front()->vout) {
@@ -366,7 +420,8 @@ ValidationError CheckReward(const CBlock& block, const BondRecord& bond,
         if (ParseBlockCommitmentScript(output.scriptPubKey, commitment)) {
             ++commitments;
             if (output.nValue != 0) return ValidationError::REWARD_AMOUNT;
-            if (commitment.stake_proof_hash != expected.stake_proof_hash ||
+            if (commitment.version != expected.version ||
+                commitment.stake_proof_hash != expected.stake_proof_hash ||
                 commitment.vote_root != expected.vote_root ||
                 commitment.evidence_root != expected.evidence_root ||
                 commitment.snapshot_root != expected.snapshot_root ||

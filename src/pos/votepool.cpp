@@ -49,6 +49,7 @@ VotePoolResult VotePool::Add(const CheckpointVote& vote,
         if (current != m_votes.end()) {
             const CheckpointVote& previous = current->second.vote;
             VoteEquivocationEvidence evidence;
+            evidence.version = vote.version;
             evidence.first = previous;
             evidence.second = vote;
             if (GetVoteSigningHash(evidence.second) <
@@ -287,6 +288,7 @@ VotePoolResult BlockAuthorizationPool::Add(
     }
 
     BlockEquivocationEvidence evidence;
+    evidence.version = authorization.version;
     evidence.first = current->second;
     evidence.second = authorization;
     if (GetBlockSigningHash(evidence.second) <

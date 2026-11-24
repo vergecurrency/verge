@@ -169,6 +169,16 @@ static UniValue createmultisig(const JSONRPCRequest& request)
     return result;
 }
 
+static UniValue createpqmultisig(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 2) throw std::runtime_error(
+        "createpqmultisig nrequired [\"pqaddress\",...]\n"
+        "Creates a native ML-DSA-44 m-of-n policy (at most five distinct cosigners), without a wallet or SegWit.\n"
+        "Returns address, policy (hex), scriptPubKey, sigsrequired, and sorted addresses.\n"
+        "Each cosigner should register the same policy with addpqmultisigaddress before receiving funds.\n");
+    return DescribePQMultisigPolicy(ParsePQMultisigPolicy(request.params[0], request.params[1]));
+}
+
 static UniValue verifymessage(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 3)
@@ -628,6 +638,7 @@ static const CRPCCommand commands[] =
     { "control",            "logging",                &logging,                {"include", "exclude"}},
     { "util",               "validateaddress",        &validateaddress,        {"address"} }, /* uses wallet if enabled */
     { "util",               "createmultisig",         &createmultisig,         {"nrequired","keys"} },
+    { "util",               "createpqmultisig",       &createpqmultisig,       {"nrequired","addresses"} },
     { "util",               "verifymessage",          &verifymessage,          {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", &signmessagewithprivkey, {"privkey","message"} },
     { "util",               "setalgo",                &setalgo,                {"algo"}},

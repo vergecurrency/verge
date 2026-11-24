@@ -10,6 +10,7 @@
 #include <keystore.h>
 #include <script/script.h>
 #include <script/sign.h>
+#include <script/pq.h>
 
 
 typedef std::vector<unsigned char> valtype;
@@ -67,6 +68,24 @@ IsMineResult IsMineInner(const CKeyStore& keystore, const CScript& scriptPubKey,
     CKeyID keyID;
     switch (whichType)
     {
+    case TX_PQ_MULTISIG:
+    {
+        if (sigversion != IsMineSigVersion::TOP) return IsMineResult::INVALID;
+        const uint256 id(vSolutions[0]);
+        std::vector<unsigned char> encoded;
+        PQMultisigPolicy policy;
+        if (keystore.GetPQMultisigPolicy(id, encoded) && DecodePQMultisigPolicy(encoded, policy) &&
+            GetPQMultisigPolicyId(policy) == id) {
+            unsigned int owned = 0;
+            for (const auto& key : policy.keys) owned += keystore.HavePQKey(key);
+            ret = owned >= policy.required ? IsMineResult::SPENDABLE : IsMineResult::WATCH_ONLY;
+        }
+        break;
+    }
+    case TX_PQ_KEYHASH:
+        if (sigversion != IsMineSigVersion::TOP) return IsMineResult::INVALID;
+        if (keystore.HavePQKey(uint256(vSolutions[0]))) ret = IsMineResult::SPENDABLE;
+        break;
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
     case TX_WITNESS_UNKNOWN:

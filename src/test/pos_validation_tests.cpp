@@ -7,6 +7,8 @@
 #include <chainparams.h>
 #include <pos/block.h>
 #include <pos/crypto.h>
+#include <pos/pqcrypto.h>
+#include <streams.h>
 #include <pos/validation.h>
 #include <pos/vrf.h>
 #include <primitives/block.h>
@@ -150,6 +152,92 @@ BOOST_AUTO_TEST_CASE(snapshot_and_authorization)
                     fixture.block, fixture.snapshot,
                     pos::INITIAL_SNAPSHOT_EPOCH) ==
                 pos::ValidationError::AUTHORIZATION_SIGNATURE);
+}
+
+BOOST_AUTO_TEST_CASE(hybrid_authorization_requires_the_immutable_bond_key)
+{
+    namespace pq = pos::experimental;
+    if (!pq::MLDSA44Available()) return;
+    FixtureData fixture = MakeFixture();
+    auto& data = fixture.snapshot.entries[0].bond.data;
+    data.version = pos::HYBRID_POS_OBJECT_VERSION;
+    std::fill(std::begin(data.vrf_public_key), std::end(data.vrf_public_key), 0);
+    data.reward_key_id.SetNull();
+    data.withdrawal_key_id.SetNull();
+    data.pq_reward_key_id = uint256S("02");
+    data.pq_withdrawal_key_id = uint256S("03");
+    pq::MLDSA44Key key;
+    BOOST_REQUIRE(key.MakeNewKey());
+    std::vector<unsigned char> public_key;
+    BOOST_REQUIRE(key.GetPublicKey(public_key));
+    data.pq_signing_key_id = pq::GetMLDSA44KeyId(public_key);
+    BOOST_REQUIRE(pos::IsValid(data));
+    fixture.snapshot.root = pos::ComputeSnapshotRoot(fixture.snapshot.entries);
+    auto& proof = fixture.block.posExtension.stake_proof;
+    proof.version = pos::PUBLIC_STAKE_PROOF_VERSION;
+    proof.snapshot_root = fixture.snapshot.root;
+    std::fill(std::begin(proof.vrf_public_key), std::end(proof.vrf_public_key), 0);
+    std::fill(std::begin(proof.vrf_proof), std::end(proof.vrf_proof), 0);
+    auto& authorization = fixture.block.posExtension.authorization;
+    authorization.version = pos::HYBRID_POS_OBJECT_VERSION;
+    authorization.stake_proof_hash = pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, proof);
+    pq::HybridPublicKey hybrid_key;
+    pq::HybridSignature signature;
+    unsigned char auxiliary[32]{};
+    BOOST_REQUIRE(pq::SignHybrid(fixture.secret, auxiliary, key, authorization.network_id,
+        pq::HybridPurpose::BLOCK, pos::GetBlockSigningHash(authorization), hybrid_key, signature));
+    std::copy(signature.schnorr.begin(), signature.schnorr.end(), authorization.signature);
+    authorization.pq_public_key = hybrid_key.mldsa;
+    authorization.pq_signature = signature.mldsa;
+    BOOST_CHECK(pos::CheckStakeAuthorization(fixture.block, fixture.snapshot,
+        pos::INITIAL_SNAPSHOT_EPOCH) == pos::ValidationError::NONE);
+    authorization.pq_signature[0] ^= 1;
+    BOOST_CHECK(pos::CheckStakeAuthorization(fixture.block, fixture.snapshot,
+        pos::INITIAL_SNAPSHOT_EPOCH) == pos::ValidationError::AUTHORIZATION_SIGNATURE);
+    authorization.pq_signature[0] ^= 1;
+    data.pq_signing_key_id = uint256S("1234");
+    BOOST_CHECK(pos::CheckStakeAuthorization(fixture.block, fixture.snapshot,
+        pos::INITIAL_SNAPSHOT_EPOCH) == pos::ValidationError::AUTHORIZATION_SIGNATURE);
+    data.pq_signing_key_id = pq::GetMLDSA44KeyId(public_key);
+    ++authorization.network_id;
+    BOOST_CHECK(pos::CheckStakeAuthorization(fixture.block, fixture.snapshot,
+        pos::INITIAL_SNAPSHOT_EPOCH) == pos::ValidationError::AUTHORIZATION_SIGNATURE);
+}
+
+BOOST_AUTO_TEST_CASE(versioned_bond_records_preserve_legacy_encoding)
+{
+    FixtureData fixture = MakeFixture();
+    auto bond = fixture.snapshot.entries[0].bond;
+    BOOST_CHECK_EQUAL(GetSerializeSize(bond, SER_DISK, 0), 117U);
+    CDataStream legacy(SER_DISK, 0);
+    legacy << bond.value << bond.creation_height << bond.data.signing_public_key
+           << bond.data.vrf_public_key << bond.data.reward_key_id << bond.data.withdrawal_key_id;
+    CDataStream actual(SER_DISK, 0);
+    actual << bond;
+    BOOST_CHECK(std::equal(legacy.begin(), legacy.end(), actual.begin(), actual.end()));
+    bond.data.version = pos::HYBRID_POS_OBJECT_VERSION;
+    std::fill(std::begin(bond.data.vrf_public_key), std::end(bond.data.vrf_public_key), 0);
+    bond.data.reward_key_id.SetNull();
+    bond.data.withdrawal_key_id.SetNull();
+    bond.data.pq_signing_key_id = uint256S("01");
+    bond.data.pq_reward_key_id = uint256S("02");
+    bond.data.pq_withdrawal_key_id = uint256S("03");
+    BOOST_REQUIRE(pos::IsValid(bond.data));
+    actual.clear();
+    actual << bond;
+    BOOST_CHECK_EQUAL(actual.size(), 149U);
+    pos::BondRecord decoded;
+    actual >> decoded;
+    BOOST_CHECK(pos::IsValid(decoded.data));
+    BOOST_CHECK(decoded.data.pq_signing_key_id == bond.data.pq_signing_key_id);
+    BOOST_CHECK(decoded.data.pq_reward_key_id == bond.data.pq_reward_key_id);
+    BOOST_CHECK(decoded.data.pq_withdrawal_key_id == bond.data.pq_withdrawal_key_id);
+    legacy >> decoded;
+    BOOST_CHECK_EQUAL(decoded.data.version, pos::POS_OBJECT_VERSION);
+    BOOST_CHECK(decoded.data.pq_signing_key_id.IsNull());
+    actual.clear();
+    actual << CAmount{-1} << uint8_t{255};
+    BOOST_CHECK_THROW(actual >> decoded, std::ios_base::failure);
 }
 
 BOOST_AUTO_TEST_CASE(parent_authentication_rejects_nonmembers_and_bad_proofs_without_mutation)

@@ -24,6 +24,7 @@
 #include <index/txindex.h>
 #include <key.h>
 #include <validation.h>
+#include <pos/pqcrypto.h>
 #include <miner.h>
 #include <netbase.h>
 #include <net.h>
@@ -483,6 +484,7 @@ void SetupServerArgs()
     gArgs.AddArg("-limitdescendantsize=<n>", strprintf("Do not accept transactions if any ancestor would have more than <n> kilobytes of in-mempool descendants (default: %u).", DEFAULT_DESCENDANT_SIZE_LIMIT), true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-vbparams=deployment:start:end", "Use given start/end times for specified version bits deployment (regtest-only)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-posactivationheight=<n>", "Activate proof of stake at height <n> (regtest-only, minimum: 721)", true, OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg("-posunbondingblocks=<n>", "Override the unbonding delay for isolated regtest tests (minimum: snapshot delay in slots; regtest-only)", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-postrustedcheckpoint=<height>:<hash>", "Require this finalized PoS checkpoint and all descendants to build on it", true, OptionsCategory::OPTIONS);
     gArgs.AddArg("-addrmantest", "Allows to test address relay on localhost", true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-checkaddrman", "Run expensive addrman consistency checks after addrman updates (default: 0)", true, OptionsCategory::DEBUG_TEST);
@@ -1201,6 +1203,18 @@ bool AppInitParameterInteraction()
         UpdatePoSActivationHeight(activationHeight);
         LogPrintf("Setting regtest PoS activation height to %d\n", activationHeight);
     }
+    if (gArgs.IsArgSet("-posunbondingblocks")) {
+        int32_t blocks;
+        const std::string value = gArgs.GetArg("-posunbondingblocks", "");
+        const uint64_t minimum = uint64_t{chainparams.GetConsensus().nPoSEpochSlots} *
+            chainparams.GetConsensus().nPoSSnapshotDelayEpochs;
+        if (!chainparams.MineBlocksOnDemand() || !ParseInt32(value, &blocks) ||
+            blocks < 1 || static_cast<uint64_t>(blocks) < minimum || blocks > 20160) {
+            return InitError("Unbonding delay override is restricted to regtest, at least the snapshot delay in slots, and at most 20160 blocks.");
+        }
+        UpdatePoSUnbondingBlocks(static_cast<uint32_t>(blocks));
+        LogPrintf("Setting regtest unbonding delay to %d blocks\n", blocks);
+    }
     if (gArgs.IsArgSet("-postrustedcheckpoint")) {
         const std::string value = gArgs.GetArg("-postrustedcheckpoint", "");
         const size_t separator = value.find(':');
@@ -1331,6 +1345,9 @@ static void FlushAfterSync()
 
 bool AppInitMain()
 {
+    if (Params().GetConsensus().fPoSPostQuantum && !pos::experimental::MLDSA44Available()) {
+        return InitError(_("This network requires an OpenSSL ML-DSA-44 backend; classical fallback is disabled."));
+    }
     const CChainParams& chainparams = Params();
     // ********************************************************* Step 4a: application initialization
 #ifndef WIN32

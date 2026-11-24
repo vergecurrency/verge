@@ -752,6 +752,10 @@ UniValue dumpwallet(const JSONRPCRequest& request)
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
+    if (pwallet->HasPQKeys()) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+            "Text export does not include post-quantum keys. Use backupwallet for a complete wallet backup.");
+    }
     EnsureWalletIsUnlocked(pwallet);
 
     fs::path filepath = request.params[0].get_str();

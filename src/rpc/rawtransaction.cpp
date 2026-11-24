@@ -886,6 +886,7 @@ UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxsUnival
     bool fHashSingle = ((nHashType &
         ~(SIGHASH_ANYONECANPAY | SIGHASH_POS_FORKID)) == SIGHASH_SINGLE);
     const unsigned int script_flags = STANDARD_SCRIPT_VERIFY_FLAGS |
+        ((Params().GetConsensus().fPoSPostQuantum && replay_context.network_id != 0) ? SCRIPT_VERIFY_PQ : 0) |
         (replay_context.IsEnabled()
              ? SCRIPT_VERIFY_POS_REPLAY_PROTECTION
              : SCRIPT_VERIFY_NONE);
@@ -907,7 +908,7 @@ UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxsUnival
         const CScript& prevPubKey = coin.out.scriptPubKey;
         const CAmount& amount = coin.out.nValue;
 
-        SignatureData sigdata;
+        SignatureData sigdata = DataFromTransaction(mtx, i);
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mtx.vout.size())) {
             ProduceSignature(

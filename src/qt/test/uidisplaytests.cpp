@@ -2,18 +2,313 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include <config/verge-config.h>
+#endif
+
 #include <qt/test/uidisplaytests.h>
 
 #include <qt/numerictablewidgetitem.h>
 #include <qt/transactionstatusdelegate.h>
+#include <qt/overviewpage.h>
+#include <qt/optionsmodel.h>
+#include <qt/platformstyle.h>
+#include <qt/vergeunits.h>
+#include <qt/walletmodel.h>
+#include <qt/addresstablemodel.h>
+#include <qt/receivecoinsdialog.h>
+#include <qt/receiverequestdialog.h>
+#include <qt/recentrequeststablemodel.h>
+#include <qt/vergeamountfield.h>
+#include <interfaces/node.h>
+#include <interfaces/wallet.h>
+#include <chainparams.h>
+#include <key_io.h>
+#include <pos/pqcrypto.h>
+#include <validation.h>
+#include <test/setup_common.h>
+#include <wallet/wallet.h>
 
 #include <QHeaderView>
 #include <QImage>
 #include <QStandardItemModel>
 #include <QTableWidget>
 #include <QTest>
+#include <QLabel>
+#include <QPushButton>
+#include <QApplication>
+#include <QMessageBox>
+#include <QTimer>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QFileDialog>
+#include <QTemporaryDir>
+#include <QTextEdit>
+#include <QStandardItemModel>
 
 #include <limits>
+#include <memory>
+
+void UIDisplayTests::pqReceiveFlow()
+{
+    if (!pos::experimental::MLDSA44Available()) QSKIP("ML-DSA-44 is unavailable");
+    const std::string network = Params().NetworkIDString();
+    BasicTestingSetup setup(CBaseChainParams::REGTEST);
+    CBlockIndex genesis;
+    struct Restore {
+        std::string network;
+        CBlockIndex* tip;
+        ~Restore() { chainActive.SetTip(tip); SelectParams(network); }
+    } restore{network, chainActive.Tip()};
+    SelectParams(CBaseChainParams::REGTEST);
+    genesis.nHeight = 0;
+    chainActive.SetTip(&genesis);
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const fs::path directory = fs::path(temporary.path().toStdString()) / "wallet";
+    fs::create_directories(directory);
+    auto wallet = std::make_shared<CWallet>("pq-receive-test", WalletDatabase::Create(directory));
+    bool first_run = false;
+    QVERIFY(wallet->LoadWallet(first_run) == DBErrors::LOAD_OK);
+    {
+        // Production initialization creates keys before exposing an encryptable wallet.
+        LOCK(wallet->cs_wallet);
+        WalletBatch batch(wallet->GetDBHandle());
+        QVERIFY(wallet->GenerateNewKey(batch).IsValid());
+    }
+    auto node = interfaces::MakeNode();
+    OptionsModel options(*node);
+    std::unique_ptr<const PlatformStyle> style(PlatformStyle::instantiate("other"));
+    WalletModel model(interfaces::MakeWallet(wallet), *node, style.get(), &options);
+    ReceiveCoinsDialog page(style.get());
+    page.setModel(&model);
+    auto* types = page.findChild<QComboBox*>("addressType");
+    auto* messaging = page.findChild<QCheckBox*>("allowMessaging");
+    QVERIFY(types && messaging);
+    const int pq = types->findText("Post-quantum (PQ)");
+    const int legacy = types->findText("Legacy");
+    const int stealth = types->findText("Stealth");
+    QVERIFY(pq >= 0 && legacy >= 0 && stealth >= 0);
+    QCOMPARE(types->currentIndex(), pq);
+    QVERIFY(!messaging->isEnabled());
+    types->setCurrentIndex(legacy);
+    QVERIFY(messaging->isEnabled());
+    messaging->setChecked(true);
+    types->setCurrentIndex(stealth);
+    QVERIFY(!messaging->isEnabled());
+    QVERIFY(!messaging->isChecked());
+    types->setCurrentIndex(pq);
+
+    // Direct callers cannot generate PQ receiving credentials on an inactive network.
+    UpdatePoSPostQuantumForTesting(false);
+    std::string address, error;
+    QVERIFY(!model.wallet().createPQReceiveAddress("inactive", address, error));
+    QVERIFY(address.empty());
+    QVERIFY(!wallet->HasPQKeys());
+    QMetaObject::invokeMethod(&page, "updatePQAvailability", Qt::DirectConnection,
+        Q_ARG(interfaces::WalletBalances, model.wallet().getBalances()));
+    QVERIFY(types->currentIndex() != pq);
+    QVERIFY(!(types->model()->flags(types->model()->index(pq, 0)) & Qt::ItemIsEnabled));
+    UpdatePoSPostQuantumForTesting(true);
+    QMetaObject::invokeMethod(&page, "updatePQAvailability", Qt::DirectConnection,
+        Q_ARG(interfaces::WalletBalances, model.wallet().getBalances()));
+    QCOMPARE(types->currentIndex(), pq);
+    QVERIFY(types->model()->flags(types->model()->index(pq, 0)) & Qt::ItemIsEnabled);
+
+    const SecureString passphrase{"pq-receive-test"};
+    QVERIFY(wallet->EncryptWallet(passphrase));
+    QVERIFY(wallet->IsLocked());
+    QVERIFY(!model.wallet().createPQReceiveAddress("locked", address, error));
+    QVERIFY(address.empty());
+    QString reason;
+    QVERIFY(model.getAddressTableModel()->addPQRow("cancel unlock", reason).isEmpty());
+    QVERIFY(!wallet->HasPQKeys());
+    QObject::connect(&model, &WalletModel::requireUnlock, [&wallet, &passphrase]() {
+        QVERIFY(wallet->Unlock(passphrase));
+    });
+    auto* history = model.getRecentRequestsTableModel();
+    QCOMPARE(history->rowCount({}), 0);
+
+    QTimer dialogs;
+    dialogs.setInterval(10);
+    bool save = false;
+    bool cancel_file = false;
+    bool unexpected = false;
+    int ticks = 0;
+    const QString backup = temporary.path() + "/pq-backup.dat";
+    QObject::connect(&dialogs, &QTimer::timeout, [&]() {
+        ++ticks;
+        QWidget* modal = QApplication::activeModalWidget();
+        if (ticks > 300) {
+            unexpected = true;
+            if (auto* dialog = qobject_cast<QDialog*>(modal)) dialog->reject();
+        } else if (auto* question = qobject_cast<QMessageBox*>(modal)) {
+            auto* button = question->button(save ? QMessageBox::Save : QMessageBox::Cancel);
+            if (button) button->click();
+            else {
+                qWarning() << "Unexpected PQ receive dialog:" << question->windowTitle() << question->text();
+                unexpected = true;
+                question->accept();
+            }
+        } else if (auto* file = qobject_cast<QFileDialog*>(modal)) {
+            if (cancel_file) file->reject();
+            else {
+                file->selectFile(backup);
+                static_cast<QDialog*>(file)->accept();
+            }
+        }
+    });
+    dialogs.start();
+    QVERIFY(QMetaObject::invokeMethod(&page, "on_receiveButton_clicked", Qt::DirectConnection));
+    QVERIFY(!unexpected);
+    QCOMPARE(history->rowCount({}), 0);
+    QVERIFY(page.findChildren<ReceiveRequestDialog*>().isEmpty());
+    QVERIFY(wallet->IsLocked());
+    QVERIFY(wallet->HasPQKeys());
+
+    save = true;
+    cancel_file = true;
+    ticks = 0;
+    QVERIFY(QMetaObject::invokeMethod(&page, "on_receiveButton_clicked", Qt::DirectConnection));
+    QVERIFY(!unexpected);
+    QCOMPARE(history->rowCount({}), 0);
+    QVERIFY(page.findChildren<ReceiveRequestDialog*>().isEmpty());
+    cancel_file = false;
+    ticks = 0;
+    page.findChild<VERGEAmountField*>("ReceiveAmountField")->setValue(123 * COIN);
+    QVERIFY(QMetaObject::invokeMethod(&page, "on_receiveButton_clicked", Qt::DirectConnection));
+    dialogs.stop();
+    QVERIFY(!unexpected);
+    QVERIFY(fs::exists(fs::path(backup.toStdString())));
+    QVERIFY(wallet->IsLocked());
+    QCOMPARE(history->rowCount({}), 1);
+    const auto& recipient = history->entry(0).recipient;
+    const auto destination = DecodeDestination(recipient.address.toStdString());
+    QVERIFY(boost::get<PQKeyHash>(&destination));
+    QVERIFY(wallet->HavePQKey(boost::get<PQKeyHash>(destination)));
+    QCOMPARE(recipient.amount, CAmount(123 * COIN));
+    QCOMPARE(model.getAddressTableModel()->purposeForAddress(recipient.address), QString("receive"));
+    const auto requests = page.findChildren<ReceiveRequestDialog*>();
+    QCOMPARE(requests.size(), 1);
+    auto* details = requests[0]->findChild<QTextEdit*>("ReceiveRequestDetails");
+    QVERIFY(details && details->toPlainText().contains(recipient.address));
+    SendCoinsRecipient parsed;
+    QVERIFY(GUIUtil::parseVERGEURI(GUIUtil::formatVERGEURI(recipient), &parsed));
+    QCOMPARE(parsed.address, recipient.address);
+    QCOMPARE(parsed.amount, recipient.amount);
+#ifdef USE_QRCODE
+    auto* qr = requests[0]->findChild<QRImageWidget*>("ReceiveRequestQRCode");
+    QVERIFY(qr && !qr->exportImage().isNull());
+#endif
+    requests[0]->close();
+
+    for (int points : {10, 12, 16}) {
+        QFont font = page.font();
+        font.setPointSize(points);
+        page.setFont(font);
+        page.resize(QSize(1000, 800).expandedTo(page.minimumSizeHint()));
+        page.show();
+        QCoreApplication::processEvents();
+        QVERIFY(types->width() >= types->sizeHint().width());
+        QVERIFY(types->geometry().bottom() < messaging->geometry().top());
+        const QString screenshots = qEnvironmentVariable("VERGE_QT_TEST_SCREENSHOTS");
+        if (!screenshots.isEmpty()) QVERIFY(page.grab().save(screenshots + QString("/pq-receive-%1.png").arg(points)));
+    }
+    wallet->GetDBHandle().Flush(true);
+}
+
+void UIDisplayTests::pqOverviewBalances()
+{
+    const std::string network = Params().NetworkIDString();
+    struct RestoreNetwork {
+        std::string network;
+        ~RestoreNetwork() { SelectParams(network); }
+    } restore{network};
+    SelectParams(CBaseChainParams::REGTEST);
+    auto node = interfaces::MakeNode();
+    OptionsModel options(*node);
+    std::unique_ptr<const PlatformStyle> style(PlatformStyle::instantiate("other"));
+    auto wallet = std::make_shared<CWallet>("pq-ui-test", WalletDatabase::CreateMock());
+    WalletModel model(interfaces::MakeWallet(wallet), *node, style.get(), &options);
+    OverviewPage page(style.get());
+    page.setWalletModel(&model);
+    interfaces::WalletBalances balances;
+    balances.balance = 10 * COIN;
+    balances.unconfirmed_balance = 2 * COIN;
+    balances.immature_balance = 3 * COIN;
+    balances.staked_balance = 4 * COIN;
+    balances.legacy_balance = 7 * COIN;
+    balances.pq_balance = 12 * COIN;
+    balances.pq_enabled = true;
+    page.setBalance(balances);
+    auto* legacy = page.findChild<QLabel*>("labelLegacy");
+    auto* pq = page.findChild<QLabel*>("labelPQ");
+    auto* button = page.findChild<QPushButton*>("migrateLegacyButton");
+    // Balance value widgets have themed object names after construction.
+    const auto values = page.findChildren<QLabel*>("OverviewSecondaryBalance");
+    QVERIFY(!values.empty());
+    const int unit = options.getDisplayUnit();
+    const QString legacy_text = VERGEUnits::formatWithUnit(unit, balances.legacy_balance, false, VERGEUnits::separatorAlways);
+    const QString pq_text = VERGEUnits::formatWithUnit(unit, balances.pq_balance, false, VERGEUnits::separatorAlways);
+    for (QLabel* label : values) {
+        if (label->text() == legacy_text) legacy = label;
+        if (label->text() == pq_text) pq = label;
+    }
+    QVERIFY(legacy && pq && button);
+    QVERIFY(legacy != pq);
+    QCOMPARE(legacy->text(), legacy_text);
+    QCOMPARE(pq->text(), pq_text);
+    const QString total_text = VERGEUnits::formatWithUnit(unit, 19 * COIN, false, VERGEUnits::separatorAlways);
+    bool have_total = false;
+    for (const auto* label : page.findChildren<QLabel*>("OverviewPrimaryBalance")) {
+        have_total |= label->text() == total_text;
+    }
+    QVERIFY(have_total);
+    QVERIFY(button->isEnabled());
+    const auto previous = balances;
+    balances.pq_enabled = false;
+    QVERIFY(balances.balanceChanged(previous));
+    page.setBalance(balances);
+    QVERIFY(!button->isEnabled());
+    balances.pq_enabled = true;
+    balances.legacy_balance = 0;
+    page.setBalance(balances);
+    QVERIFY(!button->isEnabled());
+    balances.legacy_balance = 7 * COIN;
+    page.setBalance(balances);
+    QVERIFY(button->isEnabled());
+    bool refused = false;
+    QTimer::singleShot(0, [&refused]() {
+        if (auto* message = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+            refused = true;
+            message->accept();
+        }
+    });
+    button->click(); // No active chain or peers: refuse without generating keys or sending.
+    QVERIFY(refused);
+    QVERIFY(!wallet->HasPQKeys());
+    QVERIFY(wallet->mapWallet.empty());
+
+    for (int points : {10, 12, 16}) {
+        QFont font = page.font();
+        font.setPointSize(points);
+        page.setFont(font);
+        for (int width : {900, 1280, 1920}) {
+            page.resize(QSize(width, 800).expandedTo(page.minimumSizeHint()));
+            page.show();
+            QCoreApplication::processEvents();
+            QVERIFY(button->width() >= button->minimumSizeHint().width());
+            QVERIFY(legacy->geometry().bottom() < pq->geometry().top());
+            QVERIFY(pq->mapTo(&page, pq->rect().bottomRight()).y() < button->mapTo(&page, QPoint(0, 0)).y());
+            QVERIFY(legacy->fontMetrics().horizontalAdvance(legacy->text()) <= legacy->contentsRect().width());
+            QVERIFY(pq->fontMetrics().horizontalAdvance(pq->text()) <= pq->contentsRect().width());
+            const QString screenshots = qEnvironmentVariable("VERGE_QT_TEST_SCREENSHOTS");
+            if (!screenshots.isEmpty()) {
+                QVERIFY(page.grab().save(screenshots + QString("/pq-overview-%1-%2.png").arg(points).arg(width)));
+            }
+        }
+    }
+}
 
 void UIDisplayTests::confirmationBadges()
 {

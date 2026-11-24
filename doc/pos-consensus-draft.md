@@ -482,6 +482,574 @@ The bond also commits to an owner-controlled reward destination. Fee rewards may
 
 Changing the delegated signing key, VRF key, or reward destination requires completing unbonding and creating a new bond. In-place rotation is forbidden so stake snapshots identify one immutable credential set. The bond format, authorization domains, and revocation behavior are consensus-critical and require fixed vectors.
 
+## Post-Quantum Work (2026-11-22)
+
+This section tracks the requested experimental implementation for the next
+fresh testnet and regtest, not an activated mainnet upgrade. Existing classical
+PoS signatures, transaction signatures and bond withdrawals remain
+quantum-vulnerable. Adding ML-DSA signing alone does not make Verge
+quantum-resistant. Public eligibility is approved and implemented for both
+trial networks; mainnet still uses its existing provisional parameters.
+Mandatory hybrid authentication and PQ spending are now integrated for these
+fresh trial networks. The end-to-end verification checklist below must pass
+before launching the trial; this is not a mainnet-readiness certification.
+
+### Completed Foundation
+
+- `src/pos/pqcrypto.{h,cpp}` provides experimental FIPS 204 ML-DSA-44 key
+  generation, seed import, pure signing and verification through OpenSSL's
+  existing EVP implementation. No new cryptographic algorithm is implemented
+  locally. Backends older than OpenSSL 3.5 or built without ML-DSA fail closed;
+  they cannot substitute a classical signature for a missing PQ signature.
+- Private 32-byte seeds use the wallet's cleansing/locked-pool allocator and
+  are erased on reset/destruction. Backend-expanded private material is
+  transient and owned/freed by OpenSSL, not guaranteed locked by this wrapper.
+  PQ seeds must come from independent entropy, not an exposed Schnorr scalar
+  or a public VRF credential. Encrypted wallet persistence and full-wallet
+  backup support are implemented below. Secret-export RPCs are not provided.
+- The experimental hybrid verifier requires **both** Schnorr and ML-DSA-44.
+  Both sign the same key-bound transcript digest. ML-DSA uses its standard
+  pure-message encoding and the context
+  `Verge/PoS/Hybrid-Schnorr-MLDSA44/v1`.
+- The transcript digest is double SHA-256 of the existing `CHashWriter`
+  serialization: CompactSize-prefixed ASCII context string, little-endian
+  `uint32` network ID, purpose byte (`1` block or `2` vote), raw 32-byte
+  Schnorr public key, raw 1,312-byte ML-DSA-44 public key, and raw 32-byte
+  message digest. Network ID zero and unknown purposes are rejected. This
+  transcript is mandatory for version-2 trial block/vote authentication.
+- Raw ML-DSA helpers require exact 1,312-byte public keys and 2,420-byte
+  signatures, at most 255 context bytes and at most 65,536 message bytes.
+  Hybrid messages are fixed 32-byte transcript digests. The exact wire bounds
+  and versioned consensus objects are specified below.
+- Regression fixtures use NIST ACVP FIPS 204 key-generation and external
+  pure-verification cases pinned in `test/data/mldsa44.json`. Additional tests
+  cover both required signatures, key/message/network/purpose binding,
+  malformed lengths, context separation, failed-output clearing, concurrent
+  signing and unavailable-backend rejection. Execution results are recorded
+  below after verification, not inferred from source inspection.
+
+### Approved Public Eligibility (2026-11-23)
+
+The owner approved public eligibility and requires the integrated trial on
+both public testnet and regtest, not only an opt-in private regtest. The public
+testnet has not launched; no live v1 trial must be preserved. Mainnet's
+provisional activation heights and its existing eligibility scheme remain
+unchanged until the complete upgrade is reviewed and explicitly scheduled.
+
+`fPoSPublicEligibility` is enabled for testnet and regtest. Public stake proofs
+use version `2` and retain the fixed proof layout during integration: the
+33-byte VRF key and 81-byte VRF proof are zero; the previous 32-byte output
+field carries the public selection hash. Private v1 proofs are rejected on
+these networks; public v2 proofs are rejected by the legacy/mainnet scheme.
+Version-2 hybrid authentication is required alongside public eligibility on
+these trial networks; mainnet's existing scheme remains unchanged.
+
+There is one weighted winner per canonical slot. Entries are ordered by their
+outpoints, have strictly positive values, and their checked sum must equal the
+authenticated delayed snapshot's total, bounded by `MAX_MONEY`. A bond's
+interval length equals its atomic-unit value; splitting a balance does not
+increase its total probability mass. Offline or penalty-locked winners leave
+an empty slot. Unbonding removes a bond from future snapshots, not frozen
+snapshots already in use; the withdrawal lock covers this transition. There
+is no node-local fallback producer.
+
+The selector takes an already authenticated snapshot; it does not trust a
+snapshot or root supplied by a peer. For draw counter `0..31`, compute a
+tagged SHA-256 hash using `VergePoS/PublicEligibility/v1` over little-endian
+network ID (`uint32`), snapshot source epoch (`uint64`), raw snapshot root
+(`uint256`), raw authenticated epoch seed (`uint256`), global slot (`uint64`)
+and draw counter (`uint32`). Interpret the result as a little-endian unsigned
+256-bit integer `x`. With total atomic value `W`, reject `x < 2^256 mod W`;
+otherwise use ticket `x mod W` and select its cumulative-value interval. The
+first accepted draw is mandatory. Exhausting all 32 draws fails closed; the
+counter is not a producer-selectable nonce. Producers and branch validation
+use the same selector and still enforce bond authorization, maturity, locks,
+snapshot ancestry and the expected parent-state epoch seed independently.
+
+The fixed selector vector uses network `2`, source epoch `7`, snapshot root
+`0xabcd`, seed `0xfeed`, global slot `500` and weights `[1,2,7] * COIN`.
+The accepted hash in `uint256::GetHex()` notation is
+`bd951cf22db16bf3cdcce77477ced070b548e65bd738459a8492c721fc8e053b`;
+ticket `6,132,027` chooses the third bond. This vector fixes byte order and
+arithmetic; its root is an authenticated-input fixture, not a real snapshot.
+
+Producer predictability, targeted denial of service, entropy withholding,
+initial-PoW seed grinding, validator-set changes and partitions remain review
+gates. Public selection removes the elliptic-curve eligibility dependency;
+it does not itself establish the security of the complete PQ consensus.
+
+### Integration Decisions
+
+The requested scope is end-to-end quantum-resistant staking, not merely adding
+an optional second producer signature. Integration review confirms that the
+existing `BondData` has classical withdrawal credentials, `BondRecord`
+serialization commits the existing credential layout into snapshots, and
+`BlockExtension` carries only v1 authorization/vote/evidence objects. Replacing
+signature calls without changing these contracts is not a complete upgrade.
+
+The eligibility alternatives considered were:
+
+- Preserve private eligibility and select an independently reviewed PQ VRF.
+  The current OpenSSL ML-DSA primitive is not a VRF, and this review has not
+  identified an audited, production-ready replacement to adopt directly.
+- Adopt public hash-based stake selection with delayed epoch randomness.
+  This removes the elliptic-curve VRF dependency, but future eligible producers
+  become predictable, changing the targeted-denial-of-service threat model.
+  Exact weighted sampling, snapshot freezing, entropy withholding/grinding
+  bounds and partition behavior need a separate specification and tests.
+  Hashing randomized signatures, trying extra nonces, or letting the producer
+  select a favorable PQ public key must not create extra lottery attempts.
+
+Public proposer selection is a known design family, not proof that our
+particular proposed construction is secure. Ethereum's
+[proposer-selection specification](https://ethereum.github.io/consensus-specs/specs/phase0/beacon-chain/)
+is useful context; Algorand's
+[PQ roadmap](https://algorand.co/blog/algorand-post-quantum-cryptography-roadmap)
+also identifies PQ VRF work as a distinct research/integration task. Neither
+source supplies an approved replacement for this implementation.
+
+Legacy coin ownership is a separate migration decision. Existing ECDSA-only
+outputs cannot be made quantum-safe by accepting an arbitrary new PQ key from
+the next spender. Holders must authorize a transfer/credential registration
+while their existing keys remain trustworthy. No automatic reassignment,
+forced freeze, migration deadline or destruction of unmigrated balances is
+approved. Leaving legacy spending available preserves compatibility but also
+leaves those unmigrated outputs exposed; release claims must say so.
+
+Implementation map for the next stages:
+
+- `pos/stake.*`, `pos/state.*`, `pos/storage.*`: versioned immutable signing,
+  reward and withdrawal credentials; snapshot roots; persistence and undo.
+- `pos/primitives.*`, `pos/block.*`: bounded PQ wire encodings, signing
+  domains, block identity and canonical evidence rules.
+- `pos/validation.*`, `validation.cpp`, `net_processing.cpp`: mandatory
+  bond-bound hybrid authentication, branch replay and bounded peer admission.
+- `wallet/staker.cpp`, `miner.cpp`: selection, mandatory hybrid block/vote
+  production and exact capacity reservation.
+- Wallet keystore/database/encryption, signing journal and backup/recovery:
+  independently generated durable PQ credentials, with no secret reuse or
+  downgrade path to classical-only authorization.
+- Transaction script/signing/validation, wallet RPC/GUI and external signers:
+  PQ-protected transfers, reward ownership, unbonding and withdrawals.
+
+The trial integrates public eligibility, registered PQ credentials, mandatory
+hybrid authentication and native PQ spending. Unmigrated legacy coins retain
+their existing classical authorization, not an automatic PQ guarantee.
+
+### Remaining Integration Gates
+
+Current integration checkpoint (2026-11-23): `fPoSPostQuantum` is enabled on
+testnet and regtest only. PQ spending and version-2 bond creation begin with
+their height-1 bond rules. At PoS activation (public testnet height 3000), only
+version-2 extensions, producer authorizations, votes and evidence are accepted.
+The build refuses startup on these networks without an ML-DSA backend. Mainnet
+keeps its existing activation heights and classical rules. Fresh trial chain
+data is required; existing classical trial histories are not compatible.
+Independent encrypted wallet keys, synchronous key creation, downgrade refusal
+and complete-wallet backup/reload support are implemented.
+
+V2 block authorization and checkpoint votes retain their existing fields,
+including the Schnorr signature, and append exactly 1,312 ML-DSA-44 public-key
+bytes and 2,420 signature bytes, with no length prefixes. Encoded sizes are
+4,005 and 3,961 bytes, respectively. Block/vote evidence contains two matching
+version-2 statements and is 8,011 / 7,923 bytes. Unsupported versions, mixed
+versions, non-exact key/signature lengths and truncated inputs are rejected.
+V1 encoding is unchanged and cannot carry uncommitted PQ fields.
+
+V2 extensions allow at most 192 votes and 16 combined evidence objects. The
+count is checked before allocating elements. V2 producer, vote and evidence
+signatures are zeroed for candidate identity and vote/evidence commitments;
+the actual signatures remain mandatory authentication data. Unsigned fields
+and registered public keys remain committed, so fresh signing randomness
+cannot produce another candidate ID for the same statements.
+
+V2 bond credentials commit a Schnorr signing key and independent 256-bit PQ
+signing, reward and withdrawal key IDs. The key-ID construction is double
+SHA-256 of the serialized string `Verge/PQKey/MLDSA44/v1` followed by the
+CompactSize-prefixed 1,312-byte public key. Hybrid validation requires the
+provided key to match the bond's immutable signing ID before cryptography.
+Legacy reward/withdrawal IDs and the unused VRF field must be zero in v2.
+Legacy bond record encoding remains 117 bytes. A versioned record begins
+with the reserved signed-amount sentinel `-1`, byte version `2`, actual
+positive amount, creation height, Schnorr key and the three PQ IDs, totaling
+149 bytes. No valid legacy amount collides with that marker. Trial state writes
+use record schema version 2, which earlier binaries refuse. Snapshot, undo and
+retired-bond records retain the versioned immutable credentials.
+
+### Native PQ Spending and Withdrawals
+
+PQ addresses use Bech32m with dedicated lowercase prefixes: `xvgpq1` on
+mainnet, `xvgtpq1` on testnet and `xvgrpq1` on regtest. Existing witness HRPs
+(`vg`, `vt`, `vgrt`) and all legacy address versions are unchanged. Bech32m
+also accepts an entirely uppercase spelling, but never mixed case. The prefix
+is followed by
+the 32-byte key ID converted from eight-bit to five-bit groups with zero
+padding. There is no witness-version byte. These are not SegWit addresses.
+`getnewpqaddress [label]` persists an independent ML-DSA key before returning
+the address. Existing `getnewaddress` remains classical, including PoW mining
+destinations. On a PQ trial network, automatic change uses a new PQ key unless
+an explicit coin-control change destination is supplied.
+
+The native script is `OP_3 PUSH32 <PQ key ID> OP_NOP4` (35 bytes). The PQ
+consensus flag handles this exact native form, the native multisig form below,
+and the exact version-2 bond/unbond wrappers below. Executing `OP_NOP4` through the ordinary interpreter
+with that flag fails, including P2SH-wrapped attempts. No witness activation,
+stack-element-limit increase, classical fallback or unrestricted PQ opcode is
+introduced. Legacy/mainnet flags retain existing opcode semantics.
+
+The scriptSig has eight canonical pushes: the 2,420-byte ML-DSA signature plus
+one sighash byte is split into `[520,520,520,520,341]` bytes, followed by the
+1,312-byte public key split into `[520,520,272]`. Total encoded scriptSig size
+is 3,757 bytes. Wrong chunk sizes, nonminimal pushes, extra chunks, a nonempty
+witness or a key that does not match the funding output are rejected. All bytes
+count as base transaction weight; each PQ input additionally costs 200 sigop
+units. Standard transaction/block weight and sigop budgets still apply.
+
+Only `SIGHASH_ALL` is supported, with the mandatory PoS fork-ID bit after
+activation. Compute the existing BASE signature hash over the full funding
+script and transaction, using its normal PoS replay domain when active. Then
+double-SHA256 the serialized CompactSize-prefixed ASCII string
+`Verge/Transaction/MLDSA44/v1`, little-endian network ID (`uint32`), activation
+height (`int32`, zero before PoS), input amount (`int64`) and raw 32-byte
+transaction signature hash. Pure ML-DSA signs that digest as a 32-byte message
+using the same ASCII string as its FIPS 204 context. This binds input value
+and network even before PoS; it is not the block/vote hybrid transcript.
+For network `3`, activation height `1500`, amount `1000000` and inner hash
+`0xabcd`, the wrapper digest in `uint256::GetHex()` notation is
+`42ac79d4c4bd346d3d341e63e97e9c497c50e852ae5b24b2a6becabcf63ef308`.
+
+Version-2 bonds have a canonical 100-byte pushed payload: `VPB`, byte `2`,
+Schnorr signing key (32), PQ signing ID (32), PQ reward ID (32), followed by
+`OP_DROP` and the native withdrawal script. The total is 138 bytes. Version-2
+unbond outputs push `VPU`, byte `2`, little-endian unlock height (`uint32`),
+then `OP_DROP` and that same native withdrawal script (45 bytes total).
+Unbonding must preserve principal, credential version and withdrawal ID;
+ordinary spendable inputs fund fees. Full confirmation-relative unbonding and
+penalty locks remain enforced. The released output is spendable only with its
+registered PQ withdrawal key after the lock, not with the online staking key.
+Rewards go only to the committed PQ reward destination.
+
+Block/vote signatures still require both Schnorr and ML-DSA. Coin spending and
+withdrawals require ML-DSA alone against their PQ owner ID, without exposing a
+classical fallback. The wallet's durable anti-equivocation journal precedes
+both halves of every hybrid block/vote signature. Signature-only invalid
+variants must not permanently poison their signature-independent candidate ID.
+
+For bounded isolated withdrawal testing only, regtest accepts
+`-posunbondingblocks=240..20160` (minimum is the snapshot delay in slots).
+Shorter delays are refused: historical producer credentials must not expire
+while a delayed snapshot can still select them. Mainnet and public testnet
+refuse this override and retain 20,160 blocks. All nodes in an isolated regtest
+must agree on it.
+The C verification library API is version 2 and adds
+`vergeconsensus_verify_script_with_context` with amount, network ID and
+activation height. Older context-free calls refuse required PQ/replay flags.
+
+### Native PQ Multisig Custody
+
+Native PQ multisig uses ML-DSA-44 without SegWit, P2SH, a script tree or a
+classical fallback. A policy requires `1 <= m <= n <= 5` distinct nonzero PQ
+key IDs. Its canonical encoding is byte version `1`, byte `m`, byte `n`, then
+the `n` raw 32-byte key IDs in strictly increasing serialized-byte order
+(`uint256::operator<`, not the order of displayed reversed hexadecimal IDs).
+Duplicate keys, unknown versions, invalid thresholds and trailing bytes fail.
+The policy ID is double-SHA256 of the CompactSize-prefixed ASCII string
+`Verge/PQMultisigPolicy/v1` followed by the CompactSize-prefixed policy bytes.
+The exact funding script is `OP_4 PUSH32 <policy ID> OP_NOP4` (35 bytes).
+
+Multisig addresses use the same network-specific PQ Bech32m HRPs as single-key
+addresses, with a distinct 33-byte payload: byte `1` followed by the raw policy
+ID, converted to five-bit groups with zero padding. Single-key addresses retain
+their untagged 32-byte payload. Other lengths/tags are rejected. This tag is
+not a witness version. An address commits to the policy, not merely its owner
+keys; changing the threshold changes both output and address.
+
+A canonical scriptSig first pushes the complete policy (at most 163 bytes),
+then exactly `m` entries in increasing cosigner-index order. Each entry is a
+minimal integer opcode for its zero-based index, followed by the same eight
+signature/public-key chunk pushes as a single-key spend. Each public key must
+hash to the policy ID at its index, and every signature must verify against
+the full funding script, amount, network and transaction under the PQ sighash
+above. Duplicate indices, signatures counted twice, reordered entries, extra
+data, nonminimal chunks, nonempty witness or wrapped variants are rejected.
+The parser is bounded to 20,000 bytes and five signers. A 5-of-5 proof is
+18,955 bytes; all count at base weight. Each policy input conservatively costs
+1,000 sigop units regardless of threshold. Normal weight, dust, transaction
+and block limits continue to apply; wallet fee estimates reserve the exact
+maximum proof size for the known threshold.
+
+`createpqmultisig nrequired ["pqaddress",...]` works without a wallet and
+returns the address, canonical policy hex, funding script, threshold and
+sorted addresses. Only this network's single-key PQ addresses are accepted.
+`addpqmultisigaddress nrequired ["pqaddress",...] [label]` registers the same
+policy in a wallet when PQ rules are active. Register it on each cosigner
+before receiving; adding it later requires an explicit `rescanblockchain`
+to discover historical payments. Policy and downgrade protection are written
+synchronously before publishing the wallet policy, and complete-wallet
+backups retain it through encryption and restart. Make a new backup after
+registration; a key-only export is not a complete multisig backup.
+
+Wallets with a signing quorum classify the output as spendable. Wallets with
+fewer keys classify it as watch-only and never claim unilateral control.
+`getaddressinfo` reports `ispostquantum`, `ismultisig`, `pq_policy_id`, and,
+for a known policy, `sigsrequired`, `addresses` and `policy`. Partial signers
+can prepare a raw transaction with `fundrawtransaction` and
+`{"includeWatching":true}`, sign with `signrawtransactionwithwallet`, pass
+the returned hex to another cosigner, or merge independently signed versions
+using `combinerawtransaction`. The first partial signature carries the
+policy for subsequent cosigners. Partial proofs are never valid for relay;
+broadcast only a fully signed transaction. Offline signing needs trustworthy
+prevout script and amount data, just as other raw signing does.
+
+```text
+createpqmultisig 2 ["<PQ address A>","<PQ address B>","<PQ address C>"]
+addpqmultisigaddress 2 ["<PQ address A>","<PQ address B>","<PQ address C>"] "Custody"
+signrawtransactionwithwallet "<unsigned or partially signed transaction hex>"
+combinerawtransaction ["<partial A hex>","<partial B hex>"]
+sendrawtransaction "<fully signed transaction hex>"
+```
+
+This first policy is for ordinary coin custody. Bond producer, reward and
+withdrawal credentials remain single-key v2 credentials; no multisig staking
+credential or automatic conversion is implied. Existing legacy multisig
+semantics and currently disabled mainnet PQ activation are unchanged.
+
+- [x] Versioned spendable credentials, PQ owners, snapshot records and schema
+  activation/downgrade refusal are integrated for fresh trial chains.
+- [x] Mandatory hybrid verification covers producer authorization, votes,
+  equivocation evidence and branch replay. Commitments exclude signature
+  randomness. Fixed wire counts, preallocation bounds and block-weight
+  reservation apply to the larger objects; unavailable crypto fails closed.
+- [x] Wallet producer/voter keys use durable encrypted storage and the
+  existing synchronous anti-equivocation journal.
+- [x] Native PQ transfers, reward destinations, unbond authorization and
+  withdrawal spending are integrated. Legacy owners can authorize transfers
+  into PQ outputs; there is no arbitrary registration over existing coins.
+- [ ] Independently review the implemented public eligibility selector, including
+  entropy withholding, initial-PoW grinding and validator-set-change bounds.
+  Randomized ML-DSA signatures are not a replacement VRF and must not provide
+  extra lottery attempts.
+- [x] Integrated lifecycle, activation, persistence, recovery and peer-sync
+  regressions below pass on isolated Windows x64 nodes.
+- [x] A bounded four-node hybrid/PQ soak passes partitions, restarts,
+  convergence, finality and final reindex/state comparisons.
+- [ ] Launch and monitor the fresh public trial; complete longer soak runs.
+- [ ] Update external signers, explorers and migration tooling as needed;
+  adapting Core does not automatically adapt those separate applications.
+- [ ] Complete cross-platform/sanitizer/resource testing and independent
+  consensus/cryptographic review before choosing production activation.
+  Mainnet parameters remain unchanged. Protecting block signatures does not
+  protect coins still authorized only by ECDSA/Schnorr.
+- [ ] A future mainnet release must explicitly schedule both public eligibility
+  and PQ authentication/spending, including its bond-registration window.
+  Changing only the provisional mainnet fork height does not enable these
+  two currently disabled mainnet flags.
+
+### Fresh Trial Operator Checks
+
+All participants must use the new trial build and fresh compatible chain data.
+Public testnet retains its height-3000 PoS transition, height-1 bond rules,
+720-block bond maturity and 20,160-block unbonding delay. Do not use a previous
+classical trial database or downgrade a wallet after creating PQ keys.
+
+Check `getposinfo`: `eligibility_scheme` is `public-stake-weighted-v1`,
+`authentication_scheme` is `schnorr-mldsa44-v2`, and `pq_spending_active` is
+true. `getbondinfo` reports `credential_version: 2`, the committed PQ signing
+ID, and the real PQ reward/withdrawal addresses. Normal automatic staking
+creates those credentials without a separate registration step.
+
+```text
+getnewpqaddress "PQ receive"
+sendtoaddress "<returned PQ address>" 2000
+setstaking true
+listbonds
+getbondinfo "<bond transaction ID>" <output index>
+setstaking false
+unbond "<bond transaction ID>" <output index>
+listunbondings
+backupwallet "<new complete backup path>"
+```
+
+`createbond 2000` remains available for an explicit bond. Supplied reward and
+withdrawal addresses must be wallet-controlled PQ addresses on these trial
+networks. Disable automatic staking or increase the reserve before unbonding
+if released funds should not be bonded again. A withdrawal is spendable only
+when its confirmation-relative lock has expired, not merely when its original
+transaction has confirmations.
+
+PQ receive, change and bond keys are independent of the classical HD seed.
+Qt's Overview page separates owned **Legacy total** and **PQ total** balances;
+these are a breakdown of the existing total, not additional funds. Each includes
+its available, pending, immature and bonded/unbonding outputs, excluding
+watch-only outputs. PQ ownership includes native outputs and PQ bond/withdrawal
+wrappers. Pending bond transactions remain in the pending balance until mined.
+
+The Qt Receive tab offers **Post-quantum (PQ)**, **Legacy** and **Stealth** address
+types. PQ is the default when its rules become active, while explicit selections
+remain unchanged on ordinary balance updates. On inactive networks the PQ option
+is disabled and the wallet API independently refuses creation. PQ receive keys
+are durably stored under the wallet's normal encryption, with an unlock prompt
+when needed. A new full-wallet backup must succeed before displaying or recording
+the payment request. Canceling unlock, backup confirmation or the file picker,
+and failed key/backup operations never produce an empty or legacy fallback
+request. A generated but unshared PQ key remains in the wallet after backup
+cancellation. PQ addresses use the normal URI, QR and request-history flow.
+Chatkey creation remains a legacy-address operation; PQ and stealth selections
+disable and clear that option rather than claiming PQ secure messaging support.
+
+**Move legacy balance to PQ** prepares an ordinary on-chain self-transfer to a
+new, durably stored ML-DSA-44 address in the same wallet. It is available only
+where PQ rules are active; the current mainnet configuration keeps it disabled.
+Nothing is migrated merely by opening an old wallet. The user unlocks the wallet,
+reviews the net amount, fee, destination and input count, confirms, and saves a
+new complete wallet backup before broadcast. Canceling or a failed backup does
+not send the transaction. The migration uses confirmed, safe, spendable legacy
+outputs only, honoring manual coin locks and excluding PQ inputs, watch-only
+coins, immature rewards, bonds and still-locked withdrawals. Each transaction
+uses at most 100 inputs and a conservative standard-weight budget. Larger
+wallets require explicitly confirmed additional batches; the dialog reports
+the remaining confirmed/unlocked legacy amount. It never auto-unbonds coins.
+Readiness and the exact selected inputs are checked again before commit, so
+concurrent staking/spending cannot silently substitute other inputs. A submitted
+migration still needs confirmation; normal reorganization and finality rules
+apply before treating its legacy inputs as safely replaced by PQ outputs.
+Backups taken here do not cover PQ keys generated later.
+
+Take a new complete wallet backup after new PQ keys are created; a prior
+backup does not contain later independently generated keys. Restore on a
+separate node or with the original wallet offline: Berkeley DB deliberately
+rejects loading the original and its copied internal file ID in one process.
+Never run copies of active staking credentials simultaneously. The script
+verification API checks spending signatures, not the entire bond lifecycle;
+block/transaction consensus validation also enforces maturity and withdrawal
+locks. External signer and explorer applications require their own updates.
+
+### Verification Status
+
+Integrated Windows x64 trial verification (2026-11-23) passes **144 unit cases
+and 90,056 assertions**, including native PQ address/checksum/ownership tests,
+canonical chunk bounds, network/amount/script/transaction hash binding, both
+required hybrid signature halves, registered-key evidence authentication and
+maximum-size hybrid attachment reservation. Classical-rule unit fixtures
+remain explicit compatibility tests; the functional nodes below require the
+actual new hybrid rules. The independent transaction-wrapper vector above
+was also computed separately with Python's SHA-256 and struct serialization.
+
+Migration coverage includes bounded input selection, exact self-transfer and fee
+accounting, exclusion of PQ/watch-only/locked/immature/bond outputs, disabled
+activation and locked-wallet rejection, pending/staked PQ balances and a real
+mempool-validated legacy-to-PQ transaction. Offscreen Qt tests cover the separate
+balances, activation/button states, refusal without a usable chain, and layout
+at three widths and font sizes. All seven Qt test entries pass. Receive coverage
+includes encryption/unlock, canceled unlock, inactive-network refusal, backup
+confirmation/file-picker cancellation, successful encrypted-wallet backup,
+relocking, request-history persistence, URI parsing and QR generation. A manual
+user workflow and non-Windows GUI validation remain trial checks. The PQ lifecycle regression
+keeps simulated chain time progressing during its PoS relay wait, without
+changing production relay policy.
+
+Native PQ multisig coverage includes thresholds 1, 2 and 5; five-cosigner
+proof sizing; duplicate and noncanonical rejection; quorum ownership;
+signature merging and carried-policy cosigning; network/amount/script replay
+binding; sigop accounting; public verification API calls; wallet fee selection,
+owned-balance accounting; encrypted policy persistence and backup/salvage.
+The three-node lifecycle now exercises native 2-of-3 funding, partial signing,
+independent signature merging, incomplete-proof relay refusal and confirmed
+spends both before and after PoS. Two consecutive fresh runs pass, including
+encrypted restart and backup restoration of the policy. An earlier run timed
+out on pre-PoS single-key transaction relay before reaching multisig; it did
+not reproduce in those unchanged reruns, and its cause is not established.
+Activation, bounded prefetch and crash-recovery regressions also pass again
+against the multisig-enabled daemon.
+
+These nine rebuilt-daemon regressions pass: `feature_pos_post_quantum`,
+`feature_pos_public_eligibility`, `feature_pos_activation`,
+`feature_pos_crash_recovery`, `feature_pos_storage`, `feature_pos_vote_heads`,
+`p2p_pos_prefetch`, `feature_pos_worker` and `wallet_pos_unbond`.
+They cover protected transfers before/after PoS, maturing/eligible unbonding,
+rejection before lock expiry, spending released principal, both mandatory
+producer signatures, signature-only candidate retry, hybrid checkpoint votes
+and finality, automatic production, independent slot selection, fresh sync,
+reorganizations, clean/abrupt recovery, full/chainstate reindex, encrypted-key
+reload, current-wallet backup restoration and clean shutdown. The full
+withdrawal test uses the bounded 240-block regtest override, not a reduced
+public-testnet lock. Backup restoration uses a separate fresh node, preserving
+Berkeley DB's existing duplicate-file-ID guard.
+
+The Windows daemon, CLI and Qt targets compile. A standalone C verification
+API executable links and runs with only consensus, crypto, secp256k1 and OS
+libraries, without wallet/server/common/util libraries. The compile-time
+disabled-ML-DSA build passes its fail-closed case / 16 assertions. This does
+not replace testing an actual older OpenSSL installation, the exported shared
+library on every platform, a GUI runtime trial, or a public network run.
+
+Before the multisig additions, the four-node hybrid/PQ soak with eight bonds per node passes 80 action rounds
+in 122.704 seconds including final reindex/comparisons. It exercised four
+partitions, one clean restart and one abrupt restart, produced 112 blocks
+including competing branches, and converged at height 2104. Checkpoint epoch
+10 finalized at height 2087. Final UTXO and state comparisons pass and the
+full log scan finds no honest-peer penalties (maximum score zero).
+Observed combined resident memory starts at 382,160,896 bytes and peaks at
+396,242,944 bytes. These samples do not establish leak freedom. The isolated
+artifact `build-msvc/pq-release-soak-20261123/pos-soak-results.json` is marked
+`passed`. This is bounded local testing, not an overnight or production-scale
+trial. All test nodes shut down successfully afterward.
+
+All test directories and measurements are isolated build artifacts. No live
+wallets or real chain data were used, and no public PQ testnet has launched.
+
+The public selector passes five dedicated unit cases, including independent
+weighted sampling vectors and malformed snapshots. At the public-selector
+checkpoint, the local suite passed 122 cases / 88,700 assertions. A three-node isolated regtest checks 30
+consecutive slots against an independent Python selector, fresh observer sync,
+and chainstate reindex. Activation, vote-head and crash-recovery functional
+regressions also pass with public eligibility enabled. These results precede
+mandatory PQ signature and coin-spending integration.
+
+Independent PQ seed persistence is implemented in the existing wallet
+keystore/database, including encryption, synchronous key creation, reload,
+backup and corruption tests. New `pqkey` / `cpqkey` records bind their public
+key and independent seed using a domain-separated 256-bit key ID. Plain seeds
+use secure-allocator memory; encrypted seeds use the existing wallet master
+key and encryption path. The wallet minimum version is raised only when a PQ
+key is first stored, not when an ordinary wallet is opened. Numeric version
+27.0.1 (`.beta10`) is required so preceding 27.0.0 betas refuse these wallets
+instead of silently ignoring unfamiliar key records. PQ seeds are independent
+of the classical HD seed: a classical seed-only backup is not a PQ backup.
+Use a current complete wallet backup; no secret export RPC has been added.
+`dumpwallet` refuses PQ-bearing wallets rather than producing a text file
+that silently omits their PQ secrets; `backupwallet` remains supported.
+Key-only recovery retains both PQ key records and the minimum-version guard,
+regardless of their scan order. Ordinary loading rejects PQ records without
+that guard rather than opening a wallet that an older binary could misread.
+
+At the wallet-codec checkpoint, the Windows x64 build passed 131 unit cases / 88,876 assertions,
+including encrypted PQ reload and backup restoration, malformed/missing
+version refusal, recovery-filter ordering, failed-write refusal, incomplete
+text-export refusal, immutable bond-key binding, bounded v2 decoding, legacy
+record byte compatibility and signature-independent v2 candidate commitments.
+The rebuilt daemon passes the three-node independent public-selector/reindex
+test, `wallet_pos_unbond` and `feature_pos_crash_recovery`. These runs use fresh
+isolated regtest directories, not live wallets or a launched public testnet.
+
+Initial foundation testing on Windows x64 with OpenSSL 4.0.0 passed 8 PQ unit cases / 94
+assertions, including the pinned NIST vectors and an independently computed
+hybrid transcript hash. That initial local PoS/wallet regression binary passed
+117 cases / 58,617 assertions. A separately compiled
+`OPENSSL_NO_ML_DSA` variant passes the unavailable-backend case / 16 assertions,
+including rejection of an otherwise valid Schnorr half-signature. This is a
+compile-time disabled-backend test, not an actual older-OpenSSL build.
+
+Remaining verification includes the Linux/macOS/ARM build matrix, actual
+older-backend compatibility, sanitizers, GUI runtime trials, overnight and
+production-scale resource testing, fully authenticated maximum-capacity
+producer/evidence scenarios, external ecosystem adaptation and independent
+consensus/cryptographic review. The attachment-capacity unit fixture checks
+assembly/weight reservation, not a network block with 192 independently
+authenticated votes and 16 independently authenticated evidence items.
+The integrated local results above support a fresh experimental trial, not
+mainnet activation or a claim that all existing coins are quantum-resistant.
+
 ## Unbonding Transaction
 
 A valid unbond transaction spends one `TX_STAKE_BOND_V1` output into one `TX_STAKE_UNBOND_V1` output carrying exactly the same principal and withdrawal credential. The wallet encodes a requested unlock height based on the next block plus 20,160 accepted blocks. Missing that next block does not expire the transaction: the effective withdrawal height is the greater of the encoded height and the actual confirmation height plus 20,160.

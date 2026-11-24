@@ -77,12 +77,15 @@ public:
     const std::vector<std::string>& DNSSeeds() const { return vSeeds; }
     const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     const std::string& Bech32HRP() const { return bech32_hrp; }
+    std::string Bech32PQHRP() const;
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData& Checkpoints() const { return checkpointData; }
     const CCheckpointData& BlockIndexCheckpoints() const { return checkpointIndexData; }
     const ChainTxData& TxData() const { return chainTxData; }
     void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
     void UpdatePoSActivationHeight(int height);
+    void UpdatePoSUnbondingBlocks(uint32_t blocks) { consensus.nPoSUnbondingBlocks = blocks; }
+    void UpdatePoSPostQuantumForTesting(bool enabled) { consensus.fPoSPostQuantum = enabled; }
     void UpdatePoSTrustedCheckpoint(int height, const uint256& hash);
 protected:
     CChainParams() {}
@@ -132,6 +135,8 @@ void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime,
 
 /** Allows overriding the PoS activation height on regtest only. */
 void UpdatePoSActivationHeight(int height);
+void UpdatePoSUnbondingBlocks(uint32_t blocks);
+void UpdatePoSPostQuantumForTesting(bool enabled);
 void UpdatePoSTrustedCheckpoint(int height, const uint256& hash);
 
 #endif // VERGE_CHAINPARAMS_H

@@ -10,6 +10,48 @@
 #include <rpc/util.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
+#include <algorithm>
+
+PQMultisigPolicy ParsePQMultisigPolicy(const UniValue& required, const UniValue& addresses)
+{
+    if (!required.isNum() || !addresses.isArray()) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Expected numeric threshold and array of PQ addresses");
+    }
+    const int threshold = required.get_int();
+    if (threshold < 1 || addresses.empty() || addresses.size() > PQ_MULTISIG_MAX_KEYS ||
+        static_cast<unsigned int>(threshold) > addresses.size()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "PQ multisig requires 1 <= threshold <= keys <= 5");
+    }
+    PQMultisigPolicy policy;
+    policy.required = threshold;
+    for (const auto& address : addresses.getValues()) {
+        if (!address.isStr()) throw JSONRPCError(RPC_TYPE_ERROR, "PQ addresses must be strings");
+        const auto destination = DecodeDestination(address.get_str());
+        const auto* id = boost::get<PQKeyHash>(&destination);
+        if (!id || id->IsNull()) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Each cosigner must be a single-key PQ address on this network");
+        }
+        policy.keys.push_back(*id);
+    }
+    std::sort(policy.keys.begin(), policy.keys.end());
+    if (EncodePQMultisigPolicy(policy).empty()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Duplicate PQ cosigner address");
+    }
+    return policy;
+}
+
+UniValue DescribePQMultisigPolicy(const PQMultisigPolicy& policy)
+{
+    const uint256 id = GetPQMultisigPolicyId(policy);
+    UniValue result(UniValue::VOBJ), addresses(UniValue::VARR);
+    for (const auto& key : policy.keys) addresses.push_back(EncodeDestination(PQKeyHash(key)));
+    result.pushKV("address", EncodeDestination(PQPolicyHash(id)));
+    result.pushKV("policy", HexStr(EncodePQMultisigPolicy(policy)));
+    result.pushKV("scriptPubKey", HexStr(GetPQMultisigScript(id)));
+    result.pushKV("sigsrequired", static_cast<int>(policy.required));
+    result.pushKV("addresses", addresses);
+    return result;
+}
 
 // Converts a hex string to a public key if possible
 CPubKey HexToPubKey(const std::string& hex_in)
@@ -71,6 +113,25 @@ CScript CreateMultisigRedeemscript(const int required, const std::vector<CPubKey
 class DescribeAddressVisitor : public boost::static_visitor<UniValue>
 {
 public:
+    UniValue operator()(const PQPolicyHash& id) const
+    {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("isscript", true);
+        obj.pushKV("iswitness", false);
+        obj.pushKV("ispostquantum", true);
+        obj.pushKV("ismultisig", true);
+        obj.pushKV("pq_policy_id", id.GetHex());
+        return obj;
+    }
+    UniValue operator()(const PQKeyHash& id) const
+    {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("isscript", false);
+        obj.pushKV("iswitness", false);
+        obj.pushKV("ispostquantum", true);
+        obj.pushKV("pq_key_id", id.GetHex());
+        return obj;
+    }
     explicit DescribeAddressVisitor() {}
 
     UniValue operator()(const CNoDestination& dest) const

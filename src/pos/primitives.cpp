@@ -33,6 +33,7 @@ const char* GetDomainTag(HashDomain domain)
     case HashDomain::SLOT: return "VergePoS/Slot/v1";
     case HashDomain::VRF_KEY: return "VergePoS/VRFKey/v1";
     case HashDomain::EPOCH_ENTROPY: return "VergePoS/EpochEntropy/v1";
+    case HashDomain::PUBLIC_ELIGIBILITY: return "VergePoS/PublicEligibility/v1";
     }
     throw std::invalid_argument("unknown Verge PoS hash domain");
 }
@@ -41,6 +42,18 @@ template <size_t N>
 bool IsAllZero(const unsigned char (&value)[N])
 {
     return std::all_of(value, value + N, [](unsigned char byte) { return byte == 0; });
+}
+
+bool HasHybridAuthentication(uint8_t version,
+    const std::vector<unsigned char>& public_key,
+    const std::vector<unsigned char>& signature)
+{
+    if (version == POS_OBJECT_VERSION) return public_key.empty() && signature.empty();
+    return version == HYBRID_POS_OBJECT_VERSION &&
+        public_key.size() == MLDSA44_PUBLIC_KEY_SIZE &&
+        signature.size() == MLDSA44_SIGNATURE_SIZE &&
+        std::any_of(public_key.begin(), public_key.end(), [](unsigned char c) { return c != 0; }) &&
+        std::any_of(signature.begin(), signature.end(), [](unsigned char c) { return c != 0; });
 }
 
 } // namespace
@@ -129,17 +142,31 @@ uint256 GetVoteEvidencePenaltyKey(const COutPoint& bond_outpoint)
 }
 bool HasSupportedVersion(const StakeProof& proof)
 {
-    return proof.version == POS_OBJECT_VERSION;
+    return proof.version == POS_OBJECT_VERSION ||
+        proof.version == PUBLIC_STAKE_PROOF_VERSION;
 }
 
 bool HasSupportedVersion(const CheckpointVote& vote)
 {
-    return vote.version == POS_OBJECT_VERSION;
+    return vote.version == POS_OBJECT_VERSION || vote.version == HYBRID_POS_OBJECT_VERSION;
 }
 
 bool HasSupportedVersion(const BlockAuthorization& authorization)
 {
-    return authorization.version == POS_OBJECT_VERSION;
+    return authorization.version == POS_OBJECT_VERSION ||
+        authorization.version == HYBRID_POS_OBJECT_VERSION;
+}
+
+void ClearAuthenticationSignature(BlockAuthorization& authorization)
+{
+    std::fill(std::begin(authorization.signature), std::end(authorization.signature), 0);
+    std::fill(authorization.pq_signature.begin(), authorization.pq_signature.end(), 0);
+}
+
+void ClearAuthenticationSignature(CheckpointVote& vote)
+{
+    std::fill(std::begin(vote.signature), std::end(vote.signature), 0);
+    std::fill(vote.pq_signature.begin(), vote.pq_signature.end(), 0);
 }
 
 StructureError CheckStructure(const StakeProof& proof)
@@ -148,9 +175,15 @@ StructureError CheckStructure(const StakeProof& proof)
     if (proof.bond_outpoint.IsNull()) return StructureError::NULL_BOND_OUTPOINT;
     if (proof.slot == 0) return StructureError::INVALID_SLOT;
     if (proof.snapshot_root.IsNull() || proof.epoch_seed.IsNull()) return StructureError::NULL_COMMITMENT;
-    if (proof.vrf_public_key[0] != 0x02 && proof.vrf_public_key[0] != 0x03) return StructureError::INVALID_VRF_PUBLIC_KEY;
-    if (IsAllZero(proof.vrf_output)) return StructureError::ZERO_VRF_OUTPUT;
-    if (IsAllZero(proof.vrf_proof)) return StructureError::ZERO_VRF_PROOF;
+    if (proof.version == PUBLIC_STAKE_PROOF_VERSION) {
+        if (!IsAllZero(proof.vrf_public_key) || !IsAllZero(proof.vrf_proof)) {
+            return StructureError::INVALID_AUTHORIZATION;
+        }
+    } else {
+        if (proof.vrf_public_key[0] != 0x02 && proof.vrf_public_key[0] != 0x03) return StructureError::INVALID_VRF_PUBLIC_KEY;
+        if (IsAllZero(proof.vrf_proof)) return StructureError::ZERO_VRF_PROOF;
+    }
+    if (proof.version != PUBLIC_STAKE_PROOF_VERSION && IsAllZero(proof.vrf_output)) return StructureError::ZERO_VRF_OUTPUT;
     if (IsAllZero(proof.signing_public_key)) return StructureError::ZERO_SIGNING_PUBLIC_KEY;
     return StructureError::NONE;
 }
@@ -167,6 +200,9 @@ StructureError CheckStructure(const CheckpointVote& vote)
     if (vote.source_checkpoint_root.IsNull() || vote.target_checkpoint_root.IsNull()) return StructureError::NULL_COMMITMENT;
     if (vote.head_slot == 0 || vote.head_block_root.IsNull()) return StructureError::INVALID_HEAD;
     if (IsAllZero(vote.signature)) return StructureError::ZERO_SIGNATURE;
+    if (!HasHybridAuthentication(vote.version, vote.pq_public_key, vote.pq_signature)) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
     return StructureError::NONE;
 }
 
@@ -184,12 +220,18 @@ StructureError CheckStructure(const BlockAuthorization& authorization)
         return StructureError::INVALID_AUTHORIZATION;
     }
     if (IsAllZero(authorization.signature)) return StructureError::ZERO_SIGNATURE;
+    if (!HasHybridAuthentication(authorization.version, authorization.pq_public_key, authorization.pq_signature)) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
     return StructureError::NONE;
 }
 
 StructureError CheckStructure(const BlockEquivocationEvidence& evidence)
 {
-    if (evidence.version != POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (evidence.version != POS_OBJECT_VERSION && evidence.version != HYBRID_POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (evidence.first.version != evidence.version || evidence.second.version != evidence.version) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
     if (CheckStructure(evidence.first) != StructureError::NONE ||
         CheckStructure(evidence.second) != StructureError::NONE) {
         return StructureError::INVALID_AUTHORIZATION;
@@ -208,7 +250,10 @@ StructureError CheckStructure(const BlockEquivocationEvidence& evidence)
 
 StructureError CheckStructure(const VoteEquivocationEvidence& evidence)
 {
-    if (evidence.version != POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (evidence.version != POS_OBJECT_VERSION && evidence.version != HYBRID_POS_OBJECT_VERSION) return StructureError::UNSUPPORTED_VERSION;
+    if (evidence.first.version != evidence.version || evidence.second.version != evidence.version) {
+        return StructureError::INVALID_AUTHORIZATION;
+    }
     if (CheckStructure(evidence.first) != StructureError::NONE ||
         CheckStructure(evidence.second) != StructureError::NONE) {
         return StructureError::INVALID_AUTHORIZATION;

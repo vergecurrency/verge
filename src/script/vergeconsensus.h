@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-#define VERGECONSENSUS_API_VER 1
+#define VERGECONSENSUS_API_VER 2
 
 typedef enum vergeconsensus_error_t
 {
@@ -44,6 +44,7 @@ typedef enum vergeconsensus_error_t
     vergeconsensus_ERR_TX_DESERIALIZE,
     vergeconsensus_ERR_AMOUNT_REQUIRED,
     vergeconsensus_ERR_INVALID_FLAGS,
+    vergeconsensus_ERR_CONTEXT_REQUIRED,
 } vergeconsensus_error;
 
 /** Script verification flags */
@@ -56,9 +57,12 @@ enum
     vergeconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY = (1U << 9), // enable CHECKLOCKTIMEVERIFY (BIP65)
     vergeconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY = (1U << 10), // enable CHECKSEQUENCEVERIFY (BIP112)
     vergeconsensus_SCRIPT_FLAGS_VERIFY_WITNESS             = (1U << 11), // enable WITNESS (BIP141)
+    vergeconsensus_SCRIPT_FLAGS_VERIFY_POS_REPLAY          = (1U << 17),
+    vergeconsensus_SCRIPT_FLAGS_VERIFY_PQ                  = (1U << 18),
     vergeconsensus_SCRIPT_FLAGS_VERIFY_ALL                 = vergeconsensus_SCRIPT_FLAGS_VERIFY_P2SH | vergeconsensus_SCRIPT_FLAGS_VERIFY_DERSIG |
                                                                vergeconsensus_SCRIPT_FLAGS_VERIFY_NULLDUMMY | vergeconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY |
-                                                               vergeconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY | vergeconsensus_SCRIPT_FLAGS_VERIFY_WITNESS
+                                                               vergeconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY | vergeconsensus_SCRIPT_FLAGS_VERIFY_WITNESS |
+                                                               vergeconsensus_SCRIPT_FLAGS_VERIFY_POS_REPLAY | vergeconsensus_SCRIPT_FLAGS_VERIFY_PQ
 };
 
 /// Returns 1 if the input nIn of the serialized transaction pointed to by
@@ -74,6 +78,10 @@ EXPORT_SYMBOL int vergeconsensus_verify_script_with_amount(const unsigned char *
                                     unsigned int nIn, unsigned int flags, vergeconsensus_error* err);
 
 EXPORT_SYMBOL unsigned int vergeconsensus_version();
+EXPORT_SYMBOL int vergeconsensus_verify_script_with_context(const unsigned char *scriptPubKey,
+    unsigned int scriptPubKeyLen, int64_t amount, const unsigned char *txTo,
+    unsigned int txToLen, unsigned int nIn, unsigned int flags, uint32_t network_id,
+    int32_t activation_height, vergeconsensus_error* err);
 
 #ifdef __cplusplus
 } // extern "C"

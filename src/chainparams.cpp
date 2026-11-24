@@ -11,6 +11,7 @@
 #include <util/strencodings.h>
 
 #include <assert.h>
+#include <stdexcept>
 
 #include <chainparamsseeds.h>
 #include <arith_uint256.h>
@@ -45,6 +46,14 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
 {
 const char* pszTimestamp = isTestnet ? "VERGE TESTNET" : "Name: Dogecoin Dark";
 return CreateGenesisBlock(pszTimestamp, nTime, nNonce, nBits, nVersion);
+}
+
+std::string CChainParams::Bech32PQHRP() const
+{
+    if (strNetworkID == CBaseChainParams::MAIN) return "xvgpq";
+    if (strNetworkID == CBaseChainParams::TESTNET) return "xvgtpq";
+    if (strNetworkID == CBaseChainParams::REGTEST) return "xvgrpq";
+    throw std::runtime_error("No PQ address prefix for this network");
 }
 
 void CChainParams::UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
@@ -392,6 +401,8 @@ consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;
 consensus.CLOCK_DRIFT_FORK = 2218500;
 consensus.nPoSNetworkId = 2;
+consensus.fPoSPublicEligibility = true;
+consensus.fPoSPostQuantum = true;
 consensus.nPoSBondRulesHeight = 1;
 consensus.nPoSActivationHeight = 3000;
 consensus.nPoSMinStake = 1000 * COIN;
@@ -511,6 +522,8 @@ consensus.STEALTH_TX_SWITCH_BLOCK = 1824150;
 consensus.FlexibleMiningAlgorithms = 2042000;
 consensus.CLOCK_DRIFT_FORK = 2218500;
 consensus.nPoSNetworkId = 3;
+consensus.fPoSPublicEligibility = true;
+consensus.fPoSPostQuantum = true;
 consensus.nPoSBondRulesHeight = 1;
 consensus.nPoSActivationHeight = std::numeric_limits<int>::max();
 consensus.nPoSMinStake = 1000 * COIN;
@@ -622,6 +635,16 @@ globalChainParams->UpdateVersionBitsParameters(d, nStartTime, nTimeout);
 void UpdatePoSActivationHeight(int height)
 {
 globalChainParams->UpdatePoSActivationHeight(height);
+}
+
+void UpdatePoSUnbondingBlocks(uint32_t blocks)
+{
+globalChainParams->UpdatePoSUnbondingBlocks(blocks);
+}
+
+void UpdatePoSPostQuantumForTesting(bool enabled)
+{
+    globalChainParams->UpdatePoSPostQuantumForTesting(enabled);
 }
 
 void UpdatePoSTrustedCheckpoint(int height, const uint256& hash)

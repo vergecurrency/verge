@@ -5,6 +5,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <script/sign.h>
+#include <script/pq.h>
+#include <pos/pqcrypto.h>
 
 #include <key.h>
 #include <policy/policy.h>
@@ -60,6 +62,24 @@ bool MutableTransactionSignatureCreator::CreateSig(const SigningProvider& provid
     if (!key.Sign(hash, vchSig))
         return false;
     vchSig.push_back((unsigned char)nHashType);
+    return true;
+}
+
+bool MutableTransactionSignatureCreator::CreatePQSig(const SigningProvider& provider,
+    std::vector<unsigned char>& signature, const uint256& id, const CScript& script) const
+{
+    signature.clear();
+    if (nIn >= txTo->vin.size() || nHashType != (SIGHASH_ALL |
+        (replay_context.IsEnabled() ? SIGHASH_POS_FORKID : 0))) return false;
+    pos::experimental::MLDSA44Key key;
+    if (!provider.GetPQKey(id, key)) return false;
+    const auto transaction_hash = SignatureHash(script, *txTo, nIn, nHashType, amount,
+        SigVersion::BASE, nullptr, replay_context);
+    uint256 hash;
+    if (!pos::experimental::GetPQTransactionHash(replay_context.network_id,
+        replay_context.activation_height, amount, transaction_hash, hash) ||
+        !key.Sign({hash.begin(), hash.end()}, pos::experimental::PQTransactionContext(), signature)) return false;
+    signature.push_back(nHashType);
     return true;
 }
 
@@ -169,6 +189,60 @@ static CScript PushAll(const std::vector<valtype>& values)
 
 bool ProduceSignature(const SigningProvider& provider, const BaseSignatureCreator& creator, const CScript& fromPubKey, SignatureData& sigdata)
 {
+    uint256 pq_id;
+    if (ExtractPQMultisigId(fromPubKey, pq_id)) {
+        PQMultisigPolicy policy;
+        std::vector<unsigned char> encoded;
+        std::vector<PQMultisigSignature> existing;
+        // A partial transaction carries its policy for cosigners without a local copy.
+        if (!sigdata.scriptWitness.IsNull()) return false;
+        if (provider.GetPQMultisigPolicy(pq_id, encoded)) {
+            if (!DecodePQMultisigPolicy(encoded, policy)) return false;
+        } else if (!DecodePQMultisigScriptSig(sigdata.scriptSig, policy, existing)) {
+            return false;
+        }
+        if (GetPQMultisigPolicyId(policy) != pq_id) return false;
+        PQMultisigPolicy previous_policy;
+        std::vector<PQMultisigSignature> previous;
+        if (DecodePQMultisigScriptSig(sigdata.scriptSig, previous_policy, previous) &&
+            GetPQMultisigPolicyId(previous_policy) == pq_id) existing = std::move(previous);
+        std::map<unsigned int, PQMultisigSignature> signatures;
+        for (const auto& item : existing) {
+            if (pos::experimental::GetMLDSA44KeyId(item.public_key) == policy.keys[item.index] &&
+                creator.Checker().CheckPQSig(item.signature, item.public_key, fromPubKey)) {
+                signatures.emplace(item.index, item);
+            }
+        }
+        for (unsigned int i = 0; i < policy.keys.size() && signatures.size() < policy.required; ++i) {
+            if (signatures.count(i)) continue;
+            PQMultisigSignature item;
+            item.index = i;
+            if (provider.GetPQPubKey(policy.keys[i], item.public_key) &&
+                pos::experimental::GetMLDSA44KeyId(item.public_key) == policy.keys[i] &&
+                creator.CreatePQSig(provider, item.signature, policy.keys[i], fromPubKey) &&
+                creator.Checker().CheckPQSig(item.signature, item.public_key, fromPubKey)) {
+                signatures.emplace(i, std::move(item));
+            }
+        }
+        std::vector<PQMultisigSignature> result;
+        for (const auto& item : signatures) {
+            if (result.size() == policy.required) break;
+            result.push_back(item.second);
+        }
+        sigdata.scriptSig = GetPQMultisigScriptSig(policy, result);
+        sigdata.scriptWitness.stack.clear();
+        return result.size() == policy.required && VerifyScript(sigdata.scriptSig, fromPubKey,
+            &sigdata.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_PQ, creator.Checker());
+    }
+    if (ExtractPQKeyId(fromPubKey, pq_id)) {
+        std::vector<unsigned char> signature, public_key;
+        if (!provider.GetPQPubKey(pq_id, public_key) ||
+            !creator.CreatePQSig(provider, signature, pq_id, fromPubKey)) return false;
+        sigdata.scriptSig = GetPQScriptSig(signature, public_key);
+        sigdata.scriptWitness.stack.clear();
+        return VerifyScript(sigdata.scriptSig, fromPubKey, &sigdata.scriptWitness,
+            STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_PQ, creator.Checker());
+    }
     std::vector<valtype> result;
     txnouttype whichType;
     bool solved = SignStep(provider, creator, fromPubKey, result, whichType, SigVersion::BASE);
@@ -235,7 +309,7 @@ bool SignSignature(const SigningProvider &provider, const CScript& fromPubKey, C
 
     MutableTransactionSignatureCreator creator(&txTo, nIn, amount, nHashType);
 
-    SignatureData sigdata;
+    SignatureData sigdata = DataFromTransaction(txTo, nIn);
     bool ret = ProduceSignature(provider, creator, fromPubKey, sigdata);
     UpdateInput(txTo.vin.at(nIn), sigdata);
     return ret;
@@ -406,6 +480,39 @@ static Stacks CombineSignatures(const CScript& scriptPubKey, const BaseSignature
 SignatureData CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecker& checker,
                           const SignatureData& scriptSig1, const SignatureData& scriptSig2)
 {
+    uint256 pq_id;
+    if (ExtractPQMultisigId(scriptPubKey, pq_id)) {
+        PQMultisigPolicy policy;
+        bool have_policy = false;
+        std::map<unsigned int, PQMultisigSignature> merged;
+        for (const auto* candidate : {&scriptSig1, &scriptSig2}) {
+            PQMultisigPolicy parsed;
+            std::vector<PQMultisigSignature> signatures;
+            if (!candidate->scriptWitness.IsNull() ||
+                !DecodePQMultisigScriptSig(candidate->scriptSig, parsed, signatures) ||
+                GetPQMultisigPolicyId(parsed) != pq_id) continue;
+            policy = parsed;
+            have_policy = true;
+            for (const auto& item : signatures) {
+                if (pos::experimental::GetMLDSA44KeyId(item.public_key) == policy.keys[item.index] &&
+                    checker.CheckPQSig(item.signature, item.public_key, scriptPubKey)) merged.emplace(item.index, item);
+            }
+        }
+        if (!have_policy) return {};
+        std::vector<PQMultisigSignature> signatures;
+        for (const auto& item : merged) {
+            if (signatures.size() == policy.required) break;
+            signatures.push_back(item.second);
+        }
+        return SignatureData(GetPQMultisigScriptSig(policy, signatures));
+    }
+    if (ExtractPQKeyId(scriptPubKey, pq_id)) {
+        for (const auto* candidate : {&scriptSig1, &scriptSig2}) {
+            if (VerifyScript(candidate->scriptSig, scriptPubKey, &candidate->scriptWitness,
+                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_PQ, checker)) return *candidate;
+        }
+        return {};
+    }
     txnouttype txType;
     std::vector<std::vector<unsigned char> > vSolutions;
     SolverForSigning(scriptPubKey, txType, vSolutions);
@@ -420,11 +527,19 @@ class DummySignatureChecker final : public BaseSignatureChecker
 public:
     DummySignatureChecker() {}
     bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion) const override { return true; }
+    bool CheckPQSig(const std::vector<unsigned char>&, const std::vector<unsigned char>&, const CScript&) const override { return true; }
 };
 const DummySignatureChecker DUMMY_CHECKER;
 
 class DummySignatureCreator final : public BaseSignatureCreator {
 public:
+    bool CreatePQSig(const SigningProvider&, std::vector<unsigned char>& signature,
+        const uint256&, const CScript&) const override
+    {
+        signature.assign(PQ_SIGNATURE_BYTES + 1, 0);
+        signature.back() = SIGHASH_ALL;
+        return true;
+    }
     DummySignatureCreator() {}
     const BaseSignatureChecker& Checker() const override { return DUMMY_CHECKER; }
     bool CreateSig(const SigningProvider& provider, std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const override
@@ -449,13 +564,20 @@ const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR = DummySignatureCreator();
 
 bool IsSolvable(const SigningProvider& provider, const CScript& script)
 {
+    uint256 policy_id;
+    if (ExtractPQMultisigId(script, policy_id)) {
+        std::vector<unsigned char> encoded;
+        PQMultisigPolicy policy;
+        return provider.GetPQMultisigPolicy(policy_id, encoded) &&
+            DecodePQMultisigPolicy(encoded, policy) && GetPQMultisigPolicyId(policy) == policy_id;
+    }
     // This check is to make sure that the script we created can actually be solved for and signed by us
     // if we were to have the private keys. This is just to make sure that the script is valid and that,
     // if found in a transaction, we would still accept and relay that transaction.
     SignatureData sigs;
     if (ProduceSignature(provider, DUMMY_SIGNATURE_CREATOR, script, sigs)) {
         // VerifyScript check is just defensive, and should never fail.
-        assert(VerifyScript(sigs.scriptSig, script, &sigs.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, DUMMY_CHECKER));
+        assert(VerifyScript(sigs.scriptSig, script, &sigs.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_PQ, DUMMY_CHECKER));
         return true;
     }
     return false;

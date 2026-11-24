@@ -8,6 +8,7 @@
 
 #include <pubkey.h>
 #include <script/standard.h>
+#include <script/pq.h>
 #include <univalue.h>
 
 #include <boost/variant/static_visitor.hpp>
@@ -24,5 +25,7 @@ CPubKey AddrToPubKey(CKeyStore* const keystore, const std::string& addr_in);
 CScript CreateMultisigRedeemscript(const int required, const std::vector<CPubKey>& pubkeys);
 
 UniValue DescribeAddress(const CTxDestination& dest);
+PQMultisigPolicy ParsePQMultisigPolicy(const UniValue& required, const UniValue& addresses);
+UniValue DescribePQMultisigPolicy(const PQMultisigPolicy& policy);
 
 #endif // VERGE_RPC_UTIL_H

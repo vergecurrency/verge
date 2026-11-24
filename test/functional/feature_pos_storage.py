@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-"""Exercise PoS record persistence, optional legacy migration and reindex."""
+"""Exercise fresh hybrid PoS record persistence and reindex."""
 
 from test_framework.test_framework import VergeTestFramework
 from test_framework.test_node import ErrorMatch
@@ -21,6 +21,8 @@ class PoSStorageTest(VergeTestFramework):
         self.extra_args = [["-posactivationheight=1500", "-without-tor"] for _ in range(2)]
 
     def setup_nodes(self):
+        if self.options.legacy_binary:
+            raise ValueError("Classical trial binaries are incompatible with the fresh PQ trial; legacy storage migration remains covered by unit tests")
         self.add_nodes(2, self.extra_args, binary=[self.options.verged,
             self.options.legacy_binary or self.options.verged])
         self.start_nodes()
@@ -88,7 +90,7 @@ class PoSStorageTest(VergeTestFramework):
             self.compare()
 
         self.log.info("Restart and verify durable record state after retention pruning")
-        with upgraded.assert_debug_log(["Loaded PoS record state version=1"]):
+        with upgraded.assert_debug_log(["Loaded PoS record state version=2"]):
             self.restart_node(1, self.restart_args("-checklevel=4", "-checkblocks=30"))
         connect_nodes_bi(self.nodes, 0, 1)
         self.compare()

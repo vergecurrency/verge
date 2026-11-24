@@ -359,6 +359,55 @@ BOOST_AUTO_TEST_CASE(reject_vote_count_before_allocation)
     BOOST_CHECK(decoded.votes.empty());
 }
 
+BOOST_AUTO_TEST_CASE(hybrid_identity_excludes_all_signature_randomness)
+{
+    pos::BlockExtension extension = MakeExtension();
+    extension.version = pos::HYBRID_POS_OBJECT_VERSION;
+    extension.stake_proof.version = pos::PUBLIC_STAKE_PROOF_VERSION;
+    std::fill(std::begin(extension.stake_proof.vrf_public_key), std::end(extension.stake_proof.vrf_public_key), 0);
+    std::fill(std::begin(extension.stake_proof.vrf_proof), std::end(extension.stake_proof.vrf_proof), 0);
+    auto& authorization = extension.authorization;
+    authorization.version = extension.version;
+    authorization.pq_public_key.assign(pos::MLDSA44_PUBLIC_KEY_SIZE, 1);
+    authorization.pq_signature.assign(pos::MLDSA44_SIGNATURE_SIZE, 2);
+    authorization.stake_proof_hash = pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, extension.stake_proof);
+    pos::CheckpointVote vote;
+    vote.version = extension.version;
+    vote.bond_outpoint = extension.stake_proof.bond_outpoint;
+    vote.pq_public_key = authorization.pq_public_key;
+    vote.pq_signature = authorization.pq_signature;
+    extension.votes.push_back(vote);
+    pos::BlockEquivocationEvidence evidence;
+    evidence.version = extension.version;
+    evidence.first = evidence.second = authorization;
+    extension.block_evidence.push_back(evidence);
+    const uint256 original = pos::ComputePoSDataHash(extension);
+    const auto vote_root = pos::ComputeVoteRoot(extension.votes);
+    const auto evidence_root = pos::ComputeEvidenceRoot(extension.block_evidence, {});
+    authorization.signature[0] ^= 1;
+    authorization.pq_signature[0] ^= 1;
+    extension.votes[0].signature[0] ^= 1;
+    extension.votes[0].pq_signature[0] ^= 1;
+    extension.block_evidence[0].first.signature[0] ^= 1;
+    extension.block_evidence[0].second.pq_signature[0] ^= 1;
+    BOOST_CHECK(pos::ComputePoSDataHash(extension) == original);
+    BOOST_CHECK(pos::ComputeVoteRoot(extension.votes) == vote_root);
+    BOOST_CHECK(pos::ComputeEvidenceRoot(extension.block_evidence, {}) == evidence_root);
+    ++extension.votes[0].head_slot;
+    BOOST_CHECK(pos::ComputePoSDataHash(extension) != original);
+    BOOST_CHECK(pos::ComputeVoteRoot(extension.votes) != vote_root);
+    auto commitment = pos::GetBlockCommitment(extension);
+    pos::BlockCommitment decoded;
+    BOOST_REQUIRE(pos::ParseBlockCommitmentScript(pos::GetBlockCommitmentScript(commitment), decoded));
+    BOOST_CHECK_EQUAL(decoded.version, extension.version);
+    CDataStream stream(SER_NETWORK, 0);
+    stream << extension.version << extension.stake_proof << authorization;
+    WriteCompactSize(stream, pos::MAX_HYBRID_VOTES_PER_BLOCK + 1);
+    pos::BlockExtension rejected;
+    BOOST_CHECK_THROW(stream >> rejected, std::ios_base::failure);
+    BOOST_CHECK(rejected.votes.empty());
+}
+
 BOOST_AUTO_TEST_CASE(reject_combined_evidence_count)
 {
     const pos::BlockExtension expected = MakeExtension();
@@ -425,6 +474,7 @@ struct PoSAssemblerTestingSetup : RegTestingSetup {
 
     PoSAssemblerTestingSetup()
     {
+        params->UpdatePoSPostQuantumForTesting(false);
         params->UpdatePoSActivationHeight(1);
         block_time = static_cast<uint32_t>(GetAdjustedTime() / 30 * 30);
         replacement.pprev = original_tip;
@@ -561,6 +611,66 @@ BOOST_AUTO_TEST_CASE(reserve_attachment_weight_before_transaction_selection)
         }, std::vector<pos::CheckpointVote>(pos::MAX_VOTES_PER_BLOCK));
     BOOST_CHECK(!reached_signing);
     BOOST_CHECK(!block_template);
+    mempool.clear();
+}
+
+BOOST_AUTO_TEST_CASE(reserve_hybrid_attachment_weight_before_transaction_selection)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    LOCK2(cs_main, mempool.cs);
+    chainActive.SetTip(&replacement);
+    params->UpdatePoSPostQuantumForTesting(true);
+    mempool.clear();
+    TestMemPoolEntryHelper entry;
+    for (uint32_t i = 0; i < 700; ++i) {
+        CMutableTransaction tx;
+        tx.nTime = block_time;
+        tx.vin.emplace_back(COutPoint(uint256S("1234"), i));
+        tx.vout.emplace_back(1, CScript() << std::vector<unsigned char>(1000, 0));
+        mempool.addUnchecked(tx.GetHash(), entry.Fee(COIN).FromTx(tx));
+    }
+    pos::experimental::MLDSA44Key key;
+    BOOST_REQUIRE(key.MakeNewKey());
+    std::vector<unsigned char> public_key;
+    BOOST_REQUIRE(key.GetPublicKey(public_key));
+    pos::BondRecord bond;
+    bond.data.version = 2;
+    bond.data.pq_signing_key_id = pos::experimental::GetMLDSA44KeyId(public_key);
+    bond.data.pq_reward_key_id = bond.data.pq_signing_key_id;
+    bond.data.pq_withdrawal_key_id = bond.data.pq_signing_key_id;
+    pos::CheckpointVote vote;
+    vote.version = 2;
+    vote.pq_public_key = public_key;
+    vote.pq_signature.resize(pos::MLDSA44_SIGNATURE_SIZE);
+    pos::BlockEquivocationEvidence evidence;
+    evidence.version = evidence.first.version = evidence.second.version = 2;
+    evidence.first.pq_public_key = evidence.second.pq_public_key = public_key;
+    evidence.first.pq_signature.resize(pos::MLDSA44_SIGNATURE_SIZE);
+    evidence.second.pq_signature.resize(pos::MLDSA44_SIGNATURE_SIZE);
+    const std::vector<pos::CheckpointVote> votes(pos::MAX_HYBRID_VOTES_PER_BLOCK, vote);
+    const std::vector<pos::BlockEquivocationEvidence> proofs(pos::MAX_EVIDENCE_PER_BLOCK, evidence);
+    BlockAssembler::Options options;
+    options.nBlockMaxWeight = 3996000;
+    bool reached = false;
+    // Assembly-only fixture: stop before signing these synthetic attachments.
+    BOOST_CHECK(!BlockAssembler(*params, options).CreateNewPoSBlock(
+        proof, bond, secret, block_time + 30, replacement.GetBlockHash(),
+        [&](const pos::BlockAuthorization& authorization) {
+            reached = true;
+            BOOST_CHECK_EQUAL(authorization.version, 2);
+            BOOST_CHECK_EQUAL(authorization.pq_public_key.size(), 1312U);
+            BOOST_CHECK_EQUAL(authorization.pq_signature.size(), 2420U);
+            BOOST_CHECK(nLastBlockWeight <= options.nBlockMaxWeight);
+            BOOST_CHECK(nLastBlockWeight > options.nBlockMaxWeight - 10000);
+            return false;
+        }, votes, proofs, {}, &key));
+    BOOST_CHECK(reached);
+    reached = false;
+    options.nBlockMaxWeight = 2000000;
+    BOOST_CHECK(!BlockAssembler(*params, options).CreateNewPoSBlock(
+        proof, bond, secret, block_time + 30, replacement.GetBlockHash(),
+        [&](const pos::BlockAuthorization&) { reached = true; return false; }, votes, proofs, {}, &key));
+    BOOST_CHECK(!reached);
     mempool.clear();
 }
 

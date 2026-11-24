@@ -407,6 +407,30 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
     return QString::fromStdString(strAddress);
 }
 
+QString AddressTableModel::addPQRow(const QString& label, QString& error)
+{
+    error.clear();
+    if (!walletModel->wallet().getBalances().pq_enabled) {
+        editStatus = KEY_GENERATION_FAILURE;
+        error = tr("Post-quantum receiving addresses are not active on this network.");
+        return {};
+    }
+    WalletModel::UnlockContext unlock = walletModel->requestUnlock();
+    if (!unlock.isValid()) {
+        editStatus = WALLET_UNLOCK_FAILURE;
+        error = tr("Wallet unlock was canceled.");
+        return {};
+    }
+    std::string address, reason;
+    if (!walletModel->wallet().createPQReceiveAddress(label.toStdString(), address, reason)) {
+        editStatus = KEY_GENERATION_FAILURE;
+        error = QString::fromStdString(reason);
+        return {};
+    }
+    editStatus = OK;
+    return QString::fromStdString(address);
+}
+
 bool AddressTableModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     Q_UNUSED(parent);

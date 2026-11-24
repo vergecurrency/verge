@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <consensus/tx_verify.h>
+#include <script/pq.h>
 #include <consensus/params.h>
 #include <pos/stake.h>
 #include <pos/state.h>
@@ -156,6 +157,9 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
         assert(!coin.IsSpent());
         const CTxOut &prevout = coin.out;
         nSigOps += CountWitnessSigOps(tx.vin[i].scriptSig, prevout.scriptPubKey, &tx.vin[i].scriptWitness, flags);
+        uint256 pq_id;
+        if ((flags & SCRIPT_VERIFY_PQ) && ExtractPQKeyId(prevout.scriptPubKey, pq_id)) nSigOps += PQ_SIGOP_COST;
+        if ((flags & SCRIPT_VERIFY_PQ) && ExtractPQMultisigId(prevout.scriptPubKey, pq_id)) nSigOps += PQ_SIGOP_COST * PQ_MULTISIG_MAX_KEYS;
     }
     return nSigOps;
 }
@@ -225,6 +229,9 @@ bool Consensus::CheckPoSOutputs(const CTransaction& tx, CValidationState& state,
             if (!pos::ParseBondScript(output.scriptPubKey, bond)) {
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-pos-bond-encoding");
+            }
+            if (bond.version != (params.ArePQRulesActive(nHeight) ? 2 : 1)) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-pos-bond-version");
             }
             if (output.nValue < params.nPoSMinStake) {
                 return state.DoS(100, false, REJECT_INVALID,
@@ -347,6 +354,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
 
         pos::UnbondData unbond;
         if (!pos::ParseUnbondScript(tx.vout[unbond_output_index].scriptPubKey, unbond) ||
+            unbond.version != spent_bond.version ||
+            unbond.pq_withdrawal_key_id != spent_bond.pq_withdrawal_key_id ||
             unbond.withdrawal_key_id != spent_bond.withdrawal_key_id ||
             tx.vout[unbond_output_index].nValue != bonded_principal) {
             return state.DoS(100, false, REJECT_INVALID, "bad-pos-unbond-principal");

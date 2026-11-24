@@ -5,6 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <script/standard.h>
+#include <script/pq.h>
 
 #include <pubkey.h>
 #include <script/script.h>
@@ -33,6 +34,8 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_WITNESS_V0_KEYHASH: return "witness_v0_keyhash";
     case TX_WITNESS_V0_SCRIPTHASH: return "witness_v0_scripthash";
     case TX_WITNESS_UNKNOWN: return "witness_unknown";
+    case TX_PQ_KEYHASH: return "pq_keyhash";
+    case TX_PQ_MULTISIG: return "pq_multisig";
     }
     return nullptr;
 }
@@ -86,6 +89,17 @@ static bool MatchMultisig(const CScript& script, unsigned int& required, std::ve
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet)
 {
     vSolutionsRet.clear();
+    uint256 pq_id;
+    if (ExtractPQKeyId(scriptPubKey, pq_id)) {
+        typeRet = TX_PQ_KEYHASH;
+        vSolutionsRet.emplace_back(pq_id.begin(), pq_id.end());
+        return true;
+    }
+    if (ExtractPQMultisigId(scriptPubKey, pq_id)) {
+        typeRet = TX_PQ_MULTISIG;
+        vSolutionsRet.emplace_back(pq_id.begin(), pq_id.end());
+        return true;
+    }
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:
     // it is always OP_HASH160 20 [20 byte hash] OP_EQUAL
@@ -174,6 +188,16 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
         addressRet = pubKey.GetID();
         return true;
     }
+    else if (whichType == TX_PQ_KEYHASH)
+    {
+        addressRet = PQKeyHash(uint256(vSolutions[0]));
+        return true;
+    }
+    else if (whichType == TX_PQ_MULTISIG)
+    {
+        addressRet = PQPolicyHash(uint256(vSolutions[0]));
+        return true;
+    }
     else if (whichType == TX_PUBKEYHASH)
     {
         addressRet = CKeyID(uint160(vSolutions[0]));
@@ -235,7 +259,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
     }
     else
     {
-        nRequiredRet = 1;
+        nRequiredRet = typeRet == TX_PQ_MULTISIG ? 0 : 1;
         CTxDestination address;
         if (!ExtractDestination(scriptPubKey, address))
            return false;
@@ -252,6 +276,16 @@ class CScriptVisitor : public boost::static_visitor<bool>
 private:
     CScript *script;
 public:
+    bool operator()(const PQKeyHash& id) const
+    {
+        *script = GetPQScript(id);
+        return !script->empty();
+    }
+    bool operator()(const PQPolicyHash& id) const
+    {
+        *script = GetPQMultisigScript(id);
+        return !script->empty();
+    }
     explicit CScriptVisitor(CScript *scriptin) { script = scriptin; }
     CScriptVisitor(CScript *scriptin, bool shouldStealthIn) { script = scriptin; }
 

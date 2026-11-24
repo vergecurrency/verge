@@ -122,6 +122,10 @@ static UniValue BondToJSON(const COutPoint& outpoint,
     result.pushKV("vout", static_cast<uint64_t>(outpoint.n));
     result.pushKV("active", active);
     result.pushKV("amount", ValueFromAmount(bond.value));
+    result.pushKV("credential_version", static_cast<int>(bond.data.version));
+    if (bond.data.version == pos::HYBRID_POS_OBJECT_VERSION) {
+        result.pushKV("pq_signing_key_id", bond.data.pq_signing_key_id.GetHex());
+    }
     result.pushKV("creation_height", bond.creation_height);
     result.pushKV("confirmations", confirmations);
     result.pushKV("maturity_height", maturity_height);
@@ -142,9 +146,13 @@ static UniValue BondToJSON(const COutPoint& outpoint,
                   HexStr(bond.data.vrf_public_key,
                          bond.data.vrf_public_key + pos::VRF_PUBLIC_KEY_SIZE));
     result.pushKV("reward_address",
-                  EncodeDestination(CKeyID(bond.data.reward_key_id)));
+                  EncodeDestination(bond.data.version == 2
+                      ? CTxDestination(PQKeyHash(bond.data.pq_reward_key_id))
+                      : CTxDestination(CKeyID(bond.data.reward_key_id))));
     result.pushKV("withdrawal_address",
-                  EncodeDestination(CKeyID(bond.data.withdrawal_key_id)));
+                  EncodeDestination(bond.data.version == 2
+                      ? CTxDestination(PQKeyHash(bond.data.pq_withdrawal_key_id))
+                      : CTxDestination(CKeyID(bond.data.withdrawal_key_id))));
 
     const auto vote = state.LatestVotes().find(outpoint);
     if (vote != state.LatestVotes().end()) {
@@ -1533,6 +1541,10 @@ static UniValue getposinfo(const JSONRPCRequest& request)
     result.pushKV("bond_maturity", static_cast<uint64_t>(params.nPoSStakeMaturity));
     result.pushKV("unbonding_blocks", static_cast<uint64_t>(params.nPoSUnbondingBlocks));
     result.pushKV("slot_seconds", static_cast<uint64_t>(params.nPoSSlotSeconds));
+    result.pushKV("eligibility_scheme", params.fPoSPublicEligibility
+        ? "public-stake-weighted-v1" : "p256-vrf");
+    result.pushKV("authentication_scheme", params.fPoSPostQuantum ? "schnorr-mldsa44-v2" : "schnorr-v1");
+    result.pushKV("pq_spending_active", params.ArePQRulesActive(current_height + 1));
     result.pushKV("epoch_slots", static_cast<uint64_t>(params.nPoSEpochSlots));
     result.pushKV("snapshot_delay_epochs",
                   static_cast<uint64_t>(params.nPoSSnapshotDelayEpochs));

@@ -14,6 +14,7 @@ class CKeyID;
 class CScript;
 class CScriptID;
 class CTransaction;
+namespace pos { namespace experimental { class MLDSA44Key; } }
 
 struct CMutableTransaction;
 
@@ -25,6 +26,9 @@ public:
     virtual bool GetCScript(const CScriptID &scriptid, CScript& script) const =0;
     virtual bool GetPubKey(const CKeyID &address, CPubKey& pubkey) const =0;
     virtual bool GetKey(const CKeyID &address, CKey& key) const =0;
+    virtual bool GetPQKey(const uint256&, pos::experimental::MLDSA44Key&) const { return false; }
+    virtual bool GetPQPubKey(const uint256&, std::vector<unsigned char>&) const { return false; }
+    virtual bool GetPQMultisigPolicy(const uint256&, std::vector<unsigned char>&) const { return false; }
 };
 
 /** Interface for signature creators. */
@@ -35,6 +39,8 @@ public:
 
     /** Create a singular (non-script) signature. */
     virtual bool CreateSig(const SigningProvider& provider, std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const =0;
+    virtual bool CreatePQSig(const SigningProvider&, std::vector<unsigned char>&,
+        const uint256&, const CScript&) const { return false; }
 };
 
 /** A signature creator for transactions. */
@@ -54,6 +60,8 @@ public:
                                        const ReplayProtectionContext& replay_context = ReplayProtectionContext());
     const BaseSignatureChecker& Checker() const override { return checker; }
     bool CreateSig(const SigningProvider& provider, std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const override;
+    bool CreatePQSig(const SigningProvider& provider, std::vector<unsigned char>& signature,
+        const uint256& id, const CScript& script) const override;
 };
 
 /** A signature creator that just produces 72-byte empty signatures. */

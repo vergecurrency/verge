@@ -75,10 +75,34 @@ public:
     }
 
     std::string operator()(const CNoDestination& no) const { return {}; }
+    std::string operator()(const PQKeyHash& id) const
+    {
+        std::vector<unsigned char> data;
+        ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, id.begin(), id.end());
+        return bech32::Encode(m_params.Bech32PQHRP(), data, bech32::Encoding::BECH32M);
+    }
+    std::string operator()(const PQPolicyHash& id) const
+    {
+        std::vector<unsigned char> payload{1}, data;
+        payload.insert(payload.end(), id.begin(), id.end());
+        ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, payload.begin(), payload.end());
+        return bech32::Encode(m_params.Bech32PQHRP(), data, bech32::Encoding::BECH32M);
+    }
 };
 
 CTxDestination DecodeDestination(const std::string& str, const CChainParams& params)
 {
+    const auto pq = bech32::Decode(str, bech32::Encoding::BECH32M);
+    if (pq.first == params.Bech32PQHRP()) {
+        std::vector<unsigned char> bytes;
+        if (!ConvertBits<5, 8, false>([&](unsigned char c) { bytes.push_back(c); }, pq.second.begin(), pq.second.end())) return CNoDestination();
+        const bool multisig = bytes.size() == 33 && bytes[0] == 1;
+        if (bytes.size() != 32 && !multisig) return CNoDestination();
+        uint256 id;
+        std::copy(bytes.begin() + (multisig ? 1 : 0), bytes.end(), id.begin());
+        if (id.IsNull()) return CNoDestination();
+        return multisig ? CTxDestination(PQPolicyHash(id)) : CTxDestination(PQKeyHash(id));
+    }
     std::vector<unsigned char> data;
     if(IsStealthAddress(str)){
         CStealthAddress sxAddr;

@@ -211,6 +211,7 @@ VERGE_CORE_H = \
   pos/block.h \
   pos/forkchoice.h \
   pos/primitives.h \
+  pos/pqcrypto.h \
   pos/stake.h \
   pos/state.h \
   pos/storage.h \
@@ -234,6 +235,7 @@ VERGE_CORE_H = \
   script/ismine.h \
   script/sigcache.h \
   script/sign.h \
+  script/pq.h \
   script/standard.h \
   shutdown.h \
   streams.h \
@@ -382,6 +384,7 @@ libverge_wallet_a_SOURCES = \
 crypto_libverge_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_libverge_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_libverge_crypto_base_a_SOURCES = \
+  crypto/pqverify.cpp \
   crypto/aes.cpp \
   crypto/aes.h \
   crypto/chacha20.h \
@@ -483,6 +486,7 @@ crypto_libverge_crypto_avx2_a_SOURCES = crypto/sha256_avx2.cpp
 libverge_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(VERGE_INCLUDES)
 libverge_consensus_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libverge_consensus_a_SOURCES = \
+  script/pq.cpp \
   amount.h \
   arith_uint256.cpp \
   arith_uint256.h \
@@ -535,6 +539,7 @@ libverge_common_a_SOURCES = \
   policy/feerate.cpp \
   pos/crypto.cpp \
   pos/primitives.cpp \
+  pos/pqcrypto.cpp \
   pos/stake.cpp \
   pos/vrf.cpp \
   protocol.cpp \
@@ -678,7 +683,7 @@ if GLIBC_BACK_COMPAT
 endif
 
 libvergeconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-libvergeconsensus_la_LIBADD = $(LIBSECP256K1)
+libvergeconsensus_la_LIBADD = $(LIBSECP256K1) $(CRYPTO_LIBS)
 libvergeconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_VERGE_INTERNAL
 libvergeconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 

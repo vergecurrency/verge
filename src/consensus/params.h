@@ -68,6 +68,8 @@ struct Params {
 
     /** Proof-of-stake activation and consensus parameters. */
     uint32_t nPoSNetworkId;
+    bool fPoSPublicEligibility{false};
+    bool fPoSPostQuantum{false};
     int nPoSBondRulesHeight;
     int nPoSActivationHeight;
     int64_t nPoSMinStake;
@@ -81,6 +83,7 @@ struct Params {
 
     bool IsPoSActive(int height) const { return height >= nPoSActivationHeight; }
     bool ArePoSBondRulesActive(int height) const { return height >= nPoSBondRulesHeight; }
+    bool ArePQRulesActive(int height) const { return fPoSPostQuantum && ArePoSBondRulesActive(height); }
 
 
     /**

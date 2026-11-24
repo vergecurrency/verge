@@ -265,6 +265,8 @@ class CCheckpointVote():
         self.head_slot = 0
         self.head_block_root = 0
         self.signature = b"\x00" * 64
+        self.pq_public_key = b""
+        self.pq_signature = b""
 
     def deserialize(self, f):
         self.version = struct.unpack("<B", f.read(1))[0]
@@ -277,6 +279,9 @@ class CCheckpointVote():
         self.head_slot = struct.unpack("<Q", f.read(8))[0]
         self.head_block_root = deser_uint256(f)
         self.signature = f.read(64)
+        if self.version == 2:
+            self.pq_public_key = f.read(1312)
+            self.pq_signature = f.read(2420)
 
     def serialize(self):
         return b"".join([
@@ -290,6 +295,8 @@ class CCheckpointVote():
             struct.pack("<Q", self.head_slot),
             ser_uint256(self.head_block_root),
             self.signature,
+            self.pq_public_key if self.version == 2 else b"",
+            self.pq_signature if self.version == 2 else b"",
         ])
 
 

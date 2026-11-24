@@ -40,6 +40,8 @@ enum class ValidationError {
     BOND_IMMATURE,
     BOND_LOCKED,
     SNAPSHOT_FUTURE,
+    ELIGIBILITY_SCHEME,
+    PUBLIC_ELIGIBILITY_INVALID,
 };
 
 uint64_t GetRequiredSnapshotEpoch(uint64_t block_epoch,
@@ -64,12 +66,16 @@ ValidationError CheckStakeAuthorization(const CBlock& block,
 ValidationError CheckVrfEligibility(const CBlock& block,
                                     const StakeSnapshot& snapshot,
                                     uint32_t network_id);
+ValidationError CheckStakeEligibility(const CBlock& block,
+                                      const StakeSnapshot& snapshot,
+                                      const Consensus::Params& params);
 
 ValidationError CheckCheckpointVote(const CheckpointVote& vote,
                                     const State& state,
                                     uint32_t snapshot_delay_epochs,
                                     uint64_t current_epoch,
-                                    int32_t current_height);
+                                    int32_t current_height,
+                                    uint32_t network_id = 0);
 
 /** Validate the signed head claim without consulting unrelated block headers. */
 ValidationError CheckVoteHead(const CheckpointVote& vote, const State& state,
@@ -82,7 +88,8 @@ const CBlockIndex* FindVoteHead(const CheckpointVote& vote,
 
 ValidationError CheckVoteEvidence(const VoteEquivocationEvidence& evidence,
                                   const State& state,
-                                  uint64_t maximum_target_epoch);
+                                  uint64_t maximum_target_epoch,
+                                  uint32_t network_id = 0);
 
 ValidationError CheckBlockEvidence(const BlockEquivocationEvidence& evidence,
                                    const State& state,

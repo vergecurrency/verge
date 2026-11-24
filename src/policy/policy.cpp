@@ -7,6 +7,7 @@
 // NOTE: This file is intended to be customised by the end user, and includes only local node policy logic
 
 #include <policy/policy.h>
+#include <script/pq.h>
 
 #include <consensus/validation.h>
 #include <validation.h>
@@ -38,6 +39,9 @@ CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFeeIn)
     size_t nSize = GetSerializeSize(txout, SER_DISK, 0);
     int witnessversion = 0;
     std::vector<unsigned char> witnessprogram;
+    uint256 pq_id;
+    if (ExtractPQKeyId(txout.scriptPubKey, pq_id)) return dustRelayFeeIn.GetFee(nSize + 3800);
+    if (ExtractPQMultisigId(txout.scriptPubKey, pq_id)) return dustRelayFeeIn.GetFee(nSize + PQ_MULTISIG_MAX_SCRIPTSIG_BYTES + 48);
 
     if (txout.scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram)) {
         // sum the sizes of the parts of a transaction input
@@ -55,11 +59,12 @@ bool IsDust(const CTxOut& txout, const CFeeRate& dustRelayFeeIn)
     return (txout.nValue < GetDustThreshold(txout, dustRelayFeeIn));
 }
 
-bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
+bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, bool pq_active)
 {
     std::vector<std::vector<unsigned char> > vSolutions;
     if (!Solver(scriptPubKey, whichType, vSolutions))
         return false;
+    if (whichType == TX_PQ_KEYHASH || whichType == TX_PQ_MULTISIG) return pq_active;
 
     if (whichType == TX_MULTISIG)
     {
@@ -80,7 +85,7 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
            whichType != TX_WITNESS_UNKNOWN;
 }
 
-bool IsStandardTx(const CTransaction& tx, std::string& reason)
+bool IsStandardTx(const CTransaction& tx, std::string& reason, bool pq_active)
 {
     if (tx.HasWitness()) {
         reason = "no-witness";
@@ -112,7 +117,12 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         // future-proofing. That's also enough to spend a 20-of-20
         // CHECKMULTISIG scriptPubKey, though such a scriptPubKey is not
         // considered standard.
-        if (txin.scriptSig.size() > MAX_STANDARD_SCRIPTSIG_SIZE) {
+        std::vector<unsigned char> pq_signature, pq_key;
+        PQMultisigPolicy pq_policy;
+        std::vector<PQMultisigSignature> pq_signatures;
+        if (txin.scriptSig.size() > MAX_STANDARD_SCRIPTSIG_SIZE &&
+            !(pq_active && (DecodePQScriptSig(txin.scriptSig, pq_signature, pq_key) ||
+                           DecodePQMultisigScriptSig(txin.scriptSig, pq_policy, pq_signatures)))) {
             reason = "scriptsig-size";
             return false;
         }
@@ -125,7 +135,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
     unsigned int nDataOut = 0;
     txnouttype whichType;
     for (const CTxOut& txout : tx.vout) {
-        if (!::IsStandard(txout.scriptPubKey, whichType)) {
+        if (!::IsStandard(txout.scriptPubKey, whichType, pq_active)) {
             reason = "scriptpubkey";
             return false;
         }

@@ -12,6 +12,7 @@
 #include <primitives/transaction.h>
 #include <pos/primitives.h>
 #include <wallet/db.h>
+#include <keystore.h>
 #include <key.h>
 
 #include <list>
@@ -249,6 +250,12 @@ public:
     bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata &keyMeta);
     bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata &keyMeta);
     bool WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey);
+    bool WritePQKey(const std::vector<unsigned char>& public_key,
+                    const CKeyingMaterial& seed);
+    bool WritePQMultisigPolicy(const uint256& id, const std::vector<unsigned char>& encoded);
+    bool WriteCryptedPQKey(const std::vector<unsigned char>& public_key,
+                           const std::vector<unsigned char>& ciphertext,
+                           bool erase_plaintext);
 
     bool WriteStealthKeyMeta(const CKeyID& keyId, const CStealthKeyMetadata& sxKeyMeta);
     bool EraseStealthKeyMeta(const CKeyID& keyId);

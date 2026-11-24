@@ -22,6 +22,7 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QCursor>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -34,6 +35,8 @@
 #include <QPainter>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QScopedValueRollback>
+#include <QStandardItemModel>
 #include <QTextDocument>
 #include <QTextEdit>
 #include <QToolButton>
@@ -49,6 +52,7 @@
 #endif
 
 namespace {
+enum ReceiveAddressType { LEGACY_RECEIVE, STEALTH_RECEIVE, PQ_RECEIVE };
 void ApplyCardShadow(QWidget* widget)
 {
     if (!widget) return;
@@ -263,7 +267,10 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     ui->reqLabel->setObjectName("ReceiveTextField");
     ui->reqAmount->setObjectName("ReceiveAmountField");
     ui->reqMessage->setObjectName("ReceiveTextField");
-    ui->useStealth->setObjectName("ReceiveStealthToggle");
+    ui->addressType->addItem(tr("Post-quantum (PQ)"), PQ_RECEIVE);
+    ui->addressType->addItem(tr("Legacy"), LEGACY_RECEIVE);
+    ui->addressType->addItem(tr("Stealth"), STEALTH_RECEIVE);
+    ui->addressType->setCurrentIndex(ui->addressType->findData(LEGACY_RECEIVE));
     ui->receiveButton->setObjectName("ReceivePrimaryButton");
     ui->createChatkeyButton->setObjectName("ReceivePrimaryButton");
     ui->clearButton->setObjectName("ReceiveSecondaryButton");
@@ -322,18 +329,16 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     editLabelButton->setEnabled(false);
     ui->horizontalLayout_2->insertWidget(0, editLabelButton);
     connect(editLabelButton, SIGNAL(clicked()), this, SLOT(editSelectedLabel()));
-    connect(ui->useStealth, &QCheckBox::toggled, this, [this](bool checked) {
-        ui->allowMessaging->setEnabled(!checked);
-        if (checked) {
-            ui->allowMessaging->setChecked(false);
-        }
-    });
-    ui->allowMessaging->setEnabled(!ui->useStealth->isChecked());
+    connect(ui->addressType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ReceiveCoinsDialog::updateAddressType);
+    updatePQAvailability(interfaces::WalletBalances{});
 }
 
 void ReceiveCoinsDialog::setModel(WalletModel *_model)
 {
+    if (model) disconnect(model, &WalletModel::balanceChanged, this, &ReceiveCoinsDialog::updatePQAvailability);
     this->model = _model;
+    m_pq_available = false;
 
     if(_model && _model->getOptionsModel())
     {
@@ -366,12 +371,38 @@ void ReceiveCoinsDialog::setModel(WalletModel *_model)
         // Last 2 columns are set by the columnResizingFixer, when the table geometry is ready.
         columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(tableView, AMOUNT_MINIMUM_COLUMN_WIDTH, DATE_COLUMN_WIDTH, this);
 
-        if (model->wallet().getDefaultAddressType() == OutputType::STEALTH) {
-            ui->useStealth->setCheckState(Qt::Checked);
-        } else {
-            ui->useStealth->setCheckState(Qt::Unchecked);
-        }
+        const int fallback = model->wallet().getDefaultAddressType() == OutputType::STEALTH
+            ? STEALTH_RECEIVE : LEGACY_RECEIVE;
+        ui->addressType->setCurrentIndex(ui->addressType->findData(fallback));
+        updatePQAvailability(model->wallet().getBalances());
+        connect(model, &WalletModel::balanceChanged, this, &ReceiveCoinsDialog::updatePQAvailability);
     }
+}
+
+void ReceiveCoinsDialog::updatePQAvailability(const interfaces::WalletBalances& balances)
+{
+    const int pq_index = ui->addressType->findData(PQ_RECEIVE);
+    auto* items = qobject_cast<QStandardItemModel*>(ui->addressType->model());
+    if (items && items->item(pq_index)) {
+        items->item(pq_index)->setEnabled(balances.pq_enabled);
+        items->item(pq_index)->setToolTip(balances.pq_enabled
+            ? tr("A new full wallet backup is required before sharing a PQ receiving address.")
+            : tr("Post-quantum receiving addresses are not active on this network."));
+    }
+    if (balances.pq_enabled && !m_pq_available) {
+        ui->addressType->setCurrentIndex(pq_index);
+    } else if (!balances.pq_enabled && ui->addressType->currentData().toInt() == PQ_RECEIVE) {
+        ui->addressType->setCurrentIndex(ui->addressType->findData(LEGACY_RECEIVE));
+    }
+    m_pq_available = balances.pq_enabled;
+    updateAddressType();
+}
+
+void ReceiveCoinsDialog::updateAddressType()
+{
+    const bool legacy = ui->addressType->currentData().toInt() == LEGACY_RECEIVE;
+    ui->allowMessaging->setEnabled(legacy);
+    if (!legacy) ui->allowMessaging->setChecked(false);
 }
 
 ReceiveCoinsDialog::~ReceiveCoinsDialog()
@@ -410,18 +441,39 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
 {
     if(!model || !model->getOptionsModel() || !model->getAddressTableModel() || !model->getRecentRequestsTableModel())
         return;
+    if (m_creating_request) return;
+    QScopedValueRollback<bool> creating(m_creating_request, true);
 
     QString address;
     QString label = ui->reqLabel->text();
-    /* Generate new receiving address */
-    OutputType address_type;
-    if (ui->useStealth->isChecked()) {
-        address_type = OutputType::STEALTH;
+    const int type = ui->addressType->currentData().toInt();
+    if (type == PQ_RECEIVE) {
+        QString error;
+        address = model->getAddressTableModel()->addPQRow(label, error);
+        if (address.isEmpty()) {
+            QMessageBox::warning(this, tr("PQ receiving address"), error);
+            return;
+        }
+        if (QMessageBox::question(this, tr("Back up new PQ receiving key"),
+            tr("This address uses a new PQ key that your old backup or HD seed cannot recover. Save a new full wallet backup before sharing it. Keep the backup secure."),
+            QMessageBox::Save | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Save) return;
+        const QString filename = GUIUtil::getSaveFileName(this, tr("Back up wallet for PQ receiving address"),
+            QStringLiteral("wallet-pq-backup.dat"), tr("Wallet Data (*.dat)"), nullptr);
+        if (filename.isEmpty()) return;
+        if (!model->wallet().backupWallet(filename.toLocal8Bit().constData())) {
+            QMessageBox::critical(this, tr("Backup failed"),
+                tr("The receiving key is saved in your wallet, but the backup failed. No payment request has been created."));
+            return;
+        }
     } else {
-        address_type = OutputType::LEGACY;
+        address = model->getAddressTableModel()->addRow(AddressTableModel::Receive, label, "",
+            type == STEALTH_RECEIVE ? OutputType::STEALTH : OutputType::LEGACY);
+        if (address.isEmpty()) {
+            QMessageBox::warning(this, tr("Receiving address"), tr("Could not create a receiving address. The wallet may be locked or key generation failed."));
+            return;
+        }
     }
-    address = model->getAddressTableModel()->addRow(AddressTableModel::Receive, label, "", address_type);
-    if (ui->allowMessaging->isChecked()) {
+    if (type == LEGACY_RECEIVE && ui->allowMessaging->isChecked()) {
         const int rv = smsgModule.AddLocalAddress(address.toStdString());
         if (rv != smsg::SMSG_NO_ERROR) {
             QMessageBox::warning(this, tr("Enable Messaging"),

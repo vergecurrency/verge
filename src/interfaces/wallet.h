@@ -30,6 +30,7 @@ class CWallet;
 enum class FeeReason;
 enum class OutputType;
 struct CRecipient;
+struct WalletPQMigration;
 
 namespace interfaces {
 
@@ -175,6 +176,9 @@ public:
         CAmount& fee,
         std::string& fail_reason) = 0;
 
+    virtual std::unique_ptr<PendingWalletTx> createLegacyPQMigration(WalletPQMigration& migration,
+                                                                   std::string& error) = 0;
+
     //! Return whether transaction can be abandoned.
     virtual bool transactionCanBeAbandoned(const uint256& txid) = 0;
 
@@ -301,6 +305,9 @@ public:
     //! Register handler for watchonly changed messages.
     using WatchOnlyChangedFn = std::function<void(bool have_watch_only)>;
     virtual std::unique_ptr<Handler> handleWatchOnlyChanged(WatchOnlyChangedFn fn) = 0;
+
+    //! Persist a new, network-gated PQ receiving key and address-book entry.
+    virtual bool createPQReceiveAddress(const std::string& label, std::string& address, std::string& error) = 0;
 };
 
 //! Tracking object returned by CreateTransaction and passed to CommitTransaction.
@@ -343,6 +350,9 @@ struct WalletBalances
     CAmount unconfirmed_balance = 0;
     CAmount immature_balance = 0;
     CAmount staked_balance = 0;
+    CAmount legacy_balance = 0;
+    CAmount pq_balance = 0;
+    bool pq_enabled = false;
     bool have_watch_only = false;
     CAmount watch_only_balance = 0;
     CAmount unconfirmed_watch_only_balance = 0;
@@ -352,6 +362,8 @@ struct WalletBalances
     {
         return balance != prev.balance || unconfirmed_balance != prev.unconfirmed_balance ||
                immature_balance != prev.immature_balance || staked_balance != prev.staked_balance ||
+               legacy_balance != prev.legacy_balance || pq_balance != prev.pq_balance ||
+               pq_enabled != prev.pq_enabled ||
                watch_only_balance != prev.watch_only_balance ||
                unconfirmed_watch_only_balance != prev.unconfirmed_watch_only_balance ||
                immature_watch_only_balance != prev.immature_watch_only_balance;
