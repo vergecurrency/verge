@@ -3,6 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <compat.h>
 #include <event2/event.h>
 
 #ifdef EVENT_SET_MEM_FUNCTIONS_IMPLEMENTED
@@ -38,6 +39,42 @@ static void tag_free(void* mem) {
 }
 
 BOOST_FIXTURE_TEST_SUITE(raii_event_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(http_peer_address_api_compatibility)
+{
+    static char mutable_address[] = "127.0.0.1";
+    static const char immutable_address[] = "::1";
+    const auto mutable_api = +[](evhttp_connection*, char** address, ev_uint16_t* port) {
+        *address = mutable_address;
+        *port = 20102;
+    };
+    const auto const_api = +[](evhttp_connection*, const char** address, ev_uint16_t* port) {
+        *address = immutable_address;
+        *port = 65535;
+    };
+    const auto missing_peer_api = +[](evhttp_connection*, char** address, ev_uint16_t*) {
+        *address = nullptr;
+    };
+    ev_uint16_t port = 0;
+    BOOST_CHECK(get_evhttp_connection_peer(mutable_api, nullptr, &port) == mutable_address);
+    BOOST_CHECK_EQUAL(port, 20102);
+    BOOST_CHECK(get_evhttp_connection_peer(const_api, nullptr, &port) == immutable_address);
+    BOOST_CHECK_EQUAL(port, 65535);
+    port = 0;
+    BOOST_CHECK(get_evhttp_connection_peer(missing_peer_api, nullptr, &port) == nullptr);
+    BOOST_CHECK_EQUAL(port, 0);
+}
+
+BOOST_AUTO_TEST_CASE(http_connection_peer)
+{
+    auto base = obtain_event_base();
+    auto connection = obtain_evhttp_connection_base(base.get(), "127.0.0.1", 20102);
+    ev_uint16_t port = 0;
+    const char* address = get_evhttp_connection_peer(evhttp_connection_get_peer, connection.get(), &port);
+    BOOST_REQUIRE(address);
+    BOOST_CHECK_EQUAL(address, "127.0.0.1");
+    BOOST_CHECK_EQUAL(port, 20102);
+}
 
 BOOST_AUTO_TEST_CASE(raii_event_creation)
 {

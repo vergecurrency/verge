@@ -28,6 +28,18 @@ MAKE_RAII(evhttp);
 MAKE_RAII(evhttp_request);
 MAKE_RAII(evhttp_connection);
 
+// Libevent 2.1 returns char*, while 2.2 returns const char*. Deduce the API's
+// pointer type without casting away constness or depending on the platform.
+template <typename Address>
+inline const char* get_evhttp_connection_peer(
+    void (*get_peer)(struct evhttp_connection*, Address*, ev_uint16_t*),
+    struct evhttp_connection* connection, ev_uint16_t* port)
+{
+    Address address = nullptr;
+    get_peer(connection, &address, port);
+    return address;
+}
+
 inline raii_event_base obtain_event_base() {
     auto result = raii_event_base(event_base_new());
     if (!result.get())
