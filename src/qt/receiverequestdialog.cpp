@@ -10,6 +10,7 @@
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
+#include <qt/walletmodel.h>
 
 #include <smsg/smessage.h>
 
@@ -19,6 +20,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
+#include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
 #include <QTextDocument>
@@ -95,6 +97,8 @@ QRImageWidget::QRImageWidget(QWidget *parent):
 
 QImage QRImageWidget::exportImage()
 {
+    const QPixmap exported = property("qrExportImage").value<QPixmap>();
+    if (!exported.isNull()) return exported.toImage();
     const QPixmap pm = GetLabelPixmap(this);
     if (pm.isNull())
         return QImage();
@@ -174,6 +178,29 @@ ReceiveRequestDialog::~ReceiveRequestDialog()
     delete ui;
 }
 
+bool ReceiveRequestDialog::preparePQChatkey(QWidget* parent, WalletModel* model, const QString& address)
+{
+    if (!model) return false;
+    auto unlocked = model->requestUnlock();
+    if (!unlocked.isValid()) return false;
+    std::string key;
+    if (smsgModule.GetLocalPublicKey(address.toStdString(), key, true) != smsg::SMSG_NO_ERROR) {
+        QMessageBox::warning(parent, tr("PQ messaging keys"), tr("Unable to save PQ messaging keys. ML-KEM-768 and ML-DSA-44 support is required."));
+        return false;
+    }
+    if (QMessageBox::question(parent, tr("Back up PQ messaging keys"),
+        tr("These new messaging keys are not recoverable from an older backup or the HD seed. Save a full wallet backup before sharing the chatkey."),
+        QMessageBox::Save | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Save) return false;
+    const QString filename = GUIUtil::getSaveFileName(parent, tr("Back up wallet for PQ messaging"),
+        QStringLiteral("wallet-pq-messaging.dat"), tr("Wallet Data (*.dat)"), nullptr);
+    if (filename.isEmpty()) return false;
+    if (!model->wallet().backupWallet(filename.toLocal8Bit().constData())) {
+        QMessageBox::critical(parent, tr("Backup failed"), tr("The keys are saved in the wallet, but the backup failed. The chatkey has not been displayed."));
+        return false;
+    }
+    return true;
+}
+
 void ReceiveRequestDialog::setModel(WalletModel *_model)
 {
     this->model = _model;
@@ -218,6 +245,9 @@ void ReceiveRequestDialog::update()
     html += "<a href=\""+uri+"\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
     if (isChatkey) {
         html += "<b>"+tr("Chatkey")+"</b>: " + GUIUtil::HtmlEscape(FormatShareChatkey(info.address, chatkey)) + "<br>";
+        smsg::PQMessagingPublicKey key;
+        if (smsg::DecodePQChatKey(chatkey.toStdString(), key))
+            html += "<b>" + tr("PQ fingerprint") + "</b>: " + QString::fromStdString(key.Fingerprint().GetHex()) + "<br>";
     } else {
         html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
     }
@@ -237,7 +267,7 @@ void ReceiveRequestDialog::update()
     if(!uri.isEmpty())
     {
         // limit URI length
-        if (uri.length() > MAX_URI_LENGTH)
+        if (uri.length() > (isChatkey ? int(smsg::PQ_CHATKEY_MAX_SIZE + 256) : MAX_URI_LENGTH))
         {
             ui->lblQRCode->setText(tr("Resulting URI too long, try to reduce the text for label / message."));
         } else {
@@ -268,7 +298,7 @@ void ReceiveRequestDialog::update()
             QRect paddedRect = qrAddrImage.rect();
 
             // calculate ideal font size
-            const QString qrCaption = isChatkey ? chatkey : info.address;
+            const QString qrCaption = info.address;
             qreal font_size = GUIUtil::calculateIdealFontSize(paddedRect.width() - 20, qrCaption, font);
             font.setPointSizeF(font_size);
 

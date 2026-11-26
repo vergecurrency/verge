@@ -3873,7 +3873,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     else {
 #ifdef ENABLE_WALLET
         if (smsg::fSecMsgEnabled && strCommand.rfind("smsg", 0) == 0) {
-            if (!(pfrom->nServices.load() & NODE_SMSG)) {
+            if (!(pfrom->nServices.load() & NODE_SMSG_PQ)) {
                 LogPrint(BCLog::SMSG,
                     "Ignoring secure message command \"%s\" from peer=%d without NODE_SMSG.\n",
                     SanitizeString(strCommand),
@@ -4806,7 +4806,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
         }
 
 #ifdef ENABLE_WALLET
-        if (smsg::fSecMsgEnabled && (pto->nServices.load() & NODE_SMSG)) {
+        if (smsg::fSecMsgEnabled && (pto->nServices.load() & NODE_SMSG_PQ)) {
             smsgModule.SendData(pto, true);
         }
 #endif

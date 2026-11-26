@@ -419,6 +419,7 @@ void AddressBookPage::on_newAddress_clicked()
             return;
         }
 
+        if (!ReceiveRequestDialog::preparePQChatkey(this, walletModel, address)) return;
         const int rv = smsgModule.AddLocalAddress(address.toStdString());
         if (rv != smsg::SMSG_NO_ERROR) {
             QMessageBox::warning(this,

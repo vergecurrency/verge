@@ -253,6 +253,9 @@ public:
     bool WritePQKey(const std::vector<unsigned char>& public_key,
                     const CKeyingMaterial& seed);
     bool WritePQMultisigPolicy(const uint256& id, const std::vector<unsigned char>& encoded);
+    bool WriteSmsgPQKey(const CKeyID& address, const std::vector<unsigned char>& public_key,
+                        const CKeyingMaterial& seed, const std::vector<unsigned char>& ciphertext);
+    bool WriteSmsgPQContact(const CKeyID& address, const std::vector<unsigned char>& public_key);
     bool WriteCryptedPQKey(const std::vector<unsigned char>& public_key,
                            const std::vector<unsigned char>& ciphertext,
                            bool erase_plaintext);

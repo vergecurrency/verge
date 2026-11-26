@@ -60,6 +60,7 @@ public:
     void setModel(WalletModel *model);
     void setInfo(const SendCoinsRecipient &info);
     void setInfo(const SendCoinsRecipient &info, RequestMode mode);
+    static bool preparePQChatkey(QWidget* parent, WalletModel* model, const QString& address);
 
 private Q_SLOTS:
     void on_btnCopyURI_clicked();

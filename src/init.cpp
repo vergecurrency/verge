@@ -1799,7 +1799,7 @@ bool AppInitMain()
 
     if (!gArgs.GetBoolArg("-disablewallet", false) &&
         gArgs.GetBoolArg("-smsg", true)) {
-        nLocalServices = ServiceFlags(nLocalServices | NODE_SMSG);
+        nLocalServices = ServiceFlags(nLocalServices | NODE_SMSG | NODE_SMSG_PQ);
     }
 
     // ********************************************************* Step 11: import blocks

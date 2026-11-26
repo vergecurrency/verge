@@ -204,6 +204,7 @@ BASE_SCRIPTS = [
     'feature_help.py',
     'feature_shutdown.py',
     'feature_smsg_walletless.py',
+    'feature_smsg_post_quantum.py',
     # Don't append tests at the end to avoid merge conflicts
     # Put them in a random line within the section that fits their approximate run-time
 ]

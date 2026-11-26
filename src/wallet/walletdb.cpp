@@ -110,6 +110,25 @@ bool WalletBatch::WritePQKey(const std::vector<unsigned char>& public_key,
         WriteIC(std::make_pair(std::string("pqkey"), id), std::make_pair(public_key, seed), false);
 }
 
+bool WalletBatch::WriteSmsgPQKey(const CKeyID& address, const std::vector<unsigned char>& public_key,
+                                const CKeyingMaterial& seed, const std::vector<unsigned char>& ciphertext)
+{
+    smsg::PQMessagingPublicKey key;
+    if (!smsg::PQMessagingPublicKey::Decode(public_key, key) || key.classical.GetID() != address) return false;
+    if (ciphertext.empty()) {
+        return seed.size() == smsg::PQ_MESSAGING_SEED_SIZE &&
+            WriteIC(std::make_pair(std::string("smsgpqkey"), address), std::make_pair(public_key, seed), false);
+    }
+    if (!seed.empty() || ciphertext.size() != 112 ||
+        !WriteIC(std::make_pair(std::string("csmsgpqkey"), address), std::make_pair(public_key, ciphertext), false)) return false;
+    return EraseIC(std::make_pair(std::string("smsgpqkey"), address));
+}
+
+bool WalletBatch::WriteSmsgPQContact(const CKeyID& address, const std::vector<unsigned char>& public_key)
+{
+    return WriteIC(std::make_pair(std::string("smsgpqcontact"), address), public_key, false);
+}
+
 bool WalletBatch::WriteCryptedPQKey(const std::vector<unsigned char>& public_key,
                                      const std::vector<unsigned char>& ciphertext,
                                      bool erase_plaintext)
@@ -312,6 +331,7 @@ public:
     unsigned int m_unknown_records;
     bool fIsEncrypted;
     bool fHasPQKeys{false};
+    bool fHasSmsgPQKeys{false};
     bool fAnyUnordered;
     int nFileVersion;
     std::vector<uint256> vWalletUpgrade;
@@ -478,6 +498,44 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 strErr = "Error reading wallet database: LoadKey failed";
                 return false;
             }
+        }
+        else if (strType == "smsgpqcontact" || strType == "smsgpqkey" || strType == "csmsgpqkey")
+        {
+            CKeyID address;
+            ssKey >> address;
+            if (!ssKey.empty() || ReadCompactSize(ssValue) != smsg::PQ_MESSAGING_PUBLIC_SIZE) {
+                strErr = "Invalid PQ messaging public key length";
+                return false;
+            }
+            std::vector<unsigned char> public_key(smsg::PQ_MESSAGING_PUBLIC_SIZE);
+            ssValue.read(reinterpret_cast<char*>(public_key.data()), public_key.size());
+            bool valid = false;
+            if (strType == "smsgpqcontact") {
+                valid = ssValue.empty() && pwallet->LoadSmsgPQContact(address, public_key);
+            } else {
+                const bool encrypted = strType == "csmsgpqkey";
+                const size_t size = encrypted ? 112 : smsg::PQ_MESSAGING_SEED_SIZE;
+                if (ReadCompactSize(ssValue) != size || ssValue.size() != size) {
+                    strErr = "Invalid PQ messaging secret length";
+                    return false;
+                }
+                smsg::PQSecret seed;
+                std::vector<unsigned char> ciphertext;
+                if (encrypted) {
+                    ciphertext.resize(size);
+                    ssValue.read(reinterpret_cast<char*>(ciphertext.data()), size);
+                    wss.fIsEncrypted = true;
+                } else {
+                    seed.resize(size);
+                    ssValue.read(reinterpret_cast<char*>(seed.data()), size);
+                }
+                valid = pwallet->LoadSmsgPQKey(address, public_key, seed, ciphertext);
+            }
+            if (!valid) {
+                strErr = "Corrupt or unsupported PQ messaging key";
+                return false;
+            }
+            wss.fHasSmsgPQKeys = true;
         }
         else if (strType == "pqpolicy")
         {
@@ -715,7 +773,8 @@ bool WalletBatch::IsKeyType(const std::string& strType)
 {
     return (strType== "key" || strType == "wkey" ||
             strType == "mkey" || strType == "ckey" ||
-            strType == "pqkey" || strType == "cpqkey" || strType == "pqpolicy");
+            strType == "pqkey" || strType == "cpqkey" || strType == "pqpolicy" ||
+            strType == "smsgpqkey" || strType == "csmsgpqkey" || strType == "smsgpqcontact");
 }
 
 DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
@@ -795,6 +854,10 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
         return result;
     if (wss.fHasPQKeys && pwallet->GetVersion() < FEATURE_PQ_KEYS) {
         LogPrintf("PQ wallet keys lack their downgrade-protection version\n");
+        return DBErrors::CORRUPT;
+    }
+    if (wss.fHasSmsgPQKeys && pwallet->GetVersion() < FEATURE_SMSG_PQ_KEYS) {
+        LogPrintf("PQ messaging keys lack their downgrade-protection version\n");
         return DBErrors::CORRUPT;
     }
 

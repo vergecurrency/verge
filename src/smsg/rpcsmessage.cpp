@@ -124,7 +124,7 @@ static size_t CountSmsgEntries(leveldb::DB* pdb, const std::string& prefix)
 }
 
 static constexpr int SMSG_DEFAULT_RETENTION_DAYS = 31;
-static constexpr size_t SMSG_MAX_SHARED_CHATKEY_LEN = 256;
+static constexpr size_t SMSG_MAX_SHARED_CHATKEY_LEN = smsg::PQ_CHATKEY_MAX_SIZE + 128;
 
 static int SmsgMaxRetentionDays()
 {
@@ -133,6 +133,10 @@ static int SmsgMaxRetentionDays()
 
 static bool IsSmsgPubKeyString(const std::string& publicKey)
 {
+    if (publicKey.compare(0, 3, "pq1") == 0) {
+        smsg::PQMessagingPublicKey key;
+        return smsg::DecodePQChatKey(publicKey, key) && key.network == Params().GetConsensus().nPoSNetworkId;
+    }
     std::vector<uint8_t> keyData;
     if (IsHex(publicKey)) {
         keyData = ParseHex(publicKey);
@@ -887,7 +891,9 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
             "smsggetpubkey \"address\"\n"
-            "Return the base58 encoded compressed public key for an address.\n"
+            "Return or create the separate post-quantum messaging key bundle for an owned address, or return a pinned contact.\n"
+            "An unlocked wallet is required to create keys. Back up the wallet after creating new messaging keys.\n"
+            "Compare the full fingerprint with the contact over an authenticated channel.\n"
             "\nArguments:\n"
             "1. \"address\"          (string, required) The address to find the pubkey for.\n"
             "\nResult:\n"
@@ -906,52 +912,54 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
     std::string address = request.params[0].get_str();
     std::string publicKey;
 
+    const int rv = smsgModule.GetLocalPublicKey(address, publicKey, true);
+    if (rv != smsg::SMSG_NO_ERROR) {
+        throw JSONRPCError(rv == smsg::SMSG_WALLET_LOCKED ? RPC_WALLET_UNLOCK_NEEDED : RPC_INTERNAL_ERROR,
+                           smsg::GetString(rv));
+    }
+    smsg::PQMessagingPublicKey key;
+    if (!smsg::DecodePQChatKey(publicKey, key)) throw JSONRPCError(RPC_INTERNAL_ERROR, "Invalid PQ messaging key");
     UniValue result(UniValue::VOBJ);
-    int rv = smsgModule.GetLocalPublicKey(address, publicKey);
-    switch (rv)
+    result.pushKV("address", address);
+    result.pushKV("publickey", publicKey);
+    result.pushKV("chatkey", address + "-" + publicKey);
+    result.pushKV("fingerprint", key.Fingerprint().GetHex());
+    result.pushKV("encryption", "ECDH+ML-KEM-768/AES-256-GCM");
+    result.pushKV("authentication", "ML-DSA-44");
+    return result;
+}
+
+static UniValue smsgnewaddress(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() > 1) throw std::runtime_error(
+        "smsgnewaddress ( \"label\" )\n"
+        "Create dedicated post-quantum messaging keys and enable receiving.\n"
+        "Back up the wallet and verify the returned fingerprint with contacts.\n");
+    EnsureSMSGIsEnabled();
+    auto wallet = smsgModule.pwallet;
+    if (!wallet || wallet->IsLocked()) throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Unlock the SMSG wallet first.");
+    if (!smsg::PQMessagingAvailable()) throw JSONRPCError(RPC_INTERNAL_ERROR, "ML-KEM-768 and ML-DSA-44 are required; classical fallback is disabled.");
+    CPubKey key;
     {
-        case smsg::SMSG_NO_ERROR:
-            result.pushKV("address", address);
-            result.pushKV("publickey", publicKey);
-            result.pushKV("chatkey", address + "-" + publicKey);
-            return result; // success, don't check db
-        case smsg::SMSG_WALLET_NO_PUBKEY:
-            break; // check db
-        //case 1:
-        default:
-            throw JSONRPCError(RPC_INTERNAL_ERROR, smsg::GetString(rv));
-    };
-
-    CBitcoinAddress coinAddress(address);
-    CKeyID keyID;
-    if (!coinAddress.GetKeyID(keyID))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid address.");
-
-    CPubKey cpkFromDB;
-    rv = smsgModule.GetStoredKey(keyID, cpkFromDB);
-
-    switch (rv)
-    {
-        case smsg::SMSG_NO_ERROR:
-            if (!cpkFromDB.IsValid()
-                || !cpkFromDB.IsCompressed())
-            {
-                throw JSONRPCError(RPC_INTERNAL_ERROR, "Invalid public key.");
-            } else
-            {
-                publicKey = EncodeBase58(cpkFromDB.begin(), cpkFromDB.end());
-
-                result.pushKV("address", address);
-                result.pushKV("publickey", publicKey);
-                result.pushKV("chatkey", address + "-" + publicKey);
-            };
-            break;
-        case smsg::SMSG_PUBKEY_NOT_EXISTS:
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "Address not found in wallet or db.");
-        default:
-            throw JSONRPCError(RPC_INTERNAL_ERROR, smsg::GetString(rv));
-    };
-
+        LOCK(wallet->cs_wallet);
+        if (!wallet->GetKeyFromPool(key, false) || !wallet->GenerateSmsgPQKey(key.GetID()) ||
+            !wallet->SetAddressBook(key.GetID(), request.params.empty() ? "PQ messaging" : request.params[0].get_str(), "receive")) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Unable to persist PQ messaging keys.");
+        }
+    }
+    const std::string address = CBitcoinAddress(key.GetID()).ToString();
+    const int added = smsgModule.AddLocalAddress(address);
+    if (added != smsg::SMSG_NO_ERROR && added != smsg::SMSG_KEY_EXISTS) throw JSONRPCError(RPC_WALLET_ERROR, "Unable to enable PQ messaging reception.");
+    smsg::PQMessagingPublicKey public_key;
+    if (smsgModule.GetPQPublicKey(key.GetID(), public_key) != smsg::SMSG_NO_ERROR) throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read PQ messaging keys.");
+    const std::string encoded = smsg::EncodePQChatKey(public_key);
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("address", address);
+    result.pushKV("publickey", encoded);
+    result.pushKV("chatkey", address + "-" + encoded);
+    result.pushKV("fingerprint", public_key.Fingerprint().GetHex());
+    result.pushKV("encryption", "ECDH+ML-KEM-768/AES-256-GCM");
+    result.pushKV("authentication", "ML-DSA-44");
     return result;
 }
 
@@ -1050,6 +1058,7 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             result.pushKV("txid", txid.ToString());
         };
         result.pushKV("fee", ValueFromAmount(nFee));
+        result.pushKV("post_quantum", true);
     };
 
     return result;
@@ -1101,6 +1110,7 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
         result.pushKV("txid", txid.ToString());
         result.pushKV("fee", ValueFromAmount(nFee));
         result.pushKV("result", "Sent.");
+        result.pushKV("post_quantum", true);
     };
 
     return result;
@@ -1211,6 +1221,8 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                     objM.pushKV("payloadsize", (int)nPayload);
 
                     objM.pushKV("from", msg.sFromAddress);
+                    objM.pushKV("post_quantum", msg.post_quantum);
+                    if (!msg.sender_fingerprint.empty()) objM.pushKV("sender_fingerprint", msg.sender_fingerprint);
                     objM.pushKV("to", sAddrTo);
                     objM.pushKV("text", sText);
                 } else
@@ -1366,6 +1378,8 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                     objM.pushKV("payloadsize", (int)nPayload);
 
                     objM.pushKV("from", msg.sFromAddress);
+                    objM.pushKV("post_quantum", msg.post_quantum);
+                    if (!msg.sender_fingerprint.empty()) objM.pushKV("sender_fingerprint", msg.sender_fingerprint);
                     objM.pushKV("to", sAddrTo);
                     objM.pushKV("text", sText);
                 } else
@@ -1937,6 +1951,8 @@ static UniValue smsgone(const JSONRPCRequest &request)
         &smsgStored.vchMessage[0], &smsgStored.vchMessage[smsg::SMSG_HDR_LEN], nPayload, msg)) == 0)
     {
         result.pushKV("from", msg.sFromAddress);
+        result.pushKV("post_quantum", msg.post_quantum);
+        if (!msg.sender_fingerprint.empty()) result.pushKV("sender_fingerprint", msg.sender_fingerprint);
 
         if (sEnc == "")
         {
@@ -2012,6 +2028,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgaddlocaladdress",    &smsgaddlocaladdress,    {"address"} },
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
+    { "smsg",               "smsgnewaddress",         &smsgnewaddress,         {"label"} },
     { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","fromfile","decodehex"} },
     { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message","days_retention"} },
     { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter"} },

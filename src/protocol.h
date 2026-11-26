@@ -279,6 +279,8 @@ enum ServiceFlags : uint64_t {
     NODE_SMSG = (1 << 24),
     // Optional bounded PoS block download transport; not a consensus signal.
     NODE_POS_SYNC = (1 << 25),
+    // Versioned post-quantum secure-message relay; independent of chain consensus.
+    NODE_SMSG_PQ = (1 << 26),
     // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation of only
     // serving the last 288 (2 day) blocks
     // See BIP159 for details on how this is implemented.

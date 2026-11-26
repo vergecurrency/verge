@@ -113,6 +113,7 @@ struct SecMsgNode
     std::map<int64_t, std::set<uint64_t> > wantedTokens;
     uint32_t nInventoryMismatches{0};
     bool fEnabled{false};
+    bool fRemoteDisabled{false};
     bool fValidatedRelay{false};
     bool fSentValidationProbe{false};
 };

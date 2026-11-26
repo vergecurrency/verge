@@ -13,6 +13,7 @@
 #include <ui_interface.h>
 #include <crypto/lz4/lz4.h>
 #include <smsg/keystore.h>
+#include <smsg/pqcrypto.h>
 #include <interfaces/handler.h>
 #include <validationinterface.h>
 
@@ -178,6 +179,9 @@ const unsigned int SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMS
 const unsigned int SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES_PAID+SMSG_PL_HDR_LEN);
 // AES-CBC padding can add one full block; paid messages append a funding txid.
 const unsigned int SMSG_MAX_MSG_WORST_PAID_ENCRYPTED = SMSG_MAX_MSG_WORST_PAID + 16 + 32;
+const unsigned int SMSG_MAX_PQ_PAYLOAD = MLKEM768_CIPHERTEXT_SIZE + 1 + PQ_MESSAGING_PUBLIC_SIZE +
+    4 + SMSG_MAX_MSG_BYTES_PAID + pos::MLDSA44_SIGNATURE_SIZE + 32;
+const unsigned int SMSG_MAX_RELAY_PAYLOAD = SMSG_MAX_PQ_PAYLOAD;
 
 static const int MIN_SMSG_PROTO_VERSION = 90007;
 
@@ -290,7 +294,18 @@ public:
     std::string           sToAddress;
     std::string           sFromAddress;
     std::vector<uint8_t>  vchMessage;         // null terminated plaintext
+    bool                 post_quantum = false;
+    std::string          sender_fingerprint;
 };
+
+bool IsPQSmsg(const SecureMessage& message);
+bool EncryptPQEnvelope(SecureMessage& message, const PQMessagingPublicKey& recipient,
+                       const PQMessagingKey* sender_key, const PQMessagingPublicKey* sender,
+                       const std::string& plaintext);
+bool DecryptPQEnvelope(const SecureMessage& message, const uint8_t* payload, uint32_t size,
+                       const CKey& classical, const PQMessagingKey& recipient_key,
+                       const PQMessagingPublicKey& recipient, MessageData& plaintext,
+                       PQMessagingPublicKey& sender);
 
 class SecMsgToken
 {
@@ -514,7 +529,8 @@ public:
 
     int GetStoredKey(const CKeyID &ckid, CPubKey &cpkOut);
     int GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut);
-    int GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey);
+    int GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey, bool create = false);
+    int GetPQPublicKey(const CKeyID& address, PQMessagingPublicKey& key, bool create = false);
 
     int AddAddress(std::string &address, std::string &publicKey);
     int AddLocalAddress(const std::string &sAddress);
@@ -552,12 +568,16 @@ public:
 
     std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);
+    std::vector<uint8_t> GetFundingMsgID(const SecureMessage& smsg, const uint8_t* payload);
 
     int Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
     bool IsPaidFundingTxConfirmed(const uint256& txid);
     int SetHash (uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);
 
     int Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID &addressTo, const std::string &message);
+    int EncryptPQ(SecureMessage& smsg, const CKeyID& from, const CKeyID& to, const std::string& message);
+    int DecryptPQ(const CKey& classical, const CKeyID& address, const SecureMessage& smsg,
+                  const uint8_t* payload, uint32_t size, MessageData& message);
 
     int Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, MessageData &msg);
     int Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, const SecureMessage &smsg, MessageData &msg);

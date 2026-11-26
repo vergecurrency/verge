@@ -420,6 +420,159 @@ bool CWallet::HasPQKeys() const
     return !mapPQKeys.empty() || !mapCryptedPQKeys.empty() || !mapPQMultisigPolicies.empty();
 }
 
+bool CWallet::GenerateSmsgPQKey(const CKeyID& address)
+{
+    LOCK(cs_wallet);
+    if (m_smsg_pq_keys.count(address)) return true;
+    if (IsLocked() || m_smsg_pq_keys.size() >= smsg::PQ_MAX_LOCAL_KEYS) return false;
+    CKey classical;
+    smsg::PQMessagingKey key;
+    smsg::PQMessagingPublicKey public_key;
+    smsg::PQSecret seed;
+    std::vector<unsigned char> ciphertext;
+    if (!GetKey(address, classical) || !key.MakeNewKey() ||
+        !key.GetPublicKey(Params().GetConsensus().nPoSNetworkId, classical.GetPubKey(), public_key) ||
+        !key.GetSeed(seed)) return false;
+    if (IsCrypted()) {
+        if (!EncryptSecret(vMasterKey, seed, public_key.Fingerprint(), ciphertext)) return false;
+        memory_cleanse(seed.data(), seed.size());
+        seed.clear();
+    }
+    WalletBatch batch(*database);
+    if (!batch.TxnBegin()) return false;
+    const int version = std::max(nWalletVersion, int(FEATURE_SMSG_PQ_KEYS));
+    if (!batch.WriteMinVersion(version) || !batch.WriteSmsgPQKey(address, public_key.Encode(), seed, ciphertext) ||
+        !batch.TxnCommit(true)) {
+        batch.TxnAbort();
+        return false;
+    }
+    LoadMinVersion(version);
+    m_smsg_pq_keys.emplace(address, SmsgPQRecord{public_key.Encode(), std::move(seed), std::move(ciphertext)});
+    return true;
+}
+
+bool CWallet::GetSmsgPQPublicKey(const CKeyID& address, smsg::PQMessagingPublicKey& key) const
+{
+    LOCK(cs_wallet);
+    key = {};
+    const auto found = m_smsg_pq_keys.find(address);
+    return found != m_smsg_pq_keys.end() && smsg::PQMessagingPublicKey::Decode(found->second.public_key, key) &&
+        key.network == Params().GetConsensus().nPoSNetworkId;
+}
+
+bool CWallet::GetSmsgPQKey(const CKeyID& address, smsg::PQMessagingKey& key) const
+{
+    LOCK(cs_wallet);
+    key.Reset();
+    const auto found = m_smsg_pq_keys.find(address);
+    if (IsLocked() || found == m_smsg_pq_keys.end()) return false;
+    smsg::PQMessagingPublicKey public_key, derived;
+    if (!smsg::PQMessagingPublicKey::Decode(found->second.public_key, public_key) ||
+        public_key.network != Params().GetConsensus().nPoSNetworkId) return false;
+    smsg::PQSecret seed;
+    if (IsCrypted()) {
+        if (!DecryptSecret(vMasterKey, found->second.ciphertext, public_key.Fingerprint(), seed)) return false;
+    } else seed = found->second.seed;
+    if (!key.SetSeed(seed) || !key.GetPublicKey(public_key.network, public_key.classical, derived) ||
+        derived.Encode() != public_key.Encode()) {
+        key.Reset();
+        return false;
+    }
+    return true;
+}
+
+bool CWallet::LoadSmsgPQKey(const CKeyID& address, const std::vector<unsigned char>& encoded,
+                           const smsg::PQSecret& seed, const std::vector<unsigned char>& ciphertext)
+{
+    LOCK(cs_wallet);
+    smsg::PQMessagingPublicKey public_key, derived;
+    if (m_smsg_pq_keys.size() >= smsg::PQ_MAX_LOCAL_KEYS || !smsg::PQMessagingAvailable() ||
+        !smsg::PQMessagingPublicKey::Decode(encoded, public_key) || public_key.classical.GetID() != address) return false;
+    if (!ciphertext.empty()) {
+        if (!seed.empty() || ciphertext.size() != 112 || !SetCrypted()) return false;
+    } else {
+        smsg::PQMessagingKey key;
+        if (IsCrypted() || !key.SetSeed(seed) || !key.GetPublicKey(public_key.network, public_key.classical, derived) ||
+            derived.Encode() != encoded) return false;
+    }
+    return m_smsg_pq_keys.emplace(address, SmsgPQRecord{encoded, seed, ciphertext}).second;
+}
+
+bool CWallet::EncryptSmsgPQKeys(const CKeyingMaterial& master)
+{
+    AssertLockHeld(cs_wallet);
+    for (auto& item : m_smsg_pq_keys) {
+        smsg::PQMessagingPublicKey key;
+        std::vector<unsigned char> ciphertext;
+        if (!smsg::PQMessagingPublicKey::Decode(item.second.public_key, key) ||
+            !EncryptSecret(master, item.second.seed, key.Fingerprint(), ciphertext) ||
+            !encrypted_batch->WriteSmsgPQKey(item.first, item.second.public_key, {}, ciphertext)) return false;
+        item.second.ciphertext = std::move(ciphertext);
+        memory_cleanse(item.second.seed.data(), item.second.seed.size());
+        item.second.seed.clear();
+    }
+    return true;
+}
+
+bool CWallet::CheckSmsgPQKeys(const CKeyingMaterial& master) const
+{
+    AssertLockHeld(cs_wallet);
+    for (const auto& item : m_smsg_pq_keys) {
+        smsg::PQMessagingPublicKey public_key, derived;
+        smsg::PQMessagingKey key;
+        smsg::PQSecret seed;
+        if (!smsg::PQMessagingPublicKey::Decode(item.second.public_key, public_key) ||
+            !DecryptSecret(master, item.second.ciphertext, public_key.Fingerprint(), seed) ||
+            !key.SetSeed(seed) || !key.GetPublicKey(public_key.network, public_key.classical, derived) ||
+            derived.Encode() != item.second.public_key) return false;
+    }
+    return true;
+}
+
+bool CWallet::LoadSmsgPQContact(const CKeyID& address, const std::vector<unsigned char>& encoded)
+{
+    LOCK(cs_wallet);
+    smsg::PQMessagingPublicKey key;
+    if (m_smsg_pq_contacts.size() >= 4096 || !smsg::PQMessagingPublicKey::Decode(encoded, key) ||
+        key.classical.GetID() != address) return false;
+    const auto found = m_smsg_pq_contacts.find(address);
+    if (found != m_smsg_pq_contacts.end()) return found->second == encoded;
+    m_smsg_pq_contacts.emplace(address, encoded);
+    return true;
+}
+
+bool CWallet::AddSmsgPQContact(const smsg::PQMessagingPublicKey& key)
+{
+    LOCK(cs_wallet);
+    if (!key.IsValid() || key.network != Params().GetConsensus().nPoSNetworkId) return false;
+    const CKeyID address = key.classical.GetID();
+    const auto encoded = key.Encode();
+    const auto found = m_smsg_pq_contacts.find(address);
+    if (found != m_smsg_pq_contacts.end()) return found->second == encoded;
+    smsg::PQMessagingPublicKey own;
+    if (HaveKey(address) && (!GetSmsgPQPublicKey(address, own) || own.Encode() != encoded)) return false;
+    if (m_smsg_pq_contacts.size() >= 4096) return false;
+    WalletBatch batch(*database);
+    const int version = std::max(nWalletVersion, int(FEATURE_SMSG_PQ_KEYS));
+    if (!batch.TxnBegin()) return false;
+    if (!batch.WriteMinVersion(version) || !batch.WriteSmsgPQContact(address, encoded) || !batch.TxnCommit(true)) {
+        batch.TxnAbort();
+        return false;
+    }
+    LoadMinVersion(version);
+    m_smsg_pq_contacts.emplace(address, encoded);
+    return true;
+}
+
+bool CWallet::GetSmsgPQContact(const CKeyID& address, smsg::PQMessagingPublicKey& key) const
+{
+    LOCK(cs_wallet);
+    const auto found = m_smsg_pq_contacts.find(address);
+    key = {};
+    return found != m_smsg_pq_contacts.end() && smsg::PQMessagingPublicKey::Decode(found->second, key) &&
+        key.network == Params().GetConsensus().nPoSNetworkId;
+}
+
 bool CWallet::LoadKeyMetadata(const CKeyID& keyID, const CKeyMetadata &meta)
 {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
@@ -672,6 +825,10 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase)
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey))
                 continue; // try another master key
             if (CCryptoKeyStore::Unlock(_vMasterKey)){
+                if (!CheckSmsgPQKeys(_vMasterKey)) {
+                    Lock();
+                    return false;
+                }
                 UnlockStealthAddresses(_vMasterKey);
                 return true;
             }
@@ -698,7 +855,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
                 return false;
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey))
                 return false;
-            if (CCryptoKeyStore::Unlock(_vMasterKey) && UnlockStealthAddresses(_vMasterKey))
+            if (CCryptoKeyStore::Unlock(_vMasterKey) && CheckSmsgPQKeys(_vMasterKey) && UnlockStealthAddresses(_vMasterKey))
             {
                 int64_t nStartTime = GetTimeMillis();
                 crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod);
@@ -940,7 +1097,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
         }
         encrypted_batch->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
 
-        if (!EncryptKeys(_vMasterKey))
+        if (!EncryptKeys(_vMasterKey) || !EncryptSmsgPQKeys(_vMasterKey))
         {
             encrypted_batch->TxnAbort();
             delete encrypted_batch;

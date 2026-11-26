@@ -21,6 +21,7 @@
 #include <wallet/coinselection.h>
 #include <wallet/walletdb.h>
 #include <wallet/rpcwallet.h>
+#include <smsg/pqcrypto.h>
 
 #include <algorithm>
 #include <atomic>
@@ -97,7 +98,8 @@ enum WalletFeature
 
     FEATURE_LATEST = FEATURE_PRE_SPLIT_KEYPOOL,
     // Written only when a PQ key is persisted; older 27.0.0 betas must refuse it.
-    FEATURE_PQ_KEYS = 27000100
+    FEATURE_PQ_KEYS = 27000100,
+    FEATURE_SMSG_PQ_KEYS = 27000101
 };
 
 enum class OutputType {
@@ -718,6 +720,16 @@ private:
 
     WalletBatch *encrypted_batch = nullptr;
 
+    struct SmsgPQRecord {
+        std::vector<unsigned char> public_key;
+        smsg::PQSecret seed;
+        std::vector<unsigned char> ciphertext;
+    };
+    std::map<CKeyID, SmsgPQRecord> m_smsg_pq_keys;
+    std::map<CKeyID, std::vector<unsigned char>> m_smsg_pq_contacts;
+    bool EncryptSmsgPQKeys(const CKeyingMaterial& master);
+    bool CheckSmsgPQKeys(const CKeyingMaterial& master) const;
+
     //! the current wallet version: clients below this version are not able to load the wallet
     int nWalletVersion = FEATURE_BASE;
 
@@ -938,6 +950,14 @@ public:
                           const std::vector<unsigned char>& ciphertext);
     bool GeneratePQKey(uint256& id);
     bool HasPQKeys() const;
+    bool GenerateSmsgPQKey(const CKeyID& address);
+    bool GetSmsgPQPublicKey(const CKeyID& address, smsg::PQMessagingPublicKey& key) const;
+    bool GetSmsgPQKey(const CKeyID& address, smsg::PQMessagingKey& key) const;
+    bool LoadSmsgPQKey(const CKeyID& address, const std::vector<unsigned char>& public_key,
+                       const smsg::PQSecret& seed, const std::vector<unsigned char>& ciphertext);
+    bool AddSmsgPQContact(const smsg::PQMessagingPublicKey& key);
+    bool GetSmsgPQContact(const CKeyID& address, smsg::PQMessagingPublicKey& key) const;
+    bool LoadSmsgPQContact(const CKeyID& address, const std::vector<unsigned char>& public_key);
     bool AddPQMultisigPolicy(const std::vector<unsigned char>& encoded) override;
     bool LoadPQMultisigPolicy(const std::vector<unsigned char>& encoded);
     bool AddKeyPubKeyWithDB(WalletBatch &batch,const CKey& key, const CPubKey &pubkey) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

@@ -375,6 +375,9 @@ libverge_wallet_a_SOURCES = \
   smsg/crypter.cpp \
   smsg/db.cpp \
   smsg/keystore.cpp \
+  smsg/pqcrypto.cpp \
+  smsg/pqcrypto.h \
+  smsg/pqmessage.cpp \
   smsg/rpcsmessage.cpp \
   smsg/smessage.cpp \
   stealth.cpp \

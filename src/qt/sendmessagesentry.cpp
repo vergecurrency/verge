@@ -21,11 +21,16 @@
 #include <vector>
 
 namespace {
-static constexpr int MAX_SHARED_CHATKEY_LEN = 256;
+static constexpr int MAX_SHARED_CHATKEY_LEN = smsg::PQ_CHATKEY_MAX_SIZE + 128;
 
 bool LooksLikeCompressedChatkey(const QString& value)
 {
     const QString key = value.trimmed();
+    if (key.startsWith(QStringLiteral("pq1"))) {
+        smsg::PQMessagingPublicKey public_key;
+        return smsg::DecodePQChatKey(key.toStdString(), public_key) &&
+            public_key.network == Params().GetConsensus().nPoSNetworkId;
+    }
     if (key.size() == 66 && (key.startsWith(QStringLiteral("02")) || key.startsWith(QStringLiteral("03")))) {
         bool hex = true;
         for (const QChar ch : key) {

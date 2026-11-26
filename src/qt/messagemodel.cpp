@@ -200,7 +200,7 @@ public:
                                                      received_datetime,
                                                      QObject::tr("Received locally"),
                                                      (char*)&msg.vchMessage[0],
-                                                     GetPaidFundingTxid(smsgStored)),
+                                                     GetPaidFundingTxid(smsgStored), msg.post_quantum, QString::fromStdString(msg.sender_fingerprint)),
                                     true);
                 }
             };
@@ -229,7 +229,7 @@ public:
                                                       received_datetime,
                                                       status,
                                                       (char*)&msg.vchMessage[0],
-                                                      GetPaidFundingTxid(smsgStored)),
+                                                      GetPaidFundingTxid(smsgStored), msg.post_quantum, QString::fromStdString(msg.sender_fingerprint)),
                                     true);
                 }
             };
@@ -267,7 +267,7 @@ public:
                                               received_datetime,
                                               QObject::tr("Received locally"),
                                               (char*)&msg.vchMessage[0],
-                                              GetPaidFundingTxid(smsgStored)),
+                                              GetPaidFundingTxid(smsgStored), msg.post_quantum, QString::fromStdString(msg.sender_fingerprint)),
                             false);
         }
     }
@@ -310,7 +310,7 @@ public:
                                               received_datetime,
                                               status,
                                               (char*)&msg.vchMessage[0],
-                                              GetPaidFundingTxid(smsgStored)),
+                                              GetPaidFundingTxid(smsgStored), msg.post_quantum, QString::fromStdString(msg.sender_fingerprint)),
                             false);
         }
     }
@@ -393,13 +393,12 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
     CBitcoinAddress addressParsed(address.toStdString());
      if(addressParsed.IsValid()) {
         CKeyID destinationAddress;
-        CPubKey destinationKey;
+        smsg::PQMessagingPublicKey destinationKey;
          addressParsed.GetKeyID(destinationAddress);
-         if (smsgModule.GetStoredKey(destinationAddress, destinationKey) != 0
-            && smsgModule.GetLocalKey(destinationAddress, destinationKey) != 0)
+         if (smsgModule.GetPQPublicKey(destinationAddress, destinationKey) != smsg::SMSG_NO_ERROR)
             return false;
          address = QString::fromStdString(CBitcoinAddress(destinationAddress).ToString());
-        pubkey = EncodeBase58(destinationKey.Raw()).c_str();
+        pubkey = QString::fromStdString(smsg::EncodePQChatKey(destinationKey));
         return true;
     }
     return false;
@@ -444,7 +443,7 @@ bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
             paidMessage ? 1 : 0,
             retentionDays);
         if (!pubkey.empty()) {
-            smsgModule.AddAddress(sendTo, pubkey);
+            if (smsgModule.AddAddress(sendTo, pubkey) != smsg::SMSG_NO_ERROR) return MessageCreationFailed;
         }
         
         std::string sError;
@@ -515,10 +514,12 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
     const QString html = QStringLiteral(
         "<span style=\"color:#FF9A2F; font-size:12px;\">%1</span><br>"
         "<span style=\"color:#FFFFFF;\">%2</span><br>"
-        "<span style=\"color:#5CFF7A;\">%3</span>")
+        "<span style=\"color:#5CFF7A;\">%3</span><br>"
+        "<span style=\"color:#AAAAAA;\">%4</span>")
         .arg(rec->received_datetime.toString(),
-             messageLabel,
-             rec->message);
+             GUIUtil::HtmlEscape(messageLabel),
+             GUIUtil::HtmlEscape(rec->message, true),
+             rec->post_quantum ? tr("PQ encrypted") : tr("Legacy encryption"));
      switch(role)
     {
     /*

@@ -1050,6 +1050,101 @@ authenticated votes and 16 independently authenticated evidence items.
 The integrated local results above support a fresh experimental trial, not
 mainnet activation or a claim that all existing coins are quantum-resistant.
 
+## Post-Quantum Secure Messaging (2026-11-25)
+
+SMSG is a separate messaging protocol, not a PoS consensus object. The new
+paid-message envelope is version 3.1; existing 3.0 history remains readable.
+New RPC/GUI sends require a pinned PQ recipient bundle and never substitute
+classical encryption. Upgraded relays advertise `NODE_SMSG_PQ` (bit 26), and
+exchange messages only with peers advertising this capability. This does not
+exclude older peers from blockchain synchronization.
+Unanswered messaging handshakes retry at most once per 30 seconds after the
+chain is current. An explicit peer disable suppresses retries until that peer
+re-enables messaging. Repeated local chatkey lookups are idempotent and never
+fall back to returning a classical-only messaging key.
+
+Messaging keys are independent of staking and PQ coin-spending keys. Each
+local messaging identity has 96 independently generated secret bytes: a
+32-byte ML-DSA-44 seed and a 64-byte ML-KEM-768 seed. The existing classical
+address is retained as a compatibility label and hybrid ECDH credential;
+`smsgnewaddress` creates a dedicated address rather than repurposing a coin
+receiving address. The public bundle is version 1, little-endian network ID,
+33-byte classical public key, 1,184-byte ML-KEM public key and 1,312-byte
+ML-DSA public key, totaling 2,534 bytes. Its full 256-bit domain-separated
+fingerprint identifies the complete bundle, not only its classical address.
+Contact bundles are immutable once pinned. First-contact authentication is
+trust-on-first-use unless users compare full fingerprints through an
+independently authenticated channel; migrating an old address alone is not
+proof of the new PQ identity.
+
+The shareable chatkey is `pq1` followed by canonical uppercase, padded Base32
+of the bundle and a four-byte double-SHA256 checksum. Input is bounded to
+4,200 characters before decoding. Uppercase Base32 permits QR alphanumeric
+compaction. Sharing a public bundle does not reveal its private seeds.
+
+Each message encapsulates a fresh ML-KEM-768 shared secret and creates a
+fresh secp256k1 ECDH ephemeral key. HKDF-SHA256 extracts from the two fixed
+32-byte secrets with an authenticated-envelope-derived salt and expands with
+the `Verge/SMSG/HybridKey/v1` label. AES-256-GCM encrypts the body with a fresh
+96-bit nonce. Associated data binds the complete recipient fingerprint,
+network, message version, flags, timestamp, retention, ephemeral public key,
+payload length and KEM ciphertext. Identified senders sign the complete
+unsigned plaintext and associated data using ML-DSA-44 with a separate SMSG
+context. Anonymous sends remain encrypted but do not claim sender identity.
+All authentication must pass before plaintext is returned or a sender bundle
+is learned. An ECDH-based 128-bit recipient filter precedes KEM decapsulation;
+it is only a scanning optimization, never the PQ authentication boundary.
+
+The outer header remains 104 bytes. Its first 16 MAC bytes hold the recipient
+filter; the last 16 hold the GCM tag. The payload is a 1,088-byte KEM
+ciphertext, encrypted body and appended 32-byte funding transaction ID. The
+body is a one-byte anonymous/identified discriminator, an optional complete
+sender bundle, a little-endian four-byte plaintext length, up to 5,120 message
+bytes and, for identified messages, a 2,420-byte ML-DSA signature. No message
+compression is used in the PQ envelope. Maximum payload size is 11,199 bytes.
+Local identities are capped at 256 and contact pins at 4,096; existing relay
+rate, batch and aggregate storage limits still apply.
+
+Paid-message authorization is still mandatory after PoS/PQ activation. New
+PQ funding uses a standard OP_RETURN output containing `SMSG4`, the existing
+28-byte lookup ID and an additional 32-byte domain-separated envelope hash.
+The data is 65 bytes, within the existing standard data-carrier limit. This
+is not a new transaction type or consensus rule. The funding transaction is
+validated under the chain's active spending rules. Relays require its payment
+and full-envelope commitment to be confirmed on the active chain; unconfirmed
+or reorganized-away funding does not authorize relay. Legacy `SMSG3` funding
+remains readable. The short bucket/lookup identifiers are not PQ signatures
+or funding-authorization proofs.
+
+Secret records and immutable contact pins are synchronously persisted in
+wallet.dat and included in full-wallet backups. Encrypted wallets encrypt the
+messaging seeds, erase plaintext records during encryption, refuse private-key
+access while locked, and verify derived public bundles after decryption. The
+minimum wallet version is 27000101, so older binaries refuse these wallets
+rather than silently ignoring messaging keys. The application build number
+advances to 27.0.1.1 for this guard; wallets without the new records are not
+automatically upgraded. GUI creation requires a new full backup before sharing.
+
+This design does not provide a messaging ratchet or forward secrecy after
+the recipient's long-term messaging secrets are stolen. It does not retrofit
+quantum protection onto captured legacy ciphertext, make Tor quantum-safe,
+or hide timing and routing metadata. Independent cryptographic protocol review
+and cross-platform qualification remain release gates.
+
+Implementation progress:
+- [x] OpenSSL ML-KEM/ML-DSA wrappers and canonical public bundles.
+- [x] Hybrid authenticated envelope, mandatory PQ sends and versioned relay.
+- [x] Encrypted wallet persistence, immutable contact pins and downgrade guard.
+- [x] RPC/GUI chatkeys, fingerprints, backup prompts and legacy/PQ history labels.
+- [x] Unit and three-node functional regression fixtures added.
+- [x] Native regression suite: 153 cases and 90,215 assertions passed, including
+  stored-payload bounds and encrypted messaging-key backup restoration.
+- [x] Three-node PoW/PoS messaging regression passed: paid funding, relay delivery,
+  maximum payload, anonymous sends, encrypted restart/unlock, offline recovery,
+  native PQ spending after activation, legacy peers and bounded handshake retry.
+- [ ] Operator Qt builds and GUI/manual testnet verification.
+- [ ] GUI runtime/QR validation and independent protocol review.
+
 ## Unbonding Transaction
 
 A valid unbond transaction spends one `TX_STAKE_BOND_V1` output into one `TX_STAKE_UNBOND_V1` output carrying exactly the same principal and withdrawal credential. The wallet encodes a requested unlock height based on the next block plus 20,160 accepted blocks. Missing that next block does not expire the transaction: the effective withdrawal height is the greater of the encoded height and the actual confirmation height plus 20,160.

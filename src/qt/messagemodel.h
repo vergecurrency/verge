@@ -42,6 +42,8 @@ public:
     QString status;
     QString message;
     QString funding_txid;
+    bool post_quantum = false;
+    QString sender_fingerprint;
      MessageTableEntry() {}
     MessageTableEntry(std::vector<unsigned char> &chKey,
                       Type type,
@@ -52,7 +54,8 @@ public:
                       const QDateTime &received_datetime,
                       const QString &status,
                       const QString &message,
-                      const QString &funding_txid = QString()):
+                      const QString &funding_txid = QString(),
+                      bool post_quantum = false, const QString& sender_fingerprint = QString()):
         chKey(chKey),
         type(type),
         label(label),
@@ -62,7 +65,9 @@ public:
         received_datetime(received_datetime),
         status(status),
         message(message),
-        funding_txid(funding_txid)
+        funding_txid(funding_txid),
+        post_quantum(post_quantum),
+        sender_fingerprint(sender_fingerprint)
     {
     }
 };

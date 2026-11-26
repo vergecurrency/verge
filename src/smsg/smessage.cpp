@@ -92,6 +92,7 @@ constexpr size_t SMSG_DERIVED_KEY_LEN = 32;
 constexpr size_t SMSG_HKDF_OUTPUT_LEN = SMSG_DERIVED_KEY_LEN * 2;
 constexpr const char* SMSG_HKDF_INFO = "verge-smsg-v2.2";
 const std::vector<uint8_t> SMSG_PAID_FUNDING_MAGIC{'S', 'M', 'S', 'G', '3'};
+const std::vector<uint8_t> SMSG_PQ_FUNDING_MAGIC{'S', 'M', 'S', 'G', '4'};
 constexpr size_t SMSG_PAID_MSGID_LEN = 28;
 constexpr size_t SMSG_PAID_FUNDING_DATA_LEN = 5 + SMSG_PAID_MSGID_LEN;
 constexpr size_t SMSG_MAX_FUNDING_MISS_CACHE = 4096;
@@ -238,7 +239,7 @@ bool IsCurrentUnpaidSmsgVersion(const smsg::SecureMessage& smsg)
 
 bool IsCurrentPaidSmsgVersion(const smsg::SecureMessage& smsg)
 {
-    return smsg.version[0] == 3 && smsg.version[1] == 0;
+    return smsg.version[0] == 3 && (smsg.version[1] == 0 || smsg.version[1] == 1);
 }
 
 uint32_t GetSmsgCiphertextLength(const smsg::SecureMessage& smsg)
@@ -252,8 +253,9 @@ uint32_t GetSmsgCiphertextLength(const smsg::SecureMessage& smsg)
 std::vector<uint8_t> BuildPaidFundingData(const std::vector<uint8_t>& msgId)
 {
     std::vector<uint8_t> data;
-    data.reserve(SMSG_PAID_FUNDING_MAGIC.size() + msgId.size());
-    data.insert(data.end(), SMSG_PAID_FUNDING_MAGIC.begin(), SMSG_PAID_FUNDING_MAGIC.end());
+    const auto& magic = msgId.size() == SMSG_PAID_MSGID_LEN + 32 ? SMSG_PQ_FUNDING_MAGIC : SMSG_PAID_FUNDING_MAGIC;
+    data.reserve(magic.size() + msgId.size());
+    data.insert(data.end(), magic.begin(), magic.end());
     data.insert(data.end(), msgId.begin(), msgId.end());
     return data;
 }
@@ -278,10 +280,11 @@ bool ExtractPaidFundingMsgId(const CScript& script, std::vector<uint8_t>& msgId)
     if (pc != script.end()) {
         return false;
     }
-    if (data.size() != SMSG_PAID_FUNDING_DATA_LEN) {
-        return false;
-    }
-    if (!std::equal(SMSG_PAID_FUNDING_MAGIC.begin(), SMSG_PAID_FUNDING_MAGIC.end(), data.begin())) {
+    const bool legacy = data.size() == SMSG_PAID_FUNDING_DATA_LEN &&
+        std::equal(SMSG_PAID_FUNDING_MAGIC.begin(), SMSG_PAID_FUNDING_MAGIC.end(), data.begin());
+    const bool pq = data.size() == SMSG_PAID_FUNDING_DATA_LEN + 32 &&
+        std::equal(SMSG_PQ_FUNDING_MAGIC.begin(), SMSG_PQ_FUNDING_MAGIC.end(), data.begin());
+    if (!legacy && !pq) {
         return false;
     }
 
@@ -753,7 +756,7 @@ int CountValidatedSmsgPeers()
 
     int count = 0;
     g_connman->ForEachNode([&count](CNode* pnode) {
-        if (!(pnode->nServices.load() & NODE_SMSG) || pnode->fDisconnect) {
+        if (!(pnode->nServices.load() & NODE_SMSG_PQ) || pnode->fDisconnect) {
             return;
         }
         LOCK(pnode->smsgData.cs_smsg_net);
@@ -779,7 +782,7 @@ void MaintainSmsgPeerTarget(int64_t now, int64_t& lastAttempt)
     }
 
     lastAttempt = now;
-    if (g_connman->OpenNetworkConnectionByService(NODE_SMSG)) {
+    if (g_connman->OpenNetworkConnectionByService(NODE_SMSG_PQ)) {
         LogPrint(BCLog::SMSG, "SMSG: opened extra outbound attempt for NODE_SMSG peer target %d.\n", target);
     } else {
         LogPrint(BCLog::SMSG, "SMSG: no NODE_SMSG peer candidate available for target %d.\n", target);
@@ -909,7 +912,8 @@ void CSMSG::RebuildPaidFundingIndex()
         std::vector<std::vector<uint8_t>> staleMsgIds;
         std::unique_ptr<leveldb::Iterator> it(db.pdb->NewIterator(leveldb::ReadOptions()));
         for (it->Seek(prefix); it->Valid() && SliceStartsWith(it->key(), prefix); it->Next()) {
-            if (it->key().size() != prefix.size() + SMSG_PAID_MSGID_LEN) {
+            if (it->key().size() != prefix.size() + SMSG_PAID_MSGID_LEN &&
+                it->key().size() != prefix.size() + SMSG_PAID_MSGID_LEN + 32) {
                 continue;
             }
 
@@ -2175,7 +2179,7 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
     // Ping each peer advertising smsg
     if (g_connman) {
         g_connman->ForEachNode([&](CNode* pnode) {
-            if (!(pnode->nServices.load() & NODE_SMSG)) {
+            if (!(pnode->nServices.load() & NODE_SMSG_PQ)) {
                 return;
             }
             g_connman->PushMessage(pnode,
@@ -2274,7 +2278,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         LogPrintf("%s: %s %s.\n", __func__, pfrom->GetAddrName(), strCommand);
     }
 
-    if (pfrom->nVersion < MIN_SMSG_PROTO_VERSION) {
+    if (pfrom->nVersion < MIN_SMSG_PROTO_VERSION || !(pfrom->nServices.load() & NODE_SMSG_PQ)) {
         return SMSG_NO_ERROR;
     }
 
@@ -2328,6 +2332,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
     if (!IsChainCurrentForServices()) { // Wait until the active chain catches up
         if (strCommand == "smsgPing") {
+            LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.lastSeen = -1; // Mark node as requiring a response once chain is synced
         }
         return SMSG_NO_ERROR;
@@ -2863,6 +2868,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.fEnabled = true;
+            pfrom->smsgData.fRemoteDisabled = false;
             fSendValidationProbe = !pfrom->smsgData.fValidatedRelay && !pfrom->smsgData.fSentValidationProbe;
             if (fSendValidationProbe) {
                 pfrom->smsgData.fSentValidationProbe = true;
@@ -2885,6 +2891,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.fEnabled = false;
+            pfrom->smsgData.fRemoteDisabled = true;
             pfrom->smsgData.fValidatedRelay = false;
             pfrom->smsgData.fSentValidationProbe = false;
             pfrom->smsgData.requestedBuckets.clear();
@@ -2939,6 +2946,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         Runs in ThreadMessageHandler2
     */
 
+    if (!(pto->nServices.load() & NODE_SMSG_PQ)) return true;
     if (!IsChainCurrentForServices()) { // Wait until the active chain catches up
         return true;
     }
@@ -2948,7 +2956,11 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
     //LogPrintf("SecureMsgSendData() %s.\n", pto->GetAddrName());
     int64_t now = GetTime();
 
-    if (pto->smsgData.lastSeen <= 0) {
+    if (pto->smsgData.fRemoteDisabled || now < pto->smsgData.ignoreUntil) return true;
+
+    // The first ping/pong may arrive while the peer is still synchronizing.
+    const bool retry = !pto->smsgData.fEnabled && now - pto->smsgData.lastSeen >= SMSG_THREAD_DELAY;
+    if (pto->smsgData.lastSeen <= 0 || retry) {
         // First contact
         LogPrint(BCLog::SMSG, "%s: New node %s, peer id %u.\n", __func__, pto->GetAddrName(), pto->GetId());
         // Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
@@ -3367,9 +3379,9 @@ bool CSMSG::ScanBuckets()
                     break;
                 }
 
-                if (smsg.nPayload == 0 || smsg.nPayload > SMSG_MAX_MSG_WORST_PAID_ENCRYPTED) {
+                if (smsg.nPayload == 0 || smsg.nPayload > SMSG_MAX_RELAY_PAYLOAD) {
                     LogPrintf("%s: rejecting malformed stored SMSG payload size, %u, max %u\n",
-                        __func__, smsg.nPayload, SMSG_MAX_MSG_WORST_PAID_ENCRYPTED);
+                        __func__, smsg.nPayload, SMSG_MAX_RELAY_PAYLOAD);
                     break;
                 }
 
@@ -3538,9 +3550,9 @@ int CSMSG::WalletUnlocked()
                     break;
                 }
 
-                if (smsg.nPayload == 0 || smsg.nPayload > SMSG_MAX_MSG_WORST_PAID_ENCRYPTED) {
+                if (smsg.nPayload == 0 || smsg.nPayload > SMSG_MAX_RELAY_PAYLOAD) {
                     LogPrintf("%s: rejecting malformed stored SMSG payload size, %u, max %u\n",
-                        __func__, smsg.nPayload, SMSG_MAX_MSG_WORST_PAID_ENCRYPTED);
+                        __func__, smsg.nPayload, SMSG_MAX_RELAY_PAYLOAD);
                     break;
                 }
 
@@ -3809,7 +3821,7 @@ int CSMSG::GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut)
     return SMSG_WALLET_NO_PUBKEY;
 };
 
-int CSMSG::GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey)
+int CSMSG::GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey, bool create)
 {
     // returns SecureMessageCodes
 
@@ -3819,13 +3831,16 @@ int CSMSG::GetLocalPublicKey(const std::string &strAddress, std::string &strPubl
         return SMSG_INVALID_ADDRESS;
     }
 
-    int rv;
-    CPubKey pubKey;
-    if ((rv = GetLocalKey(keyID, pubKey)) != 0) {
-        return rv;
+    PQMessagingPublicKey public_key;
+    const int rv = GetPQPublicKey(keyID, public_key, create);
+    if (rv != SMSG_NO_ERROR) return rv;
+    strPublicKey = EncodePQChatKey(public_key);
+#ifdef ENABLE_WALLET
+    if (create && pwallet && pwallet->HaveKey(keyID)) {
+        const int added = AddLocalAddress(strAddress);
+        if (added != SMSG_NO_ERROR && added != SMSG_KEY_EXISTS) return added;
     }
-
-    strPublicKey = EncodeBase58(pubKey.begin(), pubKey.end());
+#endif
     return SMSG_NO_ERROR;
 };
 
@@ -3870,6 +3885,22 @@ int CSMSG::AddAddress(std::string &address, std::string &publicKey)
     if (!coinAddress.GetKeyID(idk)) {
         return errorN(SMSG_INVALID_ADDRESS, "%s - coinAddress.GetKeyID failed: %s.", __func__, address);
     }
+
+    if (publicKey.compare(0, 3, "pq1") == 0) {
+#ifdef ENABLE_WALLET
+        PQMessagingPublicKey key;
+        if (!DecodePQChatKey(publicKey, key) || key.network != Params().GetConsensus().nPoSNetworkId ||
+            key.classical.GetID() != idk) return SMSG_INVALID_PUBKEY;
+        if (!pwallet) return SMSG_WALLET_UNSET;
+        return pwallet->AddSmsgPQContact(key) ? SMSG_NO_ERROR : SMSG_PUBKEY_MISMATCH;
+#else
+        return SMSG_WALLET_UNSET;
+#endif
+    }
+#ifdef ENABLE_WALLET
+    PQMessagingPublicKey pinned;
+    if (GetPQPublicKey(idk, pinned) == SMSG_NO_ERROR) return SMSG_PUBKEY_MISMATCH;
+#endif
 
     std::vector<uint8_t> vchTest;
 
@@ -4064,6 +4095,12 @@ int CSMSG::Retrieve(const SecMsgToken &token, std::vector<uint8_t> &vchData)
     if (fread(smsg.data(), sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
         fclose(fp);
         return errorN(SMSG_GENERAL_ERROR, "%s - read header failed, strerror: %s.", __func__, strerror(errno));
+    }
+
+    if (smsg.nPayload == 0 || smsg.nPayload > SMSG_MAX_RELAY_PAYLOAD) {
+        fclose(fp);
+        vchData.clear();
+        return errorN(SMSG_PAYLOAD_OVER_SIZE, "%s - Invalid stored payload size %u.", __func__, smsg.nPayload);
     }
 
     try {vchData.resize(SMSG_HDR_LEN + smsg.nPayload);} catch (std::exception &e) {
@@ -4625,9 +4662,11 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             return SMSG_PAYLOAD_OVER_SIZE;
         }
         // Paid payload is AES-CBC ciphertext plus the appended funding txid.
-        if (nPayload > SMSG_MAX_MSG_WORST_PAID_ENCRYPTED) {
+        if (nPayload > (IsPQSmsg(*psmsg) ? SMSG_MAX_PQ_PAYLOAD : SMSG_MAX_MSG_WORST_PAID_ENCRYPTED)) {
             return SMSG_PAYLOAD_OVER_SIZE;
         }
+        if (IsPQSmsg(*psmsg) && (nPayload < MLKEM768_CIPHERTEXT_SIZE + 5 + 32 ||
+            psmsg->flags || psmsg->nonce[1] || psmsg->nonce[2] || psmsg->nonce[3])) return SMSG_GENERAL_ERROR;
         if (psmsg->nonce[0] < 1 || psmsg->nonce[0] > 31) {
             return SMSG_TIME_EXPIRED;
         }
@@ -4655,7 +4694,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             return SMSG_FUND_FAILED;
         }
 
-        const std::vector<uint8_t> msgId = GetMsgID(psmsg, pPayload);
+        const std::vector<uint8_t> msgId = GetFundingMsgID(*psmsg, pPayload);
         if (HasConfirmedPaidFunding(msgId, txid)) {
             return SMSG_NO_ERROR;
         }
@@ -5028,14 +5067,37 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         return errorN(SMSG_MESSAGE_TOO_LONG, "%s: %s.", __func__, sError);
     }
 
+    CKeyID addressOutbox = addressFrom;
+    if (addressOutbox.IsNull()) {
+        LOCK(pwallet->cs_wallet);
+        for (const auto& entry : pwallet->mapAddressBook) {
+            CKeyID id;
+            if (CBitcoinAddress(entry.first).GetKeyID(id) && pwallet->HaveKey(id)) {
+                addressOutbox = id;
+                break;
+            }
+        }
+    }
+    if (addressOutbox.IsNull() || !pwallet->GenerateSmsgPQKey(addressOutbox)) {
+        sError = "Unable to save PQ messaging keys for the encrypted sent copy.";
+        return SMSG_ENCRYPT_FAILED;
+    }
     int rv;
     smsg = SecureMessage(fPaid, nDaysRetention);
-    if ((rv = Encrypt(smsg, addressFrom, addressTo, sData)) != 0) {
-        sError = GetString(rv);
+    if ((rv = EncryptPQ(smsg, addressFrom, addressTo, sData)) != 0) {
+        sError = rv == SMSG_PUBKEY_NOT_EXISTS ?
+            "A pinned PQ recipient chatkey is required. Obtain it with smsggetpubkey on the recipient and import it with smsgaddaddress." : GetString(rv);
         LogPrint(BCLog::SMSG, "SMSG send failed during encryption: code=%d error=%s\n", rv, sError);
         return errorN(rv, "%s: %s.", __func__, sError);
     }
     LogPrint(BCLog::SMSG, "SMSG send encrypted network payload: timestamp=%d payload=%u\n", smsg.timestamp, smsg.nPayload);
+
+    SecureMessage smsgForOutbox(fPaid, nDaysRetention);
+    smsgForOutbox.timestamp = smsg.timestamp;
+    if ((rv = EncryptPQ(smsgForOutbox, addressFrom, addressOutbox, sData)) != SMSG_NO_ERROR) {
+        sError = "Unable to encrypt the sent copy with PQ messaging keys.";
+        return rv;
+    }
 
     if (fPaid) {
         SetPaidSmsgChecksum(smsg);
@@ -5066,7 +5128,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     memcpy(&chKey[2], &timestamp_be, 8);
     memcpy(&chKey[10], msgId.begin(), 20);
 
-    SecMsgStored smsgSQ;
+    SecMsgStored smsgSQ{};
     smsgSQ.timeReceived  = GetTime();
     smsgSQ.addrTo        = addressTo;
 
@@ -5089,13 +5151,18 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                 LogPrint(BCLog::SMSG, "SMSG send queue storage rejected: %s\n", sError);
                 return SMSG_STORE_FULL;
             }
-            dbSendQueue.WriteSmesg(chKey, smsgSQ);
+            if (!dbSendQueue.WriteSmesg(chKey, smsgSQ)) {
+                sError = "Unable to persist the encrypted message in the send queue.";
+                return SMSG_GENERAL_ERROR;
+            }
             AccountSmsgStorageBytes(smsgSQ.vchMessage.size());
             LogPrint(BCLog::SMSG, "SMSG send queued network message: key=%s bytes=%u\n",
                 HexStr(chKey, chKey + sizeof(chKey)), static_cast<unsigned int>(smsgSQ.vchMessage.size()));
             //NotifySecMsgSendQueueChanged(smsgOutbox);
         } else {
             LogPrint(BCLog::SMSG, "SMSG send failed opening send queue database.\n");
+            sError = "Unable to open the encrypted message send queue.";
+            return SMSG_GENERAL_ERROR;
         }
     } // cs_smsgDB
 
@@ -5104,23 +5171,6 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
     LogPrint(BCLog::SMSG, "Encrypting message for outbox.\n");
 
-    CKeyID addressOutbox;
-
-    for (const auto &entry : pwallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
-        // Get first owned address
-        if (!IsMine(*pwallet, entry.first)) {
-            continue;
-        }
-
-        CBitcoinAddress address(entry.first);
-
-        if (!address.IsValid()) {
-            continue;
-        }
-        address.GetKeyID(addressOutbox);
-        break;
-    }
-
     if (addressOutbox.IsNull()) {
         LogPrintf("%s: Warning, could not find an address to encrypt outbox message with.\n", __func__);
     } else {
@@ -5128,9 +5178,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             LogPrintf("Encrypting a copy for outbox, using address %s\n", CBitcoinAddress(addressOutbox).ToString());
         }
 
-        SecureMessage smsgForOutbox(fPaid, nDaysRetention);
-        smsgForOutbox.timestamp = smsg.timestamp;
-        if ((rv = Encrypt(smsgForOutbox, addressFrom, addressOutbox, sData)) != 0) {
+        if (!smsgForOutbox.pPayload) {
             LogPrintf("%s: Encrypt for outbox failed, %d.\n", __func__, rv);
         } else {
             if (fPaid) {
@@ -5150,7 +5198,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             memcpy(&chKey[2], &timestamp_be, 8);
             memcpy(&chKey[10], msgId.begin(), 20);
 
-            SecMsgStored smsgOutbox;
+            SecMsgStored smsgOutbox{};
 
             smsgOutbox.timeReceived  = GetTime();
             smsgOutbox.addrTo        = addressTo;
@@ -5177,13 +5225,18 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                         LogPrint(BCLog::SMSG, "SMSG outbox storage rejected: %s\n", sError);
                         return SMSG_STORE_FULL;
                     }
-                    dbSent.WriteSmesg(chKey, smsgOutbox);
+                    if (!dbSent.WriteSmesg(chKey, smsgOutbox)) {
+                        sError = "Message queued, but unable to persist its encrypted sent copy.";
+                        return SMSG_GENERAL_ERROR;
+                    }
                     AccountSmsgStorageBytes(smsgOutbox.vchMessage.size());
                     NotifySecMsgOutboxChanged(smsgOutbox);
                     LogPrint(BCLog::SMSG, "SMSG outbox saved sent copy: key=%s bytes=%u\n",
                         HexStr(chKey, chKey + sizeof(chKey)), static_cast<unsigned int>(smsgOutbox.vchMessage.size()));
                 } else {
                     LogPrint(BCLog::SMSG, "SMSG send failed opening outbox database.\n");
+                    sError = "Message queued, but unable to open the encrypted outbox.";
+                    return SMSG_GENERAL_ERROR;
                 }
             } // cs_smsgDB
         }
@@ -5235,7 +5288,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, const CKeyID& addressTo, std::string &sE
         return SMSG_NO_ERROR;
     }
 
-    const std::vector<uint8_t> msgId = GetMsgID(smsg);
+    const std::vector<uint8_t> msgId = GetFundingMsgID(smsg, smsg.pPayload);
     const CScript fundingScript = BuildPaidFundingScript(msgId);
     std::vector<CRecipient> vecSend;
     vecSend.push_back({fundingScript, SMSG_PAID_MSG_FEE, false});
@@ -5294,6 +5347,21 @@ std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage *psmsg, const uint8_t *
     return rv;
 };
 
+std::vector<uint8_t> CSMSG::GetFundingMsgID(const SecureMessage& message, const uint8_t* payload)
+{
+    if (!payload || message.nPayload <= 32 || message.nPayload > SMSG_MAX_RELAY_PAYLOAD) return {};
+    auto id = GetMsgID(&message, payload);
+    if (IsPQSmsg(message)) {
+        CHashWriter hash(SER_GETHASH, 0);
+        hash << std::string("Verge/SMSG/Funding/v1") << Params().GetConsensus().nPoSNetworkId;
+        hash.write(reinterpret_cast<const char*>(message.data()), SMSG_HDR_LEN);
+        hash.write(reinterpret_cast<const char*>(payload), message.nPayload - 32);
+        const auto full = hash.GetHash();
+        id.insert(id.end(), full.begin(), full.end());
+    }
+    return id;
+}
+
 std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage &smsg)
 {
     std::vector<uint8_t> rv(28);
@@ -5326,6 +5394,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
+    if (IsPQSmsg(*psmsg)) return DecryptPQ(keyDest, address, *psmsg, pPayload, nPayload, msg);
     if (!IsCurrentUnpaidSmsgVersion(*psmsg) && !IsCurrentPaidSmsgVersion(*psmsg)) {
         return errorN(SMSG_UNKNOWN_VERSION, "%s: Unknown version number.", __func__);
     }
@@ -5494,7 +5563,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader
 
 #ifdef ENABLE_WALLET
     if (!keyDest.IsValid()) {
-        if (pwallet->IsLocked()) {
+        if (!pwallet || pwallet->IsLocked()) {
             return SMSG_WALLET_LOCKED;
         }
         pwallet->GetKey(address, keyDest);

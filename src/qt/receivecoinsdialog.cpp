@@ -20,6 +20,8 @@
 
 #include <smsg/smessage.h>
 
+#include <algorithm>
+
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
@@ -123,7 +125,7 @@ QToolButton* CreateCopyButton(const PlatformStyle* platformStyle, const QString&
 QString BuildChatkeyQRCode(const QString& payload, const QString& caption, QPixmap& pixmap)
 {
 #ifdef USE_QRCODE
-    if (payload.length() > MAX_URI_LENGTH) {
+    if (payload.length() > int(smsg::PQ_CHATKEY_MAX_SIZE + 256)) {
         return QObject::tr("QR payload is too long. Shorten the label and try again.");
     }
 
@@ -143,16 +145,17 @@ QString BuildChatkeyQRCode(const QString& payload, const QString& caption, QPixm
     }
     QRcode_free(code);
 
-    QImage qrAddrImage(QR_IMAGE_SIZE, QR_IMAGE_SIZE + 44, QImage::Format_RGB32);
+    const int imageSize = std::max(QR_IMAGE_SIZE, qrImage.width() * 4);
+    QImage qrAddrImage(imageSize, imageSize + 44, QImage::Format_RGB32);
     qrAddrImage.fill(0xffffff);
     QPainter painter(&qrAddrImage);
-    painter.drawImage(0, 0, qrImage.scaled(QR_IMAGE_SIZE, QR_IMAGE_SIZE));
+    painter.drawImage(0, 0, qrImage.scaled(imageSize, imageSize));
     QFont font = GUIUtil::fixedPitchFont();
     QRect paddedRect = qrAddrImage.rect();
     qreal fontSize = GUIUtil::calculateIdealFontSize(paddedRect.width() - 20, caption, font);
     font.setPointSizeF(fontSize);
     painter.setFont(font);
-    paddedRect.setHeight(QR_IMAGE_SIZE + 36);
+    paddedRect.setHeight(imageSize + 36);
     painter.drawText(paddedRect, Qt::AlignBottom | Qt::AlignCenter, caption);
     painter.end();
 
@@ -189,7 +192,8 @@ void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, cons
     if (!qrError.isEmpty()) {
         qrCode->setText(qrError);
     } else {
-        qrCode->setPixmap(qrPixmap);
+        qrCode->setProperty("qrExportImage", qrPixmap);
+        qrCode->setPixmap(qrPixmap.scaled(370, 414, Qt::KeepAspectRatio, Qt::FastTransformation));
     }
     mainLayout->addWidget(qrCode);
 
@@ -202,6 +206,10 @@ void ShowChatkeyDialog(QWidget* parent, const PlatformStyle* platformStyle, cons
     html += QStringLiteral("<b>%1</b><br>").arg(QObject::tr("Chatkey information"));
     html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Label"), GUIUtil::HtmlEscape(label));
     html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Address"), GUIUtil::HtmlEscape(address));
+    smsg::PQMessagingPublicKey pqKey;
+    if (smsg::DecodePQChatKey(chatkey.toStdString(), pqKey)) {
+        html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("PQ fingerprint"), QString::fromStdString(pqKey.Fingerprint().GetHex()));
+    }
     html += QStringLiteral("<b>%1</b>: %2<br>").arg(QObject::tr("Chatkey"), GUIUtil::HtmlEscape(sharedChatkey));
     html += QStringLiteral("<b>%1</b>: <a href=\"%2\">%3</a>")
         .arg(QObject::tr("QR payload"), GUIUtil::HtmlEscape(payload), GUIUtil::HtmlEscape(payload));
@@ -474,6 +482,7 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
         }
     }
     if (type == LEGACY_RECEIVE && ui->allowMessaging->isChecked()) {
+        if (!ReceiveRequestDialog::preparePQChatkey(this, model, address)) return;
         const int rv = smsgModule.AddLocalAddress(address.toStdString());
         if (rv != smsg::SMSG_NO_ERROR) {
             QMessageBox::warning(this, tr("Enable Messaging"),
@@ -537,6 +546,7 @@ void ReceiveCoinsDialog::on_createChatkeyButton_clicked()
         return;
     }
 
+    if (!ReceiveRequestDialog::preparePQChatkey(this, model, address)) return;
     int rv = smsgModule.AddLocalAddress(address.toStdString());
     if (rv != smsg::SMSG_NO_ERROR) {
         QMessageBox::warning(this,
