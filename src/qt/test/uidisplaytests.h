@@ -12,6 +12,7 @@ class UIDisplayTests : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void saveFileDefaultDirectory();
     void confirmationBadges();
     void badgeRendering();
     void numericBondSorting();

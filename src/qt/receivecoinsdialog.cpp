@@ -470,7 +470,7 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
         if (filename.isEmpty()) return;
         if (!model->wallet().backupWallet(filename.toLocal8Bit().constData())) {
             QMessageBox::critical(this, tr("Backup failed"),
-                tr("The receiving key is saved in your wallet, but the backup failed. No payment request has been created."));
+                tr("The receiving key is saved in your wallet, but the backup failed. No payment request has been created. Choose a folder you can write to and try again."));
             return;
         }
     } else {

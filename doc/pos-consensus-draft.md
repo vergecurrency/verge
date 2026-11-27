@@ -926,6 +926,12 @@ the payment request. Canceling unlock, backup confirmation or the file picker,
 and failed key/backup operations never produce an empty or legacy fallback
 request. A generated but unshared PQ key remains in the wallet after backup
 cancellation. PQ addresses use the normal URI, QR and request-history flow.
+Backup save dialogs resolve suggested filenames under the user's Documents
+directory, falling back to the home directory if Documents is unavailable or
+not writable; they do not default to the application installation directory.
+An explicitly selected destination is preserved. OS privacy/security policies
+can still deny access; the user must select an allowed location and the backup
+must succeed before the payment request is shared.
 Chatkey creation remains a legacy-address operation; PQ and stealth selections
 disable and clear that option rather than claiming PQ secure messaging support.
 

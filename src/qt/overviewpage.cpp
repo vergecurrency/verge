@@ -345,7 +345,7 @@ void OverviewPage::migrateLegacyBalance()
         QStringLiteral("wallet-pq-backup.dat"), tr("Wallet Data (*.dat)"), nullptr);
     if (filename.isEmpty()) return;
     if (!wallet.backupWallet(filename.toLocal8Bit().constData())) {
-        QMessageBox::critical(this, tr("Backup failed"), tr("The wallet backup failed. The transfer has not been sent."));
+        QMessageBox::critical(this, tr("Backup failed"), tr("The wallet backup failed. The transfer has not been sent. Choose a folder you can write to and try again."));
         return;
     }
     if (!pending->commit({{"comment", "Legacy to PQ migration"}}, {}, {}, error)) {

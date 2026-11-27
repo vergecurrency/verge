@@ -83,12 +83,15 @@ namespace GUIUtil
 
     void setClipboard(const QString& str);
 
+    /** Resolve relative save names under Documents, falling back to the user's home. */
+    QString getDefaultSavePath(const QString& path);
+
     /** Get save filename, mimics QFileDialog::getSaveFileName, except that it appends a default suffix
         when no suffix is provided by the user.
 
       @param[in] parent  Parent window (or 0)
       @param[in] caption Window caption (or empty, for default)
-      @param[in] dir     Starting directory (or empty, to default to documents directory)
+      @param[in] dir     Starting path; empty or relative paths use the user's documents directory.
       @param[in] filter  Filter specification such as "Comma Separated Files (*.csv)"
       @param[out] selectedSuffixOut  Pointer to return the suffix (file type) that was selected (or 0).
                   Can be useful when choosing the save file format based on suffix.

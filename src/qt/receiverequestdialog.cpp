@@ -195,7 +195,7 @@ bool ReceiveRequestDialog::preparePQChatkey(QWidget* parent, WalletModel* model,
         QStringLiteral("wallet-pq-messaging.dat"), tr("Wallet Data (*.dat)"), nullptr);
     if (filename.isEmpty()) return false;
     if (!model->wallet().backupWallet(filename.toLocal8Bit().constData())) {
-        QMessageBox::critical(parent, tr("Backup failed"), tr("The keys are saved in the wallet, but the backup failed. The chatkey has not been displayed."));
+        QMessageBox::critical(parent, tr("Backup failed"), tr("The keys are saved in the wallet, but the backup failed. The chatkey has not been displayed. Choose a folder you can write to and try again."));
         return false;
     }
     return true;

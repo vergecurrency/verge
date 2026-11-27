@@ -417,24 +417,23 @@ QList<QModelIndex> getEntryData(QAbstractItemView *view, int column)
     return view->selectionModel()->selectedRows(column);
 }
 
+QString getDefaultSavePath(const QString& path)
+{
+    if (!path.isEmpty() && !QDir::isRelativePath(path)) return path;
+    QString directory = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    const QFileInfo documents(directory);
+    if (directory.isEmpty() || !documents.isDir() || !documents.isWritable()) {
+        directory = QDir::homePath();
+    }
+    return path.isEmpty() ? directory : QDir(directory).filePath(path);
+}
+
 QString getSaveFileName(QWidget *parent, const QString &caption, const QString &dir,
     const QString &filter,
     QString *selectedSuffixOut)
 {
     QString selectedFilter;
-    QString myDir;
-    if(dir.isEmpty()) // Default to user documents location
-    {
-#if QT_VERSION < 0x050000
-        myDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-#else
-        myDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-#endif
-    }
-    else
-    {
-        myDir = dir;
-    }
+    const QString myDir = getDefaultSavePath(dir);
     QString result;
     QFileDialog fileDialog(parent, caption, myDir, filter);
     fileDialog.setAcceptMode(QFileDialog::AcceptSave);

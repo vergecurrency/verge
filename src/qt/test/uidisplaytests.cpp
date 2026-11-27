@@ -7,6 +7,7 @@
 #endif
 
 #include <qt/test/uidisplaytests.h>
+#include <qt/guiutil.h>
 
 #include <qt/numerictablewidgetitem.h>
 #include <qt/transactionstatusdelegate.h>
@@ -43,11 +44,38 @@
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QTemporaryDir>
+#include <QDir>
+#include <QFileInfo>
+#include <QStandardPaths>
 #include <QTextEdit>
 #include <QStandardItemModel>
 
 #include <limits>
 #include <memory>
+
+void UIDisplayTests::saveFileDefaultDirectory()
+{
+    QTemporaryDir application_directory;
+    QVERIFY(application_directory.isValid());
+    struct RestoreDirectory {
+        QString previous{QDir::currentPath()};
+        ~RestoreDirectory() { QDir::setCurrent(previous); }
+    } restore;
+    QVERIFY(QDir::setCurrent(application_directory.path()));
+    QString expected = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    const QFileInfo documents(expected);
+    if (expected.isEmpty() || !documents.isDir() || !documents.isWritable()) expected = QDir::homePath();
+    QCOMPARE(GUIUtil::getDefaultSavePath(QString()), expected);
+    for (const QString& filename : {QStringLiteral("wallet-pq-backup.dat"), QStringLiteral("wallet-pq-messaging.dat")}) {
+        const QString path = GUIUtil::getDefaultSavePath(filename);
+        QVERIFY(QDir::isAbsolutePath(path));
+        QCOMPARE(QFileInfo(path).absolutePath(), QDir(expected).absolutePath());
+        QCOMPARE(QFileInfo(path).fileName(), filename);
+        QVERIFY(QFileInfo(path).absolutePath() != application_directory.path());
+    }
+    const QString explicit_path = application_directory.filePath("chosen-wallet.dat");
+    QCOMPARE(GUIUtil::getDefaultSavePath(explicit_path), explicit_path);
+}
 
 void UIDisplayTests::pqReceiveFlow()
 {
@@ -71,7 +99,7 @@ void UIDisplayTests::pqReceiveFlow()
     bool first_run = false;
     QVERIFY(wallet->LoadWallet(first_run) == DBErrors::LOAD_OK);
     {
-        // Production initialization creates keys before exposing an encryptable wallet.
+        // Keep this fixture classical to exercise migration to PQ receiving.
         LOCK(wallet->cs_wallet);
         WalletBatch batch(wallet->GetDBHandle());
         QVERIFY(wallet->GenerateNewKey(batch).IsValid());
@@ -133,6 +161,8 @@ void UIDisplayTests::pqReceiveFlow()
     dialogs.setInterval(10);
     bool save = false;
     bool cancel_file = false;
+    bool fail_backup = false;
+    bool saw_backup_failure = false;
     bool unexpected = false;
     int ticks = 0;
     const QString backup = temporary.path() + "/pq-backup.dat";
@@ -143,6 +173,12 @@ void UIDisplayTests::pqReceiveFlow()
             unexpected = true;
             if (auto* dialog = qobject_cast<QDialog*>(modal)) dialog->reject();
         } else if (auto* question = qobject_cast<QMessageBox*>(modal)) {
+            if (fail_backup && question->windowTitle() == "Backup failed") {
+                saw_backup_failure = true;
+                QVERIFY(question->text().contains("folder you can write to"));
+                question->accept();
+                return;
+            }
             auto* button = question->button(save ? QMessageBox::Save : QMessageBox::Cancel);
             if (button) button->click();
             else {
@@ -153,8 +189,14 @@ void UIDisplayTests::pqReceiveFlow()
         } else if (auto* file = qobject_cast<QFileDialog*>(modal)) {
             if (cancel_file) file->reject();
             else {
-                file->selectFile(backup);
-                static_cast<QDialog*>(file)->accept();
+                if (fail_backup) {
+                    // The backend must refuse a backup onto the live wallet without sharing a request.
+                    file->selectFile(QString::fromStdString((directory / "wallet.dat").string()));
+                    file->QDialog::done(QDialog::Accepted);
+                } else {
+                    file->selectFile(backup);
+                    static_cast<QDialog*>(file)->accept();
+                }
             }
         }
     });
@@ -174,6 +216,15 @@ void UIDisplayTests::pqReceiveFlow()
     QCOMPARE(history->rowCount({}), 0);
     QVERIFY(page.findChildren<ReceiveRequestDialog*>().isEmpty());
     cancel_file = false;
+    fail_backup = true;
+    ticks = 0;
+    QVERIFY(QMetaObject::invokeMethod(&page, "on_receiveButton_clicked", Qt::DirectConnection));
+    QVERIFY(!unexpected);
+    QVERIFY(saw_backup_failure);
+    QCOMPARE(history->rowCount({}), 0);
+    QVERIFY(page.findChildren<ReceiveRequestDialog*>().isEmpty());
+    QVERIFY(wallet->IsLocked());
+    fail_backup = false;
     ticks = 0;
     page.findChild<VERGEAmountField*>("ReceiveAmountField")->setValue(123 * COIN);
     QVERIFY(QMetaObject::invokeMethod(&page, "on_receiveButton_clicked", Qt::DirectConnection));
