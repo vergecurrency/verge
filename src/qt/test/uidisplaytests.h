@@ -18,6 +18,7 @@ private Q_SLOTS:
     void numericBondSorting();
     void pqOverviewBalances();
     void pqReceiveFlow();
+    void pqMigrationAddresses();
 };
 
 #endif // VERGE_QT_TEST_UIDISPLAYTESTS_H

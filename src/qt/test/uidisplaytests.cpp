@@ -26,7 +26,10 @@
 #include <chainparams.h>
 #include <key_io.h>
 #include <pos/pqcrypto.h>
+#include <script/pq.h>
 #include <validation.h>
+#include <clientversion.h>
+#include <streams.h>
 #include <test/setup_common.h>
 #include <wallet/wallet.h>
 
@@ -34,6 +37,7 @@
 #include <QImage>
 #include <QStandardItemModel>
 #include <QTableWidget>
+#include <QTableView>
 #include <QTest>
 #include <QLabel>
 #include <QPushButton>
@@ -265,6 +269,125 @@ void UIDisplayTests::pqReceiveFlow()
         const QString screenshots = qEnvironmentVariable("VERGE_QT_TEST_SCREENSHOTS");
         if (!screenshots.isEmpty()) QVERIFY(page.grab().save(screenshots + QString("/pq-receive-%1.png").arg(points)));
     }
+    wallet->GetDBHandle().Flush(true);
+}
+
+void UIDisplayTests::pqMigrationAddresses()
+{
+    if (!pos::experimental::MLDSA44Available()) QSKIP("ML-DSA-44 is unavailable");
+    const std::string network = Params().NetworkIDString();
+    BasicTestingSetup setup(CBaseChainParams::REGTEST);
+    struct RestoreNetwork {
+        std::string network;
+        ~RestoreNetwork() { SelectParams(network); }
+    } restore{network};
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const fs::path directory = fs::path(temporary.path().toStdString()) / "wallet";
+    fs::create_directories(directory);
+    auto wallet = std::make_shared<CWallet>("pq-migration-addresses", WalletDatabase::Create(directory));
+    bool first_run = false;
+    QVERIFY(wallet->LoadWallet(first_run) == DBErrors::LOAD_OK);
+    std::vector<CTxDestination> destinations;
+    for (int i = 0; i < 4; ++i) {
+        uint256 id;
+        QVERIFY(wallet->GeneratePQKey(id));
+        destinations.emplace_back(PQKeyHash(id));
+        QVERIFY(wallet->SetAddressBook(destinations.back(), "PQ migration", "receive"));
+    }
+    const auto address = [&](int i) { return QString::fromStdString(EncodeDestination(destinations[i])); };
+    const auto save_transaction = [&](const CTxDestination& destination, const std::string& comment, int nonce) {
+        CMutableTransaction tx;
+        tx.vin.emplace_back(COutPoint(uint256S("01"), nonce));
+        tx.vout.emplace_back(10 * COIN, GetScriptForDestination(destination));
+        CWalletTx wtx(wallet.get(), MakeTransactionRef(tx));
+        wtx.mapValue["comment"] = comment;
+        LOCK2(cs_main, wallet->cs_wallet);
+        return wallet->AddToWallet(wtx);
+    };
+    QVERIFY(save_transaction(destinations[0], "Legacy to PQ migration", 0));
+    QVERIFY(save_transaction(destinations[1], "Legacy to PQ migration", 1));
+    QVERIFY(save_transaction(destinations[2], "Ordinary payment", 2));
+    // A receive request already saved for a migration must not be duplicated.
+    RecentRequestEntry existing;
+    existing.id = 7;
+    existing.date = QDateTime::fromSecsSinceEpoch(1700000000);
+    existing.recipient = SendCoinsRecipient(address(1), "Previously saved", 0, "Keep this message");
+    CDataStream stream(SER_DISK, CLIENT_VERSION);
+    stream << existing;
+    QVERIFY(wallet->AddDestData(destinations[1], "rr7", stream.str()));
+
+    auto node = interfaces::MakeNode();
+    OptionsModel options(*node);
+    std::unique_ptr<const PlatformStyle> style(PlatformStyle::instantiate("other"));
+    {
+        WalletModel model(interfaces::MakeWallet(wallet), *node, style.get(), &options);
+        ReceiveCoinsDialog page(style.get());
+        page.setModel(&model);
+        auto* history = model.getRecentRequestsTableModel();
+        auto* table = page.findChild<QTableView*>("ReceiveHistoryTable");
+        QVERIFY(table && table->model() == history);
+        QCOMPARE(history->rowCount({}), 2);
+        const auto find_address = [&](const QString& wanted) {
+            for (int row = 0; row < history->rowCount({}); ++row) {
+                if (history->entry(row).recipient.address == wanted) return row;
+            }
+            return -1;
+        };
+        QVERIFY(find_address(address(0)) >= 0);
+        const int existing_row = find_address(address(1));
+        QVERIFY(existing_row >= 0);
+        QCOMPARE(history->entry(existing_row).recipient.message, QString("Keep this message"));
+        QCOMPARE(history->entry(existing_row).date, existing.date);
+        QCOMPARE(find_address(address(2)), -1); // Not a migration.
+        QCOMPARE(find_address(address(3)), -1); // Prepared key, but no submitted transaction.
+        const auto transactions = model.wallet().getLegacyPQMigrationTxs();
+        QCOMPARE(transactions.size(), size_t(2));
+        for (const auto& transaction : transactions) QVERIFY(history->addMigrationTransaction(transaction));
+        QCOMPARE(history->rowCount({}), 2);
+
+        QVERIFY(save_transaction(destinations[3], "Legacy to PQ migration", 3));
+        const auto submitted = model.wallet().getLegacyPQMigrationTxs();
+        for (const auto& transaction : submitted) QVERIFY(history->addMigrationTransaction(transaction));
+        QCOMPARE(history->rowCount({}), 3);
+        const int migration_row = find_address(address(3));
+        QVERIFY(migration_row >= 0);
+        QCOMPARE(history->entry(migration_row).recipient.label, QString("PQ migration"));
+        QCOMPARE(history->entry(migration_row).recipient.amount, CAmount(0));
+        for (const auto& transaction : submitted) {
+            if (transaction.txout_address.front() == destinations[3]) {
+                QCOMPARE(history->entry(migration_row).date, QDateTime::fromSecsSinceEpoch(transaction.time));
+            }
+        }
+        QVERIFY(model.wallet().isSpendable(destinations[3]));
+        QVERIFY(history->removeRows(migration_row, 1));
+        QCOMPARE(history->rowCount({}), 2);
+        for (const auto& transaction : submitted) QVERIFY(history->addMigrationTransaction(transaction));
+        QCOMPARE(history->rowCount({}), 2);
+        // Even a migration-tagged transaction must not publish a foreign destination.
+        CMutableTransaction foreign;
+        foreign.vout.emplace_back(COIN, GetPQScript(uint256S("abcd")));
+        interfaces::WalletTx unknown{};
+        unknown.tx = MakeTransactionRef(foreign);
+        unknown.value_map["comment"] = "Legacy to PQ migration";
+        QVERIFY(!history->addMigrationTransaction(unknown));
+        QVERIFY(!history->addMigrationTransaction({}));
+    }
+    // Checkpoint and close file handles without shutting down the process-wide environment.
+    wallet->GetDBHandle().Flush(false);
+    wallet.reset();
+    wallet = std::make_shared<CWallet>("pq-migration-addresses", WalletDatabase::Create(directory));
+    QVERIFY(wallet->LoadWallet(first_run) == DBErrors::LOAD_OK);
+    QVERIFY(!first_run);
+    WalletModel reopened(interfaces::MakeWallet(wallet), *node, style.get(), &options);
+    auto* history = reopened.getRecentRequestsTableModel();
+    QCOMPARE(history->rowCount({}), 2);
+    for (int row = 0; row < history->rowCount({}); ++row) {
+        const QString saved = history->entry(row).recipient.address;
+        QVERIFY(saved == address(0) || saved == address(1));
+    }
+    QVERIFY(reopened.wallet().isSpendable(destinations[0]));
+    QVERIFY(reopened.wallet().isSpendable(destinations[3]));
     wallet->GetDBHandle().Flush(true);
 }
 

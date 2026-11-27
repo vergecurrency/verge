@@ -10,6 +10,8 @@
 #include <qt/optionsmodel.h>
 #include <clientversion.h>
 #include <streams.h>
+#include <interfaces/wallet.h>
+#include <key_io.h>
 #include <QLatin1Char>	
 #include <QLatin1String>
 #include <algorithm>
@@ -28,6 +30,16 @@ RecentRequestsTableModel::RecentRequestsTableModel(WalletModel *parent) :
 
     /* These columns must match the indices in the ColumnIndex enumeration */
     columns << tr("Date") << tr("Label") << tr("Message") << getAmountTitle();
+
+    for (const auto& address : parent->wallet().getDestValues("pqMigrationRequest")) {
+        const CTxDestination destination = DecodeDestination(address);
+        if (boost::get<PQKeyHash>(&destination)) {
+            recordedMigrations.insert(QString::fromStdString(EncodeDestination(destination)));
+        }
+    }
+    for (const auto& transaction : parent->wallet().getLegacyPQMigrationTxs()) {
+        addMigrationTransaction(transaction);
+    }
 
     connect(walletModel->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
 }
@@ -215,6 +227,43 @@ void RecentRequestsTableModel::addNewRequest(RecentRequestEntry &recipient)
     beginInsertRows(QModelIndex(), 0, 0);
     list.prepend(recipient);
     endInsertRows();
+}
+
+bool RecentRequestsTableModel::addMigrationTransaction(const interfaces::WalletTx& transaction)
+{
+    const auto comment = transaction.value_map.find("comment");
+    if (!transaction.tx || transaction.tx->vout.size() != 1 ||
+        comment == transaction.value_map.end() || comment->second != "Legacy to PQ migration") return false;
+
+    CTxDestination destination;
+    if (!ExtractDestination(transaction.tx->vout.front().scriptPubKey, destination) ||
+        !boost::get<PQKeyHash>(&destination)) return false;
+    std::string label, purpose;
+    isminetype mine = ISMINE_NO;
+    if (!walletModel->wallet().getAddress(destination, &label, &mine, &purpose) ||
+        !(mine & ISMINE_SPENDABLE) || purpose != "receive") return false;
+
+    const QString address = QString::fromStdString(EncodeDestination(destination));
+    if (recordedMigrations.contains(address)) return true;
+
+    const bool listed = std::any_of(list.begin(), list.end(), [&](const RecentRequestEntry& entry) {
+        return DecodeDestination(entry.recipient.address.toStdString()) == destination;
+    });
+    if (!listed) {
+        RecentRequestEntry entry;
+        entry.id = ++nReceiveRequestsMaxId;
+        entry.date = QDateTime::fromSecsSinceEpoch(transaction.time);
+        entry.recipient = SendCoinsRecipient(address, QString::fromStdString(label), 0, QString());
+        CDataStream stream(SER_DISK, CLIENT_VERSION);
+        stream << entry;
+        if (!walletModel->saveReceiveRequest(address.toStdString(), entry.id, stream.str())) return false;
+        addNewRequest(entry);
+    }
+
+    // Keep this marker when a request is removed so startup repair respects that choice.
+    if (!walletModel->wallet().addDestData(destination, "pqMigrationRequest", address.toStdString())) return false;
+    recordedMigrations.insert(address);
+    return true;
 }
 
 bool RecentRequestsTableModel::updateLabel(int row, const QString& label)

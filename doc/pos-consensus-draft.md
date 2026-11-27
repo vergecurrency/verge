@@ -878,6 +878,11 @@ migration still needs confirmation; normal reorganization and finality rules
 apply before treating its legacy inputs as safely replaced by PQ outputs.
 Backups taken here do not cover PQ keys generated later.
 
+Submitted migration destinations appear in the Qt Addresses tab with the label
+saved in the receiving-address book. Missing entries are recovered from wallet
+migration transactions on load without moving funds or creating replacement keys.
+Removing an address-list entry does not remove its private key or balance.
+
 Take a new complete wallet backup after new PQ keys are created; a prior
 backup does not contain later independently generated keys. Restore on a
 separate node or with the original wallet offline: Berkeley DB deliberately

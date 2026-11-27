@@ -11,6 +11,7 @@
 #include <QAbstractTableModel>
 #include <QStringList>
 #include <QDateTime>
+#include <QSet>
 
 class RecentRequestEntry
 {
@@ -86,6 +87,7 @@ public:
     void addNewRequest(const SendCoinsRecipient &recipient);
     void addNewRequest(const std::string &recipient);
     void addNewRequest(RecentRequestEntry &recipient);
+    bool addMigrationTransaction(const interfaces::WalletTx& transaction);
     bool updateLabel(int row, const QString& label);
 
 public Q_SLOTS:
@@ -97,6 +99,7 @@ private:
     QStringList columns;
     QList<RecentRequestEntry> list;
     int64_t nReceiveRequestsMaxId;
+    QSet<QString> recordedMigrations;
 
     /** Updates the column title to "Amount (DisplayUnit)" and emits headerDataChanged() signal for table headers to react. */
     void updateAmountColumnTitle();

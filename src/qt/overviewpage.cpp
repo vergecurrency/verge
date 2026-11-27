@@ -12,6 +12,7 @@
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
+#include <qt/recentrequeststablemodel.h>
 #include <qt/sendcoinsdialog.h>
 #include <qt/transactionfilterproxy.h>
 #include <qt/transactionstatusdelegate.h>
@@ -352,10 +353,15 @@ void OverviewPage::migrateLegacyBalance()
         QMessageBox::critical(this, tr("PQ transfer not broadcast"),
             tr("The transfer was not accepted: %1\nReview Transactions before retrying.").arg(QString::fromStdString(error)));
     } else {
-        QMessageBox::information(this, tr("PQ transfer submitted"),
-            tr("%1 submitted to your PQ address. Waiting for confirmation.\nTransaction: %2")
-                .arg(VERGEUnits::formatWithUnit(unit, migration.amount),
-                     QString::fromStdString(pending->get().GetHash().GetHex())));
+        const uint256 txid = pending->get().GetHash();
+        auto* requests = walletModel->getRecentRequestsTableModel();
+        const bool listed = requests && requests->addMigrationTransaction(wallet.getWalletTx(txid));
+        QString message = tr("%1 submitted to your PQ address. Waiting for confirmation.\nTransaction: %2")
+            .arg(VERGEUnits::formatWithUnit(unit, migration.amount), QString::fromStdString(txid.GetHex()));
+        if (!listed) {
+            message += tr("\nThe transfer was submitted, but its address-list entry could not be saved. Your receiving key remains in this wallet. Do not repeat the transfer to repair the list.");
+        }
+        QMessageBox::information(this, tr("PQ transfer submitted"), message);
     }
     setBalance(wallet.getBalances());
 }

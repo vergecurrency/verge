@@ -418,6 +418,18 @@ public:
         }
         return result;
     }
+    std::vector<WalletTx> getLegacyPQMigrationTxs() override
+    {
+        LOCK2(::cs_main, m_wallet.cs_wallet);
+        std::vector<WalletTx> result;
+        for (const auto& entry : m_wallet.mapWallet) {
+            const auto comment = entry.second.mapValue.find("comment");
+            if (comment != entry.second.mapValue.end() && comment->second == "Legacy to PQ migration") {
+                result.emplace_back(MakeWalletTx(m_wallet, entry.second));
+            }
+        }
+        return result;
+    }
     bool tryGetTxStatus(const uint256& txid,
         interfaces::WalletTxStatus& tx_status,
         int& num_blocks,

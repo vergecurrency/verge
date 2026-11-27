@@ -308,6 +308,9 @@ public:
 
     //! Persist a new, network-gated PQ receiving key and address-book entry.
     virtual bool createPQReceiveAddress(const std::string& label, std::string& address, std::string& error) = 0;
+
+    //! Get committed legacy-to-PQ transfers without copying unrelated transactions.
+    virtual std::vector<WalletTx> getLegacyPQMigrationTxs() = 0;
 };
 
 //! Tracking object returned by CreateTransaction and passed to CommitTransaction.
