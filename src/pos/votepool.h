@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <set>
 #include <vector>
@@ -45,7 +46,8 @@ public:
                        VoteEquivocationEvidence* detected = nullptr);
     bool Get(const uint256& hash, CheckpointVote& vote) const;
     bool Exists(const uint256& hash) const;
-    std::vector<CheckpointVote> GetVotes(size_t maximum) const;
+    std::vector<CheckpointVote> GetVotes(size_t maximum,
+        const std::function<bool(const CheckpointVote&)>& usable = {}) const;
     void Remove(const uint256& hash);
     void RemoveObsolete(const State& state);
     void Prune(uint64_t current_epoch);

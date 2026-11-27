@@ -503,8 +503,45 @@ BOOST_AUTO_TEST_CASE(checkpoint_link_does_not_require_orphan_headers)
     vote.head_block_root = checkpoint.GetHash();
     BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
                 pos::ValidationError::NONE);
+    const uint256 checkpoint_hash = checkpoint.GetHash();
+    CBlockIndex known(checkpoint);
+    known.phashBlock = &checkpoint_hash;
+    known.nHeight = params.nPoSActivationHeight;
+    known.nStatus = BLOCK_VALID_SCRIPTS | BLOCK_VALID_POS;
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, &known, 102, params) ==
+                pos::ValidationError::NONE);
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, nullptr, 102, params) ==
+                pos::ValidationError::VOTE_HEAD);
     vote.head_slot = 101;
     BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==
+                pos::ValidationError::VOTE_HEAD);
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, &known, 102, params) ==
+                pos::ValidationError::VOTE_HEAD);
+    // Known side-branch heads are allowed; they need not be on the active chain.
+    CBlockIndex orphan;
+    const uint256 orphan_hash = uint256S("03");
+    orphan.phashBlock = &orphan_hash;
+    orphan.nHeight = known.nHeight + 1;
+    orphan.pprev = &known;
+    orphan.nVersion = pos::BLOCK_VERSION_POS | 2;
+    orphan.nTime = 3030;
+    orphan.nStatus = BLOCK_VALID_SCRIPTS | BLOCK_VALID_POS;
+    vote.head_block_root = orphan_hash;
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, &orphan, 102, params) ==
+                pos::ValidationError::NONE);
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, &orphan, 100, params) ==
+                pos::ValidationError::VOTE_HEAD);
+    const uint256 unrelated = uint256S("9a");
+    known.phashBlock = &unrelated;
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, &orphan, 102, params) ==
+                pos::ValidationError::VOTE_HEAD);
+    known.phashBlock = &checkpoint_hash;
+    vote.head_slot = 102;
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, &orphan, 102, params) ==
+                pos::ValidationError::VOTE_HEAD);
+    vote.head_slot = 101;
+    orphan.nStatus &= ~BLOCK_VALID_POS;
+    BOOST_CHECK(pos::CheckKnownVoteHead(vote, state, &orphan, 102, params) ==
                 pos::ValidationError::VOTE_HEAD);
     vote.target_checkpoint_root = uint256S("04");
     BOOST_CHECK(pos::CheckVoteHead(vote, state, 102) ==

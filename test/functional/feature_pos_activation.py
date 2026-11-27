@@ -91,10 +91,12 @@ class PoSActivationTest(VergeTestFramework):
         return vote
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         node = self.nodes[0]
         observer = self.nodes[1]
         activation = self.activation_height
-        mining_address = node.getnewaddress()
+        mining_address = node.getnewaddress("mining", "legacy")
 
         self.mine_blocks(node, 721, mining_address)
         bond = node.createbond(1000)

@@ -300,6 +300,28 @@ function Install-OpenSSL {
         Expand-ArchiveAny $archive $extractRoot
     }
     Push-Location $sourceRoot
+    if ($Version -eq "4.0.3") {
+        $patchRoot = Join-Path $PSScriptRoot "../../depends/patches/openssl"
+          $previousCeiling = $env:GIT_CEILING_DIRECTORIES
+          try {
+              # Do not let git apply treat archive paths as paths in the parent checkout.
+              $env:GIT_CEILING_DIRECTORIES = $extractRoot
+              foreach ($number in 1..12) {
+                  $patch = (Resolve-Path (Join-Path $patchRoot ("security-202611-{0:D2}.patch" -f $number))).Path
+                  $previousPreference = $ErrorActionPreference
+                  try {
+                      $ErrorActionPreference = 'Continue'
+                      & git apply --reverse --check -- $patch 2>$null
+                      $alreadyApplied = $LASTEXITCODE -eq 0
+                  } finally { $ErrorActionPreference = $previousPreference }
+                  if ($alreadyApplied) { continue }
+                  & git apply --check -- $patch
+                  if ($LASTEXITCODE -ne 0) { throw "OpenSSL security patch check failed: $patch" }
+                  & git apply -- $patch
+                  if ($LASTEXITCODE -ne 0) { throw "OpenSSL security patch failed: $patch" }
+              }
+          } finally { $env:GIT_CEILING_DIRECTORIES = $previousCeiling }
+    }
     perl Configure VC-WIN64A no-shared "--prefix=$InstallRoot" "--openssldir=$InstallRoot\ssl"
     if ($LASTEXITCODE -ne 0) {
         throw "OpenSSL configure failed"

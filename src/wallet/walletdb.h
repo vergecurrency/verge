@@ -283,6 +283,8 @@ public:
     bool ReadPool(int64_t nPool, CKeyPool& keypool);
     bool WritePool(int64_t nPool, const CKeyPool& keypool);
     bool ErasePool(int64_t nPool);
+    bool WritePQPool(const uint256& id, bool backed_up);
+    bool ErasePQPool(const uint256& id);
 
     bool WriteMinVersion(int nVersion);
 

@@ -36,10 +36,12 @@ class PoSTransitionTest(PoSActivationTest):
         return self.extra_args[0] + ["-mocktime={}".format(self.timestamp)] + list(extra)
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         first, second = self.nodes
-        address = first.getnewaddress()
+        address = first.getnewaddress("mining", "legacy")
         self.mine_blocks(first, 721, address)
-        self.mine_blocks(second, 720, second.getnewaddress())
+        self.mine_blocks(second, 720, second.getnewaddress("mining", "legacy"))
         first_bond = first.createbond(1500)
         second_bond = second.createbond(1000)
         first.sendrawtransaction(second.getrawtransaction(second_bond["txid"]))
@@ -47,7 +49,7 @@ class PoSTransitionTest(PoSActivationTest):
         self.mine_blocks(first, self.activation_height - 2 - 1441, address)
         self.isolate()
         pow_a = first.generatetoaddress(1, address)[0]
-        pow_b = second.generatetoaddress(1, second.getnewaddress())[0]
+        pow_b = second.generatetoaddress(1, second.getnewaddress("mining", "legacy"))[0]
         assert pow_a != pow_b
         self.timestamp = max(first.getblockheader(pow_a)["time"],
                              second.getblockheader(pow_b)["time"]) // 30 * 30

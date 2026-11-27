@@ -90,8 +90,10 @@ class PoSCrashRecoveryTest(VergeTestFramework):
                      source.gettxoutsetinfo()["hash_serialized_2"])
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         source, recovered = self.nodes
-        address = source.getnewaddress()
+        address = source.getnewaddress("mining", "legacy")
         self.mine(source, 721, address)
         source.createbond(1000)
         self.mine(source, 778, address)

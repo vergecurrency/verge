@@ -876,15 +876,29 @@ Readiness and the exact selected inputs are checked again before commit, so
 concurrent staking/spending cannot silently substitute other inputs. A submitted
 migration still needs confirmation; normal reorganization and finality rules
 apply before treating its legacy inputs as safely replaced by PQ outputs.
-Backups taken here do not cover PQ keys generated later.
+Backups taken here cover the unused internal PQ key pool present at that time,
+but not independently generated receiving keys created later.
 
 Submitted migration destinations appear in the Qt Addresses tab with the label
 saved in the receiving-address book. Missing entries are recovered from wallet
 migration transactions on load without moving funds or creating replacement keys.
 Removing an address-list entry does not remove its private key or balance.
 
-Take a new complete wallet backup after new PQ keys are created; a prior
-backup does not contain later independently generated keys. Restore on a
+Automatic PQ change and bond signing, reward and withdrawal credentials use a
+pre-generated internal pool, replenished to 1,000 keys by a complete wallet
+backup while unlocked. Newly generated pool entries remain unavailable until
+the full backup succeeds. Consumption is persisted before broadcast; canceled
+transaction reservations are returned, and wallet rescans remove used keys
+from a restored pool. Existing PQ keys remain usable without replacement.
+If backed-up keys are exhausted, automatic key allocation stops and requests
+an unlocked full backup rather than sending funds to an unbacked key.
+`getwalletinfo` reports `pq_internal_keypool_size`, `pq_backed_up_internal_keys`
+and `pq_backup_required`. A backup made while locked preserves existing keys
+but cannot replenish the pool. This pool does not replace the signing-safety
+journal or make concurrently running copies safe.
+
+Take a new complete wallet backup after new receiving PQ keys are created; a
+prior backup does not contain later independently generated keys. Restore on a
 separate node or with the original wallet offline: Berkeley DB deliberately
 rejects loading the original and its copied internal file ID in one process.
 Never run copies of active staking credentials simultaneously. The script
@@ -1162,7 +1176,7 @@ PoS-only consensus requires protection against old keys constructing alternate h
 - an unbonding or eligibility-lock period;
 - weak-subjectivity checkpoints for new or long-offline nodes; and
 - explicit bootstrap behavior for assume-valid and snapshots.
-Official releases must embed a recent finalized checkpoint for public networks as soon as post-activation finality exists, and subsequent releases must keep it current. A node can configure the exact trusted height and block hash with `-postrustedcheckpoint=<height>:<hash>`; startup rejects malformed values or heights before activation, verifies that a reached checkpoint is on the active chain and consistent with any local finality that has advanced past it, and warns when the chain advances one unbonding window without any trusted checkpoint. Consensus rejects a different block at that height and every descendant whose ancestor does not match it. A node that has been offline longer than the 20,160-block unbonding period must obtain a newer release or configure a current trusted checkpoint. Peer majority alone cannot establish a weak-subjectivity root.
+Official releases must embed a recent finalized checkpoint for public networks as soon as post-activation finality exists, and subsequent releases must keep it current. A node can configure the exact trusted height and block hash with `-postrustedcheckpoint=<height>:<hash>`; startup rejects malformed values or heights before activation, verifies that a reached checkpoint is on the active chain and consistent with any local finality that has advanced past it, and warns when the chain advances one unbonding window without any trusted checkpoint or beyond a configured checkpoint. Checkpoint age controls warnings and the `getposinfo` refresh recommendation, not block validity or fork choice. Consensus rejects a different block at that height and every descendant whose ancestor does not match it. A node that has been offline longer than the 20,160-block unbonding period must obtain a newer release or configure a current trusted checkpoint. Peer majority alone cannot establish a weak-subjectivity root.
 
 After activation, the legacy fixed-depth reorganization limit does not select the chain. Reorganizations may affect any unfinalized block according to stake-weighted fork choice, but no ordinary fork may replace or precede the latest finalized checkpoint.
 
@@ -1357,13 +1371,16 @@ understand votes.
 
 Nodes admit independently relayed votes only after structural validation,
 required-snapshot selection, bond membership and eligibility-lock checks,
-known source and target checkpoint checks, a fully validated known head, and
+known source and target checkpoint checks, a fully validated known head with a
+matching signed slot, ancestry through the target checkpoint and no future slot, and
 mode-appropriate signature verification (both Schnorr and ML-DSA in hybrid mode). A per-peer token bucket allows a burst of 256
 votes and refills 64 votes per minute. Invalid structure, signatures, or wire
 sizes increase peer misbehavior; stale or temporarily unknown chain-context
 votes are ignored without punishment. Exhausting processing credits also drops
 votes without increasing misbehavior: an honest peer may relay many validators'
 votes at once. The CPU budget and malformed-message penalties remain in force.
+Producers filter pooled votes against the selected branch before applying the
+per-block inclusion limit, so unusable entries do not consume inclusion capacity.
 
 The non-consensus vote pool stores at most 4,096 votes and 2 MiB of serialized
 vote data, retains one latest vote per bond, and expires votes more than three

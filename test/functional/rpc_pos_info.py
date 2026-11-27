@@ -5,6 +5,8 @@
 
 """Check PoS RPC credential counts against active PQ bond destinations."""
 
+from pathlib import Path
+
 from test_framework.test_framework import VergeTestFramework
 from test_framework.util import assert_equal
 
@@ -30,11 +32,16 @@ class PoSInfoTest(VergeTestFramework):
         node = self.nodes[0]
         node.setstaking(False)
         self.check_counts(0, 0, 0)
+        trusted = node.getposinfo()["trusted_checkpoint"]
+        assert_equal(trusted["configured"], False)
+        assert_equal(trusted["refresh_recommended"], False)
+        assert_equal(trusted["maximum_age_blocks"], 20160)
         mining = node.getnewaddress("mining", "legacy")
         for count in [100] * 7 + [31]:
             node.generatetoaddress(count, mining)
 
         self.log.info("Count full PQ IDs and deduplicate each owner credential separately")
+        node.backupwallet(str(Path(node.datadir) / "pq-internal-backup.dat"))
         bonds = [node.createbond(2000) for _ in range(2)]
         bonds.append(node.createbond(
             2000, bonds[1]["reward_address"], bonds[0]["withdrawal_address"]))
@@ -57,6 +64,14 @@ class PoSInfoTest(VergeTestFramework):
         self.check_counts(3, 2, 2)
 
         self.log.info("Unbonded credentials stop contributing to active-bond counts")
+        checkpoint = node.getbestblockhash()
+        self.restart_node(0, self.extra_args[0] + [
+            "-mocktime={}".format(self.timestamp),
+            "-postrustedcheckpoint=1500:" + checkpoint])
+        trusted = node.getposinfo()["trusted_checkpoint"]
+        assert_equal(trusted["configured"], True)
+        assert_equal(trusted["age_blocks"], 0)
+        assert_equal(trusted["refresh_recommended"], False)
         node.unbond(bonds[0]["txid"], bonds[0]["vout"])
         self.stake()
         self.check_counts(2, 1, 2)

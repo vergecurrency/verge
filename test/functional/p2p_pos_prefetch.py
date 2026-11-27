@@ -162,8 +162,10 @@ class PoSPrefetchTest(VergeTestFramework):
         return text in (Path(node.datadir) / "regtest" / "debug.log").read_text(encoding="utf-8")
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         producer, observer, legacy, direct = self.nodes
-        address = producer.getnewaddress()
+        address = producer.getnewaddress("mining", "legacy")
         for _ in range(7):
             producer.generatetoaddress(100, address)
         producer.generatetoaddress(21, address)

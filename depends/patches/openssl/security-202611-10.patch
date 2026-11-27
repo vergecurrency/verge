@@ -1,0 +1,89 @@
+From c94e74a0d6273109ac86ad98ce42354c60499d1d Mon Sep 17 00:00:00 2001
+From: Alexandr Nedvedicky <sashan@openssl.org>
+Date: Wed, 4 Nov 2026 23:56:33 +0100
+Subject: [PATCH] CVE-2026-107494 QUIC: follow up on unbounded
+ RETIRE_CONNECTION_ID backlog (memory DoS)
+
+The earlier fix for CVE-2026-84784 was not complete.  The QUIC stack
+must ignore NEW_CONNECTION_ID frames which are retransmissions.
+Handling retransmission of NEW_CONNECTION_ID frame as the original
+received earlier enables remote peer to queue unlimitted number
+of RETIRE_CONNECTION_ID frames to control frame queue.
+
+Ignore the retransmissions by returning early
+from ossl_quic_channel_on_new_conn_id() on NEW_CONNECTION_ID frames
+with the same sequence number.
+
+Fixes: CVE-2026-107494
+Fixes: eff046524b97 "Add minimal handling of NEW_CONNECTION_ID frames"
+Complements: 73f897a7e9f0 "CVE-2026-84784 QUIC: unbounded RETIRE_CONNECTION_ID backlog (memory DoS)"
+Reviewed-by: Neil Horman <nhorman@openssl.org>
+Reviewed-by: Bob Beck <beck@openssl.org>
+Reviewed-by: Eugene Syromiatnikov <esyr@openssl.org>
+Merge-date: Sun Nov 22 17:41:20 2026
+Merged-from: https://github.com/openssl/openssl/pull/33544
+(cherry picked from commit d6e61952799396d42c73072eaf71e722df9940e4)
+---
+ include/internal/quic_channel.h |  8 ++++++++
+ ssl/quic/quic_channel.c         | 12 ++++++++++++
+ ssl/quic/quic_channel_local.h   |  1 +
+ 3 files changed, 21 insertions(+)
+
+diff --git a/include/internal/quic_channel.h b/include/internal/quic_channel.h
+index ac4f8f463b2e2..8eac41fcc7794 100644
+--- a/include/internal/quic_channel.h
++++ b/include/internal/quic_channel.h
+@@ -477,6 +477,14 @@ void ossl_quic_channel_set_tcause(QUIC_CHANNEL *ch, uint64_t app_error_code,
+ void ossl_ch_reset_rx_state(QUIC_CHANNEL *ch);
+ uint64_t ossl_quic_channel_get_path_challenge_count(const QUIC_CHANNEL *ch);
+ uint64_t ossl_quic_channel_get_path_response_count(const QUIC_CHANNEL *ch);
++/**
++ * ossl_quic_channel_get_on_new_conn_id_handled() is just for testing purposes
++ * @param ch pointer to channel
++ * @returns number of NEW_CONNECTION_ID frames handled. Handling means
++ * how many RETIRE_CONN_ID frames we dispatched on behalf of reception
++ * of NEW_CONNECTION_ID.
++ */
++uint64_t ossl_quic_channel_get_on_new_conn_id_handled(const QUIC_CHANNEL *ch);
+ #endif
+ 
+ #endif
+diff --git a/ssl/quic/quic_channel.c b/ssl/quic/quic_channel.c
+index ad28b0269c7ab..6650bbd076f4d 100644
+--- a/ssl/quic/quic_channel.c
++++ b/ssl/quic/quic_channel.c
+@@ -3428,6 +3428,13 @@ void ossl_quic_channel_on_new_conn_id(QUIC_CHANNEL *ch,
+         return;
+     }
+ 
++    /*
++     * do nothing if dealing with older NEW_CONN_ID frame or retransmission.
++     */
++    if (new_remote_seq_num == ch->cur_remote_seq_num)
++        return;
++    ch->on_new_conn_id_handled++;
++
+     if (new_remote_seq_num > ch->cur_remote_seq_num) {
+         /* Add new stateless reset token */
+         if (!ossl_quic_srtm_add(ch->srtm, ch, new_remote_seq_num,
+@@ -4171,3 +4178,8 @@ uint64_t ossl_quic_channel_get_path_response_count(const QUIC_CHANNEL *ch)
+ {
+     return ch->path_response_tx;
+ }
++
++uint64_t ossl_quic_channel_get_on_new_conn_id_handled(const QUIC_CHANNEL *ch)
++{
++    return ch->on_new_conn_id_handled;
++}
+diff --git a/ssl/quic/quic_channel_local.h b/ssl/quic/quic_channel_local.h
+index 385dbfb2c4096..d7b02378f3896 100644
+--- a/ssl/quic/quic_channel_local.h
++++ b/ssl/quic/quic_channel_local.h
+@@ -516,6 +516,7 @@ struct quic_channel_st {
+     unsigned int path_challenge_rx;
+     /* number of path response frames sent */
+     unsigned int path_response_tx;
++    uint64_t on_new_conn_id_handled;
+ };
+ 
+ #endif

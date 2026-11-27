@@ -280,17 +280,17 @@ bool TryStakeBlock(CWallet& wallet, uint256& block_hash, std::string& error,
         }
 
         pos::GetVotePool().Prune(slot.epoch);
-        for (const pos::CheckpointVote& vote :
-             pos::GetVotePool().GetVotes(pos::MaximumVotesForVersion(params.fPoSPostQuantum ? 2 : 1))) {
-            if (pos::CheckCheckpointVote(
-                    vote, state, params.nPoSSnapshotDelayEpochs, slot.epoch,
-                    tip->nHeight + 1, params.nPoSNetworkId) == pos::ValidationError::NONE &&
-                pos::CheckVoteHead(vote, state, slot.global_slot) ==
+        votes = pos::GetVotePool().GetVotes(
+            pos::MaximumVotesForVersion(params.fPoSPostQuantum ? 2 : 1),
+            [&](const pos::CheckpointVote& vote) {
+                return pos::CheckVoteHead(vote, state, slot.global_slot) ==
                     pos::ValidationError::NONE &&
-                pos::FindVoteHead(vote, tip, params) != nullptr) {
-                votes.push_back(vote);
-            }
-        }
+                    pos::FindVoteHead(vote, tip, params) != nullptr &&
+                    pos::CheckCheckpointVote(vote, state,
+                        params.nPoSSnapshotDelayEpochs, slot.epoch,
+                        tip->nHeight + 1, params.nPoSNetworkId) ==
+                            pos::ValidationError::NONE;
+            });
         for (const pos::VoteEquivocationEvidence& evidence :
              pos::GetVoteEvidencePool().GetEvidence(
                  pos::MAX_EVIDENCE_PER_BLOCK)) {
@@ -528,6 +528,10 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         return false;
     }
 
+    if (params.fPoSPostQuantum && wallet.GetPQKeyPoolSize(true) < 3) {
+        error = "PQ internal key pool needs a backup: unlock the wallet and save a new complete wallet backup before bonding";
+        return false;
+    }
     WalletBatch batch(wallet.GetDBHandle());
     const CPubKey staking_pubkey = wallet.GenerateNewKey(batch);
     CKey staking_key;
@@ -546,11 +550,13 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         error = "failed to derive delegated staking credentials";
         return false;
     }
+    CReserveKey pq_signing(&wallet), pq_reward(&wallet), pq_withdrawal(&wallet);
     if (params.fPoSPostQuantum) {
         bond.version = 2;
-        if (!wallet.GeneratePQKey(bond.pq_signing_key_id) || !wallet.GeneratePQKey(bond.pq_reward_key_id) ||
-            !wallet.GeneratePQKey(bond.pq_withdrawal_key_id)) {
-            error = "unable to persist post-quantum bond credentials";
+        if (!pq_signing.GetReservedPQKey(bond.pq_signing_key_id) ||
+            !pq_reward.GetReservedPQKey(bond.pq_reward_key_id) ||
+            !pq_withdrawal.GetReservedPQKey(bond.pq_withdrawal_key_id)) {
+            error = "PQ internal key pool needs a backup before bonding";
             return false;
         }
         wallet.SetAddressBook(PQKeyHash(bond.pq_reward_key_id), "staking rewards", "receive");
@@ -600,6 +606,9 @@ bool EnsureAutomaticStakeBond(CWallet& wallet, uint256& txid,
         amount = 0;
         return false;
     }
+    pq_signing.KeepKey();
+    pq_reward.KeepKey();
+    pq_withdrawal.KeepKey();
     if (!wallet.CommitTransaction(tx, std::move(metadata), {}, "", change_key,
                                   g_connman.get(), validation_state) ||
         !validation_state.IsValid()) {

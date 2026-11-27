@@ -75,6 +75,8 @@ class PostQuantumTest(VergeTestFramework):
     def exercise_multisig(self, mining, destination, post_activation):
         producer, owner, observer = self.nodes
         cosigners = [node.getnewpqaddress("multisig cosigner") for node in self.nodes]
+        for i, node in enumerate(self.nodes):
+            node.backupwallet(str(Path(node.datadir) / "pq-backup-{}.dat".format(i)))
         policy = producer.createpqmultisig(2, cosigners)
         assert_equal(producer.createpqmultisig(2, cosigners[::-1]), policy)
         for node in self.nodes:
@@ -143,6 +145,8 @@ class PostQuantumTest(VergeTestFramework):
         mining = producer.getnewaddress("mining", "legacy")
         recipient = owner.getnewpqaddress("PQ incoming")
         destination = producer.getnewpqaddress("PQ return")
+        for i, node in enumerate(self.nodes):
+            node.backupwallet(str(Path(node.datadir) / "pq-initial-backup-{}.dat".format(i)))
         assert_equal(owner.getaddressinfo(recipient)["ispostquantum"], True)
         assert_equal(owner.getaddressinfo(recipient)["ismine"], True)
         damaged = recipient[:-1] + ("q" if recipient[-1] != "q" else "p")

@@ -286,6 +286,23 @@ ValidationError CheckVoteHead(const CheckpointVote& vote, const State& state,
     return ValidationError::NONE;
 }
 
+ValidationError CheckKnownVoteHead(const CheckpointVote& vote, const State& state,
+                                   const CBlockIndex* head, uint64_t maximum_slot,
+                                   const Consensus::Params& params)
+{
+    const auto error = CheckVoteHead(vote, state, maximum_slot);
+    if (error != ValidationError::NONE) return error;
+    if (head == nullptr || !head->IsValid(BLOCK_VALID_SCRIPTS) ||
+        !(head->nStatus & BLOCK_VALID_POS) ||
+        FindVoteHead(vote, head, params) != head) return ValidationError::VOTE_HEAD;
+    const Checkpoint* target = state.FindCheckpoint(vote.target_epoch);
+    CheckpointVote target_head;
+    target_head.head_block_root = target->root;
+    target_head.head_slot = target->slot;
+    if (FindVoteHead(target_head, head, params) == nullptr) return ValidationError::VOTE_HEAD;
+    return ValidationError::NONE;
+}
+
 const CBlockIndex* FindVoteHead(const CheckpointVote& vote,
                                const CBlockIndex* tip,
                                const Consensus::Params& params)

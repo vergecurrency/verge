@@ -1,0 +1,114 @@
+From 9a812981b927c5714b7c2e5d138618105cea2152 Mon Sep 17 00:00:00 2001
+From: Daniel Kubec <kubec@openssl.foundation>
+Date: Tue, 10 Nov 2026 14:28:58 +0100
+Subject: [PATCH] Fix out-of-bounds read of suiteb_curves[] in TLS 1.3
+ key_share selection
+
+In Suite B mode tls1_get_supported_groups() replaces the configured
+supported-groups list with the fixed two-element suiteb_curves[] array, but
+tls1_get_group_tuples() kept returning the tuples derived from the configured
+group list. The two functions therefore disagreed: the group-selection walk in
+tls_parse_ctos_key_share() advanced first_group_in_tuple through the short
+suiteb_curves[] array using tuple sizes that summed to the much longer
+configured list, so check_overlap()/check_in_list() read past the end of
+suiteb_curves[].
+
+Fixes: CVE-2026-35190
+Assisted-by: Claude:claude-fable-5-2
+Reviewed-by: Norbert Pocs <norbertp@openssl.org>
+Reviewed-by: Tomas Mraz <tomas@openssl.foundation>
+Merge-date: Mon Nov 16 12:26:56 2026
+Merged-from: https://github.com/openssl/openssl/pull/33720
+---
+ ssl/statem/extensions_srvr.c | 14 ++++++++++++++
+ ssl/t1_lib.c                 | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
+
+diff --git a/ssl/statem/extensions_srvr.c b/ssl/statem/extensions_srvr.c
+index 1ed33888afd3e..89e372a51d57a 100644
+--- a/ssl/statem/extensions_srvr.c
++++ b/ssl/statem/extensions_srvr.c
+@@ -826,6 +826,7 @@ int tls_parse_ctos_key_share(SSL_CONNECTION *s, PACKET *pkt,
+     const size_t *srvrtuples;
+     uint16_t *first_group_in_tuple;
+     size_t clnt_num_groups, srvr_num_groups, srvr_num_tuples;
++    size_t srvr_groups_remaining;
+     PACKET *encoded_pubkey_arr = NULL;
+     uint16_t *keyshares_arr = NULL;
+     size_t keyshares_cnt = 0;
+@@ -908,10 +909,23 @@ int tls_parse_ctos_key_share(SSL_CONNECTION *s, PACKET *pkt,
+      * Remark: Selection priority different for client- or server-preference
+      */
+     first_group_in_tuple = (uint16_t *)srvrgroups;
++    srvr_groups_remaining = srvr_num_groups;
+     for (current_tuple = 0; current_tuple < srvr_num_tuples; current_tuple++) {
+         size_t number_of_groups_in_tuple = srvrtuples[current_tuple];
+         int prio_group_idx = 0, candidate_group_idx = 0;
+ 
++        /*
++         * The tuple sizes must partition srvrgroups exactly. A tuple larger
++         * than the groups still left means the group and tuple lists have
++         * come from different sources, which is an internal error: stop here
++         * rather than reading past the end of srvrgroups.
++         */
++        if (number_of_groups_in_tuple > srvr_groups_remaining) {
++            SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
++            goto err;
++        }
++        srvr_groups_remaining -= number_of_groups_in_tuple;
++
+         /* Server or client preference ? */
+         if (s->options & SSL_OP_SERVER_PREFERENCE) {
+             /* Server preference */
+diff --git a/ssl/t1_lib.c b/ssl/t1_lib.c
+index de08f96df9749..ef66433ac9740 100644
+--- a/ssl/t1_lib.c
++++ b/ssl/t1_lib.c
+@@ -219,6 +219,14 @@ static const uint16_t suiteb_curves[] = {
+     OSSL_TLS_GROUP_ID_secp384r1,
+ };
+ 
++/*
++ * Group tuples matching the Suite B group lists returned by
++ * tls1_get_supported_groups(): a single tuple holding both P-256 and P-384,
++ * or a single tuple holding just one of them.
++ */
++static const size_t suiteb_tuples_both[] = { OSSL_NELEM(suiteb_curves) };
++static const size_t suiteb_tuples_one[] = { 1 };
++
+ /* Group list string of the built-in pseudo group DEFAULT_SUITE_B */
+ #define SUITE_B_GROUP_NAME "DEFAULT_SUITE_B"
+ #define SUITE_B_GROUP_LIST "?secp256r1:?secp384r1",
+@@ -857,11 +865,32 @@ void tls1_get_requested_keyshare_groups(SSL_CONNECTION *s, const uint16_t **pgro
+     }
+ }
+ 
++/*
++ * Set *ptuples to the list of group tuple sizes and *ptupleslen to the number
++ * of tuples. The tuples returned here always partition exactly the group list
++ * returned by tls1_get_supported_groups().
++ */
+ void tls1_get_group_tuples(SSL_CONNECTION *s, const size_t **ptuples,
+     size_t *ptupleslen)
+ {
+     SSL_CTX *sctx = SSL_CONNECTION_GET_CTX(s);
+ 
++    if (tls1_suiteb(s)) {
++        const uint16_t *groups;
++        size_t groupslen;
++
++        /*
++         * In Suite B mode the fixed group list forms a single tuple. Derive
++         * its size from the list tls1_get_supported_groups() actually returns
++         * rather than repeating the Suite B profile selection here.
++         */
++        tls1_get_supported_groups(s, &groups, &groupslen);
++        *ptuples = groupslen == OSSL_NELEM(suiteb_curves) ? suiteb_tuples_both
++                                                          : suiteb_tuples_one;
++        *ptupleslen = 1;
++        return;
++    }
++
+     if (s->ext.supportedgroups == NULL) {
+         *ptuples = sctx->ext.tuples;
+         *ptupleslen = sctx->ext.tuples_len;

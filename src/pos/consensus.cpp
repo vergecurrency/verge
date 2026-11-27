@@ -12,6 +12,16 @@
 
 namespace pos {
 
+bool NeedsTrustedCheckpointRefresh(const Consensus::Params& params, int height)
+{
+    if (!params.IsPoSActive(height)) return false;
+    const bool configured = params.nPoSTrustedCheckpointHeight >= 0 &&
+        !params.hashPoSTrustedCheckpoint.IsNull();
+    const int anchor = configured ? params.nPoSTrustedCheckpointHeight :
+                                   params.nPoSActivationHeight;
+    return static_cast<int64_t>(height) - anchor >= params.nPoSUnbondingBlocks;
+}
+
 bool SelectPublicStake(const StakeSnapshot& snapshot, uint32_t network_id,
                        const uint256& epoch_seed, uint64_t slot,
                        COutPoint& winner, uint256& selection_hash)

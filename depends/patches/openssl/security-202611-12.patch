@@ -1,0 +1,168 @@
+From fecc9ee387f3be48afdaced3aeef243dc1566aab Mon Sep 17 00:00:00 2001
+From: Viktor Dukhovni <viktor@openssl.org>
+Date: Tue, 27 Oct 2026 15:26:04 +1100
+Subject: [PATCH] Avoid unlikely DANE "2 1 0" check NPE.
+
+A null pointer exception may happen in a DANE-enabled TLS client when the
+loaded TLSA RRset includes both:
+
+* A TLSA RR with usage PKIX-TA(0) or PKIX-EE(1).
+* A DANE-TA(2) SPKI(1) Full(0) record specifying a TA public key in full.
+
+and the server's EE certificate is self-signed and present in the validator's
+trust store (the server claims a trust anchor cert as its own certficate).
+
+This requires that the client application actually supports both the PKIX-??
+and DANE-?? TLSA usages.
+
+Fixes CVE-2026-84786
+
+Reviewed-by: Norbert Pocs <norbertp@openssl.org>
+Reviewed-by: Eugene Syromiatnikov <esyr@openssl.org>
+Reviewed-by: Bob Beck <beck@openssl.org>
+Merge-date: Tue Nov 24 07:58:54 2026
+Merged-from: https://github.com/openssl/openssl/pull/33634
+---
+ crypto/x509/x509_vfy.c | 23 ++++++++++----
+ test/danetest.c        | 72 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 89 insertions(+), 6 deletions(-)
+
+diff --git a/crypto/x509/x509_vfy.c b/crypto/x509/x509_vfy.c
+index 37e548756d5ff..ccea6a45ed565 100644
+--- a/crypto/x509/x509_vfy.c
++++ b/crypto/x509/x509_vfy.c
+@@ -3633,14 +3633,26 @@ static int check_dane_issuer(X509_STORE_CTX *ctx, int depth)
+     return X509_TRUST_UNTRUSTED;
+ }
+ 
++/*
++ * As a last resort, check whether the last untrusted certificate is signed by
++ * an explicit DANE-TA(2) SPKI(1) Full(0) public key in the TLSA RRset.
++ */
+ static int check_dane_pkeys(X509_STORE_CTX *ctx)
+ {
+     SSL_DANE *dane = ctx->dane;
+     danetls_record *t;
+-    int num = ctx->num_untrusted;
+-    X509 *cert = sk_X509_value(ctx->chain, num - 1);
++    X509 *cert;
+     int recnum = sk_danetls_record_num(dane->trecs);
+-    int i;
++    int ix, i;
++
++    /*
++     * When a self-signed leaf was replaced by its trust store copy,
++     * num_untrusted is 0 and the leaf itself is checked against the keys.
++     */
++    ix = ctx->num_untrusted > 0 ? ctx->num_untrusted - 1 : 0;
++    cert = sk_X509_value(ctx->chain, ix);
++    if (!ossl_assert(cert != NULL))
++        return X509_TRUST_UNTRUSTED;
+ 
+     for (i = 0; i < recnum; ++i) {
+         t = sk_danetls_record_value(dane->trecs, i);
+@@ -3653,12 +3665,11 @@ static int check_dane_pkeys(X509_STORE_CTX *ctx)
+ 
+         /* Record match via a bare TA public key */
+         ctx->bare_ta_signed = 1;
+-        dane->mdpth = num - 1;
++        dane->mdpth = ix;
+         dane->mtlsa = t;
+ 
+         /* Prune any excess chain certificates */
+-        num = sk_X509_num(ctx->chain);
+-        for (; num > ctx->num_untrusted; --num)
++        for (i = sk_X509_num(ctx->chain) - 1; i > ix; --i)
+             X509_free(sk_X509_pop(ctx->chain));
+ 
+         return X509_TRUST_TRUSTED;
+diff --git a/test/danetest.c b/test/danetest.c
+index 1b0320b28de5a..d5b7eaabdcb46 100644
+--- a/test/danetest.c
++++ b/test/danetest.c
+@@ -402,6 +402,75 @@ static int run_tlsatest(void)
+     return ret;
+ }
+ 
++#ifndef OPENSSL_NO_ECX
++/*
++ * DER-encoding of a throw-away ED25519 public key, that will not match
++ * the CA key
++ */
++static const unsigned char edkey[] = {
++    0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00,
++    0x94, 0xd9, 0xa3, 0xe4, 0xbb, 0x53, 0x2c, 0x5c, 0x34, 0x63, 0xc1, 0xb3,
++    0x69, 0xae, 0x1c, 0xc9, 0x3f, 0xd7, 0xf7, 0xe7, 0x1c, 0x2f, 0xfa, 0x34,
++    0x18, 0x24, 0x20, 0x18, 0x94, 0xcd, 0x29, 0x10
++};
++
++static int run_trusted_ee_test(void)
++{
++    SSL_CTX *ctx = NULL;
++    SSL *ssl = NULL;
++    X509 *cacert = NULL;
++    EVP_PKEY *capkey = NULL;
++    unsigned char *cakbuf = NULL, *cp;
++    STACK_OF(X509) *chain = NULL;
++    int caklen;
++    int ret = 0;
++
++    /* Create a DANE-enabled SSL handle, with CAfile as trust store. */
++    if (!TEST_ptr(ctx = SSL_CTX_new(TLS_client_method()))
++        || !TEST_int_gt(SSL_CTX_dane_enable(ctx), 0)
++        || !TEST_true(SSL_CTX_load_verify_file(ctx, CAfile))
++        || !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha512(), 2, 1), 0)
++        || !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha256(), 1, 2), 0)
++        || !TEST_ptr(ssl = SSL_new(ctx))
++        || !TEST_int_gt(SSL_dane_enable(ssl, NULL), 0))
++        goto end;
++    SSL_set_connect_state(ssl);
++
++    if (!TEST_ptr(cacert = load_cert_pem(CAfile, NULL))
++        || !TEST_ptr(capkey = X509_get0_pubkey(cacert))
++        || !TEST_int_gt((caklen = i2d_PUBKEY(capkey, NULL)), 0)
++        || !TEST_ptr(cp = cakbuf = OPENSSL_malloc(caklen))
++        || !TEST_int_eq(i2d_PUBKEY(capkey, &cp), caklen)
++        || !TEST_ptr(chain = sk_X509_new_reserve(NULL, 1))
++        || !TEST_int_gt(sk_X509_push(chain, cacert), 0))
++        goto end;
++
++    /*
++     * Register a matching DANE-TA(2) SPKI(1) Full(0) TLSA RR,
++     * and a non-matching PKIX-EE(1) RR to enable trust store matching,
++     * and in the end fall back to DANE-TA(2).
++     */
++    if (!TEST_int_gt(SSL_dane_tlsa_add(ssl, 2, 1, 0, cakbuf, caklen), 0)
++        || !TEST_int_gt(SSL_dane_tlsa_add(ssl, 1, 1, 0, edkey, sizeof(edkey)), 0))
++        goto end;
++
++    /* Now "verify" the certificate, this should succeed. */
++    if (!TEST_int_gt(verify_chain(ssl, chain), 0)
++        || !TEST_long_eq(SSL_get_verify_result(ssl), X509_V_OK))
++        goto end;
++    ret = 1;
++
++end:
++    OPENSSL_free(cakbuf);
++    SSL_free(ssl);
++    SSL_CTX_free(ctx);
++    sk_X509_free(chain);
++    X509_free(cacert);
++
++    return ret;
++}
++#endif /* OPENSSL_NO_ECX */
++
+ OPT_TEST_DECLARE_USAGE("basedomain CAfile tlsafile\n")
+ 
+ int setup_tests(void)
+@@ -417,6 +486,9 @@ int setup_tests(void)
+         return 0;
+ 
+     ADD_TEST(run_tlsatest);
++#ifndef OPENSSL_NO_ECX
++    ADD_TEST(run_trusted_ee_test);
++#endif
+     return 1;
+ }
+ 

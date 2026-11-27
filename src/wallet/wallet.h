@@ -747,6 +747,8 @@ private:
     int64_t m_last_automatic_bond_attempt{0};
     std::map<PoSSigningKey, PoSSigningHistory> m_pos_signing_history;
     bool m_pos_signing_failed{false};
+    std::map<uint256, bool> m_pq_internal_pool GUARDED_BY(cs_wallet);
+    std::set<uint256> m_pq_reserved_keys GUARDED_BY(cs_wallet);
     void PersistPoSSigningHistory(const PoSSigningKey& key,
                                  const PoSSigningHistory& history)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
@@ -950,6 +952,13 @@ public:
     bool LoadCryptedPQKey(const std::vector<unsigned char>& public_key,
                           const std::vector<unsigned char>& ciphertext);
     bool GeneratePQKey(uint256& id);
+    bool TopUpPQKeyPool(size_t target = 1000);
+    bool ReservePQKey(uint256& id);
+    void KeepPQKey(const uint256& id);
+    void ReturnPQKey(const uint256& id);
+    bool LoadPQKeyPool(const uint256& id, bool backed_up);
+    bool CheckPQKeyPool() const;
+    size_t GetPQKeyPoolSize(bool backed_up_only = false) const;
     bool HasPQKeys() const;
     bool GenerateSmsgPQKey(const CKeyID& address);
     bool GetSmsgPQPublicKey(const CKeyID& address, smsg::PQMessagingPublicKey& key) const;
@@ -1352,6 +1361,7 @@ protected:
     int64_t nIndex;
     CPubKey vchPubKey;
     bool fInternal;
+    uint256 m_pq_key;
 public:
     explicit CReserveKey(CWallet* pwalletIn)
     {
@@ -1371,6 +1381,7 @@ public:
 
     void ReturnKey();
     bool GetReservedKey(CPubKey &pubkey, bool internal = false);
+    bool GetReservedPQKey(uint256& id);
     void KeepKey();
     void KeepScript() override { KeepKey(); }
 };

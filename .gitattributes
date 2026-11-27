@@ -1,1 +1,2 @@
 src/clientversion.cpp export-subst
+depends/patches/openssl/*.patch text eol=lf -whitespace

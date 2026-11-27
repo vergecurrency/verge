@@ -237,4 +237,24 @@ BOOST_AUTO_TEST_CASE(large_fork_summary_eviction_stress)
             std::chrono::steady_clock::now() - start).count());
 }
 
+BOOST_AUTO_TEST_CASE(trusted_checkpoint_refresh_tracks_the_unbonding_window)
+{
+    auto params = CreateChainParams(CBaseChainParams::REGTEST)->GetConsensus();
+    params.nPoSActivationHeight = 3000;
+    params.nPoSUnbondingBlocks = 240;
+    BOOST_CHECK(!pos::NeedsTrustedCheckpointRefresh(params, 2999));
+    BOOST_CHECK(!pos::NeedsTrustedCheckpointRefresh(params, 3239));
+    BOOST_CHECK(pos::NeedsTrustedCheckpointRefresh(params, 3240));
+    params.nPoSTrustedCheckpointHeight = 3100;
+    params.hashPoSTrustedCheckpoint = uint256S("01");
+    BOOST_CHECK(!pos::NeedsTrustedCheckpointRefresh(params, 3099));
+    BOOST_CHECK(!pos::NeedsTrustedCheckpointRefresh(params, 3339));
+    BOOST_CHECK(pos::NeedsTrustedCheckpointRefresh(params, 3340));
+    BOOST_CHECK(pos::NeedsTrustedCheckpointRefresh(params, std::numeric_limits<int>::max()));
+    params.nPoSTrustedCheckpointHeight = std::numeric_limits<int>::max();
+    BOOST_CHECK(!pos::NeedsTrustedCheckpointRefresh(params, 3340));
+    params.hashPoSTrustedCheckpoint.SetNull();
+    BOOST_CHECK(pos::NeedsTrustedCheckpointRefresh(params, 3340));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

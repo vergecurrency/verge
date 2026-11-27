@@ -5154,10 +5154,11 @@ bool CChainState::LoadPoSState(CBlockTreeDB& blocktree,
                          params.nPoSTrustedCheckpointHeight,
                          params.hashPoSTrustedCheckpoint.ToString());
         }
-    } else if (!trusted_configured && params.IsPoSActive(tip->nHeight) &&
-               tip->nHeight - params.nPoSActivationHeight >=
-                   static_cast<int>(params.nPoSUnbondingBlocks)) {
-        LogPrintf("WARNING: PoS chain is beyond one unbonding window without a trusted finalized checkpoint; configure -postrustedcheckpoint or install a release containing a recent checkpoint\n");
+    }
+    if (pos::NeedsTrustedCheckpointRefresh(params, tip->nHeight)) {
+        LogPrintf("WARNING: PoS bootstrap protection needs a recent trusted finalized checkpoint (%s); configure -postrustedcheckpoint or install a release containing a recent checkpoint\n",
+                  trusted_configured ? "configured checkpoint is older than the unbonding safety window" :
+                                       "no trusted checkpoint is configured");
     }
     m_pos_state = std::move(loaded);
 

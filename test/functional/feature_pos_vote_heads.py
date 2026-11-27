@@ -80,11 +80,13 @@ class PoSVoteHeadsTest(VergeTestFramework):
         assert_equal(node.getstakinginfo()["chain_current_for_services"], True)
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         first, second, fresh = self.nodes
-        address = first.getnewaddress()
+        address = first.getnewaddress("mining", "legacy")
         self.mine(first, 1, address)
         sync_blocks([first, second])
-        self.mine(second, 720, second.getnewaddress())
+        self.mine(second, 720, second.getnewaddress("mining", "legacy"))
         sync_blocks([first, second])
         # Prefer this producer's votes without letting it justify alone.
         first_bond = first.createbond(1500)

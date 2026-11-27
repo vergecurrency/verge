@@ -120,14 +120,21 @@ bool VotePool::Exists(const uint256& hash) const
     return m_votes.count(hash) != 0;
 }
 
-std::vector<CheckpointVote> VotePool::GetVotes(size_t maximum) const
+std::vector<CheckpointVote> VotePool::GetVotes(size_t maximum,
+    const std::function<bool(const CheckpointVote&)>& usable) const
 {
-    LOCK(m_mutex);
+    if (maximum == 0) return {};
+    std::vector<CheckpointVote> candidates;
+    {
+        LOCK(m_mutex);
+        candidates.reserve(m_votes.size());
+        for (const auto& item : m_votes) candidates.push_back(item.second.vote);
+    }
     std::vector<CheckpointVote> result;
-    result.reserve(std::min(maximum, m_votes.size()));
-    for (const auto& item : m_votes) {
+    result.reserve(std::min(maximum, candidates.size()));
+    for (const auto& vote : candidates) {
         if (result.size() == maximum) break;
-        result.push_back(item.second.vote);
+        if (!usable || usable(vote)) result.push_back(vote);
     }
     std::sort(result.begin(), result.end(), [](const CheckpointVote& a,
                                                const CheckpointVote& b) {

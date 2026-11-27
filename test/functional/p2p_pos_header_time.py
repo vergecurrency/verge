@@ -77,8 +77,10 @@ class PoSHeaderTimeTest(VergeTestFramework):
         wait_until(lambda: text in log.read_text(encoding="utf-8"))
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         producer, observer = self.nodes
-        address = producer.getnewaddress()
+        address = producer.getnewaddress("mining", "legacy")
         self.mine(producer, 721, address)
         producer.createbond(1000)
         self.mine(producer, 778, address)

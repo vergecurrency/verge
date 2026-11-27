@@ -95,6 +95,7 @@ BASE_SCRIPTS = [
     'wallet_pos_bond_batching.py',
     'wallet_pos_unbond.py',
     'wallet_pq_first.py',
+    'wallet_pq_backup.py',
     'rpc_fundrawtransaction.py',
     'p2p_compactblocks.py',
     'feature_segwit.py',

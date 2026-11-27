@@ -50,6 +50,30 @@ jobs:
       - name: Link brew deps
         run: brew link boost
 
+      - name: Build patched OpenSSL
+        run: |
+          set -euo pipefail
+          VERSION=4.0.3
+          ARCHIVE="$RUNNER_TEMP/openssl-$VERSION.tar.gz"
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 300 \
+            "https://github.com/openssl/openssl/releases/download/openssl-$VERSION/openssl-$VERSION.tar.gz" \
+            --output "$ARCHIVE"
+          echo "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9  $ARCHIVE" | shasum -a 256 -c -
+          SOURCE_ROOT="$RUNNER_TEMP/verge-openssl-source"
+          mkdir -p "$SOURCE_ROOT"
+          tar -xzf "$ARCHIVE" -C "$SOURCE_ROOT"
+          cd "$SOURCE_ROOT/openssl-$VERSION"
+          export GIT_CEILING_DIRECTORIES="$SOURCE_ROOT"
+          for PATCH in "$GITHUB_WORKSPACE"/depends/patches/openssl/security-202611-*.patch; do
+            git apply --check -- "$PATCH"
+            git apply -- "$PATCH"
+          done
+          PREFIX="$GITHUB_WORKSPACE/release/openssl"
+          ./Configure --prefix="$PREFIX" --libdir=lib no-tests
+          make -j4
+          make install_sw
+          echo "OPENSSL_PREFIX=$PREFIX" >> "$GITHUB_ENV"
+
       - name: Build Berkeley DB 4.8
         run: |
           set -euo pipefail
@@ -174,7 +198,6 @@ jobs:
           set -euo pipefail
           BREW_PREFIX="$(brew --prefix)"
           BOOST_PREFIX="$(brew --prefix boost)"
-          OPENSSL_PREFIX="$(brew --prefix openssl@4)"
           LIBEVENT_PREFIX="$(brew --prefix libevent)"
           PROTOBUF_PREFIX="$(brew --prefix protobuf)"
           QMAKE_BIN="$(command -v qmake6 || command -v qmake)"
@@ -182,9 +205,9 @@ jobs:
           QT_LIB_DIR="$("$QMAKE_BIN" -query QT_INSTALL_LIBS)"
           QT_PLUGIN_DIR="$("$QMAKE_BIN" -query QT_INSTALL_PLUGINS)"
 
-          export CPPFLAGS="-I$PROTOBUF_PREFIX/include -I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
-          export LDFLAGS="-L$PROTOBUF_PREFIX/lib -L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
-          export PKG_CONFIG_PATH="$PROTOBUF_PREFIX/lib/pkgconfig:$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export CPPFLAGS="-I$OPENSSL_PREFIX/include -I$PROTOBUF_PREFIX/include -I$BOOST_PREFIX/include -I$BDB_PREFIX/include -I$BREW_PREFIX/include ${CPPFLAGS:-}"
+          export LDFLAGS="-L$OPENSSL_PREFIX/lib -L$PROTOBUF_PREFIX/lib -L$BOOST_PREFIX/lib -L$BDB_PREFIX/lib -L$BREW_PREFIX/lib ${LDFLAGS:-}"
+          export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig:$PROTOBUF_PREFIX/lib/pkgconfig:$QT_LIB_DIR/pkgconfig:$BOOST_PREFIX/lib/pkgconfig:$BDB_PREFIX/lib/pkgconfig:$BREW_PREFIX/lib/pkgconfig:$BREW_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
           export CXXFLAGS="-std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-deprecated-builtins -Wno-deprecated-declarations"
           export OBJCXXFLAGS="$CXXFLAGS"
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
@@ -1921,7 +1944,7 @@ jobs:
         with:
           path: |
             build-msvc
-          key: windows64-msvc-bootstrap-v1-${{ hashFiles('contrib/windows-msvc/**') }}
+          key: windows64-msvc-bootstrap-v1-${{ hashFiles('contrib/windows-msvc/**', 'depends/patches/openssl/**') }}
           restore-keys: |
             windows64-msvc-bootstrap-v1-
 

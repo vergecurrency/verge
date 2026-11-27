@@ -110,6 +110,16 @@ bool WalletBatch::WritePQKey(const std::vector<unsigned char>& public_key,
         WriteIC(std::make_pair(std::string("pqkey"), id), std::make_pair(public_key, seed), false);
 }
 
+bool WalletBatch::WritePQPool(const uint256& id, bool backed_up)
+{
+    return !id.IsNull() && WriteIC(std::make_pair(std::string("pqpool"), id), backed_up);
+}
+
+bool WalletBatch::ErasePQPool(const uint256& id)
+{
+    return EraseIC(std::make_pair(std::string("pqpool"), id));
+}
+
 bool WalletBatch::WriteSmsgPQKey(const CKeyID& address, const std::vector<unsigned char>& public_key,
                                 const CKeyingMaterial& seed, const std::vector<unsigned char>& ciphertext)
 {
@@ -559,6 +569,19 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             }
             wss.fHasSmsgPQKeys = true;
         }
+        else if (strType == "pqpool")
+        {
+            uint256 id;
+            uint8_t backed_up;
+            ssKey >> id;
+            ssValue >> backed_up;
+            if (!ssKey.empty() || !ssValue.empty() || backed_up > 1 ||
+                !pwallet->LoadPQKeyPool(id, backed_up != 0)) {
+                strErr = "Corrupt PQ internal key pool";
+                return false;
+            }
+            wss.fHasPQKeys = true;
+        }
         else if (strType == "pqpolicy")
         {
             uint256 id;
@@ -804,7 +827,7 @@ bool WalletBatch::IsKeyType(const std::string& strType)
 {
     return (strType== "key" || strType == "wkey" ||
             strType == "mkey" || strType == "ckey" ||
-            strType == "pqkey" || strType == "cpqkey" || strType == "pqpolicy" || strType == "pqfirst" ||
+            strType == "pqkey" || strType == "cpqkey" || strType == "pqpolicy" || strType == "pqfirst" || strType == "pqpool" ||
             strType == "smsgpqkey" || strType == "csmsgpqkey" || strType == "smsgpqcontact");
 }
 
@@ -885,6 +908,10 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
         return result;
     if ((wss.fHasPQKeys || pwallet->IsPQFirst()) && pwallet->GetVersion() < FEATURE_PQ_KEYS) {
         LogPrintf("PQ wallet keys lack their downgrade-protection version\n");
+        return DBErrors::CORRUPT;
+    }
+    if (!pwallet->CheckPQKeyPool()) {
+        LogPrintf("PQ internal key pool references a missing private key\n");
         return DBErrors::CORRUPT;
     }
     if (wss.fHasSmsgPQKeys && pwallet->GetVersion() < FEATURE_SMSG_PQ_KEYS) {

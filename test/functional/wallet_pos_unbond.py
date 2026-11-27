@@ -64,9 +64,11 @@ class PoSUnbondTest(VergeTestFramework):
         raise AssertionError("No eligible slot in 100 attempts")
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         node = self.nodes[0]
         node.setstaking(False)
-        address = node.getnewaddress()
+        address = node.getnewaddress("mining", "legacy")
         self.mine(node, 731, address)
         # Keep one eligible bond to continue block production after withdrawals.
         for _ in range(3):

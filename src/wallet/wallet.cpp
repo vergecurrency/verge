@@ -384,6 +384,102 @@ bool CWallet::GeneratePQKey(uint256& id)
     return !id.IsNull();
 }
 
+bool CWallet::TopUpPQKeyPool(size_t target)
+{
+    LOCK2(cs_wallet, cs_KeyStore);
+    if (target > 10000 || IsLocked()) return false;
+    if (m_pq_internal_pool.size() >= target) return true;
+    struct PendingKey {
+        pos::experimental::MLDSA44Key key;
+        std::vector<unsigned char> public_key, ciphertext;
+        uint256 id;
+    };
+    std::vector<PendingKey> pending(target - m_pq_internal_pool.size());
+    WalletBatch batch(*database);
+    if (!batch.TxnBegin()) return false;
+    const int version = std::max(nWalletVersion, int(FEATURE_PQ_KEYS));
+    bool ok = batch.WriteMinVersion(version);
+    for (auto& item : pending) {
+        CKeyingMaterial seed;
+        if (!ok || !item.key.MakeNewKey() || !item.key.GetPublicKey(item.public_key) ||
+            !item.key.GetSeed(seed)) { ok = false; break; }
+        item.id = pos::experimental::GetMLDSA44KeyId(item.public_key);
+        if (item.id.IsNull() || HavePQKey(item.id) ||
+            (IsCrypted() && !EncryptSecret(vMasterKey, seed, item.id, item.ciphertext)) ||
+            !(IsCrypted() ? batch.WriteCryptedPQKey(item.public_key, item.ciphertext, false) :
+                           batch.WritePQKey(item.public_key, seed)) ||
+            !batch.WritePQPool(item.id, false)) { ok = false; break; }
+    }
+    if (!ok || !batch.TxnCommit(true)) {
+        batch.TxnAbort();
+        return false;
+    }
+    LoadMinVersion(version);
+    for (const auto& item : pending) {
+        if (!(IsCrypted() ? CCryptoKeyStore::AddCryptedPQKey(item.public_key, item.ciphertext) :
+                           CBasicKeyStore::AddPQKey(item.key, item.public_key))) {
+            throw std::runtime_error("Unable to load persisted PQ internal key pool");
+        }
+        m_pq_internal_pool.emplace(item.id, false);
+    }
+    return true;
+}
+
+bool CWallet::LoadPQKeyPool(const uint256& id, bool backed_up)
+{
+    AssertLockHeld(cs_wallet);
+    return !id.IsNull() && m_pq_internal_pool.emplace(id, backed_up).second;
+}
+
+bool CWallet::CheckPQKeyPool() const
+{
+    LOCK(cs_wallet);
+    for (const auto& item : m_pq_internal_pool) if (!HavePQKey(item.first)) return false;
+    return true;
+}
+
+size_t CWallet::GetPQKeyPoolSize(bool backed_up_only) const
+{
+    LOCK(cs_wallet);
+    size_t count = 0;
+    for (const auto& item : m_pq_internal_pool) {
+        if ((!backed_up_only || item.second) && m_pq_reserved_keys.count(item.first) == 0) ++count;
+    }
+    return count;
+}
+
+bool CWallet::ReservePQKey(uint256& id)
+{
+    LOCK(cs_wallet);
+    id.SetNull();
+    for (const auto& item : m_pq_internal_pool) {
+        if (item.second && m_pq_reserved_keys.insert(item.first).second) {
+            id = item.first;
+            return true;
+        }
+    }
+    return false;
+}
+
+void CWallet::KeepPQKey(const uint256& id)
+{
+    LOCK(cs_wallet);
+    if (m_pq_internal_pool.count(id) == 0) return;
+    WalletBatch batch(*database);
+    if (!batch.TxnBegin() || !batch.ErasePQPool(id) || !batch.TxnCommit(true)) {
+        batch.TxnAbort();
+        throw std::runtime_error("Unable to persist PQ internal key consumption");
+    }
+    m_pq_internal_pool.erase(id);
+    m_pq_reserved_keys.erase(id);
+}
+
+void CWallet::ReturnPQKey(const uint256& id)
+{
+    LOCK(cs_wallet);
+    m_pq_reserved_keys.erase(id);
+}
+
 bool CWallet::AddPQMultisigPolicy(const std::vector<unsigned char>& encoded)
 {
     LOCK2(cs_wallet, cs_KeyStore);
@@ -1381,6 +1477,21 @@ bool CWallet::MarkReplaced(const uint256& originalHash, const uint256& newHash)
 bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
 {
     LOCK(cs_wallet);
+
+    // Rescanning a restored backup must retire internal keys already used on-chain.
+    for (const CTxOut& output : wtxIn.tx->vout) {
+        uint256 id;
+        pos::BondData bond;
+        pos::UnbondData unbond;
+        if (ExtractPQKeyId(output.scriptPubKey, id)) KeepPQKey(id);
+        else if (pos::ParseBondScript(output.scriptPubKey, bond) && bond.version == 2) {
+            KeepPQKey(bond.pq_signing_key_id);
+            KeepPQKey(bond.pq_reward_key_id);
+            KeepPQKey(bond.pq_withdrawal_key_id);
+        } else if (pos::ParseUnbondScript(output.scriptPubKey, unbond) && unbond.version == 2) {
+            KeepPQKey(unbond.pq_withdrawal_key_id);
+        }
+    }
 
     WalletBatch batch(*database, "r+", fFlushOnClose);
 
@@ -3341,6 +3452,7 @@ OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vec
 bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CReserveKey& reservekey, CAmount& nFeeRet,
                                 int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
 {
+    nFeeRet = 0;
     CAmount nValue = 0;
     int nChangePosRequest = nChangePosInOut;
     unsigned int nSubtractFeeFromAmount = 0;
@@ -3426,8 +3538,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                 scriptChange = GetScriptForDestination(coin_control.destChange);
             } else if (Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
                 uint256 pq_change;
-                if (!GeneratePQKey(pq_change)) {
-                    strFailReason = "Unlock the wallet to persist a post-quantum change key";
+                if (!reservekey.GetReservedPQKey(pq_change)) {
+                    strFailReason = "PQ internal key pool needs a backup: unlock the wallet and save a new complete wallet backup before sending";
                     return false;
                 }
                 scriptChange = GetPQScript(pq_change);
@@ -5010,8 +5122,17 @@ bool CReserveKey::GetReservedKey(CPubKey& pubkey, bool internal)
     return true;
 }
 
+bool CReserveKey::GetReservedPQKey(uint256& id)
+{
+    if (m_pq_key.IsNull() && !pwallet->ReservePQKey(m_pq_key)) return false;
+    id = m_pq_key;
+    return true;
+}
+
 void CReserveKey::KeepKey()
 {
+    if (!m_pq_key.IsNull()) pwallet->KeepPQKey(m_pq_key);
+    m_pq_key.SetNull();
     if (nIndex != -1)
         pwallet->KeepKey(nIndex);
     nIndex = -1;
@@ -5020,6 +5141,8 @@ void CReserveKey::KeepKey()
 
 void CReserveKey::ReturnKey()
 {
+    if (!m_pq_key.IsNull()) pwallet->ReturnPQKey(m_pq_key);
+    m_pq_key.SetNull();
     if (nIndex != -1) {
         pwallet->ReturnKey(nIndex, fInternal, vchPubKey);
     }
@@ -5670,7 +5793,23 @@ void CWallet::postInitProcess()
 
 bool CWallet::BackupWallet(const std::string& strDest)
 {
-    return database->Backup(strDest);
+    LOCK(cs_wallet);
+    if ((HasPQKeys() || Params().GetConsensus().fPoSPostQuantum) &&
+        !IsLocked() && !TopUpPQKeyPool()) return false;
+    if (!database->Backup(strDest)) return false;
+    if (m_pq_internal_pool.empty()) return true;
+    // Only keys already present in the successful full backup become eligible.
+    WalletBatch batch(*database);
+    if (!batch.TxnBegin()) return false;
+    for (const auto& item : m_pq_internal_pool) {
+        if (!item.second && !batch.WritePQPool(item.first, true)) {
+            batch.TxnAbort();
+            return false;
+        }
+    }
+    if (!batch.TxnCommit(true)) { batch.TxnAbort(); return false; }
+    for (auto& item : m_pq_internal_pool) item.second = true;
+    return true;
 }
 
 CKeyPool::CKeyPool()

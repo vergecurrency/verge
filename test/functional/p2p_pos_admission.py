@@ -35,8 +35,10 @@ class PoSAdmissionTest(PoSActivationTest):
         self.extra_args = [["-posactivationheight=1500", "-without-tor"] for _ in range(2)]
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         producer, observer = self.nodes
-        address = producer.getnewaddress()
+        address = producer.getnewaddress("mining", "legacy")
         self.mine_blocks(producer, 721, address)
         producer.createbond(1000)
         self.mine_blocks(producer, 778, address)

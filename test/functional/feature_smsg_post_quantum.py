@@ -127,6 +127,8 @@ class PQMessagingTest(VergeTestFramework):
         self.mining = alice.getnewaddress('mining', 'legacy')
         self.mine(731)
         pq_funding = bob.getnewpqaddress('message funding')
+        for node in self.nodes:
+            node.backupwallet(str(Path(node.datadir) / 'pq-internal-backup.dat'))
         funded = alice.sendtoaddress(pq_funding, 100)
         self.mine(1)
         assert bob.gettransaction(funded)['confirmations'] > 0

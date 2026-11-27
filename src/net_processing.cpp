@@ -3009,6 +3009,11 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         const pos::State& state = GetPoSStateView();
         const pos::Checkpoint* latest = state.LatestCheckpoint();
         if (latest == nullptr) return true;
+        const uint64_t maximum_slot = params.nPoSSlotSeconds == 0 ? 0 :
+            static_cast<uint64_t>(std::max<int64_t>(0, GetAdjustedTime())) /
+                params.nPoSSlotSeconds;
+        if (pos::CheckKnownVoteHead(vote, state, head, maximum_slot, params) !=
+            pos::ValidationError::NONE) return true;
         const pos::ValidationError error = pos::CheckCheckpointVote(
             vote, state, params.nPoSSnapshotDelayEpochs, latest->epoch,
             height, params.nPoSNetworkId);

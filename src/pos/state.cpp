@@ -510,8 +510,10 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
                 lockout.until_height = std::max(
                     lockout.until_height, static_cast<int32_t>(extended_until));
             }
+            const bool first_update = std::find(undo.added_evidence.begin(),
+                undo.added_evidence.end(), penalty_key) == undo.added_evidence.end();
             if (applied != m_applied_evidence.end()) {
-                undo.removed_evidence.push_back(*applied);
+                if (first_update) undo.removed_evidence.push_back(*applied);
                 m_applied_evidence.erase(applied);
             }
             if (!m_applied_evidence.emplace(
@@ -520,7 +522,7 @@ bool State::ApplyBlock(const CBlock& block, int32_t height, bool is_pos,
                                           offense_sequence}).second) {
                 return false;
             }
-            undo.added_evidence.push_back(penalty_key);
+            if (first_update) undo.added_evidence.push_back(penalty_key);
             return true;
         };
         for (const BlockEquivocationEvidence& evidence :
@@ -783,13 +785,29 @@ bool State::UndoBlock(const StateUndo& undo)
 {
     m_link_weights_valid = false;
     bool clean = true;
-    for (auto it = undo.added_evidence.rbegin();
-         it != undo.added_evidence.rend(); ++it) {
-        clean = m_applied_evidence.erase(*it) == 1 && clean;
+    // Older journals recorded every replacement, including intermediate values.
+    // Equal remove/add counts mean the first removed value predates the block;
+    // one fewer removal means the record was first inserted by this block.
+    std::map<uint256, size_t> evidence_adds, evidence_removes;
+    for (const auto& key : undo.added_evidence) ++evidence_adds[key];
+    for (const auto& item : undo.removed_evidence) ++evidence_removes[item.first];
+    for (const auto& item : evidence_adds) {
+        const size_t removed = evidence_removes[item.first];
+        if (removed != item.second && removed + 1 != item.second) return false;
     }
-    for (auto it = undo.removed_evidence.rbegin();
-         it != undo.removed_evidence.rend(); ++it) {
-        clean = m_applied_evidence.emplace(it->first, it->second).second && clean;
+    for (const auto& item : evidence_removes) {
+        if (evidence_adds.count(item.first) == 0 && item.second != 1) return false;
+    }
+    for (const auto& item : evidence_adds) {
+        clean = m_applied_evidence.erase(item.first) == 1 && clean;
+    }
+    for (const auto& item : undo.removed_evidence) {
+        const auto added = evidence_adds.find(item.first);
+        if (evidence_removes[item.first] == 0) continue;
+        if (added == evidence_adds.end() || evidence_removes[item.first] == added->second) {
+            clean = m_applied_evidence.emplace(item.first, item.second).second && clean;
+        }
+        evidence_removes[item.first] = 0;
     }
     for (auto it = undo.lockout_undo.rbegin();
          it != undo.lockout_undo.rend(); ++it) {

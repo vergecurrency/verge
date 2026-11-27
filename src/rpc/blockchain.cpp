@@ -1454,6 +1454,7 @@ static UniValue getposinfo(const JSONRPCRequest& request)
             "getposinfo\n"
             "Returns network-wide proof-of-stake activation, bond, snapshot, "
             "voting, and finality state.\n"
+            "trusted_checkpoint includes configured, maximum_age_blocks and refresh_recommended; configured checkpoints also include height, hash and age_blocks. The refresh recommendation is a bootstrap warning, not a block-validity rule.\n"
             "\nExamples:\n"
             + HelpExampleCli("getposinfo", "")
             + HelpExampleRpc("getposinfo", ""));
@@ -1712,10 +1713,14 @@ static UniValue getposinfo(const JSONRPCRequest& request)
     UniValue trusted(UniValue::VOBJ);
     trusted.pushKV("configured", params.nPoSTrustedCheckpointHeight >= 0 &&
                                      !params.hashPoSTrustedCheckpoint.IsNull());
+    trusted.pushKV("refresh_recommended", pos::NeedsTrustedCheckpointRefresh(params, current_height));
+    trusted.pushKV("maximum_age_blocks", static_cast<int64_t>(params.nPoSUnbondingBlocks));
     if (params.nPoSTrustedCheckpointHeight >= 0 &&
         !params.hashPoSTrustedCheckpoint.IsNull()) {
         trusted.pushKV("height", params.nPoSTrustedCheckpointHeight);
         trusted.pushKV("hash", params.hashPoSTrustedCheckpoint.GetHex());
+        trusted.pushKV("age_blocks", std::max<int64_t>(0,
+            static_cast<int64_t>(current_height) - params.nPoSTrustedCheckpointHeight));
     }
     result.pushKV("trusted_checkpoint", trusted);
 

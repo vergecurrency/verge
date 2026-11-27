@@ -1,0 +1,200 @@
+From ec9d4de9d03989b29db5a3d7efdb4c285deaf386 Mon Sep 17 00:00:00 2001
+From: Alexandr Nedvedicky <sashan@openssl.org>
+Date: Wed, 4 Nov 2026 23:43:24 +0100
+Subject: [PATCH] QUIC: covering CRYPTO frame retransmission may induce
+ use-after-free in record layer
+
+Function quic_read_record() obtains data from a QUIC stream via a call
+to ossl_sframe_set_peek(), which peeks at data in the receive stream
+buffer.  The _peek() caller receives a pointer into the receive stream
+buffer.  The read offset is not advanced, so the data in the buffer
+are considered not yet consumed.
+
+The quic_read_record() function is called by ssl3_read_bytes() to read
+TLS protocol messages, to process either handshake or key update
+messages.  The pointer used by the SSL record layer becomes stale
+(i.e., it refers to freed memory) if the QUIC stack receives a stream
+frame that overlaps the range from which bytes were retrieved
+by the _peek() operation: the insertion process replaces that range,
+releasing the old buffer and substituting it with the newly received
+one.
+
+The fix reintroduces a range locking mechanism that allows the record
+layer to mark bytes retrieved by the _peek() operation as locked.
+This allows the stream reassembly module to identify and discard
+overlapping bytes in a newly received stream frame before they
+are joined to the range.  This completely avoids overlap between
+ranges, so the join operation of two ranges never needs to discard
+the buffer.
+
+Fixes: CVE-2026-95691
+Reported-by: Filipe Casal <filipe.casal@trailofbits.com>
+Co-Authored-by: Filipe Casal <filipe.casal@trailofbits.com>
+Reviewed-by: Tomas Mraz <tomas@openssl.foundation>
+Reviewed-by: Andrew Dinh <andrewd@openssl.org>
+Reviewed-by: Eugene Syromiatnikov <esyr@openssl.org>
+Merge-date: Mon Nov  9 03:03:10 2026
+Merged-from: https://github.com/openssl/openssl/pull/33543
+(cherry picked from commit 54e283610044c828aab832000bbf3654e5abc9b5)
+---
+ include/internal/quic_strm_reas.h | 27 ++++++++++++++++++++
+ ssl/quic/quic_rstream.c           | 12 +++++++++
+ ssl/quic/quic_strm_reas.c         | 42 +++++++++++++++++++++++++++++++
+ 3 files changed, 81 insertions(+)
+
+diff --git a/include/internal/quic_strm_reas.h b/include/internal/quic_strm_reas.h
+index a2d958a7adc6d..c55a77600415a 100644
+--- a/include/internal/quic_strm_reas.h
++++ b/include/internal/quic_strm_reas.h
+@@ -28,6 +28,9 @@ typedef struct sframe_set_t {
+     size_t stream_chunks;
+     /* Offset of data not yet dropped */
+     uint64_t offset;
++    /* Range returned to a zero-copy caller and not released yet. */
++    UINT_RANGE locked_range;
++    unsigned int range_locked;
+     /* Cleanse data on release? */
+     int cleanse;
+     int move_buffers;
+@@ -74,6 +77,30 @@ int ossl_sframe_set_peek(SFRAME_SET *fs, void **iter,
+     UINT_RANGE *range, const unsigned char **data,
+     int *fin);
+ 
++/**
++ * ossl_sframe_set_lock_range() locks the first range of stream chunks
++ * so zero-copy caller can access them safely. While range is locked
++ * its chunks are protected from memory relocations which may occur
++ * during stream reassembly process. The stream reassembly process
++ * continues to work making sure following stream chunks are always
++ * appended.
++ * @param fs stream frame set that holds ranges.
++ * @param range range caller wants to lock, the range must be reachable
++ * for read operation.
++ * @returns 1 on success, 0 on failure (when range cannot be locked, because
++ * its end offset is past the gap, or range is locked)
++ */
++int ossl_sframe_set_lock_range(SFRAME_SET *fs, const UINT_RANGE *range);
++
++/**
++ * ossl_sframe_set_unlock_range() unlocks the stream chunks in the
++ * first range previously locked by ossl_sframe_set_lock_range().
++ * Stream reassembly is free to reallocate those chunks again.
++ * @param fs point to stream frame set with range collection
++ * @returns void
++ */
++void ossl_sframe_set_unlock_range(SFRAME_SET *fs);
++
+ /*
+  * moves reading offset to new position, discarding all consumed
+  * chunks (which end offset is less than offset).
+diff --git a/ssl/quic/quic_rstream.c b/ssl/quic/quic_rstream.c
+index 2606f983b1bc8..6ca260bac3be6 100644
+--- a/ssl/quic/quic_rstream.c
++++ b/ssl/quic/quic_rstream.c
+@@ -134,6 +134,9 @@ int ossl_quic_rstream_read(QUIC_RSTREAM *qrs, unsigned char *buf, size_t size,
+ {
+     OSSL_TIME rtt = get_rtt(qrs);
+ 
++    if (qrs->fs.range_locked)
++        return 0;
++
+     if (!read_internal(qrs, buf, size, readbytes, fin, 1))
+         return 0;
+ 
+@@ -173,6 +176,9 @@ int ossl_quic_rstream_get_record(QUIC_RSTREAM *qrs,
+     size_t rec_len_;
+     int ok;
+ 
++    if (qrs->fs.range_locked)
++        return 0;
++
+     ok = ossl_sframe_set_peek(&qrs->fs, &iterator, &qrs->head_range, &record_,
+         fin);
+     if (ok == 0) {
+@@ -192,6 +198,8 @@ int ossl_quic_rstream_get_record(QUIC_RSTREAM *qrs,
+     }
+ 
+     rec_len_ = (size_t)(qrs->head_range.end - qrs->head_range.start);
++    if (!ossl_sframe_set_lock_range(&qrs->fs, &qrs->head_range))
++        return 0;
+     *rec_len = rec_len_;
+     *record = record_;
+ 
+@@ -210,6 +218,10 @@ int ossl_quic_rstream_release_record(QUIC_RSTREAM *qrs, size_t read_len)
+         offset = qrs->head_range.start + read_len;
+     }
+ 
++    if (!qrs->fs.range_locked)
++        return 0;
++
++    ossl_sframe_set_unlock_range(&qrs->fs);
+     if (!ossl_sframe_set_move_offset(&qrs->fs, offset))
+         return 0;
+ 
+diff --git a/ssl/quic/quic_strm_reas.c b/ssl/quic/quic_strm_reas.c
+index 25d64940d4476..34e88d57103e5 100644
+--- a/ssl/quic/quic_strm_reas.c
++++ b/ssl/quic/quic_strm_reas.c
+@@ -939,6 +939,27 @@ int ossl_sframe_set_insert(SFRAME_SET *fs, UINT_RANGE *r, OSSL_QRX_PKT *pkt,
+         r->start = fs->offset;
+     }
+ 
++    if (fs->range_locked
++        && r->start < fs->locked_range.end
++        && r->end > fs->locked_range.start) {
++        uint64_t overlap_end;
++        size_t overlap_len;
++
++        /* The checked-out range is the first readable chunk. */
++        assert(fs->locked_range.start == fs->offset);
++        assert(r->start >= fs->locked_range.start);
++
++        overlap_end = r->end < fs->locked_range.end
++            ? r->end
++            : fs->locked_range.end;
++        overlap_len = UINT64_TO_SIZE_T(overlap_end - r->start);
++
++        if (fs->cleanse)
++            OPENSSL_cleanse(deconst(data), overlap_len);
++        data += overlap_len;
++        r->start = overlap_end;
++    }
++
+     key_sr.sr_range = *r;
+ 
+     /*
+@@ -1227,6 +1248,24 @@ int ossl_sframe_set_peek(SFRAME_SET *fs, void **iterator,
+     return (range->start == range->end) ? 0 : 1;
+ }
+ 
++int ossl_sframe_set_lock_range(SFRAME_SET *fs, const UINT_RANGE *range)
++{
++    if (fs->range_locked
++        || range->start != fs->offset
++        || range->start >= range->end)
++        return 0;
++
++    fs->locked_range = *range;
++    fs->range_locked = 1;
++    return 1;
++}
++
++void ossl_sframe_set_unlock_range(SFRAME_SET *fs)
++{
++    assert(fs->range_locked);
++    fs->range_locked = 0;
++}
++
+ void ossl_sframe_set_destroy_ranges(SFRAME_SET *fs)
+ {
+     struct stream_range_t *sr, *save_sr;
+@@ -1252,6 +1291,9 @@ int ossl_sframe_set_move_offset(SFRAME_SET *fs, uint64_t new_offset)
+     if (new_offset == fs->offset)
+         return 1;
+ 
++    if (fs->range_locked)
++        return 0;
++
+     /*
+      * Offset can move forward within the continuous head range only.
+      * It can not move backward, into a gap or past the head range end.

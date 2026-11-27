@@ -41,6 +41,9 @@ bool GetSlotInfo(uint32_t final_pow_time, uint32_t candidate_time,
 /** Height whose UTXO state defines the initial delayed stake snapshot. */
 int GetInitialStakeSnapshotHeight(const Consensus::Params& params);
 
+/** Bootstrap warning policy only; never a block-validity or fork-choice rule. */
+bool NeedsTrustedCheckpointRefresh(const Consensus::Params& params, int height);
+
 bool ComputeInitialEpochSeed(uint32_t network_id, int32_t activation_height,
                              const uint256& genesis_hash,
                              const uint256& pow_entropy, uint256& seed);

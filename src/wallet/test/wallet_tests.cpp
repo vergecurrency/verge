@@ -271,6 +271,78 @@ BOOST_FIXTURE_TEST_CASE(pq_keys_survive_reload_encryption_and_backup, TestingSet
     ReleaseDirectoryLocks();
 }
 
+BOOST_FIXTURE_TEST_CASE(pq_internal_keys_require_a_successful_backup, TestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    const fs::path path = GetDataDir() / "pq-pool-wallet";
+    const fs::path backup = GetDataDir() / "pq-pool-backup";
+    uint256 used;
+    for (const bool encrypted : {false, true}) {
+        const fs::path wallet_path = path.string() + (encrypted ? "-encrypted" : "-plain");
+        const fs::path backup_dir = backup.string() + (encrypted ? "-encrypted" : "-plain");
+        fs::create_directories(backup_dir);
+        const fs::path backup_path = backup_dir / "wallet.dat";
+        const SecureString passphrase{"pq-pool-passphrase"};
+        {
+            CWallet wallet("pq-pool", WalletDatabase::Create(wallet_path));
+            bool first = false;
+            BOOST_REQUIRE(wallet.LoadWallet(first) == DBErrors::LOAD_OK);
+            if (encrypted) {
+                uint256 key;
+                BOOST_REQUIRE(wallet.GeneratePQKey(key));
+                BOOST_REQUIRE(wallet.EncryptWallet(passphrase));
+                BOOST_REQUIRE(wallet.Unlock(passphrase));
+            }
+            BOOST_REQUIRE(wallet.TopUpPQKeyPool(3));
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(), 3U);
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(true), 0U);
+            CReserveKey reserve(&wallet);
+            BOOST_CHECK(!reserve.GetReservedPQKey(used));
+            BOOST_CHECK(!wallet.BackupWallet((wallet_path / "no-such-dir" / "wallet.dat").string()));
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(true), 0U);
+            BOOST_REQUIRE(wallet.BackupWallet(backup_path.string()));
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(true), 1000U);
+            BOOST_REQUIRE(reserve.GetReservedPQKey(used));
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(true), 999U);
+            reserve.ReturnKey();
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(true), 1000U);
+            BOOST_REQUIRE(reserve.GetReservedPQKey(used));
+            reserve.KeepKey();
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(true), 999U);
+            wallet.GetDBHandle().Flush(false);
+        }
+        {
+            CWallet wallet("pq-pool-reopened", WalletDatabase::Create(wallet_path));
+            bool first = false;
+            BOOST_REQUIRE(wallet.LoadWallet(first) == DBErrors::LOAD_OK);
+            BOOST_CHECK_EQUAL(wallet.GetPQKeyPoolSize(true), 999U);
+            BOOST_CHECK(wallet.HavePQKey(used));
+            if (encrypted) BOOST_REQUIRE(wallet.Unlock(passphrase));
+            pos::experimental::MLDSA44Key key;
+            BOOST_REQUIRE(wallet.GetPQKey(used, key));
+            wallet.GetDBHandle().Flush(true);
+        }
+        {
+            CWallet restored("pq-pool-restored", WalletDatabase::Create(backup_path));
+            bool first = false;
+            BOOST_REQUIRE(restored.LoadWallet(first) == DBErrors::LOAD_OK);
+            BOOST_CHECK(restored.HavePQKey(used));
+            if (encrypted) BOOST_REQUIRE(restored.Unlock(passphrase));
+            pos::experimental::MLDSA44Key key;
+            BOOST_REQUIRE(restored.GetPQKey(used, key));
+            // A backup includes the keys, but does not claim it backed itself up.
+            BOOST_CHECK_EQUAL(restored.GetPQKeyPoolSize(true), 0U);
+            CMutableTransaction received;
+            received.vin.emplace_back(COutPoint(uint256S("1234"), 0));
+            received.vout.emplace_back(COIN, GetPQScript(used));
+            BOOST_REQUIRE(restored.AddToWallet(CWalletTx(&restored, MakeTransactionRef(received))));
+            BOOST_CHECK_EQUAL(restored.GetPQKeyPoolSize(), 999U);
+            restored.GetDBHandle().Flush(true);
+        }
+    }
+    ReleaseDirectoryLocks();
+}
+
 BOOST_FIXTURE_TEST_CASE(pq_wallet_records_reject_corruption_and_future_versions, TestingSetup)
 {
     if (!pos::experimental::MLDSA44Available()) return;
@@ -316,6 +388,15 @@ BOOST_FIXTURE_TEST_CASE(pq_wallet_records_reject_corruption_and_future_versions,
         BOOST_CHECK(rejected.LoadWallet(first_run) == DBErrors::CORRUPT);
         rejected.GetDBHandle().Flush(true);
     }
+    record_key.clear();
+    record_key << std::make_pair(std::string("pqpool"), uint256S("1234"));
+    record_value.clear();
+    record_value << uint8_t{2};
+    BOOST_CHECK(!WalletBatch::RecoverKeysOnlyFilter(&recovered, record_key, record_value));
+    record_value.clear();
+    record_value << uint8_t{1};
+    BOOST_CHECK(WalletBatch::RecoverKeysOnlyFilter(&recovered, record_key, record_value));
+    BOOST_CHECK(!recovered.CheckPQKeyPool());
     const fs::path missing_guard = GetDataDir() / "pq-missing-guard";
     {
         auto database = WalletDatabase::Create(missing_guard);
@@ -972,6 +1053,7 @@ BOOST_FIXTURE_TEST_CASE(pq_multisig_owned_balance_and_wallet_spending, ListCoins
     LOCK2(cs_main, wallet->cs_wallet);
     uint256 id;
     BOOST_REQUIRE(wallet->GeneratePQKey(id));
+    BOOST_REQUIRE(wallet->BackupWallet((GetDataDir() / "pq-multisig-backup").string()));
     PQMultisigPolicy policy{1, {id, uint256S("01")}};
     std::sort(policy.keys.begin(), policy.keys.end());
     BOOST_REQUIRE(wallet->AddPQMultisigPolicy(EncodePQMultisigPolicy(policy)));

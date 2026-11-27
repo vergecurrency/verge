@@ -74,13 +74,15 @@ class PublicEligibilityTest(VergeTestFramework):
         raise AssertionError("Public selection exhausted its draw bound")
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         first, second, fresh = self.nodes
         for node in self.nodes:
             node.setstaking(False)
-        address = first.getnewaddress()
+        address = first.getnewaddress("mining", "legacy")
         self.mine(first, 1, address)
         sync_blocks([first, second])
-        self.mine(second, 720, second.getnewaddress())
+        self.mine(second, 720, second.getnewaddress("mining", "legacy"))
         sync_blocks([first, second])
         bonds = [first.createbond(1000), second.createbond(3000)]
         second.sendrawtransaction(first.getrawtransaction(bonds[0]["txid"]))

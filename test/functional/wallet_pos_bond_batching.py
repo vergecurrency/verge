@@ -18,8 +18,10 @@ class BondBatchingTest(VergeTestFramework):
         self.extra_args = [["-posactivationheight=3000"]]
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         node = self.nodes[0]
-        address = node.getnewaddress()
+        address = node.getnewaddress("mining", "legacy")
         for _ in range(16):
             node.generatetoaddress(100, address)
         mature = node.listunspent(720)

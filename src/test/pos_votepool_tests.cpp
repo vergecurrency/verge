@@ -105,6 +105,30 @@ BOOST_AUTO_TEST_CASE(ordering_removal_and_pruning)
     BOOST_CHECK_EQUAL(pool.DynamicMemoryUsage(), 0U);
 }
 
+BOOST_AUTO_TEST_CASE(selection_filters_before_applying_the_inclusion_limit)
+{
+    pos::VotePool pool;
+    for (uint32_t i = 1; i <= 300; ++i) {
+        BOOST_REQUIRE(pool.Add(MakeVote(i, 4, 100)) == pos::VotePoolResult::ADDED);
+    }
+    const auto ordered = pool.GetVotes(300);
+    std::set<COutPoint> blocked;
+    for (const auto& vote : pool.GetVotes(192)) blocked.insert(vote.bond_outpoint);
+    std::set<COutPoint> usable;
+    for (const auto& vote : ordered) {
+        if (blocked.count(vote.bond_outpoint) == 0) usable.insert(vote.bond_outpoint);
+    }
+    const auto selected = pool.GetVotes(108, [&](const pos::CheckpointVote& vote) {
+        // The predicate runs outside the pool lock and may inspect the pool.
+        BOOST_CHECK_EQUAL(pool.Size(), 300U);
+        return usable.count(vote.bond_outpoint) != 0;
+    });
+    BOOST_REQUIRE_EQUAL(selected.size(), 108U);
+    for (const auto& vote : selected) BOOST_CHECK(usable.count(vote.bond_outpoint) != 0);
+    BOOST_CHECK(pool.GetVotes(0).empty());
+    BOOST_CHECK(pool.GetVotes(10, [](const pos::CheckpointVote&) { return false; }).empty());
+}
+
 BOOST_AUTO_TEST_CASE(hybrid_evidence_retains_its_authentication_version)
 {
     auto vote = MakeVote(1, 4, 100);

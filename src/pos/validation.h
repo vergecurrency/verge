@@ -81,6 +81,11 @@ ValidationError CheckCheckpointVote(const CheckpointVote& vote,
 ValidationError CheckVoteHead(const CheckpointVote& vote, const State& state,
                               uint64_t maximum_slot);
 
+/** Relay policy only: a known, authenticated header must match the signed slot. */
+ValidationError CheckKnownVoteHead(const CheckpointVote& vote, const State& state,
+                                   const CBlockIndex* head, uint64_t maximum_slot,
+                                   const Consensus::Params& params);
+
 /** Only ancestors of this branch, at the signed slot, carry fork-choice weight. */
 const CBlockIndex* FindVoteHead(const CheckpointVote& vote,
                                const CBlockIndex* tip,

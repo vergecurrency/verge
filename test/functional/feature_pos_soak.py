@@ -133,6 +133,8 @@ class PoSSoakTest(VergeTestFramework):
                       self.metrics["elapsed_seconds"], self.metrics["peak_observed_total_rss_bytes"] // (1024 * 1024))
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         assert self.options.rounds >= 1 and self.options.duration >= 0
         assert 1 <= self.options.bonds_per_node <= 32
         self.rng = random.Random(self.options.soak_seed)
@@ -143,7 +145,7 @@ class PoSSoakTest(VergeTestFramework):
             "initial_observed_total_rss_bytes": 0, "last_observed_total_rss_bytes": 0,
             "nodes": 4, "activation_height": self.ACTIVATION_HEIGHT,
             "bonds_per_node": self.options.bonds_per_node, "seed": self.options.soak_seed}
-        addresses = [node.getnewaddress() for node in self.nodes]
+        addresses = [node.getnewaddress("mining", "legacy") for node in self.nodes]
         for index, node in enumerate(self.nodes):
             node.setstaking(False)
             self.mine(node, self.options.bonds_per_node, addresses[index])

@@ -36,8 +36,10 @@ class PoSForkTreeTest(VergeTestFramework):
         raise AssertionError("No eligible producer slot in 300 attempts")
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         first, small, medium, other = self.nodes
-        addresses = [node.getnewaddress() for node in self.nodes]
+        addresses = [node.getnewaddress("mining", "legacy") for node in self.nodes]
         for node, address in zip(self.nodes, addresses):
             self.mine(node, 721, address)
         for node, amount in zip(self.nodes, (90000, 10000, 20000, 75000)):

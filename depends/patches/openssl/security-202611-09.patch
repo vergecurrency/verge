@@ -1,0 +1,212 @@
+From 05bfccf68184665b989dc7001fc5f1f885f84194 Mon Sep 17 00:00:00 2001
+From: Duc Anh Luu <luuducanh05051995@gmail.com>
+Date: Fri, 23 Oct 2026 08:54:24 +0700
+Subject: [PATCH] QUIC: limit the number of out-of-order ranges per stream
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Receive flow control bounds the highest offset a peer may send on a
+stream, but not the number of disjoint ranges the reassembly buffer
+keeps. A peer that sends 1-byte STREAM frames at offsets 1, 3, 5, ...
+and never sends offset 0 makes the receiver keep one range and one
+chunk per frame, about 150 bytes each, for data the application can
+never read. The window does not move because nothing is read, so a
+single stream can hold tens of megabytes within the default 512 KiB
+window.
+
+Limit the number of ranges buffered per stream to 1024 and close the
+connection with FLOW_CONTROL_ERROR when a frame would create more. A
+sender that retransmits lost data stays far below this.
+
+test_rstream_reorder shuffled 4096 1-byte frames at random, which
+leaves about 1024 gaps open at once. Use 2048 bytes so it stays well
+below the limit while still covering every frame size.
+
+Fixes CVE-2026-84785
+
+Reviewed-by: Saša Nedvědický <sashan@openssl.org>
+Reviewed-by: Eugene Syromiatnikov <esyr@openssl.org>
+Merge-date: Mon Nov 23 17:25:02 2026
+Merged-from: https://github.com/openssl/openssl/pull/33346
+(cherry picked from commit 5bd2aed595045760ecb4605e27f5eb5e092e0258)
+---
+ include/internal/quic_strm_reas.h |  9 ++++
+ ssl/quic/quic_strm_reas.c         | 18 ++++++++
+ test/quic_stream_test.c           | 72 ++++++++++++++++++++++++++++++-
+ 3 files changed, 98 insertions(+), 1 deletion(-)
+
+diff --git a/include/internal/quic_strm_reas.h b/include/internal/quic_strm_reas.h
+index c55a77600415a..30d37035125ae 100644
+--- a/include/internal/quic_strm_reas.h
++++ b/include/internal/quic_strm_reas.h
+@@ -17,6 +17,15 @@
+ #ifndef OPENSSL_NO_QUIC
+ #include "internal/ossl_rbtree.h"
+ 
++/*
++ * Maximum number of disjoint ranges buffered per stream. Flow control
++ * bounds only the highest offset a peer may send, so without this
++ * limit tiny fragments separated by gaps could make the receiver keep
++ * one range per fragment. A legitimate sender retransmits lost data
++ * and stays well below this limit.
++ */
++#define QUIC_SFRAME_SET_MAX_RANGES 1024
++
+ typedef struct sframe_set_t {
+     OSSL_RBT_HEAD(srange, sframe_set_t)
+     ranges;
+diff --git a/ssl/quic/quic_strm_reas.c b/ssl/quic/quic_strm_reas.c
+index 34e88d57103e5..a26ac254aff70 100644
+--- a/ssl/quic/quic_strm_reas.c
++++ b/ssl/quic/quic_strm_reas.c
+@@ -62,6 +62,7 @@ struct stream_chunk_t {
+ struct quic_rstream_qparm_st {
+     size_t rsqp_pkt_overhead_treshold;
+     size_t rsqp_pkt_overhead_sz;
++    size_t rsqp_range_limit;
+     QUIC_CHANNEL *rsqp_ch;
+ };
+ 
+@@ -224,6 +225,19 @@ static int keep_schunk_data_on_packet(SFRAME_SET *fs, OSSL_QRX_PKT *pkt,
+     return 1;
+ }
+ 
++static int is_range_limit_exceeded(SFRAME_SET *fs)
++{
++    if (fs->stream_ranges >= fs->rsqp->rsqp_range_limit) {
++        ossl_quic_channel_raise_protocol_error(fs->rsqp->rsqp_ch,
++            OSSL_QUIC_ERR_FLOW_CONTROL_ERROR,
++            OSSL_QUIC_FRAME_TYPE_STREAM,
++            "too many gaps in stream data");
++        return 1;
++    }
++
++    return 0;
++}
++
+ static struct stream_chunk_t *new_schunk(SFRAME_SET *fs, OSSL_QRX_PKT *pkt,
+     UINT_RANGE *r, const unsigned char *data)
+ {
+@@ -972,6 +986,9 @@ int ossl_sframe_set_insert(SFRAME_SET *fs, UINT_RANGE *r, OSSL_QRX_PKT *pkt,
+     assert(r->start < r->end);
+ 
+     if ((sr = find_range(fs, &key_sr)) == NULL) {
++        if (is_range_limit_exceeded(fs))
++            return 0;
++
+         sc = new_schunk(fs, pkt, r, data);
+         if (sc == NULL)
+             goto err;
+@@ -1372,6 +1389,7 @@ QUIC_RSTREAM_QPARM *ossl_quic_rstream_qparm_new(QUIC_CHANNEL *ch)
+         rsqp->rsqp_pkt_overhead_treshold = PKT_BUFFER_OVERHEAD_TRESHOLD;
+         rsqp->rsqp_pkt_overhead_sz = 0;
+         rsqp->rsqp_ch = ch;
++        rsqp->rsqp_range_limit = QUIC_SFRAME_SET_MAX_RANGES;
+     }
+ 
+     return rsqp;
+diff --git a/test/quic_stream_test.c b/test/quic_stream_test.c
+index 307265c8aa544..b0da9dc47d896 100644
+--- a/test/quic_stream_test.c
++++ b/test/quic_stream_test.c
+@@ -11,6 +11,7 @@
+ #include "internal/packet.h"
+ #include "internal/quic_record_rx.h"
+ #include "internal/quic_stream.h"
++#include "internal/quic_strm_reas.h"
+ #include "../ssl/quic/quic_record_rx_local.h"
+ #include "../ssl/quic/quic_channel_local.h"
+ #include "internal/nelem.h"
+@@ -975,7 +976,7 @@ static int test_rstream_reorder(int idx)
+     QUIC_CHANNEL *ch = NULL;
+     OSSL_QRX_PKT **pkts = NULL;
+     QUIC_RSTREAM_QPARM *rsqp = NULL;
+-    const size_t data_size = 4096;
++    const size_t data_size = 2048;
+     const size_t framesz = 1 + (size_t)(idx % 17);
+     const int cleanse = (idx & 1);
+     const size_t nframes = (data_size + framesz - 1) / framesz;
+@@ -1327,6 +1328,74 @@ static int test_rstream_fin_final_size(void)
+     return ret;
+ }
+ 
++/*
++ * A peer must not be able to make the receiver keep an unbounded number
++ * of disjoint ranges by sending tiny fragments with gaps between them.
++ * Flow control only bounds the highest offset, not the number of ranges.
++ */
++static int test_rstream_range_limit(void)
++{
++    QUIC_RSTREAM *rstream = NULL;
++    QUIC_CHANNEL *ch = NULL;
++    QUIC_RSTREAM_QPARM *rsqp = NULL;
++    OSSL_QRX_PKT *pkt = NULL;
++    unsigned char pdata[2] = { 0x41, 0x42 };
++    uint64_t off;
++    size_t i;
++    int ret = 0;
++
++    if (!TEST_ptr(pkt = pkt_test_new(1200))
++        || !TEST_ptr(ch = OPENSSL_zalloc(sizeof(QUIC_CHANNEL)))
++        || !TEST_ptr(rsqp = ossl_quic_rstream_qparm_new(ch))
++        || !TEST_ptr(rstream = ossl_quic_rstream_new(NULL, NULL, rsqp)))
++        goto err;
++
++    /* 1-byte fragments at offsets 1, 3, 5, ... each create a new range */
++    for (i = 0; i < QUIC_SFRAME_SET_MAX_RANGES; i++) {
++        off = 1 + 2 * i;
++        if (!TEST_true(ossl_quic_rstream_queue_data(rstream, pkt, off,
++                pdata, 1, 0)))
++            goto err;
++    }
++
++    if (!TEST_size_t_eq(ossl_quic_rstream_get_range_count(rstream),
++            QUIC_SFRAME_SET_MAX_RANGES)
++        || !TEST_int_eq(ch->protocol_error, 0))
++        goto err;
++
++    /* extending an existing range does not create a new one */
++    if (!TEST_true(ossl_quic_rstream_queue_data(rstream, pkt, 2,
++            pdata, 1, 0))
++        || !TEST_size_t_eq(ossl_quic_rstream_get_range_count(rstream),
++            QUIC_SFRAME_SET_MAX_RANGES - 1))
++        goto err;
++
++    /* two more disjoint fragments: the first fits, the second exceeds */
++    off = 1 + 2 * QUIC_SFRAME_SET_MAX_RANGES;
++    if (!TEST_true(ossl_quic_rstream_queue_data(rstream, pkt, off,
++            pdata, 1, 0))
++        || !TEST_int_eq(ch->protocol_error, 0))
++        goto err;
++
++    if (!TEST_false(ossl_quic_rstream_queue_data(rstream, pkt, off + 2,
++            pdata, 1, 0))
++        || !TEST_int_eq(ch->protocol_error, 1)
++        || !TEST_uint64_t_eq(ch->terminate_cause.error_code,
++            OSSL_QUIC_ERR_FLOW_CONTROL_ERROR)
++        || !TEST_size_t_eq(ossl_quic_rstream_get_range_count(rstream),
++            QUIC_SFRAME_SET_MAX_RANGES))
++        goto err;
++
++    ret = 1;
++
++err:
++    ossl_quic_rstream_free(rstream);
++    ossl_quic_rstream_qparm_destroy(rsqp);
++    pkt_test_free(pkt);
++    ossl_quic_channel_free(ch);
++    return ret;
++}
++
+ static int cleanse_buf_check(const unsigned char *buf, size_t size,
+     size_t data_start, size_t data_end)
+ {
+@@ -2947,6 +3016,7 @@ int setup_tests(void)
+     ADD_TEST(test_rstream_dstorage_two_sided_overlap);
+     ADD_TEST(test_rstream_zero_length_read);
+     ADD_TEST(test_rstream_fin_final_size);
++    ADD_TEST(test_rstream_range_limit);
+     ADD_TEST(test_rstream_cleanse_dropped_bytes);
+     ADD_TEST(test_rstream_chunk_partial_overlap);
+     ADD_TEST(test_rstream_chunk_full_overlap);

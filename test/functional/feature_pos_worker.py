@@ -49,8 +49,10 @@ class PoSWorkerTest(VergeTestFramework):
         node.syncwithvalidationinterfacequeue()
 
     def run_test(self):
+        for i, wallet in enumerate(self.nodes):
+            wallet.backupwallet(self.options.tmpdir + "/pq-keypool-{}.dat".format(i))
         node, observer = self.nodes
-        address = node.getnewaddress()
+        address = node.getnewaddress("mining", "legacy")
         self.mine_blocks(node, 721, address)
         node.createbond(1000)
         self.mine_blocks(node, 778, address)

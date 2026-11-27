@@ -793,6 +793,69 @@ BOOST_AUTO_TEST_CASE(equivocation_lockout_activation_expiry_and_undo)
     BOOST_CHECK(state.UndoBlock(seed_undo));
 }
 
+BOOST_AUTO_TEST_CASE(repeated_penalty_updates_preserve_original_undo)
+{
+    auto params = CreateChainParams(CBaseChainParams::MAIN)->GetConsensus();
+    params.nPoSActivationHeight = 1000;
+    params.nPoSBondRulesHeight = 1;
+    params.nPoSUnbondingBlocks = 5;
+    pos::State state;
+    CMutableTransaction create;
+    create.vout.emplace_back(params.nPoSMinStake, pos::GetBondScript(MakeBond()));
+    const COutPoint outpoint(create.GetHash(), 0);
+    pos::StateUndo setup;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase(), MakeTransactionRef(create)}),
+                                   1, false, 0, 0, params, setup));
+    pos::StateUndo snapshot;
+    BOOST_REQUIRE(state.ApplyBlock(MakeBlock({MakeCoinbase()}), 760, false, 0, 0, params, snapshot));
+    pos::StateUndo seed;
+    BOOST_REQUIRE(state.SetEpochSeed(0, uint256S("04"), seed));
+    const auto key = pos::GetBlockEvidencePenaltyKey(outpoint);
+
+    for (const bool preexisting : {false, true}) {
+        pos::State trial = state;
+        if (preexisting) {
+            CBlock prior = MakeBlock({MakeCoinbase()});
+            prior.hashPrevBlock = uint256S("aa");
+            prior.nTime = 3000;
+            prior.posExtension.block_evidence.resize(1);
+            prior.posExtension.block_evidence[0].first.bond_outpoint = outpoint;
+            prior.posExtension.block_evidence[0].first.slot = 5;
+            pos::StateUndo undo;
+            BOOST_REQUIRE(trial.ApplyBlock(prior, 1000, true, 0, 0, params, undo));
+        }
+        const auto original = SerializeHash(trial);
+        CBlock block = MakeBlock({MakeCoinbase()});
+        block.hashPrevBlock = uint256S("bb");
+        block.nTime = 3030;
+        for (const uint64_t slot : {uint64_t{10}, uint64_t{20}, uint64_t{15}}) {
+            pos::BlockEquivocationEvidence evidence;
+            evidence.first.bond_outpoint = outpoint;
+            evidence.first.slot = slot;
+            block.posExtension.block_evidence.push_back(evidence);
+        }
+        pos::StateUndo undo;
+        BOOST_REQUIRE(trial.ApplyBlock(block, 1001, true, 0, 1, params, undo));
+        BOOST_REQUIRE_EQUAL(undo.added_evidence.size(), 1U);
+        BOOST_CHECK_EQUAL(undo.removed_evidence.size(), preexisting ? 1U : 0U);
+        const pos::State connected = trial;
+        CDataStream encoded(SER_DISK, 0);
+        encoded << undo;
+        pos::StateUndo decoded;
+        encoded >> decoded;
+        BOOST_REQUIRE(trial.UndoBlock(decoded));
+        BOOST_CHECK(SerializeHash(trial) == original);
+
+        // A pre-fix journal included the intermediate sequence-10 record.
+        pos::StateUndo legacy = undo;
+        legacy.added_evidence.push_back(key);
+        legacy.removed_evidence.emplace_back(key, pos::AppliedEvidenceRecord{outpoint, 1001, 10});
+        trial = connected;
+        BOOST_REQUIRE(trial.UndoBlock(legacy));
+        BOOST_CHECK(SerializeHash(trial) == original);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(journal_keeps_recovery_undo_until_explicit_pruning)
 {
     SetDataDir("pos-journal");
