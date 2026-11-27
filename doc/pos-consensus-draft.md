@@ -23,7 +23,7 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Staking authorization | Delegated staking keys |
 | Principal maturity after staking | Preserved |
 | Fee reward staking eligibility | 720 confirmations |
-| Expected eligible producers | 1 per slot |
+| Eligible producers | Public selection: one winner per slot; classical VRF: one expected per slot |
 | Bonding | Automatically created after staking opt-in |
 | Delegation granularity | Entire bonded UTXO |
 | Unbonding lock | 20,160 accepted blocks |
@@ -34,6 +34,7 @@ This transition does not mint new XVG. A valid PoS block may claim at most the t
 | Testnet activation height | 3,000 |
 | Testnet bond-rules height | 1 |
 | Regtest activation | Disabled unless -posactivationheight=<height> is set |
+| Public eligibility and PQ rules | Enabled on testnet/regtest; not yet enabled on mainnet |
 
 All amounts are evaluated in base units. A staking output exactly equal to 1,000 XVG is eligible.
 
@@ -43,48 +44,36 @@ Each network has an explicit `nPoSActivationHeight` and an earlier or equal
 `nPoSBondRulesHeight`. Reserved bond and unbond scripts are interpreted by
 consensus only at and after the bond-rules height, which provides a deliberate
 upgrade boundary instead of changing the meaning of scripts for legacy miners
-immediately. The clean-chain public testnet trial activates bond rules at
+immediately. Public testnet activates bond rules at
 height 1 and PoS at height 3,000. Mainnet schedules bond rules at height
 14,979,120 and PoS at height 15,000,000 in the current configuration. The owner
 will choose a different production activation height after testing, targeting
 2027; no replacement height is approved yet. These provisional values are real
 consensus settings, not a disabled mainnet deployment. Do not ship this branch
-as the mainnet activation release until the chosen height and phase gates are
+as the mainnet activation release until the chosen height and release gates are
 approved. The mainnet bond-rules height is derived from the activation height
 minus the configured unbonding window and stake maturity, so changing the
 activation constant keeps the pre-bonding window aligned.
 
-For this clean testnet trial, the initial stake snapshot is recorded at height
-2,760. A bond must be created by height 2,280 to have 720 confirmations at
-activation and must remain unspent through the snapshot. Block 2,999 is the
-last valid PoW block; block 3,000 must be produced by an eligible PoS bond.
-The November 22 final clean-chain testnet trial uses P2P
-message-start bytes `52 4c 7f 07`,
-derived from the first four bytes of
-`SHA256("Verge PoS Testnet Reset 2026-11-22 final trial height 3000")`. This separates
-it from the previous trial's magic `69 c1 da 8e` and earlier testnet identities,
-so an old testnet node cannot exchange P2P messages with the clean network.
-The testnet genesis block and height-3,000 PoS activation are unchanged.
-Changing magic does not reset stored history: every participant in this trial
-must start with fresh testnet blockchain data, keeping mainnet data and wallet
-backups separate and intact.
-Every seed and
-participant still must upgrade because old binaries cannot join the new network.
-Operators should use a fresh testnet wallet or, after making a verified backup,
-start once with `-zapwallettxes=2` so transactions from the discarded chain are
-removed before rescanning the reset chain. Automatic bonding treats an
-unconfirmed bond as pending only while that transaction is in the mempool.
-Minimum-chain-work, assume-valid, and chain transaction estimates are reset to
-zero for this new chain. Stable anchors must be selected from this reset before
-those bootstrap values are populated again.
+On testnet, the initial stake snapshot is recorded at height 2,760. A bond
+must be created by height 2,280 to satisfy stake maturity at activation and
+must remain unspent through the snapshot. Block 2,999 is the last valid PoW
+block; block 3,000 must be produced by an eligible PoS bond. Testnet uses
+message-start bytes `52 4c 7f 07`. Network magic isolates P2P traffic; it does
+not reset stored blockchain or wallet data.
 
-Regtest activation is disabled by default and requires `-posactivationheight=<height>`. The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
+Testnet minimum-chain-work, assume-valid and chain transaction estimates are
+zero. Bootstrap anchors must be selected from the canonical testnet history
+before those values are populated. Mainnet data and wallet backups must remain
+separate from testnet data.
+
+Regtest activation is disabled by default and requires `-posactivationheight=<height>` (minimum 721). The override is rejected on testnet and mainnet. Automated tests use small explicit heights, while manual regtest networks may choose an upcoming height.
 
 ## Deployment Portability
 
-The same PoS consensus code path must be used on regtest, public testnet, and mainnet. Network classes provide parameters such as activation height, slot duration, maturity, minimum stake, target limits, checkpoint intervals, and deployment state; they do not select separate consensus algorithms.
+The same PoS implementation serves regtest, public testnet, and mainnet. Network parameters select activation heights, slot duration, maturity, minimum stake, checkpoint intervals and eligibility/authentication modes; consensus behavior must follow these reviewed parameters rather than special-cased network names.
 
-Regtest may expose deterministic test controls and an activation-height override, but those controls must be unavailable on public networks. Promotion follows regtest to public testnet to mainnet by changing reviewed network parameters, not by copying or rewriting the implementation. Mainnet release approval and the final activation height remain gated on Phase 6; the currently configured height is not a disabled deployment.
+Regtest may expose deterministic test controls and an activation-height override, but those controls must be unavailable on public networks. Promotion follows regtest to public testnet to mainnet by changing reviewed network parameters, not by copying or rewriting the implementation. Mainnet release approval and the final activation height remain subject to the release gates below; the currently configured height is not a disabled deployment.
 
 Database records, block serialization, wallet staking records, RPC schemas, and P2P messages must be forward-compatible across those environments so testnet exercises the actual production format. A node must log the configured activation height and reject ambiguous or conflicting activation settings at startup.
 
@@ -101,11 +90,12 @@ The daemon equivalents are `staking=1` and `stakingreservebalance=10000`. Lockin
 encrypted wallet pauses bonding and signing without changing the preference.
 The Qt wallet exposes the same per-wallet policy under Wallet options as
 automatic staking and the amount to keep available.
-Automatic bonding generates a wallet-encrypted delegated secp256k1 key,
-deterministically derives the separate P-256 VRF key under
-`VergePoS/VRFKey/v1`, and creates wallet-controlled reward and withdrawal
-destinations. The lower-level `createbond` RPC remains available for explicit
-delegation. `unbond` preserves the complete principal in the consensus unbond
+Automatic bonding creates wallet-encrypted delegated signing credentials and
+wallet-controlled reward and withdrawal destinations. In hybrid mode, these
+include independent ML-DSA-44 keys and a secp256k1 signing key; eligibility is
+public and does not use a VRF key. Classical mode derives a separate P-256
+VRF key under `VergePoS/VRFKey/v1`. The lower-level `createbond` RPC remains
+available for explicit delegation. `unbond` preserves the complete principal in the consensus unbond
 script and funds its transaction fee from separate wallet inputs.
 At activation:
 
@@ -157,10 +147,12 @@ encoding.
 | `nLockTime` | unsigned 32-bit little-endian |
 
 The transaction ID remains the double-SHA-256 hash of this complete canonical
-wire serialization, including the replay marker. Address encodings, input and
-output structures, script execution, and ordinary transfer public keys remain
-unchanged. Ordinary `CHECKSIG` and `CHECKMULTISIG` spends continue to use
-strict-DER secp256k1 ECDSA signatures followed by a one-byte hash type.
+wire serialization, including the replay marker. The envelope preserves
+existing input/output structures, legacy addresses and legacy spending paths.
+Legacy `CHECKSIG` and `CHECKMULTISIG` spends use strict-DER secp256k1 ECDSA
+signatures followed by a one-byte hash type. Native PQ scripts, addresses and
+their separate ML-DSA signature domain are specified below; they do not turn
+legacy outputs into PQ-protected outputs.
 
 The post-fork hash type must set `SIGHASH_POS_FORKID = 0x40`. Consequently the
 standard values are `0x41` for `SIGHASH_ALL`, `0x42` for `SIGHASH_NONE`, and
@@ -251,9 +243,10 @@ signature hash is wrapped as
 using canonical serialization for the numeric fields. Legacy transaction
 signatures are invalid in post-activation blocks, while the format 5 envelope
 makes post-activation transactions invalid under legacy PoW validation.
-Before activation, historical transaction encoding and signature semantics
-remain unchanged. Existing pre-activation UTXOs remain spendable after
-activation without first moving balances.
+Before PoS activation, the transaction envelope and legacy signature domain
+retain their historical form. PQ script rules can activate earlier at the
+separate bond-rules height, as specified below. Existing pre-activation UTXOs
+remain spendable after activation without first moving balances.
 
 The wallet and all signing RPCs must select the correct signature domain from
 the height of the block for which the transaction is being prepared. At the
@@ -279,35 +272,36 @@ waived.
 
 A dedicated version bit identifies PoS. A PoS header appends a 32-byte `hashPoSData` commitment to the canonical PoS extension encoding described below; historical PoW headers retain their original serialization. After activation, the five PoW algorithm version encodings are invalid for new blocks.
 
-For `hashPoSData`, serialize the extension in its normal wire order, replacing
-only the producer authorization's 64-byte `signature` array with 64 zero bytes,
-and apply the existing `POS_DATA` tagged hash. All other fields, including the
-stake proof, votes and evidence with their signatures, remain committed exactly
-as transmitted. The wire format still contains the full producer signature.
-Two valid Schnorr signatures for the same authorization therefore identify one
-candidate, rather than creating different block IDs through signing randomness.
-The signature is verified before admission and before any header-invalidity
-decision. A missing or invalid signature is a corrupt candidate body, not proof
-that this block ID is permanently invalid. Authorization field changes still
-change the ID, and conflicting candidate headers remain evidence-eligible.
-This change applies to the fresh testnet and the future mainnet PoS activation;
-it is not compatible with PoS history from the previous trial. Transaction
-formats, transaction signature hashes and historical PoW block IDs are unchanged.
+For `hashPoSData`, serialize the extension in canonical wire order with
+authentication signatures normalized, then apply the `POS_DATA` tagged hash.
+In version 1, only the producer authorization's 64-byte Schnorr signature is
+zeroed; vote and evidence signatures remain committed. In version 2, both
+Schnorr and ML-DSA signatures are zeroed throughout the producer authorization,
+votes and evidence. The version-2 vote and evidence roots use the same
+normalization. Unsigned fields and public keys remain committed.
+
+Full signatures remain mandatory wire data and must verify independently.
+Signature-only variants cannot create a different candidate ID within these
+normalization rules. A missing or invalid authentication signature is a corrupt
+candidate body, not proof that its signature-independent block ID is permanently
+invalid. Conflicting unsigned candidate headers remain evidence-eligible.
+
 Historical blocks through activation height minus one retain their original header interpretation and proof-of-work validation. At and after activation, the PoS version bit is mandatory, proof-of-work blocks are invalid, and both nBits and nNonce must be zero. The in-memory null-header sentinel uses nVersion equal to zero so a valid PoS header with zero nBits is not mistaken for an empty object. PoS timestamps must be exact 30-second slot boundaries, must map to a slot strictly later than the parent block's slot, and cannot exceed the canonical slot containing network-adjusted time; skipped slots remain valid.
 
 The first transaction remains structurally coinbase-like so existing block indexing can be adapted incrementally. It creates no subsidy and may pay at most the block's transaction fees to the owner-controlled reward destination committed by the selected bond.
 
-A consensus-defined stake proof references exactly one bonded UTXO without spending or recreating it. The proof commits to the selected outpoint, slot, stake snapshot, VRF output and proof, delegated staking public key; block authorization and checkpoint votes are serialized separately. Principal therefore remains locked in its original bonded output while producing blocks.
+A consensus-defined stake proof references one bond outpoint without itself spending or recreating principal. It commits to the outpoint, slot, stake snapshot, eligibility output (and proof in classical mode), and delegated staking public key; authorization and checkpoint votes are serialized separately. Unbonding moves principal to a locked withdrawal output while already frozen snapshots can still select its retained credentials.
 
-The exact serialization must be domain-separated and covered by fixed test vectors before Phase 2 is considered complete. Witness serialization is not used.
+Serialization and signing domains require fixed cross-platform test vectors. Witness serialization is not used.
 
 ### Header Relay Encoding
 
 PoS `headers` messages contain the canonical extended header, an empty
 transaction vector, and an empty legacy block-signature vector. They never
-contain the PoS extension itself. The 32-byte extension commitment makes any
-change to the stake proof, authorization signature, votes, or evidence produce
-a different block ID.
+contain the PoS extension itself. The 32-byte commitment binds the extension
+using the version-specific signature normalization above. Changes to unsigned
+stake proofs, authorizations, votes or evidence change the block ID; normalized
+signature bytes do not.
 
 A PoS header is only a locator for its full block and cannot become a
 fork-choice candidate by itself. Header relay stops after one PoS header. A
@@ -340,10 +334,17 @@ PoS uses version bit `1 << 15`, which is distinct from the five PoW algorithm bi
 | RFC 9381 P-256 VRF proof | exactly 81 bytes |
 | VRF output | exactly 32 bytes |
 | BIP340 block or vote signature | exactly 64 bytes |
-| Checkpoint votes per block | 1,024 maximum |
+| Checkpoint votes per block | Version 1: 1,024; version 2: 192 |
 | Equivocation evidence records per block | 16 maximum |
 
-All extension bytes count toward the existing serialized block-size and weight limits. Counts are decoded with existing canonical compact-size rules but are rejected against their PoS-specific maxima before allocation. Vote entries and evidence records are sorted canonically and unique.
+The VRF sizes in this table apply to classical mode; version 2 retains zero-filled VRF key/proof fields and requires hybrid authentication as specified below. All extension bytes count toward the existing serialized block-size and weight limits. Counts are decoded with existing canonical compact-size rules but are rejected against their PoS-specific maxima before allocation. Vote entries and evidence records are sorted canonically and unique.
+
+Local assembly installs the selected extension and reserves its serialized
+weight, reward transaction and transaction-count overhead before selecting
+mempool packages. Vote and block evidence share one combined 16-record budget.
+Signing occurs only after roots and reward values are final; attachment bytes
+cannot be appended outside the reserved block budget.
+
 The version 1 extension serializes fields in this exact order:
 
 | Field | Encoding |
@@ -357,22 +358,22 @@ The version 1 extension serializes fields in this exact order:
 
 The minimum extension is 572 bytes, including three zero-valued one-byte collection counts. The decoder rejects a vote count above 1,024 immediately after reading that count. It rejects a block-evidence count above 16 immediately, then limits vote evidence to 16 minus the block-evidence count. No collection is reserved or populated until its count passes the applicable bound. Locally constructed extensions repeat the same non-overflowing limits during structural validation.
 
-The coinbase-like transaction commits to tagged roots for the stake proof, vote vector, evidence vector, stake snapshot, and epoch seed. The header commits to the canonical extension with only the producer authorization signature normalized to zero. The actual signature remains mandatory and is independently verified; changing its encoding cannot change the block ID or win a fork-choice tie. Vote and evidence signatures remain committed. The extension is invalid if either commitment differs. Full-block validation also requires the authorization network identifier (mainnet 1, testnet 2, regtest 3), parent root, canonical global slot, candidate signing-header hash, bond outpoint, tagged stake-proof hash, and fee-reward transaction hash to match the block and stake proof exactly.
+The coinbase-like transaction commits to tagged roots for the stake proof, vote vector, evidence vector, stake snapshot, and epoch seed. The header commits to the canonical extension using its version-specific signature normalization. Both commitments must match, and all required signatures must independently verify. Full-block validation also requires the authorization network identifier (mainnet 1, testnet 2, regtest 3), parent root, canonical global slot, candidate signing-header hash, bond outpoint, tagged stake-proof hash, and fee-reward transaction hash to match the block and stake proof exactly.
 
 ## Stake Eligibility
 
-An outpoint is eligible for a candidate block when all of the following are true at the parent block:
+An outpoint is eligible for a candidate block when the parent-state view and the required delayed snapshot establish all of the following:
 
-- it exists and is unspent;
+- its authenticated bond credentials remain available in live or retained historical state and it belongs to the required snapshot;
 - its value is at least 1,000 XVG;
-- its creating transaction is at least 720 blocks deep;
+- its creation height plus 720 is no greater than the candidate height;
 - its script type is supported by the staking verifier;
 - it is not subject to an active staking lock or reward-maturity rule; and
 - its ownership proof is valid for the candidate block and slot.
 
 Selection weight is linear in value. Each eligible base unit has equal probability. Splitting or combining outputs therefore does not change expected aggregate selection weight, apart from integer rounding and the minimum-output rule. Coin age beyond 720 confirmations adds no weight.
 
-Bonding is an explicit on-chain transaction that the wallet creates automatically after staking is enabled. A bonded output delegates its entire value to one staking key; users who want separate delegations may use `createbond` to split funds before bonding. Block production never spends the bonded principal. Beginning unbonding disables new eligibility and locks withdrawal for 20,160 blocks.
+Bonding is an explicit on-chain transaction that the wallet creates automatically after staking is enabled. A bonded output delegates its entire value to one staking key; users who want separate delegations may use `createbond` to split funds before bonding. Block production never spends the bonded principal. Beginning unbonding excludes the bond from future snapshots and locks withdrawal for 20,160 blocks. An already frozen snapshot can still select it during the transition, so its historical credentials remain available for validation.
 ### Bond Output Encoding
 
 A version 1 bond output uses a 117-byte script. It pushes an exact 89-byte metadata payload, drops that payload, and then executes an ordinary key-hash signature check for the withdrawal credential:
@@ -427,35 +428,47 @@ slot_in_epoch = relative_slot % 120
 The initial stake snapshot is taken from chain state at height `nPoSActivationHeight - 240`. A bond in that snapshot is initially eligible only if it also has 720 confirmations at activation. Accepted PoW block hashes from the next height through `nPoSActivationHeight - 1` are accumulated in chain order and committed into the initial epoch seed. Subsequent epoch `e` uses the canonical bonded-stake snapshot from the end of epoch `e - 2`. Epochs 0 and 1 use the initial snapshot. Snapshot membership, values, credentials, and total eligible bonded value are committed by a canonical Merkle root.
 ## Randomness And Fork Choice
 
-The consensus design uses:
+The consensus design uses delayed bonded-stake snapshots and deterministic
+epoch randomness with network-selected eligibility:
 
-1. Use the RFC 9381 `ECVRF-P256-SHA256-SSWU` ciphersuite for private slot eligibility and publicly verifiable proofs. P-256 support is already available through the required OpenSSL dependency, but the ECVRF protocol wrapper remains new consensus code and must pass RFC vectors and independent audit.
-2. Give each bonded delegation a separate VRF public key. The online delegated credential produces VRF proofs; the unrestricted XVG spending key is not used for slot evaluation.
-3. Snapshot bonded stake two epochs before it is used for leader selection and voting, and commit the canonical snapshot root in every applicable PoS block. This prevents a producer from moving stake after seeing the randomness for the target epoch.
-4. Derive each later epoch seed as a tagged hash of the previous seed, next epoch number, required delayed stake-snapshot root, and an ordered accumulator of the completed epoch's accepted VRF outputs. The delayed snapshot fixes eligible keys before that entropy is revealed. Signatures, transaction ordering, reward destinations, and arbitrary nonce fields are excluded. A selected producer can still withhold an eligible block, but cannot substitute arbitrary entropy or register a favorable key after seeing the completed seed.
-5. Use deterministic, stake-weighted tree descent from the latest finalized checkpoint for temporary fork choice. Each competing branch is first replayed against its own UTXO and PoS state, and each bonded delegation has one monotonic latest vote weighted by that branch's delayed snapshot. The tree projects the maximum authenticated branch-view support onto each child edge, rather than adding incompatible histories together. Finalized history is never reconsidered by ordinary fork choice.
+1. Public eligibility (`fPoSPublicEligibility=true`) selects one stake-weighted
+   winner per slot using the authenticated snapshot and epoch seed. Testnet
+   and regtest use this mode; it has no elliptic-curve VRF dependency.
+2. Classical eligibility uses RFC 9381 `ECVRF-P256-SHA256-SSWU` with a separate
+   delegated VRF key and verifiable private slot proofs. The provisional
+   mainnet configuration still selects this mode.
+3. Snapshots are fixed two epochs before use and committed by a canonical root,
+   preventing stake movement after learning the target epoch's randomness.
+4. Each later seed commits to the previous seed, next epoch, delayed snapshot
+   root and ordered accumulator of accepted eligibility outputs in the
+   completed epoch. Signatures, transaction ordering, reward destinations and
+   arbitrary nonces are excluded. A selected producer can withhold a block;
+   this remaining bias and public-producer predictability require review.
+5. Temporary fork choice uses deterministic, stake-weighted tree descent from
+   the finalized checkpoint. Each branch is replayed against its own UTXO and
+   PoS state; incompatible histories never have their vote support summed.
 
-This design does not treat a Schnorr or ECDSA signature as random output. Signatures authorize blocks and votes; VRF proofs determine private slot eligibility. Users do not manually operate either mechanism.
+Signatures authorize blocks and votes; they are not lottery randomness.
+Public eligibility is specified below. Classical VRF behavior follows
+[RFC 9381](https://www.rfc-editor.org/rfc/rfc9381.html) and requires its fixed
+vectors and independent cryptographic review.
 
-Primary references:
-
-- RFC 9381, Verifiable Random Functions: https://www.rfc-editor.org/rfc/rfc9381.html
 ## Stake Lottery
 
-Each eligible bonded delegation evaluates one independently testable kernel per slot:
+In classical mode, each eligible bonded delegation evaluates one independently testable kernel per slot:
 
 ```text
-vrf_input = H("verge-pos-slot-v1" || network_id || epoch_seed || slot || stake_outpoint)
+vrf_input = TaggedSHA256("VergePoS/Slot/v1", network_id || epoch_seed || slot || stake_outpoint)
 (vrf_output, vrf_proof) = ECVRF_prove(delegated_vrf_key, vrf_input)
 threshold = floor(MAX_UINT256 * bonded_value / total_eligible_bonded_value)
 winner if uint256(vrf_output) <= threshold
 ```
 
-The threshold calculation uses overflow-safe wide arithmetic and the two-epoch-delayed stake snapshot. The sum of all eligibility probabilities is approximately one, so the expected number of eligible producers is one per slot. Empty and multiply-won slots are normal; temporary competing branches are resolved by the approved fork-choice rule. No PoS difficulty retarget is required.
+The threshold calculation uses overflow-safe wide arithmetic and the two-epoch-delayed stake snapshot. In this classical mode, the sum of eligibility probabilities is approximately one, so the expected number of eligible producers is one per slot. Empty and multiply-won slots are normal; temporary competing branches are resolved by the approved fork-choice rule. No PoS difficulty retarget is required.
 
 The kernel must not include mutable transaction ordering, reward destination, signature bytes, or arbitrary nonce fields. This limits grinding by a candidate producer. `parent_randomness` is the deterministic epoch seed derived from the previous seed, epoch number, delayed snapshot root, and the accepted VRF-output accumulator for the completed epoch. Only outputs committed by accepted blocks contribute.
 
-Slot eligibility uses RFC 9381 `ECVRF-P256-SHA256-SSWU`. The VRF proof and output are consensus data. The pseudocode hash denotes the verified VRF output mapped to an unsigned 256-bit integer.
+Classical slot eligibility uses RFC 9381 `ECVRF-P256-SHA256-SSWU`; its proof and output are consensus data. Public mode instead uses the single-winner selector specified below, not this VRF threshold.
 
 ## Authorization And Key Separation
 
@@ -472,31 +485,37 @@ A block must contain a signature from the delegated block/vote signing key commi
 
 The design requires a restricted staking key delegated by the spending key. A staking key may authorize block production and checkpoint voting but must not authorize principal withdrawal or arbitrary payments. The bonded output is consensus-locked until a valid unbonding transition completes.
 
-Delegated staking authorization is mandatory. Each bond commits to three distinct credentials:
+Delegated staking authorization is mandatory. A classical version-1 bond commits to three distinct credentials:
 
 - an owner withdrawal credential that controls principal after unbonding;
 - a delegated secp256k1 signing public key restricted to block authorization and checkpoint voting; and
 - a delegated P-256 VRF public key restricted to slot eligibility proofs.
 
-The bond also commits to an owner-controlled reward destination. Fee rewards may only be paid to that destination; neither delegated online key can redirect principal or rewards. Direct use of the unrestricted withdrawal key for online staking is not supported.
+A hybrid version-2 bond commits to a delegated Schnorr signing key, an independent ML-DSA signing-key ID, and separate PQ reward and withdrawal IDs. Its VRF field is zero because eligibility is public.
 
-Changing the delegated signing key, VRF key, or reward destination requires completing unbonding and creating a new bond. In-place rotation is forbidden so stake snapshots identify one immutable credential set. The bond format, authorization domains, and revocation behavior are consensus-critical and require fixed vectors.
+Each bond also commits to an owner-controlled reward destination. Fee rewards may only be paid to that destination; neither delegated online key can redirect principal or rewards. Direct use of the unrestricted withdrawal key for online staking is not supported.
 
-## Post-Quantum Work (2026-11-22)
+Changing a delegated credential, owner credential, or reward destination requires completing unbonding and creating a new bond. In-place rotation is forbidden so stake snapshots identify one immutable credential set. The bond format, authorization domains, and revocation behavior are consensus-critical and require fixed vectors.
 
-This section tracks the requested experimental implementation for the next
-fresh testnet and regtest, not an activated mainnet upgrade. Existing classical
-PoS signatures, transaction signatures and bond withdrawals remain
-quantum-vulnerable. Adding ML-DSA signing alone does not make Verge
-quantum-resistant. Public eligibility is approved and implemented for both
-trial networks; mainnet still uses its existing provisional parameters.
-Mandatory hybrid authentication and PQ spending are now integrated for these
-fresh trial networks. The end-to-end verification checklist below must pass
-before launching the trial; this is not a mainnet-readiness certification.
+## Post-Quantum Consensus
 
-### Completed Foundation
+Testnet and regtest enable `fPoSPublicEligibility` and `fPoSPostQuantum`.
+PQ spending and version-2 bond creation activate at their height-1 bond-rules
+boundary. At PoS activation, these networks require public eligibility and
+hybrid Schnorr/ML-DSA-44 authentication for producers, votes and evidence.
 
-- `src/pos/pqcrypto.{h,cpp}` provides experimental FIPS 204 ML-DSA-44 key
+Mainnet currently enables neither flag. Its provisional PoS activation height
+does not by itself enable PQ rules: production deployment must explicitly
+schedule these modes and their registration window. This specification is not
+an independent audit or a mainnet-readiness certification.
+
+Unmigrated legacy coin outputs retain classical authorization and remain
+quantum-vulnerable. Adding PQ staking authentication does not automatically
+protect those coins.
+
+### Cryptographic Backend
+
+- `src/pos/pqcrypto.{h,cpp}` provides FIPS 204 ML-DSA-44 key
   generation, seed import, pure signing and verification through OpenSSL's
   existing EVP implementation. No new cryptographic algorithm is implemented
   locally. Backends older than OpenSSL 3.5 or built without ML-DSA fail closed;
@@ -506,8 +525,8 @@ before launching the trial; this is not a mainnet-readiness certification.
   transient and owned/freed by OpenSSL, not guaranteed locked by this wrapper.
   PQ seeds must come from independent entropy, not an exposed Schnorr scalar
   or a public VRF credential. Encrypted wallet persistence and full-wallet
-  backup support are implemented below. Secret-export RPCs are not provided.
-- The experimental hybrid verifier requires **both** Schnorr and ML-DSA-44.
+  backup support follow the wallet rules below. Secret-export RPCs are not provided.
+- The hybrid verifier requires **both** Schnorr and ML-DSA-44.
   Both sign the same key-bound transcript digest. ML-DSA uses its standard
   pure-message encoding and the context
   `Verge/PoS/Hybrid-Schnorr-MLDSA44/v1`.
@@ -516,7 +535,7 @@ before launching the trial; this is not a mainnet-readiness certification.
   `uint32` network ID, purpose byte (`1` block or `2` vote), raw 32-byte
   Schnorr public key, raw 1,312-byte ML-DSA-44 public key, and raw 32-byte
   message digest. Network ID zero and unknown purposes are rejected. This
-  transcript is mandatory for version-2 trial block/vote authentication.
+  transcript is mandatory for version-2 block/vote authentication.
 - Raw ML-DSA helpers require exact 1,312-byte public keys and 2,420-byte
   signatures, at most 255 context bytes and at most 65,536 message bytes.
   Hybrid messages are fixed 32-byte transcript digests. The exact wire bounds
@@ -525,24 +544,17 @@ before launching the trial; this is not a mainnet-readiness certification.
   pure-verification cases pinned in `test/data/mldsa44.json`. Additional tests
   cover both required signatures, key/message/network/purpose binding,
   malformed lengths, context separation, failed-output clearing, concurrent
-  signing and unavailable-backend rejection. Execution results are recorded
-  below after verification, not inferred from source inspection.
+  signing and unavailable-backend rejection. Release qualification requires
+  executing these fixtures on supported platforms.
 
-### Approved Public Eligibility (2026-11-23)
+### Public Eligibility
 
-The owner approved public eligibility and requires the integrated trial on
-both public testnet and regtest, not only an opt-in private regtest. The public
-testnet has not launched; no live v1 trial must be preserved. Mainnet's
-provisional activation heights and its existing eligibility scheme remain
-unchanged until the complete upgrade is reviewed and explicitly scheduled.
-
-`fPoSPublicEligibility` is enabled for testnet and regtest. Public stake proofs
-use version `2` and retain the fixed proof layout during integration: the
-33-byte VRF key and 81-byte VRF proof are zero; the previous 32-byte output
-field carries the public selection hash. Private v1 proofs are rejected on
-these networks; public v2 proofs are rejected by the legacy/mainnet scheme.
-Version-2 hybrid authentication is required alongside public eligibility on
-these trial networks; mainnet's existing scheme remains unchanged.
+With `fPoSPublicEligibility` enabled, stake proofs use version 2 and retain the
+fixed 295-byte proof layout: the 33-byte VRF key and 81-byte VRF proof are zero;
+the 32-byte output field carries the public selection hash. Classical version-1
+proofs are rejected in this mode, and public version-2 proofs are rejected in
+classical mode. Testnet and regtest require hybrid authentication alongside
+public eligibility.
 
 There is one weighted winner per canonical slot. Entries are ordered by their
 outpoints, have strictly positive values, and their checked sum must equal the
@@ -578,75 +590,23 @@ initial-PoW seed grinding, validator-set changes and partitions remain review
 gates. Public selection removes the elliptic-curve eligibility dependency;
 it does not itself establish the security of the complete PQ consensus.
 
-### Integration Decisions
+### Legacy Coin Ownership
 
-The requested scope is end-to-end quantum-resistant staking, not merely adding
-an optional second producer signature. Integration review confirms that the
-existing `BondData` has classical withdrawal credentials, `BondRecord`
-serialization commits the existing credential layout into snapshots, and
-`BlockExtension` carries only v1 authorization/vote/evidence objects. Replacing
-signature calls without changing these contracts is not a complete upgrade.
+Existing ECDSA-only outputs cannot be made quantum-safe by accepting an
+arbitrary new PQ key from the next spender. Holders must authorize a transfer
+to a PQ output while their existing keys remain trustworthy. Wallet migration
+uses a user-confirmed self-transfer, not arbitrary credential registration.
+There is no automatic reassignment, forced freeze, migration deadline or
+destruction of unmigrated balances. Legacy spending preserves compatibility
+but leaves those unmigrated outputs exposed; release claims must say so.
 
-The eligibility alternatives considered were:
+### Hybrid Authentication And Wire Format
 
-- Preserve private eligibility and select an independently reviewed PQ VRF.
-  The current OpenSSL ML-DSA primitive is not a VRF, and this review has not
-  identified an audited, production-ready replacement to adopt directly.
-- Adopt public hash-based stake selection with delayed epoch randomness.
-  This removes the elliptic-curve VRF dependency, but future eligible producers
-  become predictable, changing the targeted-denial-of-service threat model.
-  Exact weighted sampling, snapshot freezing, entropy withholding/grinding
-  bounds and partition behavior need a separate specification and tests.
-  Hashing randomized signatures, trying extra nonces, or letting the producer
-  select a favorable PQ public key must not create extra lottery attempts.
-
-Public proposer selection is a known design family, not proof that our
-particular proposed construction is secure. Ethereum's
-[proposer-selection specification](https://ethereum.github.io/consensus-specs/specs/phase0/beacon-chain/)
-is useful context; Algorand's
-[PQ roadmap](https://algorand.co/blog/algorand-post-quantum-cryptography-roadmap)
-also identifies PQ VRF work as a distinct research/integration task. Neither
-source supplies an approved replacement for this implementation.
-
-Legacy coin ownership is a separate migration decision. Existing ECDSA-only
-outputs cannot be made quantum-safe by accepting an arbitrary new PQ key from
-the next spender. Holders must authorize a transfer/credential registration
-while their existing keys remain trustworthy. No automatic reassignment,
-forced freeze, migration deadline or destruction of unmigrated balances is
-approved. Leaving legacy spending available preserves compatibility but also
-leaves those unmigrated outputs exposed; release claims must say so.
-
-Implementation map for the next stages:
-
-- `pos/stake.*`, `pos/state.*`, `pos/storage.*`: versioned immutable signing,
-  reward and withdrawal credentials; snapshot roots; persistence and undo.
-- `pos/primitives.*`, `pos/block.*`: bounded PQ wire encodings, signing
-  domains, block identity and canonical evidence rules.
-- `pos/validation.*`, `validation.cpp`, `net_processing.cpp`: mandatory
-  bond-bound hybrid authentication, branch replay and bounded peer admission.
-- `wallet/staker.cpp`, `miner.cpp`: selection, mandatory hybrid block/vote
-  production and exact capacity reservation.
-- Wallet keystore/database/encryption, signing journal and backup/recovery:
-  independently generated durable PQ credentials, with no secret reuse or
-  downgrade path to classical-only authorization.
-- Transaction script/signing/validation, wallet RPC/GUI and external signers:
-  PQ-protected transfers, reward ownership, unbonding and withdrawals.
-
-The trial integrates public eligibility, registered PQ credentials, mandatory
-hybrid authentication and native PQ spending. Unmigrated legacy coins retain
-their existing classical authorization, not an automatic PQ guarantee.
-
-### Remaining Integration Gates
-
-Current integration checkpoint (2026-11-23): `fPoSPostQuantum` is enabled on
-testnet and regtest only. PQ spending and version-2 bond creation begin with
-their height-1 bond rules. At PoS activation (public testnet height 3000), only
-version-2 extensions, producer authorizations, votes and evidence are accepted.
-The build refuses startup on these networks without an ML-DSA backend. Mainnet
-keeps its existing activation heights and classical rules. Fresh trial chain
-data is required; existing classical trial histories are not compatible.
-Independent encrypted wallet keys, synchronous key creation, downgrade refusal
-and complete-wallet backup/reload support are implemented.
+With `fPoSPostQuantum` enabled, only version-2 extensions, producer
+authorizations, votes and evidence are accepted at PoS activation. Startup
+fails closed without the required ML-DSA backend. Wallet signing keys are
+independently generated, synchronously persisted and covered by encryption,
+complete-wallet backups and downgrade refusal.
 
 V2 block authorization and checkpoint votes retain their existing fields,
 including the Schnorr signature, and append exactly 1,312 ML-DSA-44 public-key
@@ -672,34 +632,29 @@ Legacy reward/withdrawal IDs and the unused VRF field must be zero in v2.
 Legacy bond record encoding remains 117 bytes. A versioned record begins
 with the reserved signed-amount sentinel `-1`, byte version `2`, actual
 positive amount, creation height, Schnorr key and the three PQ IDs, totaling
-149 bytes. No valid legacy amount collides with that marker. Trial state writes
-use record schema version 2, which earlier binaries refuse. Snapshot, undo and
+149 bytes. No valid legacy amount collides with that marker. PQ state writes
+use record schema version 2; classical mode uses version 1. An incompatible
+schema is refused before the remaining metadata is parsed. Snapshot, undo and
 retired-bond records retain the versioned immutable credentials.
 
 ### Native PQ Spending and Withdrawals
 
-PQ addresses use Bech32m with dedicated lowercase prefixes: `vergeqx1` on
-mainnet, `vergeqxtest1` on testnet and `vergeqxreg1` on regtest. The trailing
-`1` is the required separator, not part of the human-readable prefix. The older
-`xvgpq1`, `xvgtpq1` and `xvgrpq1` forms remain accepted as input aliases only
-on their original networks, for both single-key and multisig destinations.
-Newly encoded addresses always use the new prefix and its recomputed checksum;
-manually replacing an address prefix does not produce a valid address.
-Wallet loading normalizes address-book and destination-metadata keys in bounded,
-atomic batches, preserving existing canonical records if both are present.
-Keys, output scripts, transaction IDs and consensus activation are unchanged;
-no chain reindex or coin migration is required for this encoding change. Older
-software and external explorers still need an update to recognize the new
-prefixes. Existing witness HRPs
-(`vg`, `vt`, `vgrt`) and all legacy address versions are unchanged. Bech32m
-also accepts an entirely uppercase spelling, but never mixed case. The prefix
-is followed by
-the 32-byte key ID converted from eight-bit to five-bit groups with zero
-padding. There is no witness-version byte. These are not SegWit addresses.
+PQ addresses use Bech32m with lowercase prefixes: `vergeqx1` on mainnet,
+`vergeqxtest1` on testnet and `vergeqxreg1` on regtest. The trailing `1`
+is the required separator, not part of the human-readable prefix. Encoders
+use the network's prefix and checksum; manually replacing a prefix does
+not produce a valid address. Existing witness HRPs (`vg`, `vt`, `vgrt`)
+and all legacy address versions are unchanged.
+
+Bech32m also accepts an entirely uppercase spelling, but never mixed case.
+The prefix and separator are followed by the 32-byte key ID converted from
+eight-bit to five-bit groups with zero padding. There is no witness-version
+byte. These are not SegWit addresses.
+
 `getnewpqaddress [label]` persists an independent ML-DSA key before returning
 the address. `getnewaddress` defaults to PQ in PQ-first wallets as described
 below; explicit legacy addresses and legacy PoW mining destinations remain
-available. On a PQ trial network, automatic change uses a new PQ key unless
+available. With PQ rules active, automatic change uses a new PQ key unless
 an explicit coin-control change destination is supplied.
 
 The native script is `OP_3 PUSH32 <PQ key ID> OP_NOP4` (35 bytes). The PQ
@@ -707,7 +662,7 @@ consensus flag handles this exact native form, the native multisig form below,
 and the exact version-2 bond/unbond wrappers below. Executing `OP_NOP4` through the ordinary interpreter
 with that flag fails, including P2SH-wrapped attempts. No witness activation,
 stack-element-limit increase, classical fallback or unrestricted PQ opcode is
-introduced. Legacy/mainnet flags retain existing opcode semantics.
+introduced. Networks without PQ rules retain existing opcode semantics.
 
 The scriptSig has eight canonical pushes: the 2,420-byte ML-DSA signature plus
 one sighash byte is split into `[520,520,520,520,341]` bytes, followed by the
@@ -780,7 +735,7 @@ A canonical scriptSig first pushes the complete policy (at most 163 bytes),
 then exactly `m` entries in increasing cosigner-index order. Each entry is a
 minimal integer opcode for its zero-based index, followed by the same eight
 signature/public-key chunk pushes as a single-key spend. Each public key must
-hash to the policy ID at its index, and every signature must verify against
+hash to the key ID at its policy index, and every signature must verify against
 the full funding script, amount, network and transaction under the PQ sighash
 above. Duplicate indices, signatures counted twice, reordered entries, extra
 data, nonminimal chunks, nonempty witness or wrapped variants are rejected.
@@ -821,48 +776,17 @@ combinerawtransaction ["<partial A hex>","<partial B hex>"]
 sendrawtransaction "<fully signed transaction hex>"
 ```
 
-This first policy is for ordinary coin custody. Bond producer, reward and
+This policy is for ordinary coin custody. Bond producer, reward and
 withdrawal credentials remain single-key v2 credentials; no multisig staking
 credential or automatic conversion is implied. Existing legacy multisig
 semantics and currently disabled mainnet PQ activation are unchanged.
 
-- [x] Versioned spendable credentials, PQ owners, snapshot records and schema
-  activation/downgrade refusal are integrated for fresh trial chains.
-- [x] Mandatory hybrid verification covers producer authorization, votes,
-  equivocation evidence and branch replay. Commitments exclude signature
-  randomness. Fixed wire counts, preallocation bounds and block-weight
-  reservation apply to the larger objects; unavailable crypto fails closed.
-- [x] Wallet producer/voter keys use durable encrypted storage and the
-  existing synchronous anti-equivocation journal.
-- [x] Native PQ transfers, reward destinations, unbond authorization and
-  withdrawal spending are integrated. Legacy owners can authorize transfers
-  into PQ outputs; there is no arbitrary registration over existing coins.
-- [ ] Independently review the implemented public eligibility selector, including
-  entropy withholding, initial-PoW grinding and validator-set-change bounds.
-  Randomized ML-DSA signatures are not a replacement VRF and must not provide
-  extra lottery attempts.
-- [x] Integrated lifecycle, activation, persistence, recovery and peer-sync
-  regressions below pass on isolated Windows x64 nodes.
-- [x] A bounded four-node hybrid/PQ soak passes partitions, restarts,
-  convergence, finality and final reindex/state comparisons.
-- [ ] Launch and monitor the fresh public trial; complete longer soak runs.
-- [ ] Update external signers, explorers and migration tooling as needed;
-  adapting Core does not automatically adapt those separate applications.
-- [ ] Complete cross-platform/sanitizer/resource testing and independent
-  consensus/cryptographic review before choosing production activation.
-  Mainnet parameters remain unchanged. Protecting block signatures does not
-  protect coins still authorized only by ECDSA/Schnorr.
-- [ ] A future mainnet release must explicitly schedule both public eligibility
-  and PQ authentication/spending, including its bond-registration window.
-  Changing only the provisional mainnet fork height does not enable these
-  two currently disabled mainnet flags.
+### Wallet And Operator Behavior
 
-### Fresh Trial Operator Checks
-
-All participants must use the new trial build and fresh compatible chain data.
-Public testnet retains its height-3000 PoS transition, height-1 bond rules,
-720-block bond maturity and 20,160-block unbonding delay. Do not use a previous
-classical trial database or downgrade a wallet after creating PQ keys.
+Public testnet uses height-3000 PoS activation, height-1 bond/PQ rules,
+720-block bond maturity and a 20,160-block unbonding delay. Nodes must agree on
+network consensus parameters and database schema. Do not downgrade a wallet
+after creating PQ keys.
 
 Check `getposinfo`: `eligibility_scheme` is `public-stake-weighted-v1`,
 `authentication_scheme` is `schnorr-mldsa44-v2`, and `pq_spending_active` is
@@ -883,7 +807,7 @@ backupwallet "<new complete backup path>"
 ```
 
 `createbond 2000` remains available for an explicit bond. Supplied reward and
-withdrawal addresses must be wallet-controlled PQ addresses on these trial
+withdrawal addresses must be wallet-controlled PQ addresses on PQ-enabled
 networks. Disable automatic staking or increase the reserve before unbonding
 if released funds should not be bonded again. A withdrawal is spendable only
 when its confirmation-relative lock has expired, not merely when its original
@@ -933,7 +857,8 @@ An explicitly selected destination is preserved. OS privacy/security policies
 can still deny access; the user must select an allowed location and the backup
 must succeed before the payment request is shared.
 Chatkey creation remains a legacy-address operation; PQ and stealth selections
-disable and clear that option rather than claiming PQ secure messaging support.
+disable and clear that option. PQ messaging uses a separate hybrid identity
+and public chatkey bundle, described below; a PQ coin address is not a chatkey.
 
 **Move legacy balance to PQ** prepares an ordinary on-chain self-transfer to a
 new, durably stored ML-DSA-44 address in the same wallet. It is available only
@@ -962,135 +887,9 @@ verification API checks spending signatures, not the entire bond lifecycle;
 block/transaction consensus validation also enforces maturity and withdrawal
 locks. External signer and explorer applications require their own updates.
 
-### Verification Status
+## Post-Quantum Secure Messaging
 
-Integrated Windows x64 trial verification (2026-11-23) passes **144 unit cases
-and 90,056 assertions**, including native PQ address/checksum/ownership tests,
-canonical chunk bounds, network/amount/script/transaction hash binding, both
-required hybrid signature halves, registered-key evidence authentication and
-maximum-size hybrid attachment reservation. Classical-rule unit fixtures
-remain explicit compatibility tests; the functional nodes below require the
-actual new hybrid rules. The independent transaction-wrapper vector above
-was also computed separately with Python's SHA-256 and struct serialization.
-
-Migration coverage includes bounded input selection, exact self-transfer and fee
-accounting, exclusion of PQ/watch-only/locked/immature/bond outputs, disabled
-activation and locked-wallet rejection, pending/staked PQ balances and a real
-mempool-validated legacy-to-PQ transaction. Offscreen Qt tests cover the separate
-balances, activation/button states, refusal without a usable chain, and layout
-at three widths and font sizes. All seven Qt test entries pass. Receive coverage
-includes encryption/unlock, canceled unlock, inactive-network refusal, backup
-confirmation/file-picker cancellation, successful encrypted-wallet backup,
-relocking, request-history persistence, URI parsing and QR generation. A manual
-user workflow and non-Windows GUI validation remain trial checks. The PQ lifecycle regression
-keeps simulated chain time progressing during its PoS relay wait, without
-changing production relay policy.
-
-Native PQ multisig coverage includes thresholds 1, 2 and 5; five-cosigner
-proof sizing; duplicate and noncanonical rejection; quorum ownership;
-signature merging and carried-policy cosigning; network/amount/script replay
-binding; sigop accounting; public verification API calls; wallet fee selection,
-owned-balance accounting; encrypted policy persistence and backup/salvage.
-The three-node lifecycle now exercises native 2-of-3 funding, partial signing,
-independent signature merging, incomplete-proof relay refusal and confirmed
-spends both before and after PoS. Two consecutive fresh runs pass, including
-encrypted restart and backup restoration of the policy. An earlier run timed
-out on pre-PoS single-key transaction relay before reaching multisig; it did
-not reproduce in those unchanged reruns, and its cause is not established.
-Activation, bounded prefetch and crash-recovery regressions also pass again
-against the multisig-enabled daemon.
-
-These nine rebuilt-daemon regressions pass: `feature_pos_post_quantum`,
-`feature_pos_public_eligibility`, `feature_pos_activation`,
-`feature_pos_crash_recovery`, `feature_pos_storage`, `feature_pos_vote_heads`,
-`p2p_pos_prefetch`, `feature_pos_worker` and `wallet_pos_unbond`.
-They cover protected transfers before/after PoS, maturing/eligible unbonding,
-rejection before lock expiry, spending released principal, both mandatory
-producer signatures, signature-only candidate retry, hybrid checkpoint votes
-and finality, automatic production, independent slot selection, fresh sync,
-reorganizations, clean/abrupt recovery, full/chainstate reindex, encrypted-key
-reload, current-wallet backup restoration and clean shutdown. The full
-withdrawal test uses the bounded 240-block regtest override, not a reduced
-public-testnet lock. Backup restoration uses a separate fresh node, preserving
-Berkeley DB's existing duplicate-file-ID guard.
-
-The Windows daemon, CLI and Qt targets compile. A standalone C verification
-API executable links and runs with only consensus, crypto, secp256k1 and OS
-libraries, without wallet/server/common/util libraries. The compile-time
-disabled-ML-DSA build passes its fail-closed case / 16 assertions. This does
-not replace testing an actual older OpenSSL installation, the exported shared
-library on every platform, a GUI runtime trial, or a public network run.
-
-Before the multisig additions, the four-node hybrid/PQ soak with eight bonds per node passes 80 action rounds
-in 122.704 seconds including final reindex/comparisons. It exercised four
-partitions, one clean restart and one abrupt restart, produced 112 blocks
-including competing branches, and converged at height 2104. Checkpoint epoch
-10 finalized at height 2087. Final UTXO and state comparisons pass and the
-full log scan finds no honest-peer penalties (maximum score zero).
-Observed combined resident memory starts at 382,160,896 bytes and peaks at
-396,242,944 bytes. These samples do not establish leak freedom. The isolated
-artifact `build-msvc/pq-release-soak-20261123/pos-soak-results.json` is marked
-`passed`. This is bounded local testing, not an overnight or production-scale
-trial. All test nodes shut down successfully afterward.
-
-All test directories and measurements are isolated build artifacts. No live
-wallets or real chain data were used, and no public PQ testnet has launched.
-
-The public selector passes five dedicated unit cases, including independent
-weighted sampling vectors and malformed snapshots. At the public-selector
-checkpoint, the local suite passed 122 cases / 88,700 assertions. A three-node isolated regtest checks 30
-consecutive slots against an independent Python selector, fresh observer sync,
-and chainstate reindex. Activation, vote-head and crash-recovery functional
-regressions also pass with public eligibility enabled. These results precede
-mandatory PQ signature and coin-spending integration.
-
-Independent PQ seed persistence is implemented in the existing wallet
-keystore/database, including encryption, synchronous key creation, reload,
-backup and corruption tests. New `pqkey` / `cpqkey` records bind their public
-key and independent seed using a domain-separated 256-bit key ID. Plain seeds
-use secure-allocator memory; encrypted seeds use the existing wallet master
-key and encryption path. The wallet minimum version is raised only when a PQ
-key is first stored, not when an ordinary wallet is opened. Numeric version
-27.0.1 (`.beta10`) is required so preceding 27.0.0 betas refuse these wallets
-instead of silently ignoring unfamiliar key records. PQ seeds are independent
-of the classical HD seed: a classical seed-only backup is not a PQ backup.
-Use a current complete wallet backup; no secret export RPC has been added.
-`dumpwallet` refuses PQ-bearing wallets rather than producing a text file
-that silently omits their PQ secrets; `backupwallet` remains supported.
-Key-only recovery retains both PQ key records and the minimum-version guard,
-regardless of their scan order. Ordinary loading rejects PQ records without
-that guard rather than opening a wallet that an older binary could misread.
-
-At the wallet-codec checkpoint, the Windows x64 build passed 131 unit cases / 88,876 assertions,
-including encrypted PQ reload and backup restoration, malformed/missing
-version refusal, recovery-filter ordering, failed-write refusal, incomplete
-text-export refusal, immutable bond-key binding, bounded v2 decoding, legacy
-record byte compatibility and signature-independent v2 candidate commitments.
-The rebuilt daemon passes the three-node independent public-selector/reindex
-test, `wallet_pos_unbond` and `feature_pos_crash_recovery`. These runs use fresh
-isolated regtest directories, not live wallets or a launched public testnet.
-
-Initial foundation testing on Windows x64 with OpenSSL 4.0.0 passed 8 PQ unit cases / 94
-assertions, including the pinned NIST vectors and an independently computed
-hybrid transcript hash. That initial local PoS/wallet regression binary passed
-117 cases / 58,617 assertions. A separately compiled
-`OPENSSL_NO_ML_DSA` variant passes the unavailable-backend case / 16 assertions,
-including rejection of an otherwise valid Schnorr half-signature. This is a
-compile-time disabled-backend test, not an actual older-OpenSSL build.
-
-Remaining verification includes the Linux/macOS/ARM build matrix, actual
-older-backend compatibility, sanitizers, GUI runtime trials, overnight and
-production-scale resource testing, fully authenticated maximum-capacity
-producer/evidence scenarios, external ecosystem adaptation and independent
-consensus/cryptographic review. The attachment-capacity unit fixture checks
-assembly/weight reservation, not a network block with 192 independently
-authenticated votes and 16 independently authenticated evidence items.
-The integrated local results above support a fresh experimental trial, not
-mainnet activation or a claim that all existing coins are quantum-resistant.
-
-## Post-Quantum Secure Messaging (2026-11-25)
-
-SMSG is a separate messaging protocol, not a PoS consensus object. The new
+SMSG is a separate messaging protocol, not a PoS consensus object. The PQ
 paid-message envelope is version 3.1; existing 3.0 history remains readable.
 New RPC/GUI sends require a pinned PQ recipient bundle and never substitute
 classical encryption. Upgraded relays advertise `NODE_SMSG_PQ` (bit 26), and
@@ -1159,9 +958,9 @@ wallet.dat and included in full-wallet backups. Encrypted wallets encrypt the
 messaging seeds, erase plaintext records during encryption, refuse private-key
 access while locked, and verify derived public bundles after decryption. The
 minimum wallet version is 27000101, so older binaries refuse these wallets
-rather than silently ignoring messaging keys. The application build number
-advances to 27.0.1.1 for this guard; wallets without the new records are not
-automatically upgraded. GUI creation requires a new full backup before sharing.
+rather than silently ignoring messaging keys. Wallets without these records
+are not automatically upgraded. GUI creation requires a new full backup
+before sharing.
 
 This design does not provide a messaging ratchet or forward secrecy after
 the recipient's long-term messaging secrets are stolen. It does not retrofit
@@ -1169,23 +968,9 @@ quantum protection onto captured legacy ciphertext, make Tor quantum-safe,
 or hide timing and routing metadata. Independent cryptographic protocol review
 and cross-platform qualification remain release gates.
 
-Implementation progress:
-- [x] OpenSSL ML-KEM/ML-DSA wrappers and canonical public bundles.
-- [x] Hybrid authenticated envelope, mandatory PQ sends and versioned relay.
-- [x] Encrypted wallet persistence, immutable contact pins and downgrade guard.
-- [x] RPC/GUI chatkeys, fingerprints, backup prompts and legacy/PQ history labels.
-- [x] Unit and three-node functional regression fixtures added.
-- [x] Native regression suite: 153 cases and 90,215 assertions passed, including
-  stored-payload bounds and encrypted messaging-key backup restoration.
-- [x] Three-node PoW/PoS messaging regression passed: paid funding, relay delivery,
-  maximum payload, anonymous sends, encrypted restart/unlock, offline recovery,
-  native PQ spending after activation, legacy peers and bounded handshake retry.
-- [ ] Operator Qt builds and GUI/manual testnet verification.
-- [ ] GUI runtime/QR validation and independent protocol review.
-
 ## Unbonding Transaction
 
-A valid unbond transaction spends one `TX_STAKE_BOND_V1` output into one `TX_STAKE_UNBOND_V1` output carrying exactly the same principal and withdrawal credential. The wallet encodes a requested unlock height based on the next block plus 20,160 accepted blocks. Missing that next block does not expire the transaction: the effective withdrawal height is the greater of the encoded height and the actual confirmation height plus 20,160.
+A valid unbond transaction spends one bond output into one unbond output with the same credential version, principal and withdrawal credential. Classical version-1 and native PQ version-2 wrappers are both specified in this document. The wallet encodes a requested unlock height based on the next block plus 20,160 accepted blocks. Missing that next block does not expire the transaction: the effective withdrawal height is the greater of the encoded height and the actual confirmation height plus 20,160.
 The version 1 unbond output uses a 35-byte script:
 
 ~~~text
@@ -1207,13 +992,6 @@ The transaction-validation implementation enforces the lifecycle before and afte
 - that unbond output preserves the complete bonded principal and withdrawal credential;
 - its requested unlock height is no later than the containing block height plus 20,160; and
 - an unbond output cannot be spent before either its encoded height or its confirmation height plus 20,160.
-
-This delayed-inclusion rule is a PoS consensus update and requires coordinated
-testnet upgrades. Previously confirmed canonical unbonds retain the same
-effective unlock height and replay unchanged. Existing unconfirmed requests
-can be included without changing their signatures or transaction IDs, but the
-full lock starts at their eventual confirmation. No serialization or wallet
-database migration is involved.
 
 Ordinary inputs and outputs may accompany an unbond transition to pay fees and return ordinary change. The bonded principal itself cannot pay the fee. Requiring every coinbase input in a bond-creation transaction to satisfy the 720-block rule is intentionally conservative: wallets should avoid mixing immature fee rewards into a bond transaction.
 
@@ -1383,13 +1161,13 @@ Official releases must embed a recent finalized checkpoint for public networks a
 
 After activation, the legacy fixed-depth reorganization limit does not select the chain. Reorganizations may affect any unfinalized block according to stake-weighted fork choice, but no ordinary fork may replace or precede the latest finalized checkpoint.
 
-Checkpoint epochs contain 120 slots, approximately one hour. Empty slots remain part of the epoch and do not shift epoch boundaries. A checkpoint is finalized after valid votes represent at least two-thirds of all currently bonded, mature delegated stake. If that threshold is unavailable, valid block production continues but finality pauses.
+Checkpoint epochs contain 120 slots, approximately one hour. Empty slots remain part of the epoch and do not shift epoch boundaries. Justification and finalization use valid votes representing at least two-thirds of eligible value in the applicable delayed snapshot, according to the checkpoint-link rules above. If that threshold is unavailable, valid block production continues but finality pauses.
 
 Voting is automatic whenever staking is enabled and the delegated staking key is available. The wallet signs and relays checkpoint votes without user prompts. A vote does not spend XVG, change reward ownership, or grant general spending authority. Users make only the explicit lifecycle decisions to bond, enable or disable staking, and begin unbonding.
 
-Unbonding takes 20,160 accepted blocks. Its wall-clock duration varies with occupied slots and is expected to exceed seven days under the one-eligible-producer-per-slot target. Stake remains slashable or lockable for protocol violations during that period and cannot evade an already-observed equivocation by beginning withdrawal.
+Unbonding takes 20,160 accepted blocks: at least seven days at one accepted block per 30-second slot, and longer when slots are empty. Included equivocation evidence can lock withdrawal during that period. Monetary slashing is not implemented.
 
-Regtest must exercise finalization, but Phase 2 must not pretend that a single-node checkpoint implementation is production-ready.
+Single-node finalization tests are not a substitute for independent multi-operator testing, partition recovery and an external consensus review.
 
 ## Equivocation
 
@@ -1412,7 +1190,7 @@ epoch 0; it is valid only as a source, never as a vote target.
 
 Transactions spending a withdrawal-locked bond are rejected from the mempool. When newly included evidence activates a lock, any conflicting mempool spend and all of its descendants are evicted so stale withdrawals cannot poison subsequent PoS block templates.
 
-The initial implementation uses an eligibility lockout rather than destruction of principal. Monetary slashing remains out of scope until it has been independently designed and audited.
+The protocol uses an eligibility lockout rather than destruction of principal. Monetary slashing remains out of scope until it has been independently designed and audited.
 
 ## Mandatory Security Modernization
 
@@ -1420,11 +1198,11 @@ The PoS implementation adopts the following requirements as consensus and releas
 
 ### Schnorr Authorization
 
-Delegated block signatures and checkpoint votes use canonical 64-byte BIP340 Schnorr signatures with 32-byte x-only secp256k1 public keys. Legacy DER ECDSA is not valid for new PoS authorization. The secp256k1 `extrakeys` and `schnorrsig` modules must be explicitly enabled and tested in every supported build workflow. P-256 remains isolated to RFC 9381 VRF operations.
+Delegated block signatures and checkpoint votes use canonical 64-byte BIP340 Schnorr signatures with 32-byte x-only secp256k1 public keys. Legacy DER ECDSA is not valid for new PoS authorization. The secp256k1 `extrakeys` and `schnorrsig` modules must be explicitly enabled and tested in every supported build workflow. Hybrid mode additionally requires ML-DSA-44 over the key-bound transcript; Schnorr alone is insufficient. P-256 is used only for classical RFC 9381 VRF eligibility, not public eligibility.
 
 ### Tagged Consensus Hashes
 
-All PoS hashes use tagged SHA-256 with distinct, versioned domains. Initial domains include:
+PoS consensus object hashes use tagged SHA-256 with distinct, versioned domains. PQ key IDs, hybrid transcripts and transaction-signature wrappers use their separately specified double-SHA-256 encodings. Tagged consensus domains include:
 
 ```text
 VergePoS/Bond/v1
@@ -1454,7 +1232,7 @@ It does not use the legacy double-SHA-256 object writer. As an initial cross-pla
 Every PoS object has an explicit version, fixed field order, fixed-width integer encoding, canonical public-key encoding, and strict maximum serialized size. Parsers reject trailing bytes, duplicate fields, unknown versions, non-canonical signatures, non-minimal encodings, and unsorted or duplicate vote entries. Consensus objects do not use permissive extension parsing.
 #### Version 1 Primitive Layouts
 
-Phase 2 uses the existing network serializer's little-endian fixed-width integers and canonical 36-byte outpoints. Cryptographic byte strings have fixed sizes and are serialized without compact-size prefixes. The first byte of every primitive is version 1; every other version is rejected.
+Classical mode uses the network serializer's little-endian fixed-width integers and canonical 36-byte outpoints. Cryptographic byte strings have fixed sizes and no CompactSize prefixes. These layouts begin with version 1; hybrid version-2 layouts and network-selected version checks are specified above.
 
 The version 1 stake proof is exactly 295 bytes in this order:
 
@@ -1510,8 +1288,8 @@ The version 1 checkpoint vote is exactly 229 bytes in this order:
 | head block root | 32 bytes |
 | vote signature | 64 bytes |
 
-These primitives are initially implemented independently of block acceptance. A node must not accept a PoS block merely because these objects deserialize; semantic checks, cryptographic verification, canonical collection ordering, committed roots, and activation rules remain mandatory later in Phase 2.
-Cheap structural validation rejects unsupported versions, null bond outpoints, slot zero, null snapshot or seed commitments, non-compressed VRF key prefixes, all-zero cryptographic values, reversed source/target epochs, and incomplete vote heads before cryptographic verification. Vote vectors are bounded before iteration, sorted by bond outpoint and then tagged vote hash, and reject duplicates. Passing these checks does not establish key validity, signature validity, VRF validity, eligibility, snapshot membership, or finality correctness.
+Successful deserialization never establishes block validity. Semantic checks, cryptographic verification, canonical collection ordering, committed roots and activation rules are mandatory in the block-validation path.
+Cheap structural validation rejects unsupported versions, null bond outpoints, slot zero, null snapshot or seed commitments, invalid version-specific key/proof shapes, missing required signatures, reversed source/target epochs, and incomplete vote heads before cryptographic verification. Vote vectors are bounded before iteration, sorted by bond outpoint and then tagged vote hash, and reject duplicates. Passing these checks does not establish key validity, signature validity, VRF validity, eligibility, snapshot membership, or finality correctness.
 
 ### Finality Safety Evidence
 
@@ -1560,22 +1338,22 @@ compact blocks and is pruned with the authorization retention window.
 
 ### Security Test Gate
 
-Phase 3 includes fixed cross-platform vectors, round-trip and differential serialization tests, fuzz targets for every PoS parser, malformed cryptographic proof tests, restart/reindex/disconnect tests, simulated partitions, concurrent slot winners, delayed and conflicting votes, finality stalls, long-range forks, and resource-exhaustion tests. A public testnet release is blocked while any consensus vector differs across supported platforms.
+Release qualification requires fixed cross-platform vectors, round-trip and differential serialization tests, fuzz targets for every PoS parser, malformed cryptographic proof tests, restart/reindex/disconnect tests, simulated partitions, concurrent slot winners, delayed and conflicting votes, finality stalls, long-range forks, and resource-exhaustion tests. A public testnet release is blocked while any consensus vector differs across supported platforms.
 ## Networking And Denial-of-Service Limits
 
 ### Independent Checkpoint Vote Relay
 
 Checkpoint votes use inventory type `MSG_POS_VOTE` and the `posvote` payload
-command. The payload is exactly the canonical 229-byte version 1 checkpoint
-vote; nodes reject any other payload length or trailing bytes before signature
-verification. Unknown inventory types remain harmless to pre-PoS peers, so this
+command. The payload is a canonical 229-byte version-1 or 3,961-byte version-2 checkpoint
+vote, selected by the network's authentication mode. Nodes reject any other
+payload length or trailing bytes before signature verification. Unknown inventory types remain harmless to pre-PoS peers, so this
 relay extension does not alter pre-activation consensus or require old nodes to
 understand votes.
 
 Nodes admit independently relayed votes only after structural validation,
 required-snapshot selection, bond membership and eligibility-lock checks,
 known source and target checkpoint checks, a fully validated known head, and
-Schnorr signature verification. A per-peer token bucket allows a burst of 256
+mode-appropriate signature verification (both Schnorr and ML-DSA in hybrid mode). A per-peer token bucket allows a burst of 256
 votes and refills 64 votes per minute. Invalid structure, signatures, or wire
 sizes increase peer misbehavior; stale or temporarily unknown chain-context
 votes are ignored without punishment. Exhausting processing credits also drops
@@ -1586,7 +1364,7 @@ The non-consensus vote pool stores at most 4,096 votes and 2 MiB of serialized
 vote data, retains one latest vote per bond, and expires votes more than three
 epochs behind. Duplicate and regressing votes are ignored. Conflicting votes
 for one target epoch are not allowed to replace the pool entry. Block producers select
-at most `MAX_VOTES_PER_BLOCK` (1,024) votes in canonical order and revalidate every
+at most the extension's vote limit (1,024 in version 1, 192 in version 2) in canonical order and revalidate every
 pooled vote against their current chain state before including it. Pool policy
 does not change block validity.
 
@@ -1595,7 +1373,7 @@ does not change block validity.
 A committed vote authenticates two distinct claims: a source-to-target
 checkpoint link and a `(head_slot, head_block_root)` fork-choice preference.
 The checkpoint link is verified against the containing branch's authenticated
-PoS state, delayed stake snapshot, eligibility locks, and Schnorr signature.
+PoS state, delayed stake snapshot, eligibility locks, and required authentication signatures.
 The head slot must not precede the target checkpoint or exceed the containing
 block's slot. Naming the target itself requires its exact slot, and a different
 head cannot claim that same slot.
@@ -1622,30 +1400,9 @@ activate the available parent state before each PoS body instead of repeatedly
 replaying all pre-activation history while leaving the active tip at genesis.
 New block producers include only votes whose heads resolve on their parent
 branch. Historical block validation does not require orphan-header downloads.
-This is a correction to the experimental PoS validation/fork-choice rules;
-all PoS testnet participants must upgrade together. It does not change PoW
-validation, transaction serialization, or the PoS wire format.
-
-Nodes that rejected a block under the old `bad-pos-vote-ancestry` check retain
-that invalidity record across restart. After upgrading, an operator can use
-`reconsiderblock <first-incorrectly-rejected-block-hash>`. Reconsideration fully
-revalidates stored PoS blocks before restoring their validation marker and
-candidate status; it does not bypass signatures, stake rules, or finalized
-checkpoints. The October 22 testnet incident's first rejected block was
-`a4770fd8a99ba52d8e4277fbea756bb5cd441df2f26c45c6edd5c662b71c3408`
-at height 3203. Invalidity is not automatically cleared on startup, preserving
-deliberate operator invalidations. No chain-data wipe is required for this
-recovery when the needed block data remains available.
-
-Regression coverage includes signed links with unavailable orphan heads,
-signature and slot rejection, branch-local fork weight, independent producers
-partitioning and reconnecting, a fresh observer crossing activation, bounded
-vote-relay bursts without false bans, malformed-message penalties, explicit
-reconsideration, restart, and chainstate reindex. Test fixtures use regtest bond
-activation parameters and the current signed-extension header format.
 
 Vote-equivocation evidence uses inventory type `MSG_POS_VOTE_EVIDENCE` and the
-`posvevid` command with an exact 459-byte payload. Nodes stage at most 256
+`posvevid` command with an exact 459-byte version-1 or 7,923-byte version-2 payload. Nodes stage at most 256
 records and 256 KiB, admit only canonical conflicts with known snapshot bonds
 and two valid signatures, and apply a separate burst/refill budget of 32 and 8
 records per minute per peer. Existing valid evidence is not evicted to admit
@@ -1655,7 +1412,7 @@ Producers revalidate and include at most 16 records, removing them from the
 local pool only after the containing block is accepted.
 
 Block-equivocation evidence uses inventory type `MSG_POS_BLOCK_EVIDENCE` and
-the `posbevid` command with an exact 547-byte payload. Nodes retain one bounded
+the `posbevid` command with an exact 547-byte version-1 or 8,011-byte version-2 payload. Nodes retain one bounded
 authorization per bond and slot, automatically construct evidence when a
 second valid authorization conflicts, verify both signatures against retained
 bond history, relay the evidence, and stage at most 256 records or 256 KiB.
@@ -1751,10 +1508,8 @@ Interrupted multi-batch UTXO writes use the existing head markers and block
 replay. Failed block/undo-file flushes stop the sequence before database
 commits or undo pruning. Replay and normal UTXO flushes propagate write
 failures instead of treating them as successful recovery. Recovery never
-bypasses block validation or changes finality and fork-choice rules. No
-database format change or routine
-reindex is required by this hardening. A database already missing required
-undo data from an older build may still require a one-time chainstate rebuild.
+bypasses block validation or changes finality and fork-choice rules. A database missing the undo required to reconcile persisted state may require
+a chainstate rebuild; recovery must not fabricate or skip that undo.
 
 `feature_pos_crash_recovery.py` covers abrupt termination after finality
 advances, recovery of an unflushed suffix, interrupted finality and disconnect
@@ -1796,7 +1551,7 @@ Wallet locking, backup, encryption, hardware-wallet behavior, and delegated stak
 
 ## Required Test Coverage
 
-Phase 3 requires fixed vectors and adversarial tests for:
+Fixed vectors and adversarial tests must cover:
 
 - activation boundary and rejection of post-activation PoW;
 - two-way transaction replay protection across the PoW/PoS boundary;
@@ -1814,434 +1569,166 @@ Phase 3 requires fixed vectors and adversarial tests for:
 - restart, reindex, pruning, and wallet recovery; and
 - cross-platform deterministic vectors.
 
-## Phase Gates
+## Resource Costs And Admission Policy
 
-### Phase 2 Implementation Status
+Successful branch validation caches authenticated head-height/weight summaries,
+not complete branch states or unauthenticated header claims. The process-local
+LRU cache is bounded to 128 entries and 16 MiB of accounted allocation usage.
+Oversized summaries are evaluated without retention. Eviction removes only an
+optimization, never a candidate. Hits still check failed ancestry and available
+data; invalidation, reconsideration, state loading and index teardown clear
+the cache. A cache miss can still require full branch replay.
 
-The regtest implementation now includes canonical PoS block-extension
-serialization, bounded decoding, bond and unbond lifecycle scripts, tagged
-consensus hashes, BIP340 authorization helpers, RFC 9381 P-256
-ECVRF-P256-SHA256-SSWU proving and verification, stake snapshots, reversible
-stake-state transitions, committed vote/evidence/stake roots, fee-reward
-destination checks, and overflow-safe stake-weighted VRF eligibility.
-The ECVRF implementation is checked byte-for-byte against the official RFC 9381
-Examples 13 and 14. The initial seed commits to the network identifier,
-activation height, genesis hash, and the ordered post-snapshot PoW block-hash
-accumulator. Later seeds commit to the previous seed, next epoch, delayed
-snapshot root, and the completed epoch's accepted VRF-output accumulator.
-Validator membership is fixed before either entropy window completes.
+`BLOCK_VALID_POS` is published only after complete admission/reconsideration
+replay succeeds, not during speculative fork-choice evaluation. Read-only
+validation and reporting use a state reference under `cs_main`; connection
+uses a disposable state so failed validation cannot mutate active state.
 
-Regtest PoS block acceptance now uses an explicit caller-owned state view.
-`ConnectTip` atomically persists the resulting state and block undo record;
-`VerifyDB` and `TestBlockValidity` use disposable copies and cannot mutate the
-active PoS state. Restart loading requires the persisted state tip to match the
-UTXO chainstate tip, except that an ahead state may be rolled back through
-authenticated ancestry and stored undo records. Before the initial snapshot,
-an upgraded node may initialize unspent bond records and their creation heights
-from the UTXO set. Skipped epochs deterministically create each intermediate
-snapshot and seed, and all such changes are covered by disconnect undo.
+Active-tip successors authenticate credentials, maturity, snapshot membership,
+authorization and eligibility against read-only parent state before copying
+full state. Skipped epochs stream the seed/root recurrence and materialize
+snapshots only within the retained window. Finality link weights are a runtime
+cache: vote replacement updates them incrementally, while snapshot changes,
+pruning, lockouts, undo and deserialization invalidate them for reconstruction.
 
-Full semantic block validation now checks the derived epoch seed, delayed
-snapshot, bond credentials, RFC 9381 proof and output, weighted eligibility,
-BIP340 block signature, vote signatures, historical evidence signatures,
-committed roots, reward destination, and the fee-only reward ceiling. Regtest
-production and deterministic restart, disconnect, and reconnect coverage are
-implemented. The linked Windows binary has passed the complete clean-chain
-functional path from block zero through bond creation, the height-1500
-transition, three PoS epochs, restart, tip invalidation, and reconsideration.
-Regtest honors its no-retarget setting throughout the pre-activation chain.
-PoS-aware block-index loading, disk reads, and header RPC output are covered by
-that restart path. The PoS header's signed-extension commitment is persisted in
-the block index, and only fully branch-validated PoS blocks enter fork choice or
-best-header state. Equivocation evidence is persisted by bounded canonical
-evidence ID so replay is idempotent. Valid evidence immediately prevents withdrawal, then at
-the first block of the next epoch removes the offender's latest vote and
-excludes the bond from production, voting, and new snapshots for 20,160
-accepted blocks. Lockout activation, expiry, evidence IDs, and vote removal
-are all covered by disconnect undo records. LMD-GHOST candidate selection
-is implemented over full-data block-index candidates replayed against their
-own UTXO and PoS state. Each bond's latest valid vote contributes its
-delayed-snapshot weight to the ancestry of its voted head within that branch
-view. Each tree edge takes the maximum authenticated branch-view support,
-then descendant height and child hash break ties. Candidate pruning retains
-shorter PoS forks that may have greater stake support. Until a real
-supermajority link establishes finality, competing last-PoW ancestors remain
-eligible under the deterministic transition-ancestor rule.
+Full-body admission has per-peer and global work budgets weighted by bond count
+and alternate-branch replay distance. Active-tip/alternate-fork traffic and
+inbound/outbound connections have separate allowances. Exhaustion defers a
+bounded header for retry without banning the sender or marking a block invalid.
+All body transports share this policy; it does not change consensus validity.
 
-Wallet production now has a shared single-attempt path used by both the
-dedicated automatic staking worker and the `generatestake` regtest control.
-The staking worker runs independently of the scheduler that delivers validation
-callbacks: block activation may wait for that queue to drain. Shutdown signals
-and joins the staking worker while the scheduler, script verification workers,
-wallets, and networking are still available, before tearing those services down.
-Restart restores each header's `hashPoSData` commitment from the block index,
-preserving the block ID used for header announcements and block downloads.
-During initial download, an empty headers reply releases that peer's initial
-sync slot so a later connected peer can provide the chain. The empty peer stays
-connected and can be retried after 60 seconds, avoiding a tight request loop.
-Already-known valid headers still update per-peer block availability, so a
-preferred outbound peer can supply block bodies first announced by another peer.
-Each wallet is evaluated at most once per canonical slot. The producer derives
-skipped-epoch seeds and snapshots through the same state transition used by block
-connection, matches snapshot credentials to encrypted wallet keys, creates
-and locally verifies the RFC 9381 proof, selects fee-paying mempool packages,
-commits the PoS extension in the fee-only reward transaction, fixes the Merkle
-root and candidate header hash, and signs only after all committed fields are
-final. Automatic voting targets the latest already-known checkpoint and uses
-the current parent as the LMD-GHOST head, avoiding a self-referential vote-root
-and header-hash cycle.
-Votes are transported both through validated PoS blocks and independently by
-inventory-based relay. The bounded vote pool, per-peer admission budget,
-standalone chain-context validator, wallet vote announcements, and block-template
-revalidation are implemented. Conflict detection constructs canonical vote
-evidence, while unit coverage verifies conflict identity, ordering, admission,
-and removal. The two-node functional path verifies vote delivery, malformed
-vote/evidence penalties, partition convergence, restart, chainstate reindex,
-and disconnect/reconsider recovery.
-The final PoW bootstrap checkpoint, latest-vote aggregation, monotonic vote
-freshness, bounded historical state, configurable weak-subjectivity checkpoint,
-reversible
-justification/finalization, and finalized-reorganization barrier are consensus
-state. Deserializing a PoS extension or passing structural checks alone never
-establishes validity.
+Vote-pool replacement checks capacity before removing the previous vote, and
+failed allocation rolls back admission. Evidence pools do not evict valid
+records to admit new traffic. Staking attempt and bonding throttles belong to
+each wallet instance. Signing reuses a randomized thread-local secp256k1 context
+and clears temporary keypairs. PoS inventory does not invoke transaction-only
+wallet notification bookkeeping.
 
-Phase 2 is complete for regtest. Fixed cryptographic and serialization vectors,
-state transition and undo tests, deterministic fork weight and hash tie-break
-tests, evidence-lock transaction tests, and the end-to-end functional path are
-present. Phase 3 now includes independent vote and vote-evidence relay, bounded
-pools, exact-size malformed-message checks, a two-node partition/convergence
-scenario, restart plus chainstate-reindex coverage, signed-extension block
-identity, full-branch prevalidation, stale-vote rejection, and deterministic
-state pruning. Sustained resource-exhaustion testing and independent consensus
-review remain mandatory before mainnet activation.
+These bounds do not eliminate validator-set costs. State copies, cold branch
+replay, snapshot construction, signature verification and long unfinalized
+histories require full-node profiling. Component counters from
+`getmemoryinfo stats` and branch timings from `-debug=bench` aid measurement,
+but neither establishes a total process-memory bound.
 
-1. Phase 1 ends only after all open consensus decisions in this document are resolved and reviewed.
-2. Phase 2 implements regtest-only activation and staking; mainnet behavior remains byte-for-byte unchanged.
-3. Phase 3 adds deterministic and adversarial tests before public testing.
-4. Phase 4 operates a public PoS testnet for months and records participation, forks, missed slots, and recovery events.
-5. Phase 5 requires independent consensus and cryptographic review with findings addressed publicly.
-6. Phase 6 begins only after readiness review, complete post-fork transaction
-   replay protection, and independent verification of its fixed vectors;
-   production activation height is selected last.
-## Resource And Correctness Review (2026-11-03)
+## State Persistence
 
-This is maintainer remediation and test coverage, not an independent audit.
-The existing master-branch security report is not a PoS audit. Mainnet activation
-continues to require independent consensus and cryptographic review.
+The block-index LevelDB stores PoS metadata under key `p` and individual
+records under prefix `q`. Metadata schema version is 1 for classical mode
+and 2 for PQ mode. Each record key contains a prefix byte, field byte,
+32-byte identifier and uint32 output index. Epoch keys put the uint64 epoch
+in the identifier's first eight little-endian bytes; remaining identifier
+bytes and the output index are zero.
 
-### Implemented Hardening
-
-- A block has one combined budget of **16** block/vote evidence objects and
-  **1,024** votes. Local assembly selects vote evidence first, then uses only
-  the remaining evidence capacity for block evidence. Previously, independently
-  filling both pools could produce a locally invalid staking template. The
-  authoritative limits are `pos::MAX_EVIDENCE_PER_BLOCK` and
-  `pos::MAX_VOTES_PER_BLOCK`; the unused chain-parameter copies were removed.
-  Wire decoding and accepted block limits are unchanged.
-- Vote replacement checks capacity and allocates the new entry before deleting
-  the previous one. New admission rolls back the vote if allocating its bond
-  index fails. Tests cover a full pool and its accounting after replacement.
-- Staking-slot and automatic-bond throttles belong to each wallet instance,
-  instead of process-global maps keyed by wallet addresses. Unbond enumeration
-  has an explicitly locked helper to avoid its redundant outer lock acquisition.
-- PoS batch handlers check peer-state pointers before use. A non-authenticated
-  result falls back to normal synchronization without treating the mere handler
-  return value as misconduct. `ProcessMessages` returning false is not itself
-  an automatic disconnect in this codebase; actual invalid-block scoring remains
-  in force. Malformed framing, invalid signatures and abusive traffic still
-  receive their existing penalties.
-- PoS inventory hashes no longer trigger the wallet transaction-inventory
-  callback. This was unnecessary accounting work, not demonstrated coin theft.
-- Signing uses a randomized thread-local context, retaining per-signature
-  auxiliary randomness and clearing temporary keypairs. Tests compare the
-  fixed Schnorr vector across repeated operations in four threads.
-
-### Fork-Choice And State Costs
-
-Successful branch validation caches only authenticated `(head height, weight)`
-summaries, never a full branch state or unauthenticated header claims. Summaries
-preserve the bond iteration order and money-range rule. Fork selection projects
-those branch-local summaries into a deterministic tree, using maximum edge
-support rather than an order-dependent pairwise comparison. Off-chain relay
-votes are not a substitute for branch state.
-
-The process-local LRU cache is limited to 128 entries and 16 MiB of accounted
-allocation usage, including vector capacity and container/shared allocation
-overhead. Oversized entries are evaluated without retention. Eviction removes
-only an optimization, never a chain candidate. Cache hits still check failed
-ancestry and available branch data. Invalidation, reconsideration, state loading
-and block-index teardown clear the cache. Existing finalized-ancestry checks
-remain authoritative. A cache miss still replays that candidate's branch.
-
-`BLOCK_VALID_POS` publication now belongs to admission/reconsideration after the
-entire replay succeeds, not fork-choice evaluation or a partially failed replay.
-Read-only network validation, chain RPCs and balance reporting use a state
-reference held under `cs_main`. Block connection consumes the caller's disposable
-state copy, avoiding a second complete copy while keeping active state isolated
-from failed validation.
-
-Incoming active-tip successors authenticate known bond credentials, maturity,
-snapshot membership, authorization and VRF eligibility against a read-only parent
-context before copying full state. Skipped empty epochs stream their seed and
-delayed-root recurrence, rebuilding membership only at an eligibility change and
-materializing full snapshots only inside the retained state window. This keeps
-accepted roots and undo deterministic without allocating one validator vector
-for every empty epoch.
-
-Full-body PoS admission has per-peer and global work budgets, weighted by bond
-count and alternate-branch replay distance. Active-tip and alternate-fork traffic,
-and inbound and outbound connections, have separate global allowances. These
-are local resource policies, not consensus validity rules: exhaustion retains a
-bounded deferred header and retries later without banning the sender or marking
-the block invalid. All body transports share this accounting.
-
-`submitblock` belongs to the chain-level mining RPC interface. A fully signed PoS
-block can be submitted with a locked wallet or `-disablewallet`; it never invokes
-legacy wallet block signing. Already-signed PoW blocks also require no wallet.
-
-Finality link tallies are derived runtime data. New/replaced votes update their
-links incrementally; snapshot changes, vote pruning, lockout vote removal,
-undo and deserialization invalidate them for reconstruction. The cache is not
-serialized. Differential unit coverage compares warmed and freshly deserialized
-states with 2,048 bonds through batched votes, replacements, skipped-epoch
-pruning and undo. The partition test accepts `--reference-binary` to compare an
-older daemon with the new one through competing production, convergence,
-fresh sync, missed epochs, reconsideration, restart and chainstate reindex.
-Benchmark logging records branch replay time, replayed blocks and retained
-summary bytes (`-debug=bench`, or `logging ["bench"]` in the RPC console).
-
-### Local Verification
-
-The Windows MSVC-compatible build passed a full daemon/test-object rebuild.
-All **79 selected PoS and wallet unit tests** passed, including fixed signing
-vectors, full-pool replacement, all 17 permitted splits of the evidence budget,
-cache eviction/oversize handling, wallet attempt lifetime, and tally rebuild
-equivalence. The new fork-choice header also compiled as the first project
-include in its test translation unit.
-
-The final build passed these functional scenarios:
-
-- `feature_pos_vote_heads.py`, with a pre-change reference daemon as the second
-  producer, comparing chain/state hashes, initial snapshot, vote totals,
-  justification and finality through partition, convergence and recovery.
-- `feature_pos_crash_recovery.py`, including repeated abrupt exits and interrupted
-  UTXO flushing/startup replay.
-- `feature_pos_activation.py` and `feature_pos_worker.py`.
-- `p2p_pos_prefetch.py`, including malformed/authentication failures, benign
-  future-slot handling, bounded historical sync and reindex.
-- `p2p_pos_header_time.py` and `wallet_pos_unbond.py`.
-
-One local 2,048-bond measurement took 89 us for 100 warmed empty-vote updates
-versus 82,698 us for tally rebuilding alone. Deserialization and byte comparison
-are excluded from the latter measurement. These are focused test timings, not
-mainnet throughput or a sustained DoS-resistance benchmark. Sanitizers, a
-large-scale resource test, Pi-class measurements and overnight soak were not
-performed in this local verification. No live wallet data was modified.
-
-### Remaining Mainnet Gates
-
-1. Incremental record persistence and local migration/recovery coverage are
-   implemented below. Repeat this coverage on release platforms before
-   deployment, including backups and operator downgrade/rebuild instructions.
-   The recovery ordering established in the crash-recovery work must not be
-   weakened to reduce writes.
-2. The larger disk-state and summary-cache tests below are not a full-node
-   100k-validator benchmark. Cold branch replay, retained eligible candidate
-   count, state copies, long histories and many authenticated competing forks
-   still require profiling under finalized and stalled-finality conditions.
-   Record CPU, peak RSS, lock hold times, validation latency and physical
-   database bytes written. Repeat on desktop and Pi-class hardware, with
-   sanitizer runs and an overnight partition/recovery soak.
-3. Give an independent reviewer a pinned commit/build manifest, this consensus
-   specification, signature/VRF/replay-protection vectors and test commands.
-   Scope includes weighted eligibility and bond-splitting invariance, entropy
-   manipulation, branch-local vote accounting, finality safety under partition,
-   evidence censorship/replay, lockouts and withdrawal recovery, historical
-   synchronization, resource limits, and crash consistency. Publish findings,
-   remediations and a reviewer retest; a maintainer test pass is not this gate.
-
-No activation height, network identity, signature construction, accepted block
-limit or serialized state/undo format changes in this remediation stage.
-
-## Incremental Persistence And Soak Work
-
-The incremental implementation changes the local LevelDB schema, not transaction,
-block, signature, snapshot, or undo serialization. Legacy state under key `P`
-is readable until the first new write migrates it in one batch. Schema version
-1 uses metadata key `p` and record prefix `q`. A record key is the prefix byte,
-field byte, 32-byte identifier and uint32 output index. Epoch keys encode the
-uint64 epoch in the identifier's first eight little-endian bytes; the remaining
-identifier bytes and output index must be zero.
-
-Field numbers 1 through 11 identify bonds, historical bonds, snapshots, seeds,
+Fields 1 through 11 identify live bonds, historical bonds, snapshots, seeds,
 epoch entropy, checkpoints, justified checkpoints, latest votes, lockouts,
-applied evidence and retired bonds, respectively. Metadata contains version,
-state tip, initial entropy, PoS flag, last epoch, finalized checkpoint and the
-eleven map counts. Reads reject unknown versions/types, non-canonical keys,
-missing metadata, mismatched record counts, and mixed legacy/new state.
-Values use the corresponding existing state-map value serialization. A future
-incompatible record/metadata change must use a new database schema version;
-an unknown version is rejected before parsing its remaining metadata.
+applied evidence and retired bonds. Metadata contains schema version, state
+tip, initial entropy, PoS flag, last epoch, finalized checkpoint and eleven
+record counts. Readers reject incompatible versions, unknown fields,
+noncanonical keys, missing metadata, count mismatches and mixed formats.
+Snapshot, undo and bond records preserve immutable credential versions.
 
-`StateChanges` collects affected keys from existing undo records. Connection
-writes only those keys and metadata, plus the block undo, in one atomic batch.
-The shared UTXO cache is updated only after that batch succeeds, so failure cannot
-make shutdown persist UTXOs whose matching PoS state was never committed.
-Snapshot creation still writes the new snapshot once per epoch. Disconnection
-uses the same key set and resulting parent state. Startup recovery merges key
-sets across its rollback suffix without retaining copies of every removed
-snapshot, verifies undo continuity and atomically commits the recovered state
-while deleting precisely that suffix's undo records. Full resets are reserved
-for initialization, explicit rebuilding and pre-snapshot recovery without undo.
+`StateChanges` derives affected keys from transition undo. Connection writes
+only those records and metadata, together with the block undo, in one atomic
+batch. The shared UTXO cache is updated only after that batch succeeds.
+Disconnection writes the same affected key set from the resulting parent
+state. Snapshot creation still writes a full snapshot once per epoch;
+incremental persistence does not eliminate in-memory state-copy costs.
 
-At and after creation of the initial snapshot, state/undo batches are synchronous.
-The snapshot-creation block now retains undo too, closing the boundary where
-the pre-snapshot reconstruction shortcut is no longer sufficient. Finality
-still flushes blocks, indexes and UTXOs before pruning recovery undo. Earlier
-state batches remain asynchronous because that state can be rebuilt from UTXOs.
-Disconnecting the durable UTXO tip flushes its rollback before writing parent
-PoS state, including legacy snapshot-creation blocks that have no PoS undo.
-The block-index unload path now also clears in-memory PoS state; otherwise its
-old tip can incorrectly survive rebuilding into a fresh database.
-An empty-UTXO rebuild explicitly resets PoS records before replaying genesis;
-the reset refuses an active chain or a nonempty UTXO tip. Ordinary writes never
-discard their persisted-parent check to accommodate rebuilding.
+Startup recovery validates undo continuity, merges affected keys across the
+rollback suffix, and atomically commits the recovered state while deleting
+precisely that suffix's undo. Full state resets are reserved for initialization,
+explicit rebuilding and pre-snapshot recovery without undo. An empty-UTXO
+rebuild refuses an active chain or nonempty durable UTXO tip before resetting
+PoS records. Ordinary writes retain their persisted-parent check.
 
-Upgrade does not require wiping chain data. In-place downgrade is not supported:
-an older binary cannot read record-format PoS state after the snapshot and must
-not be used to write alongside it. Restore a matching pre-upgrade backup, or
-perform the appropriate explicit rebuild with a compatible binary. Never remove
-wallet files to change the chain database format.
-In particular, `-reindex-chainstate` alone is not a downgrade procedure: it does
-not clear the PoS records in the block-index database. Both reindex modes are
-tested with the upgraded binary; after the initial snapshot, a normal
-post-migration startup with the previous binary fails rather than silently
-reinterpreting the data. Before that snapshot, an old binary can instead
-reconstruct legacy state; a later upgrade rejects the resulting mixed formats.
-Neither behavior is a supported in-place downgrade.
+At and after initial snapshot creation, state/undo batches are synchronous and
+the snapshot-creation block retains undo. Before that boundary, asynchronous
+state can be reconstructed from UTXOs. Finality flushes blocks, indexes and
+UTXOs before pruning recovery undo, as specified under Crash Recovery And
+Durability. Index unload clears in-memory PoS state.
 
-Verification includes record-versus-normal-state serialization hashes, all map
-families across evidence/retention/undo, uncommitted-batch interruption, malformed
-schema refusal, durable reopen, multi-block rollback and real binary migration.
-Set `VERGE_POS_STORAGE_STRESS=1` to include disk-backed 1k/10k/100k-bond cases in
-`pos_storage_tests`. Batch byte figures are encoded size estimates, not physical
-disk write amplification or complete block-validation throughput.
+Do not downgrade a database or wallet to a binary that cannot read its format.
+Use matching backups or the appropriate explicit rebuild with a compatible
+binary; never delete wallet files to rebuild chain state. Chainstate reindex
+alone does not clear PoS records in the block-index database.
 
-`feature_pos_soak.py` is an extended four-node test with configurable rounds,
-minimum duration, bond count and random seed. It exercises competing production
-under repeated partitions, convergence, clean/abrupt restarts, delayed catch-up,
-record-state recovery and final chainstate reindex. It compares consensus state,
-UTXO hashes, readiness and honest-peer scores, and records observed resident
-memory plus a JSON results artifact. A local bounded soak does not substitute
-for an overnight run, hardware-specific profiling or independent review.
+## Local Signing Safety
 
-The first longer soak exposed an outbound announcement mismatch: queued tip
-announcements could include multiple PoS headers, although the receiving path
-permits only one terminal PoS header. Such outbound batches now fall back to
-tip inventory; bounded full-block synchronization handles catch-up. The
-receiver's single-header authentication bound and penalties for malformed
-multi-header announcements remain unchanged.
+Before releasing either half of a hybrid block or checkpoint-vote signature,
+the wallet commits a `possigning` safety record in a synchronous transaction.
+Classical signing uses the same journal. Records are scoped to network,
+genesis, activation height, signing key and bond outpoint. They conservatively
+prevent conflicting same-slot blocks, backward slots, double-target votes and
+surround votes. Repeated identical messages and safe later-head updates are
+permitted. These are signer restrictions, not extra block-acceptance rules.
 
-### Larger Local Verification
+A failed journal write stops signing until restart. Corrupt or unknown journal
+records are fatal wallet-load errors, not skippable metadata; wallet recovery
+retains valid records. Never run copies of an active staking wallet
+simultaneously, restore an older backup while reusing active bond signing keys,
+or downgrade to a signer that ignores this journal. Independent copies cannot
+coordinate through a local database, and a backup cannot reconstruct signatures
+made after it was taken. Preserve the latest wallet and normal recovery files
+when migrating a staking node.
 
-All 87 selected PoS/wallet unit cases pass on the Windows MSVC-compatible
-build, including failed-write UTXO isolation, snapshot-boundary undo and legacy
-rollback, all record families, schema rejection, durable reopen, and ordered
-64-block recovery. Extended disk-backed measurements were:
+The staking worker is separate from the scheduler that delivers validation
+callbacks. Shutdown signals and joins it before tearing down the scheduler,
+script-verification workers, wallets or networking. A wallet attempts at most
+one block per canonical slot; a parent race does not authorize signing a second
+candidate for the same slot.
 
-| Bonds | Full Encoded Batch (Bytes) | Maximum Delta With Undo (Bytes) | 64 Durable Writes (us) |
-| --- | --- | --- | --- |
-| 1,000 | 469,731 | 1,047 | 33,949 |
-| 10,000 | 4,690,731 | 1,047 | 46,997 |
-| 100,000 | 46,900,733 | 1,047 | 37,066 |
+## Verification And Release Gates
 
-Each measured transition updates one vote plus entropy/metadata and its undo;
-the combined 64 delta batches total 67,008 encoded bytes at each size. Bond
-churn, large vote sets and new snapshots require proportionally larger writes.
-These timings cover the durable write call, not state construction, signature
-verification, total validation latency or physical disk amplification.
+Maintainer tests and source review are not an independent consensus or
+cryptographic audit. Production activation requires all of the following:
 
-### Local Signing Safety
+1. Independent consensus and cryptographic review of a pinned commit/build:
+   public weighted selection, splitting invariance, entropy withholding and
+   initial-PoW grinding, validator-set changes, public-producer denial of
+   service, hybrid domains, PQ spending and external signer integration.
+   Address findings and obtain reviewer retesting.
+2. Cross-platform deterministic vectors and functional qualification on all
+   supported targets, including Pi-class hardware. Run ASan/UBSan/TSan where
+   supported, parser fuzzing, malformed-input tests and producer-capacity tests
+   covering the complete vote/evidence budgets and PQ maximum-size spends.
+3. Full-node resource profiling under large validator sets, authenticated
+   competing branches, cold replay and stalled finality. Record CPU, peak RSS,
+   lock hold time, validation latency and physical database bytes written.
+   Storage-only and summary-cache measurements are not full-node benchmarks.
+4. Extended multi-operator public testnet observation and isolated overnight
+   partition/recovery soaks, including restarts, missed epochs, loss of peers,
+   finality recovery, fresh historical sync and state/UTXO/reindex comparison.
+5. Crash consistency and backup restoration across supported platforms,
+   including encrypted PQ keys, multisig policies, messaging identities and
+   anti-equivocation records. Process-crash tests alone do not establish
+   resilience to torn device writes or hardware that fails to honor sync.
+6. External wallet, signer, exchange, indexer and explorer compatibility with
+   protected transactions, variable headers, native PQ scripts and addresses,
+   short unfinalized tip replacements, and weak-subjectivity checkpoints.
+7. Explicit approval of the mainnet activation height, derived bond-rules
+   window, public-eligibility and PQ flags, release documentation and a current
+   trusted finalized checkpoint once post-activation finality exists.
 
-Before releasing a block or checkpoint-vote signature, the wallet commits a
-`possigning` safety record with a synchronous database transaction. Records are
-scoped to the network, genesis, activation height, signing key and bond outpoint.
-They prevent conflicting same-slot blocks, backward slot signing, double-target
-votes and surround votes by conservatively retaining monotonic signing history.
-Repeated identical messages and safe later-head updates remain permitted. These
-are local signer restrictions, not additional consensus acceptance rules.
-
-A failed journal write stops further signing until restart. Corrupt or unknown
-journal records are fatal wallet-load errors, not records that can be skipped.
-Wallet recovery retains valid signing records. **Never run copies of an active
-staking wallet simultaneously or restore an older backup while reusing active
-bond signing keys.** A local journal cannot coordinate independent copies or
-reconstruct signatures made after a backup was taken. Do not downgrade to a
-staking build that ignores the journal. Preserve the latest wallet database and
-its normal recovery files when migrating a staking node.
-Protection starts when this signer first records a message; it cannot prove
-what an older build previously signed. Coordinate upgrades on a single branch
-before producing new votes, and use a clean trial for consensus-changing fixes.
-
-The summary-cache stress inserts 256 synthetic branch summaries with 100,000
-vote heads each into a 16 MiB accounted budget. It retains 10 summaries, peaks
-at 16,001,920 accounted bytes, preserves reference weights, and evicts older
-entries. The measured cache loop took 212,901 us. This tests cache accounting
-and eviction, not replay/authentication of 256 real competing branches.
-
-The final daemon build passes `feature_pos_activation`,
-`feature_pos_crash_recovery`, `feature_pos_vote_heads`, `feature_pos_worker`,
-`p2p_pos_prefetch`, `p2p_pos_header_time`, `wallet_pos_unbond`, and
-`feature_pos_storage`. Persistence coverage runs both in default CI mode and
-against the previous single-state-record daemon, including successful in-place
-migration, explicit old-binary refusal after activation, retention pruning,
-restart, full reindex and chainstate reindex with matching UTXO/state results.
-The prefetch regression also confirms that malformed multiple-PoS-header
-announcements still receive a penalty after the outbound announcement fix.
-
-The four-node run with 32 real bonds per node passed 600.9 seconds of
-steady-state soak and completed its final reindex/comparisons at 605.625 seconds.
-It exercised 554 action rounds, 27 partitions, 8 clean restarts and 7 abrupt
-restarts, producing 490 blocks including competing branches. All four nodes
-converged at height 2442, with checkpoint epoch 82 finalized at height 2432.
-Current peer scores and a complete log scan found no honest-peer penalties.
-Consensus/snapshot comparisons and the final four-way UTXO hash comparison
-passed, including the participant rebuilt with `-reindex-chainstate`.
-
-Observed combined resident memory began at 387,448,832 bytes and peaked/ended
-at 404,201,472 bytes (about 385.5 MiB) after final rebuilding. These are sampled
-working-set totals, not private-memory or leak-freedom measurements. The local
-artifact is `build-msvc/pos-records-final-soak/pos-soak-results.json`, marked
-`passed`. This bounded desktop run does not complete the overnight, sanitizer,
-Pi-class or full-scale authenticated-branch profiling gates above.
-
-Run the disk/cache cases with `VERGE_POS_STORAGE_STRESS=1` and the PoS unit
-binary. Run the network soak with:
+The resource fixtures include disk-backed 1k/10k/100k-bond storage cases through
+`VERGE_POS_STORAGE_STRESS=1`. They measure record persistence, not complete
+consensus throughput. `feature_pos_soak.py` supports configurable duration,
+rounds, bond count and seed. For an isolated overnight run:
 
 ```sh
-python test/functional/feature_pos_soak.py --rounds=120 --duration=600 --bonds-per-node=32 --soak-seed=20261104
+python test/functional/feature_pos_soak.py --rounds=120 --duration=43200 --bonds-per-node=32
 ```
 
-`--duration` is a minimum steady-state wall time in addition to `--rounds`;
-setup and final reindex are extra. The activation override in this test is
-regtest-only. For an overnight run, use `--duration=43200` in an isolated test
-directory, not a live wallet directory. Results are written to
-`pos-soak-results.json`; only a report marked `passed` includes the final
-state/UTXO and reindex assertions. No live wallet data is modified.
-These tests exercise process crashes and batch commit boundaries, not physical
-power loss, torn device writes or storage hardware that fails to honor sync.
-
-## Shared Runtime Memory Review (2026-11-05)
-
-The daemon memory investigation and shared logging/scheduler hardening
-add partial component counters to `getmemoryinfo stats` and a concurrent
-mining-RPC resource regression, including walletless operation. A failed log
-reopen no longer converts runtime logging to unbounded buffering, and callback
-bursts no longer create redundant processing jobs. Callback ordering and
-consensus rules are unchanged. The reported exhaustion on 16 GiB hosts still
-requires affected-host evidence; bounded local tests are not a mainnet OOM
-reproduction or an overnight leak audit.
+Duration is a minimum steady-state interval; setup and final reindex are extra.
+Use an isolated test directory, never a live wallet directory. Only a
+`pos-soak-results.json` artifact marked `passed` includes the final state/UTXO
+and reindex assertions. Test results and performance observations belong in
+separate validation records, not in this consensus specification.
 
 ## Documentation Discipline
 
-This document is updated with each approved consensus decision. Implementation commits must reference the relevant section and must not introduce undocumented consensus behavior. Before public testnet, the draft must include exact byte serialization, domain-separation strings, arithmetic bounds, state-transition pseudocode, RPC behavior, and fixed vectors. Before Phase 6 it will be promoted from a research draft to a versioned consensus specification linked from the root README and release documentation.
+This document describes the current network parameters, formats, validation
+rules and operator behavior. Keep abandoned trial configurations, superseded
+address spellings and dated implementation/test journals out of the
+specification. Implementation commits must not introduce undocumented consensus
+behavior. Promote the draft to a versioned release specification only after
+the production release gates are satisfied.
