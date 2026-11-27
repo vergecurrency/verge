@@ -146,6 +146,7 @@ BASE_SCRIPTS = [
     'p2p_disconnect_ban.py',
     'rpc_decodescript.py',
     'rpc_blockchain.py',
+    'rpc_pos_info.py',
     'rpc_deprecated.py',
     'wallet_disable.py',
     'rpc_net.py',

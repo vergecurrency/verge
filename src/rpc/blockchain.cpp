@@ -1488,15 +1488,22 @@ static UniValue getposinfo(const JSONRPCRequest& request)
 
     CAmount total_bond_value = 0;
     CAmount largest_bond_value = 0;
-    std::set<uint160> reward_keys;
-    std::set<uint160> withdrawal_keys;
+    using BondOwnerKey = boost::variant<CKeyID, PQKeyHash>;
+    std::set<BondOwnerKey> reward_keys;
+    std::set<BondOwnerKey> withdrawal_keys;
     for (const auto& item : state.Bonds()) {
         if (MoneyRange(total_bond_value + item.second.value)) {
             total_bond_value += item.second.value;
         }
         largest_bond_value = std::max(largest_bond_value, item.second.value);
-        reward_keys.insert(item.second.data.reward_key_id);
-        withdrawal_keys.insert(item.second.data.withdrawal_key_id);
+        const pos::BondData& bond = item.second.data;
+        if (bond.version == pos::HYBRID_POS_OBJECT_VERSION) {
+            reward_keys.emplace(PQKeyHash(bond.pq_reward_key_id));
+            withdrawal_keys.emplace(PQKeyHash(bond.pq_withdrawal_key_id));
+        } else {
+            reward_keys.emplace(CKeyID(bond.reward_key_id));
+            withdrawal_keys.emplace(CKeyID(bond.withdrawal_key_id));
+        }
     }
     CAmount latest_vote_weight = 0;
     CAmount eligible_vote_weight = 0;
