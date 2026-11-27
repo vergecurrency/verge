@@ -697,8 +697,9 @@ is followed by
 the 32-byte key ID converted from eight-bit to five-bit groups with zero
 padding. There is no witness-version byte. These are not SegWit addresses.
 `getnewpqaddress [label]` persists an independent ML-DSA key before returning
-the address. Existing `getnewaddress` remains classical, including PoW mining
-destinations. On a PQ trial network, automatic change uses a new PQ key unless
+the address. `getnewaddress` defaults to PQ in PQ-first wallets as described
+below; explicit legacy addresses and legacy PoW mining destinations remain
+available. On a PQ trial network, automatic change uses a new PQ key unless
 an explicit coin-control change destination is supplied.
 
 The native script is `OP_3 PUSH32 <PQ key ID> OP_NOP4` (35 bytes). The PQ
@@ -894,6 +895,26 @@ these are a breakdown of the existing total, not additional funds. Each includes
 its available, pending, immature and bonded/unbonding outputs, excluding
 watch-only outputs. PQ ownership includes native outputs and PQ bond/withdrawal
 wrappers. Pending bond transactions remain in the pending balance until mined.
+
+On first initialization with PQ spending rules active for the next block, a
+wallet with no existing keys starts with a durably stored PQ receiving key, not
+a classical HD seed or a prefilled legacy keypool. This PQ-first policy persists
+across restart, encryption and unlock. Existing wallets retain their keys and
+legacy keypool behavior; opening them does not migrate their coins. Activation
+uses the locally validated chain height, not a peer's advertised height or the
+wall clock. A fresh node still synchronizing from below activation can therefore
+initialize a legacy wallet; the Receive tab switches its default once activation
+is locally known.
+
+In PQ-first wallets, `getnewaddress` and `getrawchangeaddress` default to PQ while
+PQ rules are active. Explicit `"legacy"` requests and the existing legacy
+`-addresstype` / `-changetype` overrides remain available; explicit `"pq"` RPC
+requests are rejected before activation. Classical HD keys are generated only
+when needed for compatibility, hybrid staking or messaging, or when explicitly
+requested with `keypoolrefill`. Startup and unlock never backfill a large legacy
+keypool for these wallets. Ordinary transaction change already defaults to PQ
+when its rules are active. PQ keys are independent of the classical HD seed:
+use a current complete wallet backup, not a legacy seed-only backup.
 
 The Qt Receive tab offers **Post-quantum (PQ)**, **Legacy** and **Stealth** address
 types. PQ is the default when its rules become active, while explicit selections

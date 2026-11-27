@@ -104,6 +104,104 @@ BOOST_FIXTURE_TEST_CASE(pq_address_prefix_metadata_reload, RegTestingSetup)
     ReleaseDirectoryLocks();
 }
 
+BOOST_FIXTURE_TEST_CASE(pq_first_initialization_and_lazy_classical_keys, RegTestingSetup)
+{
+    if (!pos::experimental::MLDSA44Available()) return;
+    struct RestorePQ { ~RestorePQ() { UpdatePoSPostQuantumForTesting(false); } } restore;
+    const auto open = [](const fs::path& path) {
+        auto wallet = CWallet::CreateWalletFromFile(path.filename().string(), path);
+        if (wallet) UnregisterValidationInterface(wallet.get());
+        return wallet;
+    };
+    const fs::path legacy_path = GetDataDir() / "legacy-first";
+    std::set<CKeyID> legacy_keys;
+    {
+        auto wallet = open(legacy_path);
+        BOOST_REQUIRE(wallet);
+        LOCK(wallet->cs_wallet);
+        BOOST_CHECK(!wallet->IsPQFirst());
+        BOOST_CHECK(wallet->IsHDEnabled());
+        legacy_keys = wallet->GetKeys();
+        BOOST_CHECK(!legacy_keys.empty());
+        wallet->GetDBHandle().Flush(false);
+    }
+    UpdatePoSPostQuantumForTesting(true);
+    {
+        auto wallet = open(legacy_path);
+        BOOST_REQUIRE(wallet);
+        LOCK(wallet->cs_wallet);
+        BOOST_CHECK(!wallet->IsPQFirst());
+        BOOST_CHECK(!wallet->HasPQKeys());
+        BOOST_CHECK(wallet->GetKeys() == legacy_keys);
+        wallet->GetDBHandle().Flush(true);
+    }
+
+    const fs::path path = GetDataDir() / "pq-first";
+    const fs::path backup = GetDataDir() / "pq-first-backup";
+    const SecureString passphrase{"pq-first-test-passphrase"};
+    uint256 id;
+    for (int reopen = 0; reopen < 3; ++reopen) {
+        auto wallet = open(path);
+        BOOST_REQUIRE(wallet);
+        LOCK(wallet->cs_wallet);
+        BOOST_CHECK(wallet->IsPQFirst());
+        BOOST_CHECK(wallet->HasPQKeys());
+        BOOST_CHECK(wallet->GetKeys().empty());
+        BOOST_CHECK(!wallet->IsHDEnabled());
+        BOOST_CHECK_EQUAL(wallet->GetKeyPoolSize(), 0U);
+        BOOST_REQUIRE_EQUAL(wallet->mapAddressBook.size(), 1U);
+        const CTxDestination dest = wallet->mapAddressBook.begin()->first;
+        BOOST_REQUIRE(dest.type() == typeid(PQKeyHash));
+        if (reopen == 0) id = boost::get<PQKeyHash>(dest);
+        BOOST_CHECK(boost::get<PQKeyHash>(dest) == id);
+        BOOST_CHECK_EQUAL(wallet->mapAddressBook.begin()->second.purpose, "receive");
+        if (reopen == 0) {
+            BOOST_REQUIRE(wallet->EncryptWallet(passphrase));
+            BOOST_CHECK(wallet->IsLocked());
+        }
+        BOOST_CHECK(!wallet->Unlock(SecureString{"wrong-passphrase"}));
+        BOOST_REQUIRE(wallet->Unlock(passphrase));
+        BOOST_REQUIRE(wallet->TopUpKeyPool());
+        BOOST_CHECK(wallet->GetKeys().empty());
+        BOOST_CHECK_EQUAL(wallet->GetKeyPoolSize(), 0U);
+        if (reopen == 1) BOOST_REQUIRE(wallet->BackupWallet(backup.string()));
+        if (reopen == 2) {
+            CKeyPool reserved;
+            int64_t index;
+            BOOST_REQUIRE(wallet->ReserveKeyFromKeyPool(index, reserved, true));
+            BOOST_CHECK(reserved.fInternal);
+            BOOST_CHECK(wallet->IsHDEnabled());
+            BOOST_CHECK_EQUAL(wallet->GetKeys().size(), 3U); // HD seed and one key per branch.
+            wallet->KeepKey(index);
+            BOOST_REQUIRE(wallet->TopUpKeyPool());
+            BOOST_CHECK_EQUAL(wallet->GetKeyPoolSize(), 1U);
+        }
+        wallet->GetDBHandle().Flush(false);
+    }
+    {
+        auto wallet = open(path);
+        BOOST_REQUIRE(wallet);
+        LOCK(wallet->cs_wallet);
+        BOOST_REQUIRE(wallet->Unlock(passphrase));
+        BOOST_CHECK(wallet->IsPQFirst());
+        BOOST_CHECK_EQUAL(wallet->GetKeys().size(), 3U);
+        BOOST_CHECK_EQUAL(wallet->GetKeyPoolSize(), 1U);
+        wallet->GetDBHandle().Flush(true);
+    }
+    {
+        auto wallet = open(backup);
+        BOOST_REQUIRE(wallet);
+        LOCK(wallet->cs_wallet);
+        BOOST_REQUIRE(wallet->Unlock(passphrase));
+        BOOST_CHECK(wallet->IsPQFirst());
+        BOOST_CHECK(wallet->HavePQKey(id));
+        BOOST_CHECK(wallet->GetKeys().empty());
+        BOOST_CHECK_EQUAL(wallet->GetKeyPoolSize(), 0U);
+        wallet->GetDBHandle().Flush(true);
+    }
+    ReleaseDirectoryLocks();
+}
+
 BOOST_FIXTURE_TEST_CASE(pq_keys_survive_reload_encryption_and_backup, TestingSetup)
 {
     if (!pos::experimental::MLDSA44Available()) return;
@@ -195,6 +293,29 @@ BOOST_FIXTURE_TEST_CASE(pq_wallet_records_reject_corruption_and_future_versions,
     record_value << int(FEATURE_PQ_KEYS);
     BOOST_CHECK(WalletBatch::RecoverKeysOnlyFilter(&recovered, record_key, record_value));
     BOOST_CHECK_EQUAL(recovered.GetVersion(), FEATURE_PQ_KEYS);
+    record_key.clear();
+    record_value.clear();
+    record_key << std::string("pqfirst");
+    record_value << uint8_t{1};
+    BOOST_CHECK(WalletBatch::RecoverKeysOnlyFilter(&recovered, record_key, record_value));
+    {
+        LOCK(recovered.cs_wallet);
+        BOOST_CHECK(recovered.IsPQFirst());
+    }
+    record_value.clear();
+    record_value << uint8_t{2};
+    BOOST_CHECK(!WalletBatch::RecoverKeysOnlyFilter(&recovered, record_key, record_value));
+    const fs::path mode_missing_guard = GetDataDir() / "pq-first-missing-guard";
+    {
+        auto database = WalletDatabase::Create(mode_missing_guard);
+        BOOST_REQUIRE(WalletBatch(*database, "cr+").WritePQFirst());
+    }
+    {
+        CWallet rejected("pq-first-missing-guard", WalletDatabase::Create(mode_missing_guard));
+        bool first_run;
+        BOOST_CHECK(rejected.LoadWallet(first_run) == DBErrors::CORRUPT);
+        rejected.GetDBHandle().Flush(true);
+    }
     const fs::path missing_guard = GetDataDir() / "pq-missing-guard";
     {
         auto database = WalletDatabase::Create(missing_guard);

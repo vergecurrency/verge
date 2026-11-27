@@ -163,6 +163,10 @@ const CWalletTx* CWallet::GetWalletTx(const uint256& hash) const
 CPubKey CWallet::GenerateNewKey(WalletBatch &batch, bool internal)
 {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
+    // PQ-first wallets only need a classical HD seed when a classical key is requested.
+    if (m_pq_first && !IsHDEnabled() && !SetHDSeed(GenerateNewSeed())) {
+        throw std::runtime_error(std::string(__func__) + ": Storing HD seed failed");
+    }
     bool fCompressed = CanSupportFeature(FEATURE_COMPRPUBKEY); // default to compressed public keys if we want 0.6.0 wallets
 
     CKey secret;
@@ -317,6 +321,7 @@ bool CWallet::AddPQKey(const pos::experimental::MLDSA44Key& key,
     WalletBatch batch(*database);
     if (!batch.TxnBegin()) return false;
     if (!batch.WriteMinVersion(std::max(nWalletVersion, int(FEATURE_PQ_KEYS))) ||
+        (m_pq_first && !batch.WritePQFirst()) ||
         !(IsCrypted() ? batch.WriteCryptedPQKey(public_key, ciphertext, false)
                       : batch.WritePQKey(public_key, seed)) ||
         !batch.TxnCommit(true)) {
@@ -4657,6 +4662,10 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize)
         if (IsLocked())
             return false;
 
+        // Automatic startup/unlock refills must not populate a legacy pool in PQ-first wallets.
+        if (m_pq_first && kpSize == 0) return true;
+        if (m_pq_first && !IsHDEnabled() && !SetHDSeed(GenerateNewSeed())) return false;
+
         // Top up key pool
         unsigned int nTargetSize;
         if (kpSize > 0)
@@ -4711,8 +4720,17 @@ bool CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool, bool fRe
     {
         LOCK(cs_wallet);
 
-        if (!IsLocked())
-            TopUpKeyPool();
+        if (!IsLocked()) {
+            if (m_pq_first) {
+                const bool internal = CanSupportFeature(FEATURE_HD_SPLIT) && fRequestedInternal;
+                if (set_pre_split_keypool.empty() &&
+                    (internal ? setInternalKeyPool : setExternalKeyPool).empty()) {
+                    TopUpKeyPool(1);
+                }
+            } else {
+                TopUpKeyPool();
+            }
+        }
 
         bool fReturningInternal = IsHDEnabled() && CanSupportFeature(FEATURE_HD_SPLIT) && fRequestedInternal;
         bool use_split_keypool = set_pre_split_keypool.empty();
@@ -5388,7 +5406,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(const std::string& name, 
     }
 
     // Upgrade to HD if explicit upgrade
-    if (gArgs.GetBoolArg("-upgradewallet", false)) {
+    if (!fFirstRun && gArgs.GetBoolArg("-upgradewallet", false)) {
         LOCK(walletInstance->cs_wallet);
 
         // Do not upgrade versions to any version between HD_SPLIT and FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
@@ -5400,7 +5418,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(const std::string& name, 
 
         bool hd_upgrade = false;
         bool split_upgrade = false;
-        if (walletInstance->CanSupportFeature(FEATURE_HD) && !walletInstance->IsHDEnabled()) {
+        if (walletInstance->CanSupportFeature(FEATURE_HD) && !walletInstance->IsHDEnabled() && !walletInstance->IsPQFirst()) {
             LogPrintf("Upgrading wallet to HD\n");
             walletInstance->SetMinVersion(FEATURE_HD);
 
@@ -5432,6 +5450,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(const std::string& name, 
 
     if (fFirstRun)
     {
+        LOCK2(cs_main, walletInstance->cs_wallet);
         // ensure this wallet.dat can only be opened by clients supporting HD with chain split and expects no default key
         if (!gArgs.GetBoolArg("-usehd", true)) {
             InitError(strprintf(_("Error creating %s: You can't create non-HD wallets with this version."), walletFile));
@@ -5439,25 +5458,36 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(const std::string& name, 
         }
         walletInstance->SetMinVersion(FEATURE_LATEST);
 
-        // generate a new seed
-        CPubKey seed = walletInstance->GenerateNewSeed();
-        if (!walletInstance->SetHDSeed(seed))
-            throw std::runtime_error(std::string(__func__) + ": Storing HD seed failed");
-
-        // Top up the keypool
-        if (!walletInstance->TopUpKeyPool()) {
-            InitError(_("Unable to generate initial keys") += "\n");
-            return nullptr;
+        // A new chain can still be attaching its fixed genesis block during wallet loading.
+        const int next_height = std::max(0, chainActive.Height()) + 1;
+        walletInstance->m_pq_first = walletInstance->m_pq_first ||
+            Params().GetConsensus().ArePQRulesActive(next_height);
+        if (walletInstance->m_pq_first) {
+            uint256 id;
+            if (!walletInstance->GeneratePQKey(id) ||
+                !walletInstance->SetAddressBook(PQKeyHash(id), "", "receive")) {
+                InitError(_("Unable to generate initial PQ key") += "\n");
+                return nullptr;
+            }
+        } else {
+            CPubKey seed = walletInstance->GenerateNewSeed();
+            if (!walletInstance->SetHDSeed(seed))
+                throw std::runtime_error(std::string(__func__) + ": Storing HD seed failed");
+            if (!walletInstance->TopUpKeyPool()) {
+                InitError(_("Unable to generate initial keys") += "\n");
+                return nullptr;
+            }
         }
 
         walletInstance->ChainStateFlushed(chainActive.GetLocator());
     } else if (gArgs.IsArgSet("-usehd")) {
+        LOCK(walletInstance->cs_wallet);
         bool useHD = gArgs.GetBoolArg("-usehd", true);
         if (walletInstance->IsHDEnabled() && !useHD) {
             InitError(strprintf(_("Error loading %s: You can't disable HD on an already existing HD wallet"), walletFile));
             return nullptr;
         }
-        if (!walletInstance->IsHDEnabled() && useHD) {
+        if (!walletInstance->IsHDEnabled() && useHD && !walletInstance->IsPQFirst()) {
             InitError(strprintf(_("Error loading %s: You can't enable HD on an already existing non-HD wallet"), walletFile));
             return nullptr;
         }

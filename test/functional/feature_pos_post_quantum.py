@@ -24,7 +24,7 @@ class PostQuantumTest(VergeTestFramework):
         self.num_nodes = 3
         self.setup_clean_chain = True
         self.rpc_timewait = 300
-        self.base_args = ["-posactivationheight=1500", "-posunbondingblocks={}".format(self.UNBONDING_BLOCKS), "-without-tor"]
+        self.base_args = ["-posactivationheight=1500", "-posunbondingblocks={}".format(self.UNBONDING_BLOCKS), "-without-tor", "-debug=net"]
         self.extra_args = [list(self.base_args) for _ in range(3)]
 
     def setup_network(self):
@@ -140,7 +140,7 @@ class PostQuantumTest(VergeTestFramework):
             info = node.getposinfo()
             assert_equal(info["authentication_scheme"], "schnorr-mldsa44-v2")
             assert_equal(info["pq_spending_active"], True)
-        mining = producer.getnewaddress()
+        mining = producer.getnewaddress("mining", "legacy")
         recipient = owner.getnewpqaddress("PQ incoming")
         destination = producer.getnewpqaddress("PQ return")
         assert_equal(owner.getaddressinfo(recipient)["ispostquantum"], True)

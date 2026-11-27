@@ -739,6 +739,7 @@ private:
     int64_t nNextResend = 0;
     int64_t nLastResend = 0;
     bool fBroadcastTransactions = false;
+    bool m_pq_first{false};
     bool m_staking_enabled{false};
     CAmount m_staking_reserve_balance{0};
     bool m_have_staking_attempt{false};
@@ -1095,6 +1096,9 @@ public:
     CFeeRate m_discard_rate{DEFAULT_DISCARD_FEE};
     OutputType m_default_address_type{DEFAULT_ADDRESS_TYPE};
     OutputType m_default_change_type{DEFAULT_CHANGE_TYPE};
+
+    bool IsPQFirst() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { return m_pq_first; }
+    void LoadPQFirst(bool enabled) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { m_pq_first = enabled; }
 
     bool NewKeyPool();
     size_t KeypoolCountExternalKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

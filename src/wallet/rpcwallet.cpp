@@ -150,6 +150,19 @@ static std::string LabelFromValue(const UniValue& value)
     return label;
 }
 
+static CTxDestination NewPQDestination(CWallet* wallet)
+{
+    AssertLockHeld(cs_main);
+    AssertLockHeld(wallet->cs_wallet);
+    if (!Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Post-quantum addresses are not active on this network");
+    }
+    EnsureWalletIsUnlocked(wallet);
+    uint256 id;
+    if (!wallet->GeneratePQKey(id)) throw JSONRPCError(RPC_WALLET_ERROR, "Unable to persist PQ key");
+    return PQKeyHash(id);
+}
+
 static UniValue getnewaddress(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -167,7 +180,7 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
             "so payments received with the address will be associated with 'label'.\n"
             "\nArguments:\n"
             "1. \"label\"          (string, optional) The label name for the address to be linked to. If not provided, the default label \"\" is used. It can also be set to the empty string \"\" to represent the default label. The label does not need to exist, it will be created if there is no label by the given name.\n"
-            "2. \"address_type\"   (string, optional) The address type to use. Options are \"legacy\". Default is set by -addresstype.\n"
+            "2. \"address_type\"   (string, optional) \"legacy\" or \"pq\". New PQ-first wallets default to PQ while active, unless -addresstype overrides it. Back up the complete wallet after creating PQ keys.\n"
             "\nResult:\n"
             "\"address\"    (string) The new VERGE address\n"
             "\nExamples:\n"
@@ -181,6 +194,18 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
     std::string label;
     if (!request.params[0].isNull())
         label = LabelFromValue(request.params[0]);
+
+    const bool pq = request.params[1].isNull()
+        ? pwallet->IsPQFirst() && gArgs.GetArg("-addresstype", "").empty() &&
+            Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)
+        : request.params[1].get_str() == "pq";
+    if (pq) {
+        const CTxDestination dest = NewPQDestination(pwallet);
+        if (!pwallet->SetAddressBook(dest, label, "receive")) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Unable to persist PQ address label");
+        }
+        return EncodeDestination(dest);
+    }
 
     OutputType output_type = pwallet->m_default_address_type;
     if (!request.params[1].isNull()) {
@@ -274,7 +299,7 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
             "\nReturns a new VERGE address, for receiving change.\n"
             "This is for use with raw transactions, NOT normal use.\n"
             "\nArguments:\n"
-            "1. \"address_type\"           (string, optional) The address type to use. Options are \"legacy\". Default is set by -changetype.\n"
+            "1. \"address_type\"           (string, optional) \"legacy\" or \"pq\". New PQ-first wallets default to PQ while active, unless -changetype or -addresstype overrides it. Back up the complete wallet after creating PQ keys.\n"
             "\nResult:\n"
             "\"address\"    (string) The address\n"
             "\nExamples:\n"
@@ -283,6 +308,13 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
        );
 
     LOCK2(cs_main, pwallet->cs_wallet);
+
+    const bool pq = request.params[0].isNull()
+        ? pwallet->IsPQFirst() && gArgs.GetArg("-changetype", "").empty() &&
+            gArgs.GetArg("-addresstype", "").empty() &&
+            Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)
+        : request.params[0].get_str() == "pq";
+    if (pq) return EncodeDestination(NewPQDestination(pwallet));
 
     if (!pwallet->IsLocked()) {
         pwallet->TopUpKeyPool();
@@ -2627,10 +2659,12 @@ static UniValue keypoolrefill(const JSONRPCRequest& request)
         kpSize = (unsigned int)request.params[0].get_int();
     }
 
+    // An explicit refill remains available for classical compatibility keys.
+    if (kpSize == 0 && pwallet->IsPQFirst()) {
+        kpSize = std::max<int64_t>(1, gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE));
+    }
     EnsureWalletIsUnlocked(pwallet);
-    pwallet->TopUpKeyPool(kpSize);
-
-    if (pwallet->GetKeyPoolSize() < kpSize) {
+    if (!pwallet->TopUpKeyPool(kpSize) || pwallet->GetKeyPoolSize() < kpSize) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error refreshing keypool.");
     }
 
@@ -4872,15 +4906,14 @@ static UniValue getnewpqaddress(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(wallet.get(), request.fHelp)) return NullUniValue;
     if (request.fHelp || request.params.size() > 1) throw std::runtime_error(
         "getnewpqaddress ( \"label\" )\nReturns a new ML-DSA-44 address. Back up the complete wallet after generating PQ keys.\n");
+    const std::string label = request.params.empty() || request.params[0].isNull()
+        ? "" : LabelFromValue(request.params[0]);
     LOCK2(cs_main, wallet->cs_wallet);
-    if (!Params().GetConsensus().ArePQRulesActive(chainActive.Height() + 1)) {
-        throw JSONRPCError(RPC_MISC_ERROR, "Post-quantum addresses are not active on this network");
+    const CTxDestination dest = NewPQDestination(wallet.get());
+    if (!wallet->SetAddressBook(dest, label, "receive")) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Unable to persist PQ address label");
     }
-    EnsureWalletIsUnlocked(wallet.get());
-    uint256 id;
-    if (!wallet->GeneratePQKey(id)) throw JSONRPCError(RPC_WALLET_ERROR, "Unable to persist PQ key");
-    wallet->SetAddressBook(PQKeyHash(id), request.params.empty() ? "" : LabelFromValue(request.params[0]), "receive");
-    return EncodeDestination(PQKeyHash(id));
+    return EncodeDestination(dest);
 }
 
 static UniValue addpqmultisigaddress(const JSONRPCRequest& request)

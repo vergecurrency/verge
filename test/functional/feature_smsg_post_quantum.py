@@ -124,7 +124,7 @@ class PQMessagingTest(VergeTestFramework):
             node.setmocktime(self.timestamp)
             node.setstaking(False)
             assert int(node.getnetworkinfo()['localservices'], 16) & NODE_SMSG_PQ
-        self.mining = alice.getnewaddress('mining')
+        self.mining = alice.getnewaddress('mining', 'legacy')
         self.mine(731)
         pq_funding = bob.getnewpqaddress('message funding')
         funded = alice.sendtoaddress(pq_funding, 100)
@@ -155,7 +155,7 @@ class PQMessagingTest(VergeTestFramework):
         assert_equal(estimate['result'], 'Not Sent.')
         assert_equal(estimate['post_quantum'], True)
         assert_equal(set(alice.getrawmempool()), before)
-        missing = alice.smsgsend(a['address'], bob.getnewaddress(), 'no fallback')
+        missing = alice.smsgsend(a['address'], bob.getnewaddress('', 'legacy'), 'no fallback')
         assert_equal(missing['result'], 'Send failed.')
         assert 'PQ recipient chatkey' in missing['error']
         assert_equal(set(alice.getrawmempool()), before)

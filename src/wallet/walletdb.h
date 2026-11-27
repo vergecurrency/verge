@@ -252,6 +252,7 @@ public:
     bool WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey);
     bool WritePQKey(const std::vector<unsigned char>& public_key,
                     const CKeyingMaterial& seed);
+    bool WritePQFirst();
     bool WritePQMultisigPolicy(const uint256& id, const std::vector<unsigned char>& encoded);
     bool WriteSmsgPQKey(const CKeyID& address, const std::vector<unsigned char>& public_key,
                         const CKeyingMaterial& seed, const std::vector<unsigned char>& ciphertext);

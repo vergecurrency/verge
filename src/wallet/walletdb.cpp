@@ -216,6 +216,11 @@ bool WalletBatch::WriteOrderPosNext(int64_t nOrderPosNext)
     return WriteIC(std::string("orderposnext"), nOrderPosNext);
 }
 
+bool WalletBatch::WritePQFirst()
+{
+    return WriteIC(std::string("pqfirst"), uint8_t{1});
+}
+
 bool WalletBatch::WriteStakingEnabled(bool enabled)
 {
     return WriteIC(std::string("staking_enabled"), enabled);
@@ -733,6 +738,13 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         {
             ssValue >> pwallet->nOrderPosNext;
         }
+        else if (strType == "pqfirst")
+        {
+            uint8_t enabled = 0;
+            ssValue >> enabled;
+            if (!ssKey.empty() || !ssValue.empty() || enabled != 1) return false;
+            pwallet->LoadPQFirst(true);
+        }
         else if (strType == "staking_enabled")
         {
             bool enabled = false;
@@ -792,7 +804,7 @@ bool WalletBatch::IsKeyType(const std::string& strType)
 {
     return (strType== "key" || strType == "wkey" ||
             strType == "mkey" || strType == "ckey" ||
-            strType == "pqkey" || strType == "cpqkey" || strType == "pqpolicy" ||
+            strType == "pqkey" || strType == "cpqkey" || strType == "pqpolicy" || strType == "pqfirst" ||
             strType == "smsgpqkey" || strType == "csmsgpqkey" || strType == "smsgpqcontact");
 }
 
@@ -871,7 +883,7 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
     // upgrading, we don't want to make it worse.
     if (result != DBErrors::LOAD_OK)
         return result;
-    if (wss.fHasPQKeys && pwallet->GetVersion() < FEATURE_PQ_KEYS) {
+    if ((wss.fHasPQKeys || pwallet->IsPQFirst()) && pwallet->GetVersion() < FEATURE_PQ_KEYS) {
         LogPrintf("PQ wallet keys lack their downgrade-protection version\n");
         return DBErrors::CORRUPT;
     }
