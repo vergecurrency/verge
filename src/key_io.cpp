@@ -93,7 +93,13 @@ public:
 CTxDestination DecodeDestination(const std::string& str, const CChainParams& params)
 {
     const auto pq = bech32::Decode(str, bech32::Encoding::BECH32M);
-    if (pq.first == params.Bech32PQHRP()) {
+    // Keep previously issued PQ addresses usable, but only on their original network.
+    const auto& network = params.NetworkIDString();
+    const bool previous_pq_prefix =
+        (network == CBaseChainParams::MAIN && pq.first == "xvgpq") ||
+        (network == CBaseChainParams::TESTNET && pq.first == "xvgtpq") ||
+        (network == CBaseChainParams::REGTEST && pq.first == "xvgrpq");
+    if (pq.first == params.Bech32PQHRP() || previous_pq_prefix) {
         std::vector<unsigned char> bytes;
         if (!ConvertBits<5, 8, false>([&](unsigned char c) { bytes.push_back(c); }, pq.second.begin(), pq.second.end())) return CNoDestination();
         const bool multisig = bytes.size() == 33 && bytes[0] == 1;

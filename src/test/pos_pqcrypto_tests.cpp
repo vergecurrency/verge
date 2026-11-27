@@ -396,11 +396,13 @@ BOOST_AUTO_TEST_CASE(pq_address_network_prefixes)
     const std::string network = Params().NetworkIDString();
     struct RestoreNetwork { std::string network; ~RestoreNetwork() { SelectParams(network); } } restore{network};
     const std::string networks[] = {CBaseChainParams::MAIN, CBaseChainParams::TESTNET, CBaseChainParams::REGTEST};
-    const std::string prefixes[] = {"xvgpq", "xvgtpq", "xvgrpq"};
+    const std::string prefixes[] = {"vergeqx", "vergeqxtest", "vergeqxreg"};
+    const std::string previous_prefixes[] = {"xvgpq", "xvgtpq", "xvgrpq"};
     const std::string witnesses[] = {"vg", "vt", "vgrt"};
     const uint256 id = uint256S("123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0");
     const CTxDestination destination = PQKeyHash(id);
     std::vector<std::string> addresses;
+    std::vector<std::string> previous_addresses;
     for (size_t i = 0; i < 3; ++i) {
         SelectParams(networks[i]);
         BOOST_CHECK_EQUAL(Params().Bech32PQHRP(), prefixes[i]);
@@ -409,11 +411,18 @@ BOOST_AUTO_TEST_CASE(pq_address_network_prefixes)
         addresses.push_back(address);
         BOOST_CHECK(address.find(prefixes[i] + "1") == 0);
         BOOST_CHECK(DecodeDestination(address) == destination);
+        const auto encoded = bech32::Decode(address, bech32::Encoding::BECH32M);
+        const auto previous = bech32::Encode(previous_prefixes[i], encoded.second, bech32::Encoding::BECH32M);
+        previous_addresses.push_back(previous);
+        BOOST_CHECK(DecodeDestination(previous) == destination);
+        BOOST_CHECK_EQUAL(EncodeDestination(DecodeDestination(previous)), address);
+        BOOST_CHECK(!IsValidDestinationString(prefixes[i] + previous.substr(previous_prefixes[i].size())));
         auto upper = address;
         for (char& c : upper) if (c >= 'a' && c <= 'z') c -= 'a' - 'A';
         BOOST_CHECK(DecodeDestination(upper) == destination);
         auto mixed = address;
-        mixed[0] = 'X';
+        mixed[5] = 'Q';
+        mixed[6] = 'X';
         BOOST_CHECK(!IsValidDestinationString(mixed));
         auto damaged = address;
         damaged.back() = damaged.back() == 'q' ? 'p' : 'q';
@@ -421,7 +430,10 @@ BOOST_AUTO_TEST_CASE(pq_address_network_prefixes)
     }
     for (size_t i = 0; i < 3; ++i) {
         SelectParams(networks[i]);
-        for (size_t j = 0; j < 3; ++j) BOOST_CHECK_EQUAL(IsValidDestinationString(addresses[j]), i == j);
+        for (size_t j = 0; j < 3; ++j) {
+            BOOST_CHECK_EQUAL(IsValidDestinationString(addresses[j]), i == j);
+            BOOST_CHECK_EQUAL(IsValidDestinationString(previous_addresses[j]), i == j);
+        }
     }
 }
 
@@ -534,6 +546,9 @@ BOOST_AUTO_TEST_CASE(pq_multisig_canonical_policy_addresses_and_bounds)
     struct RestoreNetwork { std::string network; ~RestoreNetwork() { SelectParams(network); } } restore{network};
     std::vector<std::string> addresses;
     const std::string networks[] = {CBaseChainParams::MAIN, CBaseChainParams::TESTNET, CBaseChainParams::REGTEST};
+    const std::string previous_prefixes[] = {"xvgpq", "xvgtpq", "xvgrpq"};
+    std::vector<std::string> previous_addresses;
+    size_t network_index = 0;
     for (const auto& name : networks) {
         SelectParams(name);
         const auto address = EncodeDestination(PQPolicyHash(id));
@@ -543,6 +558,10 @@ BOOST_AUTO_TEST_CASE(pq_multisig_canonical_policy_addresses_and_bounds)
         addresses.push_back(address);
         const auto bech = bech32::Decode(address, bech32::Encoding::BECH32M);
         BOOST_CHECK(!bech.first.empty());
+        const auto previous = bech32::Encode(previous_prefixes[network_index++], bech.second, bech32::Encoding::BECH32M);
+        previous_addresses.push_back(previous);
+        BOOST_CHECK(DecodeDestination(previous) == CTxDestination(PQPolicyHash(id)));
+        BOOST_CHECK_EQUAL(EncodeDestination(DecodeDestination(previous)), address);
         auto payload = std::vector<unsigned char>(33, 0);
         payload[0] = 2;
         payload.back() = 1;
@@ -552,7 +571,10 @@ BOOST_AUTO_TEST_CASE(pq_multisig_canonical_policy_addresses_and_bounds)
     }
     for (size_t i = 0; i < 3; ++i) {
         SelectParams(networks[i]);
-        for (size_t j = 0; j < 3; ++j) BOOST_CHECK_EQUAL(IsValidDestinationString(addresses[j]), i == j);
+        for (size_t j = 0; j < 3; ++j) {
+            BOOST_CHECK_EQUAL(IsValidDestinationString(addresses[j]), i == j);
+            BOOST_CHECK_EQUAL(IsValidDestinationString(previous_addresses[j]), i == j);
+        }
     }
 }
 

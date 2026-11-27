@@ -50,9 +50,9 @@ return CreateGenesisBlock(pszTimestamp, nTime, nNonce, nBits, nVersion);
 
 std::string CChainParams::Bech32PQHRP() const
 {
-    if (strNetworkID == CBaseChainParams::MAIN) return "xvgpq";
-    if (strNetworkID == CBaseChainParams::TESTNET) return "xvgtpq";
-    if (strNetworkID == CBaseChainParams::REGTEST) return "xvgrpq";
+    if (strNetworkID == CBaseChainParams::MAIN) return "vergeqx";
+    if (strNetworkID == CBaseChainParams::TESTNET) return "vergeqxtest";
+    if (strNetworkID == CBaseChainParams::REGTEST) return "vergeqxreg";
     throw std::runtime_error("No PQ address prefix for this network");
 }
 

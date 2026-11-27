@@ -678,8 +678,19 @@ retired-bond records retain the versioned immutable credentials.
 
 ### Native PQ Spending and Withdrawals
 
-PQ addresses use Bech32m with dedicated lowercase prefixes: `xvgpq1` on
-mainnet, `xvgtpq1` on testnet and `xvgrpq1` on regtest. Existing witness HRPs
+PQ addresses use Bech32m with dedicated lowercase prefixes: `vergeqx1` on
+mainnet, `vergeqxtest1` on testnet and `vergeqxreg1` on regtest. The trailing
+`1` is the required separator, not part of the human-readable prefix. The older
+`xvgpq1`, `xvgtpq1` and `xvgrpq1` forms remain accepted as input aliases only
+on their original networks, for both single-key and multisig destinations.
+Newly encoded addresses always use the new prefix and its recomputed checksum;
+manually replacing an address prefix does not produce a valid address.
+Wallet loading normalizes address-book and destination-metadata keys in bounded,
+atomic batches, preserving existing canonical records if both are present.
+Keys, output scripts, transaction IDs and consensus activation are unchanged;
+no chain reindex or coin migration is required for this encoding change. Older
+software and external explorers still need an update to recognize the new
+prefixes. Existing witness HRPs
 (`vg`, `vt`, `vgrt`) and all legacy address versions are unchanged. Bech32m
 also accepts an entirely uppercase spelling, but never mixed case. The prefix
 is followed by

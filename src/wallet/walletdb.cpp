@@ -324,6 +324,25 @@ void WalletBatch::ListAccountCreditDebit(const std::string& strAccount, std::lis
 
 class CWalletScanState {
 public:
+    struct PQAddressRecord {
+        std::string type;
+        std::string address;
+        std::string key;
+        std::string value;
+        CTxDestination destination;
+    };
+    std::vector<PQAddressRecord> pq_address_records;
+
+    void RecordPQAddress(const std::string& type, const std::string& address,
+                         const std::string& key, const std::string& value,
+                         const CTxDestination& destination)
+    {
+        if ((boost::get<PQKeyHash>(&destination) || boost::get<PQPolicyHash>(&destination)) &&
+            EncodeDestination(destination) != address) {
+            pq_address_records.push_back({type, address, key, value, destination});
+        }
+    }
+
     unsigned int nKeys;
     unsigned int nCKeys;
     unsigned int nWatchKeys;
@@ -353,17 +372,15 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         // Taking advantage of the fact that pair serialization
         // is just the two items serialized one after the other
         ssKey >> strType;
-        if (strType == "name")
+        if (strType == "name" || strType == "purpose")
         {
-            std::string strAddress;
+            std::string strAddress, value;
             ssKey >> strAddress;
-            ssValue >> pwallet->mapAddressBook[DecodeDestination(strAddress)].name;
-        }
-        else if (strType == "purpose")
-        {
-            std::string strAddress;
-            ssKey >> strAddress;
-            ssValue >> pwallet->mapAddressBook[DecodeDestination(strAddress)].purpose;
+            ssValue >> value;
+            const auto destination = DecodeDestination(strAddress);
+            wss.RecordPQAddress(strType, strAddress, "", value, destination);
+            auto& entry = pwallet->mapAddressBook[destination];
+            (strType == "name" ? entry.name : entry.purpose) = value;
         }
         else if (strType == "tx")
         {
@@ -744,11 +761,13 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             ssKey >> strAddress;
             ssKey >> strKey;
             ssValue >> strValue;
-            if (!pwallet->LoadDestData(DecodeDestination(strAddress), strKey, strValue))
+            const auto destination = DecodeDestination(strAddress);
+            if (!pwallet->LoadDestData(destination, strKey, strValue))
             {
                 strErr = "Error reading wallet database: LoadDestData failed";
                 return false;
             }
+            wss.RecordPQAddress(strType, strAddress, strKey, strValue, destination);
         }
         else if (strType == "hdchain")
         {
@@ -876,6 +895,45 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
     if (wss.fIsEncrypted && (wss.nFileVersion == 40000 || wss.nFileVersion == 50000))
         return DBErrors::NEED_REWRITE;
+
+    if (!wss.pq_address_records.empty()) {
+        // Bound BDB locks while renaming metadata; canonical records take precedence.
+        const auto move_record = [&](const auto& old_key, const auto& new_key, std::string& value) {
+            if (m_batch.Exists(new_key)) {
+                if (!m_batch.Read(new_key, value)) return false;
+            } else if (!WriteIC(new_key, value)) {
+                return false;
+            }
+            return EraseIC(old_key);
+        };
+        constexpr size_t BATCH_SIZE = 1000;
+        for (size_t start = 0; start < wss.pq_address_records.size(); start += BATCH_SIZE) {
+            if (!TxnBegin()) return DBErrors::LOAD_FAIL;
+            bool ok = true;
+            const size_t end = std::min(start + BATCH_SIZE, wss.pq_address_records.size());
+            for (size_t i = start; i < end && ok; ++i) {
+                auto& record = wss.pq_address_records[i];
+                const auto canonical = EncodeDestination(record.destination);
+                if (record.type == "destdata") {
+                    ok = move_record(std::make_pair(record.type, std::make_pair(record.address, record.key)),
+                                     std::make_pair(record.type, std::make_pair(canonical, record.key)), record.value);
+                } else {
+                    ok = move_record(std::make_pair(record.type, record.address),
+                                     std::make_pair(record.type, canonical), record.value);
+                }
+            }
+            if (!ok || !TxnCommit(true)) {
+                TxnAbort();
+                return DBErrors::LOAD_FAIL;
+            }
+        }
+        for (const auto& record : wss.pq_address_records) {
+            auto& entry = pwallet->mapAddressBook[record.destination];
+            if (record.type == "name") entry.name = record.value;
+            else if (record.type == "purpose") entry.purpose = record.value;
+            else entry.destdata[record.key] = record.value;
+        }
+    }
 
     if (wss.nFileVersion < CLIENT_VERSION) // Update
         WriteVersion(CLIENT_VERSION);

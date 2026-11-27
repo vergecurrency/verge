@@ -14,6 +14,7 @@
 
 #include <consensus/validation.h>
 #include <arith_uint256.h>
+#include <bech32.h>
 #include <chainparams.h>
 #include <key_io.h>
 #include <pos/stake.h>
@@ -37,6 +38,71 @@ extern UniValue dumpwallet(const JSONRPCRequest& request);
 extern UniValue importwallet(const JSONRPCRequest& request);
 
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
+
+BOOST_FIXTURE_TEST_CASE(pq_address_prefix_metadata_reload, RegTestingSetup)
+{
+    const CTxDestination destination = PQKeyHash(uint256S("1234"));
+    const CTxDestination contact = PQPolicyHash(uint256S("5678"));
+    const std::string address = EncodeDestination(destination);
+    const std::string contact_address = EncodeDestination(contact);
+    const auto previous = [](const std::string& current) {
+        const auto decoded = bech32::Decode(current, bech32::Encoding::BECH32M);
+        return bech32::Encode("xvgrpq", decoded.second, bech32::Encoding::BECH32M);
+    };
+    const std::string old_address = previous(address);
+    const std::string old_contact = previous(contact_address);
+    const fs::path path = GetDataDir() / "pq-prefix-address-book";
+    constexpr size_t METADATA_COUNT = 1025;
+    {
+        auto database = WalletDatabase::Create(path);
+        WalletBatch batch(*database, "cr+");
+        BOOST_REQUIRE(batch.TxnBegin());
+        BOOST_REQUIRE(batch.WriteName(old_address, "Old PQ receive label"));
+        BOOST_REQUIRE(batch.WritePurpose(old_address, "receive"));
+        BOOST_REQUIRE(batch.WriteDestData(old_address, "note", "old value"));
+        BOOST_REQUIRE(batch.WriteDestData(address, "note", "canonical value"));
+        BOOST_REQUIRE(batch.WriteName(old_contact, "Old PQ contact label"));
+        BOOST_REQUIRE(batch.WriteName(contact_address, "Canonical contact label"));
+        BOOST_REQUIRE(batch.WritePurpose(old_contact, "send"));
+        for (size_t i = 0; i < METADATA_COUNT; ++i) {
+            BOOST_REQUIRE(batch.WriteDestData(old_address, "meta" + std::to_string(i), std::to_string(i)));
+        }
+        BOOST_REQUIRE(batch.TxnCommit(true));
+    }
+    for (int reopen = 0; reopen < 3; ++reopen) {
+        CWallet wallet("pq-prefix-address-book", WalletDatabase::Create(path));
+        bool first_run;
+        BOOST_REQUIRE(wallet.LoadWallet(first_run) == DBErrors::LOAD_OK);
+        LOCK(wallet.cs_wallet);
+        BOOST_CHECK(wallet.mapAddressBook.count(CNoDestination()) == 0);
+        const auto& entry = wallet.mapAddressBook.at(destination);
+        BOOST_CHECK_EQUAL(entry.name, reopen == 0 ? "Old PQ receive label" : "Updated PQ label");
+        BOOST_CHECK_EQUAL(entry.purpose, "receive");
+        BOOST_CHECK_EQUAL(entry.destdata.size(), METADATA_COUNT + (reopen == 0 ? 1 : 0));
+        for (size_t i = 0; i < METADATA_COUNT; ++i) {
+            BOOST_CHECK_EQUAL(entry.destdata.at("meta" + std::to_string(i)), std::to_string(i));
+        }
+        if (reopen == 0) {
+            BOOST_CHECK_EQUAL(entry.destdata.at("note"), "canonical value");
+            BOOST_CHECK_EQUAL(wallet.mapAddressBook.at(contact).name, "Canonical contact label");
+            BOOST_REQUIRE(wallet.SetAddressBook(destination, "Updated PQ label", "receive"));
+            BOOST_REQUIRE(wallet.EraseDestData(destination, "note"));
+            BOOST_REQUIRE(wallet.DelAddressBook(contact));
+        } else {
+            BOOST_CHECK(wallet.mapAddressBook.count(contact) == 0);
+        }
+        {
+            BerkeleyBatch batch(wallet.GetDBHandle());
+            BOOST_CHECK(!batch.Exists(std::make_pair(std::string("name"), old_address)));
+            BOOST_CHECK(!batch.Exists(std::make_pair(std::string("purpose"), old_address)));
+            BOOST_CHECK(!batch.Exists(std::make_pair(std::string("name"), old_contact)));
+            BOOST_CHECK(!batch.Exists(std::make_pair(std::string("purpose"), old_contact)));
+            BOOST_CHECK(!batch.Exists(std::make_pair(std::string("destdata"), std::make_pair(old_address, std::string("note")))));
+        }
+        wallet.GetDBHandle().Flush(reopen == 2);
+    }
+    ReleaseDirectoryLocks();
+}
 
 BOOST_FIXTURE_TEST_CASE(pq_keys_survive_reload_encryption_and_backup, TestingSetup)
 {
