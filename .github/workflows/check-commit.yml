@@ -210,8 +210,8 @@ jobs:
           # Keep pkg-config and broad Homebrew include/library paths from mixing releases.
           export CRYPTO_CFLAGS="-I$OPENSSL_PREFIX/include"
           export SSL_CFLAGS="$CRYPTO_CFLAGS"
-          export CRYPTO_LIBS="$OPENSSL_PREFIX/lib/libcrypto.dylib"
-          export SSL_LIBS="$OPENSSL_PREFIX/lib/libssl.dylib"
+          export CRYPTO_LIBS="-L$OPENSSL_PREFIX/lib -lcrypto"
+          export SSL_LIBS="-L$OPENSSL_PREFIX/lib -lssl"
           ./configure \
             --disable-tests \
             --disable-bench \
@@ -225,6 +225,24 @@ jobs:
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
             --with-libevent-dir="$LIBEVENT_PREFIX"
+
+      - name: Verify consensus shared library linkage
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          make -C src -j4 V=1 libvergeconsensus.la
+          CONSENSUS_LIB="$(find src/.libs -maxdepth 1 -type f -name 'libvergeconsensus*.dylib' -print -quit)"
+          if [ -z "$CONSENSUS_LIB" ]; then
+            echo "::error::Consensus shared library was not produced"
+            exit 1
+          fi
+          lipo "$CONSENSUS_LIB" -verify_arch "$EXPECTED_ARCH"
+          otool -L "$CONSENSUS_LIB"
+          if ! otool -L "$CONSENSUS_LIB" | awk 'NR > 1 { print $1 }' | grep -F "$OPENSSL_PREFIX/lib/libcrypto"; then
+            echo "::error::Consensus shared library does not use the pinned OpenSSL"
+            exit 1
+          fi
 
       - name: Build
         run: make -j4
