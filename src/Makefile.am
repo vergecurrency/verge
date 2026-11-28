@@ -20,7 +20,8 @@ else
 LIBUNIVALUE = $(UNIVALUE_LIBS)
 endif
 
-VERGE_INCLUDES  = -I$(builddir) $(BDB_CPPFLAGS) $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_CFLAGS)
+# General dependency include directories may also contain a different OpenSSL.
+VERGE_INCLUDES  = -I$(builddir) $(CRYPTO_CFLAGS) $(SSL_CFLAGS) $(BDB_CPPFLAGS) $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS)
 VERGE_INCLUDES += -I$(srcdir)/secp256k1/include
 VERGE_INCLUDES += $(UNIVALUE_CFLAGS)
 

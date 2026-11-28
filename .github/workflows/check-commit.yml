@@ -207,6 +207,11 @@ jobs:
           export CFLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations"
           export BDB_CFLAGS="-I$BDB_PREFIX/include"
           export BDB_LIBS="-L$BDB_PREFIX/lib -ldb_cxx-4.8"
+          # Keep pkg-config and broad Homebrew include/library paths from mixing releases.
+          export CRYPTO_CFLAGS="-I$OPENSSL_PREFIX/include"
+          export SSL_CFLAGS="$CRYPTO_CFLAGS"
+          export CRYPTO_LIBS="$OPENSSL_PREFIX/lib/libcrypto.dylib"
+          export SSL_LIBS="$OPENSSL_PREFIX/lib/libssl.dylib"
           ./configure \
             --disable-tests \
             --disable-bench \
@@ -219,7 +224,6 @@ jobs:
             --with-boost="$BOOST_PREFIX" \
             --bindir="$(pwd)/release/bin" \
             --libdir="$(pwd)/release/lib" \
-            --with-openssl-dir="$OPENSSL_PREFIX" \
             --with-libevent-dir="$LIBEVENT_PREFIX"
 
       - name: Build

@@ -1168,6 +1168,27 @@ AC_CHECK_DECLS([EVP_MD_CTX_new],,,[AC_INCLUDES_DEFAULT
 ])
 CXXFLAGS="${save_CXXFLAGS}"
 
+dnl Exercise the typed stack wrappers, which can require version-specific symbols.
+dnl Keep the same OpenSSL-first include order used by VERGE_INCLUDES.
+save_CPPFLAGS="$CPPFLAGS"
+save_LIBS="$LIBS"
+CPPFLAGS="$CRYPTO_CFLAGS $SSL_CFLAGS $BDB_CPPFLAGS $BOOST_CPPFLAGS $CPPFLAGS"
+LIBS="$SSL_LIBS $CRYPTO_LIBS $LIBS"
+AC_MSG_CHECKING([whether OpenSSL headers and libraries link together])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <openssl/x509.h>
+]], [[
+  STACK_OF(X509)* chain = sk_X509_new_null();
+  if (chain == nullptr) return 1;
+  sk_X509_push(chain, nullptr);
+  sk_X509_free(chain);
+]])],
+  [AC_MSG_RESULT(yes)],
+  [AC_MSG_RESULT(no)
+   AC_MSG_ERROR([OpenSSL headers and libraries are incompatible. Select matching CRYPTO_CFLAGS, SSL_CFLAGS, CRYPTO_LIBS and SSL_LIBS; check config.log for the failed link.])])
+CPPFLAGS="$save_CPPFLAGS"
+LIBS="$save_LIBS"
+
 dnl univalue check
 
 need_bundled_univalue=yes
