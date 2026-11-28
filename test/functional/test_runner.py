@@ -80,6 +80,7 @@ BASE_SCRIPTS = [
     'feature_maxuploadtarget.py',
     'feature_block.py',
     'feature_pos_activation.py',
+    'feature_pos_block_limits.py',
     'feature_pos_public_eligibility.py',
     'feature_pos_post_quantum.py',
     'feature_pos_transition.py',

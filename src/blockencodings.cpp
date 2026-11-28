@@ -50,8 +50,12 @@ uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const uint256& txhash) const {
 ReadStatus PartiallyDownloadedBlock::InitData(const CBlockHeaderAndShortTxIDs& cmpctblock, const std::vector<std::pair<uint256, CTransactionRef>>& extra_txn) {
     if (cmpctblock.header.IsNull() || (cmpctblock.shorttxids.empty() && cmpctblock.prefilledtxn.empty()))
         return READ_STATUS_INVALID;
-    if (cmpctblock.shorttxids.size() + cmpctblock.prefilledtxn.size() > MAX_BLOCK_WEIGHT / MIN_SERIALIZABLE_TRANSACTION_WEIGHT)
+    if (cmpctblock.shorttxids.size() + cmpctblock.prefilledtxn.size() >
+        GetMaxBlockWeight(pos::IsPoSVersion(cmpctblock.header.nVersion)) / MIN_SERIALIZABLE_TRANSACTION_WEIGHT)
         return READ_STATUS_INVALID;
+    // Compact-block indexes are 16-bit; large valid blocks use full transport.
+    if (cmpctblock.BlockTxCount() > std::numeric_limits<uint16_t>::max())
+        return READ_STATUS_FAILED;
 
     assert(header.IsNull() && txn_available.empty());
     header = cmpctblock.header;

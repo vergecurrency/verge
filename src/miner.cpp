@@ -62,22 +62,30 @@ int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParam
 
 BlockAssembler::Options::Options() {
     blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
-    nBlockMaxWeight = DEFAULT_BLOCK_MAX_WEIGHT;
+    nBlockMaxWeight = 0;
 }
 
 BlockAssembler::BlockAssembler(const CChainParams& params, const Options& options) : chainparams(params)
 {
     blockMinFeeRate = options.blockMinFeeRate;
-    // Limit weight to between 4K and MAX_BLOCK_WEIGHT-4K for sanity:
-    nBlockMaxWeight = std::max<size_t>(4000, std::min<size_t>(MAX_BLOCK_WEIGHT - 4000, options.nBlockMaxWeight));
+    nBlockConfiguredMaxWeight = options.nBlockMaxWeight;
+    SetBlockLimits(false);
+}
+
+void BlockAssembler::SetBlockLimits(bool proof_of_stake)
+{
+    const size_t maximum = GetMaxBlockWeight(proof_of_stake) - 4000;
+    nBlockMaxWeight = std::max<size_t>(4000, std::min(maximum,
+        nBlockConfiguredMaxWeight == 0 ? maximum : nBlockConfiguredMaxWeight));
+    nBlockMaxSigOpsCost = GetMaxBlockSigOpsCost(proof_of_stake);
 }
 
 static BlockAssembler::Options DefaultOptions()
 {
     // Block resource limits
-    // If -blockmaxweight is not given, limit to DEFAULT_BLOCK_MAX_WEIGHT
+    // Without an override, follow the candidate's PoW/PoS consensus limit.
     BlockAssembler::Options options;
-    options.nBlockMaxWeight = gArgs.GetArg("-blockmaxweight", DEFAULT_BLOCK_MAX_WEIGHT);
+    options.nBlockMaxWeight = gArgs.GetArg("-blockmaxweight", 0);
     if (gArgs.IsArgSet("-blockmintxfee")) {
         CAmount n = 0;
         ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n);
@@ -125,6 +133,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     CBlockIndex* pindexPrev = chainActive.Tip();
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
+    SetBlockLimits(false);
     
     // bitcoins version of computing the version based on the deployment status (not yet needed for us)
     // pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
@@ -252,6 +261,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     nHeight = pindexPrev->nHeight + 1;
     const Consensus::Params& consensus = chainparams.GetConsensus();
     if (!consensus.IsPoSActive(nHeight)) return nullptr;
+    SetBlockLimits(true);
 
     pblock->nVersion = BLOCK_VERSION_DEFAULT | pos::BLOCK_VERSION_POS;
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
@@ -292,7 +302,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewPoSBlock(
     // Include consensus attachments before selecting packages. Reserve the
     // largest possible transaction-count CompactSize growth as well.
     nBlockWeight = GetBlockWeight(*pblock) + WITNESS_SCALE_FACTOR *
-        (GetSizeOfCompactSize(MAX_BLOCK_WEIGHT) - GetSizeOfCompactSize(1));
+        (GetSizeOfCompactSize(MAX_POS_BLOCK_WEIGHT) - GetSizeOfCompactSize(1));
     nBlockSigOpsCost = GetLegacySigOpCount(*pblock->vtx[0]) *
         WITNESS_SCALE_FACTOR;
     if (nBlockWeight >= nBlockMaxWeight) return nullptr;
@@ -378,7 +388,7 @@ bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOpsCost
     // TODO: switch to weight-based accounting for packages instead of vsize-based accounting.
     if (nBlockWeight + WITNESS_SCALE_FACTOR * packageSize >= nBlockMaxWeight)
         return false;
-    if (nBlockSigOpsCost + packageSigOpsCost >= MAX_BLOCK_SIGOPS_COST)
+    if (nBlockSigOpsCost + packageSigOpsCost >= nBlockMaxSigOpsCost)
         return false;
 
     return true;

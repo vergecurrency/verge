@@ -12,6 +12,7 @@
 #include <amount.h>
 #include <bloom.h>
 #include <compat.h>
+#include <consensus/consensus.h>
 #include <crypto/siphash.h>
 #include <hash.h>
 #include <limitedmap.h>
@@ -52,8 +53,16 @@ static const int FEELER_INTERVAL = 120;
 static const unsigned int MAX_INV_SZ = 50000;
 /** The maximum number of new addresses to accumulate before announcing. */
 static const unsigned int MAX_ADDR_TO_SEND = 1000;
-/** Maximum length of incoming protocol messages (no message over 4 MB is currently acceptable). */
-static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 4 * 1000 * 1000;
+/** Compact-block framing may exceed the serialized full-block size. */
+static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 2 * MAX_BLOCK_SERIALIZED_SIZE;
+
+inline unsigned int GetMaxProtocolMessageLength(const std::string& command)
+{
+    if (command == NetMsgType::BLOCK) return MAX_BLOCK_SERIALIZED_SIZE;
+    if (command == NetMsgType::CMPCTBLOCK || command == NetMsgType::BLOCKTXN)
+        return MAX_PROTOCOL_MESSAGE_LENGTH;
+    return 4000000;
+}
 /** Maximum length of strSubVer in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 /** Maximum number of automatic outgoing nodes */

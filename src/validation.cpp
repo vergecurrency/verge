@@ -2030,6 +2030,13 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         return false;
     }
     const bool is_pos = consensus.IsPoSActive(pindex->nHeight);
+    if (is_pos != pos::IsPoSVersion(block.nVersion)) {
+        return state.DoS(100, false, REJECT_INVALID,
+                         is_pos ? "bad-pow-after-pos" : "bad-pos-before-activation");
+    }
+    if (GetBlockWeight(block) > GetMaxBlockWeight(is_pos)) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-blk-weight");
+    }
     pos::State next_pos_state;
     pos::StateUndo next_pos_undo;
     pos::SlotInfo pos_slot;
@@ -2339,7 +2346,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         // * p2sh (when P2SH enabled in flags and excludes coinbase)
         // * witness (when witness enabled in flags and excludes coinbase)
         nSigOpsCost += GetTransactionSigOpCost(tx, view, flags);
-        if (nSigOpsCost > MAX_BLOCK_SIGOPS_COST)
+        if (nSigOpsCost > GetMaxBlockSigOpsCost(is_pos))
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
 
@@ -3939,7 +3946,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     }
 
     // Size limits
-    if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
+    const bool proof_of_stake = pos::IsPoSVersion(block.nVersion);
+    const unsigned int max_block_weight = GetMaxBlockWeight(proof_of_stake);
+    if (block.vtx.empty() || block.vtx.size() > max_block_weight / WITNESS_SCALE_FACTOR || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > max_block_weight)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
 
     // First transaction must be coinbase, the rest must not be
@@ -3971,7 +3980,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     {
         nSigOps += GetLegacySigOpCount(*tx);
     }
-    if (nSigOps * WITNESS_SCALE_FACTOR > MAX_BLOCK_SIGOPS_COST)
+    if (nSigOps * WITNESS_SCALE_FACTOR > GetMaxBlockSigOpsCost(proof_of_stake))
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false, "out-of-bounds SigOpCount");
 
     if (pos::IsPoSVersion(block.nVersion)) {
@@ -4302,7 +4311,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     // large by filling up the coinbase witness, which doesn't change
     // the block hash, so we couldn't mark the block as permanently
     // failed).
-    if (GetBlockWeight(block) > MAX_BLOCK_WEIGHT) {
+    if (GetBlockWeight(block) > GetMaxBlockWeight(consensusParams.IsPoSActive(nHeight))) {
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-weight", false, strprintf("%s : weight limit failed", __func__));
     }
 

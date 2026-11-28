@@ -135,7 +135,9 @@ private:
 
     // Configuration parameters for the block size
     bool fIncludeWitness;
+    size_t nBlockConfiguredMaxWeight;
     unsigned int nBlockMaxWeight;
+    uint64_t nBlockMaxSigOpsCost;
     CFeeRate blockMinFeeRate;
 
     // Information on the current status of the block
@@ -153,6 +155,7 @@ private:
 public:
     struct Options {
         Options();
+        // Zero selects the consensus limit for the candidate, less reserve.
         size_t nBlockMaxWeight;
         CFeeRate blockMinFeeRate;
     };
@@ -176,6 +179,7 @@ private:
     // utility functions
     /** Clear the block's state and prepare for assembling a new block */
     void resetBlock();
+    void SetBlockLimits(bool proof_of_stake);
     /** Add a tx to the block */
     void AddToBlock(CTxMemPool::txiter iter);
 

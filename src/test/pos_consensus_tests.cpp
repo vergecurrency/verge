@@ -4,6 +4,7 @@
 
 #include <pos/forkchoice.h>
 #include <chainparams.h>
+#include <consensus/consensus.h>
 #include <pos/consensus.h>
 #include <net_processing.h>
 #include <test/setup_common.h>
@@ -57,6 +58,26 @@ BOOST_AUTO_TEST_CASE(slot_boundaries)
 
     BOOST_CHECK(!pos::GetSlotInfo(final_pow_time, first_time + 1, params, info));
     BOOST_CHECK(!pos::GetSlotInfo(final_pow_time, first_time - 30, params, info));
+}
+
+BOOST_AUTO_TEST_CASE(block_limits_change_at_pos_not_prebonding)
+{
+    for (const auto& network : {CBaseChainParams::MAIN, CBaseChainParams::TESTNET,
+                                CBaseChainParams::REGTEST}) {
+        const auto chain = CreateChainParams(network);
+        if (network == CBaseChainParams::REGTEST) chain->UpdatePoSActivationHeight(1500);
+        const auto& params = chain->GetConsensus();
+        for (const int height : {params.nPoSBondRulesHeight,
+                                  params.nPoSActivationHeight - 1}) {
+            BOOST_CHECK_EQUAL(GetMaxBlockWeight(params.IsPoSActive(height)), 4000000U);
+            BOOST_CHECK_EQUAL(GetMaxBlockSigOpsCost(params.IsPoSActive(height)), 80000);
+        }
+        for (const int height : {params.nPoSActivationHeight,
+                                  params.nPoSActivationHeight + 1}) {
+            BOOST_CHECK_EQUAL(GetMaxBlockWeight(params.IsPoSActive(height)), 32000000U);
+            BOOST_CHECK_EQUAL(GetMaxBlockSigOpsCost(params.IsPoSActive(height)), 640000);
+        }
+    }
 }
 
 BOOST_AUTO_TEST_CASE(initial_snapshot_height)

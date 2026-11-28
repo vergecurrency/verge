@@ -6,11 +6,14 @@
 #include <pos/crypto.h>
 #include <pos/consensus.h>
 #include <chainparams.h>
+#include <blockencodings.h>
+#include <core_io.h>
 #include <consensus/validation.h>
 #include <consensus/merkle.h>
 #include <miner.h>
 #include <primitives/block.h>
 #include <netmessagemaker.h>
+#include <net.h>
 #include <protocol.h>
 #include <streams.h>
 #include <test/setup_common.h>
@@ -54,7 +57,122 @@ pos::BlockExtension MakeExtension()
     return extension;
 }
 
+CBlock MakeSizedBlock(bool proof_of_stake, size_t size)
+{
+    CBlock block;
+    block.nVersion = 2 | (proof_of_stake ? pos::BLOCK_VERSION_POS : 0);
+    CMutableTransaction reward;
+    reward.nTime = block.nTime;
+    reward.vin.resize(1);
+    reward.vin[0].prevout.SetNull();
+    reward.vin[0].scriptSig = CScript() << OP_0 << OP_0;
+    reward.vout.emplace_back(0, CScript() << OP_TRUE);
+    block.vtx.push_back(MakeTransactionRef(reward));
+    for (size_t i = 0; i < size / 50000; ++i) {
+        CMutableTransaction tx;
+        tx.nTime = block.nTime;
+        tx.vin.emplace_back(COutPoint(uint256S("01"), i));
+        CScript padding;
+        padding.resize(50000);
+        tx.vout.emplace_back(0, padding);
+        block.vtx.push_back(MakeTransactionRef(tx));
+    }
+    if (proof_of_stake) {
+        block.posExtension = MakeExtension();
+        unsigned char secret[32]{};
+        secret[31] = 3;
+        auto& extension = block.posExtension;
+        BOOST_REQUIRE(pos::GetSchnorrPublicKey(secret, extension.stake_proof.signing_public_key));
+        extension.authorization.stake_proof_hash =
+            pos::GetTaggedHash(pos::HashDomain::STAKE_PROOF, extension.stake_proof);
+        unsigned char auxiliary[32]{};
+        unsigned char public_key[32];
+        BOOST_REQUIRE(pos::SignSchnorr(secret,
+            pos::GetBlockSigningHash(extension.authorization), auxiliary,
+            extension.authorization.signature, public_key));
+        block.hashPoSData = pos::ComputePoSDataHash(extension);
+    }
+    CMutableTransaction last(*block.vtx.back());
+    const int64_t delta = static_cast<int64_t>(size) -
+        static_cast<int64_t>(GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION));
+    last.vout[0].scriptPubKey.resize(
+        static_cast<int64_t>(last.vout[0].scriptPubKey.size()) + delta);
+    block.vtx.back() = MakeTransactionRef(last);
+    block.hashMerkleRoot = BlockMerkleRoot(block);
+    BOOST_REQUIRE_EQUAL(GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION), size);
+    return block;
+}
+
 } // namespace
+
+BOOST_AUTO_TEST_CASE(proof_specific_size_boundaries_and_disk_decoder)
+{
+    for (const bool proof_of_stake : {false, true}) {
+        const size_t maximum = GetMaxBlockWeight(proof_of_stake) / WITNESS_SCALE_FACTOR;
+        CBlock block = MakeSizedBlock(proof_of_stake, maximum);
+        CValidationState state;
+        BOOST_CHECK(CheckBlock(block, state, Params().GetConsensus(), false, true, false));
+        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        stream << block;
+        CBlock decoded;
+        BOOST_REQUIRE(DecodeHexBlk(decoded, HexStr(stream.begin(), stream.end())));
+        BOOST_CHECK_EQUAL(decoded.GetHash(), block.GetHash());
+        block = MakeSizedBlock(proof_of_stake, maximum + 1);
+        CValidationState oversized;
+        BOOST_CHECK(!CheckBlock(block, oversized, Params().GetConsensus(), false, true, false));
+        BOOST_CHECK_EQUAL(oversized.GetRejectReason(), "bad-blk-length");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(block_transport_envelopes_do_not_expand_unrelated_messages)
+{
+    for (const std::string command : {NetMsgType::BLOCK, NetMsgType::CMPCTBLOCK,
+                                      NetMsgType::BLOCKTXN, NetMsgType::TX, NetMsgType::POSBLOCKS}) {
+        const unsigned int maximum = GetMaxProtocolMessageLength(command);
+        BOOST_CHECK_EQUAL(maximum, command == NetMsgType::BLOCK ? 8000000U :
+            (command == NetMsgType::CMPCTBLOCK || command == NetMsgType::BLOCKTXN ? 16000000U : 4000000U));
+        for (const bool oversized : {false, true}) {
+            CNode node(0, NODE_NETWORK, 0, INVALID_SOCKET, CAddress(), 0, 0, CAddress());
+            CMessageHeader header(Params().MessageStart(), command.c_str(), maximum + oversized);
+            CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+            stream << header;
+            bool complete = false;
+            BOOST_CHECK_EQUAL(node.ReceiveMsgBytes(stream.data(), stream.size(), complete), !oversized);
+            BOOST_CHECK(!complete);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(proof_specific_legacy_sigop_boundaries)
+{
+    for (const bool proof_of_stake : {false, true}) {
+        CBlock block = MakeSizedBlock(proof_of_stake, 500000);
+        const size_t allowed = GetMaxBlockSigOpsCost(proof_of_stake) / WITNESS_SCALE_FACTOR;
+        for (const bool oversized : {false, true}) {
+            CMutableTransaction tx(*block.vtx[1]);
+            tx.vout[0].scriptPubKey.resize(allowed + oversized);
+            std::fill(tx.vout[0].scriptPubKey.begin(), tx.vout[0].scriptPubKey.end(), OP_CHECKSIG);
+            block.vtx[1] = MakeTransactionRef(tx);
+            block.hashMerkleRoot = BlockMerkleRoot(block);
+            CValidationState state;
+            BOOST_CHECK_EQUAL(CheckBlock(block, state, Params().GetConsensus(), false, true, false), !oversized);
+            if (oversized) BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-blk-sigops");
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(large_compact_block_falls_back_before_16bit_indexes_overflow)
+{
+    CBlock block;
+    block.nVersion = 2 | pos::BLOCK_VERSION_POS;
+    CMutableTransaction tx;
+    tx.vin.resize(1);
+    tx.vout.emplace_back(0, CScript() << OP_TRUE);
+    block.vtx.resize(65537, MakeTransactionRef(tx));
+    CBlockHeaderAndShortTxIDs compact(block, false);
+    PartiallyDownloadedBlock download(&mempool);
+    BOOST_CHECK(download.InitData(compact, {}) == READ_STATUS_FAILED);
+}
 
 BOOST_AUTO_TEST_CASE(corrupt_extension_does_not_invalidate_committed_header)
 {
@@ -498,6 +616,49 @@ struct PoSAssemblerTestingSetup : RegTestingSetup {
 } // namespace
 
 BOOST_FIXTURE_TEST_SUITE(pos_assembler_tests, PoSAssemblerTestingSetup)
+
+BOOST_AUTO_TEST_CASE(default_limits_expand_for_pos_and_respect_explicit_weight)
+{
+    LOCK2(cs_main, mempool.cs);
+    mempool.clear();
+    TestMemPoolEntryHelper entry;
+    for (uint32_t i = 0; i < 2000; ++i) {
+        CMutableTransaction tx;
+        tx.nTime = block_time;
+        tx.vin.emplace_back(COutPoint(uint256S("1234"), i));
+        tx.vout.emplace_back(1, CScript() << std::vector<unsigned char>(4000, 0));
+        mempool.addUnchecked(tx.GetHash(), entry.Fee(COIN).SigOpsCost(200).FromTx(tx));
+    }
+    params->UpdatePoSActivationHeight(100);
+    chainActive.SetTip(original_tip);
+    // Synthetic inputs stop validation after assembly; inspect the selected budget.
+    BOOST_CHECK_THROW(BlockAssembler(*params).CreateNewBlock(CScript() << OP_TRUE), std::runtime_error);
+    BOOST_CHECK(nLastBlockWeight <= MAX_BLOCK_WEIGHT - 4000);
+    BOOST_CHECK(nLastBlockTx < 400);
+
+    params->UpdatePoSActivationHeight(1);
+    chainActive.SetTip(&replacement);
+    for (const size_t configured : {size_t{0}, size_t{2000000}}) {
+        BlockAssembler::Options options;
+        options.nBlockMaxWeight = configured;
+        bool reached = false;
+        BOOST_CHECK(!BlockAssembler(*params, options).CreateNewPoSBlock(
+            proof, pos::BondRecord(), secret, block_time + 30, replacement.GetBlockHash(),
+            [&](const pos::BlockAuthorization&) {
+                reached = true;
+                if (configured == 0) {
+                    BOOST_CHECK(nLastBlockWeight > 30000000);
+                    BOOST_CHECK(nLastBlockWeight <= MAX_POS_BLOCK_WEIGHT - 4000);
+                    BOOST_CHECK(nLastBlockTx > 1500);
+                } else {
+                    BOOST_CHECK(nLastBlockWeight <= configured);
+                }
+                return false;
+            }));
+        BOOST_CHECK(reached);
+    }
+    mempool.clear();
+}
 
 BOOST_AUTO_TEST_CASE(discard_proof_when_parent_advances)
 {

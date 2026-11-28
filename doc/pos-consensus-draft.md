@@ -331,13 +331,29 @@ PoS uses version bit `1 << 15`, which is distinct from the five PoW algorithm bi
 
 | Field | Consensus limit |
 | --- | ---: |
+| PoS serialized block size, including all extensions | 8,000,000 bytes |
+| PoS block weight | 32,000,000 weight units |
+| PoS signature-operation cost | 640,000 |
 | RFC 9381 P-256 VRF proof | exactly 81 bytes |
 | VRF output | exactly 32 bytes |
 | BIP340 block or vote signature | exactly 64 bytes |
 | Checkpoint votes per block | Version 1: 1,024; version 2: 192 |
 | Equivocation evidence records per block | 16 maximum |
 
-The VRF sizes in this table apply to classical mode; version 2 retains zero-filled VRF key/proof fields and requires hybrid authentication as specified below. All extension bytes count toward the existing serialized block-size and weight limits. Counts are decoded with existing canonical compact-size rules but are rejected against their PoS-specific maxima before allocation. Vote entries and evidence records are sorted canonically and unique.
+The larger block limits begin exactly at `nPoSActivationHeight`, not at the
+earlier bond/PQ rules height. Historical PoW blocks retain their 4,000,000-weight
+and 80,000-sigop limits (effectively 1 MB without witness). Individual transaction
+limits and standardness policy are unchanged. Slot duration, epoch length and
+bond lifecycle windows are unchanged. Default assembly follows the applicable
+block-weight limit with a 4,000-weight reserve; `-blockmaxweight` can lower it.
+
+The VRF sizes in this table apply to classical mode; version 2 retains zero-filled VRF key/proof fields and requires hybrid authentication as specified below. All extension bytes count toward the block-size and weight limits. Counts are decoded with existing canonical compact-size rules but are rejected against their PoS-specific maxima before allocation. Vote entries and evidence records are sorted canonically and unique.
+
+Full-block transport and disk decoding support 8 MB. Compact-block messages have
+a bounded 16-MB framing envelope, while unrelated messages retain the 4-MB
+envelope. The 2-MiB PoS prefetch budget is unchanged: a larger block falls back to
+normal full-block download. Compact blocks exceeding the transport's 16-bit
+transaction-index capacity also fall back to full-block download.
 
 Local assembly installs the selected extension and reserves its serialized
 weight, reward transaction and transaction-count overhead before selecting
